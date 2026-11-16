@@ -26,16 +26,100 @@
  * ==========================================================
  */
 
-export const HOME_MODULES = ["weather", "lelu", "now", "apps", "workspaces", "notifications", "library", "activity"] as const;
+import { readStyle, type HomeStyle } from "./homeStyle";
+
+export const HOME_MODULES = ["weather", "lelu", "now", "apps", "workspaces", "notifications", "library", "activity", "ask"] as const;
 export type HomeModuleId = (typeof HOME_MODULES)[number];
+
+/** Modules a layout must ask for: absent from its order, they start hidden (shown from the dock in edit mode). */
+export const OPTIONAL_MODULES: HomeModuleId[] = ["ask"];
 
 export type DeviceClass = "phone" | "tablet" | "desktop";
 export const DEVICE_CLASSES: DeviceClass[] = ["phone", "tablet", "desktop"];
 
 /** Layout families the engine can solve. */
-export type CompositionKind = "bento" | "grid" | "masonry" | "split" | "orbit" | "spatial" | "focus" | "deck" | "layered" | "freeform";
+export type CompositionKind =
+  | "bento"
+  | "grid"
+  | "masonry"
+  | "split"
+  | "orbit"
+  | "spatial"
+  | "focus"
+  | "deck"
+  | "layered"
+  | "freeform"
+  // Mission 15.1: the families the sixty concepts needed
+  | "column"
+  | "strip"
+  | "rows"
+  | "stage"
+  | "lanes"
+  | "radial"
+  | "constellation"
+  | "scatter"
+  | "twozone";
 
-export type TemplateId =
+export const COMPOSITION_KINDS: Array<{ id: CompositionKind; name: string; blurb: string; absolute?: boolean }> = [
+  { id: "bento", name: "Bento", blurb: "Mixed-size tiles packed with no gaps." },
+  { id: "grid", name: "Uniform grid", blurb: "Equal tiles, equal weight." },
+  { id: "masonry", name: "Masonry", blurb: "Equal-width lanes, shortest lane first." },
+  { id: "split", name: "Split", blurb: "A primary pane and a side pane." },
+  { id: "stage", name: "Stage", blurb: "One surface on stage, the rest in a side strip." },
+  { id: "lanes", name: "Lanes (board)", blurb: "Columns in order, like a board." },
+  { id: "column", name: "Column / feed", blurb: "One readable column, top to bottom." },
+  { id: "strip", name: "Strip + body", blurb: "Small modules in a strip across the top, the rest below." },
+  { id: "rows", name: "Carousel rows", blurb: "Horizontal rows you swipe through." },
+  { id: "deck", name: "Deck", blurb: "Full-height cards in one swipeable row." },
+  { id: "focus", name: "Focus", blurb: "Only what matters; the rest waits in the dock." },
+  { id: "layered", name: "Layered", blurb: "A grid with a near and a far layer." },
+  { id: "orbit", name: "Orbit", blurb: "Modules orbit the first one.", absolute: true },
+  { id: "spatial", name: "Depth planes", blurb: "Near and far planes in perspective.", absolute: true },
+  { id: "radial", name: "Radial fan", blurb: "Modules fan out on an arc from one point.", absolute: true },
+  { id: "constellation", name: "Constellation", blurb: "Nodes linked like stars.", absolute: true },
+  { id: "scatter", name: "Card table", blurb: "Cards dealt at angles.", absolute: true },
+  { id: "twozone", name: "Orbit band + bento", blurb: "An orbit band on top, a bento below.", absolute: true },
+  { id: "freeform", name: "Freeform", blurb: "Every surface where you put it.", absolute: true },
+];
+
+export const ABSOLUTE_KINDS = new Set<CompositionKind>(COMPOSITION_KINDS.filter((k) => k.absolute).map((k) => k.id));
+
+/** How a layout re-orders itself at render time (never rewriting the saved order). */
+export type AdaptiveMode = "none" | "signals" | "time" | "usage";
+
+/** Tunable parameters of a layout (all optional; the engine has a default for each). */
+export interface LayoutParams {
+  /** masonry · lanes · rows: how many lanes/rows (2..6). */
+  lanes?: number;
+  /** split · stage: the primary pane's share (0.2..0.9). */
+  ratio?: number;
+  /** 0 compact … 1 airy: gap and row height. */
+  density?: number;
+  /** scatter: the largest tilt, degrees (0..20). */
+  tilt?: number;
+  /** spatial · layered: how deep the far plane sits (0..1). */
+  depth?: number;
+  /** column · focus: the column's largest width in px (0 = full). */
+  maxWidth?: number;
+  /** 0..0.6 of the width kept clear as a window onto the live Cosmos (Split Reality). */
+  window?: number;
+  /** constellation: draw the links. */
+  links?: boolean;
+  /** Grouped modules: tabs (one at a time) or stacked (all visible). */
+  groupView?: "tabs" | "stack";
+  adaptive?: AdaptiveMode;
+  /** lanes · rows: header labels. */
+  laneNames?: string[];
+  /** deck: cards overlap like a hand of cards (swipe card stack). */
+  stacked?: boolean;
+  /** column: a timeline rail with a dot per module. */
+  rail?: boolean;
+  /** strip: small collapsed modules drawn as story rings. */
+  rings?: boolean;
+}
+
+export type TemplateId = string;
+export type BuiltinTemplateId =
   | "bento-universe"
   | "cosmos-orbit"
   | "spatial-home"
@@ -81,10 +165,26 @@ export interface DeviceProfile {
 export interface HomePresentation {
   id: string;
   name: string;
+  /** The layout it started from: a built-in id, a concept id or a custom layout id. */
   template: TemplateId;
+  /** The layout itself, for anything that is not one of the twelve built-ins (concepts, blends, her own). */
+  recipe?: HomeTemplate;
+  /** Theme, fonts and borders. Absent = the original LÉLU look. */
+  style?: HomeStyle;
   profiles: Record<DeviceClass, DeviceProfile>;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface DeviceOverride {
+  sizes?: Partial<Record<HomeModuleId, ModuleSize>>;
+  hidden?: HomeModuleId[];
+  docked?: HomeModuleId[];
+  order?: HomeModuleId[];
+  pinned?: HomeModuleId[];
+  collapsed?: HomeModuleId[];
+  floats?: Partial<Record<HomeModuleId, NRect>>;
+  groups?: Array<{ id: string; members: HomeModuleId[] }>;
 }
 
 export interface HomeTemplate {
@@ -93,13 +193,27 @@ export interface HomeTemplate {
   /** One line: what the composition is for. */
   blurb: string;
   kind: Record<DeviceClass, CompositionKind>;
+  params?: LayoutParams;
+  /** Per-device parameter overrides. */
+  deviceParams?: Partial<Record<DeviceClass, LayoutParams>>;
+  /** The look this layout suggests (concepts that are about a look, e.g. layered glass). */
+  style?: Partial<HomeStyle>;
+  /** Which of the sixty concepts it realises (1-based), if any. */
+  concept?: number;
+  /** Layouts it was blended or merged from. */
+  parents?: string[];
+  /** Made by her (a new layout, a blend, a merge or an edited copy). */
+  custom?: boolean;
   order: HomeModuleId[];
   sizes: Partial<Record<HomeModuleId, ModuleSize>>;
   /** Overrides per device (e.g. phone hides the library). */
-  device?: Partial<Record<DeviceClass, { sizes?: Partial<Record<HomeModuleId, ModuleSize>>; hidden?: HomeModuleId[]; docked?: HomeModuleId[]; order?: HomeModuleId[] }>>;
+  device?: Partial<Record<DeviceClass, DeviceOverride>>;
   pinned?: HomeModuleId[];
   hidden?: HomeModuleId[];
   docked?: HomeModuleId[];
+  collapsed?: HomeModuleId[];
+  /** Surfaces that start floating, at these rects (0..1 of the Home). */
+  floats?: Partial<Record<HomeModuleId, NRect>>;
   groups?: Array<{ id: string; members: HomeModuleId[] }>;
 }
 
@@ -112,6 +226,7 @@ export const MODULE_LABEL: Record<HomeModuleId, string> = {
   notifications: "Notifications",
   library: "Infinite Library",
   activity: "Activity",
+  ask: "Ask LÉLU",
 };
 
 /** Which existing Genesis panel each module expands into (Workspace transition). */
@@ -124,6 +239,7 @@ export const MODULE_PANEL: Record<HomeModuleId, string | null> = {
   notifications: "notifications",
   library: null,
   activity: "cognitive-trace",
+  ask: "chat",
 };
 
 const ALL = [...HOME_MODULES];
@@ -246,6 +362,20 @@ export function templateFor(id: TemplateId | string): HomeTemplate {
   return TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0];
 }
 
+export function isBuiltin(id: string): boolean {
+  return TEMPLATES.some((t) => t.id === id);
+}
+
+/** The layout a presentation follows: its own recipe, else the built-in it names. */
+export function layoutOf(p: Pick<HomePresentation, "template" | "recipe">): HomeTemplate {
+  return p.recipe ?? templateFor(p.template);
+}
+
+/** A layout's parameters for one device (device overrides win). */
+export function paramsFor(layout: HomeTemplate, device: DeviceClass): LayoutParams {
+  return { ...(layout.params ?? {}), ...(layout.deviceParams?.[device] ?? {}) };
+}
+
 export function deviceClassFor(width: number): DeviceClass {
   if (width < 700) return "phone";
   if (width < 1100) return "tablet";
@@ -276,17 +406,25 @@ export function profileFromTemplate(template: HomeTemplate, device: DeviceClass)
   const modules = {} as Record<HomeModuleId, ModuleSettings>;
   for (const id of ALL) {
     const s = defaultSettings(over.sizes?.[id] ?? template.sizes[id] ?? "m");
-    s.hidden = Boolean(template.hidden?.includes(id) || over.hidden?.includes(id));
-    s.pinned = Boolean(template.pinned?.includes(id));
-    if (template.docked?.includes(id) || over.docked?.includes(id)) s.mode = "dock";
-    const group = template.groups?.find((g) => g.members.includes(id));
-    if (group) s.group = group.id;
+    const optionalUnasked = OPTIONAL_MODULES.includes(id) && !template.order.includes(id) && !over.order?.includes(id);
+    // A device's own list replaces the layout-wide one (so a saved layout can show what its parent hid).
+    s.hidden = over.hidden ? over.hidden.includes(id) : Boolean(template.hidden?.includes(id) || optionalUnasked);
+    s.pinned = Boolean((over.pinned ?? template.pinned)?.includes(id));
+    s.collapsed = Boolean((over.collapsed ?? template.collapsed)?.includes(id));
+    if ((over.docked ?? template.docked)?.includes(id)) s.mode = "dock";
+    const rect = (over.floats ?? template.floats)?.[id];
+    if (rect && s.mode !== "dock") {
+      s.mode = "float";
+      s.float = snapRect(rect);
+    }
+    const group = (over.groups ?? template.groups)?.find((g) => g.members.includes(id));
+    if (group && s.mode === "grid") s.group = group.id;
     modules[id] = s;
   }
   if (template.kind[device] === "freeform") {
     const cells = solveGrid(order, modules, device, "bento");
-    for (const cell of cells) modules[cell.id].float = cellToRect(cell, device, cells);
-    for (const id of ALL) if (modules[id].float) modules[id].mode = "float";
+    for (const cell of cells) modules[cell.id].float ??= cellToRect(cell, device, cells);
+    for (const id of ALL) if (modules[id].float && modules[id].mode !== "dock") modules[id].mode = "float";
   }
   return { order, modules };
 }
@@ -298,11 +436,18 @@ export function newPresentationId(now = Date.now()): string {
 }
 
 export function presentationFromTemplate(templateId: TemplateId, name?: string, now = Date.now()): HomePresentation {
-  const template = templateFor(templateId);
+  return presentationFromLayout(templateFor(templateId), name, now);
+}
+
+/** A presentation of ANY layout — a built-in, one of the sixty concepts, a blend or her own. */
+export function presentationFromLayout(template: HomeTemplate, name?: string, now = Date.now()): HomePresentation {
+  const builtin = isBuiltin(template.id) && !template.custom;
   return {
     id: newPresentationId(now),
     name: name ?? template.name,
     template: template.id,
+    ...(builtin ? {} : { recipe: cloneLayout(template) }),
+    ...(template.style ? { style: readStyle(template.style) } : {}),
     profiles: {
       phone: profileFromTemplate(template, "phone"),
       tablet: profileFromTemplate(template, "tablet"),
@@ -336,6 +481,8 @@ export interface SolvedModule {
   rect?: NRect;
   /** Depth plane (spatial/layered): 0 near, 1 far. */
   depth?: number;
+  /** Rotation in degrees (scatter). */
+  tilt?: number;
 }
 
 export interface SolvedHome {
@@ -350,6 +497,10 @@ export interface SolvedHome {
   /** Docked/minimised modules: chips in the Home dock. */
   docked: HomeModuleId[];
   hidden: HomeModuleId[];
+  /** The layout's parameters for this device. */
+  params: LayoutParams;
+  /** Constellation links between modules. */
+  links?: Array<[HomeModuleId, HomeModuleId]>;
 }
 
 /** Group leaders and their members, in order. Members of a group render in the leader's cell. */
@@ -378,14 +529,17 @@ function spanOf(id: HomeModuleId, settings: ModuleSettings, device: DeviceClass,
   return [Math.min(w, cols), h];
 }
 
+type SpanFn = (id: HomeModuleId, settings: ModuleSettings) => [number, number];
+
 /** First-fit dense packing — deterministic, so a saved arrangement reproduces exactly. */
 export function solveGrid(
   order: HomeModuleId[],
   modules: Record<HomeModuleId, ModuleSettings>,
   device: DeviceClass,
   kind: CompositionKind,
+  span?: SpanFn,
+  cols = COLUMNS[device],
 ): GridCell[] {
-  const cols = COLUMNS[device];
   const occupied: boolean[][] = [];
   const free = (r: number, c: number, w: number, h: number) => {
     for (let y = r; y < r + h; y += 1) for (let x = c; x < c + w; x += 1) if (occupied[y]?.[x]) return false;
@@ -401,7 +555,8 @@ export function solveGrid(
   // Pinned modules claim the first slots, whatever their order.
   const sorted = [...order].sort((a, b) => Number(modules[b].pinned) - Number(modules[a].pinned));
   for (const id of sorted) {
-    const [w, h] = spanOf(id, modules[id], device, kind);
+    const [w0, h] = span ? span(id, modules[id]) : spanOf(id, modules[id], device, kind);
+    const w = Math.max(1, Math.min(cols, w0));
     let placed = false;
     for (let r = 0; !placed && r < 400; r += 1) {
       for (let c = 0; c + w <= cols; c += 1) {
@@ -417,29 +572,53 @@ export function solveGrid(
   return cells;
 }
 
+const pinnedFirst = (order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>) =>
+  [...order].sort((a, b) => Number(modules[b].pinned) - Number(modules[a].pinned));
+
 /** Masonry: shortest-column-first, columns of equal width. */
-function solveMasonry(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass): GridCell[] {
-  const lanes = device === "phone" ? 2 : device === "tablet" ? 3 : 4;
-  const laneW = COLUMNS[device] / lanes;
+function solveMasonry(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass, lanesParam?: number): { cells: GridCell[]; columns: number } {
+  const lanes = clampInt(lanesParam ?? (device === "phone" ? 2 : device === "tablet" ? 3 : 4), 1, device === "phone" ? 3 : 6);
+  const fits = COLUMNS[device] % lanes === 0;
+  const columns = fits ? COLUMNS[device] : lanes;
+  const laneW = columns / lanes;
   const heights = new Array(lanes).fill(0);
   const rowsFor: Record<ModuleSize, number> = { s: 4, m: 6, l: 8, xl: 10 };
-  return order.map((id) => {
+  const cells = pinnedFirst(order, modules).map((id) => {
     const lane = heights.indexOf(Math.min(...heights));
     const h = modules[id].collapsed ? 2 : rowsFor[modules[id].size];
     const cell = { id, col: lane * laneW + 1, row: heights[lane] + 1, w: laneW, h };
     heights[lane] += h;
     return cell;
   });
+  return { cells, columns };
+}
+
+/** Lanes (a board): contiguous runs of the order, one lane each, under optional headers. */
+function solveLanes(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass, params: LayoutParams): { cells: GridCell[]; columns: number } {
+  const lanes = clampInt(params.lanes ?? 3, 1, device === "phone" ? 2 : 6);
+  const per = Math.ceil(order.length / lanes) || 1;
+  const head = params.laneNames?.length ? 1 : 0;
+  const rowsFor: Record<ModuleSize, number> = { s: 4, m: 5, l: 7, xl: 9 };
+  const heights = new Array(lanes).fill(head);
+  const cells = pinnedFirst(order, modules).map((id, i) => {
+    const lane = Math.min(lanes - 1, Math.floor(i / per));
+    const h = modules[id].collapsed ? 2 : rowsFor[modules[id].size];
+    const cell = { id, col: lane + 1, row: heights[lane] + 1, w: 1, h };
+    heights[lane] += h;
+    return cell;
+  });
+  return { cells, columns: lanes };
 }
 
 /** Split: pinned + first half on the primary (wider) pane, the rest on the side. */
-function solveSplit(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass): GridCell[] {
+function solveSplit(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass, ratio = 7 / 12): GridCell[] {
   const cols = COLUMNS[device];
-  const mainW = Math.round(cols * (7 / 12));
-  const half = Math.ceil(order.length / 2);
+  const mainW = clampInt(Math.round(cols * ratio), 1, cols - 1);
+  const list = pinnedFirst(order, modules);
+  const half = Math.ceil(list.length / 2);
   const rows = [0, 0];
   const rowsFor: Record<ModuleSize, number> = { s: 4, m: 5, l: 6, xl: 8 };
-  return order.map((id, i) => {
+  return list.map((id, i) => {
     const side = i < half ? 0 : 1;
     const h = modules[id].collapsed ? 2 : Math.min(rowsFor[modules[id].size], STRIP_ROWS[id] ?? 99);
     const cell = { id, col: side === 0 ? 1 : mainW + 1, row: rows[side] + 1, w: side === 0 ? mainW : cols - mainW, h };
@@ -448,17 +627,74 @@ function solveSplit(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleS
   });
 }
 
-function cellToRect(cell: GridCell, device: DeviceClass, all: GridCell[]): NRect {
+/** Stage: the first module on stage; the others in a strip beside it (below it on a phone). */
+function solveStage(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass, ratio = 0.75): GridCell[] {
   const cols = COLUMNS[device];
+  const list = pinnedFirst(order, modules);
+  if (!list.length) return [];
+  const [star, ...rest] = list;
+  if (device === "phone") {
+    const cells: GridCell[] = [{ id: star, col: 1, row: 1, w: cols, h: modules[star].collapsed ? 2 : 10 }];
+    rest.forEach((id, i) => cells.push({ id, col: (i % 2) * 3 + 1, row: 11 + Math.floor(i / 2) * 4, w: 3, h: modules[id].collapsed ? 2 : 4 }));
+    return cells;
+  }
+  const stripW = clampInt(Math.round(cols * (1 - ratio)), 2, cols - 4);
+  const cells: GridCell[] = [];
+  let row = 0;
+  for (const id of rest) {
+    const h = modules[id].collapsed ? 2 : 4;
+    cells.push({ id, col: 1, row: row + 1, w: stripW, h });
+    row += h;
+  }
+  cells.unshift({ id: star, col: stripW + 1, row: 1, w: cols - stripW, h: Math.max(14, row) });
+  return cells;
+}
+
+/** Column: one module per row, full width — a feed, a briefing, a timeline. */
+function solveColumn(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass): GridCell[] {
+  const cols = COLUMNS[device];
+  const rowsFor: Record<ModuleSize, number> = { s: 3, m: 5, l: 7, xl: 9 };
+  let row = 0;
+  return pinnedFirst(order, modules).map((id) => {
+    const h = modules[id].collapsed ? 2 : Math.min(rowsFor[modules[id].size], id === "apps" ? 4 : id === "activity" || id === "ask" ? 3 : 99);
+    const cell = { id, col: 1, row: row + 1, w: cols, h };
+    row += h;
+    return cell;
+  });
+}
+
+/** Strip: every small module in one strip across the top (scorecards, story rings), the rest a bento below. */
+function solveStrip(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass): GridCell[] {
+  const cols = COLUMNS[device];
+  const small = order.filter((id) => modules[id].size === "s");
+  const perRow = Math.max(1, Math.min(small.length, device === "phone" ? 3 : 6));
+  const w = Math.max(1, Math.floor(cols / perRow));
+  const ordered = [...small, ...order.filter((id) => modules[id].size !== "s")];
+  return solveGrid(ordered, Object.fromEntries(ordered.map((id) => [id, { ...modules[id], pinned: false }])) as Record<HomeModuleId, ModuleSettings>, device, "bento", (id, st) =>
+    st.size === "s" ? [w, st.collapsed ? 2 : 3] : spanOf(id, st, device, "bento"),
+  );
+}
+
+/** Rows: contiguous runs of the order, one horizontally scrolling row each. */
+function solveRows(order: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, lanes = 3): GridCell[] {
+  const list = pinnedFirst(order, modules);
+  const n = clampInt(lanes, 1, Math.max(1, list.length));
+  const per = Math.ceil(list.length / n) || 1;
+  return list.map((id, i) => ({ id, col: (i % per) + 1, row: Math.floor(i / per) + 1, w: 1, h: 1 }));
+}
+
+function cellToRect(cell: GridCell, device: DeviceClass, all: GridCell[], cols = COLUMNS[device]): NRect {
   const rows = Math.max(1, ...all.map((c) => c.row + c.h - 1));
   return { x: (cell.col - 1) / cols, y: (cell.row - 1) / rows, w: cell.w / cols, h: cell.h / rows };
 }
 
+type Abs = { id: HomeModuleId; rect: NRect; depth: number; tilt?: number };
+
 /** Orbit: the first module at the centre, the rest on an ellipse around it. */
-function solveOrbit(ids: HomeModuleId[]): Array<{ id: HomeModuleId; rect: NRect; depth: number }> {
+function solveOrbit(ids: HomeModuleId[]): Abs[] {
   if (!ids.length) return [];
   const [center, ...ring] = ids;
-  const out = [{ id: center, rect: { x: 0.36, y: 0.32, w: 0.28, h: 0.36 }, depth: 0 }];
+  const out: Abs[] = [{ id: center, rect: { x: 0.36, y: 0.32, w: 0.28, h: 0.36 }, depth: 0 }];
   const n = ring.length;
   ring.forEach((id, i) => {
     const a = -Math.PI / 2 + (i / Math.max(1, n)) * Math.PI * 2;
@@ -472,7 +708,7 @@ function solveOrbit(ids: HomeModuleId[]): Array<{ id: HomeModuleId; rect: NRect;
 }
 
 /** Spatial: two rows on two depth planes (near work below, far context above). */
-function solveSpatial(ids: HomeModuleId[]): Array<{ id: HomeModuleId; rect: NRect; depth: number }> {
+function solveSpatial(ids: HomeModuleId[]): Abs[] {
   const near = ids.slice(0, Math.ceil(ids.length / 2));
   const far = ids.slice(near.length);
   const row = (list: HomeModuleId[], y: number, h: number, depth: number) =>
@@ -483,11 +719,106 @@ function solveSpatial(ids: HomeModuleId[]): Array<{ id: HomeModuleId; rect: NRec
   return [...row(far, 0.02, 0.36, 1), ...row(near, 0.44, 0.52, 0)];
 }
 
-const clamp01 = (v: number, max = 1) => Math.max(0, Math.min(max, v));
+/** Radial: the first module at the bottom centre, the rest fanned on an arc above it. */
+function solveRadial(ids: HomeModuleId[]): Abs[] {
+  if (!ids.length) return [];
+  const [hub, ...arc] = ids;
+  const out: Abs[] = [{ id: hub, rect: { x: 0.37, y: 0.66, w: 0.26, h: 0.3 }, depth: 0 }];
+  const n = arc.length;
+  arc.forEach((id, i) => {
+    const a = Math.PI + ((i + 0.5) / Math.max(1, n)) * Math.PI;
+    const w = 0.2;
+    const h = 0.17;
+    const cx = 0.5 + Math.cos(a) * 0.38;
+    const cy = 0.78 + Math.sin(a) * 0.62;
+    out.push({ id, rect: { x: clamp01(cx - w / 2, 1 - w), y: clamp01(cy - h / 2, 1 - h), w, h }, depth: 0 });
+  });
+  return out;
+}
 
-export function solveHome(presentation: HomePresentation, device: DeviceClass): SolvedHome {
-  const template = templateFor(presentation.template);
-  const kind = template.kind[device];
+const NODE: Record<ModuleSize, [number, number]> = { s: [0.17, 0.15], m: [0.2, 0.18], l: [0.24, 0.21], xl: [0.28, 0.24] };
+
+/** Constellation: the first module at the centre, the rest on a golden-angle spiral, linked like stars. */
+function solveConstellation(ids: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>): { nodes: Abs[]; links: Array<[HomeModuleId, HomeModuleId]> } {
+  const nodes: Abs[] = [];
+  const links: Array<[HomeModuleId, HomeModuleId]> = [];
+  const n = ids.length;
+  ids.forEach((id, i) => {
+    const [w, h] = NODE[modules[id].size];
+    if (i === 0) {
+      nodes.push({ id, rect: { x: 0.5 - w / 2, y: 0.5 - h / 2, w, h }, depth: 0 });
+      return;
+    }
+    const a = i * 2.39996 + 0.6;
+    const r = 0.22 + 0.17 * Math.sqrt(i / Math.max(1, n - 1));
+    const cx = 0.5 + Math.cos(a) * r * 1.05;
+    const cy = 0.5 + Math.sin(a) * r * 1.12;
+    nodes.push({ id, rect: { x: round4(clamp01(cx - w / 2, 1 - w)), y: round4(clamp01(cy - h / 2, 1 - h)), w, h }, depth: r > 0.33 ? 0.5 : 0 });
+    links.push(i % 2 === 1 || i === 1 ? [ids[0], id] : [ids[i - 1], id]);
+  });
+  return { nodes, links };
+}
+
+/** A small stable hash: the same module always gets the same tilt and offset. */
+function hash(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i += 1) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return (h >>> 0) / 4294967295;
+}
+
+/** Scatter: a bento, then each card dealt at its own small angle and offset. */
+function solveScatter(ids: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass, tilt = 8): Abs[] {
+  const cells = solveGrid(ids, modules, device, "bento");
+  return cells.map((cell) => {
+    const r = cellToRect(cell, device, cells);
+    const k = hash(cell.id);
+    const k2 = hash(`${cell.id}~`);
+    const dx = (k2 - 0.5) * 0.04;
+    const dy = (k - 0.5) * 0.04;
+    const shrink = 0.9;
+    const w = r.w * shrink;
+    const h = r.h * shrink;
+    return {
+      id: cell.id,
+      rect: { x: round4(clamp01(r.x + (r.w - w) / 2 + dx, 1 - w)), y: round4(clamp01(r.y + (r.h - h) / 2 + dy, 1 - h)), w: round4(w), h: round4(h) },
+      depth: 0,
+      tilt: Math.round((k * 2 - 1) * Math.max(0, Math.min(20, tilt)) * 10) / 10,
+    };
+  });
+}
+
+/** Two zones: the first three modules in an orbit band on top, a bento of the rest below. */
+function solveTwoZone(ids: HomeModuleId[], modules: Record<HomeModuleId, ModuleSettings>, device: DeviceClass): Abs[] {
+  const band = ids.slice(0, 3);
+  const rest = ids.slice(3);
+  const top = 0.4;
+  const out: Abs[] = [];
+  const bandRects: NRect[] = [
+    { x: 0.35, y: 0.01, w: 0.3, h: top - 0.03 },
+    { x: 0.03, y: 0.07, w: 0.29, h: top - 0.14 },
+    { x: 0.68, y: 0.07, w: 0.29, h: top - 0.14 },
+  ];
+  band.forEach((id, i) => out.push({ id, rect: bandRects[i], depth: i === 0 ? 0 : 0.5 }));
+  const cells = solveGrid(rest, modules, device, "bento");
+  for (const cell of cells) {
+    const r = cellToRect(cell, device, cells);
+    out.push({ id: cell.id, rect: { x: r.x, y: round4(top + r.y * (1 - top)), w: r.w, h: round4(r.h * (1 - top)) }, depth: 0 });
+  }
+  return out;
+}
+
+const clamp01 = (v: number, max = 1) => Math.max(0, Math.min(max, v));
+const clampInt = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(v)));
+
+export interface SolveOptions {
+  /** Overrides the layout's kind for this render (time-of-day layouts). */
+  kind?: CompositionKind;
+}
+
+export function solveHome(presentation: HomePresentation, device: DeviceClass, options: SolveOptions = {}): SolvedHome {
+  const template = layoutOf(presentation);
+  const kind = options.kind ?? template.kind[device];
+  const params = paramsFor(template, device);
   const profile = presentation.profiles[device];
   const { modules } = profile;
   const order = sanitizeOrder(profile.order);
@@ -502,30 +833,85 @@ export function solveHome(presentation: HomePresentation, device: DeviceClass): 
 
   let placed: SolvedModule[] = [];
   let rows = 0;
-  if (kind === "orbit" || kind === "spatial") {
-    const solved = kind === "orbit" ? solveOrbit(flowIds) : solveSpatial(flowIds);
-    placed = solved.map((s) => ({ ...mk(s.id), rect: s.rect, depth: s.depth }));
-  } else if (kind === "freeform") {
-    const fallback = solveGrid(flowIds, modules, device, "bento");
-    placed = flowIds.map((id) => {
-      const cell = fallback.find((c) => c.id === id)!;
-      return { ...mk(id), rect: modules[id].float ?? cellToRect(cell, device, fallback) };
-    });
-  } else if (kind === "deck") {
-    placed = flowIds.map((id, i) => ({ ...mk(id), cell: { id, col: i + 1, row: 1, w: 1, h: 1 } }));
-    rows = 1;
-  } else {
-    const cells =
-      kind === "masonry"
-        ? solveMasonry(flowIds, modules, device)
-        : kind === "split"
-          ? solveSplit(flowIds, modules, device)
-          : solveGrid(flowIds, modules, device, kind === "focus" ? "bento" : kind);
+  let columns = COLUMNS[device];
+  let links: Array<[HomeModuleId, HomeModuleId]> | undefined;
+  const fromAbs = (list: Abs[]) => list.map((s) => ({ ...mk(s.id), rect: s.rect, depth: s.depth, ...(s.tilt ? { tilt: s.tilt } : {}) }));
+  const fromCells = (cells: GridCell[]) => {
     placed = cells.map((cell) => ({ ...mk(cell.id), cell, depth: kind === "layered" ? (cell.row > 3 ? 1 : 0) : undefined }));
     rows = Math.max(0, ...cells.map((c) => c.row + c.h - 1));
+  };
+
+  switch (kind) {
+    case "orbit":
+      placed = fromAbs(solveOrbit(flowIds));
+      break;
+    case "spatial":
+      placed = fromAbs(solveSpatial(flowIds));
+      break;
+    case "radial":
+      placed = fromAbs(solveRadial(flowIds));
+      break;
+    case "scatter":
+      placed = fromAbs(solveScatter(flowIds, modules, device, params.tilt));
+      break;
+    case "twozone":
+      placed = fromAbs(solveTwoZone(flowIds, modules, device));
+      break;
+    case "constellation": {
+      const c = solveConstellation(flowIds, modules);
+      placed = fromAbs(c.nodes);
+      links = params.links === false ? [] : c.links;
+      break;
+    }
+    case "freeform": {
+      const fallback = solveGrid(flowIds, modules, device, "bento");
+      placed = flowIds.map((id) => {
+        const cell = fallback.find((c) => c.id === id)!;
+        return { ...mk(id), rect: modules[id].float ?? cellToRect(cell, device, fallback) };
+      });
+      break;
+    }
+    case "deck":
+      placed = flowIds.map((id, i) => ({ ...mk(id), cell: { id, col: i + 1, row: 1, w: 1, h: 1 } }));
+      rows = 1;
+      columns = flowIds.length;
+      break;
+    case "rows": {
+      const cells = solveRows(flowIds, modules, params.lanes ?? 3);
+      placed = cells.map((cell) => ({ ...mk(cell.id), cell }));
+      rows = Math.max(0, ...cells.map((c) => c.row));
+      columns = Math.max(1, ...cells.map((c) => c.col));
+      break;
+    }
+    case "masonry": {
+      const m = solveMasonry(flowIds, modules, device, params.lanes);
+      fromCells(m.cells);
+      columns = m.columns;
+      break;
+    }
+    case "lanes": {
+      const m = solveLanes(flowIds, modules, device, params);
+      fromCells(m.cells);
+      columns = m.columns;
+      break;
+    }
+    case "split":
+      fromCells(solveSplit(flowIds, modules, device, params.ratio));
+      break;
+    case "stage":
+      fromCells(solveStage(flowIds, modules, device, params.ratio));
+      break;
+    case "column":
+      fromCells(solveColumn(flowIds, modules, device));
+      break;
+    case "strip":
+      fromCells(solveStrip(flowIds, modules, device));
+      break;
+    default:
+      fromCells(solveGrid(flowIds, modules, device, kind === "focus" ? "bento" : kind));
   }
   const floating = floatingIds.map((id) => ({ ...mk(id), rect: modules[id].float ?? { x: 0.55, y: 0.1, w: 0.4, h: 0.3 } }));
-  return { kind, device, columns: kind === "deck" ? flowIds.length : COLUMNS[device], rows, placed, floating, docked, hidden };
+  return { kind, device, columns, rows, placed, floating, docked, hidden, params, ...(links ? { links } : {}) };
 }
 
 function sanitizeOrder(order: HomeModuleId[]): HomeModuleId[] {
@@ -635,7 +1021,7 @@ export function applyHomeOp(p: HomePresentation, device: DeviceClass, op: HomeOp
       set(op.id, { mode: "dock" });
       break;
     case "restore":
-      set(op.id, { mode: templateFor(p.template).kind[device] === "freeform" ? "float" : "grid", hidden: false });
+      set(op.id, { mode: layoutOf(p).kind[device] === "freeform" ? "float" : "grid", hidden: false });
       break;
     case "group": {
       if (op.with === op.id || modules[op.with].locked) return p;
@@ -692,6 +1078,181 @@ export function adaptiveOrder(order: HomeModuleId[], signals: HomeSignals): Home
     .map((x) => x.id);
 }
 
+/** Time of day (Time-of-day Home): which modules lead in each part of the day. */
+export type DayPart = "morning" | "day" | "evening" | "night";
+export function dayPart(hour: number): DayPart {
+  if (hour >= 5 && hour < 11) return "morning";
+  if (hour >= 11 && hour < 17) return "day";
+  if (hour >= 17 && hour < 22) return "evening";
+  return "night";
+}
+const DAY_LEAD: Record<DayPart, HomeModuleId[]> = {
+  morning: ["weather", "now", "notifications", "ask"],
+  day: ["workspaces", "apps", "now", "notifications"],
+  evening: ["activity", "library", "lelu", "workspaces"],
+  night: ["lelu", "ask", "weather"],
+};
+/** At night a time-of-day Home calms down to a focus layout. */
+export function timeKind(kind: CompositionKind, hour: number): CompositionKind {
+  return dayPart(hour) === "night" ? "focus" : kind;
+}
+export function timeOrder(order: HomeModuleId[], hour: number): HomeModuleId[] {
+  const lead = DAY_LEAD[dayPart(hour)].filter((id) => order.includes(id));
+  return [...lead, ...order.filter((id) => !lead.includes(id))];
+}
+
+/** Usage-learned order: most-opened first; ties keep her order. Computed at render, never saved. */
+export function usageOrder(order: HomeModuleId[], counts: Partial<Record<HomeModuleId, number>>): HomeModuleId[] {
+  return order
+    .map((id, index) => ({ id, index, n: counts[id] ?? 0 }))
+    .sort((a, b) => b.n - a.n || a.index - b.index)
+    .map((x) => x.id);
+}
+
+/** Which adaptive mode a layout uses (the original Adaptive Intelligence keeps "signals"). */
+export function adaptiveModeOf(layout: HomeTemplate, device: DeviceClass): AdaptiveMode {
+  return paramsFor(layout, device).adaptive ?? (layout.id === "adaptive-intelligence" ? "signals" : "none");
+}
+
+export function cloneLayout(layout: HomeTemplate): HomeTemplate {
+  return JSON.parse(JSON.stringify(layout)) as HomeTemplate;
+}
+
+const KIND_IDS = new Set<string>(COMPOSITION_KINDS.map((k) => k.id));
+const isModule = (v: unknown): v is HomeModuleId => typeof v === "string" && (HOME_MODULES as readonly string[]).includes(v);
+const moduleList = (v: unknown): HomeModuleId[] | undefined => (Array.isArray(v) ? v.filter(isModule) : undefined);
+const sizeMap = (v: unknown): Partial<Record<HomeModuleId, ModuleSize>> => {
+  const out: Partial<Record<HomeModuleId, ModuleSize>> = {};
+  if (v && typeof v === "object") for (const [k, size] of Object.entries(v)) if (isModule(k) && SIZES.includes(size as ModuleSize)) out[k] = size as ModuleSize;
+  return out;
+};
+function readParams(v: unknown): LayoutParams | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const r = v as Record<string, unknown>;
+  const num = (x: unknown, lo: number, hi: number) => (typeof x === "number" && Number.isFinite(x) ? Math.max(lo, Math.min(hi, x)) : undefined);
+  const out: LayoutParams = {
+    lanes: num(r.lanes, 1, 6),
+    ratio: num(r.ratio, 0.2, 0.9),
+    density: num(r.density, 0, 1),
+    tilt: num(r.tilt, 0, 20),
+    depth: num(r.depth, 0, 1),
+    maxWidth: num(r.maxWidth, 0, 2000),
+    window: num(r.window, 0, 0.6),
+    links: typeof r.links === "boolean" ? r.links : undefined,
+    groupView: r.groupView === "stack" || r.groupView === "tabs" ? r.groupView : undefined,
+    adaptive: r.adaptive === "signals" || r.adaptive === "time" || r.adaptive === "usage" || r.adaptive === "none" ? r.adaptive : undefined,
+    stacked: typeof r.stacked === "boolean" ? r.stacked : undefined,
+    rail: typeof r.rail === "boolean" ? r.rail : undefined,
+    rings: typeof r.rings === "boolean" ? r.rings : undefined,
+    laneNames: Array.isArray(r.laneNames) ? r.laneNames.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, 24)).slice(0, 6) : undefined,
+  };
+  for (const k of Object.keys(out) as Array<keyof LayoutParams>) if (out[k] === undefined) delete out[k];
+  return out;
+}
+
+function readGroups(v: unknown): Array<{ id: string; members: HomeModuleId[] }> | undefined {
+  if (!Array.isArray(v)) return undefined;
+  return (v as Array<Record<string, unknown>>)
+    .filter((g) => g && typeof g.id === "string")
+    .map((g) => ({ id: String(g.id).slice(0, 40), members: moduleList(g.members) ?? [] }))
+    .filter((g) => g.members.length > 1);
+}
+function rectMap(v: unknown): Partial<Record<HomeModuleId, NRect>> | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const out: Partial<Record<HomeModuleId, NRect>> = {};
+  for (const [k, r] of Object.entries(v as Record<string, Partial<NRect>>)) {
+    if (isModule(k) && r && [r.x, r.y, r.w, r.h].every((n) => typeof n === "number" && Number.isFinite(n))) out[k] = snapRect(r as NRect);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/**
+ * Her current arrangement as a reusable LAYOUT: the kind and parameters
+ * of the layout it follows, plus every device's order, sizes, hidden,
+ * docked, pinned, collapsed, floating and grouped modules — so a layout
+ * saved from a presentation reproduces it exactly.
+ */
+export function layoutFromPresentation(p: HomePresentation, id: string, name: string): HomeTemplate {
+  const base = layoutOf(p);
+  const device: Partial<Record<DeviceClass, DeviceOverride>> = {};
+  for (const d of DEVICE_CLASSES) {
+    const prof = p.profiles[d];
+    const order = sanitizeOrder(prof.order);
+    const pick = (f: (m: ModuleSettings) => boolean) => order.filter((m) => f(prof.modules[m]));
+    const floats: Partial<Record<HomeModuleId, NRect>> = {};
+    for (const m of order) if (prof.modules[m].mode === "float" && prof.modules[m].float) floats[m] = prof.modules[m].float!;
+    const groupIds = [...new Set(order.map((m) => prof.modules[m].group).filter((g): g is string => Boolean(g)))];
+    device[d] = {
+      order,
+      sizes: Object.fromEntries(order.map((m) => [m, prof.modules[m].size])),
+      hidden: pick((m) => m.hidden),
+      docked: pick((m) => m.mode === "dock"),
+      pinned: pick((m) => m.pinned),
+      collapsed: pick((m) => m.collapsed),
+      floats,
+      groups: groupIds.map((g) => ({ id: g, members: order.filter((m) => prof.modules[m].group === g) })).filter((g) => g.members.length > 1),
+    };
+  }
+  return {
+    ...cloneLayout(base),
+    id,
+    name: name.slice(0, 60),
+    order: device.desktop!.order!,
+    // Optional modules she showed stay shown wherever the layout is used.
+    device,
+    style: p.style ?? base.style,
+    parents: [...new Set([...(base.parents ?? []), base.id])].slice(0, 8),
+    custom: true,
+  };
+}
+
+/** A saved layout recipe, read defensively (unknown kinds fall back to bento; unknown modules are dropped). */
+export function readLayout(raw: unknown): HomeTemplate | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.id !== "string" || typeof r.name !== "string") return null;
+  const kindRaw = (r.kind ?? {}) as Record<string, unknown>;
+  const kind = {} as Record<DeviceClass, CompositionKind>;
+  for (const d of DEVICE_CLASSES) kind[d] = typeof kindRaw[d] === "string" && KIND_IDS.has(kindRaw[d] as string) ? (kindRaw[d] as CompositionKind) : "bento";
+  const device: HomeTemplate["device"] = {};
+  const deviceParams: HomeTemplate["deviceParams"] = {};
+  const dRaw = (r.device ?? {}) as Record<string, Record<string, unknown>>;
+  const dpRaw = (r.deviceParams ?? {}) as Record<string, unknown>;
+  for (const d of DEVICE_CLASSES) {
+    const o = dRaw[d];
+    if (o && typeof o === "object") {
+      const ov: DeviceOverride = { sizes: sizeMap(o.sizes), hidden: moduleList(o.hidden), docked: moduleList(o.docked), order: moduleList(o.order), pinned: moduleList(o.pinned), collapsed: moduleList(o.collapsed), floats: rectMap(o.floats), groups: readGroups(o.groups) };
+      for (const k of Object.keys(ov) as Array<keyof DeviceOverride>) if (ov[k] === undefined) delete ov[k];
+      device[d] = ov;
+    }
+    const dp = readParams(dpRaw[d]);
+    if (dp) deviceParams[d] = dp;
+  }
+  const groups = readGroups(r.groups);
+  const style = readStyle(r.style);
+  return {
+    id: r.id.slice(0, 80),
+    name: r.name.slice(0, 60) || "Layout",
+    blurb: typeof r.blurb === "string" ? r.blurb.slice(0, 400) : "",
+    kind,
+    order: sanitizeOrder(moduleList(r.order) ?? []).filter((id) => !OPTIONAL_MODULES.includes(id) || (moduleList(r.order) ?? []).includes(id)),
+    sizes: sizeMap(r.sizes),
+    device,
+    deviceParams,
+    params: readParams(r.params),
+    pinned: moduleList(r.pinned),
+    hidden: moduleList(r.hidden),
+    docked: moduleList(r.docked),
+    collapsed: moduleList(r.collapsed),
+    floats: rectMap(r.floats),
+    groups,
+    ...(style ? { style } : {}),
+    ...(typeof r.concept === "number" ? { concept: r.concept } : {}),
+    ...(Array.isArray(r.parents) ? { parents: (r.parents as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 8) } : {}),
+    ...(r.custom ? { custom: true } : {}),
+  };
+}
+
 /* ---------------------------------------------------------------
  * Reading saved data defensively: unknown templates fall back,
  * missing modules are filled, nothing unreadable is invented.
@@ -701,7 +1262,9 @@ export function readPresentation(raw: unknown): HomePresentation | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<HomePresentation>;
   if (typeof r.id !== "string" || typeof r.name !== "string") return null;
-  const template = templateFor(String(r.template ?? ""));
+  const recipe = readLayout(r.recipe);
+  const template = recipe ?? templateFor(String(r.template ?? ""));
+  const style = readStyle(r.style);
   const profiles = {} as Record<DeviceClass, DeviceProfile>;
   for (const device of DEVICE_CLASSES) {
     const saved = r.profiles?.[device];
@@ -727,7 +1290,9 @@ export function readPresentation(raw: unknown): HomePresentation | null {
   return {
     id: r.id,
     name: r.name.slice(0, 60) || template.name,
-    template: template.id,
+    template: recipe ? String(r.template ?? recipe.id) : template.id,
+    ...(recipe ? { recipe } : {}),
+    ...(style ? { style } : {}),
     profiles,
     createdAt: Number(r.createdAt) || 0,
     updatedAt: Number(r.updatedAt) || 0,

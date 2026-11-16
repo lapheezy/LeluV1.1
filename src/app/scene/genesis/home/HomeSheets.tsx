@@ -17,6 +17,7 @@
  * ==========================================================
  */
 
+import { requestSpatialNav } from "../../spatial/spatialNavVisibility";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { conversationIdOf, useGenesis, type GenesisPanel, type ModuleState } from "../GenesisCore";
 import { HomeIcon } from "./CosmosHome";
@@ -92,6 +93,23 @@ export function LibrarySheet({ group, onClose }: { group?: AppGroup | "interface
       {showInterfaces ? <LibraryInterfaces query={query} onClose={onClose} /> : null}
       {only === "interfaces" ? null : <h3 className="lsh-heading">Apps</h3>}
       <div className="lsh-grid">
+        {!only && (!q || "spatial navigation travel portals cosmos".includes(q)) ? (
+          <button
+            type="button"
+            className="lsh-app"
+            data-spatial-menu-entry
+            onClick={() => {
+              requestSpatialNav(true);
+              onClose();
+            }}
+          >
+            <span className="lsh-app-icon" aria-hidden style={{ fontSize: 22 }}>
+              ◎
+            </span>
+            <span className="lsh-app-name">Spatial navigation</span>
+            <small>Travel the Cosmos, portals, voice</small>
+          </button>
+        ) : null}
         {matches.map((app) => {
           const label = stateLabel(genesis.state.modules[app.id]) ?? (genesis.state.activePanel === app.id ? "Open" : null);
           return (
@@ -114,7 +132,7 @@ export function LibrarySheet({ group, onClose }: { group?: AppGroup | "interface
             </button>
           );
         })}
-        {matches.length === 0 && only !== "interfaces" ? <p className="lsh-empty">No app matches “{query}”.</p> : null}
+        {matches.length === 0 && only !== "interfaces" && !(!only && "spatial navigation travel portals cosmos".includes(q)) ? <p className="lsh-empty">No app matches “{query}”.</p> : null}
       </div>
     </Sheet>
   );

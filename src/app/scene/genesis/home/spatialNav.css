@@ -117,15 +117,14 @@ body:has([data-lelu-signin-gate]) [data-spatial-nav] {
   position: fixed;
   inset: 0;
   z-index: 520;
+  /* The sheet is mounted inside a pointer-events:none layer; without this the
+     whole sheet let taps fall through to the Home cards behind it. */
+  pointer-events: auto;
   background: rgba(10, 2, 24, 0.32);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   animation: lsh-fade 200ms ease;
-  /* The interface root is pointer-events: none (so the Cosmos stays
-     touchable around it). Without this the sheet inherited it: every tap
-     on the library fell through to the Home underneath. (Mission 17) */
-  pointer-events: auto;
 }
 @keyframes lsh-fade { from { opacity: 0; } }
 .lsh {

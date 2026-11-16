@@ -32,16 +32,27 @@ import type { GenesisPanel, ModuleState } from "../GenesisCore";
 import { loadCosmosMode, saveCosmosMode, type CosmosMode } from "../chat/universe/universeModel";
 import {
   applyHomeOp,
+  cloneLayout,
+  layoutFromPresentation,
+  layoutOf,
+  newPresentationId,
+  presentationFromLayout,
   presentationFromTemplate,
   profileFromTemplate,
+  readLayout,
   readPresentation,
   templateFor,
   DEVICE_CLASSES,
+  HOME_MODULES,
   type DeviceClass,
+  type HomeModuleId,
   type HomeOp,
   type HomePresentation,
+  type HomeTemplate,
   type TemplateId,
 } from "./homeComposition";
+import { newLayoutId } from "./homeBlend";
+import { readStyle, type HomeStyle } from "./homeStyle";
 
 export type { CosmosMode };
 
@@ -79,6 +90,12 @@ export interface HomePresentationsState {
   restorePoint: HomePresentation | null;
   /** Edit mode (not persisted). */
   editing: boolean;
+  /** Mission 15.1: her own layouts (new, blended, merged, saved from a Home). */
+  layouts: HomeTemplate[];
+  /** Her research notes, per concept or layout id. */
+  notes: Record<string, string>;
+  /** How often each module was opened from the Home (usage-learned layouts). Local only. */
+  usage: Partial<Record<HomeModuleId, number>>;
   canUndo: boolean;
   canRedo: boolean;
 }
@@ -98,6 +115,8 @@ const CHAT_MODULE_PREFIX = "chat:";
 const KEY = "lelu.home.v1";
 /** Presentations have their own key: a large arrangement never rewrites the window memory. */
 export const PRESENTATIONS_KEY = "lelu.home.presentations.v1";
+/** Her layout library, research notes and module usage: a separate key again. */
+export const LAYOUTS_KEY = "lelu.home.layouts.v1";
 const HISTORY_LIMIT = 50;
 
 function loadPresentations(): HomePresentationsState {
@@ -105,7 +124,16 @@ function loadPresentations(): HomePresentationsState {
   const list = (saved?.list ?? []).map(readPresentation).filter((p): p is HomePresentation => Boolean(p));
   if (!list.length) list.push(presentationFromTemplate("lelu-central", "My Home", 0));
   const activeId = list.some((p) => p.id === saved?.activeId) ? saved!.activeId! : list[0].id;
-  return { list, activeId, restorePoint: readPresentation(saved?.restorePoint), editing: false, canUndo: false, canRedo: false };
+  const lib = typeof window !== "undefined" ? KvStore.getInstance().get<{ layouts?: unknown[]; notes?: Record<string, unknown>; usage?: Record<string, unknown> }>(LAYOUTS_KEY) : null;
+  const layouts = (lib?.layouts ?? []).map(readLayout).filter((l): l is HomeTemplate => Boolean(l)).map((l) => ({ ...l, custom: true }));
+  const notes: Record<string, string> = {};
+  for (const [k, v] of Object.entries(lib?.notes ?? {})) if (typeof v === "string" && v.trim()) notes[k.slice(0, 80)] = v.slice(0, 4000);
+  const usage: Partial<Record<HomeModuleId, number>> = {};
+  for (const id of HOME_MODULES) {
+    const n = Number(lib?.usage?.[id]);
+    if (Number.isFinite(n) && n > 0) usage[id] = Math.min(1e6, Math.floor(n));
+  }
+  return { list, activeId, restorePoint: readPresentation(saved?.restorePoint), editing: false, canUndo: false, canRedo: false, layouts, notes, usage };
 }
 type Listener = (state: HomeState) => void;
 
@@ -169,14 +197,85 @@ class HomeStoreImpl {
     return true;
   }
 
-  /** A NEW presentation from a composition; the current one is untouched. */
-  createPresentation(template: TemplateId, name?: string): HomePresentation {
-    const taken = new Set(this.state.presentations.list.map((p) => p.name));
-    let label = name?.trim() || templateFor(template).name;
-    for (let n = 2; taken.has(label); n += 1) label = `${name?.trim() || templateFor(template).name} ${n}`;
-    const created = presentationFromTemplate(template, label);
+  /** A NEW presentation from a composition (a built-in id, or any layout); the current one is untouched. */
+  createPresentation(template: TemplateId | HomeTemplate, name?: string): HomePresentation {
+    const layout = typeof template === "string" ? (this.state.presentations.layouts.find((l) => l.id === template) ?? templateFor(template)) : template;
+    const label = this.freeName(name?.trim() || layout.name);
+    const created = typeof template === "string" && !layout.custom ? presentationFromTemplate(layout.id, label) : presentationFromLayout(layout, label);
     this.switchTo(created.id, [...this.state.presentations.list, created]);
     return created;
+  }
+
+  private freeName(wanted: string): string {
+    const taken = new Set(this.state.presentations.list.map((p) => p.name));
+    const base = wanted.slice(0, 56) || "Home";
+    let label = base;
+    for (let n = 2; taken.has(label); n += 1) label = `${base} ${n}`;
+    return label;
+  }
+
+  /* ---------------- Mission 15.1: looks, layouts, notes ---------------- */
+
+  /** Change the active presentation's look (theme, fonts, borders). Undoable like any edit. */
+  setStyle(style: HomeStyle | null): void {
+    const before = this.activePresentation();
+    const clean = style ? readStyle(style) : undefined;
+    if (JSON.stringify(before.style ?? null) === JSON.stringify(clean ?? null)) return;
+    this.undoStack.push(before);
+    if (this.undoStack.length > HISTORY_LIMIT) this.undoStack.shift();
+    this.redoStack = [];
+    const { style: _old, ...rest } = before;
+    this.replacePresentation({ ...rest, ...(clean ? { style: clean } : {}), updatedAt: Date.now() });
+  }
+
+  /** Replace the active presentation's layout, look and arrangement (from the Design Studio). Undoable; keeps its id and name. */
+  updateActive(next: HomePresentation): void {
+    const before = this.activePresentation();
+    const read = readPresentation({ ...structuredCloneSafe(next), id: before.id, name: before.name, createdAt: before.createdAt, updatedAt: Date.now() });
+    if (!read) return;
+    this.undoStack.push(before);
+    if (this.undoStack.length > HISTORY_LIMIT) this.undoStack.shift();
+    this.redoStack = [];
+    this.patchPresentations({ restorePoint: before });
+    this.replacePresentation(read);
+  }
+
+  /** Save a layout into her library (a new id if it would collide with one she has). */
+  saveLayout(layout: HomeTemplate): HomeTemplate {
+    const lib = this.state.presentations.layouts;
+    const names = new Set(lib.map((l) => l.name));
+    let name = layout.name.slice(0, 60) || "My layout";
+    for (let n = 2; names.has(name) && !lib.some((l) => l.id === layout.id); n += 1) name = `${layout.name.slice(0, 56)} ${n}`;
+    const exists = lib.some((l) => l.id === layout.id);
+    const saved = { ...cloneLayout(layout), name, custom: true, id: exists || !layout.custom ? (exists ? layout.id : newLayoutId()) : layout.id };
+    this.patchPresentations({ layouts: exists ? lib.map((l) => (l.id === saved.id ? saved : l)) : [...lib, saved] });
+    return saved;
+  }
+
+  deleteLayout(id: string): boolean {
+    const lib = this.state.presentations.layouts;
+    if (!lib.some((l) => l.id === id)) return false;
+    this.patchPresentations({ layouts: lib.filter((l) => l.id !== id) });
+    return true;
+  }
+
+  /** The active Home, exactly as arranged on every device, as a reusable layout. */
+  saveActiveAsLayout(name?: string): HomeTemplate {
+    const p = this.activePresentation();
+    return this.saveLayout(layoutFromPresentation(p, newLayoutId(), name?.trim() || `${p.name} layout`));
+  }
+
+  setNote(key: string, text: string): void {
+    const notes = { ...this.state.presentations.notes };
+    if (text.trim()) notes[key.slice(0, 80)] = text.slice(0, 4000);
+    else delete notes[key];
+    this.patchPresentations({ notes });
+  }
+
+  /** A module was opened from the Home (feeds the usage-learned layouts; never leaves the device). */
+  noteUse(id: HomeModuleId): void {
+    const usage = { ...this.state.presentations.usage, [id]: (this.state.presentations.usage[id] ?? 0) + 1 };
+    this.patchPresentations({ usage });
   }
 
   /** Save an arrangement made elsewhere (the Design Studio) as a NEW presentation. */
@@ -185,7 +284,7 @@ class HomeStoreImpl {
     let label = name.trim().slice(0, 60) || source.name;
     for (let n = 2; taken.has(label); n += 1) label = `${name.trim()} ${n}`;
     const now = Date.now();
-    const copy = { ...structuredCloneSafe(source), id: presentationFromTemplate(source.template, undefined, now).id, name: label, createdAt: now, updatedAt: now };
+    const copy = { ...structuredCloneSafe(source), id: newPresentationId(now), name: label, createdAt: now, updatedAt: now };
     this.switchTo(copy.id, [...this.state.presentations.list, copy]);
     return copy;
   }
@@ -193,7 +292,7 @@ class HomeStoreImpl {
   duplicatePresentation(id: string): HomePresentation | null {
     const source = this.state.presentations.list.find((p) => p.id === id);
     if (!source) return null;
-    const copy = { ...structuredCloneSafe(source), id: presentationFromTemplate(source.template).id, name: `${source.name} copy`, createdAt: Date.now(), updatedAt: Date.now() };
+    const copy = { ...structuredCloneSafe(source), id: newPresentationId(), name: this.freeName(`${source.name} copy`), createdAt: Date.now(), updatedAt: Date.now() };
     this.switchTo(copy.id, [...this.state.presentations.list, copy]);
     return copy;
   }
@@ -224,7 +323,7 @@ class HomeStoreImpl {
   /** Back to the composition's defaults — for one device, or all. Keeps a restore point. */
   resetPresentation(device?: DeviceClass): void {
     const current = this.activePresentation();
-    const template = templateFor(current.template);
+    const template = layoutOf(current);
     const profiles = { ...current.profiles };
     for (const d of device ? [device] : DEVICE_CLASSES) profiles[d] = profileFromTemplate(template, d);
     this.patchPresentations({ restorePoint: current });
@@ -260,6 +359,7 @@ class HomeStoreImpl {
     this.state = { ...this.state, presentations };
     try {
       KvStore.getInstance().set(PRESENTATIONS_KEY, { list: presentations.list, activeId: presentations.activeId, restorePoint: presentations.restorePoint });
+      if (next.layouts || next.notes || next.usage) KvStore.getInstance().set(LAYOUTS_KEY, { layouts: presentations.layouts, notes: presentations.notes, usage: presentations.usage });
     } catch {
       // storage unavailable: this session only
     }

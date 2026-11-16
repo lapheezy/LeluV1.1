@@ -28,6 +28,7 @@ import { announceHome } from "./homePresence";
 import { HomeIcon, useHomeSignals } from "./HomeModules";
 import HomeComposition from "./HomeComposition";
 import { TEMPLATES, deviceClassFor, type DeviceClass, type TemplateId } from "./homeComposition";
+import { resolveStyle } from "./homeStyle";
 import "./cosmosHome.css";
 
 // The studio is only for arranging: it loads when opened, never with the Home.
@@ -68,13 +69,17 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
   const cloudOn = cloud.status === "connected" && Boolean(cloud.session);
   const { editing } = home.presentations;
   const presentation = HomeStore.activePresentation();
+  // The presentation's look (theme, fonts): its CSS variables go on the Home itself,
+  // so the header and edit bar follow it as well as the modules.
+  const look = presentation.style ? resolveStyle(presentation.style) : null;
 
   return (
     <>
     {/* The Cosmos stays alive behind; this haze only quiets it, like the
         reference's atmosphere — no labels of the scene fighting the text. */}
     <div className="lch-scrim" aria-hidden />
-    <div className="lch lch-m15" data-lelu-home data-device={device} data-editing={editing ? "true" : "false"} role="main" aria-label="LÉLU home">
+    {look ? <div className="lch-tint" aria-hidden style={look.vars} /> : null}
+    <div className="lch lch-m15" data-lelu-home data-device={device} data-editing={editing ? "true" : "false"} role="main" aria-label="LÉLU home" style={look ? { ...look.vars, fontFamily: look.vars["--hc-font"] } : undefined}>
       <header className="lch-header">
         <button type="button" className="lch-round" aria-label="Open the app library" onClick={() => onOpenLibrary()}>
           <HomeIcon name="Menu" />
@@ -163,13 +168,33 @@ function HomeEditBar({ device, onStudio }: { device: DeviceClass; onStudio: () =
       </label>
       <label className="hc-field">
         <span>New from</span>
-        <select value="" onChange={(e) => e.target.value && HomeStore.createPresentation(e.target.value as TemplateId)} aria-label="New presentation from a composition">
+        <select
+          value=""
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "__concepts__") onStudio();
+            else if (v) HomeStore.createPresentation(v as TemplateId);
+          }}
+          aria-label="New presentation from a composition or layout"
+        >
           <option value="">Composition…</option>
-          {TEMPLATES.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
+          <optgroup label="Compositions">
+            {TEMPLATES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </optgroup>
+          {home.presentations.layouts.length ? (
+            <optgroup label="My layouts">
+              {home.presentations.layouts.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          <option value="__concepts__">Browse the 60 concepts…</option>
         </select>
       </label>
       <span className="hc-actions">
@@ -192,6 +217,9 @@ function HomeEditBar({ device, onStudio }: { device: DeviceClass; onStudio: () =
         ) : null}
         <button type="button" onClick={() => HomeStore.deletePresentation(active.id)} disabled={list.length < 2} aria-label="Delete presentation">
           <HomeIcon name="X" size={15} />
+        </button>
+        <button type="button" onClick={() => HomeStore.saveActiveAsLayout()} aria-label="Save this arrangement to My layouts" title="Save to My layouts">
+          <HomeIcon name="Save" size={15} />
         </button>
         <button type="button" className="hc-studio-btn" onClick={onStudio} data-home-studio-open>
           <HomeIcon name="LayoutGrid" size={15} /> Design Studio

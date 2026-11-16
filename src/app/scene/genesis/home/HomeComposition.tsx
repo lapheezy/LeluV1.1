@@ -29,11 +29,17 @@ import HomeStore from "./homeStore";
 import { placeInWorld } from "../../../../core/spatial/placeInWorld";
 import { HomeIcon, HomeModuleView, type HomeModuleProps } from "./HomeModules";
 import {
+  ABSOLUTE_KINDS,
   MODULE_LABEL,
   MODULE_PANEL,
   SIZES,
+  adaptiveModeOf,
   adaptiveOrder,
+  layoutOf,
   solveHome,
+  timeKind,
+  timeOrder,
+  usageOrder,
   type DeviceClass,
   type HomeModuleId,
   type HomeOp,
@@ -42,7 +48,10 @@ import {
   type NRect,
   type SolvedModule,
 } from "./homeComposition";
+import { resolveStyle } from "./homeStyle";
+import { useHomeStore } from "./useHomeLive";
 import "./homeComposition.css";
+import "./homeEffects.css";
 
 export interface HomeCompositionProps extends HomeModuleProps {
   presentation: HomePresentation;
@@ -52,6 +61,8 @@ export interface HomeCompositionProps extends HomeModuleProps {
   onOp?: (op: HomeOp) => void;
   /** Accessible name for the region. */
   label?: string;
+  /** Hour of the day for time-of-day layouts (default: now). */
+  hour?: number;
 }
 
 interface Drag {
@@ -64,7 +75,7 @@ interface Drag {
   rect?: NRect;
 }
 
-export default function HomeComposition({ presentation, device, editing = false, preview = false, signals, onOp, label, onOpenLibrary, onOpenWindows }: HomeCompositionProps) {
+export default function HomeComposition({ presentation, device, editing = false, preview = false, signals, onOp, label, onOpenLibrary, onOpenWindows, hour }: HomeCompositionProps) {
   const genesis = useGenesis();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -72,14 +83,20 @@ export default function HomeComposition({ presentation, device, editing = false,
   const [menu, setMenu] = useState<HomeModuleId | null>(null);
   const [said, setSaid] = useState("");
 
-  // Adaptive Intelligence reorders at render time from live signals only;
-  // the saved order is never rewritten.
-  const effective =
-    presentation.template === "adaptive-intelligence" && signals && !editing
-      ? { ...presentation, profiles: { ...presentation.profiles, [device]: { ...presentation.profiles[device], order: adaptiveOrder(presentation.profiles[device].order, signals) } } }
-      : presentation;
-  const solved = solveHome(effective, device);
+  // Adaptive layouts reorder at render time — from live signals, the time
+  // of day or her usage — and never rewrite the saved order. While she
+  // arranges, she sees (and edits) her own order.
+  const usage = useHomeStore().presentations.usage;
+  const layout = layoutOf(presentation);
+  const mode = editing ? "none" : adaptiveModeOf(layout, device);
+  const now = hour ?? new Date().getHours();
+  const saved = presentation.profiles[device].order;
+  const adapted =
+    mode === "signals" && signals ? adaptiveOrder(saved, signals) : mode === "time" ? timeOrder(saved, now) : mode === "usage" ? usageOrder(saved, usage) : saved;
+  const effective = adapted === saved ? presentation : { ...presentation, profiles: { ...presentation.profiles, [device]: { ...presentation.profiles[device], order: adapted } } };
+  const solved = solveHome(effective, device, mode === "time" ? { kind: timeKind(layout.kind[device], now) } : {});
   const order = effective.profiles[device].order;
+  const look = resolveStyle(presentation.style);
 
   const op = useCallback(
     (next: HomeOp, sentence?: string) => {
@@ -137,8 +154,15 @@ export default function HomeComposition({ presentation, device, editing = false,
   /* ---------------- hand-offs to the owning systems ---------------- */
   const toWindow = (id: HomeModuleId, from: Element | null) => {
     const panel = MODULE_PANEL[id];
-    if (panel && !preview) launch(genesis, panel as GenesisPanel, from);
+    if (panel && !preview) {
+      HomeStore.noteUse(id);
+      launch(genesis, panel as GenesisPanel, from);
+    }
     setMenu(null);
+  };
+  const expand = (id: HomeModuleId) => {
+    if (!preview) HomeStore.noteUse(id);
+    setExpanded(id);
   };
   const toChatUniverse = () => {
     if (!preview) window.dispatchEvent(new CustomEvent("lelu-open-universe"));
@@ -174,7 +198,7 @@ export default function HomeComposition({ presentation, device, editing = false,
       c: () => op({ op: "toggle", id, flag: "collapsed" }, `${MODULE_LABEL[id]} ${m.settings.collapsed ? "expanded" : "collapsed"}`),
       f: () => op(m.settings.mode === "float" ? { op: "restore", id } : { op: "float", id }, `${MODULE_LABEL[id]} ${m.settings.mode === "float" ? "back in the layout" : "floating"}`),
       d: () => op({ op: "dock", id }, `${MODULE_LABEL[id]} docked`),
-      Enter: () => setExpanded(id),
+      Enter: () => expand(id),
     };
     const run = keys[e.key];
     if (run) {
@@ -187,6 +211,7 @@ export default function HomeComposition({ presentation, device, editing = false,
 
   /* ---------------- one module frame ---------------- */
   const frame = (m: SolvedModule, style: CSSProperties, extra?: string) => {
+    const rotate = m.tilt ? `rotate(${m.tilt}deg)` : undefined;
     const s = m.settings;
     const dragging = drag?.id === m.id;
     const floatRect = m.rect;
@@ -206,7 +231,7 @@ export default function HomeComposition({ presentation, device, editing = false,
         data-dragging={dragging ? "true" : "false"}
         data-menu-open={menu === m.id ? "true" : "false"}
         data-depth={m.depth ?? 0}
-        style={{ ...style, ...sized, ...(translate ? { transform: translate, zIndex: 50 } : null) }}
+        style={{ ...style, ...sized, ...(rotate ? { transform: rotate } : null), ...(translate ? { transform: translate, zIndex: 50 } : null) }}
         tabIndex={editing ? 0 : undefined}
         role={editing ? "group" : undefined}
         aria-label={editing ? `${MODULE_LABEL[m.id]} — ${s.size} ${s.locked ? "locked " : ""}${s.pinned ? "pinned " : ""}module. Arrows move, plus and minus resize, H hide, P pin, L lock, C collapse, F float, D dock, Enter expand.` : undefined}
@@ -265,7 +290,7 @@ export default function HomeComposition({ presentation, device, editing = false,
                   </button>
                   <hr />
                 </span>
-                <button type="button" role="menuitem" onClick={() => (setExpanded(m.id), setMenu(null))}>
+                <button type="button" role="menuitem" onClick={() => (expand(m.id), setMenu(null))}>
                   <HomeIcon name="Maximize2" size={14} /> Expand
                 </button>
                 <button type="button" role="menuitem" disabled={s.locked} onClick={() => (op(s.mode === "float" ? { op: "restore", id: m.id } : { op: "float", id: m.id }), setMenu(null))}>
@@ -307,14 +332,38 @@ export default function HomeComposition({ presentation, device, editing = false,
             ) : null}
           </div>
         ) : null}
-        <ModuleBody m={m} preview={preview} onOpenLibrary={onOpenLibrary} onOpenWindows={onOpenWindows} />
+        {look.border !== "none" ? <span className="hc-fx" data-fx={look.border} aria-hidden /> : null}
+        {look.border2 !== "none" ? <span className="hc-fx" data-fx={look.border2} data-layer="inner" aria-hidden /> : null}
+        <ModuleBody m={m} preview={preview} stacked={solved.params.groupView === "stack"} onOpenLibrary={onOpenLibrary} onOpenWindows={onOpenWindows} />
         {editing && m.rect ? <span className="hc-resize" aria-hidden onPointerDown={(e) => startDrag(e, m.id, "resize", m.rect)} /> : null}
       </div>
     );
   };
 
   const kind = solved.kind;
-  const absolute = kind === "orbit" || kind === "spatial" || kind === "freeform";
+  const absolute = ABSOLUTE_KINDS.has(kind);
+  const params = solved.params;
+  const windowShare = params.window ?? 0;
+  const rootStyle: CSSProperties = {
+    ...look.vars,
+    ["--cols" as string]: solved.columns,
+    ["--rows" as string]: solved.rows,
+    ["--hc-density" as string]: params.density ?? 0.5,
+    ["--hc-depth" as string]: params.depth ?? 1,
+    ...(params.maxWidth ? { ["--hc-maxw" as string]: `${params.maxWidth}px` } : null),
+    ...(windowShare ? { ["--hc-window" as string]: `${Math.round(windowShare * 100)}%` } : null),
+  };
+  const placedAt = (m: SolvedModule) =>
+    absolute && m.rect
+      ? frame(m, { left: `${m.rect.x * 100}%`, top: `${m.rect.y * 100}%`, width: `${m.rect.w * 100}%`, height: `${m.rect.h * 100}%` }, "hc-abs")
+      : m.cell
+        ? frame(m, kind === "deck" || kind === "rows" ? {} : { gridColumn: `${m.cell.col} / span ${m.cell.w}`, gridRow: `${m.cell.row} / span ${m.cell.h}` })
+        : null;
+  const rowsOf = kind === "rows" ? [...new Set(solved.placed.map((m) => m.cell?.row ?? 1))].sort((a, b) => a - b) : [];
+  const centre = (id: HomeModuleId) => {
+    const r = solved.placed.find((m) => m.id === id)?.rect;
+    return r ? { x: (r.x + r.w / 2) * 100, y: (r.y + r.h / 2) * 100 } : null;
+  };
   return (
     <div
       ref={rootRef}
@@ -323,23 +372,60 @@ export default function HomeComposition({ presentation, device, editing = false,
       data-device={device}
       data-editing={editing ? "true" : "false"}
       data-template={presentation.template}
+      data-adaptive={mode}
+      data-styled={presentation.style ? "true" : "false"}
+      data-motion={presentation.style?.motion === false ? "off" : "on"}
+      data-stacked={params.stacked ? "true" : undefined}
+      data-rail={params.rail ? "true" : undefined}
+      data-rings={params.rings ? "true" : undefined}
+      data-window={windowShare ? "true" : undefined}
+      data-density={params.density !== undefined ? params.density : undefined}
       aria-label={label ?? `Home — ${presentation.name}`}
-      style={{ ["--cols" as string]: solved.columns, ["--rows" as string]: solved.rows }}
+      style={rootStyle}
     >
-      <div className="hc-stage">
-        {solved.placed.map((m) =>
-          absolute && m.rect
-            ? frame(m, { left: `${m.rect.x * 100}%`, top: `${m.rect.y * 100}%`, width: `${m.rect.w * 100}%`, height: `${m.rect.h * 100}%` }, "hc-abs")
-            : m.cell
-              ? frame(m, kind === "deck" ? {} : { gridColumn: `${m.cell.col} / span ${m.cell.w}`, gridRow: `${m.cell.row} / span ${m.cell.h}` })
-              : null,
+      <FxDefs />
+      <div className="hc-body">
+        {kind === "rows" ? (
+          <div className="hc-stage hc-rows">
+            {rowsOf.map((row, i) => (
+              <section key={row} className="hc-row" aria-label={params.laneNames?.[i] ?? `Row ${i + 1}`}>
+                {params.laneNames?.[i] ? <h3 className="hc-lane-head">{params.laneNames[i]}</h3> : null}
+                <div className="hc-row-track">{solved.placed.filter((m) => (m.cell?.row ?? 1) === row).map(placedAt)}</div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="hc-stage">
+            {kind === "lanes" && params.laneNames?.length
+              ? params.laneNames.slice(0, solved.columns).map((name, i) => (
+                  <h3 key={name + i} className="hc-lane-head" style={{ gridColumn: `${i + 1} / span 1`, gridRow: "1 / span 1" }}>
+                    {name}
+                  </h3>
+                ))
+              : null}
+            {solved.links?.length ? (
+              <svg className="hc-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                {solved.links.map(([a, b]) => {
+                  const p = centre(a);
+                  const q = centre(b);
+                  return p && q ? <line key={`${a}-${b}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y} /> : null;
+                })}
+              </svg>
+            ) : null}
+            {solved.placed.map(placedAt)}
+          </div>
         )}
+        {windowShare ? (
+          <div className="hc-window" role="img" aria-label="A window onto the live Cosmos">
+            <span>The Cosmos</span>
+          </div>
+        ) : null}
       </div>
       {solved.floating.map((m) => frame(m, { left: `${m.rect!.x * 100}%`, top: `${m.rect!.y * 100}%`, width: `${m.rect!.w * 100}%`, height: `${m.rect!.h * 100}%` }, "hc-abs hc-float"))}
       {solved.docked.length || (editing && solved.hidden.length) ? (
         <div className="hc-dock" role="toolbar" aria-label="Docked modules">
           {solved.docked.map((id) => (
-            <button key={id} type="button" className="hc-dock-chip" onClick={() => (editing ? op({ op: "restore", id }, `${MODULE_LABEL[id]} restored`) : setExpanded(id))} aria-label={editing ? `Restore ${MODULE_LABEL[id]}` : `Open ${MODULE_LABEL[id]}`}>
+            <button key={id} type="button" className="hc-dock-chip" onClick={() => (editing ? op({ op: "restore", id }, `${MODULE_LABEL[id]} restored`) : expand(id))} aria-label={editing ? `Restore ${MODULE_LABEL[id]}` : `Open ${MODULE_LABEL[id]}`}>
               {MODULE_LABEL[id]}
             </button>
           ))}
@@ -377,13 +463,24 @@ export default function HomeComposition({ presentation, device, editing = false,
   );
 }
 
-/** A module, or a tab group of modules sharing one surface. */
-function ModuleBody({ m, ...props }: HomeModuleProps & { m: SolvedModule }) {
+/** A module, or a group of modules sharing one surface (as tabs, or stacked). */
+function ModuleBody({ m, stacked, ...props }: HomeModuleProps & { m: SolvedModule; stacked?: boolean }) {
   const [tab, setTab] = useState(0);
   if (m.settings.collapsed) {
     return <div className="lch-glass hc-collapsed">{MODULE_LABEL[m.id]}</div>;
   }
   if (m.members.length < 2) return <HomeModuleView id={m.id} {...props} />;
+  if (stacked) {
+    return (
+      <div className="hc-group hc-group-stack" role="group" aria-label={m.members.map((id) => MODULE_LABEL[id]).join(" and ")}>
+        {m.members.map((id) => (
+          <div key={id} className="hc-stack-cell">
+            <HomeModuleView id={id} {...props} />
+          </div>
+        ))}
+      </div>
+    );
+  }
   const active = m.members[Math.min(tab, m.members.length - 1)];
   return (
     <div className="hc-group">
@@ -398,5 +495,38 @@ function ModuleBody({ m, ...props }: HomeModuleProps & { m: SolvedModule }) {
         <HomeModuleView id={active} {...props} />
       </div>
     </div>
+  );
+}
+
+/**
+ * The SVG filters the elemental borders use (feTurbulence displacement:
+ * water ripples, fire and lava churn, lightning crackles, moss grows).
+ * Static noise; the motion comes from the CSS gradients moving under it.
+ * Several Homes on one page (the studio) render identical copies — harmless.
+ */
+function FxDefs() {
+  return (
+    <svg className="hc-fx-defs" width="0" height="0" aria-hidden focusable="false">
+      <filter id="hc-fx-water" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.06" numOctaves="2" seed="3" />
+        <feDisplacementMap in="SourceGraphic" scale="7" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="hc-fx-fire" x="-20%" y="-30%" width="140%" height="160%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035 0.09" numOctaves="3" seed="8" />
+        <feDisplacementMap in="SourceGraphic" scale="11" xChannelSelector="R" yChannelSelector="B" />
+      </filter>
+      <filter id="hc-fx-lava" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="2" seed="11" />
+        <feDisplacementMap in="SourceGraphic" scale="9" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="hc-fx-lightning" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="turbulence" baseFrequency="0.09" numOctaves="1" seed="2" />
+        <feDisplacementMap in="SourceGraphic" scale="6" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="hc-fx-nature" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="5" />
+        <feDisplacementMap in="SourceGraphic" scale="5" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
   );
 }
