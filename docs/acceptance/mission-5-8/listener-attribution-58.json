@@ -1,0 +1,244 @@
+{
+  "mission": "5.8",
+  "at": "2026-11-08T22:06:32.677Z",
+  "stage": "listeners:document:after-3-cycles",
+  "events": [
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "event": "console-error",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "at": "2026-11-08T22:06:59.378Z",
+      "event": "page-close"
+    }
+  ],
+  "samples": [
+    {
+      "label": "window:start",
+      "total": 60,
+      "distinctSites": 56,
+      "duplicates": [
+        [
+          "pagehide @ deps/@supabase_supabase-js.js?v=3a9a0638:5797",
+          2
+        ],
+        [
+          "pageshow @ deps/@supabase_supabase-js.js?v=3a9a0638:5803",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:5809",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:19294",
+          2
+        ]
+      ],
+      "perf": {
+        "label": "start",
+        "heapMB": 82.4,
+        "nodes": 670,
+        "jsListeners": 1949
+      }
+    },
+    {
+      "label": "document:start",
+      "total": 3,
+      "distinctSites": 3,
+      "duplicates": [],
+      "perf": {
+        "label": "start",
+        "heapMB": 82.5,
+        "nodes": 676,
+        "jsListeners": 1953
+      }
+    },
+    {
+      "label": "window:after-cycle-1",
+      "total": 63,
+      "distinctSites": 57,
+      "duplicates": [
+        [
+          "scroll @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9337",
+          2
+        ],
+        [
+          "pagehide @ deps/@supabase_supabase-js.js?v=3a9a0638:5797",
+          2
+        ],
+        [
+          "pageshow @ deps/@supabase_supabase-js.js?v=3a9a0638:5803",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:5809",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:19294",
+          2
+        ],
+        [
+          "resize @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9366",
+          2
+        ]
+      ],
+      "perf": {
+        "label": "cycle-1",
+        "heapMB": 102,
+        "nodes": 1005,
+        "jsListeners": 8629
+      }
+    },
+    {
+      "label": "window:after-cycle-2",
+      "total": 63,
+      "distinctSites": 57,
+      "duplicates": [
+        [
+          "scroll @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9337",
+          2
+        ],
+        [
+          "pagehide @ deps/@supabase_supabase-js.js?v=3a9a0638:5797",
+          2
+        ],
+        [
+          "pageshow @ deps/@supabase_supabase-js.js?v=3a9a0638:5803",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:5809",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:19294",
+          2
+        ],
+        [
+          "resize @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9366",
+          2
+        ]
+      ],
+      "perf": {
+        "label": "cycle-2",
+        "heapMB": 120.5,
+        "nodes": 1012,
+        "jsListeners": 8799
+      }
+    },
+    {
+      "label": "window:after-cycle-3",
+      "total": 63,
+      "distinctSites": 57,
+      "duplicates": [
+        [
+          "scroll @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9337",
+          2
+        ],
+        [
+          "pagehide @ deps/@supabase_supabase-js.js?v=3a9a0638:5797",
+          2
+        ],
+        [
+          "pageshow @ deps/@supabase_supabase-js.js?v=3a9a0638:5803",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:5809",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:19294",
+          2
+        ],
+        [
+          "resize @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9366",
+          2
+        ]
+      ],
+      "perf": {
+        "label": "cycle-3",
+        "heapMB": 111,
+        "nodes": 1019,
+        "jsListeners": 8973
+      }
+    },
+    {
+      "label": "window:after-3-cycles",
+      "total": 63,
+      "distinctSites": 57,
+      "duplicates": [
+        [
+          "scroll @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9337",
+          2
+        ],
+        [
+          "pagehide @ deps/@supabase_supabase-js.js?v=3a9a0638:5797",
+          2
+        ],
+        [
+          "pageshow @ deps/@supabase_supabase-js.js?v=3a9a0638:5803",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:5809",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:19294",
+          2
+        ],
+        [
+          "resize @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9366",
+          2
+        ]
+      ],
+      "perf": {
+        "label": "cycles",
+        "heapMB": 116.4,
+        "nodes": 1019,
+        "jsListeners": 8973
+      }
+    },
+    {
+      "label": "document:after-3-cycles",
+      "total": 3,
+      "distinctSites": 3,
+      "duplicates": [],
+      "perf": {
+        "label": "cycles",
+        "heapMB": 121.4,
+        "nodes": 1019,
+        "jsListeners": 9046
+      }
+    }
+  ],
+  "result": "RECORDED",
+  "finishedAt": "2026-11-08T22:06:59.565Z"
+}

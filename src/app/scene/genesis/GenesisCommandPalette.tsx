@@ -24,7 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 import { layer } from "../../../core/ui/Layers";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import { openStudioMode } from "./GenesisVisualStudio";
 
@@ -45,7 +45,7 @@ export default function GenesisCommandPalette({
       v2 workspace back to v1. */
   onNavigate?: (commandId: string) => void;
 }) {
-  const { state, openPanel, focusWorkspace, selectDestination, clearConversation } = useGenesis();
+  const { state, openPanel, focusWorkspace, selectDestination, clearConversation } = useGenesisState();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -78,12 +78,15 @@ export default function GenesisCommandPalette({
   const commands = useMemo<Command[]>(() => {
     const base: Command[] = [
       { id: "open-chat", label: "Open chat", hint: "Genesis Core", run: () => openPanel("chat") },
+      { id: "interface-history", label: "Interface history — versions, restore, permissions", hint: "Interface", run: () => window.dispatchEvent(new CustomEvent("lelu-interface-open-history")) },
+      { id: "interface-undo", label: "Undo last interface change", hint: "Interface", run: () => window.dispatchEvent(new CustomEvent("lelu-interface-undo")) },
       { id: "open-genesis-v2", label: "Open Genesis v2 · Transformation Lab", hint: "Genesis Core", run: () => openPanel("genesisv2") },
       { id: "open-history", label: "Open conversation history", hint: "Genesis Core", run: () => openPanel("history") },
       { id: "open-projects", label: "Open Projects", hint: "Projects", run: () => openPanel("projects") },
       { id: "open-reasoning", label: "Open reasoning & planning", hint: "Genesis Core", run: () => openPanel("reasoning") },
       { id: "open-cognition", label: "Open Cognition — self, knowledge, queue", hint: "Cognition", run: () => openPanel("cognition") },
       { id: "open-engineering", label: "Open Engineering sandbox", hint: "Engineering", run: () => openPanel("engineering") },
+      { id: "open-command", label: "Open Engineering Command — acquisitions, workforce, capabilities", hint: "Engineering", run: () => openPanel("command") },
       { id: "open-evolution", label: "Open Evolution — self-development engine", hint: "Evolution", run: () => openPanel("evolution") },
       { id: "open-visualstudio", label: "Open Genesis Studios", hint: "Visual environment", run: () => openPanel("visualstudio") },
       // Earth Core — a capability of the unified environment, not a tab.

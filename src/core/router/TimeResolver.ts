@@ -20,7 +20,10 @@ export default class TimeResolver {
     const isTimeQuery =
       /what time|current time|what['"]s the time|whats the time|time now|tell me the time/.test(prompt) ||
       /what day|what date|today['"]s date|todays date|date now|tell me the date/.test(prompt) ||
-      /what is today|what['"]s today|whats today|what month|what day is it|what year/.test(prompt) ||
+      // "what is today" only when TODAY is the subject — not "what is
+      // today's exchange rate / weather / news" (same rule as IntentDetector).
+      (/what is today|what['"’]s today|whats today/.test(prompt) && !/\btoday['’]?s\s+(?!date\b|day\b)[a-z]/.test(prompt)) ||
+      /what month|what day is it|what year/.test(prompt) ||
       /current date|what.*(?:day|date|month|year) is it/.test(prompt);
 
     if (!isTimeQuery) return { handled: false };

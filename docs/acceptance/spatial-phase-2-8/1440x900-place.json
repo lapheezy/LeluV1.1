@@ -1,0 +1,110 @@
+{
+  "viewport": "1440x900",
+  "capturedAt": "2026-11-07T02:01:42.998Z",
+  "steps": {
+    "start": {
+      "home": true,
+      "studio": false,
+      "canvases": 3,
+      "revision": 0,
+      "objects": [],
+      "camera": [
+        6,
+        2.5,
+        4
+      ],
+      "owner": null,
+      "reveal": null
+    },
+    "dashboard": {
+      "home": false,
+      "studio": false,
+      "canvases": 3,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Jewelry",
+          "rendered": true
+        }
+      ],
+      "camera": [
+        3.233,
+        -0.735,
+        3.889
+      ],
+      "owner": "cinematic",
+      "reveal": {
+        "target": "Jewelry",
+        "requestedAt": 1794016929373,
+        "ok": true,
+        "message": "Framed \"Jewelry\" — camera at (3.23, -0.73, 3.89) looking at (2.27, -1.35, 2.13). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 3.2333373949071498,
+            "y": -0.7348898320219472,
+            "z": 3.888633179992912
+          },
+          "target": {
+            "x": 2.2667357023702097,
+            "y": -1.35,
+            "z": 2.1311755571984756
+          },
+          "distance": 2.097936282798774,
+          "fov": 49
+        },
+        "at": 1794016932407
+      }
+    },
+    "studioOpen": {
+      "home": false,
+      "studio": false,
+      "canvases": 3,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Jewelry",
+          "rendered": true
+        }
+      ],
+      "camera": [
+        3.233,
+        -0.735,
+        3.889
+      ],
+      "owner": "cinematic",
+      "reveal": {
+        "target": "Jewelry",
+        "requestedAt": 1794016929373,
+        "ok": true,
+        "message": "Framed \"Jewelry\" — camera at (3.23, -0.73, 3.89) looking at (2.27, -1.35, 2.13). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 3.2333373949071498,
+            "y": -0.7348898320219472,
+            "z": 3.888633179992912
+          },
+          "target": {
+            "x": 2.2667357023702097,
+            "y": -1.35,
+            "z": 2.1311755571984756
+          },
+          "distance": 2.097936282798774,
+          "fov": 49
+        },
+        "at": 1794016932407
+      }
+    }
+  },
+  "events": [],
+  "dashboardNotice": null,
+  "appLabels": [],
+  "dockLabels": [
+    "Home",
+    "App library",
+    "Open windows",
+    "Search (⌘K)",
+    "Worlds",
+    "Settings"
+  ],
+  "error": "Error: no Studio toolbar"
+}

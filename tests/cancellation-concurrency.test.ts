@@ -47,9 +47,13 @@ test("every provider combines request.signal with its timeout via AbortSignal.an
   ];
   for (const path of providers) {
     const code = src(path);
+    // Anthropic hands its signal to send() as `cancel` and combines it
+    // there; either way the request's signal must be COMBINED with the
+    // timeout, never replaced by it.
+    assert.ok(/request\.signal/.test(code), `${path}: the request's signal is ignored`);
     assert.ok(
-      /AbortSignal\.any\(\[request\.signal/.test(code),
-      `${path}: fetch signal must use AbortSignal.any([request.signal, ...])`,
+      /AbortSignal\.any\(\[[^\]]*(request\.signal|cancel)/.test(code),
+      `${path}: fetch signal must use AbortSignal.any([request.signal|cancel, ...])`,
     );
   }
 });
@@ -82,8 +86,8 @@ test("AIService.chat creates a controller and passes signal to AIRequest", () =>
     "chat() must create an AbortController",
   );
   assert.ok(
-    /signal:\s*controller\.signal/.test(code),
-    "chat() must pass controller.signal on the AIRequest",
+    /signal:\s*AbortSignal\.any\(\[[^\]]*controller\.signal/.test(code),
+    "chat() must pass the conversation controller's signal on the AIRequest",
   );
 });
 
@@ -268,10 +272,13 @@ test("GenesisChat stream listener filters events by conversationId", () => {
 test("there is exactly one AbortController creation pattern in AIService", () => {
   const code = src("src/core/AIService.ts");
   const matches = [...code.matchAll(/new AbortController\(\)/g)];
+  // Two, by design: one per conversation (cancelTurn aborts it) and one per
+  // turn (the tool loop's own stop). They are combined with AbortSignal.any
+  // at the request, so stopping either one stops the fetch.
   assert.equal(
     matches.length,
-    1,
-    "AIService must create exactly one AbortController (in chat())",
+    2,
+    "AIService creates the per-conversation and per-turn controllers and nothing else",
   );
 });
 

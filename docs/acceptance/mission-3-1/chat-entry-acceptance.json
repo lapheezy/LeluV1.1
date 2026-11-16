@@ -1,0 +1,136 @@
+{
+ "harness": "docs/acceptance/mission-3-1/scripts/gate-settle-entry.mjs \u2014 waits for the gate to SETTLE, dismisses it with its own control, proves it detached, then drives the entry with page.mouse.click at the control's own coordinates.",
+ "results": [
+  {
+   "id": "home-now-open-chat",
+   "viewport": "1440x900",
+   "gate": {
+    "gate": true,
+    "labels": [
+     "Sign in",
+     "Create account",
+     "Continue without an account"
+    ],
+    "home": true,
+    "text": "L\u00c9LU \u00b7 CLOUD IDENTITY\n\nSign in to carry memory, projects and conversations across your devices. You can also continue without an account \u2014 everything works, it just stays here.\n\nSign in\nCreate account\nContinue without an",
+    "settleMs": 2993,
+    "dismissed": "detached",
+    "presentAfter": false
+   },
+   "hit": {
+    "present": true,
+    "cx": 1082,
+    "cy": 247,
+    "reachable": true,
+    "topAria": "SPAN"
+   },
+   "click": "pointer-click",
+   "dialogMs": 8273,
+   "composer": {
+    "present": true,
+    "disabled": false,
+    "placeholder": "Message L\u00c9LU\u2026"
+   },
+   "typed": "Mission 3.1 entry check",
+   "typeError": null,
+   "pageErrors": [],
+   "path": "home-now-open-chat",
+   "status": "PASS"
+  },
+  {
+   "id": "navigator-summon",
+   "viewport": "1440x900",
+   "gate": {
+    "gate": true,
+    "labels": [
+     "Sign in",
+     "Create account",
+     "Continue without an account"
+    ],
+    "home": true,
+    "text": "L\u00c9LU \u00b7 CLOUD IDENTITY\n\nSign in to carry memory, projects and conversations across your devices. You can also continue without an account \u2014 everything works, it just stays here.\n\nSign in\nCreate account\nContinue without an",
+    "settleMs": 2925,
+    "dismissed": "detached",
+    "presentAfter": false
+   },
+   "hit": {
+    "present": true,
+    "cx": 858,
+    "cy": 614,
+    "reachable": true,
+    "topAria": "SPAN"
+   },
+   "click": "pointer-click",
+   "dialogMs": 7323,
+   "composer": {
+    "present": true,
+    "disabled": false,
+    "placeholder": "Message L\u00c9LU\u2026"
+   },
+   "typed": "Mission 3.1 entry check",
+   "typeError": null,
+   "pageErrors": [],
+   "path": "navigator-summon",
+   "status": "PASS"
+  },
+  {
+   "id": "navigator-summon",
+   "viewport": "390x844",
+   "gate": {
+    "gate": true,
+    "labels": [
+     "Sign in",
+     "Create account",
+     "Continue without an account"
+    ],
+    "home": true,
+    "text": "L\u00c9LU \u00b7 CLOUD IDENTITY\n\nSign in to carry memory, projects and conversations across your devices. You can also continue without an account \u2014 everything works, it just stays here.\n\nSign in\nCreate account\nContinue without an",
+    "settleMs": 3064,
+    "dismissed": "detached",
+    "presentAfter": false
+   },
+   "hit": {
+    "present": true,
+    "cx": 316,
+    "cy": 738,
+    "reachable": true,
+    "topAria": "SPAN"
+   },
+   "click": "pointer-click",
+   "dialogMs": 1969,
+   "composer": {
+    "present": true,
+    "disabled": false,
+    "placeholder": "Message L\u00c9LU\u2026"
+   },
+   "typed": "Mission 3.1 entry check",
+   "typeError": null,
+   "pageErrors": [],
+   "path": "navigator-summon (mobile 390x844)",
+   "status": "PASS"
+  }
+ ],
+ "not_tested": [
+  {
+   "path": "travel-conversation",
+   "status": "NOT TESTED",
+   "reason": "The run exceeded this session's 95 s per-path command budget before writing evidence. Not a measured failure."
+  },
+  {
+   "path": "apps-chat-tile",
+   "status": "NOT TESTED",
+   "reason": "Same command-budget cut-off."
+  }
+ ],
+ "proven": [
+  "a single Chat Universe mounts",
+  "its composer is present, enabled and accepts typed text",
+  "no sign-in gate remains",
+  "no page errors"
+ ],
+ "not_proven": [
+  "message submission producing a conversation turn that reaches a provider (see autonomy-acceptance.json)",
+  "duplicate-window suppression",
+  "desktop/mobile window opening from a grid card"
+ ]
+}

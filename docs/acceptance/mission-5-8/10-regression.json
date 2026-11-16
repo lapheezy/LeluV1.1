@@ -1,0 +1,49 @@
+{
+  "command": "bun run test (tsx --test --test-concurrency=1, same runner as 5.7)",
+  "totals": {
+    "tests": 1850,
+    "pass": 1848,
+    "fail": 0,
+    "skipped": 2
+  },
+  "baseline57": {
+    "tests": 1839,
+    "pass": 1839,
+    "fail": 0,
+    "skipped": 0
+  },
+  "delta": "11 new tests added (6 broker contract, 5 request budget); none removed, none weakened",
+  "skippedNote": "the 5.7 run reported 0 skipped; this run reports 2. They are not among the tests added here (all 11 execute). Reported as observed rather than explained away \u2014 see openDefects.",
+  "typecheck": {
+    "command": "bunx tsc -b --force",
+    "exit": 0
+  },
+  "build": {
+    "command": "bun run build",
+    "exit": 0
+  },
+  "lint": {
+    "command": "bun run lint",
+    "exit": 0,
+    "errors": 0,
+    "warnings": 133,
+    "baseline57Warnings": 133
+  },
+  "targetedSuites": {
+    "command": "anthropic-integration, broker-contract, request-budget, model-broker, broker-consolidation, provider-rung-budget, tool-schema-scoping",
+    "tests": 73,
+    "pass": 73,
+    "fail": 0
+  },
+  "mobile": {
+    "rerun": false,
+    "reason": "Chromium terminates on launch in this session (see 07); physical device testing never performed",
+    "previousResults": {
+      "360x640": "PASS (5.7)",
+      "375x812": "PASS (5.7)",
+      "390x844": "PASS (5.7)",
+      "430x932": "last verified 5.6"
+    }
+  },
+  "regressionFixedDuringMission": "the first contract draft keyed on content-type and refused a legitimate JSON body from the pre-existing Anthropic broker test. The rule was narrowed to the body, not the assertion."
+}

@@ -1,0 +1,76 @@
+{
+  "at": "2026-11-08T23:28:15.252Z",
+  "tests": {
+    "initial": {
+      "engineSelected": null,
+      "domSelected": "false",
+      "probe": {
+        "selects": [],
+        "clicks": [],
+        "mouse": []
+      }
+    },
+    "directSelect": {
+      "engineSelected": "view-47d2d183",
+      "domSelected": "true",
+      "probe": {
+        "selects": [
+          "view-47d2d183"
+        ],
+        "clicks": [],
+        "mouse": []
+      }
+    },
+    "locatorClick": {
+      "engineSelected": "view-47d2d183",
+      "domSelected": "true",
+      "probe": {
+        "selects": [
+          "view-47d2d183"
+        ],
+        "clicks": [
+          {
+            "target": "div",
+            "view": "view-47d2d183"
+          }
+        ],
+        "mouse": [
+          {
+            "target": "div",
+            "view": "view-47d2d183"
+          }
+        ]
+      }
+    },
+    "rawMouse": {
+      "point": {
+        "x": 394,
+        "y": 130,
+        "top": {
+          "tag": "div",
+          "inCard": true
+        }
+      },
+      "engineSelected": "view-47d2d183",
+      "domSelected": "true",
+      "probe": {
+        "selects": [
+          "view-47d2d183"
+        ],
+        "clicks": [
+          {
+            "target": "div",
+            "view": "view-47d2d183"
+          }
+        ],
+        "mouse": [
+          {
+            "target": "div",
+            "view": "view-47d2d183"
+          }
+        ]
+      }
+    }
+  },
+  "errors": []
+}

@@ -1,0 +1,13 @@
+{
+  "operational": [
+    "server-side page reader (plugins/browseApi.ts) + BrowserTool",
+    "repository engineering tools (project.copy/read/write/validate) behind the workspace runtime",
+    "model broker allowlist"
+  ],
+  "blocked_in_this_environment": [
+    "research egress: export.arxiv.org returned ERR_CONNECTION_REFUSED / 503 from the browser and broker in the observed turns",
+    "GitHub token rejected (401) so repository discovery/auth against GitHub is unavailable",
+    "OpenRouter free tier 429"
+  ],
+  "distinction": "web search (works via key-less providers), page retrieval (works through the server reader), interactive browser control (not exercised), file access (workspace-bounded), code execution (workspace runtime), agent delegation (not exercised)"
+}

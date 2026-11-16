@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-11-06",
+  "source": "window.__LELU_ROUTING_TRACE__ (live dev server :3013)",
+  "id": "route-mw5djjb3-tiixvh",
+  "prompt": "Why can't you run OpenHands?",
+  "intent": "chat",
+  "startedAt": 1793993722240,
+  "finishedAt": 1793993730295,
+  "stages": [
+    { "stage": "time", "handled": false, "durationMs": 0 },
+    { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+    { "stage": "brain", "handled": false, "durationMs": 1 },
+    { "stage": "intelligence", "handled": true, "durationMs": 1, "provider": "intelligence", "model": "operational-unavailable" }
+  ],
+  "notes": [
+    { "at": 1793993730294, "stage": "intelligence.intent", "detail": "explain:engineering.openhands.execute", "ok": true },
+    { "at": 1793993730295, "stage": "intelligence.fetch", "detail": "could not read live state: simulated surface outage", "ok": false },
+    { "at": 1793993730295, "stage": "final", "detail": "owner=IntelligenceResolver provider=intelligence model=operational-unavailable chars=292", "ok": true }
+  ],
+  "owner": "IntelligenceResolver",
+  "provider": "intelligence",
+  "model": "operational-unavailable",
+  "renderedExcerpt": "I could not read engineering.openhands.execute from the integration surface just now: simulated surface outage\n\nI am not going to guess whether it is installed, configured or running — that answer has to come from a live probe. Nothing has changed in the meantime, and nothing was executed.",
+  "outageMethod": "A page-level wrapper around window.fetch rejected URLs containing '/api/integration' for this turn only; all other requests passed through. Removed immediately afterwards and verified restored.",
+  "interpretation": "With the surface unreachable, the operational question still did not reach the model. The stage answered honestly instead of speculating, and no provider request was made (stage duration 1 ms)."
+}

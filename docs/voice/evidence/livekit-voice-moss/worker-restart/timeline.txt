@@ -1,0 +1,9 @@
++1s speech=502 app=502200
++3s speech=503 app=503200
++5s speech=503 app=503200
++7s speech=503 app=503200
++9s speech=503 app=503200
++11s speech=503 app=503200
++13s speech=503 app=503200
++15s speech=503 app=503200
++20s speech=200 app=200200

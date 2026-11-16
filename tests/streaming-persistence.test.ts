@@ -298,7 +298,11 @@ test("the render ledger counts both contexts and costs nothing in production", (
   // "scene renders: 0" would be unfalsifiable — a broken counter and a
   // fixed cascade look identical.
   const source = readFileSync("src/app/scene/genesis/useGenesisScene.ts", "utf8");
-  assert.match(source, /if \(!import\.meta\.env\.DEV\) return;/, "the ledger would ship to production");
+  // Gated through buildEnv's IS_DEV: it resolves to import.meta.env.DEV in
+  // development and to a constant `false` in production, so the ledger (and
+  // its strings) is dropped from the bundle.
+  assert.match(source, /if \(!IS_DEV\) return;/, "the ledger would ship to production");
+  assert.match(readFileSync("src/core/env/buildEnv.ts", "utf8"), /IS_DEV/, "IS_DEV has no definition");
   assert.match(source, /countRender\("scene", who\)/, "scene renders are not counted");
 
   const core = readFileSync("src/app/scene/genesis/GenesisCore.tsx", "utf8");

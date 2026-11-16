@@ -143,13 +143,32 @@ export interface WorkspaceState {
 
 type WorkspaceListener = (state: WorkspaceState) => void;
 
-/** Whether a patch changes what a view shows (its content or title). */
+/**
+ * Whether a patch changes what a view shows (its content or title).
+ *
+ * A spec is compared by VALUE, not by reference. Visualizers rebuild their
+ * spec object on every refresh (the provider/memory visualizers run on an
+ * engine tick), so reference inequality counted an identical re-render as a
+ * content change: a restored surface measured at revision 7 was painted as
+ * revision 11 seconds later without anything about it actually changing.
+ * Revisions have to mean "the content changed", or the number is noise.
+ */
+function sameSpec(a: VisualSpec | undefined, b: VisualSpec | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+}
+
 function changesContent(
   view: WorkspaceView,
   patch: { spec?: VisualSpec; text?: string; url?: string; title?: string; kind?: WorkspaceViewKind },
 ): boolean {
   return (
-    (patch.spec !== undefined && patch.spec !== view.spec) ||
+    (patch.spec !== undefined && !sameSpec(patch.spec, view.spec)) ||
     (patch.text !== undefined && patch.text !== view.text) ||
     (patch.url !== undefined && patch.url !== view.url) ||
     (Boolean(patch.title) && patch.title !== view.title) ||
@@ -300,6 +319,14 @@ export default class WorkspaceEngine {
     temporary?: boolean;
     group?: string;
     source?: WorkspaceViewSource;
+    /**
+     * Revision to adopt when this call CREATES the view. Restoring a saved
+     * workspace must not reset a surface's revision to 1: the revision is
+     * part of what was saved, so a restore passes the stored number and a
+     * fresh create leaves it undefined (1). Updates still increment through
+     * changesContent, so a restore is not itself a content change.
+     */
+    revision?: number;
   }): WorkspaceView {
     const now = Date.now();
     const existing = input.id
@@ -346,7 +373,7 @@ export default class WorkspaceEngine {
       stackOrder: this.state.views.length,
       viewState: defaultViewState(),
       source: input.source,
-      revision: 1,
+      revision: input.revision ?? 1,
     };
     this.state = {
       ...this.state,
@@ -369,6 +396,14 @@ export default class WorkspaceEngine {
     temporary?: boolean;
     group?: string;
     source?: WorkspaceViewSource;
+    /**
+     * Revision to adopt when this call CREATES the view. Restoring a saved
+     * workspace must not reset a surface's revision to 1: the revision is
+     * part of what was saved, so a restore passes the stored number and a
+     * fresh create leaves it undefined (1). Updates still increment through
+     * changesContent, so a restore is not itself a content change.
+     */
+    revision?: number;
   }): WorkspaceView {
     this.upsertView(input);
     if (input.show !== false) {

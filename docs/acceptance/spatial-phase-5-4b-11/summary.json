@@ -1,0 +1,223 @@
+{
+  "mission": "5.4B.11",
+  "canonical_start": "ce768e08cebd71eaa05418c5942ad637a8ac0596",
+  "source_branch": "claude/mission-5-4b-10-spatial-hardening @ c7ef650b1e05f0f03577f74fc8210a7ac73983b4",
+  "interaction_branch": "claude/mission-5-4-spatial-interaction @ fff0f86c5e273eab5798fefd1156a207a71e9915",
+  "replayed_commits": [
+    "5ab6a13",
+    "f51eb12",
+    "d38b115",
+    "f51a766",
+    "f4c94f3",
+    "2a01c8e",
+    "8c7788d",
+    "3340fb1",
+    "6c9724e",
+    "a7e413b",
+    "e3ca703",
+    "61b27c8"
+  ],
+  "replay_conflicts": 0,
+  "files": {
+    "records": {
+      "attempts": 5,
+      "arrived": 5,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "identity_held": 5,
+      "double_activation": 0,
+      "travel_ms": [
+        1212,
+        1264,
+        1642,
+        2806,
+        685
+      ]
+    },
+    "detail": [
+      {
+        "load": "accept-b1-l1",
+        "cls": "arrived",
+        "claimed": "scene:files",
+        "resolved": "scene:files",
+        "landed": "files",
+        "ms": 1212
+      },
+      {
+        "load": "accept-b1-l2",
+        "cls": "arrived",
+        "claimed": "scene:files",
+        "resolved": "scene:files",
+        "landed": "files",
+        "ms": 1264
+      },
+      {
+        "load": "accept-b1-l3",
+        "cls": "arrived",
+        "claimed": "scene:files",
+        "resolved": "scene:files",
+        "landed": "files",
+        "ms": 1642
+      },
+      {
+        "load": "accept-b1-l4",
+        "cls": "arrived",
+        "claimed": "scene:files",
+        "resolved": "scene:files",
+        "landed": "files",
+        "ms": 2806
+      },
+      {
+        "load": "accept-b5-l1",
+        "cls": "arrived",
+        "claimed": "scene:files",
+        "resolved": "scene:files",
+        "landed": "files",
+        "ms": 685
+      }
+    ]
+  },
+  "studio": {
+    "records": {
+      "attempts": 5,
+      "arrived": 5,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "identity_held": 5,
+      "double_activation": 0,
+      "travel_ms": [
+        1477,
+        1250,
+        1322,
+        1503,
+        1360
+      ]
+    },
+    "detail": [
+      {
+        "load": "accept-b2-l1",
+        "cls": "arrived",
+        "claimed": "scene:studio",
+        "resolved": "scene:studio",
+        "landed": "studio",
+        "ms": 1477
+      },
+      {
+        "load": "accept-b2-l2",
+        "cls": "arrived",
+        "claimed": "scene:studio",
+        "resolved": "scene:studio",
+        "landed": "studio",
+        "ms": 1250
+      },
+      {
+        "load": "accept-b2-l3",
+        "cls": "arrived",
+        "claimed": "scene:studio",
+        "resolved": "scene:studio",
+        "landed": "studio",
+        "ms": 1322
+      },
+      {
+        "load": "accept-b2-l4",
+        "cls": "arrived",
+        "claimed": "scene:studio",
+        "resolved": "scene:studio",
+        "landed": "studio",
+        "ms": 1503
+      },
+      {
+        "load": "accept-b2-l5",
+        "cls": "arrived",
+        "claimed": "scene:studio",
+        "resolved": "scene:studio",
+        "landed": "studio",
+        "ms": 1360
+      }
+    ]
+  },
+  "conversation": {
+    "records": {
+      "attempts": 1,
+      "arrived": 1,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "identity_held": 1,
+      "double_activation": 0,
+      "travel_ms": [
+        1348
+      ]
+    },
+    "universe": [
+      {
+        "dialogCount": 1,
+        "label": "Chat Universe",
+        "windows": 0,
+        "threads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "legacyTabs": false,
+        "replacementChars": 0,
+        "bodyScene": "core"
+      }
+    ]
+  },
+  "tap": {
+    "records": {
+      "attempts": 1,
+      "arrived": 1,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "identity_held": 1,
+      "double_activation": 0,
+      "travel_ms": [
+        1579
+      ]
+    }
+  },
+  "lowfps": {
+    "records": {
+      "attempts": 1,
+      "arrived": 1,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "identity_held": 1,
+      "double_activation": 0,
+      "travel_ms": [
+        1209
+      ]
+    },
+    "conditions": [
+      {
+        "rate": 6,
+        "samples": 1
+      }
+    ]
+  },
+  "regression": {
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "lint": "exit 0 (128 warnings, 0 errors)",
+    "test": "exit 0 - 1823 tests, 1821 pass, 0 fail, 2 skipped",
+    "chat_suite": "69/69 pass (old-chat-panel-removed, chat-surface, chat-transcript, cosmos-chat-experience, mission-10-3)"
+  },
+  "architecture": {
+    "legacy_chat_references": 0,
+    "chat_host": "GenesisInterface.tsx:870 <ChatUniverse />",
+    "multichatTabs": "absent",
+    "chatUniverse_dialogs_on_conversation_portal": 1,
+    "legacy_tabstrips": 0
+  },
+  "corrected_prior_claim": "Mission 5.4B.10 predicted conflicts in GenesisChat.tsx and GenesisInterface.tsx. Replay produced ZERO conflicts: the spatial commits never touched the chat surfaces (git log 91f5361..fff0f86 -- GenesisChat.tsx GenesisInterface.tsx is empty). The earlier merge-tree reading was wrong and is corrected here.",
+  "decision": "READY after human review: 12 replay commits onto canonical ce768e0, 0 conflicts, 0 fail, live 11/11.",
+  "report": "docs/acceptance/MISSION-5-4B-11-REPORT.md",
+  "unverified": [
+    "conversation window auto-open (portal opens the Universe only)",
+    "mobile window placement (Mission 2.15.x, separate workstream)"
+  ]
+}

@@ -37,9 +37,104 @@ export type ImprovementStatus =
   | "Testing"
   | "Evaluation"
   | "Ready"
+  | "Applying"
   | "Integrated"
+  | "Recorded"
+  | "Failed"
+  | "Blocked"
   | "Rejected"
   | "Rolled Back";
+
+/**
+ * What each status means to the owner. The stored values stay as they were
+ * (proposals already persisted keep working); these are the names shown.
+ *
+ *   Detected / Analyzing / Proposed → pending approval
+ *   Approved      → queued: approved, development not yet started
+ *   In Development / Testing → developing: code being generated / checked
+ *   Ready         → ready for review: a generated, verified diff exists
+ *   Applying      → the reviewed diff is being written to the real project
+ *   Integrated    → APPLIED to the real project and verified there
+ *   Recorded      → the result was recorded; the real project was NOT changed
+ *   Failed        → a run ended without a usable change (the reason is kept)
+ *   Blocked       → a permission or prerequisite stopped the run (see blocked)
+ *   Rolled Back   → applied, failed verification, and was restored
+ */
+export const IMPROVEMENT_STATUS_LABELS: Record<ImprovementStatus, string> = {
+  Detected: "Pending approval",
+  Analyzing: "Pending approval",
+  Proposed: "Pending approval",
+  Approved: "Approved — queued",
+  "In Development": "Developing",
+  Testing: "Developing — checks running",
+  Evaluation: "Developing — evaluating",
+  Ready: "Ready for review",
+  Applying: "Applying",
+  Integrated: "Integrated (applied)",
+  Recorded: "Recorded (not applied)",
+  Failed: "Failed",
+  Blocked: "Blocked",
+  Rejected: "Rejected",
+  "Rolled Back": "Rolled back",
+};
+
+/** Statuses in which approval may start (or restart) development. */
+export const PENDING_APPROVAL_STATUSES: ImprovementStatus[] = ["Detected", "Analyzing", "Proposed"];
+/** Statuses that mean a run is in flight right now. */
+export const RUNNING_STATUSES: ImprovementStatus[] = ["In Development", "Testing", "Evaluation", "Applying"];
+
+/**
+ * Runs execute inside the page that started them, so when stored state is
+ * loaded nothing can be running yet. A proposal saved mid-run (the page was
+ * closed or reloaded) would otherwise show "Developing" / "Applying" forever.
+ * It becomes Failed with the reason, and can be developed again.
+ */
+export function recoverInterrupted(proposals: ImprovementProposal[], now = Date.now()): ImprovementProposal[] {
+  if (!proposals.some((proposal) => RUNNING_STATUSES.includes(proposal.status))) return proposals;
+  return proposals.map((proposal) => {
+    if (!RUNNING_STATUSES.includes(proposal.status)) return proposal;
+    const error = `Interrupted: the ${proposal.status === "Applying" ? "apply" : "development run"} stopped when the page that ran it closed. Nothing is running now.`;
+    const lastExecution = proposal.lastExecution
+      ? { ...proposal.lastExecution, finished: proposal.lastExecution.finished ?? now, outcome: "Failed" as const, error }
+      : undefined;
+    return { ...proposal, status: "Failed", updated: now, ...(lastExecution ? { lastExecution } : {}) };
+  });
+}
+
+/** Why a proposal is Blocked, and what unblocks it. */
+export interface ProposalBlock {
+  reason: string;
+  /** Autonomy level the blocked action needs, when that is the cause. */
+  requiredAutonomy?: number;
+  /** The concrete action that unblocks it. */
+  unblock: string;
+  /** Which action was blocked, so a retry repeats the right one. */
+  action: "develop" | "apply";
+  at: number;
+}
+
+/** One real development or apply run, as measured. */
+export interface ProposalExecution {
+  executionId: string;
+  kind: "develop" | "apply";
+  started: number;
+  finished?: number;
+  /** Provider and model that generated the change (from the response, not assumed). */
+  agent?: string;
+  plan?: string;
+  filesInspected: string[];
+  filesChanged: string[];
+  /** Unified diff of the generated change, from the workspace copy. */
+  diff?: string;
+  /** Isolated workspace copy the change was staged in. */
+  workspaceId?: string;
+  checks: Array<{ name: string; ok: boolean | null; detail: string }>;
+  /** The relevant test files this change is checked with (copy, then project). */
+  tests?: string[];
+  outcome?: ImprovementStatus;
+  rollback?: { ok: boolean; restored: string[]; error?: string };
+  error?: string;
+}
 
 export const IMPROVEMENT_STATUSES: ImprovementStatus[] = [
   "Detected",
@@ -50,7 +145,11 @@ export const IMPROVEMENT_STATUSES: ImprovementStatus[] = [
   "Testing",
   "Evaluation",
   "Ready",
+  "Applying",
   "Integrated",
+  "Recorded",
+  "Failed",
+  "Blocked",
   "Rejected",
   "Rolled Back",
 ];
@@ -80,6 +179,12 @@ export interface ImprovementProposal {
   candidateSnapshotId?: string;
   /** Rollback point (sandbox snapshot id) if this was rolled back. */
   rollbackSnapshotId?: string;
+  /** Set while Blocked: why, and what unblocks it. */
+  blocked?: ProposalBlock;
+  /** The latest real development or apply run, with its evidence. */
+  lastExecution?: ProposalExecution;
+  /** Earlier runs, newest last (bounded). */
+  executions?: ProposalExecution[];
 }
 
 const KEY = "lelu.improvements.v1";
@@ -202,8 +307,8 @@ export default class ImprovementQueue {
 
   private constructor() {
     const stored = KvStore.getInstance().get<ImprovementProposal[]>(KEY);
-    this.proposals = stored && stored.length > 0 ? stored : seedProposals();
-    if (!stored || stored.length === 0) {
+    this.proposals = stored && stored.length > 0 ? recoverInterrupted(stored) : seedProposals();
+    if (!stored || stored.length === 0 || this.proposals !== stored) {
       this.persist();
     }
   }

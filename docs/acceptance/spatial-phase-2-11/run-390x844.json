@@ -1,0 +1,31 @@
+{
+ "commit": "7a2bf49",
+ "at": "2026-11-07T06:50:28.596Z",
+ "results": [
+  {
+   "viewport": "390x844",
+   "mobile": true,
+   "dpr": 2,
+   "shots": [
+    "01-genesis-shell",
+    "02-cosmos",
+    "03-portal-ring",
+    "04-portals-and-layout"
+   ],
+   "steps": [
+    "OK identity-gate",
+    "OK cosmos",
+    "OK spatial-nav",
+    "OK portals-layout",
+    "NO studio",
+    "FAIL chat Error: locator.count: Target page, context or brow"
+   ],
+   "errors": [],
+   "metrics": {
+    "fpsIdle": 0,
+    "fpsSpatial": 1,
+    "dead": true
+   }
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "viewport": [
+  1920,
+  1080
+ ],
+ "touch": false,
+ "checks": [
+  {
+   "n": "she is present on Home, as one presence",
+   "s": "PASS",
+   "d": "{\"place\":\"hero\",\"framing\":\"face\",\"placed\":\"false\",\"vis\":\"visible\",\"rect\":[762,42,395,330],\"canvas\":1,\"count\":1,\"ctx\":1,\"frames\":4}"
+  },
+  {
+   "n": "dragging her with real input moves and places her",
+   "s": "PASS",
+   "d": "[762,42,395,330] → [502,182,395,330]"
+  },
+  {
+   "n": "she is not a window: no title bar, no resize grip",
+   "s": "PASS",
+   "d": ""
+  },
+  {
+   "n": "run completed",
+   "s": "FAIL",
+   "d": "TimeoutError: page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+  }
+ ]
+}

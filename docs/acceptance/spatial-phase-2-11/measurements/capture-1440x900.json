@@ -1,0 +1,32 @@
+{
+  "viewport": "1440x900",
+  "deviceScaleFactor": 1,
+  "mobile": false,
+  "reducedMotion": true,
+  "renderer": "SwiftShader software WebGL, headless Chromium 151",
+  "shots": [
+    {
+      "file": "1440x900-03-spatial-portal-ring.png",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "pixels": "1440x900",
+      "at": "2026-11-07T07:20:14.723Z",
+      "scene": "portal",
+      "portals": 0
+    }
+  ],
+  "failures": [
+    {
+      "name": "panel",
+      "ok": false,
+      "attempts": 3,
+      "error": "Error: mouse.click: Target page, context or browser has been closed"
+    },
+    {
+      "name": "destination",
+      "ok": false,
+      "attempts": 3,
+      "error": "Error: mouse.click: Target page, context or browser has been closed"
+    }
+  ]
+}

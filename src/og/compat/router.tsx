@@ -20,7 +20,7 @@
  * ==========================================================
  */
 
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import {
   Link as RRLink,
   Outlet as RROutlet,
@@ -30,6 +30,21 @@ import {
 } from "react-router-dom";
 
 export const Outlet = RROutlet;
+
+/**
+ * EMBEDDED MODE (Mission 17). When an OG interface is a region of an
+ * interface composition, it must navigate INSIDE its region — a link to
+ * "/og/app/chats" changing the whole app's URL would throw the person out
+ * of the composition. OgEmbedded provides this context; Link, useNavigate
+ * and useRouterState consult it and otherwise behave exactly as before.
+ * The OG sources themselves are untouched.
+ */
+export interface OgEmbed {
+  /** The region's own location, scoped ("/og/app/chats"). */
+  pathname: string;
+  go: (scopedPath: string) => void;
+}
+export const OgEmbedContext = createContext<OgEmbed | null>(null);
 
 /**
  * OG sources address each other by their ORIGINAL paths — "/app/chats",
@@ -80,6 +95,23 @@ export interface OgLinkProps {
 }
 
 export function Link({ to, params, search, ...rest }: OgLinkProps) {
+  const embed = useContext(OgEmbedContext);
+  if (embed) {
+    const target = `${scope(buildPath(to, params))}${toSearch(search)}`;
+    const { replace: _replace, onClick, ...anchor } = rest;
+    return (
+      <a
+        href={target}
+        {...anchor}
+        onClick={(event) => {
+          onClick?.(event);
+          if (event.defaultPrevented) return;
+          event.preventDefault();
+          embed.go(target);
+        }}
+      />
+    );
+  }
   return <RRLink to={`${scope(buildPath(to, params))}${toSearch(search)}`} {...rest} />;
 }
 
@@ -93,7 +125,12 @@ export interface OgNavigateOptions {
 /** TanStack calls navigate with an options object; react-router takes a path. */
 export function useNavigate() {
   const navigate = useRRNavigate();
+  const embed = useContext(OgEmbedContext);
   return (options: OgNavigateOptions | string) => {
+    if (embed) {
+      if (typeof options === "string") return embed.go(scope(options));
+      return embed.go(`${scope(buildPath(options.to, options.params))}${toSearch(options.search)}`);
+    }
     if (typeof options === "string") return navigate(scope(options));
     const { to, params, search, replace } = options;
     return navigate(`${scope(buildPath(to, params))}${toSearch(search)}`, { replace });
@@ -113,7 +150,9 @@ export interface OgRouterState {
 export function useRouterState<T = OgRouterState>(opts?: {
   select?: (state: OgRouterState) => T;
 }): T {
-  const location = useLocation();
+  const routerLocation = useLocation();
+  const embed = useContext(OgEmbedContext);
+  const location = embed ? { pathname: embed.pathname, search: "" } : routerLocation;
   // Reported UNSCOPED, so an OG component comparing against "/app/chats"
   // matches — AppShell highlights its active tab this way, and handing it the
   // /og-prefixed path would leave every tab looking inactive.

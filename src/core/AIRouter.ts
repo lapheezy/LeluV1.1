@@ -5,6 +5,7 @@
  * ==========================================================
  */
 
+import { refersToConversationArtifact } from "./studio/StudioTools";
 import type { AIResponse } from "../providers/AIProvider";
 import type RouterContext from "./router/RouterContext";
 import BrainResolver from "./router/BrainResolver";
@@ -19,21 +20,46 @@ import CreativeResolver from "./router/CreativeResolver";
 import ToolResolver from "./router/ToolResolver";
 import DeflockResolver from "./router/DeflockResolver";
 import TimeResolver from "./router/TimeResolver";
+import DirectResolver from "./router/DirectResolver";
+import AcquisitionResolver from "./router/AcquisitionResolver";
 import ProjectResolver from "./router/ProjectResolver";
 import ToolCallInterceptor from "./router/ToolCallInterceptor";
 import ResponseBuilder from "./router/ResponseBuilder";
 import AvatarResolver from "./router/AvatarResolver";
 import SurfaceResolver from "./router/SurfaceResolver";
 import CognitiveStateResolver from "./router/CognitiveStateResolver";
+import SpatialResolver from "./router/SpatialResolver";
+import IntelligenceResolver from "./router/IntelligenceResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
 import ToolRegistry from "./tools/ToolRegistry";
 import { toolSchemasForModel } from "./tools/ToolSchemas";
 import { registryIdForToolName } from "./tools/ToolDispatcher";
 import WorkflowStore from "./workflows/WorkflowStore";
 import { cleanAssistantText } from "./router/ToolMarkup";
+import { beginRoutingTrace, finishRoutingTrace, noteStage } from "./router/RoutingTrace";
+import type { BrainResult } from "./router/RouterResults";
+import { asksForStudioChange } from "./studio/StudioIntent";
+
+/**
+ * An OPERATE-MY-ENVIRONMENT request: a verb that changes what is on screen,
+ * aimed at a surface, layout, workspace or artifact.
+ *
+ * Narrow on purpose. It exists only so the model keeps turns that the
+ * keyword project/creative stages used to take: measured, "create a workspace
+ * to research X" became a text project and the model never saw it, even
+ * though environment.compose could have built the workspace for real.
+ */
+const ENVIRONMENT_REQUEST =
+  /\b(?:open|build|compose|create|make|set ?up|arrange|rearrange|lay ?out|present|show|display|update|revise|change|modify|highlight|trace|compare|save|restore)\b[^.?!]{0,48}\b(?:workspace|environment|surfaces?|layout|artifact|diagram|table|chart|panel|window|on screen|in place)\b/i;
+
+/** A request to make something in 3D or put something in her world. */
+const WORLD_REQUEST =
+  /\b(?:3d|3-d|three[- ]?d|sculpt\w*|mesh|statue|hologram)\b|\b(?:place|put|add|spawn|build|create|make|grow|raise)\b[^.?!]{0,80}\b(?:in|into|to|inside)\s+(?:my|the|her|our|your)\s+(?:world|cosmos|universe|room|scene|garden)\b/i;
 
 export default class AIRouter {
   private readonly time = new TimeResolver();
+  private readonly direct = new DirectResolver();
+  private readonly acquisition = new AcquisitionResolver();
   private readonly interceptor = new ToolCallInterceptor();
 
   constructor(
@@ -52,6 +78,8 @@ export default class AIRouter {
     private readonly avatar = new AvatarResolver(),
     private readonly surfaces: SurfaceResolver = new SurfaceResolver(workspace),
     private readonly cognitiveState = new CognitiveStateResolver(),
+    private readonly spatial = new SpatialResolver(),
+    private readonly intelligence = new IntelligenceResolver(),
     private readonly responses = new ResponseBuilder(),
   ) {}
 
@@ -85,6 +113,64 @@ export default class AIRouter {
    * actually be defined. With nothing to run, the previous behaviour is
    * exactly as before.
    */
+  /**
+   * Is this software the studio can actually build?
+   *
+   * The project detector claims "create … application" before the model
+   * sees it, and its reference guard then asked the user what "the
+   * built and tested application" meant. When studio_create is really
+   * offered, the studio owns the turn: it can scaffold, build, test and
+   * preview the software, and the model chooses those tools.
+   */
+  private modelCanBuildInStudio(context: RouterContext): boolean {
+    let studioAvailable = false;
+    try {
+      studioAvailable = toolSchemasForModel().some((schema) => schema.name === "studio_create");
+    } catch {
+      return false;
+    }
+    return asksForStudioChange(context.request.prompt ?? "", studioAvailable);
+  }
+
+  /**
+   * Can the MODEL operate the environment itself, for real?
+   *
+   * True only when environment.compose is genuinely offered (it has a real
+   * executor and is permitted at this autonomy level) AND the request is
+   * environment-shaped. Anything less and the existing resolvers keep the
+   * turn exactly as before.
+   */
+  private modelCanComposeEnvironment(context: RouterContext): boolean {
+    let offered = false;
+    try {
+      offered = toolSchemasForModel().some((schema) => schema.name === "environment_compose");
+    } catch {
+      return false;
+    }
+    if (!offered) return false;
+    return ENVIRONMENT_REQUEST.test(context.request.prompt ?? "");
+  }
+
+  /**
+   * Can the MODEL build this in her 3D world itself?
+   *
+   * Measured: "Make a 3D crystal tower and place it in my world." was
+   * classified `project`, and ProjectResolver answered "Project created:
+   * 3D Crystal Tower" with planning tasks and a web search — no object was
+   * made. world.object / world.generate are real executors; when they are
+   * offered and the request asks for 3D or for something placed in her
+   * world, the model takes the turn, exactly like the studio and workflow
+   * cases above.
+   */
+  private modelCanShapeWorld(context: RouterContext): boolean {
+    if (!WORLD_REQUEST.test(context.request.prompt ?? "")) return false;
+    try {
+      return toolSchemasForModel().some((schema) => schema.name === "world_object" || schema.name === "world_generate");
+    } catch {
+      return false;
+    }
+  }
+
   private modelCanRunWorkflow(context: RouterContext): boolean {
     const runTool = ToolRegistry.getInstance().get("workflow.run");
     if (!runTool?.available) return false;
@@ -115,8 +201,22 @@ export default class AIRouter {
     }
   }
 
-  /** Route an AI request. */
+  /**
+   * Route an AI request, recording WHICH stage claimed it.
+   *
+   * The wrapper changes no routing: it opens a trace for the turn,
+   * runs the existing chain, and closes the trace with the reply that
+   * was actually returned. Without it, "the stage never ran" and "the
+   * stage ran and something replaced it" are indistinguishable.
+   */
   public async route(context: RouterContext): Promise<AIResponse> {
+    beginRoutingTrace(context, context.request.prompt ?? "");
+    const response = await this.routeThroughStages(context);
+    finishRoutingTrace(context, response);
+    return response;
+  }
+
+  private async routeThroughStages(context: RouterContext): Promise<AIResponse> {
     // Route on availability that has been determined, not on the startup
     // default (engineering tools read "unavailable" until the runtime probe
     // answers). Bounded so a slow probe can never hold a turn hostage.
@@ -125,9 +225,34 @@ export default class AIRouter {
       new Promise((resolve) => setTimeout(resolve, 8000)),
     ]);
 
+    // 0.0 The Spatial bar: "open the spatial menu" / "hide the spatial bar".
+    // First, so no creative or 3D stage reads "spatial" as a scene request.
+    const spatialNav = this.surfaces.spatialNav(context);
+    if (spatialNav.handled && spatialNav.response) return spatialNav.response;
+
     // 0. TIME — deterministic local capability, no external API needed
-    const timeResult = await this.time.execute(context);
+    const timeResult = await this.traced(context, "time", () => this.time.execute(context));
     if (timeResult.handled && timeResult.response) return timeResult.response;
+
+    // 0.2 DIRECT EXECUTION — creative and data tools need no model. An
+    // explicit command ("/scene forest") always runs here; a natural-language
+    // creative/data request runs here only when no model provider can take
+    // the turn, so the work still happens (and nothing is billed).
+    const directPlan = this.direct.plan(context);
+    // A construction is deterministic: the same parameters always yield the
+    // same artifact. So it runs here even when a model is reachable, rather
+    // than depending on the model choosing the right tool. "Build a cabin"
+    // must produce a cabin; the model is not needed to hope so.
+    const construction = Boolean(directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => /^creative\.(build|modify|inspect)$/.test(step.tool) || /^cosmos\.object\./.test(step.tool)));
+    if (directPlan && (directPlan.explicit || construction || !(await this.direct.providersAvailable(context)))) {
+      const reason = directPlan.explicit ? "command" : construction ? "construction" : "no-provider";
+      const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, reason));
+      if (done.handled && done.response) return done.response;
+    }
+    if (!directPlan) {
+      const unknown = this.direct.unknownCommand(context);
+      if (unknown.handled && unknown.response) return unknown.response;
+    }
 
     // 0.5 COGNITIVE STATE — "what are you thinking about?" REPORTS the
     // autonomous self-study state that already exists. It is a pure read:
@@ -136,19 +261,44 @@ export default class AIRouter {
     // Must precede the brain stage, whose identity matcher would
     // otherwise claim "what are you …" and answer with the identity
     // statement instead.
-    const cognitiveState = await this.cognitiveState.execute(context);
+    const cognitiveState = await this.traced(context, "cognitive-state", () => this.cognitiveState.execute(context));
     if (cognitiveState.handled && cognitiveState.response) return cognitiveState.response;
 
     // 1. Brain / identity — always local
-    const brain = await this.brain.execute(context);
+    const brain = await this.traced(context, "brain", () => this.brain.execute(context));
     if (brain.handled && brain.response) return brain.response;
+
+    // 1.2 OPERATIONAL INTELLIGENCE — "why can't you run OpenHands?" is
+    // answered from the four live studios, not from the model's memory.
+    // The stage reads the same /api/integration surface the panels do,
+    // never an adapter, and returns unhandled when no data is available
+    // so the provider keeps the turn instead of guessing.
+    const intelligence = await this.traced(context, "intelligence", () => this.intelligence.execute(context));
+    if (intelligence.handled && intelligence.response) {
+      return this.attachThinking(context, intelligence.response);
+    }
 
     // 1.5 Explicit surface commands — "open the browser", "show me the
     // 3d", "take me into gen v2". Chat is the primary control surface:
     // these EXECUTE the real UI state transition deterministically,
     // before any research/creative stage could misroute them.
-    const surface = await this.surfaces.execute(context);
+    const surface = await this.traced(context, "surface", () => this.surfaces.execute(context));
     if (surface.handled && surface.response) return surface.response;
+
+    // 1.6 SPATIAL — scene commands execute against the live spatial
+    // graph through the tier guard: "create a red cube", "move it up",
+    // "connect the cube to the sphere". Deterministic and local, and it
+    // runs before creative/engineering stages so the word "create" can
+    // no longer send a scene request into a scaffold.
+    const spatial = await this.spatial.execute(context);
+    if (spatial.handled && spatial.response) return spatial.response;
+
+    // 1.7 REPOSITORY WORKFORCE — chat prepares a real acquisition and the
+    // next explicit approval runs the pipeline. This runs before planning
+    // and research so an acquisition objective is never answered as a plan
+    // or a web search.
+    const acquisition = await this.acquisition.execute(context);
+    if (acquisition.handled && acquisition.response) return acquisition.response;
 
     await this.planning.execute(context);
     await this.reasoning.execute(context);
@@ -159,11 +309,11 @@ export default class AIRouter {
     // CAMERA capture from the word "capture", before the model saw it.
     const namesTool = this.namesAnOfferedTool(context);
     if (!namesTool) {
-      const tools = await this.tools.execute(context);
+      const tools = await this.traced(context, "tools", () => this.tools.execute(context));
       if (tools.handled && tools.response) return this.attachThinking(context, tools.response);
     }
 
-    const engineering = await this.engineering.execute(context);
+    const engineering = await this.traced(context, "engineering", () => this.engineering.execute(context));
     if (engineering.handled && engineering.response) return this.attachThinking(context, engineering.response);
 
     // The creative scaffold writes to the sandbox from keyword matching
@@ -172,8 +322,8 @@ export default class AIRouter {
     // generated a 4-file app skeleton. Where the model can do the real
     // engineering work, or the user names one of its tools, the turn is
     // the model's — the same stand-aside ProjectResolver already makes.
-    if (!this.modelCanDoEngineeringWork(context) && !namesTool) {
-      const creative = await this.creative.execute(context);
+    if (!this.modelCanComposeEnvironment(context) && !this.modelCanDoEngineeringWork(context) && !namesTool) {
+      const creative = await this.traced(context, "creative", () => this.creative.execute(context));
       if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
     }
 
@@ -181,7 +331,7 @@ export default class AIRouter {
     // against the saved avatar runtime. MUST run before any research so
     // "update your avatar to 3d render and simulations" never becomes a
     // knowledge-search request.
-    const avatarResult = await this.avatar.execute(context);
+    const avatarResult = await this.traced(context, "avatar", () => this.avatar.execute(context));
     if (avatarResult.handled && avatarResult.response) {
       return this.attachThinking(context, avatarResult.response);
     }
@@ -213,10 +363,17 @@ export default class AIRouter {
     if (
       context.intent === "project" &&
       !this.modelCanDoEngineeringWork(context) &&
+      !this.modelCanBuildInStudio(context) &&
+      !this.modelCanComposeEnvironment(context) &&
       !this.modelCanRunWorkflow(context) &&
-      !namesTool
+      !namesTool &&
+      !this.modelCanShapeWorld(context) &&
+      // "Change the chart in the Lumo brief…" is a revision of an artifact
+      // this conversation made, which the model does with studio.revise.
+      // Measured: ProjectResolver claimed it and answered "Project created".
+      !refersToConversationArtifact(context.request.conversationId, context.request.prompt ?? "")
     ) {
-      const projectResult = await this.projects.execute(context);
+      const projectResult = await this.traced(context, "projects", () => this.projects.execute(context));
       if (projectResult.handled && projectResult.response) {
         return this.attachThinking(context, projectResult.response);
       }
@@ -242,7 +399,9 @@ export default class AIRouter {
     // ResearchResolver applies its own narrower current-info gate for
     // chat intents on top of this.
     if (context.intent === "news" || context.intent === "search") {
+      const researchStarted = Date.now();
       const research = await this.research.execute(context);
+      noteStage(context, "research", research.handled, { durationMs: Date.now() - researchStarted });
       if (research.handled) {
         return this.attachThinking(
           context,
@@ -252,7 +411,9 @@ export default class AIRouter {
       // handled:false ⇒ results retrieved and attached to context;
       // continue so the AI provider synthesizes the answer from them.
     } else if (context.intent === "chat") {
+      const researchStarted = Date.now();
       const research = await this.research.execute(context);
+      noteStage(context, "research", research.handled, { durationMs: Date.now() - researchStarted });
       if (research.handled) {
         return this.attachThinking(
           context,
@@ -265,21 +426,29 @@ export default class AIRouter {
     // camera/surveillance intents, executes REAL Overpass queries, drives
     // the Earth Core (fly-to + ALPR layer), attaches real data to the
     // context, and returns unhandled so the provider answers over facts.
+    const deflockStarted = Date.now();
     await this.deflock.execute(context);
+    noteStage(context, "deflock", false, { durationMs: Date.now() - deflockStarted });
 
     // Keyword browsing ("browser" in "browser_capture") opened the in-app
     // Browser over the chat with the user's whole message as its address
     // (measured in the self-improvement run). A turn naming the model's
     // tools is the model's.
     if (!namesTool) {
-      const browser = await this.browser.execute(context);
+      const browser = await this.traced(context, "browser", () => this.browser.execute(context));
       if (browser.handled && browser.response) return this.attachThinking(context, browser.response);
     }
 
-    const workspace = await this.workspace.execute(context);
+    const workspace = await this.traced(context, "workspace", () => this.workspace.execute(context));
     if (workspace.handled && workspace.response) return this.attachThinking(context, workspace.response);
 
-    const provider = await this.providers.execute(context);
+    const provider = await this.traced(context, "provider", () => this.providers.execute(context));
+    // Every provider failed (quota, network, outage): the request is still
+    // executable without a model, so execute it instead of apologising.
+    if (directPlan && provider.handled && provider.response && provider.response.provider === "offline") {
+      const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, "no-provider"));
+      if (done.handled && done.response) return done.response;
+    }
     if (provider.handled && provider.response) {
       // Intercept raw tool-call markup before it reaches chat
       const intercepted = await this.interceptor.intercept(provider.response, context);
@@ -290,6 +459,22 @@ export default class AIRouter {
     }
 
     return this.attachThinking(context, this.responses.offline(context.started));
+  }
+
+  /** Run one stage and record its claim (or refusal) in this turn's trace. */
+  private async traced(
+    context: RouterContext,
+    stage: string,
+    run: () => Promise<BrainResult>,
+  ): Promise<BrainResult> {
+    const started = Date.now();
+    const result = await run();
+    noteStage(context, stage, result.handled, {
+      provider: result.response?.provider,
+      model: result.response?.model,
+      durationMs: Date.now() - started,
+    });
+    return result;
   }
 
   private attachThinking(context: RouterContext, response: AIResponse): AIResponse {

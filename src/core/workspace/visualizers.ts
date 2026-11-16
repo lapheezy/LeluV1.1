@@ -376,6 +376,8 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   cognition: "ok",
   tool_selected: "running",
   tool_started: "running",
+  // An execution stage is a recorded fact about one call, not progress.
+  execution_evidence: "ok",
   tool_progress: "running",
   tool_narration: "running",
   user_steering: "ok",
@@ -398,6 +400,7 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   visual_created: "ok",
   ui_prototype_created: "ok",
   creative_artifact: "ok",
+  studio_artifact: "ok",
   workspace_open: "idle",
   workspace_focus: "idle",
   workspace_minimize: "idle",

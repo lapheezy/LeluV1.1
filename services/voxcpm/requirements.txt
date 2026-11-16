@@ -1,0 +1,17 @@
+# LÉLU — VoxCPM2 sidecar dependencies (measured working set, 2026-11-11)
+#
+# torch / torchaudio are deliberately NOT pinned here: the correct build
+# depends on the machine (CPU wheels vs a CUDA build for a Kaggle or Colab
+# GPU), and mixing a CPU torch with a PyPI torchaudio is exactly the failure
+# this project already hit — `OSError: libcudart.so.13` while loading
+# `_torchaudio.so`. `install.sh` detects the hardware and installs one
+# matching pair; this file pins everything else.
+#
+# Reproduce on a fresh machine:
+#     bash services/voxcpm/install.sh
+#
+voxcpm==2.0.3
+numpy==2.5.4
+soundfile==0.14.0
+imageio-ffmpeg==0.8.1
+huggingface-hub>=0.30

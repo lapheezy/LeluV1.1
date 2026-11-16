@@ -1,0 +1,25 @@
+{
+  "state": "READY",
+  "error": null,
+  "pid": 2835,
+  "since": 1794527221.8208516,
+  "phases": {
+    "STARTING": 1794527193.77,
+    "LOADING": 1794527196.296,
+    "INITIALIZING": 1794527213.717,
+    "READY": 1794527221.821
+  },
+  "loadSeconds": 17.4,
+  "selftest": {
+    "text": "Hello, I am ready.",
+    "ms": 8102,
+    "audioSeconds": 1.28,
+    "rms": 0.1291,
+    "peak": 0.974,
+    "ok": true
+  },
+  "memory": {
+    "peakGiB": 11.11,
+    "rssGiB": 6.56
+  }
+}

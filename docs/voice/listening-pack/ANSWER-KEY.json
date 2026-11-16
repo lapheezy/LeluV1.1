@@ -1,0 +1,42 @@
+{
+ "01": {
+  "A": "moss-tts-nano",
+  "B": "voxcpm2",
+  "text": "Hi, I'm Lélu. How can I help you today?"
+ },
+ "02": {
+  "A": "moss-tts-nano",
+  "B": "voxcpm2",
+  "text": "Lélu here. I found three new messages for you."
+ },
+ "03": {
+  "A": "moss-tts-nano",
+  "B": "voxcpm2",
+  "text": "Of course. I'll remind you tomorrow morning at nine."
+ },
+ "04": {
+  "A": "voxcpm2",
+  "B": "moss-tts-nano",
+  "text": "That's a good question. Let me think about it for a moment."
+ },
+ "05": {
+  "A": "moss-tts-nano",
+  "B": "voxcpm2",
+  "text": "Your meeting with the design team starts in fifteen minutes."
+ },
+ "06": {
+  "A": "voxcpm2",
+  "B": "moss-tts-nano",
+  "text": "I've saved the document and shared it with your project folder."
+ },
+ "07": {
+  "A": "moss-tts-nano",
+  "B": "voxcpm2",
+  "text": "I'm sorry, I didn't catch that. Could you say it again?"
+ },
+ "08": {
+  "A": "moss-tts-nano",
+  "B": "voxcpm2",
+  "text": "Good night. Sleep well, and I'll be here when you wake up."
+ }
+}

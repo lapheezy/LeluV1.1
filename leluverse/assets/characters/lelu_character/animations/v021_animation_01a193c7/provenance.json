@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3pq7_6eae1f",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: walk",
+  "meshyTaskId": "01a193c7-b58d-71de-b12f-bbb7fd2a067e",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 1
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480701676,
+  "finishedAt": 1793480770700
+}

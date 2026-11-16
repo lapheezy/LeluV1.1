@@ -1,0 +1,59 @@
+# LÉLU production runtime — systemd unit (Ubuntu 24.04).
+# Installed by deploy/contabo/install.sh to /etc/systemd/system/lelu.service.
+#
+#   sudo systemctl status lelu        # state
+#   journalctl -u lelu -f             # live logs (also kept across reboots)
+#   sudo systemctl restart lelu       # restart (in-flight requests finish first)
+[Unit]
+Description=LÉLU V1.1 runtime (server.ts: built app + APIs)
+Documentation=file:///opt/lelu/app/DEPLOY_CONTABO.md
+After=network-online.target
+Wants=network-online.target
+# Give up only after 10 failures within 10 minutes, then alert via the health timer.
+StartLimitIntervalSec=600
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=lelu
+Group=lelu
+WorkingDirectory=/opt/lelu/app
+EnvironmentFile=/etc/lelu/lelu.env
+# Only Caddy (on this host) talks to the app.
+Environment=HOST=127.0.0.1
+Environment=PORT=4173
+Environment=NODE_ENV=production
+ExecStart=/opt/lelu/.bun/bin/bun run server.ts
+# Crash → restart in 3 s; reboot → started by multi-user.target.
+Restart=always
+RestartSec=3
+# SIGTERM lets server.ts finish in-flight requests (max 10 s) before exiting.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# Resource bounds for the 8 GB / 4 vCPU VPS: the app normally needs < 1 GB.
+# MemoryHigh throttles before MemoryMax kills; CPUQuota leaves headroom for Caddy and ssh.
+MemoryHigh=2G
+MemoryMax=3G
+CPUQuota=300%
+TasksMax=512
+LimitNOFILE=65536
+
+# Hardening: the app may write only its own directories.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/lelu
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lelu
+
+[Install]
+WantedBy=multi-user.target

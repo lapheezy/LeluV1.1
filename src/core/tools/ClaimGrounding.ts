@@ -38,14 +38,19 @@ const RULES: ClaimRule[] = [
     claim: /\b(type[- ]?check(?:ed|ing)?|project_validate|tsc)\b[^\n|]*?(?:\|[^\n|]*?)?\b(pass(?:ed|es)?|succeed(?:ed|s)?|exit(?:ed)? (?:code )?0|clean|no errors)\b/i,
   },
   {
-    tools: ["project_validate", "workspace_test"],
+    tools: ["studio.build", "studio_build", "workspace_build"],
+    label: "the build result",
+    claim: /\b(build|bundle|compil(?:e|ed|ing))\b[^\n|]*?(?:\|[^\n|]*?)?\b(pass(?:ed|es)?|succeed(?:ed|s)?|finish(?:ed)?|complet(?:e|ed)|exit(?:ed)? (?:code )?0|clean|no errors)\b/i,
+  },
+  {
+    tools: ["project_validate", "workspace_test", "studio.test", "studio_test"],
     label: "the test results",
     claim: /\b(tests?|test suite)\b[^\n|]*?(?:\|[^\n|]*?)?\b(all )?(pass(?:ed|es|ing)?|green|\d+\/\d+)\b/i,
   },
   {
-    tools: ["project_preview"],
+    tools: ["project_preview", "studio.preview", "studio_preview"],
     label: "the running preview",
-    claim: /\b(preview(?: server)?\b[^\n]*?\b(served|running|started|up) at|served at https?:\/\/127\.0\.0\.1:53\d\d)/i,
+    claim: /\b(preview(?: server)?\b[^\n]*?\b(served|running|started|up|live) (?:at|on)\b|served at https?:\/\/127\.0\.0\.1:53\d\d)/i,
   },
   {
     tools: ["project_diff"],

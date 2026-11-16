@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><body><pre id="log"></pre><script type="module">
+import { pipeline, env } from "./node_modules/@huggingface/transformers/dist/transformers.min.js";
+env.allowRemoteModels = false; env.allowLocalModels = true; env.localModelPath = "/models/"; env.useBrowserCache = false;
+env.backends.onnx.wasm.wasmPaths = "/node_modules/onnxruntime-web/dist/";
+const out = { device: new URLSearchParams(location.search).get("device") || "wasm", steps: [] };
+const heap = () => performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
+const step = async (label, fn) => { const t = performance.now(); try { const r = await fn(); out.steps.push({ label, ms: Math.round(performance.now() - t), heapMB: heap() }); return r; } catch (e) { out.steps.push({ label, error: String(e).slice(0, 300) }); return null; } };
+const device = out.device;
+out.webgpu = !!navigator.gpu && !!(await navigator.gpu?.requestAdapter?.().catch(() => null));
+const s = ["coral reef bleaching", "ocean warming kills coral", "a recipe for bread", "GPU rendering", "reef restoration", "sourdough starter", "WebGPU shaders", "marine heatwaves"];
+const emb = await step("embeddings load", () => pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", { dtype: "q8", device }));
+if (emb) { await step("embeddings 8 sentences (1st)", () => emb(s, { pooling: "mean", normalize: true })); const e = await step("embeddings 8 sentences (warm)", () => emb(s, { pooling: "mean", normalize: true }));
+  const v = e.tolist(); const cos = (a, b) => a.reduce((x, y, i) => x + y * b[i], 0); out.similar = { "reef~restoration": cos(v[0], v[4]).toFixed(3), "reef~bread": cos(v[0], v[2]).toFixed(3) }; }
+const audio = new Float32Array(await (await fetch("/jfk.f32")).arrayBuffer());
+const asr = await step("whisper-tiny.en load", () => pipeline("automatic-speech-recognition", "onnx-community/whisper-tiny.en", { dtype: "q8", device }));
+if (asr) { const r = await step("whisper-tiny.en transcribe 11 s", () => asr(audio)); out.transcript = r?.text; }
+const gen = await step("SmolLM2-135M load", () => pipeline("text-generation", "HuggingFaceTB/SmolLM2-135M-Instruct", { dtype: "q4", device }));
+if (gen) { const g = await step("SmolLM2-135M 48 tokens", () => gen([{ role: "user", content: "Give three title ideas for a short film about ocean tides." }], { max_new_tokens: 48, do_sample: false })); out.generated = g?.[0]?.generated_text?.at(-1)?.content?.slice(0, 200); }
+window.RESULT = out; document.getElementById("log").textContent = JSON.stringify(out, null, 2);
+</script>

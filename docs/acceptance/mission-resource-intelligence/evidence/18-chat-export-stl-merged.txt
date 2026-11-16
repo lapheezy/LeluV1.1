@@ -1,0 +1,105 @@
+CONSOLEARGS ["🟢 [6:43:17 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:43:17 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:44:09 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:44:09 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:44:39 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:44:39 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:45:09 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:45:09 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+[{"t":105,"m":"GET","u":"/api/github/status","done":1259},
+{"t":105,"m":"POST","u":"/api/acquisition","done":1259},
+{"t":1810,"console":"🟢 [6:44:39 PM] [ProviderResolver] Model routing decision"},
+{"t":1812,"console":"🟢 [6:44:39 PM] [ProviderResolver] Trying Groq"},
+{"t":1815,"console":"🟢 [6:44:39 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":1816,"console":"🟢 [6:44:39 PM] [ProviderResolver] Request budget"},
+{"t":1819,"m":"POST","u":"/api/model/groq/chat/completions","done":3105},
+{"t":3105,"m":"GET","u":"/api/forge/world","done":3114},
+{"t":3140,"console":"🟢 [6:44:41 PM] [ProviderResolver] Tool world_export -> ok"},
+{"t":3144,"m":"POST","u":"/api/model/groq/chat/completions"},
+{"t":4593,"m":"POST","u":"/api/execution/events"},
+{"t":4602,"m":"GET","u":"/api/voice/status","done":5368},
+{"t":4607,"console":"🟢 [6:44:42 PM] [ProviderResolver] Groq generated response"},
+{"t":30086,"m":"GET","u":"/api/engineer/status"},
+{"t":30094,"m":"GET","u":"/api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3"},
+{"t":30105,"m":"GET","u":"/api/knowledge/relay?provider=guardian&path=%2Fsearch%3Fq%3DLatest%2520frontier%2520model%"},
+{"t":30110,"m":"GET","u":"/api/knowledge/relay?provider=newsdata&path=%2Fapi%2F1%2Fnews%3Fq%3DLatest%2520frontier%25"},
+{"t":30118,"m":"GET","u":"/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20m"},
+{"t":30696,"m":"GET","u":"/api/knowledge/relay?provider=news&path=%2Fv2%2Feverything%3Fq%3DLatest%2520frontier%2520m"},
+{"t":31416,"console":"🟢 [6:45:09 PM] [ProviderResolver] Model routing decision"},
+{"t":31419,"console":"🟢 [6:45:09 PM] [ProviderResolver] Trying Groq"},
+{"t":31420,"console":"🟢 [6:45:09 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":31420,"console":"🟢 [6:45:09 PM] [ProviderResolver] Request budget"},
+{"t":31420,"m":"POST","u":"/api/model/groq/chat/completions"}]
+ROUTING_TRACE {
+ "intent": "chat",
+ "stages": "time:1 cognitive-state:0 brain:1 intelligence:1 surface:0 tools:0 engineering:1 creative:0 avatar:1 research:0 deflock:0 browser:1 workspace:1 provider:2799*",
+ "notes": [
+  "final: owner=Groq provider=Groq model=openai/gpt-oss-120b chars=304"
+ ]
+}
+APPCALLS ["GET 200 forge/world"]
+{
+ "prompt": "Export the objects in my world as an STL file so I can 3D print them.",
+ "firstAnswerTextMs": null,
+ "settledMs": 28921,
+ "modelRequests": 4,
+ "reqs": [
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4449,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": -1
+  },
+  {
+   "t": 1819,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 25469,
+   "msgs": 4,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,creative_export,world_state,world_environment,creative_scene3d,world_generate,world_object,sandbox_execute,atelier_export,sandbox_read,sandbox_write",
+   "max": 2048,
+   "stream": true,
+   "status": 200,
+   "tResp": 2463
+  },
+  {
+   "t": 3145,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 15998,
+   "msgs": 6,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,creative_export,world_state,world_environment,creative_scene3d,world_generate,world_object,sandbox_execute,atelier_export,sandbox_read,sandbox_write",
+   "max": 2048,
+   "stream": true,
+   "status": 200,
+   "tResp": 3845
+  },
+  {
+   "t": 31420,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 3631,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700
+  }
+ ],
+ "answer": "Here’s the STL file containing all the objects from your world, ready for 3D printing:\n\nDownload LÉLU‑s‑room‑1794681881265.stl\n\nLet me know if you’d like anything else—perhaps a preview, a different format, or help with slicing settings!"
+}

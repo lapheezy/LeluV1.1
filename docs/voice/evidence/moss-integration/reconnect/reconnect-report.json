@@ -1,0 +1,134 @@
+{
+ "realDevice": false,
+ "recoveredMs": 16120,
+ "connections": [
+  "connecting",
+  "connected",
+  "connected",
+  "connected",
+  "connected",
+  "reconnecting",
+  "reconnecting",
+  "connected",
+  "connected"
+ ],
+ "timeline": [
+  {
+   "t": 13343,
+   "kind": "livekit",
+   "connection": "connecting",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 13553,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 13656,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 13661,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 13682,
+   "kind": "listening-before"
+  },
+  {
+   "t": 13683,
+   "kind": "kill-livekit-server"
+  },
+  {
+   "t": 19547,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 27757,
+   "kind": "livekit",
+   "connection": "reconnecting",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 27783,
+   "kind": "loss-observed",
+   "connections": [
+    "connecting",
+    "connected",
+    "connected",
+    "connected",
+    "connected",
+    "reconnecting"
+   ]
+  },
+  {
+   "t": 27912,
+   "kind": "livekit",
+   "connection": "reconnecting",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 29795,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 29797,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 29803,
+   "kind": "recovered",
+   "recoveredMs": 16120
+  },
+  {
+   "t": 108254,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 108273,
+   "kind": "post-recovery-utterance-processing"
+  },
+  {
+   "t": 112384,
+   "kind": "reply",
+   "text": "The capital of France is Paris."
+  },
+  {
+   "t": 116687,
+   "kind": "result",
+   "pass": true
+  }
+ ],
+ "pass": true
+}

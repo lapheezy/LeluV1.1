@@ -25,6 +25,7 @@ import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
 import { endpoint } from "../core/Endpoints";
 import { nasaApiKey } from "../core/resolveEnv";
+import { knowledgeFetch } from "./aiRelay";
 
 /** Shared behaviour: timeouts, JSON fetch, error shape. */
 abstract class NASABaseProvider implements Provider {
@@ -43,7 +44,20 @@ abstract class NASABaseProvider implements Provider {
   }
 
   protected async json(url: string): Promise<any> {
-    const response = await fetch(url, { signal: AbortSignal.timeout(this.timeout) });
+    // api.nasa.gov takes its key as ?api_key=. In the browser that key was
+    // read from a global the runtime key bridge published into the page; it
+    // now stays on the server: the parameter is dropped here and the
+    // knowledge relay appends NASA_API_KEY (or the public DEMO_KEY).
+    // NASA's keyless hosts (images, EONET, OSDR, exoplanets) are fetched
+    // directly as before.
+    const target = new URL(url);
+    let response: Response;
+    if (target.host === "api.nasa.gov") {
+      target.searchParams.delete("api_key");
+      response = await knowledgeFetch("nasa", target.toString(), { signal: AbortSignal.timeout(this.timeout) });
+    } else {
+      response = await fetch(url, { signal: AbortSignal.timeout(this.timeout) });
+    }
     if (!response.ok) {
       const body = await response.text();
       throw new Error(`${this.name} ${response.status}: ${body.slice(0, 200)}`);
@@ -247,8 +261,9 @@ export class NASAEpicProvider extends NASABaseProvider {
       // EPIC archive paths are date-partitioned: .../archive/natural/YYYY/MM/DD/png/NAME.png
       const day = String(image.date ?? "").slice(0, 10).replace(/-/g, "/");
       const href = day
-        ? `${endpoint("nasaEpic")}/archive/natural/${day}/png/${image.image}.png` +
-          `?api_key=${encodeURIComponent(nasaApiKey())}`
+        // The public archive host serves the same image with no key, so a
+        // result link never carries a credential (it used to embed api_key).
+        ? `https://epic.gsfc.nasa.gov/archive/natural/${day}/png/${image.image}.png`
         : "";
       return {
         id: `epic-${image.identifier ?? image.image}`,

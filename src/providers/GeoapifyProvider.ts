@@ -14,7 +14,7 @@
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
 import { endpoint } from "../core/Endpoints";
-import { resolveFirst } from "../core/resolveEnv";
+import { knowledgeAvailable, knowledgeFetch } from "./aiRelay";
 
 export default class GeoapifyProvider implements Provider {
   readonly name = "geoapify";
@@ -27,23 +27,19 @@ export default class GeoapifyProvider implements Provider {
   readonly maxConcurrent = 2;
   readonly capabilities = ["geocoding", "places", "location", "geo"] as const;
 
-  private key(): string | undefined {
-    return resolveFirst("GEOAPIFY_API_KEY", "VITE_GEOAPIFY_API_KEY");
-  }
-
   canSearch(query: string): boolean {
-    return query.trim().length > 0 && Boolean(this.key());
+    // The key is on the server (knowledge relay); until it says whether it
+    // holds one, Geoapify is tried and an unconfigured relay answers 503.
+    return query.trim().length > 0 && knowledgeAvailable("geoapify") !== false;
   }
 
   async search(query: string): Promise<KnowledgeResult[]> {
-    const apiKey = this.key();
-    if (!apiKey) return [];
+    // No key in the browser: the runtime key bridge used to publish it into
+    // the served page. The server appends it (plugins/aiProxyApi.ts).
+    const url = `${endpoint("geoapify")}/v1/geocode/search?text=${encodeURIComponent(query)}&limit=8&format=json`;
 
-    const url =
-      `${endpoint("geoapify")}/v1/geocode/search?text=${encodeURIComponent(query)}` +
-      `&limit=8&format=json&apiKey=${encodeURIComponent(apiKey)}`;
-
-    const response = await fetch(url, { signal: AbortSignal.timeout(this.timeout) });
+    const response = await knowledgeFetch("geoapify", url, { signal: AbortSignal.timeout(this.timeout) });
+    if (response.status === 503) return [];
     if (!response.ok) {
       throw new Error(`geoapify ${response.status}: ${(await response.text()).slice(0, 200)}`);
     }

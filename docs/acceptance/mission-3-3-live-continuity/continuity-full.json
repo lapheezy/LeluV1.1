@@ -1,0 +1,680 @@
+{
+ "startedAt": "2026-11-08T21:19:46.236Z",
+ "turns": [
+  {
+   "label": "turn1-create",
+   "prompt": "Create a studio environment titled Research Studio with three surfaces: a central workspace, a research area, and a presentation area.",
+   "ms": 37448,
+   "tools": [
+    "🟢 [9:21:26 PM] [ProviderResolver] Tool environment_compose -> ok",
+    "🟢 [9:21:29 PM] [ProviderResolver] Tool environment_present_artifact -> ok",
+    "🟢 [9:21:30 PM] [ProviderResolver] Tool environment_save_state -> ok"
+   ],
+   "state": {
+    "dom": [],
+    "engine": {
+     "layout": "split",
+     "focusId": "view-memory",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "kind": "executive",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "kind": "providers",
+       "revision": 6,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "kind": "memory",
+       "revision": 2,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Central Workspace",
+       "kind": "workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "kind": "research",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "kind": "presentation",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "kind": "browser",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "snapshots": [
+     {
+      "id": "snapshot-mw8c7qrp",
+      "name": "Research Studio v1",
+      "views": [
+       {
+        "id": "view-executive",
+        "title": "Lélu · Live Execution",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-providers",
+        "title": "Providers",
+        "revision": 5,
+        "text": ""
+       },
+       {
+        "id": "view-memory",
+        "title": "Memory",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-655cb8be",
+        "title": "Central Workspace",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-4da30a7e",
+        "title": "Research Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-1ad7ea82",
+        "title": "Presentation Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-ac62bd07",
+        "title": "Research Studio",
+        "revision": 1,
+        "text": ""
+       }
+      ]
+     }
+    ],
+    "revisions": []
+   }
+  },
+  {
+   "label": "turn2-mutate",
+   "prompt": "Change the surface view-655cb8be (\"Central Workspace\") so its text reads \"Research Board: sources, notes and open questions.\" and its title reads \"Research Board\".",
+   "ms": 52095,
+   "tools": [
+    "🟢 [9:22:52 PM] [ProviderResolver] Tool environment_mutate_surface -> ok"
+   ],
+   "state": {
+    "dom": [],
+    "engine": {
+     "layout": "split",
+     "focusId": "view-providers",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "kind": "executive",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "kind": "providers",
+       "revision": 12,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "kind": "memory",
+       "revision": 4,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Research Board",
+       "kind": "workspace",
+       "revision": 2,
+       "text": "Research Board: sources, notes and open questions."
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "kind": "research",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "kind": "presentation",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "kind": "browser",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "snapshots": [
+     {
+      "id": "snapshot-mw8c7qrp",
+      "name": "Research Studio v1",
+      "views": [
+       {
+        "id": "view-executive",
+        "title": "Lélu · Live Execution",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-providers",
+        "title": "Providers",
+        "revision": 5,
+        "text": ""
+       },
+       {
+        "id": "view-memory",
+        "title": "Memory",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-655cb8be",
+        "title": "Central Workspace",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-4da30a7e",
+        "title": "Research Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-1ad7ea82",
+        "title": "Presentation Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-ac62bd07",
+        "title": "Research Studio",
+        "revision": 1,
+        "text": ""
+       }
+      ]
+     }
+    ],
+    "revisions": [
+     {
+      "summary": "Mutated surface [view-655cb8be] \"Research Board\"",
+      "viewsAffected": [
+       "view-655cb8be"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "label": "turn3-save",
+   "prompt": "Save the current environment state as a snapshot named studio-v1.",
+   "ms": 23283,
+   "tools": [
+    "🟢 [9:23:47 PM] [ProviderResolver] Tool environment_save_state -> ok"
+   ],
+   "state": {
+    "dom": [],
+    "engine": {
+     "layout": "split",
+     "focusId": "view-memory",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "kind": "executive",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "kind": "providers",
+       "revision": 16,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "kind": "memory",
+       "revision": 6,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Research Board",
+       "kind": "workspace",
+       "revision": 2,
+       "text": "Research Board: sources, notes and open questions."
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "kind": "research",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "kind": "presentation",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "kind": "browser",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "snapshots": [
+     {
+      "id": "snapshot-mw8c7qrp",
+      "name": "Research Studio v1",
+      "views": [
+       {
+        "id": "view-executive",
+        "title": "Lélu · Live Execution",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-providers",
+        "title": "Providers",
+        "revision": 5,
+        "text": ""
+       },
+       {
+        "id": "view-memory",
+        "title": "Memory",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-655cb8be",
+        "title": "Central Workspace",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-4da30a7e",
+        "title": "Research Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-1ad7ea82",
+        "title": "Presentation Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-ac62bd07",
+        "title": "Research Studio",
+        "revision": 1,
+        "text": ""
+       }
+      ]
+     },
+     {
+      "id": "snapshot-mw8cao1i",
+      "name": "studio-v1",
+      "views": [
+       {
+        "id": "view-executive",
+        "title": "Lélu · Live Execution",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-providers",
+        "title": "Providers",
+        "revision": 15,
+        "text": ""
+       },
+       {
+        "id": "view-memory",
+        "title": "Memory",
+        "revision": 5,
+        "text": ""
+       },
+       {
+        "id": "view-655cb8be",
+        "title": "Research Board",
+        "revision": 2,
+        "text": "Research Board: sources, notes and open questions."
+       },
+       {
+        "id": "view-4da30a7e",
+        "title": "Research Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-1ad7ea82",
+        "title": "Presentation Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-ac62bd07",
+        "title": "Research Studio",
+        "revision": 1,
+        "text": ""
+       }
+      ]
+     }
+    ],
+    "revisions": [
+     {
+      "summary": "Mutated surface [view-655cb8be] \"Research Board\"",
+      "viewsAffected": [
+       "view-655cb8be"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "console": [
+  "🟢 [9:21:26 PM] [ProviderResolver] Tool environment_compose -> ok",
+  "🟢 [9:21:29 PM] [ProviderResolver] Tool environment_present_artifact -> ok",
+  "🟢 [9:21:30 PM] [ProviderResolver] Tool environment_save_state -> ok",
+  "🟢 [9:22:52 PM] [ProviderResolver] Tool environment_mutate_surface -> ok",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4471, Requeste}",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4460, Requeste}",
+  "🔴 [9:22:52 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4449, Requeste}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 16037, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 433}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 7590, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 21980, reason: GitHub Models returned no usable content., credentialRefused: false}",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 13659, reason: GitHub Models returned no usable content., credentialRefused: false}",
+  "🟢 [9:23:47 PM] [ProviderResolver] Tool environment_save_state -> ok",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4139, Requeste}",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4106, Requeste}",
+  "🔴 [9:23:47 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4089, Requeste}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 6689, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 334}"
+ ],
+ "errors": [],
+ "checkpoints": {
+  "boot": {
+   "dom": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "kind": "executive",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "kind": "providers",
+      "revision": 2,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": [],
+   "revisions": []
+  },
+  "created": [
+   {
+    "id": "view-655cb8be",
+    "title": "Central Workspace",
+    "kind": "workspace",
+    "revision": 1,
+    "text": ""
+   },
+   {
+    "id": "view-4da30a7e",
+    "title": "Research Area",
+    "kind": "research",
+    "revision": 1,
+    "text": ""
+   },
+   {
+    "id": "view-1ad7ea82",
+    "title": "Presentation Area",
+    "kind": "presentation",
+    "revision": 1,
+    "text": ""
+   },
+   {
+    "id": "view-ac62bd07",
+    "title": "Research Studio",
+    "kind": "browser",
+    "revision": 1,
+    "text": ""
+   }
+  ],
+  "pointerBefore": null,
+  "mobile": [],
+  "afterSave": {
+   "dom": [],
+   "engine": {
+    "layout": "split",
+    "focusId": "view-memory",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "kind": "executive",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "kind": "providers",
+      "revision": 16,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "kind": "memory",
+      "revision": 6,
+      "text": ""
+     },
+     {
+      "id": "view-655cb8be",
+      "title": "Research Board",
+      "kind": "workspace",
+      "revision": 2,
+      "text": "Research Board: sources, notes and open questions."
+     },
+     {
+      "id": "view-4da30a7e",
+      "title": "Research Area",
+      "kind": "research",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-1ad7ea82",
+      "title": "Presentation Area",
+      "kind": "presentation",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-ac62bd07",
+      "title": "Research Studio",
+      "kind": "browser",
+      "revision": 1,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": [
+    {
+     "id": "snapshot-mw8c7qrp",
+     "name": "Research Studio v1",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Central Workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    {
+     "id": "snapshot-mw8cao1i",
+     "name": "studio-v1",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 15,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Research Board",
+       "revision": 2,
+       "text": "Research Board: sources, notes and open questions."
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    }
+   ],
+   "revisions": [
+    {
+     "summary": "Mutated surface [view-655cb8be] \"Research Board\"",
+     "viewsAffected": [
+      "view-655cb8be"
+     ]
+    }
+   ]
+  },
+  "snapshotId": "snapshot-mw8c7qrp",
+  "idsBeforeReload": [
+   "view-executive",
+   "view-providers",
+   "view-memory",
+   "view-655cb8be",
+   "view-4da30a7e",
+   "view-1ad7ea82",
+   "view-ac62bd07"
+  ]
+ },
+ "elapsedMs": 268426,
+ "finishedAt": "2026-11-08T21:24:14.662Z"
+}

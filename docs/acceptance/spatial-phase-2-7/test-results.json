@@ -1,0 +1,73 @@
+{
+  "phase": "2.7",
+  "capturedAt": "2026-11-06T22:05:00Z",
+  "baseCommit": "f3502219db9c9061249b28e58da7df66f9bcb228",
+  "scope": "every verified scene mutation reveals its subject; a recolour reaches the drawn material",
+  "gates": {
+    "runner": "bun run test (tsx --test, node:test) — the project's configured command",
+    "fullSuite": { "tests": 1405, "pass": 1399, "fail": 0, "skip": 6, "exit": 0 },
+    "beforeThisPhase": { "pass": 1389, "fail": 1, "skip": 6 },
+    "theOneRealFailure": "tests/spatial-reveal.test.ts imported bun:test (ERR_UNSUPPORTED_ESM_URL_SCHEME); rewritten for node:test",
+    "earlierBunTestNumbers": {
+      "pass": 1334,
+      "fail": 38,
+      "skip": 6,
+      "note": "measured with `bun test`, which is not this project's runner; the 38 were its node:test compatibility path (indexedDB undefined), not product failures"
+    },
+    "typecheck": "exit 0",
+    "lint": "0 errors, 108 warnings",
+    "revealSuite": "10 pass, 0 fail (tests/spatial-reveal.test.ts)"
+  },
+  "mutationReveal": {
+    "rule": "after verification, every mutation except object.delete requests a reveal; refused/rolled-back changes request nothing",
+    "coveredOps": ["object.create", "object.move", "object.rotate", "object.scale", "object.setVisible", "material.set", "object.connect", "scene.commit"],
+    "excluded": ["object.delete"],
+    "unitTests": 5
+  },
+  "renderingBug": {
+    "symptom": "material.set committed #22c55e, mesh probe and render model both green, published frame still lavender",
+    "cause": "DEFAULT_SPATIAL_EMISSIVE #a78bfa at intensity 0.35 (+0.65 while attended) painted a violet glow that a colour change never touched",
+    "fix": "a colour change mirrors the colour into emissive unless a specific glow was requested",
+    "regressionTest": "asserts spatialMeshModel().color and .emissive are both #22c55e"
+  },
+  "resize": {
+    "viewport": "390x844",
+    "command": "make Nova bigger",
+    "reply": "Resized \"Nova\" to 1.5× its base size. Scene revision 2.",
+    "inspect": "scale (1.5, 1.5, 1.5)",
+    "reveal": "Framed \"Nova\" — camera at (5.38, 0.65, 7.9) looking at (2.23, -1.35, 2.17). verification: camera pass, framing pass",
+    "pixels": { "lavender": 7969, "bbox": { "x": 10, "y": 189, "w": 317, "h": 356 } },
+    "screenshot": "screenshots/390x844-08-world-after-resize.png",
+    "note": "framing holds screen size constant; the resize is proven by the scale readout and the farther camera (4.3 → 5.38), not by a larger bounding box"
+  },
+  "recolour": {
+    "viewport": "390x844",
+    "command": "paint the cube green",
+    "reply": "Changed \"Nova\" — colour #22c55e. Scene revision 2.",
+    "reveal": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass",
+    "before": {
+      "greenPixels": 0,
+      "lavenderPixels": 47508,
+      "centrePixel": [165, 140, 203],
+      "screenshot": "screenshots/390x844-11-recolour-before.png"
+    },
+    "after": {
+      "greenPixels": 46863,
+      "lavenderPixels": 489,
+      "centrePixel": [82, 200, 171],
+      "greenBbox": { "x": 89, "y": 316, "w": 237, "h": 233 },
+      "greenSeen": true,
+      "screenshot": "screenshots/390x844-12-recolour-after.png",
+      "crop": "screenshots/390x844-12-recolour-after-crop.png"
+    },
+    "measurement": "green-channel-dominant pixels in the world band of the published PNG; captured only after real animation frames, with a before shot to prove the detector is not matching background",
+    "evidence": "390x844-recolour.json"
+  },
+  "limits": [
+    "viewport emulation, not a physical device; guest sign-in",
+    "voice and dashboard surfaces were not driven end-to-end in the browser (no microphone; no spatial creation control on the dashboard); the rule is enforced at the single bus every path calls and covered by bus-level tests",
+    "camera commands issued from chat on a phone report 'camera not measurable' because the world is unmounted there by design",
+    "proactive toasts can overlay the world in captures",
+    "the full browser sequence and the focused recolour run are separate because one command is capped at 290s"
+  ]
+}

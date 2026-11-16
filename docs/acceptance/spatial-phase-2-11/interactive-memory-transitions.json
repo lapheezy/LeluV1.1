@@ -1,0 +1,145 @@
+{
+ "viewport": "375x812",
+ "at": "2026-11-07T22:24:31.088Z",
+ "deviceScaleFactor": 1,
+ "reducedMotion": "reduce",
+ "method": "DOM click dispatch on scene controls",
+ "steps": [
+  "OK-dom gate",
+  "opened-panel",
+  "NO travel-1->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-2->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-3->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-4->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-5->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-6->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-7->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-8->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-9->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-10->core settled={\"scene\":\"core\",\"transition\":\"\"}"
+ ],
+ "samples": [
+  {
+   "label": "start",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 255,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-1-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 355,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-2-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 362,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-3-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 369,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-4-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 369,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-5-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 382,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-6-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 371,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-7-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 386,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-8-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 372,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-9-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 378,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-10-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 374,
+   "canvases": 3,
+   "navs": 1
+  }
+ ],
+ "checks": {
+  "transitions": 10,
+  "heaps": [
+   255,
+   355,
+   362,
+   369,
+   369,
+   382,
+   371,
+   386,
+   372,
+   378,
+   374
+  ],
+  "canvases": [
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3
+  ],
+  "firstHeap": 255,
+  "lastHeap": 374,
+  "growthMB": 119,
+  "monotonic": false
+ },
+ "errors": []
+}

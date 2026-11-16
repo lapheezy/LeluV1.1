@@ -1,0 +1,237 @@
+{
+  "mission": "5.9",
+  "capturedAt": "2026-11-08T21:41:22.954Z",
+  "envFilesLoaded": {
+    "filesLoaded": [
+      ".env.local"
+    ],
+    "keys": {
+      "GROQ_API_KEY": true,
+      "OPENROUTER_API_KEY": true,
+      "ANTHROPIC_API_KEY": true
+    }
+  },
+  "credentialsPresent": {
+    "GROQ_API_KEY": true,
+    "OPENROUTER_API_KEY": true,
+    "ANTHROPIC_API_KEY": true
+  },
+  "anthropicPolicy": "POLICY_DISABLED — never called in this mission",
+  "groqModelTested": "openai/gpt-oss-120b",
+  "openrouterCatalog": {
+    "at": "2026-11-08T21:40:58.931Z",
+    "httpStatus": 200,
+    "total": 425,
+    "freeToolCapable": [
+      {
+        "id": "liquid/lfm-3-1.7b:free",
+        "context": 262144
+      },
+      {
+        "id": "stealth/crouton-alpha",
+        "context": 1048576
+      },
+      {
+        "id": "recursive/flint-v1.0:free",
+        "context": 262144
+      },
+      {
+        "id": "xingchen-agi/xing4.0-29b-a4b:free",
+        "context": 262144
+      },
+      {
+        "id": "nvidia/nemotron-3.5-super-vl:free",
+        "context": 1000000
+      },
+      {
+        "id": "dots-studio/dots-3-note-preview:free",
+        "context": 512000
+      },
+      {
+        "id": "liquid/lfm-2.5-2.6b:free",
+        "context": 65536
+      },
+      {
+        "id": "nvidia/nemotron-3.5-lightning:free",
+        "context": 1000000
+      },
+      {
+        "id": "cohere/north-mini-code:free",
+        "context": 256000
+      },
+      {
+        "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "context": 1000000
+      },
+      {
+        "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "context": 256000
+      },
+      {
+        "id": "google/gemma-4-26b-a4b-it:free",
+        "context": 262144
+      }
+    ]
+  },
+  "probes": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "kind": "text",
+      "at": "2026-11-08T21:40:58.266Z",
+      "ok": true,
+      "classification": "COMPLETION_VERIFIED",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "bodyKeys": [
+        "id",
+        "object",
+        "created",
+        "model",
+        "choices",
+        "usage",
+        "usage_breakdown",
+        "system_fingerprint",
+        "x_groq",
+        "service_tier"
+      ],
+      "finishReason": "stop",
+      "usage": {
+        "queue_time": 0.119665154,
+        "prompt_tokens": 79,
+        "prompt_time": 0.003135262,
+        "completion_tokens": 23,
+        "completion_time": 0.047633429,
+        "total_tokens": 102,
+        "total_time": 0.050768691,
+        "completion_tokens_details": {
+          "reasoning_tokens": 13
+        }
+      },
+      "textPreview": "ready",
+      "notes": []
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "kind": "tool",
+      "at": "2026-11-08T21:40:58.592Z",
+      "ok": true,
+      "classification": "TOOL_CALLING_VERIFIED",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "bodyKeys": [
+        "id",
+        "object",
+        "created",
+        "model",
+        "choices",
+        "usage",
+        "usage_breakdown",
+        "system_fingerprint",
+        "x_groq",
+        "service_tier"
+      ],
+      "finishReason": "tool_calls",
+      "usage": {
+        "queue_time": 0.19550766,
+        "prompt_tokens": 155,
+        "prompt_time": 0.005894757,
+        "completion_tokens": 33,
+        "completion_time": 0.069337884,
+        "total_tokens": 188,
+        "total_time": 0.075232641,
+        "completion_tokens_details": {
+          "reasoning_tokens": 12
+        }
+      },
+      "toolCalls": [
+        {
+          "name": "current_utc_time",
+          "arguments": "{}"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "provider": "openrouter",
+      "model": "liquid/lfm-3-1.7b:free",
+      "kind": "tool",
+      "at": "2026-11-08T21:40:59.478Z",
+      "ok": false,
+      "classification": "CAPACITY_LIMITED",
+      "httpStatus": 429,
+      "contentType": "application/json",
+      "bodyKeys": [
+        "error",
+        "user_id"
+      ],
+      "errorPreview": "{\"error\":{\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\",\"code\":429,\"metadata\":{\"headers\":{\"X-RateLimit-Limit\":\"50\",\"X-RateLimit-Remaining\":\"0\",\"X-RateLimit-Reset\":\"1794182400000\"},\"limit_source\":\"openrouter_free_tier_daily\",\"remedy_hi",
+      "notes": []
+    },
+    {
+      "provider": "openrouter",
+      "model": "stealth/crouton-alpha",
+      "kind": "tool",
+      "at": "2026-11-08T21:40:59.596Z",
+      "ok": true,
+      "classification": "TOOL_CALLING_VERIFIED",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "bodyKeys": [
+        "id",
+        "object",
+        "created",
+        "model",
+        "provider",
+        "system_fingerprint",
+        "service_tier",
+        "choices",
+        "usage"
+      ],
+      "finishReason": "tool_calls",
+      "usage": {
+        "prompt_tokens": 14,
+        "completion_tokens": 3,
+        "total_tokens": 17,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "toolCalls": [
+        {
+          "name": "current_utc_time",
+          "arguments": "{}"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "provider": "anthropic",
+      "model": "(not called)",
+      "kind": "tool",
+      "at": "2026-11-08T21:41:22.954Z",
+      "ok": false,
+      "classification": "POLICY_DISABLED",
+      "notes": [
+        "Anthropic is excluded from this mission by policy; no request was made."
+      ]
+    }
+  ],
+  "verdict": "TOOL_CALLING_VERIFIED"
+}

@@ -31,7 +31,7 @@ import {
   MeshStandardMaterial,
 } from "three";
 
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import type GenesisNavigator from "./GenesisNavigator";
 
 /** Palette for the world-nodes, keyed by workspace index. */
@@ -81,7 +81,7 @@ interface WorkspaceNodeProps {
 }
 
 function WorkspaceNode({ id, name, index, count, navigator }: WorkspaceNodeProps) {
-  const { state, focusWorkspace, selectDestination } = useGenesis();
+  const { state, focusWorkspace, selectDestination } = useGenesisState();
 
   const node = useRef<Group>(null);
   const ring = useRef<Group>(null);
@@ -256,7 +256,7 @@ interface GenesisWorkspaceProps {
 }
 
 export default function GenesisWorkspace({ navigator }: GenesisWorkspaceProps) {
-  const { state } = useGenesis();
+  const { state } = useGenesisState();
   // The "core" workspace is the Genesis Core itself — the workspace-preview
   // diamond draws it as the top node, so it must not double as a world.
   const workspaces = (state.cognition?.workspaces ?? []).filter(

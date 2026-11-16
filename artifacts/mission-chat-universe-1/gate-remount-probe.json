@@ -1,0 +1,36 @@
+{
+  "gate": true,
+  "sameNode": true,
+  "markSurvived": true,
+  "valueAfter": "",
+  "focusKept": true,
+  "focusBefore": true,
+  "sampleText": [
+    {
+      "tag": "div",
+      "text": "LÉLU 91df941 · mission/chat-universe-rei",
+      "rendered": true
+    },
+    {
+      "tag": "style",
+      "text": "@keyframes cosmos-hurricane-spin {\n     ",
+      "rendered": false
+    },
+    {
+      "tag": "button",
+      "text": "◈ Governor galaxy",
+      "rendered": true
+    },
+    {
+      "tag": "button",
+      "text": "◈ Creation world",
+      "rendered": true
+    },
+    {
+      "tag": "button",
+      "text": "◈ Dimensional portal",
+      "rendered": true
+    }
+  ],
+  "gateInnerText": ""
+}

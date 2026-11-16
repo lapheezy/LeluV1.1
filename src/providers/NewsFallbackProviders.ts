@@ -20,6 +20,7 @@ import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
 import { endpoint } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { knowledgeAvailable, knowledgeFetch, type RelayKnowledgeId } from "./aiRelay";
 
 abstract class NewsSourceProvider implements Provider {
   abstract readonly name: string;
@@ -32,16 +33,26 @@ abstract class NewsSourceProvider implements Provider {
   readonly cooldown = 1000;
   readonly maxConcurrent = 2;
 
-  protected abstract key(): string | undefined;
+  /** The server relay that holds this source's key (plugins/aiProxyApi.ts). */
+  protected abstract readonly relayId: RelayKnowledgeId;
 
   canSearch(query: string): boolean {
-    // Without a key this source cannot answer, and saying so here keeps
-    // it out of the chain rather than failing mid-search.
-    return query.trim().length > 0 && Boolean(this.key());
+    // Without a server-side key this source cannot answer, and saying so
+    // here keeps it out of the chain rather than failing mid-search. Until
+    // the server has said, it is tried; an unconfigured relay answers 503
+    // and the source returns nothing.
+    return query.trim().length > 0 && knowledgeAvailable(this.relayId) !== false;
   }
 
+  /**
+   * GET through the knowledge relay: `url` is the upstream URL WITHOUT a
+   * key; the server appends it. The key used to be read here, in the
+   * browser, from a global the runtime key bridge published into the page.
+   * Returns null when the server holds no key for this source.
+   */
   protected async json(url: string): Promise<any> {
-    const response = await fetch(url, { signal: AbortSignal.timeout(this.timeout) });
+    const response = await knowledgeFetch(this.relayId, url, { signal: AbortSignal.timeout(this.timeout) });
+    if (response.status === 503) return null;
     if (!response.ok) {
       throw new Error(`${this.name} ${response.status}: ${(await response.text()).slice(0, 200)}`);
     }
@@ -57,18 +68,12 @@ export class GNewsProvider extends NewsSourceProvider {
   readonly name = "gnews";
   readonly capabilities = ["news", "current-events", "world"] as const;
 
-  protected key(): string | undefined {
-    return resolveFirst("GNEWS_API_KEY", "VITE_GNEWS_API_KEY");
-  }
+  protected readonly relayId = "gnews" as const;
 
   async search(query: string): Promise<KnowledgeResult[]> {
-    const apiKey = this.key();
-    if (!apiKey) return [];
-
-    const url =
-      `${endpoint("gnews")}/search?q=${encodeURIComponent(query)}` +
-      `&lang=en&max=10&apikey=${encodeURIComponent(apiKey)}`;
+    const url = `${endpoint("gnews")}/search?q=${encodeURIComponent(query)}&lang=en&max=10`;
     const data = await this.json(url);
+    if (!data) return [];
 
     return (data.articles ?? []).map((article: any, index: number): KnowledgeResult => ({
       id: `gnews-${index}-${article.publishedAt ?? ""}`,
@@ -89,21 +94,16 @@ export class GuardianProvider extends NewsSourceProvider {
   readonly name = "guardian";
   readonly capabilities = ["news", "current-events", "world", "analysis"] as const;
 
-  protected key(): string | undefined {
-    return resolveFirst("GUARDIAN_API_KEY", "VITE_GUARDIAN_API_KEY");
-  }
+  protected readonly relayId = "guardian" as const;
 
   async search(query: string): Promise<KnowledgeResult[]> {
-    const apiKey = this.key();
-    if (!apiKey) return [];
-
     // show-fields=trailText,bodyText gives real article text rather than
     // a headline alone, which is what makes the result reasoning-usable.
     const url =
       `${endpoint("guardian")}/search?q=${encodeURIComponent(query)}` +
-      `&page-size=10&order-by=newest&show-fields=trailText,bodyText,thumbnail` +
-      `&api-key=${encodeURIComponent(apiKey)}`;
+      `&page-size=10&order-by=newest&show-fields=trailText,bodyText,thumbnail`;
     const data = await this.json(url);
+    if (!data) return [];
 
     return (data.response?.results ?? []).map((item: any): KnowledgeResult => ({
       id: `guardian-${item.id}`,
@@ -128,18 +128,12 @@ export class NewsDataProvider extends NewsSourceProvider {
   readonly name = "newsdata";
   readonly capabilities = ["news", "current-events", "world"] as const;
 
-  protected key(): string | undefined {
-    return resolveFirst("NEWSDATA_API_KEY", "VITE_NEWSDATA_API_KEY");
-  }
+  protected readonly relayId = "newsdata" as const;
 
   async search(query: string): Promise<KnowledgeResult[]> {
-    const apiKey = this.key();
-    if (!apiKey) return [];
-
-    const url =
-      `${endpoint("newsdata")}/news?apikey=${encodeURIComponent(apiKey)}` +
-      `&q=${encodeURIComponent(query)}&language=en`;
+    const url = `${endpoint("newsdata")}/news?q=${encodeURIComponent(query)}&language=en`;
     const data = await this.json(url);
+    if (!data) return [];
 
     if (data.status && data.status !== "success") {
       throw new Error(`newsdata: ${data.results?.message ?? data.message ?? "request rejected"}`);

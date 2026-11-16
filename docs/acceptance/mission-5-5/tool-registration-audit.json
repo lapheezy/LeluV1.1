@@ -1,0 +1,48 @@
+{
+  "registry": "single ToolRegistry; six environment tools seeded there exactly once",
+  "dispatcher": "single ToolDispatcher BY_ID table; environment executors added to the SAME table",
+  "engine": "single EnvironmentOrchestrationEngine singleton",
+  "tools": [
+    {
+      "id": "environment.compose",
+      "model_name": "environment_compose",
+      "risk": 1,
+      "route": "front-end:EnvironmentOrchestrationEngine"
+    },
+    {
+      "id": "environment.present_artifact",
+      "model_name": "environment_present_artifact",
+      "risk": 0,
+      "route": "front-end:EnvironmentOrchestrationEngine"
+    },
+    {
+      "id": "environment.mutate_surface",
+      "model_name": "environment_mutate_surface",
+      "risk": 1,
+      "route": "front-end:EnvironmentOrchestrationEngine"
+    },
+    {
+      "id": "environment.manage_workspace",
+      "model_name": "environment_manage_workspace",
+      "risk": 1,
+      "route": "front-end:EnvironmentOrchestrationEngine"
+    },
+    {
+      "id": "environment.save_state",
+      "model_name": "environment_save_state",
+      "risk": 0,
+      "route": "front-end:EnvironmentOrchestrationEngine"
+    },
+    {
+      "id": "environment.restore_state",
+      "model_name": "environment_restore_state",
+      "risk": 1,
+      "route": "front-end:EnvironmentOrchestrationEngine"
+    }
+  ],
+  "registerEnvironmentTools": "defined in EnvironmentTools.ts and deliberately NOT called: the ids are already seeded by ToolRegistry. Calling it would double-register. Left as-is; documented rather than wired.",
+  "ids_renamed": false,
+  "duplicate_registry": false,
+  "duplicate_dispatcher": false,
+  "finding": "the offered payload was the binding problem, not registration: every executable schema was sent on every turn (~19.5k tokens)"
+}

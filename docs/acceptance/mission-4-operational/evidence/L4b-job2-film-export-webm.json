@@ -1,0 +1,14 @@
+{
+ "device": "desktop",
+ "started": "2026-11-14T20:12:36.700Z",
+ "prompt": "/export Tides At Night — short film webm",
+ "settledMs": 29851,
+ "tools": [],
+ "modelRequests": 0,
+ "modelRequestDetail": [],
+ "answer": "Done directly with my own tools (no model involved): export Tides At Night — short film as webm.\n\n✓ export (creative.export)\n✓ Tides-At-Night-short-film.webm (4831.5 KB, sha256 818dab194664…) [path webcodecs, codec vp9, seconds 17.5, frames 525, encodeMs 15917, realtimeFactor 1.1]\n✓ file is not empty — 4947459 bytes\n✓ WebM container — webm\n✓ video track\n✓ audio track (when a soundtrack was asked for) — opus\n\nEverything above ran and was verified.\n\nTides At Night — short film\nExported · Visual · revision 1\nOpen\n\nfilm · 17.5 s · 6 scenes · 1280×720 @ 30 fps · soundtrack calm\n\nTides-At-Night-short-film.webm\n4.7 MB",
+ "ledger": [
+  "3d-export-stl:awaiting-approval",
+  "world-export-gltf:awaiting-approval"
+ ]
+}

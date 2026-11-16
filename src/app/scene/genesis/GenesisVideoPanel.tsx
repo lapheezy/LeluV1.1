@@ -145,7 +145,7 @@ export default function GenesisVideoPanel({ onClose }: GenesisVideoPanelProps) {
       maxHeight="min(92vh, 940px)"
       elevation="focus"
     >
-      <div style={{ display: "flex", gap: 14, minHeight: "min(72vh, 700px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(72vh, 700px)" }}>
         {/* ---------------------------------------------- project list */}
         <div
           style={{

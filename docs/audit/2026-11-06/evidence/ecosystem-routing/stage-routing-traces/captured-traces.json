@@ -1,0 +1,100 @@
+{
+  "source": "window.__LELU_ROUTING_TRACE__ in the running app (dev server :3013), captured with preview_evaluate",
+  "note": "Four consecutive turns on 2026-11-06. turn-3 is the failing turn that identified the root cause; turn-3-fixed is the same phrasing after the fix.",
+  "turns": [
+    {
+      "id": "route-mw5c3qr0-ifiudf",
+      "prompt": "Why can't you run OpenHands?",
+      "intent": "chat",
+      "startedAt": 1793991305772,
+      "finishedAt": 1793991309395,
+      "stages": [
+        { "stage": "time", "handled": false, "durationMs": 0 },
+        { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+        { "stage": "brain", "handled": false, "durationMs": 2 },
+        { "stage": "intelligence", "handled": true, "durationMs": 3618, "provider": "intelligence", "model": "capability-explanation" }
+      ],
+      "notes": [
+        { "at": 1793991305776, "stage": "intelligence.intent", "detail": "explain:engineering.openhands.execute", "ok": true },
+        { "at": 1793991309394, "stage": "intelligence.fetch", "detail": "explain answered from live state (capability-explanation)", "ok": true },
+        { "at": 1793991309395, "stage": "final", "detail": "owner=IntelligenceResolver provider=intelligence model=capability-explanation chars=550", "ok": true }
+      ],
+      "owner": "IntelligenceResolver",
+      "provider": "intelligence",
+      "model": "capability-explanation"
+    },
+    {
+      "id": "route-mw5c51yv-0ktjop",
+      "prompt": "Why can't you run OpenHands?",
+      "intent": "chat",
+      "startedAt": 1793991366967,
+      "finishedAt": 1793991372928,
+      "stages": [
+        { "stage": "time", "handled": false, "durationMs": 0 },
+        { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+        { "stage": "brain", "handled": false, "durationMs": 8 },
+        { "stage": "intelligence", "handled": true, "durationMs": 5952, "provider": "intelligence", "model": "capability-explanation" }
+      ],
+      "notes": [
+        { "at": 1793991366975, "stage": "intelligence.intent", "detail": "explain:engineering.openhands.execute", "ok": true },
+        { "at": 1793991372927, "stage": "intelligence.fetch", "detail": "explain answered from live state (capability-explanation)", "ok": true },
+        { "at": 1793991372928, "stage": "final", "detail": "owner=IntelligenceResolver provider=intelligence model=capability-explanation chars=550", "ok": true }
+      ],
+      "owner": "IntelligenceResolver",
+      "provider": "intelligence",
+      "model": "capability-explanation"
+    },
+    {
+      "id": "route-mw5c6snw-0slqih",
+      "prompt": "What's blocking OpenHands from running?",
+      "intent": "chat",
+      "startedAt": 1793991448220,
+      "finishedAt": 1793991481437,
+      "stages": [
+        { "stage": "time", "handled": false, "durationMs": 1 },
+        { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+        { "stage": "brain", "handled": false, "durationMs": 4 },
+        { "stage": "intelligence", "handled": false, "durationMs": 11623 },
+        { "stage": "surface", "handled": false, "durationMs": 1 },
+        { "stage": "tools", "handled": false, "durationMs": 2 },
+        { "stage": "engineering", "handled": false, "durationMs": 0 },
+        { "stage": "creative", "handled": false, "durationMs": 1 },
+        { "stage": "avatar", "handled": false, "durationMs": 1 },
+        { "stage": "research", "handled": false, "durationMs": 0 },
+        { "stage": "deflock", "handled": false, "durationMs": 1 },
+        { "stage": "browser", "handled": false, "durationMs": 0 },
+        { "stage": "workspace", "handled": false, "durationMs": 2 },
+        { "stage": "provider", "handled": true, "durationMs": 12963, "provider": "OpenRouter", "model": "openrouter/free" }
+      ],
+      "notes": [
+        { "at": 1793991456839, "stage": "intelligence.intent", "detail": "explain:engineering.openhands.execute", "ok": true },
+        { "at": 1793991468459, "stage": "intelligence.fetch", "detail": "declined the turn: Cannot read properties of undefined (reading 'length')", "ok": false },
+        { "at": 1793991481437, "stage": "final", "detail": "owner=OpenRouter provider=OpenRouter model=openrouter/free chars=550", "ok": true }
+      ],
+      "owner": "OpenRouter",
+      "provider": "OpenRouter",
+      "model": "openrouter/free"
+    },
+    {
+      "id": "route-mw5cfy53-uug865",
+      "prompt": "What's blocking OpenHands from running?",
+      "intent": "chat",
+      "startedAt": 1793991875223,
+      "finishedAt": 1793991877160,
+      "stages": [
+        { "stage": "time", "handled": false, "durationMs": 0 },
+        { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+        { "stage": "brain", "handled": false, "durationMs": 3 },
+        { "stage": "intelligence", "handled": true, "durationMs": 1933, "provider": "intelligence", "model": "capability-explanation" }
+      ],
+      "notes": [
+        { "at": 1793991875228, "stage": "intelligence.intent", "detail": "explain:engineering.openhands.execute", "ok": true },
+        { "at": 1793991877160, "stage": "intelligence.fetch", "detail": "explain answered from live state (capability-explanation)", "ok": true },
+        { "at": 1793991877160, "stage": "final", "detail": "owner=IntelligenceResolver provider=intelligence model=capability-explanation chars=550", "ok": true }
+      ],
+      "owner": "IntelligenceResolver",
+      "provider": "intelligence",
+      "model": "capability-explanation"
+    }
+  ]
+}

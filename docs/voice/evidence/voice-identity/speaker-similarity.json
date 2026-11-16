@@ -1,0 +1,79 @@
+{
+ "model": "speechbrain/spkrec-ecapa-voxceleb (cosine)",
+ "rows": [
+  {
+   "item": "REF 12-30s vs REF 30-48s (same speaker, real)",
+   "vs_heldout_mean": 0.771
+  },
+  {
+   "item": "GEN probe-run1",
+   "vs_heldout_mean": 0.317,
+   "vs_conditioning": 0.372
+  },
+  {
+   "item": "GEN worker-speech-1",
+   "vs_heldout_mean": 0.353,
+   "vs_conditioning": 0.352
+  },
+  {
+   "item": "GEN post-boundary",
+   "vs_heldout_mean": 0.327,
+   "vs_conditioning": 0.44
+  },
+  {
+   "item": "GEN finalization-speech",
+   "vs_heldout_mean": 0.442,
+   "vs_conditioning": 0.544
+  },
+  {
+   "item": "GEN app-speech",
+   "vs_heldout_mean": 0.433,
+   "vs_conditioning": 0.395
+  },
+  {
+   "item": "GEN app-stream",
+   "vs_heldout_mean": 0.267,
+   "vs_conditioning": 0.348
+  },
+  {
+   "item": "GEN received-over-livekit",
+   "vs_heldout_mean": 0.083,
+   "vs_conditioning": 0.161
+  },
+  {
+   "item": "GEN e2e-q1",
+   "vs_heldout_mean": 0.358,
+   "vs_conditioning": 0.433
+  },
+  {
+   "item": "GEN e2e-q2",
+   "vs_heldout_mean": 0.35,
+   "vs_conditioning": 0.482
+  },
+  {
+   "item": "NEG elevenlabs-jessica-0",
+   "vs_heldout_mean": -0.063,
+   "vs_conditioning": -0.023
+  },
+  {
+   "item": "NEG elevenlabs-jessica-1",
+   "vs_heldout_mean": -0.044,
+   "vs_conditioning": -0.023
+  },
+  {
+   "item": "NEG elevenlabs-jessica-58",
+   "vs_heldout_mean": -0.04,
+   "vs_conditioning": 0.013
+  }
+ ],
+ "method": "SpeechBrain ECAPA-TDNN (speechbrain/spkrec-ecapa-voxceleb), cosine of L2-normalised embeddings, 16 kHz mono. 'heldout' = mean vs reference 12-30 s and 30-48 s (never used for conditioning); 'cond' = vs the 12 s conditioning clip.",
+ "reference": {
+  "file": "public/audio/voice/lelu-voice-reference.m4a",
+  "sha256": "9ac99650243c50a5d0e2975636aea99eceeefb33eda4a7d15c05c7468da241ae",
+  "format": "M4A/AAC-LC, 44.1 kHz, stereo, 48.81 s, 114 kb/s, created 2026-11-10T06:56:58Z",
+  "committed": "62ad310",
+  "workerConditioning": "first 12.0 s, resampled to 24 kHz mono (.voxcpm/reference-9ac99650243c-12s.wav), passed as reference_wav_path on every request"
+ },
+ "negativeControl": "ElevenLabs default voice cgSgspJ2msm6clMCkdW9 ('Jessica') samples already in docs/voice/evidence",
+ "identityBEER": "UNVERIFIED: no file, commit message or text in any of the 27 branches mentions 'BEER'; this is the only reference recording in the repository."
+}

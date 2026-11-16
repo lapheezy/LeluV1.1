@@ -1,0 +1,36 @@
+{
+ "offered_tool_schemas": {
+  "count": 47,
+  "bytes": 30442,
+  "estimated_tokens": 7611
+ },
+ "environment_tools_offered": [
+  "environment_compose",
+  "environment_present_artifact",
+  "environment_mutate_surface",
+  "environment_manage_workspace",
+  "environment_save_state",
+  "environment_restore_state"
+ ],
+ "environment_schema_cost": {
+  "count": 6,
+  "bytes": 3838,
+  "estimated_tokens": 960
+ },
+ "live_turn_payloads": [
+  {
+   "provider": "openrouter",
+   "bytes": 5377
+  },
+  {
+   "provider": "groq",
+   "bytes": 5381
+  }
+ ],
+ "finding": "Mission 3 reported a ~20,000-token request. The only tool-capable turn captured here sent ~5.4 KB payloads, which cannot contain the 30,442-byte schema block \u2014 the composer turn did not attach tools. The 47-schema budget itself is real and measured; whether a tool-carrying turn fits a given model's limit is NOT established.",
+ "optimization": {
+  "status": "NOT IMPLEMENTED",
+  "reason": "Context-aware tool selection would change what the model is offered. Doing so without a working tool-carrying turn to measure would be unverifiable, so no selection logic was added."
+ },
+ "verdict": "PARTIAL"
+}

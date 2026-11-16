@@ -1,0 +1,12 @@
+{"event": "start", "t": 0.004, "threads": 4, "mode": "full", "label": "gap4", "peakMiB": 28, "rssMiB": 28}
+{"event": "imported", "t": 1.031, "peakMiB": 286, "rssMiB": 286}
+{"event": "loaded", "t": 4.008, "loadSeconds": 2.98, "loadCpuSeconds": 2.92, "peakMiB": 1503, "rssMiB": 1503}
+{"event": "reference_encoded", "t": 5.686, "seconds": 1.68, "promptFrames": 150, "peakMiB": 2761, "rssMiB": 2761}
+{"event": "synth", "t": 10.951, "sentence": "short", "run": 1, "chars": 31, "firstAudioMs": 348, "totalMs": 2481, "audioSeconds": 2.56, "rtf": 0.969, "cpuSeconds": 5.3, "cancelled": false, "codecMs": 779, "gaplessPrebufferMs": 3, "chunks": 27, "peakMiB": 3124, "rssMiB": 3124}
+{"event": "synth", "t": 13.812, "sentence": "short", "run": 2, "chars": 31, "firstAudioMs": 264, "totalMs": 2856, "audioSeconds": 2.72, "rtf": 1.05, "cpuSeconds": 5.63, "cancelled": false, "codecMs": 955, "gaplessPrebufferMs": 0, "chunks": 34, "peakMiB": 3130, "rssMiB": 3130}
+{"event": "synth", "t": 19.53, "sentence": "medium", "run": 1, "chars": 67, "firstAudioMs": 323, "totalMs": 5709, "audioSeconds": 6.56, "rtf": 0.87, "cpuSeconds": 12.29, "cancelled": false, "codecMs": 1770, "gaplessPrebufferMs": 54, "chunks": 58, "peakMiB": 3161, "rssMiB": 3161}
+{"event": "synth", "t": 23.526, "sentence": "medium", "run": 2, "chars": 67, "firstAudioMs": 247, "totalMs": 3991, "audioSeconds": 4.4, "rtf": 0.907, "cpuSeconds": 8.47, "cancelled": false, "codecMs": 1322, "gaplessPrebufferMs": 0, "chunks": 46, "peakMiB": 3163, "rssMiB": 3163}
+{"event": "synth", "t": 32.969, "sentence": "long", "run": 1, "chars": 182, "firstAudioMs": 328, "totalMs": 9425, "audioSeconds": 12.64, "rtf": 0.746, "cpuSeconds": 20.88, "cancelled": false, "codecMs": 2258, "gaplessPrebufferMs": 0, "chunks": 54, "peakMiB": 3239, "rssMiB": 3239}
+{"event": "synth", "t": 42.936, "sentence": "long", "run": 2, "chars": 182, "firstAudioMs": 349, "totalMs": 9946, "audioSeconds": 12.32, "rtf": 0.807, "cpuSeconds": 21.64, "cancelled": false, "codecMs": 2496, "gaplessPrebufferMs": 14, "chunks": 64, "peakMiB": 3246, "rssMiB": 3246}
+{"event": "cancel", "t": 43.327, "chars": 182, "firstAudioMs": 343, "totalMs": 390, "audioSeconds": 0.08, "rtf": 4.877, "cpuSeconds": 0.96, "cancelled": true, "codecMs": 31, "gaplessPrebufferMs": 0, "chunks": 1, "stopToReturnMs": 47.0, "peakMiB": 3246, "rssMiB": 3246}
+{"event": "done", "t": 43.328, "peakMiB": 3246, "rssMiB": 3246}

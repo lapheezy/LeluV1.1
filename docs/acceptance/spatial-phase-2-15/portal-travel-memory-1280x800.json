@@ -1,0 +1,355 @@
+{
+ "viewport": "1280x800",
+ "at": "2026-11-08T03:33:33.355Z",
+ "input": "real CDP mouse at element coordinates",
+ "transitions": [
+  {
+   "step": 1,
+   "control": "scene:studio",
+   "want": "studio",
+   "before": "core",
+   "after": "studio",
+   "arrived": true,
+   "kind": "",
+   "ms": 19640
+  },
+  {
+   "step": 2,
+   "control": "core",
+   "want": "core",
+   "before": "studio",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 32160
+  },
+  {
+   "step": 3,
+   "control": "scene:galaxy",
+   "want": "galaxy",
+   "before": "core",
+   "after": "galaxy",
+   "arrived": true,
+   "kind": "",
+   "ms": 34867
+  },
+  {
+   "step": 4,
+   "control": "core",
+   "want": "core",
+   "before": "galaxy",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 7663
+  },
+  {
+   "step": 5,
+   "control": "scene:planet",
+   "want": "planet",
+   "before": "core",
+   "after": "planet",
+   "arrived": true,
+   "kind": "",
+   "ms": 9859
+  },
+  {
+   "step": 6,
+   "control": "core",
+   "want": "core",
+   "before": "planet",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 30650
+  },
+  {
+   "step": 7,
+   "control": "scene:portal",
+   "want": "portal",
+   "before": "core",
+   "after": "portal",
+   "arrived": true,
+   "kind": "",
+   "ms": 29472
+  },
+  {
+   "step": 8,
+   "control": "core",
+   "want": "core",
+   "before": "portal",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 40380
+  },
+  {
+   "step": 9,
+   "control": "scene:agents",
+   "want": "agents",
+   "before": "core",
+   "after": "agents",
+   "arrived": true,
+   "kind": "",
+   "ms": 6652
+  },
+  {
+   "step": 10,
+   "control": "core",
+   "want": "core",
+   "before": "agents",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 57915
+  }
+ ],
+ "samples": [
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 2,
+   "nodes": 1128,
+   "moduleWindows": 0,
+   "heapMB": 103,
+   "at": 1794108859298
+  },
+  {
+   "nav": "studio",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1325,
+   "moduleWindows": 1,
+   "heapMB": 380.9,
+   "at": 1794108918834
+  },
+  {
+   "nav": "studio",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1307,
+   "moduleWindows": 0,
+   "heapMB": 432.4,
+   "at": 1794108954185
+  },
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1304,
+   "moduleWindows": 0,
+   "heapMB": 437.3,
+   "at": 1794108986351
+  },
+  {
+   "nav": "galaxy",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1303,
+   "moduleWindows": 0,
+   "heapMB": 375.6,
+   "at": 1794109021225
+  },
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1305,
+   "moduleWindows": 0,
+   "heapMB": 384.9,
+   "at": 1794109028894
+  },
+  {
+   "nav": "planet",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1308,
+   "moduleWindows": 0,
+   "heapMB": 424.1,
+   "at": 1794109038764
+  },
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1302,
+   "moduleWindows": 0,
+   "heapMB": 420.4,
+   "at": 1794109069419
+  },
+  {
+   "nav": "portal",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1302,
+   "moduleWindows": 0,
+   "heapMB": 402.8,
+   "at": 1794109098912
+  },
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1307,
+   "moduleWindows": 0,
+   "heapMB": 410.2,
+   "at": 1794109139306
+  },
+  {
+   "nav": "agents",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1426,
+   "moduleWindows": 1,
+   "heapMB": 400.7,
+   "at": 1794109145969
+  },
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1321,
+   "moduleWindows": 0,
+   "heapMB": 398.2,
+   "at": 1794109203901
+  }
+ ],
+ "checks": {
+  "clicked_gate": true,
+  "navAtBoot": {
+   "current": "core",
+   "transition": "",
+   "destination": "",
+   "progress": "100"
+  },
+  "clicked_portal-panel": true,
+  "portalCensus": {
+   "panelOpen": true,
+   "travelControls": 11,
+   "builtin": 11,
+   "ids": [
+    "scene:galaxy",
+    "scene:planet",
+    "scene:portal",
+    "scene:agents",
+    "scene:browser",
+    "scene:studio",
+    "scene:research",
+    "scene:projects",
+    "scene:files",
+    "scene:media",
+    "scene:conversation"
+   ],
+   "destinations": [
+    "galaxy",
+    "planet",
+    "portal",
+    "agents",
+    "browser",
+    "studio",
+    "research",
+    "projects",
+    "files",
+    "media",
+    "conversation"
+   ],
+   "labels": [
+    "Governor galaxy",
+    "Creation world",
+    "Dimensional portal",
+    "Agent universes",
+    "Browser",
+    "Genesis Studios",
+    "Research",
+    "Projects",
+    "Files",
+    "Media",
+    "Conversation"
+   ],
+   "registered": "0",
+   "storedRing": false
+  },
+  "clicked_scene:studio": true,
+  "hopOut": {
+   "id": "scene:studio",
+   "destination": "studio",
+   "before": "core",
+   "after": "studio",
+   "arrived": true,
+   "transitionKind": "",
+   "ms": 50688
+  },
+  "clicked_core": true,
+  "hopBack": {
+   "before": "studio",
+   "after": "core",
+   "arrived": true,
+   "ms": 15601
+  },
+  "clicked_scene:galaxy": true,
+  "clicked_scene:planet": true,
+  "clicked_scene:portal": true,
+  "clicked_scene:agents": true,
+  "aborted": null
+ },
+ "errors": [],
+ "memory": {
+  "samples": [
+   103,
+   380.9,
+   432.4,
+   437.3,
+   375.6,
+   384.9,
+   424.1,
+   420.4,
+   402.8,
+   410.2,
+   400.7,
+   398.2
+  ],
+  "firstMB": 103,
+  "lastMB": 398.2,
+  "deltaMB": 295.2,
+  "maxMB": 437.3,
+  "canvases": [
+   2,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3
+  ],
+  "nodes": [
+   1128,
+   1325,
+   1307,
+   1304,
+   1303,
+   1305,
+   1308,
+   1302,
+   1302,
+   1307,
+   1426,
+   1321
+  ],
+  "persistent": [
+   "one WebGL canvas",
+   "the portal registry (localStorage lelu.spatial.portals.v1)",
+   "layout store lelu.lelu.layout.v2"
+  ],
+  "gcExposed": false
+ },
+ "verdict": {
+  "travelVerified": 10,
+  "of": 10,
+  "aborted": null
+ }
+}

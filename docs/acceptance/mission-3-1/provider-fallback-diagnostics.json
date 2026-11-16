@@ -1,0 +1,53 @@
+{
+ "question": "Why did the chain not reach GitHub Models after Groq returned 429?",
+ "measured_answer": "It DID reach GitHub Models. It failed in 27 ms before any HTTP request with 'GitHub Models token missing.', because GitHubModelsProvider.generate() threw whenever no local token existed, regardless of whether the request was brokered by the server.",
+ "evidence_lines": [
+  "Metadata: {provider: GitHub Models, priority: 10, promptLength: 76250}",
+  "GitHub Models failed; falling back to the next provider. | fallbackReason: GitHub Models token missing., latencyMs: 27",
+  "Skipping OpenRouter during failure cooldown. {retryInMs: 845144, reason: OpenRouter HTTP 429: free-model credits}",
+  "Skipping Groq during failure cooldown. {retryInMs: 845592, reason: Groq failed 429}",
+  "No AI providers are available. {reason: missing-credentials-or-provider-cooldown}"
+ ],
+ "classification": {
+  "429": "PROVIDER_RATE_LIMITED, provider quarantined (quota cooldown), chain advances",
+  "GitHub_Models_credential": "local-token guard ignored broker ownership \u2014 a real defect"
+ },
+ "live_requests_observed": [
+  {
+   "at": 1794165238798,
+   "url": "/api/model/status",
+   "method": "GET",
+   "bytes": 0
+  },
+  {
+   "at": 1794165354968,
+   "url": "/api/model/openrouter/chat/completions",
+   "method": "POST",
+   "bytes": 5377
+  },
+  {
+   "at": 1794165355378,
+   "url": "/api/model/groq/chat/completions",
+   "method": "POST",
+   "bytes": 5381
+  }
+ ],
+ "live_responses_observed": [
+  {
+   "at": 1794165238940,
+   "status": 200,
+   "path": "/api/model/status"
+  },
+  {
+   "at": 1794165355353,
+   "status": 429,
+   "path": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "at": 1794165355786,
+   "status": 429,
+   "path": "/api/model/groq/chat/completions"
+  }
+ ],
+ "verdict": "PASS (diagnosis)"
+}

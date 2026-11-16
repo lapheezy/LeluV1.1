@@ -13,9 +13,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import ImprovementQueue, {
+  PENDING_APPROVAL_STATUSES,
+  RUNNING_STATUSES,
   type ImprovementProposal,
   type ImprovementStatus,
 } from "../../../core/selfdev/ImprovementQueue";
+import AutonomyGate from "../../../core/cognition/AutonomyGate";
+import ProposalEvidence, { ACTION_REQUIREMENTS, ProposalBlocked, statusLabel } from "./ProposalEvidence";
 import SelfDevelopmentLoop from "../../../core/selfdev/SelfDevelopmentLoop";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 
@@ -28,7 +32,11 @@ const STATUS_COLORS: Record<ImprovementStatus, string> = {
   Testing: "#a78bfa",
   Evaluation: "#fbbf24",
   Ready: "#34d399",
+  Applying: "#38bdf8",
   Integrated: "rgba(52, 211, 153, 0.6)",
+  Recorded: "rgba(148, 163, 184, 0.8)",
+  Failed: "#f87171",
+  Blocked: "#fbbf24",
   Rejected: "rgba(248, 113, 113, 0.6)",
   "Rolled Back": "rgba(248, 113, 113, 0.4)",
 };
@@ -37,8 +45,50 @@ interface Props {
   onClose: () => void;
 }
 
+/** Finished one way or another: not "active". */
+const DONE_STATUSES: ImprovementStatus[] = ["Integrated", "Recorded", "Rejected", "Rolled Back"];
+
+/** Waiting on the owner: approval, review of a ready change, or an unblock. */
+function needsOwner(proposal: ImprovementProposal): boolean {
+  return PENDING_APPROVAL_STATUSES.includes(proposal.status) || proposal.status === "Ready" || proposal.status === "Blocked";
+}
+
+function ActionButton({ tone, onClick, title, children }: { tone: string; onClick: () => void; title?: string; children: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      style={{
+        padding: "5px 14px",
+        borderRadius: 999,
+        border: `1px solid ${tone}`,
+        background: "rgba(255,255,255,0.04)",
+        color: tone,
+        fontSize: 11,
+        fontWeight: 600,
+        fontFamily: "inherit",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** The permission an action needs, shown beside it, with the current level. */
+function Requirement({ text, level }: { text: string; level: number }) {
+  const current = AutonomyGate.getInstance().getLevel();
+  return (
+    <div data-lelu-requirement style={{ flexBasis: "100%", fontSize: 10.5, lineHeight: 1.45, color: current >= level ? "rgba(148,163,184,0.7)" : "rgba(251,191,36,0.85)", textAlign: "left" }}>
+      {text} Current autonomy: L{current}{current >= level ? "." : ` — below L${level}; it will stop as Blocked with the reason.`}
+    </div>
+  );
+}
+
 export default function GenesisNotificationsPanel({ onClose }: Props) {
   const queue = useMemo(() => ImprovementQueue.getInstance(), []);
+  const loop = useMemo(() => SelfDevelopmentLoop.getInstance(), []);
   const [proposals, setProposals] = useState<ImprovementProposal[]>(() => queue.list());
   const [filter, setFilter] = useState<"all" | "active" | "approval">("active");
 
@@ -48,25 +98,23 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
   }, [queue]);
 
   const filtered = useMemo(() => {
-    if (filter === "approval") return proposals.filter((p) => p.status === "Approved" || p.status === "Ready");
-    if (filter === "active") return proposals.filter((p) => !["Integrated", "Rejected", "Rolled Back"].includes(p.status));
+    if (filter === "approval") return proposals.filter(needsOwner);
+    if (filter === "active") return proposals.filter((p) => !DONE_STATUSES.includes(p.status));
     return proposals;
   }, [proposals, filter]);
 
   const handleApprove = useCallback(
     (id: string) => {
-      queue.setStatus(id, "Approved");
       const proposal = queue.get(id);
-      if (proposal) {
-        // Emit real approval event → feeds into SelfDevelopmentLoop
+      // The loop owns the transition: it queues PENDING work and starts
+      // its first development run, and refuses anything else.
+      if (proposal && SelfDevelopmentLoop.getInstance().approve(id)) {
         AgentEventBus.getInstance().emit({
           type: "cognitive_sync",
           taskId: id,
           source: "improvement-approved",
           detail: proposal.title,
         });
-        // Start development in the sandbox
-        SelfDevelopmentLoop.getInstance().approve(id);
       }
     },
     [queue],
@@ -102,9 +150,9 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
         {(["active", "approval", "all"] as const).map((f) => {
           const count =
             f === "active"
-              ? proposals.filter((p) => !["Integrated", "Rejected", "Rolled Back"].includes(p.status)).length
+              ? proposals.filter((p) => !DONE_STATUSES.includes(p.status)).length
               : f === "approval"
-                ? proposals.filter((p) => p.status === "Approved" || p.status === "Ready").length
+                ? proposals.filter(needsOwner).length
                 : proposals.length;
           return (
             <button
@@ -190,7 +238,7 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
                   letterSpacing: "0.08em",
                 }}
               >
-                <span style={{ color: STATUS_COLORS[proposal.status] }}>{proposal.status}</span>
+                <span style={{ color: STATUS_COLORS[proposal.status] }} data-lelu-status={proposal.status}>{statusLabel(proposal)}</span>
                 <span style={{ color: "rgba(148, 163, 184, 0.6)" }}>{proposal.kind}</span>
               </div>
 
@@ -245,104 +293,40 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
                 {proposal.expectedBenefit}
               </div>
 
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {proposal.status === "Proposed" || proposal.status === "Detected" || proposal.status === "Analyzing" ? (
+              <ProposalBlocked proposal={proposal} onRetry={() => void loop.retry(proposal.id)} />
+              <ProposalEvidence proposal={proposal} />
+
+              {/* Actions — each beside what it does and needs */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                {PENDING_APPROVAL_STATUSES.includes(proposal.status) ? (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => handleApprove(proposal.id)}
-                      style={{
-                        padding: "5px 14px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(52, 211, 153, 0.5)",
-                        background: "rgba(52, 211, 153, 0.12)",
-                        color: "#34d399",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        fontFamily: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      APPROVE
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleReject(proposal.id)}
-                      style={{
-                        padding: "5px 14px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(248, 113, 113, 0.35)",
-                        background: "rgba(248, 113, 113, 0.08)",
-                        color: "rgba(248, 113, 113, 0.85)",
-                        fontSize: 11,
-                        fontFamily: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      REJECT
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDefer(proposal.id)}
-                      style={{
-                        padding: "5px 14px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "transparent",
-                        color: "rgba(203, 228, 255, 0.5)",
-                        fontSize: 11,
-                        fontFamily: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      DEFER
-                    </button>
+                    <ActionButton tone="#34d399" onClick={() => handleApprove(proposal.id)} title={ACTION_REQUIREMENTS.develop}>APPROVE</ActionButton>
+                    <ActionButton tone="#f87171" onClick={() => handleReject(proposal.id)}>REJECT</ActionButton>
+                    <ActionButton tone="rgba(148,163,184,0.8)" onClick={() => handleDefer(proposal.id)}>DEFER</ActionButton>
+                    <Requirement text={`Approve → ${ACTION_REQUIREMENTS.develop}`} level={3} />
                   </>
-                ) : proposal.status === "Approved" || proposal.status === "In Development" || proposal.status === "Testing" ? (
-                  <div style={{ fontSize: 11, color: "rgba(167, 139, 250, 0.7)", fontStyle: "italic" }}>
-                    In progress — {proposal.status.toLowerCase()}
+                ) : proposal.status === "Approved" || RUNNING_STATUSES.includes(proposal.status) ? (
+                  <div style={{ fontSize: 11, color: "rgba(167, 139, 250, 0.8)", fontStyle: "italic" }}>
+                    {statusLabel(proposal)} — live progress is in the activity timeline
                   </div>
                 ) : proposal.status === "Ready" ? (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => handleApprove(proposal.id)}
-                      style={{
-                        padding: "5px 14px",
-                        borderRadius: 999,
-                        border: "1px solid #34d399",
-                        background: "rgba(52, 211, 153, 0.18)",
-                        color: "#34d399",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        fontFamily: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      INTEGRATE
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleReject(proposal.id)}
-                      style={{
-                        padding: "5px 14px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(248, 113, 113, 0.35)",
-                        background: "rgba(248, 113, 113, 0.08)",
-                        color: "rgba(248, 113, 113, 0.85)",
-                        fontSize: 11,
-                        fontFamily: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      REJECT
-                    </button>
+                    <ActionButton tone="#34d399" onClick={() => void loop.applyCandidate(proposal.id, { approved: true })} title={ACTION_REQUIREMENTS.apply}>APPLY TO PROJECT</ActionButton>
+                    <ActionButton tone="rgba(148,163,184,0.85)" onClick={() => void loop.integrate(proposal.id)} title={ACTION_REQUIREMENTS.record}>RECORD ONLY</ActionButton>
+                    <ActionButton tone="#f87171" onClick={() => handleReject(proposal.id)}>REJECT</ActionButton>
+                    <Requirement text={`Apply → ${ACTION_REQUIREMENTS.apply}`} level={5} />
                   </>
+                ) : proposal.status === "Failed" ? (
+                  <>
+                    <ActionButton tone="#38bdf8" onClick={() => void loop.retry(proposal.id)} title={ACTION_REQUIREMENTS.develop}>DEVELOP AGAIN</ActionButton>
+                    <ActionButton tone="#f87171" onClick={() => handleReject(proposal.id)}>REJECT</ActionButton>
+                  </>
+                ) : proposal.status === "Blocked" ? (
+                  proposal.blocked?.action === "apply" ? (
+                    <ActionButton tone="rgba(148,163,184,0.85)" onClick={() => void loop.integrate(proposal.id)} title={ACTION_REQUIREMENTS.record}>RECORD ONLY</ActionButton>
+                  ) : null
                 ) : (
-                  <div style={{ fontSize: 11, color: "rgba(148, 163, 184, 0.5)", fontStyle: "italic" }}>
-                    {proposal.status}
-                  </div>
+                  <div style={{ fontSize: 11, color: "rgba(148, 163, 184, 0.6)", fontStyle: "italic" }}>{statusLabel(proposal)}</div>
                 )}
               </div>
             </div>

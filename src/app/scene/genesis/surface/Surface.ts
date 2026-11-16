@@ -38,6 +38,33 @@ export interface SurfaceInput {
   visibleModuleCount?: number;
   /** chatLayout.chatFillsScreen() for the measured workspace. */
   compact: boolean;
+  /**
+   * On a phone, the user has expanded the chat to the whole screen
+   * (chat/chatExpand). Collapsed — the default — the chat floats above
+   * the navigation and the Cosmos keeps rendering behind it, which is
+   * the point of a layer: asking one question no longer costs you the
+   * view you asked it from.
+   */
+  chatExpanded?: boolean;
+  /**
+   * The Chat Universe is open in its opaque "workspace" mode. On a phone
+   * that is the conversation surface: Home, the spatial nav and the Cosmos
+   * scene must leave the tree, not sit hidden under it. ("Floating" mode
+   * keeps the live Cosmos behind its windows by design, and still does.)
+   */
+  universeOwnsScreen?: boolean;
+  /**
+   * The LÉLU System environment owns the viewport
+   * (VisualEngine.interfaceFocus === "visual").
+   *
+   * On a phone this is the one case where the chat may not blank the
+   * field. LÉLU presents a workspace HERE — surfaces composed or restored
+   * by the environment engine paint inside this scene — and measured at
+   * 390×844 an expanded chat made cosmosRendered false, so the scene was
+   * unmounted and the workspace had zero [data-workspace-view] nodes. The
+   * chat keeps its floating phone sheet above the live field instead.
+   */
+  systemEnvironmentActive?: boolean;
 }
 
 export interface Surface {
@@ -68,6 +95,9 @@ function modeFor(activePanel: string, openModuleCount: number): SurfaceMode {
 export function resolveSurface(input: SurfaceInput): Surface {
   const mode = input.minimized ? "home" : modeFor(input.activePanel, input.openModuleCount);
   const workspaceOwnsScreen = input.compact && !input.minimized && (input.visibleModuleCount ?? 0) > 0;
-  const chatOwnsScreen = input.compact && mode === "chat" && !workspaceOwnsScreen;
+  const chatOwnsScreen =
+    !input.systemEnvironmentActive &&
+    input.compact && !input.minimized && !workspaceOwnsScreen &&
+    ((mode === "chat" && (input.chatExpanded ?? true)) || Boolean(input.universeOwnsScreen));
   return { mode, chatOwnsScreen, workspaceOwnsScreen, cosmosRendered: !chatOwnsScreen && !workspaceOwnsScreen };
 }

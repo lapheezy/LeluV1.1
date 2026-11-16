@@ -1,0 +1,181 @@
+{
+  "mission": "5.4B.11",
+  "scenario": "cancel",
+  "batch": 1,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "records": [
+    {
+      "loadId": "cancel-b1-l1",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "files",
+      "aim": {
+        "x": 8,
+        "y": 750,
+        "portalId": "scene:files",
+        "destination": "files",
+        "hitRadius": 0.35352972903093005,
+        "mouthCentre": {
+          "x": 8,
+          "y": 750
+        },
+        "margin": 0
+      },
+      "scenario": "cancel",
+      "armed": {
+        "check0": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "expected": "scene:files",
+          "ok": true
+        }
+      },
+      "pressVerifiedInsideMouth": true,
+      "press": [],
+      "pressProbe": [
+        {
+          "x": 8,
+          "y": 750,
+          "pick": null,
+          "object": "",
+          "element": "CANVAS"
+        }
+      ],
+      "claimedAtDown": null,
+      "resolvedAtUp": null,
+      "moved": null,
+      "outcome": null,
+      "refusal": null,
+      "onSelectCalls": 0,
+      "travel": {
+        "ms": 3067,
+        "finalScene": "core",
+        "dataset": "core",
+        "destination": null
+      },
+      "doubleActivation": false,
+      "identityHeld": false,
+      "travelled": false,
+      "outcomeClass": "no-claim",
+      "matches": false,
+      "universe": {
+        "dialogCount": 0,
+        "label": null,
+        "windows": 0,
+        "threads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "legacyTabs": false,
+        "replacementChars": 0,
+        "bodyScene": "core"
+      }
+    },
+    {
+      "loadId": "cancel-b1-l2",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "files",
+      "aim": {
+        "x": 458,
+        "y": 650,
+        "portalId": "scene:files",
+        "destination": "files",
+        "hitRadius": 0.35352972903093005,
+        "mouthCentre": {
+          "x": 458,
+          "y": 650
+        },
+        "margin": 0
+      },
+      "scenario": "cancel",
+      "armed": {
+        "check0": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "expected": "scene:files",
+          "ok": true
+        }
+      },
+      "pressVerifiedInsideMouth": true,
+      "press": [
+        {
+          "t": 22763,
+          "phase": "down",
+          "pointerId": 2,
+          "client": {
+            "x": 458,
+            "y": 650
+          },
+          "portalId": "scene:files",
+          "destination": "files",
+          "intersections": [
+            {
+              "name": "spatial-portal-hit-scene:files",
+              "portalId": "scene:files",
+              "distance": 6.45
+            }
+          ],
+          "mouthCentre": {
+            "x": 460,
+            "y": 613
+          },
+          "distanceFromCentre": 37,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "pressProbe": [
+        {
+          "x": 458,
+          "y": 650,
+          "pick": "scene:files",
+          "object": "spatial-portal-hit-scene:files",
+          "element": "CANVAS"
+        }
+      ],
+      "claimedAtDown": "scene:files",
+      "resolvedAtUp": null,
+      "moved": null,
+      "outcome": null,
+      "refusal": null,
+      "onSelectCalls": 0,
+      "travel": {
+        "ms": 2264,
+        "finalScene": "core",
+        "dataset": "core",
+        "destination": null
+      },
+      "doubleActivation": false,
+      "identityHeld": false,
+      "travelled": false,
+      "outcomeClass": "no-travel",
+      "matches": false,
+      "universe": {
+        "dialogCount": 0,
+        "label": null,
+        "windows": 0,
+        "threads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "legacyTabs": false,
+        "replacementChars": 0,
+        "bodyScene": "core"
+      }
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "at": "2026-11-09T01:50:51.057Z",
+  "timeline": [
+    {
+      "when": "immediately",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794189139077,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794189139081,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794189139082,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    },
+    {
+      "when": "after-400ms",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794189139077,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794189139081,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794189139082,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    },
+    {
+      "when": "after-1600ms",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794189139077,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794189139081,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794189139082,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    },
+    {
+      "when": "second-press",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794189139077,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794189139081,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794189139082,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerdown",
+          "at": 1794189143259,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794189143285,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794189143285,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    }
+  ],
+  "errors": [],
+  "point": {
+    "x": 201,
+    "y": 199,
+    "hit": "div",
+    "inCard": false
+  }
+}

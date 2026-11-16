@@ -1,0 +1,20 @@
+PASS 401 integration status — anonymous
+PASS 401 integration scan — anonymous (Phase 0 finding)
+PASS 401 integration scan — invalid token
+PASS 401 integration scan — forged admin token
+PASS 403 integration scan — standard user
+PASS 403 integration policy — standard user
+PASS 200 integration status — standard user
+PASS status hides the workspace path from a standard user
+PASS 200 integration scan — administrator
+PASS 401 browse — anonymous
+PASS 403 browse — internal target (cloud metadata), signed in
+PASS 403 browse — localhost target, signed in
+PASS 200 browse — public page, signed in
+PASS 401 knowledge relay — anonymous
+PASS 200 knowledge providers report — public booleans
+PASS 401 GitHub Models relay — anonymous
+PASS 401 autonomy — anonymous
+PASS 200 autonomy — standard user reads the server level
+PASS server reports applyLevel 5
+{"server":"http://127.0.0.1:4200","checks":19,"failed":0}

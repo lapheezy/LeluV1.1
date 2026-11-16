@@ -1,0 +1,23 @@
+{
+  "mission": "5.5-autonomy-activation",
+  "starting_branch": "claude/unified-mobile-orchestration-integration",
+  "starting_commit": "7c4a373ddef0b8319f951bc55a88814f77dc06ea",
+  "mission_branch": "claude/mission-5-5-autonomy-activation",
+  "canonical_branch": "claude/master-integration",
+  "canonical_head_verified": "ce768e08cebd71eaa05418c5942ad637a8ac0596",
+  "protected_base": "1569f57a3891e5b57f150cc21ebc556608513d44",
+  "working_tree": "clean at start",
+  "prior_evidence_preserved": [
+    "spatial-phase-5-4b-9",
+    "spatial-phase-5-4b-10",
+    "spatial-phase-5-4b-11",
+    "spatial-phase-2-15-6",
+    "mission-unified-mobile-orchestration"
+  ],
+  "dev_server": {
+    "port": 3013,
+    "runtime": "vite-dev",
+    "commit": "7c4a373",
+    "note": "reused the already-running server; a second start failed with EADDRINUSE, the original listener was kept"
+  }
+}

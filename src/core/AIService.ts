@@ -14,6 +14,7 @@
  * ==========================================================
  */
 
+import UsageSync, { type UsageChannel } from "./observability/UsageSync";
 import AIRuntime from "./AIRuntime";
 import MemoryBridge from "./MemoryBridge";
 import { bindMessage, bindTask } from "./multichat/TurnOwnership";
@@ -27,6 +28,7 @@ import {
   type CapabilityResult,
 } from "./native";
 import type { AIRequest, AIResponse, MediaAttachment } from "../providers/AIProvider";
+import { fitPlannerPrompt } from "./agentic/PlannerContextBudget";
 import type { AIIntent } from "./router/AIIntent";
 import type { ReasoningResult } from "./reasoning/ReasoningEngine";
 import type { Plan } from "./planning/PlanningEngine";
@@ -136,6 +138,16 @@ export default class AIService {
   private readonly actionListeners = new Set<(event: AIActionEvent) => void>();
   private readonly cognitionListeners = new Set<(state: CognitionEvent) => void>();
   private readonly messageListeners = new Set<(message: AIMessageEvent) => void>();
+  /** Post-response memory consolidation and profile-sync work, awaitable by callers and tests. */
+  private readonly pendingConsolidations = new Set<Promise<void>>();
+
+  /** Wait for any pending post-response memory consolidation or profile sync tasks to finish. */
+  public async waitForPendingConsolidations(): Promise<void> {
+    while (this.pendingConsolidations.size > 0) {
+      await Promise.allSettled([...this.pendingConsolidations]);
+    }
+  }
+
   /** Progressive assistant output during generation — same id as the final message. */
   private readonly streamListeners = new Set<(event: { id: string; text: string; conversationId?: string }) => void>();
   private readonly thinkingListeners = new Set<(value: boolean) => void>();
@@ -332,6 +344,21 @@ export default class AIService {
     }
   }
 
+  /**
+   * Deliver a reply that was produced outside ai.chat: a planned task's
+   * report or an engineering run, which the Orchestrator returns as text.
+   * Without this the reply never reached the message channel, so the
+   * conversation stored only the user's message, the turn's artifact card
+   * had no reply to attach to, and the chat looked as if it never finished.
+   * The same channel and shape as every other reply; returns its id.
+   */
+  public deliverReply(text: string, conversationId?: string, provider = "orchestrator"): string {
+    const id = crypto.randomUUID();
+    if (conversationId) bindMessage(id, conversationId);
+    this.emitMessage({ id, role: "assistant", text, timestamp: Date.now(), provider, ...(conversationId ? { conversationId } : {}) });
+    return id;
+  }
+
   private emitMessage(message: AIMessageEvent): void {
     for (const listener of this.messageListeners) {
       try {
@@ -456,7 +483,14 @@ export default class AIService {
     void (async () => {
       try {
         const persistence = SupabasePersistence.getInstance();
+        // Usage accounting follows the signed-in user: events are tagged and
+        // synced per user, and the account budget gate is wired (UsageSync).
+        UsageSync.getInstance().start(
+          () => persistence.usageChannel() as UsageChannel | null,
+          (listener) => void persistence.subscribeAuth(() => listener()),
+        );
         await persistence.initialize(this.runtime.brain, this.user);
+        void UsageSync.getInstance().refresh();
         if (persistence.isConnected()) {
           persistence.attachRuntime();
           const health = await this.getProviderHealth();
@@ -741,9 +775,17 @@ export default class AIService {
       const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
       conversation.record("user", message);
 
+      // TWO controllers, by design, combined at the request: one per
+      // conversation (convControllers — what cancelTurn/Stop aborts) and one
+      // per turn (activeTurn — the tool loop's own stop). AbortSignal.any is
+      // what keeps a Stop authoritative: aborting EITHER signal aborts the
+      // composed one, so a provider can never keep streaming past a stop.
+      const turn = new AbortController();
+      this.activeTurn = turn;
       const request: AIRequest = {
         messages: priorTurns,
         prompt: message,
+        signal: AbortSignal.any([turn.signal, controller.signal]),
         // This is the conversational turn, so LÉLU may invoke her real
         // tools here. Internal structured-output calls (reason()) leave
         // this unset and keep their pre-tool behaviour.
@@ -765,9 +807,6 @@ export default class AIService {
             this.emitStream(streamId, text, options?.conversationId);
           };
         })(),
-        // Per-turn cancellation signal — combined with the provider's
-        // own timeout inside each provider so whichever fires first wins.
-        signal: controller.signal,
         ...(options?.conversationId
           ? {
               conversationId: options.conversationId,
@@ -787,6 +826,14 @@ export default class AIService {
       // ONE canonical recall per turn: enrich() owns it, and the
       // memories it produced are handed forward so BrainResolver and
       // composeFromMemory consume them instead of re-querying.
+      //
+      // The router awaits a fresh tool-availability probe before its first
+      // stage. Started here it overlaps with recall (measured 1.5-2.1 s of
+      // archive search on a real turn) instead of starting after it; the
+      // router then awaits this same in-flight refresh, never a second one.
+      void import("./tools/ToolRegistry")
+        .then(({ default: ToolRegistry }) => ToolRegistry.getInstance().ensureAvailability())
+        .catch(() => undefined);
       const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
       // T2: provider request is about to begin.
       latencyMark("T2");
@@ -837,6 +884,12 @@ export default class AIService {
       // AFTER the response has been delivered. They do not block the
       // caller; a failure here is contained and never surfaces as a chat
       // error. All work uses the ONE existing memory/brain path.
+      let resolveConsolidation!: () => void;
+      const consolidationPromise = new Promise<void>((resolve) => {
+        resolveConsolidation = resolve;
+      });
+      this.pendingConsolidations.add(consolidationPromise);
+
       void (async () => {
         try {
           // Memory consolidation ALWAYS runs — online or offline.
@@ -866,6 +919,9 @@ export default class AIService {
           });
         } catch (postErr) {
           console.error("[AIService] Post-response async work failed (contained)", postErr);
+        } finally {
+          this.pendingConsolidations.delete(consolidationPromise);
+          resolveConsolidation();
         }
       })();
 
@@ -942,6 +998,7 @@ export default class AIService {
       // Close the turn even when the pipeline threw — a half-open trace
       // would silently swallow the next turn's evidence.
       trace.end();
+      this.activeTurn = null;
     }
   }
 
@@ -1273,9 +1330,12 @@ export default class AIService {
     if (!this.initialized) {
       await this.initialize();
     }
+    // The prompt travels as `prompt` ONLY. Every provider appends it as the
+    // trailing user turn (trailingUserTurn), so also putting it in `messages`
+    // sent the whole thing twice — measured at 91,463 duplicated characters
+    // per planning call, which doubled the request and got it refused.
     const messages = [
       ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
-      { role: "user" as const, content: prompt },
     ];
     try {
       return await this.runtime.reason({
@@ -1309,15 +1369,22 @@ export default class AIService {
       await this.initialize();
     }
 
+    // Same rule as deliberate(): the prompt is the trailing turn the provider
+    // adds. Duplicating it here doubled every internal reasoning request.
     const messages = [
       ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
-      { role: "user" as const, content: prompt },
     ];
+
+    // The planner's catalogue of every tool schema is the one internal prompt
+    // that outgrows a provider's context. It is fitted here, at the seam where
+    // the request is actually dispatched, so no planning logic changes shape.
+    const planning = /task planner/i.test(options.system ?? "");
+    const fittedPrompt = planning ? fitPlannerPrompt(prompt) : prompt;
 
     try {
       return await this.runtime.reason({
         messages,
-        prompt,
+        prompt: fittedPrompt,
         model: options.model,
         temperature: options.temperature,
         maxTokens: options.maxTokens,
@@ -1366,6 +1433,40 @@ export default class AIService {
    * the Brain already maintains: "knowledge" for what she learned about
    * the world, "system" for what she learned about herself.
    */
+  /**
+   * The Brain's own reflection over long-term memory (themes, insights,
+   * priorities). Null when the runtime has not initialised: reflection
+   * never boots the runtime as a side effect.
+   */
+  public async reflectOnMemory(): Promise<Awaited<ReturnType<AIRuntime["brain"]["reflect"]>> | null> {
+    if (!this.initialized) return null;
+    try {
+      return await this.runtime.brain.reflect();
+    } catch {
+      return null;
+    }
+  }
+
+  /** The chat turn in flight, if any — what cancelActiveTurn() stops. */
+  private activeTurn: AbortController | null = null;
+
+  /**
+   * Stop the current chat turn: the in-flight model request is aborted
+   * (where the provider supports it), no further tool runs, and the turn
+   * resolves with what already ran. Background tasks are separate — stop
+   * those with TaskExecutor.cancel(taskId). Returns false when idle.
+   */
+  public cancelActiveTurn(reason = "stopped by the user"): boolean {
+    const turn = this.activeTurn;
+    if (!turn || turn.signal.aborted) return false;
+    turn.abort(reason);
+    return true;
+  }
+
+  public isTurnActive(): boolean {
+    return Boolean(this.activeTurn && !this.activeTurn.signal.aborted);
+  }
+
   public async consolidate(
     kind: "knowledge" | "system",
     summary: string,

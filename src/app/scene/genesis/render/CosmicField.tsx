@@ -15,22 +15,26 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
+  BufferAttribute,
   BufferGeometry,
   Color,
+  DynamicDrawUsage,
   Float32BufferAttribute,
   Group,
   Line,
   LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
+  PointsMaterial,
   ShaderMaterial,
   Vector3,
 } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
+import { mobile } from "../qualityLimits";
 
 interface ParticleSeed {
   radius: number;
@@ -48,7 +52,8 @@ interface LightningSeed {
 }
 
 const RING_COUNT = 12;
-const PARTICLE_COUNT = 40;
+/** Energy particles are ONE point cloud: this is how many points it holds. */
+const PARTICLE_COUNT = mobile ? 20 : 40;
 const LIGHTNING_COUNT = 4;
 
 /*
@@ -173,7 +178,17 @@ function createLightning(): LightningSeed[] {
 }
 
 export default function CosmicField() {
-  const { universe, getLiveUniverse, engineRuntime } = useGenesis();
+  /*
+   * The STABLE scene context, not useGenesis().
+   *
+   * This component builds ~80 scene objects and samples its values on the
+   * render frame. Reading the state context meant every universe publish
+   * (10 a second) and every streamed chat token re-rendered all of them
+   * through React, only for the frame loop to overwrite the result. The
+   * scene context never changes identity, so this now renders once and the
+   * loop reads live values directly.
+   */
+  const { getLiveUniverse, engineRuntime } = useGenesisScene("CosmicField");
   const field = useRef<Group>(null);
   const constellation = useRef<Group>(null);
   const electromagnetic = useRef<Group>(null);
@@ -187,6 +202,31 @@ export default function CosmicField() {
   const humanDesign = useRef<Group>(null);
   const creations = useRef<Group>(null);
   const time = useRef(0);
+
+  /*
+   * The materials that follow `activity`, collected ONCE.
+   *
+   * The frame loop used to walk the whole field graph — twelve groups, ~80
+   * objects — writing material.opacity on every mesh carrying a baseOpacity,
+   * every frame, forever. The graph is static, so the list is built once and
+   * the loop touches only the materials that change, only when activity has
+   * moved by a visible amount.
+   */
+  const opacityMaterials = useRef<Array<{ material: MeshBasicMaterial; baseOpacity: number }>>([]);
+  const lastOpacityActivity = useRef(Number.NaN);
+  useEffect(() => {
+    const found: Array<{ material: MeshBasicMaterial; baseOpacity: number }> = [];
+    field.current?.traverse((object) => {
+      const mesh = object as Mesh;
+      if (!mesh.isMesh) return;
+      const baseOpacity = mesh.userData.baseOpacity as number | undefined;
+      const material = mesh.material as MeshBasicMaterial;
+      if (!material || baseOpacity === undefined) return;
+      found.push({ material, baseOpacity });
+    });
+    opacityMaterials.current = found;
+    lastOpacityActivity.current = Number.NaN;
+  }, []);
 
   const ringSeeds = useMemo(
     () => Array.from({ length: RING_COUNT }, (_, index) => ({
@@ -209,8 +249,51 @@ export default function CosmicField() {
     [],
   );
 
+  /*
+   * THE PARTICLES ARE ONE DRAW CALL.
+   *
+   * They were 40 separate meshes, each with its own 7x7 sphere and material:
+   * 40 draw calls for dots a few pixels wide, over a quarter of the world's
+   * 149. A single point cloud keeps the same additive glow, the same per-dot
+   * colour and the same living pulse (the material's size breathes with
+   * activity), in one call. Positions live in one buffer the frame loop
+   * rewrites in place: no per-particle Object3D and no allocation per frame.
+   */
+  const cloud = useMemo(() => {
+    const positions = new Float32Array(particleSeeds.length * 3);
+    const colors = new Float32Array(particleSeeds.length * 3);
+    const warm = new Color("#ffe49a");
+    const cool = new Color("#9eeaff");
+    particleSeeds.forEach((seed, index) => {
+      positions.set(
+        [Math.cos(seed.angle) * seed.radius, seed.height, Math.sin(seed.angle) * seed.radius],
+        index * 3,
+      );
+      const color = index % 5 === 0 ? warm : cool;
+      colors.set([color.r, color.g, color.b], index * 3);
+    });
+    const geometry = new BufferGeometry();
+    const position = new BufferAttribute(positions, 3);
+    position.setUsage(DynamicDrawUsage);
+    geometry.setAttribute("position", position);
+    geometry.setAttribute("color", new BufferAttribute(colors, 3));
+    const material = new PointsMaterial({
+      size: 0.05,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.42,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
+      toneMapped: false,
+    });
+    return { geometry, material, position };
+  }, [particleSeeds]);
+
   const lightningSeeds = useMemo(createLightning, []);
-  const initialCosmic = universe.celestial.cosmicEnergy;
+  // Initial value only: it seeds the first scale of the static rings. The
+  // live value is read per frame, so nothing here needs to re-render.
+  const initialCosmic = getLiveUniverse().celestial.cosmicEnergy;
   const nebulaMaterials = useMemo(
     () => NEBULA_SEEDS.map(({ color }, index) => new ShaderMaterial({
       transparent: true,
@@ -300,14 +383,22 @@ export default function CosmicField() {
       creations.current.scale.setScalar(0.88 + emergence * 0.34 + Math.sin(time.current * 1.6) * 0.045);
     }
     if (particles.current) {
-      particles.current.children.forEach((child, index) => {
+      const position = cloud.position;
+      for (let index = 0; index < particleSeeds.length; index += 1) {
         const seed = particleSeeds[index];
-        if (!seed) return;
         const angle = seed.angle + time.current * seed.speed * (1 + activity);
-        const radius = seed.radius + Math.sin(time.current * 0.9 + seed.phase) * (0.035 + emergence * 0.045);
-        child.position.set(Math.cos(angle) * radius, seed.height + Math.sin(angle * 2 + seed.phase) * 0.12, Math.sin(angle) * radius);
-        child.scale.setScalar(0.8 + activity * 0.8 + Math.sin(time.current * 2 + seed.phase) * 0.18);
-      });
+        const radius =
+          seed.radius + Math.sin(time.current * 0.9 + seed.phase) * (0.035 + emergence * 0.045);
+        position.setXYZ(
+          index,
+          Math.cos(angle) * radius,
+          seed.height + Math.sin(angle * 2 + seed.phase) * 0.12,
+          Math.sin(angle) * radius,
+        );
+      }
+      position.needsUpdate = true;
+      // The dots' old per-mesh scale pulse, now one property for the cloud.
+      cloud.material.size = 0.05 * (0.82 + activity * 0.8 + Math.sin(time.current * 2) * 0.18);
     }
     if (lightning.current) {
       lightning.current.children.forEach((child, index) => {
@@ -319,14 +410,13 @@ export default function CosmicField() {
       });
     }
 
-    field.current.traverse((object) => {
-      if (!(object as Mesh).isMesh) return;
-      const mesh = object as Mesh;
-      const material = mesh.material as MeshBasicMaterial;
-      const baseOpacity = mesh.userData.baseOpacity as number | undefined;
-      if (!material || baseOpacity === undefined) return;
-      material.opacity = baseOpacity * (0.78 + activity * 0.95);
-    });
+    if (Math.abs(activity - lastOpacityActivity.current) > 1 / 64) {
+      lastOpacityActivity.current = activity;
+      const glow = 0.78 + activity * 0.95;
+      for (const entry of opacityMaterials.current) {
+        entry.material.opacity = entry.baseOpacity * glow;
+      }
+    }
   });
 
   return (
@@ -379,7 +469,11 @@ export default function CosmicField() {
       <group ref={nebula} name="NebulaField" position={[0, 0, -11]}>
         {NEBULA_SEEDS.map(({ position, rotation }, index) => (
           <mesh key={`nebula-${index}`} position={[position[0] * 2.6, position[1] * 2.6, position[2] * 2.6]} rotation={[0, 0, rotation]} scale={1 + initialCosmic * 0.2} userData={{ baseOpacity: 0.12 }}>
-            <sphereGeometry args={[2.75, 48, 32]} />
+            {/* Three of these carry the nebula shader; 48x32 of geometry under
+                a fragment shader that only needs a rim and some noise burns
+                fill rate for detail nothing samples. Measured as part of the
+                228k-triangle / 147-call world at 384x661. */}
+            <sphereGeometry args={[2.75, 32, 20]} />
             <primitive object={nebulaMaterials[index]} attach="material" />
           </mesh>
         ))}
@@ -399,12 +493,9 @@ export default function CosmicField() {
       </group>
 
       <group ref={particles} name="EnergyParticles">
-        {particleSeeds.map((seed, index) => (
-          <mesh key={`particle-${index}`} position={[Math.cos(seed.angle) * seed.radius, seed.height, Math.sin(seed.angle) * seed.radius]} userData={{ baseOpacity: 0.42 }}>
-            <sphereGeometry args={[seed.size, 7, 7]} />
-            <meshBasicMaterial color={index % 5 === 0 ? "#ffe49a" : "#9eeaff"} transparent opacity={0.42} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
-          </mesh>
-        ))}
+        <points geometry={cloud.geometry} frustumCulled={false} raycast={() => null}>
+          <primitive object={cloud.material} attach="material" />
+        </points>
       </group>
 
       <group ref={glyphOrbit} name="GlyphOrbit" rotation={[0.8, 0.2, 0.4]}>

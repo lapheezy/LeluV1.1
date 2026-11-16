@@ -1,0 +1,24 @@
+{
+  "mission": "5.8",
+  "question": "why 2 tests skipped in the full run when Mission 5.7 reported 0",
+  "method": "the only conditional skips in the suite are t.skip calls in tests/security-integrations.test.ts (opa x2, gitleaks x2) and tests/self-view.test.ts (no headless browser / browser could not start x2); those two files were re-run alone to see which fire",
+  "subsetTotals": [
+    "\u2139 tests 21",
+    "\u2139 pass 21",
+    "\u2139 fail 0",
+    "\u2139 skipped 0",
+    "\u2139 todo 0"
+  ],
+  "observedMarkers": [
+    "\u2139 tests 21",
+    "\u2139 pass 21",
+    "\u2139 fail 0",
+    "\u2139 skipped 0",
+    "\u2139 todo 0"
+  ],
+  "subsetLog": "docs/acceptance/mission-5-8/test-skips.log",
+  "note": "a t.skip is reported as skipped, while the '[skipped] no IndexedDB in this runtime' line in the suite log is a console message from the conversation-memory test, not one of the two counted skips",
+  "result": "NOT REPRODUCIBLE \u2014 transient environment condition",
+  "finding": "re-running the two files that contain every conditional skip gave 21 tests, 21 pass, 0 fail, 0 skipped, 0 todo. So the 2 skips in the full run were not caused by a code path that always skips: they are one or more of the six t.skip sites firing on a condition that was true during that run and false on re-run. The suite log names only one [skipped] line and that line is a conversation-memory console message, not a counted skip, so the log cannot be used to say which two fired; the candidates are the security-integrations opa/gitleaks checks and the self-view headless-browser checks. Recorded as unexplained-in-identity but not a defect signal, and not counted as passes.",
+  "verdict": "OPEN, low severity \u2014 5.7 reported 0 skips; no test was disabled or weakened by this mission"
+}

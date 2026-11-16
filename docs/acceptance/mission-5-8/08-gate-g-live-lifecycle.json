@@ -1,0 +1,27 @@
+{
+  "gate": "G",
+  "verdict": "BLOCKED",
+  "stages": {
+    "create": "NOT TESTED",
+    "present": "NOT TESTED",
+    "inspect": "NOT TESTED",
+    "modify": "NOT TESTED",
+    "persist": "NOT TESTED",
+    "restore": "NOT TESTED",
+    "continue": "NOT TESTED"
+  },
+  "reason": "no permitted provider offered stable capacity for a multi-turn tool-calling lifecycle during this mission window: Groq produced exactly one real completion and its free daily allowance is intermittent; OpenRouter's free slug returned 404 unavailable then 429 free-models-per-day; GitHub Models is intercepted by the egress boundary (Gate A) and answers no path; Cerebras, Mistral, Fireworks and Gemini are unconfigured; Anthropic is excluded by policy.",
+  "notAnEnvironmentEngineFailure": true,
+  "noMockSubstitution": true,
+  "existingEnginesUntouched": [
+    "EnvironmentOrchestrationEngine",
+    "EnvironmentTools",
+    "ToolSchemas",
+    "ToolRegistry",
+    "ToolDispatcher",
+    "WorkspaceEngine",
+    "PortalRegistry",
+    "GenesisModuleHost",
+    "Cosmos rendering"
+  ]
+}

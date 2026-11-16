@@ -37,6 +37,7 @@
  */
 
 import type AIProviderRegistry from "../AIProviderRegistry";
+import { BudgetExhaustedError, gatedGenerate } from "../observability/UsageBudgetGate";
 
 /** Why a provider is or is not usable right now. */
 export type ProviderAvailability =
@@ -60,7 +61,9 @@ export type ProviderVerification =
   /** A real request was made and failed (reason recorded). */
   | "failed_live"
   /** Deliberately not attempted: no credentials to attempt with. */
-  | "skipped_no_credentials";
+  | "skipped_no_credentials"
+  /** Deliberately not sent: a usage budget for this provider is spent. */
+  | "skipped_budget";
 
 export interface ProviderHealthEntry {
   name: string;
@@ -208,11 +211,12 @@ export default class ProviderHealth {
       if (!provider) continue;
 
       try {
-        const response = await provider.generate({
+        // A probe is a billed call like any other: it goes through the budget gate.
+        const response = await gatedGenerate(provider, {
           messages: [{ role: "user", content: prompt }],
           prompt,
           timestamp: Date.now(),
-        });
+        }, "health-probe");
         if (response && typeof response.text === "string" && response.text.trim().length > 0) {
           entry.verification = "verified_live";
           entry.detail = `live request succeeded (${response.model || "unknown model"})`;
@@ -221,6 +225,11 @@ export default class ProviderHealth {
           entry.detail = "live request returned an empty response";
         }
       } catch (error) {
+        if (error instanceof BudgetExhaustedError) {
+          entry.verification = "skipped_budget";
+          entry.detail = `not sent: ${error.message}`;
+          continue;
+        }
         // Contained per provider — a failing secondary must never break
         // the primary path's result.
         entry.verification = "failed_live";

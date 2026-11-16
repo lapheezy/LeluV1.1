@@ -1,0 +1,114 @@
+{
+ "character": "lelu_character",
+ "batch": "phase2-unhooded",
+ "classifiedBy": "Claude, from the supplied images",
+ "images": [
+  {
+   "id": "ref15_head_turnaround_sheet",
+   "sourceName": "head_turnaround_sheet.png",
+   "category": "hair",
+   "view": "head turnaround sheet: front, profile, back, profile + 7 detail crops",
+   "outfitVariant": "B-wire-cage-hood",
+   "intendedUse": "Unhooded head and hair from four angles plus hair, chain, hoop and forehead-jewel details.",
+   "uses": [
+    "texture",
+    "design"
+   ],
+   "notes": "Supplied 2026-10-30. Panels cropped into ref17-ref20; the sheet is kept whole."
+  },
+  {
+   "id": "ref16_shoulder_armor_detail",
+   "sourceName": "shoulder_armor.png",
+   "category": "accessories",
+   "view": "left shoulder and arm close-up",
+   "outfitVariant": "B-wire-cage-hood",
+   "intendedUse": "Shoulder pauldron with rose, crystal drops, strap and buckle construction, arm tattoos.",
+   "uses": [
+    "texture",
+    "design"
+   ],
+   "notes": "Supplied 2026-10-30."
+  },
+  {
+   "id": "ref17_head_front_unhooded",
+   "sourceName": "head_front.png",
+   "category": "identity",
+   "view": "head and shoulders, front, unhooded",
+   "outfitVariant": "B-wire-cage-hood",
+   "intendedUse": "Unhooded head front; cropped from ref15.",
+   "uses": [
+    "geometry",
+    "texture",
+    "design"
+   ],
+   "notes": "Crop of ref15 panel 1 (x 1-477, y 0-600)."
+  },
+  {
+   "id": "ref18_head_profile_a_unhooded",
+   "sourceName": "head_right_profile.png",
+   "category": "hair",
+   "view": "head and shoulders, profile facing image-right, unhooded",
+   "outfitVariant": "B-wire-cage-hood",
+   "intendedUse": "Unhooded side of head, hair volume and hoop earring; cropped from ref15.",
+   "uses": [
+    "geometry",
+    "texture",
+    "design"
+   ],
+   "notes": "Crop of ref15 panel 2 (x 480-862)."
+  },
+  {
+   "id": "ref19_head_back_unhooded",
+   "sourceName": "head_back.png",
+   "category": "hair",
+   "view": "head and upper back, rear, unhooded",
+   "outfitVariant": "B-wire-cage-hood",
+   "intendedUse": "Unhooded rear of head: centre part, curl volume, chain strands with roses and crystals; cropped from ref15.",
+   "uses": [
+    "geometry",
+    "texture",
+    "design"
+   ],
+   "notes": "Crop of ref15 panel 3 (x 865-1181)."
+  },
+  {
+   "id": "ref20_head_profile_b_unhooded",
+   "sourceName": "head_left_profile.png",
+   "category": "hair",
+   "view": "head and shoulders, profile facing image-right (second take, shoulder pauldron visible), unhooded",
+   "outfitVariant": "B-wire-cage-hood",
+   "intendedUse": "Second unhooded profile; cropped from ref15.",
+   "uses": [
+    "texture",
+    "design"
+   ],
+   "notes": "Crop of ref15 panel 4 (x 1184-1535). Same facing as ref18, so not a separate view for geometry."
+  }
+ ],
+ "identity": {
+  "primary": "ref10_face_primary",
+  "secondary": [
+   "ref08_face_upper_body"
+  ],
+  "preserve": {
+   "faceShape": "Oval face, high defined cheekbones, softly tapered jaw and rounded chin.",
+   "eyes": "Almond-shaped warm brown eyes, slightly upturned outer corners, winged liner, long dense lashes, moderate spacing.",
+   "brows": "Full, dark, softly arched brows with a clean tail.",
+   "nose": "Straight bridge, softly rounded tip, moderately full alae.",
+   "lips": "Full lips, defined cupid's bow, fuller lower lip, glossy deep berry-brown colour.",
+   "skin": "Deep warm brown complexion with a soft sheen; light freckles across cheeks and nose.",
+   "markings": "Small star marks high on the cheekbones; dark swirl/curl markings at the forehead and temples; rose-quartz jewel at the hairline centre with a small crystal drop between the brows.",
+   "piercings": "Septum ring; centred lower-lip (labret) stud with small drop; large rose-gold hoop earrings.",
+   "tattoos": "Ornamental filigree across collarbones and chest; rose and filigree tattoos on hands and forearms.",
+   "hairline": "Centre part; dense black corkscrew curls framing the face, pink/magenta highlights."
+  },
+  "mayChange": [
+   "outfit",
+   "hairstyle",
+   "pose",
+   "expression",
+   "accessories"
+  ],
+  "rule": "Identity references change only through an explicit, approved relock. Generated images are never promoted to identity references automatically."
+ }
+}

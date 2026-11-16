@@ -1,0 +1,54 @@
+{
+  "jobId": "fj_mvvnvqa1_b5672e",
+  "character": "lelu_character",
+  "kind": "multi-image-to-3d",
+  "purpose": "Dedicated head (bust) for a head swap: ref10_face_primary + ref18_head_profile_a_unhooded + ref19_head_back_unhooded",
+  "meshyTaskId": "01a18f5a-6d77-7666-95f2-bac070e036b9",
+  "request": {
+    "image_urls": [
+      "ref:ref10_face_primary",
+      "ref:ref18_head_profile_a_unhooded",
+      "ref:ref19_head_back_unhooded"
+    ],
+    "ai_model": "meshy-7.1",
+    "geometry_resolution": "2k",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "8k",
+    "pose_mode": "",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 300000,
+    "save_pre_remeshed_model": false,
+    "image_enhancement": false,
+    "target_formats": [
+      "glb"
+    ],
+    "multi_view_thumbnails": true
+  },
+  "references": [
+    {
+      "id": "ref10_face_primary",
+      "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22",
+      "view": "front face close-up",
+      "outfitVariant": "both"
+    },
+    {
+      "id": "ref18_head_profile_a_unhooded",
+      "sha256": "2634a5214a92a3ef81130a134f120b8831798f9a055ca1afe9a623db8c49023a",
+      "view": "head and shoulders, profile facing image-right, unhooded",
+      "outfitVariant": "B-wire-cage-hood"
+    },
+    {
+      "id": "ref19_head_back_unhooded",
+      "sha256": "0505e3cf42e68a8aeff4be51b55bdc906dbbe4704d2c2261803c5af4722993b1",
+      "view": "head and upper back, rear, unhooded",
+      "outfitVariant": "B-wire-cage-hood"
+    }
+  ],
+  "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+  "estimatedCredits": 40,
+  "consumedCredits": 40,
+  "submittedAt": 1793406433255,
+  "finishedAt": 1793406845619
+}

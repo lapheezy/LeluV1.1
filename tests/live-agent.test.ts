@@ -262,6 +262,11 @@ test("an OpenAI-shaped HTTP error is thrown with the API's own message", async (
 });
 
 async function anthropicWith(response: Response) {
+  // These tests exercise the Anthropic adapter's streaming, so they opt in:
+  // Anthropic is disabled by policy unless LELU_ENABLE_ANTHROPIC is true
+  // (ProviderPolicy, enforced in the page and in the server broker).
+  const previousOptIn = process.env.LELU_ENABLE_ANTHROPIC;
+  process.env.LELU_ENABLE_ANTHROPIC = "true";
   const { default: AnthropicProvider } = await import("../src/providers/AnthropicProvider");
   const provider = new AnthropicProvider();
   // A direct (non-brokered) send in Node: a fake key, a fake fetch.
@@ -272,7 +277,15 @@ async function anthropicWith(response: Response) {
     sent.push(JSON.parse(String(init?.body ?? "{}")));
     return response;
   }) as typeof fetch;
-  return { provider, sent, restore: () => { globalThis.fetch = realFetch; } };
+  return {
+    provider,
+    sent,
+    restore: () => {
+      globalThis.fetch = realFetch;
+      if (previousOptIn === undefined) delete process.env.LELU_ENABLE_ANTHROPIC;
+      else process.env.LELU_ENABLE_ANTHROPIC = previousOptIn;
+    },
+  };
 }
 
 test("Anthropic streams with tools on, and returns the tool_use blocks whole", async () => {
@@ -357,11 +370,24 @@ test("browser.read reports a page it could not open as a structured failure, wit
     assert.match(result.content, /Could not read https:\/\/blocked\.example\/page: The site refused the reader\./);
     assert.match(result.content, /Try another source/);
     assert.ok(!/undefined/.test(result.content));
+    // Execution evidence rides the same bus now (Mission 6.1.7): those stages
+    // are asserted separately below, so this list stays the browser's own story.
+    const browserEvents = seen.filter((event) => event.type !== "execution_evidence");
     assert.deepEqual(
-      seen.map((event) => event.type),
+      browserEvents.map((event) => event.type),
       ["tool_selected", "tool_started", "browser_opened", "browser_navigation", "browser_result", "tool_result"],
     );
-    const final = seen.at(-1) as Extract<AgentEvent, { type: "tool_result" }>;
+    const evidence = seen.filter((event) => event.type === "execution_evidence");
+    assert.ok(evidence.length > 0, "the failed page read left no execution evidence");
+    const identities = new Set(
+      evidence.map((event) => (event as Extract<AgentEvent, { type: "execution_evidence" }>).record.executionId),
+    );
+    assert.equal(identities.size, 1, "the page read's evidence was not tied to one execution");
+    assert.ok(
+      evidence.some((event) => (event as Extract<AgentEvent, { type: "execution_evidence" }>).record.stage === "failed"),
+      "a failed page read was not recorded as a failure",
+    );
+    const final = browserEvents.at(-1) as Extract<AgentEvent, { type: "tool_result" }>;
     assert.equal(final.status, "blocked");
   } finally {
     unsubscribe();

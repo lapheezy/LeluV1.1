@@ -1,0 +1,19 @@
+{
+  "scoping_fix_present": "toolSchemasForRequest() narrows an environment turn to the six environment tools; other turns unchanged",
+  "new_this_mission": {
+    "reducedToolSchemas()": "REDUCED_TOOL_LIMIT=3; a size-refused turn retries with a non-empty reduced set before any tool-less retry",
+    "provider_resolver": "degradation is now two steps (full -> reduced -> none) instead of dropping every tool on the first 413",
+    "why": "dropping all tools on the first refusal is what turned a size error into a model that described work it could not perform"
+  },
+  "existing_behaviour_preserved": [
+    "environment_id set unchanged (six ids, no renames)",
+    "fail-open narrowing",
+    "registry \u2229 executor \u2229 gate intersection",
+    "no invented schemas"
+  ],
+  "tests": {
+    "tests/tool-schema-scoping.test.ts": "8/8 pass",
+    "tests/provider-rung-budget.test.ts": "9/9 pass (contract updated to the two-step degradation)"
+  },
+  "result": "PASS (code + unit)"
+}

@@ -30,9 +30,38 @@ import type { MeasuredCapture } from "./ClaimGrounding";
 import type { ToolCall } from "../../providers/AIProvider";
 import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
+import { ToolTimeoutError, toolTimeoutMs, withDeadline } from "./ToolDeadline";
+import ExecutionTelemetry from "./ExecutionTelemetry";
+import ExecutionLedger, { isSideEffecting } from "./ExecutionLedger";
+import { newExecutionId, withReason, type ExecutionPath, type ExecutionRecord } from "./ExecutionEvidence";
 import AutonomyGate from "../cognition/AutonomyGate";
-import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
+import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistry";
+import { studioToolExecutors } from "../studio/StudioToolExecutors";
+import { FORGE_EXECUTORS } from "../forge/ForgeTools";
+import { WORLD_EXECUTORS } from "../world/WorldTools";
+import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
+import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
+// Session 02's environment operator tools join the SAME table as everything
+// else. They are not a second registry or a parallel dispatch path: one
+// dispatchToolCall() runs them, with the same gate, events and result shape.
+import { ENVIRONMENT_EXECUTORS } from "../orchestrator/EnvironmentTools";
+// Mission 9: the repository workforce joins the same table. Repo Executive and
+// Repo Executor already do the real work; these four entries are how cognition
+// reaches them from a conversation.
+import { ACQUISITION_EXECUTORS } from "../orchestrator/AcquisitionTools";
+// Mission 8: the command center, marketplace, council, creator and bounded
+// cache join the same table. Ids Claude already dispatches are left alone.
+import COMMAND_CENTER_EXECUTORS from "../acquisition/CommandCenterExecutors";
+import { STUDIO_EXECUTORS } from "../studio/StudioTools";
+import { ATELIER_EXECUTORS } from "../atelier/AtelierTools";
+// Job 2: the open-source creative kit and public data connectors — same table, same gate.
+import { CREATIVE_KIT_EXECUTORS } from "../creative/kit/CreativeKitTools";
+import { COSMOS_OBJECT_EXECUTORS } from "../cosmos/objects/CosmosObjectTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
+import ApprovalGate from "../agentic/ApprovalGate";
+import AcquisitionApprovalGate from "../acquisition/ApprovalGate";
+import CapabilityActivation from "../acquisition/CapabilityActivation";
+import ToolStats from "../agentic/ToolStats";
 import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
 import { consentFor, findChat } from "../multichat/ChatConsent";
 import { CHAT_SCOPED } from "../multichat/ContextProvenance";
@@ -45,7 +74,7 @@ export interface ToolExecutionResult {
   data?: unknown;
 }
 
-interface ToolExecutor {
+export interface ToolExecutor {
   /** Registry id, e.g. "research.web". */
   id: string;
   /** JSON Schema for the arguments the model must supply. */
@@ -99,6 +128,10 @@ export const RESEARCH_FOCUS: Record<string, string[]> = {
   tech: ["technology", "developer", "startups"],
   weather: ["weather"],
   location: ["geography", "location", "map", "place"],
+  dictionary: ["dictionary", "definition"],
+  books: ["books", "literature"],
+  currency: ["currency", "exchange-rate"],
+  earthquakes: ["earthquake", "hazards"],
 };
 const RESEARCH_FOCUS_IDS = Object.keys(RESEARCH_FOCUS);
 
@@ -161,6 +194,36 @@ export function describeToolCall(id: string, args: Record<string, unknown>): str
       return "Changing the workspace artifact";
     case "artifact.create":
       return `Making a ${pick("kind") || "new artifact"} in the workspace`;
+    case "studio.create": {
+      const noun = pick("kind") === "deck" ? "presentation" : pick("kind") === "workbook" ? "spreadsheet" : "document";
+      return `Creating the ${noun} “${pick("title").slice(0, 60)}”`;
+    }
+    case "studio.revise":
+      return `Revising “${pick("artifact").slice(0, 60) || "the artifact"}”`;
+    case "studio.export": {
+      const formats = Array.isArray(args.formats) ? args.formats.map((f) => String(f).toUpperCase()).join(", ") : "";
+      return `Exporting and verifying ${formats || "the file"}`;
+    }
+    case "studio.read":
+      return pick("file") ? `Re-opening the exported ${pick("file").toUpperCase()}` : "Reading the artifact";
+    case "studio.open":
+      return "Opening artifacts in Cosmos";
+    case "atelier.project":
+      return `Starting the design project “${pick("title").slice(0, 60)}”`;
+    case "atelier.directions":
+      return "Developing design directions";
+    case "atelier.component":
+      return `Changing ${pick("component")} in ${pick("direction")}`;
+    case "atelier.assess":
+      return "Calculating BOM, mass, cost and interference";
+    case "atelier.export":
+      return "Writing and verifying design files";
+    case "cosmos.workspace":
+      return `Working in the cosmos: ${pick("action") || "workspace"}${pick("roomId") ? ` (${pick("roomId").slice(0, 40)})` : ""}`;
+    case "cosmos.map":
+      return "Reading the live cosmos map";
+    case "cosmos.inspect":
+      return `Inspecting a placed ${pick("objectId").slice(0, 40)}`;
     default: {
       const detail = pick("query") || pick("path") || pick("action") || pick("url");
       return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
@@ -354,14 +417,26 @@ export function toolNameForModel(registryId: string): string {
 }
 
 export function registryIdForToolName(name: string): string {
-  return name.replace(/_/g, ".");
+  if (BY_ID.has(name)) return name;
+  const direct = name.replace(/_/g, ".");
+  if (BY_ID.has(direct)) return direct;
+  // Multi-segment ids cannot be recovered by replacing every underscore:
+  // "environment_present_artifact" would become "environment.present.artifact"
+  // and resolve to nothing, so the tool would be offered but never run. Try
+  // the split after the namespace first, and only fall back to the plain form.
+  const firstUnderscore = name.indexOf("_");
+  if (firstUnderscore !== -1) {
+    const candidate = `${name.slice(0, firstUnderscore)}.${name.slice(firstUnderscore + 1)}`;
+    if (BY_ID.has(candidate)) return candidate;
+  }
+  return direct;
 }
 
 /* ------------------------------------------------------------------ *
  * THE EXECUTORS
  * ------------------------------------------------------------------ */
 
-const EXECUTORS: ToolExecutor[] = [
+const CORE_EXECUTORS: ToolExecutor[] = [
   {
     id: "research.web",
     // ResearchResolver emits its own execution events.
@@ -896,6 +971,34 @@ const EXECUTORS: ToolExecutor[] = [
           : "Companion mode is OFF.",
         data: state,
       };
+    },
+  },
+
+  {
+    id: "avatar.gesture",
+    parameters: {
+      type: "object",
+      properties: {
+        gesture: {
+          type: "string",
+          enum: ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand", "leave", "return"],
+          description: "What your body does. Use it when the person asks, or when it fits the moment (a wave hello, a heart for something kind). sit: settle on your sofa; leave: walk off for a bit; return: come back.",
+        },
+      },
+      required: ["gesture"],
+    },
+    run: async (args) => {
+      const { default: AvatarCommandBus } = await import("../avatar/AvatarCommandBus");
+      const kinds = ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand", "leave", "return"] as const;
+      const gesture = str(args, "gesture") as (typeof kinds)[number];
+      if (!kinds.includes(gesture)) return { ok: false, content: `Unknown gesture “${gesture}”.` };
+      try {
+        // Resolves only when a live renderer measured her body moving.
+        const observation = await AvatarCommandBus.getInstance().issue(gesture, gesture);
+        return { ok: true, content: `Done: ${observation}.` };
+      } catch (reason) {
+        return { ok: false, content: `Not performed: ${reason instanceof Error ? reason.message : String(reason)}` };
+      }
     },
   },
 
@@ -2481,7 +2584,58 @@ async function runWorkspace(
  * DISPATCH
  * ------------------------------------------------------------------ */
 
-const BY_ID = new Map(EXECUTORS.map((executor) => [executor.id, executor]));
+// The 3D Forge's executors live with the Forge (forge/ForgeTools.ts) and run
+// through this same dispatcher, gate and event stream. The studio's executors
+// (studio/StudioExecutors) and the interface/atelier sets are appended the same
+// way, so BY_ID stays the ONE dispatch table every runtime shares.
+const EXECUTORS: ToolExecutor[] = [
+  ...CORE_EXECUTORS,
+  ...studioToolExecutors,
+  ...FORGE_EXECUTORS,
+  ...WORLD_EXECUTORS,
+  ...AGENTIC_EXECUTORS,
+];
+
+const BY_ID = new Map<string, ToolExecutor>(
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS].map((executor) => [executor.id, executor]),
+);
+
+// Mission 8's executors are additive: an id Claude already owns keeps its
+// canonical executor, so the newer repository tools are never shadowed.
+for (const executor of COMMAND_CENTER_EXECUTORS) {
+  if (!BY_ID.has(executor.id)) BY_ID.set(executor.id, executor);
+}
+
+/**
+ * Add a tool at runtime: a new integration, a provider-backed capability,
+ * a tool LÉLU wrote and the user approved. The executor joins the same
+ * table the static tools live in and the definition joins the registry,
+ * so it is offered, gated, approved, recorded and dispatched exactly like
+ * a built-in — nothing in cognition is rebuilt or special-cased.
+ *
+ * Refuses to replace an existing id: silently swapping the executor behind
+ * a name the model already trusts is how a tool would change under it.
+ */
+export function registerExecutor(executor: ToolExecutor, definition: ToolDefinition): { ok: boolean; reason?: string } {
+  if (executor.id !== definition.id) return { ok: false, reason: "executor and definition ids differ" };
+  if (!/^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$/i.test(executor.id)) {
+    return { ok: false, reason: `"${executor.id}" is not a dotted tool id (e.g. "service.action")` };
+  }
+  if (BY_ID.has(executor.id)) return { ok: false, reason: `a tool named "${executor.id}" already exists` };
+  BY_ID.set(executor.id, executor);
+  ToolRegistry.getInstance().register(definition);
+  return { ok: true };
+}
+
+/** Remove a tool added with registerExecutor. Built-ins cannot be removed. */
+export function unregisterExecutor(id: string): boolean {
+  if (BUILT_IN_IDS.has(id) || !BY_ID.has(id)) return false;
+  BY_ID.delete(id);
+  ToolRegistry.getInstance().unregister(id);
+  return true;
+}
+
+const BUILT_IN_IDS = new Set(BY_ID.keys());
 
 /** Registry ids that have a real executor behind them. */
 export function executableToolIds(): string[] {
@@ -2518,6 +2672,17 @@ export function toolPermitted(id: string): boolean {
     return authorizedWorkspaceExists();
   }
 
+  // Acquisition writes are the same kind of act: a named approval opens
+  // the offer, and the dispatcher and runtime both re-check before write.
+  if (id === "repo.commit" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("canonical-write")) return false;
+  if (id === "repo.rollback" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("destructive")) return false;
+  if (id === "repo.pipeline" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("canonical-write")) return false;
+  if (id === "capabilities.remove" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("destructive")) return false;
+
+  // The marketplace is not a UI toggle: a deactivated capability's tools
+  // stop being offered here, at the same gate the dispatcher enforces.
+  if (!CapabilityActivation.getInstance().isToolEnabled(id)) return false;
+
   return true;
 }
 
@@ -2546,6 +2711,12 @@ function refusalReason(id: string): string {
   }
   if (!AutonomyGate.getInstance().can(riskToAutonomy(definition.riskLevel))) {
     return `"${id}" is not permitted at the current autonomy level, so it was not run.`;
+  }
+  if (!CapabilityActivation.getInstance().isToolEnabled(id)) {
+    return (
+      `"${id}" was NOT run: the capability that provides it is switched off — either it is awaiting the user's approval ` +
+      `(they say "approve capability <id>") or it was revoked. Nothing was executed.`
+    );
   }
   return `"${id}" is not permitted right now, so it was not run.`;
 }
@@ -2578,6 +2749,20 @@ function authorizedWorkspaceExists(): boolean {
   }
 }
 
+/**
+ * Can a human approval let this tool run when the autonomy level alone
+ * does not? Only up to "Execute approved" (L3): an approval never makes a
+ * destructive (L4) action runnable below its level, and never stands in
+ * for the project authorization that apply/commit require.
+ */
+function approvalCanLift(id: string): boolean {
+  const definition = ToolRegistry.getInstance().get(id);
+  if (!definition || !definition.available) return false;
+  if (riskToAutonomy(definition.riskLevel) > 3) return false;
+  if ((id === "project.apply" || id === "project.commit") && !authorizedWorkspaceExists()) return false;
+  return true;
+}
+
 /** Map registry risk (0-4) onto the autonomy levels the gate uses. */
 function riskToAutonomy(risk: RiskLevel): number {
   return risk <= 1 ? 1 : risk === 2 ? 2 : risk === 3 ? 3 : 4;
@@ -2594,23 +2779,76 @@ export async function dispatchToolCall(
   call: ToolCall,
   taskId: string,
   context?: RouterContext,
+  options: {
+    /**
+     * A human approval granted for exactly this call (see ApprovalGate).
+     * It is spent here, and lets a tool that is otherwise above the
+     * autonomy level run once at "Execute approved" (L3).
+     */
+    approvalId?: string;
+    /** Which orchestration path drove this call. Recorded, never guessed. */
+    path?: ExecutionPath;
+    /** Plan step, when the task engine is the one asking. */
+    stepId?: string;
+    /**
+     * Identifies the request that asked for this call (the prompt). Used only
+     * to recognise a retry of the SAME request after an interruption.
+     */
+    turnSignature?: string;
+  } = {},
 ): Promise<ToolExecutionResult> {
   const events = AgentEventBus.getInstance();
+  const stats = ToolStats.getInstance();
   const id = registryIdForToolName(call.name);
+
   const executor = BY_ID.get(id);
+
+  // One identity for this invocation, shared by every stage below.
+  const path: ExecutionPath = options.path ?? "unknown";
+  const startedAt = Date.now();
+  const execution = {
+    executionId: newExecutionId(path, taskId),
+    taskId,
+    path,
+    tool: id,
+    ...(call.name !== id ? { requestedName: call.name } : {}),
+    ...(options.stepId ? { stepId: options.stepId } : {}),
+  };
+  const evidence = (
+    record: Omit<ExecutionRecord, "executionId" | "taskId" | "path" | "tool" | "stepId" | "requestedName">,
+  ): void => {
+    try {
+      events.emit({ type: "execution_evidence", taskId, record: { ...execution, ...record } });
+    } catch {
+      /* evidence must never break an execution */
+    }
+  };
+  try {
+    ExecutionTelemetry.getInstance().start();
+  } catch {
+    /* no telemetry is better than no turn */
+  }
+  evidence({ approval: "not-required", stage: "requested" });
 
   if (!executor) {
     // Registered is not the same as runnable: say which this is.
     const registered = ToolRegistry.getInstance().get(id);
-    return {
-      ok: false,
-      content: registered
-        ? `"${id}" is registered but has no executor — there is no real dispatch for it, so nothing was executed.`
-        : `There is no tool named "${call.name}", so nothing was executed.`,
-    };
+    const content = registered
+      ? `"${id}" is registered but has no executor — there is no real dispatch for it, so nothing was executed.`
+      : `There is no tool named "${call.name}", so nothing was executed.`;
+    evidence(withReason({ approval: "not-required", stage: "failed", outcome: "failed" }, content));
+    stats.record(call.name, "refused", 0, content);
+    return { ok: false, content };
   }
 
-  if (!toolPermitted(id)) {
+  // An approval is spent whenever it is presented, so it is single-use
+  // even for a tool the autonomy level already allows.
+  const consumed =
+    options.approvalId !== undefined &&
+    ApprovalGate.getInstance().consume(options.approvalId, id, call.arguments ?? {});
+  const approved = consumed && approvalCanLift(id);
+
+  if (!approved && !toolPermitted(id)) {
     // Say WHY, accurately.
     //
     // A single "not permitted at the current autonomy level" message
@@ -2618,6 +2856,8 @@ export async function dispatchToolCall(
     // missing session or a missing authorization — a true refusal with
     // a false reason, which sends the user to fix the wrong thing.
     const result = { ok: false, content: refusalReason(id) };
+    stats.record(id, "refused", 0, result.content);
+    evidence(withReason({ approval: "refused", stage: "refused", outcome: "refused" }, result.content));
     events.emit({
       type: "tool_result",
       taskId,
@@ -2635,8 +2875,38 @@ export async function dispatchToolCall(
     events.emit({ type: "tool_started", taskId, tool: id, label });
   }
 
+  const started = Date.now();
+  const approvalState = consumed ? "approved" : "not-required";
+
+  // An interrupted write has an unknown outcome. Refuse to repeat it inside the
+  // same request; a completed one may be run again, because that is a new
+  // instruction rather than a retry of a broken one.
+  let ledgerKey: string | undefined;
+  if (path === "chat" && options.turnSignature && isSideEffecting(id)) {
+    const attempt = ExecutionLedger.getInstance().begin(id, call.arguments ?? {}, options.turnSignature, taskId);
+    if (attempt.blocked) {
+      const content = attempt.reason ?? `"${id}" was not run again.`;
+      evidence(withReason({ approval: approvalState, stage: "suppressed", outcome: "suppressed", startedAt, finishedAt: Date.now(), durationMs: 0 }, content));
+      stats.record(id, "refused", 0, content);
+      events.emit({ type: "tool_result", taskId, tool: id, result: content, results: [], status: "error" });
+      return { ok: false, content };
+    }
+    ledgerKey = attempt.key;
+  }
+  evidence({ approval: approvalState, stage: "authorized", startedAt });
+  evidence({ approval: approvalState, stage: "started", startedAt });
   try {
-    const result = await executor.run(call.arguments ?? {}, context);
+    const result = await withDeadline(
+      executor.run(call.arguments ?? {}, context),
+      toolTimeoutMs(),
+      id,
+    );
+    stats.record(id, result.ok ? "succeeded" : "failed", Date.now() - started, result.ok ? undefined : result.content);
+    const finishedAt = Date.now();
+    evidence(result.ok
+      ? { approval: approvalState, stage: "succeeded", outcome: "succeeded", startedAt, finishedAt, durationMs: finishedAt - started }
+      : withReason({ approval: approvalState, stage: "failed", outcome: "failed", startedAt, finishedAt, durationMs: finishedAt - started }, result.content));
+    if (ledgerKey) ExecutionLedger.getInstance().finish(ledgerKey);
     if (!executor.emitsOwnEvents) {
       events.emit({
         type: "tool_result",
@@ -2645,11 +2915,34 @@ export async function dispatchToolCall(
         result: result.content.slice(0, 2000),
         results: [],
         status: result.ok ? "complete" : "error",
+        durationMs: Date.now() - started,
       });
     }
     return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (error instanceof ToolTimeoutError) {
+      // Say what is true: it was stopped, and nothing is claimed as done.
+      const content = `${message}. It was stopped, so nothing is reported as done.`;
+      stats.record(id, "failed", Date.now() - started, content);
+      const stoppedAt = Date.now();
+      evidence(withReason({ approval: approvalState, stage: "timed-out", outcome: "timed-out", startedAt, finishedAt: stoppedAt, durationMs: stoppedAt - started }, content));
+      if (ledgerKey) ExecutionLedger.getInstance().finish(ledgerKey);
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: id,
+        result: content,
+        results: [],
+        status: "error",
+        durationMs: Date.now() - started,
+      });
+      return { ok: false, content };
+    }
+    stats.record(id, "failed", Date.now() - started, message);
+    const failedAt = Date.now();
+    evidence(withReason({ approval: approvalState, stage: "failed", outcome: "failed", startedAt, finishedAt: failedAt, durationMs: failedAt - started }, message));
+    if (ledgerKey) ExecutionLedger.getInstance().finish(ledgerKey);
     events.emit({
       type: "tool_result",
       taskId,
@@ -2657,6 +2950,7 @@ export async function dispatchToolCall(
       result: `Tool execution failed: ${message}`,
       results: [],
       status: "error",
+      durationMs: Date.now() - started,
     });
     return { ok: false, content: `"${id}" failed: ${message}` };
   }

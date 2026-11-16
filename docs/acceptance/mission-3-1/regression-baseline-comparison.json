@@ -1,0 +1,29 @@
+{
+ "question": "Mission 5.4B.11 recorded 1828 pass / 0 fail / 2 skipped; Mission 3 recorded 1824 / 0 / 6. Both total 1830.",
+ "runs": [
+  {
+   "milestone": "Mission 5.4B.11",
+   "pass": 1828,
+   "fail": 0,
+   "skipped": 2,
+   "total": 1830
+  },
+  {
+   "milestone": "Mission 3",
+   "pass": 1824,
+   "fail": 0,
+   "skipped": 6,
+   "total": 1830
+  },
+  {
+   "milestone": "Mission 3.1 (this run)",
+   "pass": 1826,
+   "fail": 0,
+   "skipped": 4,
+   "total": 1830
+  }
+ ],
+ "finding": "The total is constant at 1830 across all three runs. The pass/skip split moves with the environment, so the four 'missing' passes were CONDITIONAL skips, not deleted or weakened tests. This run's own count (4) differs from both earlier runs, which a fixed, intentional skip list could not do.",
+ "verdict": "PASS \u2014 no test was removed or weakened; skips are environment-conditional.",
+ "evidence": "/tmp/m31-test.log"
+}

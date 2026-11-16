@@ -1,0 +1,9 @@
+Trial merge (local only, never pushed), 2026-11-05T20:41:14Z
+base: my branch 9b0cd3e
+1) + origin/claude/avatar-3d-world e39201d: CLEAN
+2) + origin/claude/lelu-interface-control-d2sfdl 0b776fc: CONFLICTS
+   src/app/scene/genesis/GenesisChat.tsx: 5 hunk(s)
+   src/app/scene/genesis/GenesisInterface.tsx: 1 hunk(s)
+   src/app/scene/genesis/GenesisModuleHost.tsx: 8 hunk(s)
+   src/index.css: 1 hunk(s)
+   auto-merged (no conflict): 24 file(s)

@@ -1,0 +1,75 @@
+{
+ "startedAt": "2026-11-08T22:07:01.838Z",
+ "turns": [
+  {
+   "label": "t1-restore-and-continue",
+   "ms": 25951,
+   "tools": []
+  }
+ ],
+ "steps": [
+  {
+   "label": "fresh-boot",
+   "focus": "genesis",
+   "host": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 8,
+      "text": ""
+     }
+    ]
+   }
+  },
+  {
+   "label": "t1-restore-and-continue",
+   "focus": "genesis",
+   "host": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 12,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 2,
+      "text": ""
+     }
+    ]
+   }
+  }
+ ],
+ "console": [
+  "🔴 [10:10:17 PM] [ProviderResolver] Groq failed; falling back to the next provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, priority: 2.5, fallbackReason: Groq failed 413: Request too large for model `open…oday at https://console.groq.com/settings/billing, ",
+  "Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 4023}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 28847, reason: Groq failed 413: Request too large for model `open…oday at https://consol",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 29185, reason: GitHub Models returned no usable content., credentialRefused: fa",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 16750, reason: Groq failed 413: Request too large for model `open…oday at https://consol",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 17088, reason: GitHub Models returned no usable content., credentialRefused: fa"
+ ],
+ "elapsedMs": 211412
+}

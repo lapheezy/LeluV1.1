@@ -1,0 +1,55 @@
+{
+  "gate": "A",
+  "verdict": "PASS",
+  "question": "Where did HTTP 200 Content-Type text/plain body OK come from?",
+  "method": "route attribution by differential probing, then direct-to-host comparison",
+  "handlerIdentified": {
+    "file": "plugins/modelApi.ts",
+    "function": "createModelApi(...).handle",
+    "mountedAt": "/api/model",
+    "matching": "regex /^\\/([A-Za-z0-9_-]+)(\\/.*)?$/ on the path after /api/model",
+    "upstreamTargetConstruction": "endpoint(provider.endpointId) + rest",
+    "githubModelsTarget": "https://models.github.ai/inference + <rest>"
+  },
+  "differentialEvidence": [
+    {
+      "request": "POST /api/model/githubModels/chat/completions",
+      "observed": "HTTP 200 text/plain body OK"
+    },
+    {
+      "request": "POST /api/model/githubModels/nope",
+      "observed": "HTTP 200 text/plain body OK"
+    },
+    {
+      "request": "POST /api/model/githubModels",
+      "observed": "HTTP 200 text/plain body OK"
+    },
+    {
+      "request": "GET  /api/model/githubModels/chat/completions",
+      "observed": "HTTP 200 text/plain body OK"
+    },
+    {
+      "request": "POST /api/model/nosuchprovider/chat/completions",
+      "observed": "HTTP 404 application/json No brokered provider"
+    }
+  ],
+  "directToHostControlProbe": [
+    {
+      "request": "POST https://models.github.ai/inference/chat/completions, NO credential at all",
+      "observed": "HTTP 200, content-type text/plain, body OK"
+    },
+    {
+      "request": "GET https://models.github.ai/inference/nope",
+      "observed": "HTTP 200, content-type text/plain, body OK"
+    },
+    {
+      "request": "POST https://api.groq.com/openai/v1/chat/completions, no auth",
+      "observed": "HTTP 401 application/json from cloudflare (a real upstream answer)"
+    }
+  ],
+  "conclusion": "The OK is NOT application code, not a route stub, not a dev fallback and not an upstream pass-through of a real provider answer. models.github.ai is intercepted at the network egress boundary of this environment and answers 200 text/plain 'OK' for every path, with or without a credential, while the same egress reaches Groq normally. The broker, being a faithful proxy, forwarded that as a successful completion.",
+  "boundary": "Outside the application's control: the host cannot be reached from here. There is no application fix that makes models.github.ai answer.",
+  "appDefectExposed": "The broker treated any 2xx as a completion. That IS inside the application and is repaired in Gate B.",
+  "credentialSourceClassification": "server-side broker credential (env) \u2014 value never logged",
+  "secretsExposed": false
+}

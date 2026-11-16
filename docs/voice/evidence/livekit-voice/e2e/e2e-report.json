@@ -1,0 +1,292 @@
+{
+ "base": "http://127.0.0.1:5173/",
+ "ranAt": "2026-11-13T14:28:24.504Z",
+ "realDevice": false,
+ "mic": "fake (WAV file)",
+ "stop": {
+  "rmsBeforeStopMax": 0.32656507899456,
+  "lastAudibleAfterStopMs": 234,
+  "elementMutedAfterStop": true
+ },
+ "phaseAfterStop": "listening",
+ "continuity": {
+  "found": true,
+  "reply": "You first asked me by voice, “What is the capital of France?”",
+  "conversationLength": 6,
+  "roles": [
+   "user",
+   "assistant",
+   "user",
+   "assistant",
+   "user",
+   "assistant"
+  ]
+ },
+ "timeline": [
+  {
+   "t": 14916,
+   "kind": "chat-open"
+  },
+  {
+   "t": 16195,
+   "kind": "livekit",
+   "connection": "connecting",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 16860,
+   "kind": "agent-audio-attached",
+   "index": 1
+  },
+  {
+   "t": 16862,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 16870,
+   "kind": "connected"
+  },
+  {
+   "t": 16975,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 16976,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 17004,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 17031,
+   "kind": "agent-listening"
+  },
+  {
+   "t": 52353,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 52355,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": null
+  },
+  {
+   "t": 52356,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 52374,
+   "kind": "q1-heard"
+  },
+  {
+   "t": 55587,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": "Paris is the capital of France."
+  },
+  {
+   "t": 55588,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 55590,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 55617,
+   "kind": "q1-speaking"
+  },
+  {
+   "t": 82702,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 85738,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 85749,
+   "kind": "q1-spoke"
+  },
+  {
+   "t": 207061,
+   "kind": "utterance",
+   "text": "Lélu, tell me a long story about the ocean with at least six sentences."
+  },
+  {
+   "t": 207062,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": null
+  },
+  {
+   "t": 207063,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 207075,
+   "kind": "q2-heard"
+  },
+  {
+   "t": 209610,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": "The ocean stretched out before her like a boundless sapphire tapestry, its waves whispering ancient lullabies that had been sung since the world’s first sunrise. As a child, Maya would sit on the weather‑worn pier, eyes wide with wonder, watching gulls dive and surf foam rise like white‑capped mountains that vanished as quickly as they appeared. One stormy night, a sudden flash of lightning split "
+  },
+  {
+   "t": 209610,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 209610,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 279209,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 279372,
+   "kind": "q2-audible"
+  },
+  {
+   "t": 281460,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 281478,
+   "kind": "stop-clicked"
+  },
+  {
+   "t": 285486,
+   "kind": "stop-measured",
+   "rmsBeforeStopMax": 0.32656507899456,
+   "lastAudibleAfterStopMs": 234,
+   "elementMutedAfterStop": true
+  },
+  {
+   "t": 285506,
+   "kind": "phase-after-stop",
+   "phase": "listening"
+  },
+  {
+   "t": 285506,
+   "kind": "livekit-server-killed"
+  },
+  {
+   "t": 293536,
+   "kind": "recovered-after-server-restart"
+  },
+  {
+   "t": 296643,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 296643,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 296644,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 296661,
+   "kind": "ended"
+  },
+  {
+   "t": 299132,
+   "kind": "state",
+   "phase": "speaking",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 299244,
+   "kind": "typed",
+   "question": "In one sentence: what was the first thing I asked you by voice a moment ago?"
+  },
+  {
+   "t": 304643,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 305294,
+   "kind": "continuity",
+   "found": true,
+   "reply": "You first asked me by voice, “What is the capital of France?”",
+   "conversationLength": 6,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant"
+   ]
+  }
+ ]
+}

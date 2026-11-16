@@ -1,0 +1,33 @@
+{
+  "character": "lelu_character",
+  "purpose": "Reusable motion targets. Each entry becomes an animation:<slot> on the character once a Meshy action is chosen for it, so motions are swappable assets, not code.",
+  "resolution": "action_id is null until resolved against GET /openapi/v1/animations/library (free; needs MESHY_API_KEY): `tsx scripts/forge-character.ts library <search>`, then `tsx scripts/forge-character.ts animate <rigJobId> <slot>=<actionId>`. IDs are not guessed.",
+  "meshyCategories": ["WalkAndRun", "BodyMovements", "DailyActions", "Fighting", "Dancing"],
+  "cost": "3 credits per action; up to 10 actions per request.",
+  "groups": {
+    "idle": [
+      { "slot": "idle", "search": "idle", "category": "BodyMovements", "action_id": null, "priority": 1 },
+      { "slot": "idle_breathing", "search": "breathing idle", "category": "BodyMovements", "action_id": null, "priority": 2 },
+      { "slot": "idle_weight_shift", "search": "weight shift", "category": "BodyMovements", "action_id": null, "priority": 3 },
+      { "slot": "idle_look_around", "search": "look around", "category": "BodyMovements", "action_id": null, "priority": 3 }
+    ],
+    "conversation": [
+      { "slot": "talk_gesture", "search": "talking", "category": "DailyActions", "action_id": null, "priority": 1 },
+      { "slot": "listen", "search": "listening", "category": "DailyActions", "action_id": null, "priority": 2 },
+      { "slot": "nod", "search": "nod", "category": "BodyMovements", "action_id": null, "priority": 2 },
+      { "slot": "wave", "search": "wave", "category": "DailyActions", "action_id": null, "priority": 2 }
+    ],
+    "movement": [
+      { "slot": "walk", "source": "rigging basic_animations.walking (included with the 5-credit rig)", "action_id": null, "priority": 1 },
+      { "slot": "run", "source": "rigging basic_animations.running (included with the 5-credit rig)", "action_id": null, "priority": 2 },
+      { "slot": "turn", "search": "turn", "category": "WalkAndRun", "action_id": null, "priority": 3 },
+      { "slot": "sit", "search": "sit down", "category": "DailyActions", "action_id": null, "priority": 3 },
+      { "slot": "stand_up", "search": "stand up", "category": "DailyActions", "action_id": null, "priority": 3 }
+    ],
+    "expressions": {
+      "status": "not available from Meshy",
+      "why": "Meshy rigs a body skeleton and animates it; it produces no facial rig, blendshapes or visemes. Smiling, thinking, surprise, blinking, eye movement and lip sync need a face rig (ARKit-style blendshapes) built on the generated head in a DCC tool or a dedicated face-rigging service, then driven by LÉLU's voice pipeline.",
+      "targets": ["smile", "thinking", "curious", "serious", "surprised", "blink", "eye_look", "visemes"]
+    }
+  }
+}

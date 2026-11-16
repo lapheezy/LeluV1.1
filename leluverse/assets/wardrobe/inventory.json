@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "character": "lelu_character",
+  "looks": [
+    {
+      "id": "rose_gold_sovereign",
+      "title": "Rose Gold Sovereign",
+      "authority": ["rose_gold_photo_primary"],
+      "boards": ["rose_gold_board"],
+      "assets": [
+        {
+          "id": "rose_gold_coat",
+          "name": "Floor-length rose-gold tailored coat",
+          "category": "look",
+          "slot": "look",
+          "part": "primary garment",
+          "references": ["rose_gold_photo_primary", "rose_gold_board_coat_front", "rose_gold_board_coat_rear"],
+          "generation": { "kind": "multi-image-to-3d", "geometry": "2k", "polycount": 90000 },
+          "rig": true,
+          "isLook": true,
+          "inferred": ["rear panel construction", "interior lining", "shoulder structure under the collar", "cuff interior"],
+          "note": "Worn as look:rose_gold_sovereign once rigged; also registers as an outerwear piece so it can be worn over other looks."
+        },
+        {
+          "id": "rose_gold_inner",
+          "name": "Inner garment beneath the coat",
+          "category": "other",
+          "slot": "inner",
+          "bone": "Spine02",
+          "part": "inner garment",
+          "references": ["rose_gold_board_inner"],
+          "generation": { "kind": "image-to-3d", "polycount": 30000 },
+          "inferred": ["full construction: only the neckline and hem show in the photograph"],
+          "note": "Board-only evidence. Nothing below the coat's opening is authoritative."
+        },
+        {
+          "id": "rose_gold_belt",
+          "name": "Jeweled waist belt",
+          "category": "accessory",
+          "slot": "belt",
+          "bone": "Hips",
+          "part": "independent component",
+          "references": ["rose_gold_board_belt", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "polycount": 40000 }
+        },
+        {
+          "id": "rose_gold_buckle",
+          "name": "Oval gemstone buckle",
+          "category": "accessory",
+          "slot": "buckle",
+          "bone": "Hips",
+          "part": "independent component",
+          "references": ["rose_gold_board_buckle"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 30000 },
+          "inferred": ["setting depth and back face"],
+          "note": "Separate reusable object by design: the belt swaps and the buckle stays."
+        },
+        {
+          "id": "rose_gold_bag",
+          "name": "Structured metallic handbag",
+          "category": "bag",
+          "slot": "bag",
+          "bone": "RightHand",
+          "part": "independent component",
+          "references": ["rose_gold_board_bag", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 45000 },
+          "inferred": ["interior and closure mechanism"]
+        },
+        {
+          "id": "rose_gold_boots",
+          "name": "Metallic boots (pair)",
+          "category": "shoes",
+          "slot": "shoes",
+          "bone": "RightFoot",
+          "part": "independent component",
+          "references": ["rose_gold_board_boots", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 40000 },
+          "note": "One item, both boots in one mesh: the placement model follows a single bone, so L/R are not split."
+        },
+        {
+          "id": "rose_gold_necklace",
+          "name": "Layered necklaces",
+          "category": "jewelry",
+          "slot": "necklace",
+          "bone": "Neck",
+          "part": "independent component",
+          "references": ["rose_gold_board_necklace", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 30000 }
+        },
+        {
+          "id": "rose_gold_choker",
+          "name": "Choker",
+          "category": "jewelry",
+          "slot": "choker",
+          "bone": "Neck",
+          "part": "independent component",
+          "references": ["rose_gold_board_choker", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 20000 }
+        },
+        {
+          "id": "rose_gold_pendant",
+          "name": "Pendant",
+          "category": "jewelry",
+          "slot": "pendant",
+          "bone": "Neck",
+          "part": "independent component",
+          "references": ["rose_gold_board_pendant", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 20000 }
+        },
+        {
+          "id": "rose_gold_earrings",
+          "name": "Hoop earrings (pair)",
+          "category": "jewelry",
+          "slot": "earrings",
+          "bone": "Head",
+          "part": "independent component",
+          "references": ["rose_gold_board_earrings", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 20000 }
+        },
+        {
+          "id": "rose_gold_rings",
+          "name": "Rings (set)",
+          "category": "jewelry",
+          "slot": "rings",
+          "bone": "RightHand",
+          "part": "independent component",
+          "references": ["rose_gold_board_rings"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 15000 },
+          "inferred": ["the photograph does not show her hands close enough to read the settings"]
+        },
+        {
+          "id": "rose_gold_hair_ornament",
+          "name": "Metallic hair ornaments",
+          "category": "headwear",
+          "slot": "hair-accessory",
+          "bone": "Head",
+          "part": "independent component",
+          "references": ["rose_gold_board_hair", "rose_gold_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 20000 }
+        }
+      ]
+    },
+    {
+      "id": "bronze_velocity",
+      "title": "Bronze Velocity",
+      "authority": ["bronze_velocity_photo_primary"],
+      "boards": ["bronze_velocity_board"],
+      "assets": [
+        {
+          "id": "bronze_catsuit",
+          "name": "Sculpted bronze metallic catsuit",
+          "category": "look",
+          "slot": "look",
+          "part": "primary garment",
+          "references": ["bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 90000 },
+          "rig": true,
+          "isLook": true,
+          "inferred": ["rear panel seaming", "the stripes' path around the back and inner leg", "high collar closure"],
+          "note": "Front and side stripes are modelled as garment panelling, not painted from the photograph: they follow the reconstruction's own UV seams."
+        },
+        {
+          "id": "bronze_arm_rings",
+          "name": "Metallic arm rings (pair)",
+          "category": "accessory",
+          "slot": "arm-accessory",
+          "bone": "RightForearm",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_armrings", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 25000 },
+          "note": "One item per bone: a second placement on LeftForearm is the same asset, not a second generation."
+        },
+        {
+          "id": "bronze_collar",
+          "name": "High collar (separable)",
+          "category": "accessory",
+          "slot": "collar",
+          "bone": "Neck",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_collar", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 25000 },
+          "inferred": ["how the collar meets the bodice"]
+        },
+        {
+          "id": "bronze_ankh_belt",
+          "name": "Ankh waist ornament and belt",
+          "category": "accessory",
+          "slot": "belt",
+          "bone": "Hips",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_ankh", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 35000 }
+        },
+        {
+          "id": "bronze_bag",
+          "name": "Matching bronze handbag",
+          "category": "bag",
+          "slot": "bag",
+          "bone": "RightHand",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_bag", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 45000 },
+          "inferred": ["interior and closure mechanism"]
+        },
+        {
+          "id": "bronze_boots",
+          "name": "Metallic bronze boots (pair)",
+          "category": "shoes",
+          "slot": "shoes",
+          "bone": "RightFoot",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_boots", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 40000 },
+          "note": "One item, both boots in one mesh."
+        },
+        {
+          "id": "bronze_earrings",
+          "name": "Earrings (pair)",
+          "category": "jewelry",
+          "slot": "earrings",
+          "bone": "Head",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_earrings", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 20000 }
+        },
+        {
+          "id": "bronze_neck_jewelry",
+          "name": "Neck jewelry",
+          "category": "jewelry",
+          "slot": "necklace",
+          "bone": "Neck",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_neck", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 25000 }
+        },
+        {
+          "id": "bronze_hair_coils",
+          "name": "Metallic hair coils and ornaments",
+          "category": "headwear",
+          "slot": "hair-accessory",
+          "bone": "Head",
+          "part": "independent component",
+          "references": ["bronze_velocity_board_hair", "bronze_velocity_photo_primary"],
+          "generation": { "kind": "image-to-3d", "geometry": "2k", "polycount": 25000 }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+CONSOLEARGS ["🟢 [6:20:49 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:20:49 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:21:45 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:21:45 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:21:48 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:21:48 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+[{"t":1011,"m":"GET","u":"/api/github/status","done":2455},
+{"t":1011,"m":"POST","u":"/api/acquisition","done":2456},
+{"t":2465,"console":"🟢 [6:21:48 PM] [ProviderResolver] Groq generated response"},
+{"t":2476,"console":"🟢 [6:21:48 PM] [ProviderResolver] Model routing decision"},
+{"t":2478,"console":"🟢 [6:21:48 PM] [ProviderResolver] Trying Groq"},
+{"t":2482,"console":"🟢 [6:21:48 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":2484,"console":"🟢 [6:21:48 PM] [ProviderResolver] Request budget"},
+{"t":2489,"m":"POST","u":"/api/model/groq/chat/completions","done":8114},
+{"t":3858,"m":"GET","u":"/api/forge/world","done":5048},
+{"t":5035,"m":"POST","u":"/api/execution/events"},
+{"t":6255,"console":"🟢 [6:21:51 PM] [ProviderResolver] Tool world_export -> ok"},
+{"t":6258,"m":"POST","u":"/api/model/groq/chat/completions"},
+{"t":6849,"m":"POST","u":"/api/execution/events"},
+{"t":8068,"m":"GET","u":"/api/voice/status","done":8753},
+{"t":8068,"console":"🟢 [6:21:53 PM] [ProviderResolver] Groq generated response"}]
+ROUTING_TRACE {
+ "intent": "chat",
+ "stages": "time:0 cognitive-state:0 brain:1 intelligence:1 surface:0 tools:0 engineering:0 creative:0 avatar:0 research:1 deflock:0 browser:0 workspace:1 provider:5594*",
+ "notes": [
+  "final: owner=Groq provider=Groq model=openai/gpt-oss-120b chars=308"
+ ]
+}
+APPCALLS ["GET 200 forge/world"]
+{
+ "prompt": "Export the objects in my world as an STL file so I can 3D print them.",
+ "firstAnswerTextMs": null,
+ "settledMs": 14650,
+ "modelRequests": 3,
+ "reqs": [
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4449,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": 1754
+  },
+  {
+   "t": 2489,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 24464,
+   "msgs": 4,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,world_state,world_environment,world_generate,world_object,sandbox_execute,atelier_export,sandbox_read,sandbox_write,project_manage,studio_export",
+   "max": 2048,
+   "stream": true,
+   "status": 200,
+   "tResp": 3149
+  },
+  {
+   "t": 6258,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 15135,
+   "msgs": 6,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,world_state,world_environment,world_generate,world_object,sandbox_execute,atelier_export,sandbox_read,sandbox_write,project_manage,studio_export",
+   "max": 2048,
+   "stream": true,
+   "status": 200,
+   "tResp": 6847
+  }
+ ],
+ "answer": "Here’s the STL file with all the objects from your world, ready for 3D printing:\n\nDownload L‑L‑U‑s‑room‑1794680511854.stl\n\nLet me know if you need anything else—e.g., a preview, a different format, or help slicing the model for your printer!"
+}

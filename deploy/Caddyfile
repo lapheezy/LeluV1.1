@@ -1,0 +1,75 @@
+# ==========================================================
+# LÉLU — CADDY (automatic HTTPS + reverse proxy)
+#
+# Caddy fetches and renews the certificate itself; there is no certbot
+# cron job to forget.
+#
+# What this file is careful about:
+#   • It does NOT set a blanket long cache lifetime. Doing so would
+#     reintroduce the bug server.ts just fixed: a phone would never
+#     revalidate sw.js or the avatar art. The app's own Cache-Control
+#     is authoritative and is passed through untouched.
+#   • Ranges and validators are forwarded, so a 49 MB model resumes and
+#     a repeat visit can return 304.
+#   • /api/engineer/* and /api/browser/capture are refused at the edge.
+#     The runtime already answers 503 when no token is configured (fail
+#     closed); this is the second, independent boundary the deployment
+#     brief asks for. Remove these two blocks only if you deliberately
+#     enable self-development on the server AND set LELU_ENGINEER_TOKEN.
+#   • Brotli: Caddy's built-in encoder supports gzip and zstd. Brotli
+#     needs a plugin (caddy-encode-brotli), so this config uses zstd +
+#     gzip, which every modern mobile browser accepts.
+# ==========================================================
+
+{
+	email {$ACME_EMAIL}
+	# Uncomment while testing with a staging certificate:
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$LELU_HOST} {
+	encode zstd gzip
+
+	# ---- second boundary: the engineering surface ----------------
+	# 404 (not 403) so the endpoints are not even confirmed to exist.
+	handle /api/engineer/* {
+		respond 404
+	}
+	handle /api/browser/capture {
+		respond 404
+	}
+
+	# ---- everything else ----------------------------------------
+	handle {
+		reverse_proxy lelu:4173 {
+			# Keep the upstream's own headers, including ETag,
+			# Last-Modified, Cache-Control, Content-Range and
+			# Accept-Ranges. Caddy forwards these by default; the
+			# point is that nothing below strips them.
+			header_up X-Forwarded-Proto {scheme}
+
+			# Server-sent events and long polls must not be buffered.
+			flush_interval -1
+
+			# A 49 MB model download is not a failure.
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+		}
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 20mb
+			roll_keep 5
+		}
+		format console
+	}
+
+	# Do not let the proxy answer for a wedged app: Caddy returns 502,
+	# which is an honest failure rather than a cached success.
+	handle_errors {
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
+}

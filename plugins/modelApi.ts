@@ -38,6 +38,7 @@
  * ==========================================================
  */
 
+import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import { endpoint, type EndpointId } from "../src/core/Endpoints.ts";
 
 export type EnvReader = (name: string) => string | undefined;
@@ -50,6 +51,11 @@ interface BrokeredProvider {
   keyNames: string[];
   /** Build the auth headers from the resolved credential. */
   authHeaders: (key: string) => Record<string, string>;
+  /**
+   * Request headers the browser MAY set, each with the pattern its value
+   * must match. Everything else the page sends is dropped.
+   */
+  passHeaders?: Record<string, RegExp>;
 }
 
 /**
@@ -62,17 +68,31 @@ interface BrokeredProvider {
 export const BROKERED: Record<string, BrokeredProvider> = {
   anthropic: {
     endpointId: "anthropic",
-    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
     authHeaders: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
+    // Beta opt-ins (e.g. the server-side refusal fallback) are a property of
+    // the request, not of the credential, so the page chooses them — but
+    // only as comma-separated beta names, never as arbitrary header text.
+    passHeaders: { "anthropic-beta": /^[a-z0-9-]+(?:\s*,\s*[a-z0-9-]+)*$/ },
   },
   groq: {
     endpointId: "groq",
-    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY"],
+    // Same slots as src/core/model/ProviderKeyRing.ts (base + _1.._4): the
+    // stored environment holds four Groq and four OpenRouter keys.
+    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4"],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   openrouter: {
     endpointId: "openrouter",
-    keyNames: ["VITE_OPENROUTER_API_KEY", "OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY"],
+    keyNames: [
+      "VITE_OPENROUTER_API_KEY",
+      "OPENROUTER_API_KEY",
+      "OPEN_ROUTER_API_KEY",
+      "OPENROUTER_API_KEY_1",
+      "OPENROUTER_API_KEY_2",
+      "OPENROUTER_API_KEY_3",
+      "OPENROUTER_API_KEY_4",
+    ],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   cerebras: {
@@ -120,8 +140,11 @@ export function brokerPath(provider: string, path = ""): string {
   return tail ? `/api/model/${provider}/${tail}` : `/api/model/${provider}`;
 }
 
-interface ConnectLikeRes {
+export interface ConnectLikeRes {
   statusCode?: number;
+  /** Present on a real Node response; "close" fires when the client goes away. */
+  on?: (event: "close", fn: () => void) => void;
+  writableFinished?: boolean;
   setHeader: (name: string, value: string) => void;
   end: (body?: string) => void;
   /** Present on a real Node response; used to forward a stream chunk by chunk. */
@@ -131,11 +154,12 @@ interface ConnectLikeRes {
   headersSent?: boolean;
 }
 
-interface ConnectLikeReq {
+export interface ConnectLikeReq {
   method?: string;
   url?: string;
   headers?: Record<string, string | string[] | undefined>;
   on?: (event: "data" | "end" | "error", fn: (chunk?: unknown) => void) => void;
+  socket?: { remoteAddress?: string };
 }
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
@@ -159,7 +183,7 @@ function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
  * leaving the envelope readable — which fails upstream with a parse error that
  * looks like anything but an encoding bug.
  */
-function readBody(req: ConnectLikeReq): Promise<Buffer> {
+export function readBody(req: ConnectLikeReq): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     if (!req.on) return resolve(Buffer.alloc(0));
     const chunks: Buffer[] = [];
@@ -205,7 +229,7 @@ function headerValue(req: ConnectLikeReq, name: string): string {
  * same-process or CLI caller and is allowed through, matching the behaviour
  * the dedicated relay had before this became the single mechanism.
  */
-function crossOrigin(req: ConnectLikeReq): boolean {
+export function crossOrigin(req: ConnectLikeReq): boolean {
   const origin = headerValue(req, "origin");
   const referer = headerValue(req, "referer");
   const host = headerValue(req, "host");
@@ -288,6 +312,60 @@ function warnAboutPrefixedCredentials(readEnv: EnvReader): void {
   );
 }
 
+/** The headers from `provider.passHeaders` the request carries with a valid value. */
+function passedHeaders(req: ConnectLikeReq, provider: BrokeredProvider): Record<string, string> {
+  const passed: Record<string, string> = {};
+  for (const [name, pattern] of Object.entries(provider.passHeaders ?? {})) {
+    const value = headerValue(req, name).trim();
+    if (value && value.length <= 256 && pattern.test(value)) passed[name] = value;
+  }
+  return passed;
+}
+
+/**
+ * Per-client request budget for the credentialed routes.
+ *
+ * The broker spends the operator's quota on behalf of whoever reaches it.
+ * The origin check stops other WEBSITES driving it from a visitor's
+ * browser, but any non-browser client on the network can send a matching
+ * Origin header, so this bounds what one address can spend: a fixed
+ * window of LELU_BROKER_RATE_PER_MIN requests per minute (default 120;
+ * 0 disables). It is a ceiling on abuse, not an authentication scheme.
+ */
+export function createRateLimiter(perMinute: number, now: () => number = Date.now) {
+  const windows = new Map<string, { start: number; count: number }>();
+  return {
+    /** Seconds to wait, or 0 when the request may proceed. */
+    take(client: string): number {
+      if (perMinute <= 0) return 0;
+      const time = now();
+      let window = windows.get(client);
+      if (!window || time - window.start >= 60_000) {
+        // Bound memory: forget windows that have expired.
+        if (windows.size > 10_000) {
+          for (const [key, entry] of windows) {
+            if (time - entry.start >= 60_000) windows.delete(key);
+          }
+        }
+        window = { start: time, count: 0 };
+        windows.set(client, window);
+      }
+      if (window.count >= perMinute) {
+        return Math.max(1, Math.ceil((window.start + 60_000 - time) / 1000));
+      }
+      window.count += 1;
+      return 0;
+    },
+  };
+}
+
+function rateLimitFromEnv(readEnv: EnvReader): number {
+  const raw = readEnv("LELU_BROKER_RATE_PER_MIN");
+  if (raw === undefined || raw.trim() === "") return 120;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 120;
+}
+
 /**
  * Providers whose credential the upstream has actually REJECTED.
  *
@@ -311,8 +389,208 @@ function isAuthFailure(status: number): boolean {
   return status === 401 || status === 403;
 }
 
+/**
+ * The Anthropic opt-in, enforced HERE as well as in the page.
+ *
+ * ProviderPolicy (src/core/model) turns Anthropic off by default, but only
+ * the page's AnthropicProvider consulted it: the broker still attached the
+ * server's Anthropic key to any same-origin request. A script, an old
+ * client or a future caller could therefore spend Anthropic credit with the
+ * policy "off". Premium escalation is manual: without
+ * LELU_ENABLE_ANTHROPIC=true on the SERVER, the broker refuses.
+ */
+const POLICY_TRUE = new Set(["1", "true", "yes", "on"]);
+function brokerAllows(providerId: string, readEnv: EnvReader): boolean {
+  if (providerId !== "anthropic") return true;
+  const raw = readEnv("LELU_ENABLE_ANTHROPIC");
+  return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
+}
+
+/**
+ * WHAT WAS SENT, AS SIZES.
+ *
+ * The refusal that matters is about volume: a provider meters prompt and
+ * reserved output together, and LÉLU's full turn carries a system prompt, a
+ * tool schema set and history. Those three numbers are what make a refusal
+ * diagnosable, and none of them requires storing the text.
+ */
+interface SentShape {
+  model?: string;
+  promptChars: number;
+  toolChars: number;
+  systemChars: number;
+  messages: number;
+  /** How many `role: "tool"` results this request carried back to the model.
+   *  That number is the server's own evidence a tool really ran, without
+   *  reading any prompt text. */
+  toolResults: number;
+  maxTokens?: number;
+  stream?: boolean;
+}
+
+function shapeOf(body?: Buffer): SentShape {
+  const shape: SentShape = { promptChars: 0, toolChars: 0, systemChars: 0, messages: 0, toolResults: 0 };
+  if (!body || body.length === 0) return shape;
+  try {
+    const parsed = JSON.parse(body.toString("utf8")) as Record<string, unknown>;
+    if (typeof parsed.model === "string") shape.model = parsed.model;
+    const messages = Array.isArray(parsed.messages)
+      ? parsed.messages
+      : Array.isArray(parsed.contents)
+        ? parsed.contents
+        : [];
+    shape.messages = messages.length;
+    shape.toolResults = (messages as Array<{ role?: string }>).filter((message) => message.role === "tool").length;
+    shape.promptChars = JSON.stringify(messages).length;
+    shape.toolChars = parsed.tools ? JSON.stringify(parsed.tools).length : 0;
+    const first = messages[0] as { role?: string } | undefined;
+    if (first && (first.role === "system" || first.role === "user") && messages.length > 1) {
+      shape.systemChars = JSON.stringify(first).length;
+    }
+    const max = parsed.max_tokens ?? parsed.max_completion_tokens ?? parsed.maxOutputTokens;
+    if (typeof max === "number") shape.maxTokens = max;
+    shape.stream = parsed.stream === true;
+  } catch {
+    // Not JSON (multipart audio shares this broker): the byte count is still
+    // the honest answer, and it is reported from requestBytes.
+  }
+  return shape;
+}
+
+/** Rough token count for sizing decisions. Four characters per token, which
+ *  is close enough for an English prompt and errs high on a tool schema. */
+const charsToTokens = (chars: number): number => Math.ceil(chars / 4);
+
+function sizingOf(body?: Buffer) {
+  const shape = shapeOf(body);
+  return {
+    ...shape,
+    promptTokens: charsToTokens(shape.promptChars),
+    toolTokens: charsToTokens(shape.toolChars),
+  };
+}
+
+/** Is per-turn tracing on? Failures are recorded either way. */
+function traceTurns(readEnv: EnvReader): boolean {
+  const raw = readEnv("LELU_BROKER_TRACE");
+  return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
+}
+
+/**
+ * Remove anything that could carry a credential out of a provider message.
+ *
+ * Provider errors quote the request; a quoted request can quote a header. The
+ * log is for diagnosis, so it keeps the shape of the message and drops the
+ * parts that look like secrets.
+ */
+function redact(text: string): string {
+  return text
+    .replace(/\b(sk|gsk|hf|pk|rk)[-_][A-Za-z0-9_-]{8,}/gi, "[redacted]")
+    .replace(/Bearer\s+[^\s"']+/gi, "Bearer [redacted]")
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, "[redacted]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 240);
+}
+
+/**
+ * The provider's own refusal, in the provider's own words.
+ *
+ * Groq says `error.code`; OpenRouter nests `error.metadata`; Anthropic uses
+ * `error.type`. The differences are exactly what a sizing fix has to respond
+ * to, so the code is kept verbatim and the message is shortened, not rewritten.
+ */
+function describeUpstreamError(body: string, status: number): string {
+  if (!body) return `HTTP ${status} with an empty body`;
+  try {
+    const parsed = JSON.parse(body) as {
+      error?: { message?: unknown; code?: unknown; type?: unknown; metadata?: unknown } | string;
+      message?: unknown;
+    };
+    const error = typeof parsed.error === "object" && parsed.error ? parsed.error : undefined;
+    if (!error) {
+      const direct = typeof parsed.message === "string" ? parsed.message : body;
+      return redact(direct);
+    }
+    const parts: string[] = [];
+    if (typeof error.type === "string") parts.push(`type=${error.type}`);
+    if (typeof error.code === "string" || typeof error.code === "number") parts.push(`code=${String(error.code)}`);
+    const message = typeof error.message === "string" ? error.message : typeof parsed.message === "string" ? parsed.message : "";
+    if (message) parts.push(message);
+    if (error.metadata !== undefined) {
+      // OpenRouter puts the binding limit here (e.g. per-day free-model usage).
+      parts.push(`metadata=${redact(JSON.stringify(error.metadata)).slice(0, 120)}`);
+    }
+    return redact(parts.join(" | ")) || `HTTP ${status}`;
+  } catch {
+    return redact(body) || `HTTP ${status}`;
+  }
+}
+
+interface TurnTrace {
+  provider: string;
+  model?: string;
+  status: number;
+  requestBytes: number;
+  promptChars: number;
+  toolChars: number;
+  systemChars: number;
+  messages: number;
+  toolResults: number;
+  maxTokens?: number;
+  stream?: boolean;
+  promptTokens: number;
+  toolTokens: number;
+  error: string;
+}
+
+/** One line, greppable, with no prompt text and no credential. */
+function logTurn(trace: TurnTrace): void {
+  const head =
+    `provider=${trace.provider} model=${trace.model ?? "?"} status=${trace.status} ` +
+    `bytes=${trace.requestBytes} messages=${trace.messages} toolResults=${trace.toolResults ?? 0} ` +
+    `prompt≈${trace.promptTokens}tok tools≈${trace.toolTokens}tok system=${charsToTokens(trace.systemChars)}tok ` +
+    `max_tokens=${trace.maxTokens ?? "-"} stream=${trace.stream ? 1 : 0}`;
+  if (trace.status >= 200 && trace.status < 300) {
+    console.log(`[model broker] ${head}`);
+    return;
+  }
+  console.warn(`[model broker] REFUSED ${head} error="${trace.error}"`);
+}
+
+/**
+ * OpenRouter's default when no model is configured: a $0 ":free" model that
+ * makes tool calls (verified 2026-11-14: correct world_object call, cost 0).
+ * Must match src/core/Environment.ts.
+ */
+export const DEFAULT_FREE_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
+
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
+  const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
+
+  /**
+   * WHAT THE SERVER HAS ACTUALLY SEEN, per provider.
+   *
+   * Configuration is not capability. A key string can exist while every
+   * request is refused, and reporting that as available sends each turn
+   * through a provider that cannot answer. This records the last real
+   * upstream outcome so /status can say what is KNOWN rather than what is
+   * merely configured. It costs no provider quota: it is filled by requests
+   * that were going to be made anyway.
+   */
+  const evidence = new Map<
+    string,
+    { state: string; httpStatus?: number; contentType?: string; at: number; note?: string }
+  >();
+  // A refusal is an observation with a shelf life, not a property of the
+  // provider. MEASURED (2026-11-11): one probe's 429 left groq labelled
+  // CAPACITY_LIMITED for the rest of the session while later turns completed
+  // through it, so the status page showed a limit that had long expired.
+  // Transient evidence expires; verified evidence (a real 2xx) does not.
+  const TRANSIENT_STATES = new Set(["CAPACITY_LIMITED", "UNREACHABLE"]);
+  const TRANSIENT_STATE_TTL_MS = 120_000;
+
   const credentialFor = (provider: BrokeredProvider): string => {
     for (const name of provider.keyNames) {
       const value = readEnv(name);
@@ -321,19 +599,108 @@ export function createModelApi(readEnv: EnvReader) {
     return "";
   };
 
+  /**
+   * Every credential this provider can be tried with, in configured order.
+   *
+   * One key per provider made a free tier's daily ceiling the app's ceiling:
+   * `.env.local` here carries Groq1/Groq2 and Openrouter1..3, but only the
+   * first of each was ever read, so a 429 on one account took the provider out
+   * of the chain while a fresh account sat unused. Duplicates collapse, because
+   * the same key stored under two names is one key.
+   */
+  /** The model the page asks this provider for by default (status decides availability on it). */
+  const defaultModelFor = (id: string): string | undefined => {
+    if (id !== "openrouter") return undefined;
+    return (readEnv("VITE_OPENROUTER_MODEL") || readEnv("OPENROUTER_MODEL") || DEFAULT_FREE_OPENROUTER_MODEL).trim();
+  };
+
+  const credentialsFor = (provider: BrokeredProvider): string[] => {
+    const keys: string[] = [];
+    for (const name of provider.keyNames) {
+      const value = readEnv(name)?.trim();
+      if (value && !keys.includes(value)) keys.push(value);
+    }
+    return keys;
+  };
+
+  /**
+   * When each key may be used again, learned from the provider's own
+   * "try again in 35m36.2s" on a 429. In memory only; never logged.
+   *
+   * Measured on a world-building turn: Groq key 1 had spent its daily
+   * tokens ("try again in 35m36s") yet was tried FIRST on every round, a
+   * wasted round trip each time, while keys 2-4 had room. A request now
+   * starts with the keys that are ready; cooling keys are a last resort.
+   */
+  const keyReadyAt = new Map<string, number>();
+  const byReadiness = (keys: string[]): string[] => {
+    const now = Date.now();
+    const ready = keys.filter((k) => (keyReadyAt.get(k) ?? 0) <= now);
+    return [...ready, ...keys.filter((k) => !ready.includes(k))];
+  };
+  const noteRetryAfter = (key: string, body: string): void => {
+    const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(body);
+    if (!m || !(m[1] || m[2] || m[3])) return;
+    const ms = (Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0)) * 1000;
+    if (ms > 0) keyReadyAt.set(key, Date.now() + Math.min(ms, 24 * 3600_000));
+  };
+
+  /** Longest same-key wait the broker will make (below the page's 12 s rung watchdog). */
+  const MAX_BROKER_WAIT_MS = 8_000;
+
+  /** Statuses another credential can fix: refused, forbidden, or out of quota. */
+  const CREDENTIAL_RETRY_STATUS = new Set([401, 403, 429]);
+
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
-    const url = req.url ?? "";
+    // Connect (Vite) strips the mount path before calling a handler; the
+    // standalone server's router (server.ts) does not. Without this, every
+    // production request arrived as "/api/model/…" and was read as a call
+    // to a provider named "api".
+    const raw = req.url ?? "";
+    const url = raw.startsWith("/api/model/") || raw === "/api/model" ? raw.slice("/api/model".length) : raw;
 
     // WHICH PROVIDERS THE SERVER CAN REACH. Booleans only — a status
     // route that leaked the key would defeat the point of the broker.
     if (url === "/status" || url.startsWith("/status?")) {
       const status: Record<string, boolean> = {};
+      const states: Record<string, { state: string; at?: number; httpStatus?: number; note?: string }> = {};
       for (const [id, provider] of Object.entries(BROKERED)) {
         // Configured AND not known-rejected. A provider holding a revoked key
         // is not available, and saying otherwise sends every turn through it.
-        status[id] = credentialFor(provider).length > 0 && !unauthorized.has(id);
+        const configured = credentialFor(provider).length > 0;
+        // Paid capacity without authorization is not available: the page
+        // must not even try it (and so never loops on a refusal).
+        const spendOk = spendPolicy().check(id, { model: defaultModelFor(id), operation: "chat" }, { peek: true }).allowed;
+        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv) && spendOk;
+
+        // CONFIGURED is the honest answer when nothing has been observed yet;
+        // it is NOT a capability claim. Every stronger state needs evidence.
+        const recorded = evidence.get(id);
+        if (recorded && TRANSIENT_STATES.has(recorded.state) && Date.now() - recorded.at > TRANSIENT_STATE_TTL_MS) {
+          // Expired: the provider is configured and nothing recent says otherwise.
+          evidence.delete(id);
+        }
+        const seen = evidence.get(id);
+        let state: string;
+        if (!configured) state = "UNCONFIGURED";
+        else if (!brokerAllows(id, readEnv)) state = "POLICY_DISABLED";
+        else if (!spendOk) state = "SPEND_NOT_AUTHORIZED";
+        else if (unauthorized.has(id)) state = "COOLDOWN";
+        else state = seen?.state ?? "CONFIGURED";
+        states[id] = {
+          state,
+          ...(seen ? { at: seen.at, httpStatus: seen.httpStatus, ...(seen.note ? { note: seen.note } : {}) } : {}),
+        };
       }
-      sendJson(res, { ok: true, providers: status });
+      sendJson(res, {
+        ok: true,
+        // Back-compatible booleans: "should the chain try it".
+        providers: status,
+        // The distinction Mission 5.7 asked for. `CONFIGURED` means only that;
+        // `COMPLETION_VERIFIED` / `TOOL_CALLING_VERIFIED` mean a real 2xx came
+        // back, and tool-calling is only ever claimed from an actual tool call.
+        states,
+      });
       return;
     }
 
@@ -362,12 +729,22 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
+    if (!brokerAllows(providerId, readEnv)) {
+      sendJson(
+        res,
+        { ok: false, error: "Anthropic is disabled by policy on this server (set LELU_ENABLE_ANTHROPIC=true to opt in)." },
+        403,
+      );
+      return;
+    }
+
     if (!safeUpstreamPath(rest ?? "")) {
       sendJson(res, { ok: false, error: "Invalid upstream path." }, 400);
       return;
     }
 
-    const key = credentialFor(provider);
+    const keys = byReadiness(credentialsFor(provider));
+    const key = keys[0] ?? "";
     if (!key) {
       // A missing credential is reported as a missing credential, not as
       // a network error — the difference is what an operator has to fix.
@@ -383,29 +760,285 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
-    const target = `${endpoint(provider.endpointId)}${rest ?? ""}`;
+    const wait = limiter.take(req.socket?.remoteAddress ?? "local");
+    if (wait > 0) {
+      res.setHeader("Retry-After", String(wait));
+      sendJson(res, { ok: false, error: "Broker rate limit reached; retry shortly." }, 429);
+      return;
+    }
+
+    // A client that goes away (closed tab, aborted fetch, its own timeout)
+    // must stop the upstream too. Otherwise a long streamed generation kept
+    // running — and billing — for nobody, for up to two minutes.
+    const clientGone = new AbortController();
+    res.on?.("close", () => {
+      if (!res.writableFinished) clientGone.abort();
+    });      const target = `${endpoint(provider.endpointId)}${rest ?? ""}`;
     try {
-      const upstream = await fetch(target, {
-        method: req.method ?? "POST",
-        headers: {
-          "Content-Type": forwardedContentType(req),
-          // The server's credential, always. Anything the page sent is
-          // dropped: the browser is not a source of authority here.
-          ...provider.authHeaders(key),
-        },
-        body: req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req),
-        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-      });
+      // Held so the trace below can measure what was actually sent. Read once:
+      // the body stream cannot be consumed twice.
+      const sentBody = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
+
+      /*
+       * GLOBAL SPENDING POLICY (plugins/spendPolicy.ts). Every billable
+       * model call passes here, from any page code, agent, background job
+       * or delegated tool. A paid provider/model without the user's explicit,
+       * scoped authorization is refused BEFORE anything leaves the server.
+       */
+      let spendModel: string | undefined;
+      try {
+        const parsed = sentBody && sentBody.length ? (JSON.parse(sentBody.toString("utf8")) as { model?: unknown }) : null;
+        spendModel = typeof parsed?.model === "string" ? parsed.model : undefined;
+      } catch {
+        spendModel = undefined;
+      }
+      const spendOperation = /audio\/transcriptions/.test(rest ?? "") ? "transcription" : "chat";
+      const spend = req.method === "GET" || req.method === "HEAD"
+        ? { allowed: true, cost: "free" as const, why: "listing", code: "free" }
+        : spendPolicy().check(providerId, { model: spendModel, operation: spendOperation });
+      if (!spend.allowed) {
+        sendJson(res, spendRefusal(providerId, spend, { model: spendModel, operation: spendOperation }), 402);
+        return;
+      }
+      const sendUpstream = (credential: string, body: Buffer | undefined = sentBody) =>
+        fetch(target, {
+          method: req.method ?? "POST",
+          headers: {
+            "Content-Type": forwardedContentType(req),
+            ...passedHeaders(req, provider),
+            // The server's credential, always. Anything else the page sent
+            // is dropped: the browser is not a source of authority here.
+            ...provider.authHeaders(credential),
+          },
+          body,
+          signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
+        });
+
+      let upstream = await sendUpstream(key);
+      let slot = 0;
+      /**
+       * A refusal another credential or a short pause can fix is retried before
+       * the provider is reported as failed.
+       *
+       * MEASURED: a Groq tool turn spent 4,332 tokens and then asked for 3,971
+       * more against an 8,000 TPM free tier; the second call answered 429 "try
+       * again in 2.2725s" — a per-minute window, not a spent account. Treating
+       * that as provider-wide exhaustion threw away a finished tool run and
+       * told the user the model was unreachable. A short retry-after is waited
+       * out on the SAME key; only a refusal without one rotates credentials.
+       */
+      // Every key once, plus one wait on the last: bounded by the key count.
+      for (let guard = 0; guard < keys.length + 1 && CREDENTIAL_RETRY_STATUS.has(upstream.status); guard += 1) {
+        let waitMs = 0;
+        let reason = "";
+        if (upstream.status === 429) {
+          const body = await upstream
+            .clone()
+            .text()
+            .catch(() => "");
+          reason = (/"message"\s*:\s*"([^"]{0,220})/.exec(body)?.[1] ?? "").replace(/organization `[^`]*`/g, "organization `…`");
+          noteRetryAfter(keys[slot] ?? key, body);
+          const retry = /try again in\s*([\d.]+)\s*s/i.exec(body);
+          // Wait only when the wait fits inside the page's 12 s stall
+          // watchdog (ProviderResolver). A longer wait was always killed by it
+          // — measured: "waiting 15s" ended as "timed out after its 12.0s
+          // budget" — so the next provider never got its turn. Past this, the
+          // real 429 goes back at once and the chain moves on.
+          if (retry) {
+            const asked = Math.ceil(Number(retry[1]) * 1000) + 300;
+            waitMs = asked <= MAX_BROKER_WAIT_MS ? asked : 0;
+          }
+        }
+        // Nothing left to try: keep THIS refusal intact for the caller. The
+        // body used to be cancelled before this decision, so the final 429
+        // (no retry hint, no other key) reached the code below already
+        // consumed and went out as a 502 "Body is unusable: Body has already
+        // been read" — measured on Groq tool turns. A quota refusal then read
+        // as a server fault and its real reason never reached the page.
+        if (waitMs <= 0 && slot + 1 >= keys.length) break;
+        await upstream.body?.cancel().catch(() => undefined);
+        // Another key first; wait only when there is none. Each Groq key
+        // has its own per-minute allowance, so with four keys a "try again
+        // in 8s" on one is served at once by the next. Waiting on the same
+        // key was silent and, measured on a 3-round world-building turn,
+        // left the final round past the 12 s stall watchdog — the objects
+        // were built but her reply never came.
+        if (waitMs > 0 && slot + 1 >= keys.length) {
+          console.info(`[model broker] ${providerId}: ${upstream.status} on the last key; waiting ${Math.round(waitMs / 1000)}s as the provider asked — ${reason}`);
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+          upstream = await sendUpstream(keys[slot] ?? key);
+          continue;
+        }
+        if (slot + 1 < keys.length) {
+          if (reason) console.info(`[model broker] ${providerId}: slot ${slot + 1} ${upstream.status}; trying slot ${slot + 2} — ${reason}`);
+          slot += 1;
+          evidence.set(providerId, {
+            state: "CREDENTIAL_ROTATED",
+            httpStatus: upstream.status,
+            at: Date.now(),
+            note: `slot ${slot} refused; tried the next configured credential`,
+          });
+          upstream = await sendUpstream(keys[slot] as string);
+          continue;
+        }
+        break;
+      }
+
+      /*
+       * A 402 that names what the account CAN still afford is retried once,
+       * smaller, instead of being a hard failure.
+       *
+       * LÉLU asks for DEFAULT_OUTPUT_TOKENS (2,048). Measured: OpenRouter
+       * answered `402 … You requested up to 2048 tokens, but can only afford
+       * 1709` to every turn, so a key with credit left served nothing and the
+       * chain ended offline. One retry with max_tokens reduced to fit (never
+       * raised, never below a useful 256) serves the turn; anything else is
+       * passed through unchanged.
+       */
+      if (upstream.status === 402 && sentBody) {
+        const refusal = await upstream.clone().text().catch(() => "");
+        const affordable = Number(/can only afford\s+(\d+)/i.exec(refusal)?.[1] ?? NaN);
+        let resized: Buffer | null = null;
+        try {
+          const parsed = JSON.parse(sentBody.toString("utf8")) as Record<string, unknown>;
+          const field = "max_completion_tokens" in parsed ? "max_completion_tokens" : "max_tokens";
+          const asked = Number(parsed[field]);
+          const fit = Math.floor(affordable * 0.95);
+          if (Number.isFinite(affordable) && fit >= 256 && Number.isFinite(asked) && fit < asked) {
+            parsed[field] = fit;
+            resized = Buffer.from(JSON.stringify(parsed));
+            console.info(`[model broker] ${providerId}: 402 at max_tokens=${asked}; retrying once at ${fit} (account can afford ${affordable})`);
+          }
+        } catch {
+          resized = null; // not JSON: nothing to resize
+        }
+        if (resized) {
+          await upstream.body?.cancel().catch(() => undefined);
+          upstream = await sendUpstream(keys[slot] ?? key, resized);
+        }
+      }
 
       // Learn from the real answer: a rejected credential takes the provider
       // out of the chain, a successful one puts it back.
       if (isAuthFailure(upstream.status)) {
         unauthorized.add(providerId);
+        evidence.set(providerId, {
+          state: "AUTHENTICATION_FAILED",
+          httpStatus: upstream.status,
+          at: Date.now(),
+          note: "provider rejected the credential",
+        });
+      } else if (upstream.status === 429) {
+        evidence.set(providerId, {
+          state: "CAPACITY_LIMITED",
+          httpStatus: 429,
+          at: Date.now(),
+          note: "rate limit / quota refusal",
+        });
+      } else if (upstream.status >= 500) {
+        evidence.set(providerId, {
+          state: "UNREACHABLE",
+          httpStatus: upstream.status,
+          at: Date.now(),
+        });
       } else if (upstream.ok) {
         unauthorized.delete(providerId);
+        evidence.set(providerId, {
+          state: "COMPLETION_VERIFIED",
+          httpStatus: upstream.status,
+          at: Date.now(),
+        });
       }
 
       const contentType = upstream.headers.get("content-type") ?? "application/json";
+      const isEventStream = contentType.includes("text/event-stream");
+      // Read a non-streamed body once, so the contract can be judged from what
+      // actually came back rather than from the status code alone.
+      const bodyText = isEventStream ? "" : await upstream.text();
+      if (spend.code === "authorized" && upstream.ok) {
+        // What the authorized call actually cost, where the provider says
+        // (OpenRouter reports usage.cost); otherwise the request is counted.
+        let usd: number | undefined;
+        try {
+          const cost = (JSON.parse(bodyText || "{}") as { usage?: { cost?: unknown } }).usage?.cost;
+          usd = typeof cost === "number" ? cost : undefined;
+        } catch {
+          usd = undefined;
+        }
+        spendPolicy().consume((spend as { grantId?: string }).grantId, { usd });
+      }
+      const wantsCompletion = /chat\/completions|\/messages|:generateContent/i.test(rest ?? "");
+
+      // One line per turn, from the only vantage point that sees both what
+      // LÉLU sent and what upstream said back. Failures always; successes when
+      // tracing is on. No credential, no message text: sizes, model, status
+      // and the provider's own error code are the facts needed to size a
+      // request correctly, and the prompt itself is nobody else's business.
+      if (!upstream.ok || traceTurns(readEnv)) {
+        logTurn({
+          provider: providerId,
+          status: upstream.status,
+          requestBytes: sentBody?.length ?? 0,
+          ...sizingOf(sentBody),
+          error: describeUpstreamError(bodyText, upstream.status),
+        });
+      }
+
+      // MEASURED (2026-11-08): models.github.ai answered 200 text/plain "OK"
+      // for EVERY path from this host — including with no credential at all —
+      // while the same egress refused arXiv outright. A 2xx that is not a
+      // completion is an intercepted or broken route, and passing it through
+      // as success makes the app parse "OK" as a model reply. Refuse it,
+      // truthfully, and record why.
+      // The truth test is the BODY, not the declared type: a provider may omit
+      // or mislabel content-type while still returning real JSON. "OK", a
+      // login page or an egress interceptor's greeting does not parse.
+      const isJsonBody = (() => {
+        const trimmed = bodyText.trim();
+        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+        try {
+          JSON.parse(trimmed);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (upstream.ok && wantsCompletion && !isEventStream && !isJsonBody) {
+        evidence.set(providerId, {
+          state: "CONTRACT_VIOLATION",
+          httpStatus: upstream.status,
+          contentType,
+          at: Date.now(),
+          note: "2xx body was not JSON, so not a completion",
+        });
+        sendJson(
+          res,
+          {
+            ok: false,
+            code: "BROKER_CONTRACT_VIOLATION",
+            provider: providerId,
+            error:
+              "Upstream answered 2xx without a JSON completion; refusing to report it as one.",
+            upstreamStatus: upstream.status,
+            upstreamContentType: contentType,
+            upstreamPreview: bodyText.replace(/\s+/g, " ").slice(0, 80),
+          },
+          502,
+        );
+        return;
+      }
+
+      // Tool-calling is claimed only from an actual tool call in a real body.
+      if (upstream.ok && bodyText.includes('"tool_calls"')) {
+        evidence.set(providerId, {
+          state: "TOOL_CALLING_VERIFIED",
+          httpStatus: upstream.status,
+          contentType,
+          at: Date.now(),
+        });
+      }
+
       res.statusCode = upstream.status;
       res.setHeader("Content-Type", contentType);
       res.setHeader("Cache-Control", "no-store");
@@ -420,16 +1053,18 @@ export function createModelApi(readEnv: EnvReader) {
       // else is still returned whole, including the upstream's own errors: a
       // broker that rewrote a 401 into something friendlier would hide the
       // one fact the caller needs.
-      const isEventStream = contentType.includes("text/event-stream");
       if (isEventStream && upstream.body && typeof res.write === "function") {
         res.flushHeaders?.();
         const reader = upstream.body.getReader();
         try {
           for (;;) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done || clientGone.signal.aborted) break;
             if (value) res.write(value);
           }
+        } catch {
+          // The client left mid-stream (or the upstream dropped); there is
+          // no one to send an error to — end what was started.
         } finally {
           reader.releaseLock();
           res.end();
@@ -437,8 +1072,9 @@ export function createModelApi(readEnv: EnvReader) {
         return;
       }
 
-      res.end(await upstream.text());
+      res.end(bodyText);
     } catch (error) {
+      if (clientGone.signal.aborted) return;
       // Measured: an upstream stream that failed AFTER its headers were
       // forwarded (cut off mid-reply, timed out, the page gone) landed
       // here, sendJson's setHeader threw ERR_HTTP_HEADERS_SENT inside this

@@ -128,20 +128,37 @@ export default class KvStore {
     return null;
   }
 
-  /** Write a JSON value to every backend (best-effort). */
-  public set<T>(key: string, value: T): void {
+  /**
+   * Write a JSON value to every backend (best-effort).
+   *
+   * Returns whether at least one backend actually stored it. A write that
+   * failed everywhere (private mode, quota, a sandboxed iframe) must be
+   * visible to the caller: without a return value a caller cannot tell
+   * "saved" from "silently dropped", and reports durable success for data
+   * that is gone on reload. Serialization failure is a failure too, not a
+   * write of `undefined`.
+   */
+  public set<T>(key: string, value: T): boolean {
     if (typeof window === "undefined") {
-      return;
+      return false;
     }
     const prefixed = fullKey(key);
-    const raw = JSON.stringify(value);
+    let raw: string;
+    try {
+      raw = JSON.stringify(value);
+    } catch {
+      return false;
+    }
+    let wrote = false;
     for (const backend of backends) {
       try {
         backend.set(prefixed, raw);
+        wrote = true;
       } catch {
         // backend blocked — the others still persist
       }
     }
+    return wrote;
   }
 
   /** Remove a key from every backend. */

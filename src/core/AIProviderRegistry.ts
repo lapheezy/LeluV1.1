@@ -28,6 +28,20 @@ const FAILURE_COOLDOWN_MS = 30_000;
 const AUTH_FAILURE_COOLDOWN_MS = 15 * 60_000;
 
 /**
+ * How long a provider sits out after its DAILY quota is gone.
+ *
+ * A daily free-tier quota does not come back in thirty seconds, and the
+ * thirty-second cooldown made the chain pay for it on every turn:
+ * measured live, OpenRouter answered `429 free-models-per-day` with an
+ * `X-RateLimit-Remaining: 0` for the rest of the day, and each chat turn
+ * still spent its slowest seconds on that rung before falling through.
+ *
+ * Long like a refused credential, for the same reason: retrying it fixes
+ * nothing. Still finite, because the window does roll over.
+ */
+const QUOTA_COOLDOWN_MS = 15 * 60_000;
+
+/**
  * WHY a provider failed, in the terms someone would act on.
  *
  * "failed" is not a diagnosis. A refused key is fixed in a dashboard, a
@@ -48,6 +62,7 @@ export type ProviderFailureKind =
   | "network"
   | "server"
   | "billing"
+  | "quota-exhausted"
   | "model-not-found"
   | "bad-request"
   | "unknown";
@@ -102,8 +117,32 @@ export function classifyProviderFailure(reason: string): ProviderFailureKind {
   const text = reason.toLowerCase();
   // 402 / credit-exhausted phrases — fix in the provider dashboard, not
   // in code. Must come before the generic server check.
-  if (/\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text)) {
+  //
+  // Also an account that the provider has SUSPENDED for billing. Measured
+  // live: Fireworks answers `412 PRECONDITION_FAILED — "Account … is
+  // suspended, possibly due to reaching the monthly spending limit or
+  // failure to pay past invoices"` to every request, and it fell through
+  // to "unknown" and a 30-second cooldown, so continuous cognition paid a
+  // failed round-trip to it before every single fallback.
+  if (
+    /\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text) ||
+    /account[^.]{0,40}suspended|spending limit|past invoices|precondition_failed|credit balance is too low/.test(text)
+  ) {
     return "billing";
+  }
+  // A DAILY quota that is already spent. Distinct from a per-minute limit,
+  // which does clear on its own: this one is still refused a minute later,
+  // so attempting it again costs the turn time for nothing.
+  //
+  // Both measured refusals this pattern covers:
+  //   OpenRouter: "Rate limit exceeded: free-models-per-day"
+  //   Groq:       "on tokens per day (TPD): Limit 200000, Used 199144"
+  if (
+    /free-models?-per-day|daily (?:free )?(?:limit|quota)|quota (?:exceeded|exhausted)|tokens per day|\btpd\b/.test(
+      text,
+    )
+  ) {
+    return "quota-exhausted";
   }
   // 404 in an AI provider context almost always means the model id is
   // wrong or not available on this account's plan.
@@ -141,6 +180,25 @@ export default class AIProviderRegistry {
 
   /** Usage metadata (tokens/credits) reported by the last successful response. */
   private readonly lastUsage = new Map<string, unknown>();
+
+  /**
+   * When each provider was last let out of cooldown for a half-open probe.
+   *
+   * A cooldown is a guess about the future made from one past failure. When
+   * EVERY provider is inside one, returning nothing is not an honest answer
+   * — it is a stale guess that overrides live upstream inference. Measured
+   * live: one turn ran a real `environment_compose`, and every following
+   * turn answered with the offline notice within three seconds while the
+   * broker was returning 200s for the same credentials. Each failure had
+   * quarantined its provider, and `available()` reported the empty chain.
+   *
+   * This map bounds the recovery: one probe per provider per gap, so
+   * recovery cannot become a retry loop.
+   */
+  private readonly lastProbe = new Map<string, number>();
+
+  /** Minimum gap before the same provider is probed again. */
+  private static readonly PROBE_GAP_MS = 5_000;
 
   /**
    * In-flight initialization promise. `initialize()` had no guard at
@@ -250,19 +308,44 @@ export default class AIProviderRegistry {
     return this.all().filter((provider) => provider.enabled);
   }
 
+  /**
+   * The providers that may be attempted right now, in priority order.
+   *
+   * A provider inside its cooldown is normally skipped. But when that would
+   * leave the chain EMPTY, the caller does not hear "nothing is available" —
+   * it hears the offline notice, which is a claim about the provider, not
+   * about this registry's memory of it. So the chain half-opens: the
+   * provider whose cooldown ends soonest is admitted for one real attempt.
+   *
+   * Why the soonest, and why that rotates: a failed probe calls
+   * `markFailure`, which restarts that provider's window and makes some
+   * other cooled provider the soonest on the next turn. Recovery therefore
+   * walks the whole chain instead of re-testing the same broken rung, and
+   * the per-provider gap keeps it from becoming a retry loop.
+   *
+   * A probe is not a bypass: `isAvailable()` is still consulted, the
+   * attempt is a real request, and a real answer goes through the ordinary
+   * `markSuccess` path that clears the failure.
+   */
   public async available(): Promise<AIProvider[]> {
     const available: AIProvider[] = [];
     const now = Date.now();
+    /** The cooled-down provider whose cooldown ends soonest. */
+    let soonest: { provider: AIProvider; retryInMs: number } | null = null;
 
     for (const provider of this.enabled()) {
       const failure = this.failures.get(provider.name);
 
       const cooldown = this.cooldownFor(provider.name);
       if (failure && now - failure.lastFailure < cooldown) {
+        const retryInMs = cooldown - (now - failure.lastFailure);
+        if (!soonest || retryInMs < soonest.retryInMs) {
+          soonest = { provider, retryInMs };
+        }
         console.info(
           `[AIProviderRegistry] Skipping ${provider.name} during failure cooldown.`,
           {
-            retryInMs: cooldown - (now - failure.lastFailure),
+            retryInMs,
             reason: failure.reason,
             // Said plainly, because the two cases need different action
             // from whoever reads the log: fix the key, or wait.
@@ -290,6 +373,36 @@ export default class AIProviderRegistry {
       }
     }
 
+    if (available.length > 0 || !soonest) {
+      return available;
+    }
+
+    // Half-open: the chain is empty only because of cooldowns.
+    const candidate = soonest.provider;
+    const lastProbe = this.lastProbe.get(candidate.name) ?? 0;
+    if (now - lastProbe < AIProviderRegistry.PROBE_GAP_MS) {
+      return available;
+    }
+    this.lastProbe.set(candidate.name, now);
+
+    try {
+      if (await candidate.isAvailable()) {
+        console.info(
+          `[AIProviderRegistry] Half-open recovery: ${candidate.name} gets one real attempt ` +
+            `although its cooldown had ${Math.round(soonest.retryInMs / 1000)}s left.`,
+          { provider: candidate.name, reason: this.failures.get(candidate.name)?.reason },
+        );
+        return [candidate];
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.markFailure(candidate.name, reason);
+      console.error(
+        `[AIProviderRegistry] Half-open probe of ${candidate.name} failed its availability check.`,
+        error,
+      );
+    }
+
     return available;
   }
 
@@ -312,9 +425,16 @@ export default class AIProviderRegistry {
 
   /** How long this provider sits out, given why it failed. */
   public cooldownFor(name: string): number {
-    return this.failures.get(name)?.authRejected === true
-      ? AUTH_FAILURE_COOLDOWN_MS
-      : FAILURE_COOLDOWN_MS;
+    const failure = this.failures.get(name);
+    if (failure?.authRejected === true) return AUTH_FAILURE_COOLDOWN_MS;
+    // A spent daily quota is as unresponsive as a wrong key, and retrying
+    // it every thirty seconds is what made the chain slow.
+    if (failure?.kind === "quota-exhausted") return QUOTA_COOLDOWN_MS;
+    // An account out of credit, or suspended for billing, is fixed in a
+    // dashboard — never by trying again in thirty seconds. Same finite
+    // window as a spent quota, so a top-up is still picked up in-session.
+    if (failure?.kind === "billing") return QUOTA_COOLDOWN_MS;
+    return FAILURE_COOLDOWN_MS;
   }
 
   /**

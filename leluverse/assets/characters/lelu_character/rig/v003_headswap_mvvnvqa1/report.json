@@ -1,0 +1,84 @@
+{
+  "steps": [
+    {
+      "step": "body",
+      "nose": [
+        -0.0031,
+        -0.1118,
+        1.5749
+      ],
+      "neckZ": 1.4065,
+      "headZ": 1.4775,
+      "topZ": 1.7254
+    },
+    {
+      "step": "head",
+      "vertices": 601716,
+      "triangles": 310542,
+      "bbox": [
+        [
+          -0.509,
+          -0.362,
+          -0.951
+        ],
+        [
+          0.51,
+          0.367,
+          0.951
+        ]
+      ],
+      "nose": [
+        0.0028,
+        -0.2816,
+        0.577
+      ]
+    },
+    {
+      "step": "fit",
+      "scale": 0.38633,
+      "estimate": 0.40243,
+      "rmsMetres": 0.00553,
+      "offset": [
+        -0.0025,
+        -0.0034,
+        1.3511
+      ]
+    },
+    {
+      "step": "cut-body",
+      "removedVertices": 49499,
+      "oldHairBelowCut": 5932,
+      "cutZ": 1.4669
+    },
+    {
+      "step": "cut-head",
+      "removedVertices": 239797,
+      "keptVertices": 361919,
+      "hangingHairVertices": 84500,
+      "hairGap": 0.02
+    },
+    {
+      "step": "textures",
+      "scaled": [
+        [
+          "Image_0.001",
+          [
+            8192,
+            8192
+          ]
+        ]
+      ],
+      "limit": 4096
+    },
+    {
+      "step": "export",
+      "file": "lelu.glb",
+      "bytes": 48317388
+    },
+    {
+      "step": "previews",
+      "dir": "/tmp/lelu-headswap-CszCPu"
+    }
+  ],
+  "warnings": []
+}

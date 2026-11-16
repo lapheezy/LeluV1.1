@@ -1,0 +1,14 @@
+{
+ "device": "iphone",
+ "started": "2026-11-14T19:59:59.856Z",
+ "prompt": "What capability are you missing to export the objects in my world as a GLB file?",
+ "settledMs": 3164,
+ "tools": [],
+ "modelRequests": 0,
+ "modelRequestDetail": [],
+ "answer": "Already covered: Export 3D scenes as glTF/GLB — my creative.scene3d tool does it now.\nMissing capability: Export my world's objects as glTF/GLB.\nInstalled already, reusable with no new dependency: three/examples/jsm/exporters/GLTFExporter.js.\n\nEvaluated (public registry data, no keys, no model call):\n\nthree@0.187.0 [npm] — RECOMMENDED (score 1). browser-native: Uses device/browser capabilities. License MIT (permissive); maintenance active (last release 15 d ago); 0 runtime deps (none); 20.1 MB; security low. already installed: no new dependency needed.\nthree-gltf-exporter@0.0.1 [npm] — NOT-RECOMMENDED (score 0.8). browser-native: Uses device/browser capabilities. License MIT (permissive); maintenance abandoned (last release 2915 d ago); 0 runtime deps (none); 46 KB; security low. abandoned, archived or deprecated upstream.\naframe-gltf-exporter-component@0.1.0 [npm] — NOT-RECOMMENDED (score 0.68). local: Executes without an external service. License MIT (permissive); maintenance abandoned (last release 3365 d ago); 0 runtime deps (none); unknown size; security medium — install-time scripts: prepublish (never run here: installs use --ignore-scripts). abandoned, archived or deprecated upstream.\n\nAlso on GitHub:\n\nKhronosGroup/glTF-Blender-IO (Apache-2.0), ★1680 — Blender glTF 2.0 importer and exporter\nKhronosGroupArchives/glTF-Blender-Exporter (Apache-2.0), ★837 — Moved to https://github.com/KhronosGroup/glTF-Blender-IO.\nBabylonJS/Exporters (NOASSERTION), ★707 — Exporters for Babylon.js and gltf file formats\n\nworld-export-gltf is already awaiting-approval — say \"approve capability world-export-gltf\" to switch it on.",
+ "ledger": [
+  "3d-export-stl:awaiting-approval",
+  "world-export-gltf:awaiting-approval"
+ ]
+}

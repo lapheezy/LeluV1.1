@@ -1,0 +1,72 @@
+{
+  "count": 32,
+  "byRule": [
+    {
+      "rule": "javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp",
+      "count": 12,
+      "severity": "WARNING",
+      "locations": [
+        "plugins/rssApi.ts:40",
+        "plugins/selfViewApi.ts:238",
+        "scripts/verify-secrets.ts:115",
+        "scripts/verify-secrets.ts:116",
+        "scripts/verify-secrets.ts:118",
+        "scripts/verify-secrets.ts:119",
+        "scripts/verify-secrets.ts:120",
+        "src/brain/PatternMemory.ts:38",
+        "src/core/studio/StudioReader.ts:56",
+        "src/core/tools/ClaimGrounding.ts:170",
+        "src/providers/ArxivProvider.ts:88",
+        "src/providers/RSSprovider.ts:193"
+      ]
+    },
+    {
+      "rule": "javascript.lang.security.audit.hardcoded-hmac-key.hardcoded-hmac-key",
+      "count": 2,
+      "severity": "WARNING",
+      "locations": [
+        "plugins/accessGate.ts:68",
+        "plugins/accessGate.ts:69"
+      ]
+    },
+    {
+      "rule": "javascript.lang.security.audit.spawn-shell-true.spawn-shell-true",
+      "count": 1,
+      "severity": "ERROR",
+      "locations": [
+        "plugins/nodeAdapters.ts:157"
+      ]
+    },
+    {
+      "rule": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "count": 16,
+      "severity": "INFO",
+      "locations": [
+        "src/app/scene/genesis/engines/EngineRegistry.ts:341",
+        "src/app/scene/genesis/engines/EngineRegistry.ts:376",
+        "src/app/scene/genesis/engines/EngineRegistry.ts:482",
+        "src/core/AIProviderRegistry.ts:208",
+        "src/core/AIProviderRegistry.ts:222",
+        "src/core/AIProviderRegistry.ts:263",
+        "src/core/AIProviderRegistry.ts:287",
+        "src/core/native/NativeCapabilityRegistry.ts:96",
+        "src/core/native/NativeCapabilityRegistry.ts:102",
+        "src/core/perf/LatencyProbe.ts:166",
+        "src/core/persistence/SupabasePersistence.ts:399",
+        "src/core/persistence/SupabasePersistence.ts:597",
+        "src/core/persistence/SupabasePersistence.ts:839",
+        "src/core/persistence/SupabasePersistence.ts:850",
+        "src/core/persistence/SupabasePersistence.ts:974",
+        "src/core/projects/ProjectScheduler.ts:80"
+      ]
+    },
+    {
+      "rule": "typescript.react.security.react-insecure-request.react-insecure-request",
+      "count": 1,
+      "severity": "ERROR",
+      "locations": [
+        "scripts/verify-development.ts:53"
+      ]
+    }
+  ]
+}

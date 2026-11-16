@@ -8,11 +8,35 @@
 import type { AIIntent } from "./AIIntent";
 
 export default class IntentDetector {
+  /** A request to change how LÉLU's interface looks or is arranged. */
+  public static isInterfaceDesignRequest(text: string): boolean {
+    const lower = text.toLowerCase();
+    if (/\b(?:sandbox|source code|component|css|tailwind|react|repo|repository|commit|deploy|code)\b/.test(lower)) return false;
+    const subject =
+      /\b(?:workspace|interface|ui|layout|theme|typography|fonts?|typeface|windows?|panels?|cosmos|environment|look|appearance|colou?rs?|palette|background|backdrop|screen)\b/;
+    const change =
+      /\b(?:redesign|restyle|re-?theme|change|switch|make|turn|transform|move|put|arrange|rearrange|resize|organi[sz]e|tidy|fit|apply|give|create|use|set|update|refresh|style)\b/;
+    const designWord =
+      /\b(?:organic|fluid|colou?rful|minimal|futuristic|editorial|garden|nebula|celestial|studio|river|softer|warmer|cooler|darker|lighter|rounded|glass|rigid|box(?:-based|y)?|beside|above|below|next to|on screen)\b/;
+    return subject.test(lower) && (change.test(lower) || designWord.test(lower)) && (designWord.test(lower) || /\b(?:theme|typography|fonts?|layout|windows?|redesign|restyle)\b/.test(lower));
+  }
+
   /**
    * Determine the user's intent.
    */
   public detect(input: string): AIIntent {
     const text = input.trim().toLowerCase();
+
+    // -- LÉLU's own interface (layout, typography, theme, windows, the
+    // Cosmos look). "Redesign my workspace", "make it organic", "change
+    // the fonts", "move my browser beside the chat" are ordinary
+    // interface changes LÉLU makes through her interface.* tools (propose
+    // → preview → user approval) — never a sandbox/code project. Checked
+    // first because the project heuristics below match "make it …" and
+    // "design". Requests that explicitly reach for code still go on.
+    if (IntentDetector.isInterfaceDesignRequest(text)) {
+      return "chat";
+    }
 
     // -- Project commands — MUST be detected before news/search:
     // "Start a project to get current Tampa news every day" contains
@@ -89,15 +113,20 @@ export default class IntentDetector {
     }
 
     // -- Live time / date --
+    // "what is today" is a date question only when TODAY is the subject:
+    // in "what is today's exchange rate" (or "…today's weather / news")
+    // the subject is the rate, and answering with the clock dropped the
+    // question entirely (found by a live chat turn, 2026-11-06).
+    const todaysSomething = /\btoday['’]?s\s+(?!date\b|day\b)[a-z]/i.test(text);
     if (
       this.matches(text, [
         "what time", "current time", "what's the time", "whats the time",
         "what day", "what date", "today's date", "todays date",
-        "what is today", "what's today", "whats today",
         "time now", "date now", "what year", "current date",
         "tell me the time", "tell me the date",
         "what month", "what day is it",
-      ])
+      ]) ||
+      (!todaysSomething && this.matches(text, ["what is today", "what's today", "whats today"]))
     ) {
       return "time";
     }

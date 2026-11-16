@@ -52,6 +52,21 @@ export default class AgentStore {
     // be in flight. Anything persisted as "running" is a claim nothing backs.
     this.markInterruptedTasks();
     this.backfillTemplateIds();
+    this.seedOnce("resource-intelligence");
+  }
+
+  /**
+   * A template added after this store was first seeded reaches existing
+   * installs once — never again, so an agent the user deleted stays deleted.
+   */
+  private seedOnce(templateId: string): void {
+    const flag = `lelu.agents.seeded.${templateId}`;
+    if (this.kv.get<boolean>(flag)) return;
+    const template = AGENT_TEMPLATES.find((t) => t.id === templateId);
+    if (template && !this.list().some((agent) => (agent as { templateId?: string }).templateId === templateId || agent.name === template.name)) {
+      this.kv.set(AgentStore.KEY, [...this.list(), agentFromTemplate(template)]);
+    }
+    this.kv.set(flag, true);
   }
 
   /**

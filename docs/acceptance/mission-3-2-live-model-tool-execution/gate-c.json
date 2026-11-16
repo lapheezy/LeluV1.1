@@ -1,0 +1,251 @@
+{
+ "tag": "gate-c",
+ "at": "2026-11-08T20:15:55.566Z",
+ "prompt": "Create a new interactive studio environment in my Cosmos. Include a central workspace, a research area, and a visual presentation area. Make the environment accessible for me to explore and modify.",
+ "cues": {
+  "disabled": false,
+  "target": "New chat"
+ },
+ "typedChars": 197,
+ "elapsedMs": 34048,
+ "requests": [
+  {
+   "at": 1794168921504,
+   "path": "https://nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories?select=id%2Ckey%2Cvalue%2Ccreated_at&or=%28value.ilike.%25create%25%2Ckey.ilike.%25create%25%2Cvalue.ilike.%25interactive%25%2Ckey.ilike.%25interactive%25%2Cvalue.ilike.%25studio%25%2Ckey.ilike.%25studio%25%2Cvalue.ilike.%25environment%25%2Ckey.ilike.%25environment%25%29&order=created_at.desc&limit=4",
+   "bytes": null
+  },
+  {
+   "at": 1794168922327,
+   "path": "/api/model/groq/chat/completions",
+   "bytes": 17036,
+   "model": "openai/gpt-oss-120b",
+   "messages": 4,
+   "stream": true,
+   "tools": 6,
+   "toolNames": [
+    "environment_compose",
+    "environment_present_artifact",
+    "environment_mutate_surface",
+    "environment_manage_workspace",
+    "environment_save_state",
+    "environment_restore_state"
+   ]
+  },
+  {
+   "at": 1794168922880,
+   "path": "/api/model/githubModels/chat/completions",
+   "bytes": 17016,
+   "model": "openai/gpt-4o",
+   "messages": 4,
+   "stream": false,
+   "tools": 6,
+   "toolNames": [
+    "environment_compose",
+    "environment_present_artifact",
+    "environment_mutate_surface",
+    "environment_manage_workspace",
+    "environment_save_state",
+    "environment_restore_state"
+   ]
+  }
+ ],
+ "responses": [
+  {
+   "at": 1794168697639,
+   "path": "/api/model/status",
+   "status": 200,
+   "model": null,
+   "streamed": false,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "usage": null,
+   "error": null
+  },
+  {
+   "at": 1794168904777,
+   "path": "/api/model/openrouter/chat/completions",
+   "status": 429,
+   "model": null,
+   "streamed": false,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "usage": null,
+   "error": "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day"
+  },
+  {
+   "at": 1794168921589,
+   "path": "/api/model/groq/chat/completions",
+   "status": 200,
+   "model": "openai/gpt-oss-120b",
+   "streamed": false,
+   "toolCalls": [],
+   "textLen": 1404,
+   "sseHasToolCalls": false,
+   "usage": {
+    "queue_time": 0.195416455,
+    "prompt_tokens": 1203,
+    "prompt_time": 0.056290016,
+    "completion_tokens": 479,
+    "completion_time": 0.993455238,
+    "total_tokens": 1682,
+    "total_time": 1.049745254,
+    "completion_tokens_details": {
+     "reasoning_tokens": 162
+    }
+   },
+   "error": null
+  },
+  {
+   "at": 1794168922883,
+   "path": "/api/model/groq/chat/completions",
+   "status": 429,
+   "model": null,
+   "streamed": true,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "usage": null,
+   "error": "Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198597, Requested 3981. Please "
+  },
+  {
+   "at": 1794168923894,
+   "path": "/api/model/githubModels/chat/completions",
+   "status": 200,
+   "model": null,
+   "streamed": false,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "usage": null,
+   "error": null
+  }
+ ],
+ "dom": {
+  "chatWindow": false,
+  "messages": [],
+  "surfaces": [
+   "window",
+   "panel"
+  ],
+  "modules": [
+   "chat:349f35a9-21ab-4d33-9ae0-2b6bd8589c96"
+  ],
+  "bodyTail": "entity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “C\n3\n1m\nNew Chat\nCreate a new interactive studio envi\nQuick Chat Dock\nCreate a new interactive studio envi\nnow\nEngineering\n1m\n3\n1 window — minimize\n◍\nCREATE A NEW INTERACTIVE STUDIO ENVI\n📍\n—\n⤢\n✕\nCreate a new interactive studio envi\n🧠\nThinking it through\nno tools used\nDone\n\nCreate a new interactive studio environment in my Cosmos. Include a central workspace, a research area, and a visual presentation area. Make the environment accessible for me to explore and modify.\n\nI'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.\n\nSend\ncore|idle|100",
+  "gate": false
+ },
+ "samples": [
+  {
+   "t": 2836,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 5439,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 9996,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 12955,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 17473,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 23384,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 26879,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 29383,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 31924,
+   "win": false,
+   "msgs": 0,
+   "reqs": 95,
+   "resps": 5,
+   "toolCalls": 0,
+   "sending": null
+  }
+ ],
+ "providerLog": [
+  "info:%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+  "info:[StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-device) → OpenRouter → Groq → Cerebras → Mistral → Fireworks → Anthropic → Gemini → GitHub Models\n ",
+  "startGroupCollapsed:🟢 [8:15:03 PM] [ProviderResolver] Trying OpenRouter",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: OpenRouter, priority: 2, fallbackReason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, latencyMs: 1404}",
+  "startGroupCollapsed:🟢 [8:15:04 PM] [ProviderResolver] Trying Groq",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying Groq, Provider: -, Duration: -, Confidence: -}",
+  "info:[Orchestrator] Processing request: Create a new interactive studio environment in my Cosmos. Include a central workspace, a research ar",
+  "log:Metadata: {prompt: Create a new interactive studio environment in my …ironment accessible for me to explore and modify.}",
+  "startGroupCollapsed:🟢 [8:15:22 PM] [ProviderResolver] Trying Groq",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying Groq, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: Groq, priority: 2.5, fallbackReason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, latencyMs: 596}",
+  "startGroupCollapsed:🟢 [8:15:22 PM] [ProviderResolver] Trying GitHub Models",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying GitHub Models, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 1077}",
+  "log:Metadata: {attemptedProviders: Array(2), fallbackReason: provider-exhaustion}"
+ ],
+ "pageErrors": [],
+ "consoleErrors": [
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+  "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+  "[GitHubModelsProvider] Empty model response {model: openai/gpt-4o, response: null}"
+ ]
+}

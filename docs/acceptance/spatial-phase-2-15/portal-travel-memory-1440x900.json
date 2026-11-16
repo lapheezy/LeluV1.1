@@ -1,0 +1,141 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-08T03:29:02.985Z",
+ "input": "real CDP mouse at element coordinates",
+ "transitions": [
+  {
+   "step": 1,
+   "control": "scene:studio",
+   "want": "studio",
+   "before": "core",
+   "after": "core",
+   "arrived": false,
+   "kind": "studio-entrance",
+   "ms": 45184
+  }
+ ],
+ "samples": [
+  {
+   "nav": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1298,
+   "moduleWindows": 0,
+   "heapMB": 300.8,
+   "at": 1794108604431
+  },
+  {
+   "nav": "core",
+   "transition": "studio-entrance",
+   "canvases": 3,
+   "nodes": 1299,
+   "moduleWindows": 0,
+   "heapMB": 417.5,
+   "at": 1794108757802
+  }
+ ],
+ "checks": {
+  "clicked_gate": true,
+  "navAtBoot": {
+   "current": "core",
+   "transition": "",
+   "destination": "",
+   "progress": "100"
+  },
+  "clicked_portal-panel": true,
+  "portalCensus": {
+   "panelOpen": true,
+   "travelControls": 11,
+   "builtin": 11,
+   "ids": [
+    "scene:galaxy",
+    "scene:planet",
+    "scene:portal",
+    "scene:agents",
+    "scene:browser",
+    "scene:studio",
+    "scene:research",
+    "scene:projects",
+    "scene:files",
+    "scene:media",
+    "scene:conversation"
+   ],
+   "destinations": [
+    "galaxy",
+    "planet",
+    "portal",
+    "agents",
+    "browser",
+    "studio",
+    "research",
+    "projects",
+    "files",
+    "media",
+    "conversation"
+   ],
+   "labels": [
+    "Governor galaxy",
+    "Creation world",
+    "Dimensional portal",
+    "Agent universes",
+    "Browser",
+    "Genesis Studios",
+    "Research",
+    "Projects",
+    "Files",
+    "Media",
+    "Conversation"
+   ],
+   "registered": "0",
+   "storedRing": false
+  },
+  "clicked_scene:studio": true,
+  "hopOut": {
+   "id": "scene:studio",
+   "destination": "studio",
+   "before": "core",
+   "after": "core",
+   "arrived": false,
+   "transitionKind": "studio-entrance",
+   "ms": 53814
+  },
+  "clicked_core": true,
+  "hopBack": {
+   "before": "studio",
+   "after": "core",
+   "arrived": true,
+   "ms": 26348
+  },
+  "aborted": "step 1: scene:studio did not reach studio (saw core)"
+ },
+ "errors": [],
+ "memory": {
+  "samples": [
+   300.8,
+   417.5
+  ],
+  "firstMB": 300.8,
+  "lastMB": 417.5,
+  "deltaMB": 116.7,
+  "maxMB": 417.5,
+  "canvases": [
+   3,
+   3
+  ],
+  "nodes": [
+   1298,
+   1299
+  ],
+  "persistent": [
+   "one WebGL canvas",
+   "the portal registry (localStorage lelu.spatial.portals.v1)",
+   "layout store lelu.lelu.layout.v2"
+  ],
+  "gcExposed": false
+ },
+ "verdict": {
+  "travelVerified": 0,
+  "of": 1,
+  "aborted": "step 1: scene:studio did not reach studio (saw core)"
+ }
+}

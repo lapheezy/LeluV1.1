@@ -1,0 +1,62 @@
+{
+  "mission": "5.4B.9",
+  "scenario": "keyboard",
+  "batch": 1,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "records": [
+    {
+      "loadId": "keyboard-b1-l1",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "files",
+      "aim": {
+        "x": 462,
+        "y": 512,
+        "portalId": "scene:files",
+        "destination": "files",
+        "hitRadius": 0.35352972903093005,
+        "mouthCentre": {
+          "x": 462,
+          "y": 512
+        },
+        "margin": 0
+      },
+      "scenario": "keyboard",
+      "armed": {
+        "check0": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "expected": "scene:files",
+          "ok": true
+        }
+      },
+      "pressVerifiedInsideMouth": true,
+      "press": [],
+      "pressProbe": [],
+      "claimedAtDown": null,
+      "resolvedAtUp": null,
+      "moved": null,
+      "outcome": null,
+      "refusal": null,
+      "onSelectCalls": 1,
+      "travel": {
+        "ms": 1807,
+        "finalScene": "files",
+        "dataset": "files",
+        "destination": null
+      },
+      "doubleActivation": false,
+      "identityHeld": false,
+      "travelled": true,
+      "outcomeClass": "arrived",
+      "matches": true
+    }
+  ]
+}

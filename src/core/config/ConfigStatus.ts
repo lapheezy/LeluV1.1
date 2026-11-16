@@ -109,7 +109,7 @@ const DEFINITIONS: Definition[] = [
     id: "provider.anthropic",
     purpose: "Chat/reasoning provider with native tool use",
     parts: [
-      { label: "API key", names: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY"] },
+      { label: "API key", names: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"] },
     ],
   },
   {

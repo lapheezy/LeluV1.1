@@ -1,0 +1,15 @@
+
+=== iPhone portrait 390×844 ===
+  PASS  Home renders Cosmos  — canvases 2
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Resulting promise was garbage collected.
+    at openChat (/workspace/chats/53df63670bb822c0aa9e0777/artifacts/mission-chat-universe-1/verify-mobile-chat.local.mjs:39:14)
+    at async file:///workspace/chats/53df63670bb822c0aa9e0777/artifacts/mission-chat-universe-1/verify-mobile-chat.local.mjs:117:3 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v26.13.0

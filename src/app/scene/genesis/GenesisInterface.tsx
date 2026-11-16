@@ -22,45 +22,107 @@
  * ==========================================================
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { arrangeWorkspace, setStage, type StewardHost } from "./layout/stewardActions";
+import { transformConversation } from "./chat/stage/transformActions";
+import { TRANSFORM_TARGETS, type TransformTarget } from "../../../core/interface/WorkspaceSteward";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
+import InterfaceRuntime from "./interface/InterfaceRuntime";
+import InterfaceConsentBar from "./interface/InterfaceConsentBar";
+import InterfaceLayoutPreview from "./interface/InterfaceLayoutPreview";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
-import GenesisDock from "./GenesisDock";
+import { MODULE_CATALOG } from "./GenesisDock";
+import GenesisErrorBoundary from "./GenesisErrorBoundary";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisCreationStudio = lazy(() => import("./studio/GenesisCreationStudio"));
+/*
+ * Boot-graph cuts.
+ *
+ * These four surfaces are opened by the user, never shown at boot, yet all
+ * four were STATIC imports of the interface — so a cold start fetched the
+ * artifact window, the Atelier window (geometry, readback, file handling)
+ * and both Chat Universe surfaces before drawing anything. Measured with
+ * scripts/measure-boot-graph.mjs, the boot graph was 676 chunks / 5.41 MB.
+ * A lazy panel that appears in the boot graph is not lazy.
+ */
+const StudioArtifactWindow = lazy(() => import("./studio/StudioArtifactWindow"));
+import { artifactIdOf, artifactWindowId } from "./studio/useStudio";
+import StudioStore from "../../../core/studio/StudioStore";
+import { STUDIO_OPEN_EVENT } from "../../../core/studio/StudioTools";
+const AtelierWindow = lazy(() => import("./atelier/AtelierWindow"));
+import AtelierStore from "../../../core/atelier/AtelierStore";
+import { ATELIER_OPEN_EVENT } from "../../../core/atelier/AtelierTools";
+
+const ATELIER_WINDOW_PREFIX = "atelier:";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
 import ChatErrorBoundary from "./chat/ChatErrorBoundary";
 import { useSurface } from "./surface/useSurface";
-import MultiChatTabs from "./MultiChatTabs";
-import GenesisReasoningPanel from "./GenesisReasoningPanel";
-import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
-import GenesisExecutivePanel from "./GenesisExecutivePanel";
-import GenesisMemoryPanel from "./GenesisMemoryPanel";
-import GenesisDevicePanel from "./GenesisDevicePanel";
-import GenesisKnowledgePanel from "./GenesisKnowledgePanel";
-import GenesisHistoryPanel from "./GenesisHistoryPanel";
-import GenesisLogsPanel from "./GenesisLogsPanel";
-import GenesisBrowserPanel from "./GenesisBrowserPanel";
-import GenesisAgentsPanel from "./GenesisAgentsPanel";
-import GenesisSketchPanel from "./GenesisSketchPanel";
-import GenesisRenderPanel from "./GenesisRenderPanel";
-import GenesisVideoPanel from "./GenesisVideoPanel";
-import GenesisAvatarPanel from "./GenesisAvatarPanel";
-import GenesisProjectsPanel from "./GenesisProjectsPanel";
-import GenesisSettingsPanel from "./GenesisSettingsPanel";
-import GenesisCognitionPanel from "./GenesisCognitionPanel";
-import GenesisCognitiveTracePanel from "./GenesisCognitiveTracePanel";
-import GenesisEngineeringPanel from "./GenesisEngineeringPanel";
-import GenesisSelfDevPanel from "./GenesisSelfDevPanel";
+import ModuleLayoutStore from "./layout/ModuleLayoutStore";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisReasoningPanel = lazy(() => import("./GenesisReasoningPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisDiagnosticsPanel = lazy(() => import("./GenesisDiagnosticsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisExecutivePanel = lazy(() => import("./GenesisExecutivePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisMemoryPanel = lazy(() => import("./GenesisMemoryPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisDevicePanel = lazy(() => import("./GenesisDevicePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisKnowledgePanel = lazy(() => import("./GenesisKnowledgePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisHistoryPanel = lazy(() => import("./GenesisHistoryPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisLogsPanel = lazy(() => import("./GenesisLogsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisBrowserPanel = lazy(() => import("./GenesisBrowserPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisAgentsPanel = lazy(() => import("./GenesisAgentsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisSketchPanel = lazy(() => import("./GenesisSketchPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisRenderPanel = lazy(() => import("./GenesisRenderPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisVideoPanel = lazy(() => import("./GenesisVideoPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisAvatarPanel = lazy(() => import("./GenesisAvatarPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisProjectsPanel = lazy(() => import("./GenesisProjectsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisSettingsPanel = lazy(() => import("./GenesisSettingsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisCognitionPanel = lazy(() => import("./GenesisCognitionPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisCognitiveTracePanel = lazy(() => import("./GenesisCognitiveTracePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisEngineeringPanel = lazy(() => import("./GenesisEngineeringPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisSelfDevPanel = lazy(() => import("./GenesisSelfDevPanel"));
 import GenesisSelfEvolutionPanel from "./GenesisSelfEvolutionPanel";
-import GenesisNotificationsPanel from "./GenesisNotificationsPanel";
-import GenesisVisualStudio from "./GenesisVisualStudio";
-import GenesisEarthCore from "./GenesisEarthCore";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisNotificationsPanel = lazy(() => import("./GenesisNotificationsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisVisualStudio = lazy(() => import("./GenesisVisualStudio"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisEarthCore = lazy(() => import("./GenesisEarthCore"));
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
-import GenesisIdentityPanel from "./GenesisIdentityPanel";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisIdentityPanel = lazy(() => import("./GenesisIdentityPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const EngineeringStudioPanel = lazy(() => import("./integration/EngineeringStudioPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const VoiceStudioPanel = lazy(() => import("./integration/VoiceStudioPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const InfrastructureMonitorPanel = lazy(() => import("./integration/InfrastructureMonitorPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const SecurityCenterPanel = lazy(() => import("./integration/SecurityCenterPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisEngineeringCommandPanel = lazy(() => import("./GenesisEngineeringCommandPanel"));
 
 /**
  * ONE module set — the same instances the dock, palette, chat commands
@@ -96,12 +158,30 @@ const MODULE_RENDERERS: ModuleRenderers = {
   // separate navigation destination.
   earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
   identity: ({ onClose }) => <GenesisIdentityPanel onClose={onClose} />,
+  creation: ({ onClose }) => <GenesisCreationStudio onClose={onClose} />,
+  // Operational studios — live server data, one capability gate.
+  "eng-studio": ({ onClose }) => <EngineeringStudioPanel onClose={onClose} />,
+  "voice-studio": ({ onClose }) => <VoiceStudioPanel onClose={onClose} />,
+  "infra-monitor": ({ onClose }) => <InfrastructureMonitorPanel onClose={onClose} />,
+  "security-center": ({ onClose }) => <SecurityCenterPanel onClose={onClose} />,
+  command: ({ onClose }) => <GenesisEngineeringCommandPanel onClose={onClose} />,
 };
+
+/** Every module that can be a window — what LÉLU's interface tools can see and arrange. */
+const MODULE_WINDOW_IDS = Object.keys(MODULE_RENDERERS);
+const moduleLabel = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.label ?? id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import AvatarPresenceBridge from "../../../core/avatar/AvatarPresenceBridge";
 import VisualInterface from "./VisualInterface";
 import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
+import CosmosHome from "./home/CosmosHome";
+import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
+const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
+import { useUniverseOpen } from "./chat/universe/universeOpen";
+import SpatialRevealBridge from "./spatial/SpatialRevealBridge";
+const UniverseChatWindow = lazy(() => import("./chat/universe/UniverseChatWindow"));
+import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
 import { useVoice } from "../../../core/voice/useVoice";
@@ -111,7 +191,7 @@ import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
 import Sentinel from "../../../core/sentinel/Sentinel";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 import LeluSignInGate from "./LeluSignInGate";
-import GenesisBriefingsPanel from "./GenesisBriefingsPanel";
+const GenesisBriefingsPanel = lazy(() => import("./GenesisBriefingsPanel"));
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
 function GenesisFullscreenButton() {
@@ -244,10 +324,87 @@ export default function GenesisInterface() {
     closeModule,
     expand,
     setSelfExploration,
-    setActiveScene,
+    setModulePresentation,
+    raiseModule,
+    applyModuleLayout,
   } = useGenesis();
   const voice = useVoice();
   const surface = useSurface();
+
+  /*
+   * A screen that changes size re-fits the arrangement.
+   *
+   * Rotating a phone, resizing a desktop window or opening on a different
+   * device used to leave windows at their old pixel size — a phone-width
+   * conversation stayed a 354 px column on a 1300 px screen. The layout
+   * store keeps hand-placed windows proportionally and re-tiles the rest.
+   */
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const width = Math.max(1, window.visualViewport?.width ?? window.innerWidth);
+        const height = Math.max(1, window.visualViewport?.height ?? window.innerHeight);
+        ModuleLayoutStore.getInstance().viewportChanged({ width, height });
+      }, 160);
+    };
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  /* Creation Studio: LÉLU's studio.* tools and the chat cards ask for
+     artifacts to be shown; each is its own `artifact:<id>` window in the
+     one window host. Two or more are placed side by side across the
+     screen (a phone shows one window at a time anyway). */
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<{ ids?: string[]; layout?: string }>).detail;
+      const ids = (detail?.ids ?? []).filter((id) => StudioStore.getInstance().get(id));
+      if (ids.length === 0) return;
+      const windows = ids.map(artifactWindowId);
+      for (const id of windows) {
+        openModule(id);
+        setModulePresentation(id, "inline");
+      }
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      if (windows.length === 1 && width > 900) {
+        // One document: big enough to read, beside the side rail.
+        const w = Math.min(1000, width - (width > 1200 ? 300 : 48));
+        applyModuleLayout({ [windows[0]]: { presentation: "inline", position: { x: width > 1200 ? 270 : 24, y: 64 }, size: { width: w, height: Math.min(height - 110, 860) } } });
+      } else if (windows.length > 1 && detail?.layout === "side-by-side" && width > 900) {
+        const gap = 16;
+        const left = width > 1200 ? 260 : 24;
+        const usable = width - left - gap * (windows.length + 1);
+        const w = Math.max(360, Math.floor(usable / windows.length));
+        const h = Math.max(420, Math.min(height - 140, 900));
+        applyModuleLayout(Object.fromEntries(windows.map((id, i) => [id, { presentation: "inline" as const, position: { x: left + gap + i * (w + gap), y: 72 }, size: { width: w, height: h } }])));
+      }
+      raiseModule(windows[windows.length - 1]);
+    };
+    // An Atelier project is one window; LÉLU opening it again raises it.
+    const onAtelier = (event: Event) => {
+      const projectId = (event as CustomEvent<{ id?: string }>).detail?.id;
+      if (!projectId || !AtelierStore.getInstance().get(projectId)) return;
+      const id = `${ATELIER_WINDOW_PREFIX}${projectId}`;
+      openModule(id);
+      setModulePresentation(id, "inline");
+      if (window.innerWidth > 900) applyModuleLayout({ [id]: { presentation: "inline", position: { x: window.innerWidth > 1200 ? 280 : 24, y: 64 }, size: { width: Math.min(1100, window.innerWidth - 320), height: Math.min(window.innerHeight - 110, 920) } } });
+      raiseModule(id);
+    };
+    window.addEventListener(STUDIO_OPEN_EVENT, onOpen);
+    window.addEventListener(ATELIER_OPEN_EVENT, onAtelier);
+    return () => {
+      window.removeEventListener(STUDIO_OPEN_EVENT, onOpen);
+      window.removeEventListener(ATELIER_OPEN_EVENT, onAtelier);
+    };
+  }, [openModule, setModulePresentation, raiseModule, applyModuleLayout]);
 
   useEffect(() => {
     genesisInterfaceMountCount += 1;
@@ -268,9 +425,12 @@ export default function GenesisInterface() {
      when a cinematic scene (Gen V2 / System) owns the viewport. */
   const sceneIsV2 = state.activeScene === "genesisv2";
 
-  // Sync UI state to cognition — panel changes are visible to the cognitive loop
+  // Sync UI state to cognition — panel changes are visible to the cognitive loop.
+  // Chat windows are module windows too, but they are not an APPLICATION
+  // panel: counting them here would make the single-chat surface think a
+  // panel opened (and cover the window that just opened).
   const openModuleIds = Object.entries(state.modules)
-    .filter(([, m]) => m.presentation !== "closed")
+    .filter(([id, m]) => m.presentation !== "closed" && conversationIdOf(id) === null)
     .map(([id]) => id);
 
   useEffect(() => {
@@ -295,6 +455,9 @@ export default function GenesisInterface() {
    * ------------------------------------------------------------- */
   const activePanelRef = useRef(state.activePanel);
   activePanelRef.current = state.activePanel;
+  // The steward reads the live module set, not the one captured at mount.
+  const stewardStateRef = useRef(state);
+  stewardStateRef.current = state;
   useEffect(() => {
     // The real, currently-rendered panel set — module-hosted panels plus
     // the special-cased full-page surfaces below (chat/self-evolution/
@@ -303,6 +466,13 @@ export default function GenesisInterface() {
     // and "workspaces" are type values with no renderer at all, so they
     // correctly stay unsupported rather than silently accepted.
     const supportedPanels = [...Object.keys(MODULE_RENDERERS), "chat", "self-evolution", "cosmos", "none"];
+    const stewardHost = (): StewardHost => ({
+      modules: () => stewardStateRef.current.modules,
+      openModule: (id) => openModule(id),
+      setModulePresentation: (id, p) => setModulePresentation(id, p),
+      raiseModule: (id) => raiseModule(id),
+      activeConversationId: () => stewardStateRef.current.activeConversationId ?? null,
+    });
     const unregister = UIActionBus.getInstance().registerHandlers({
       supportedPanels,
       openPanel: (panel) => openPanel(panel as GenesisPanel),
@@ -310,6 +480,15 @@ export default function GenesisInterface() {
       minimizeModule: (id) => minimizeModule(id),
       closeModule: (id) => closeModule(id),
       getActivePanel: () => activePanelRef.current,
+      // Workspace Steward: LÉLU's layout and staging requests run here, locally.
+      arrangeWorkspace: (mode, modules, by) => arrangeWorkspace(stewardHost(), mode, modules, by),
+      setStage: (stage, conversationId, by) => setStage(stewardHost(), stage, conversationId, by),
+      transformConversation: (target, conversationId) => {
+        const id = conversationId ?? stewardStateRef.current.activeConversationId;
+        if (!id) return { ok: false, detail: "There is no conversation to work from." };
+        if (!(TRANSFORM_TARGETS as string[]).includes(target)) return { ok: false, detail: `Unknown target "${target}". Targets: ${TRANSFORM_TARGETS.join(", ")}.` };
+        return transformConversation(id, target as TransformTarget);
+      },
     });
     return unregister;
     // Registered once per mount — handlers close over stable useGenesis
@@ -578,27 +757,83 @@ export default function GenesisInterface() {
     openPanel("none");
   }
 
+  // THE HOME: the Cosmos workspace (home/CosmosHome) and the one spatial
+  // navigation (home/SpatialNav). They replace the side rail and the
+  // phone's vertical menu list; every panel is still one tap away in the
+  // app library, and ⌘K.
+  const homeStore = useHomeStore();
+  const [homeSheet, setHomeSheet] = useState<HomeSheet>(null);
+  // On a phone, when chat (or a window) owns the screen, Home is not rendered
+  // at all — it is not hidden under the conversation.
+  const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
+  const universeOpen = useUniverseOpen();
+  const narrowScreen = typeof window !== "undefined" && window.innerWidth <= 720;
+  const navHidden =
+    state.minimized ||
+    surface.chatOwnsScreen ||
+    surface.workspaceOwnsScreen ||
+    // A conversation is open above the Cosmos (the floating Universe mode),
+    // which is nearly the whole screen on a phone: the rail sat ACROSS the
+    // composer and the send button. On a narrow screen it steps aside and
+    // comes back the moment the conversation closes. Desktop keeps it —
+    // there the windows float clear of it.
+    (universeOpen && narrowScreen) ||
+    // On a phone an application window is the screen. The bottom nav was
+    // painting over its last controls and composer; the window's own close
+    // and the ⌘K palette remain the way out.
+    (state.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720);
+
   /*
    * Workspace activity is event-driven. Opening Chat or Avatar must not
    * force the workspace surface open; only real agent/tool activity may
    * reveal it through WorkspaceEngine.autoShow().
    */
-  function handleDockSelect(panel: GenesisPanel) {
-    if (panel === "visual") {
-      // Leaving the Gen V2 workspace returns to the Genesis environment
-      // first — chat and open modules stay mounted (scene change is
-      // presentation only); the System scene is then toggled on top of it.
-      if (state.activeScene === "genesisv2") {
-        setActiveScene("genesis");
+  /*
+   * CHAT WINDOWS — the Universe's open chats are module windows rendered by
+   * the ONE host (GenesisModuleHost). Their ids are per conversation, so
+   * they are resolved here rather than in the static renderer map; the
+   * window itself is GenesisWindowFrame's body, so there is no second
+   * window system and no second title bar.
+   */
+  const resolveModule = useCallback(
+    (id: string) => {
+      const artifactId = artifactIdOf(id);
+      if (artifactId) {
+        return ({ onClose }: { onClose: () => void }) => (
+          <Suspense fallback={null}>
+            <StudioArtifactWindow artifactId={artifactId} onClose={onClose} />
+          </Suspense>
+        );
       }
-      const visualEngine = VisualEngine.getInstance();
-      visualEngine.setInterfaceFocus(
-        visualEngine.getState().interfaceFocus === "visual" ? "genesis" : "visual",
+      if (id.startsWith(ATELIER_WINDOW_PREFIX)) {
+        const projectId = id.slice(ATELIER_WINDOW_PREFIX.length);
+        return ({ onClose }: { onClose: () => void }) => (
+          <Suspense fallback={null}>
+            <AtelierWindow projectId={projectId} onClose={onClose} />
+          </Suspense>
+        );
+      }
+      const conversationId = conversationIdOf(id);
+      if (!conversationId) return undefined;
+      return ({ onClose }: { onClose: () => void }) => (
+        <Suspense fallback={null}>
+          <UniverseChatWindow conversationId={conversationId} onClose={onClose} />
+        </Suspense>
       );
-      return;
-    }
-    openPanel(panel);
-  }
+    },
+    [],
+  );
+  const labelForModule = useCallback(
+    (id: string) => {
+      const artifactId = artifactIdOf(id);
+      if (artifactId) return StudioStore.getInstance().get(artifactId)?.title ?? "Artifact";
+      if (id.startsWith(ATELIER_WINDOW_PREFIX)) return AtelierStore.getInstance().get(id.slice(ATELIER_WINDOW_PREFIX.length))?.title ?? "Atelier";
+      const conversationId = conversationIdOf(id);
+      if (!conversationId) return undefined;
+      return state.conversations.find((c) => c.id === conversationId)?.title ?? "Chat";
+    },
+    [state.conversations],
+  );
 
   return (
     <div
@@ -639,32 +874,24 @@ export default function GenesisInterface() {
           animation: "lelu-environment-enter 0.38s ease",
         }}
       >
-          <GenesisDock
-            activePanel={state.activePanel}
-            onSelect={handleDockSelect}
-            online={state.runtimeReady}
-            thinking={state.thinking}
-            speaking={state.speaking}
-            reasoningActive={Boolean(state.cognition?.reasoning)}
-            engineErrorCount={state.engineStatuses.filter((engine) => Boolean(engine.error)).length}
-            visualActive={systemEnvironmentActive}
-            chatOwnsScreen={surface.chatOwnsScreen || surface.workspaceOwnsScreen}
-            onCoreHoldVoice={handleCoreHoldVoice}
-            selfExplorationEnabled={state.selfExplorationEnabled}
-            onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
-          />
+          {showHome ? (
+            <CosmosHome
+              onOpenLibrary={(group) => setHomeSheet({ kind: "library", group })}
+              onOpenWindows={() => setHomeSheet({ kind: "windows" })}
+            />
+          ) : null}
 
           {/* Live tool activity is rendered by GenesisChat's execution
               timeline. There is no second workspace/activity surface. */}
 
           {/* The ambient visual layer behind the primary environment — fed
               by the same real agent events through VisualBridge. */}
-          {sceneIsV2 || systemEnvironmentActive || surface.chatOwnsScreen ? null : <VisualInterface />}
+          {sceneIsV2 || systemEnvironmentActive || surface.chatOwnsScreen || showHome ? null : <VisualInterface />}
 
           {/* Top chrome: expand chip (when minimized) + command palette +
               fullscreen. The palette and fullscreen stay usable in both
               states. */}
-          {surface.chatOwnsScreen ? null : (
+          {surface.chatOwnsScreen || showHome ? null : (
           <div
             style={{
               position: "absolute",
@@ -737,7 +964,7 @@ export default function GenesisInterface() {
       {/* Multi-Chat tab bar — visible while the dialogue surface is open so
           the user can switch between isolated conversations without losing
           state. It floats above the dialogue overlay (higher z-index). */}
-      {state.minimized || surface.workspaceOwnsScreen ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
+      {/* The old browser-style chat tab strip is gone: the Chat Universe lists and switches chats. */}
 
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
@@ -753,20 +980,43 @@ export default function GenesisInterface() {
           render error and offers to reopen the conversation. */}
       {state.minimized ? null : (
         <ChatErrorBoundary onLeave={handleExitChat}>
-          <GenesisChat
-            hidden={
-              // On a phone a visible workspace is the screen; the chat waits
-              // underneath, mounted, and returns when it is minimized/closed.
-              surface.workspaceOwnsScreen || !(state.activePanel === "chat" || openModuleIds.length > 0)
-            }
-          />
+          {/* Send engine only — draws nothing. The Chat Universe is the chat. */}
+          <GenesisChat hidden />
         </ChatErrorBoundary>
+      )}
+
+      <Suspense fallback={null}>
+        <ChatUniverse />
+      </Suspense>
+      {/* A chat-created object is revealed in the live Genesis world: closing
+          chat lands on the world framed on it instead of the home dashboard. */}
+      <SpatialRevealBridge />
+      
+      {/* Unmounted (not hidden) while a conversation or window owns the phone screen. */}
+      {navHidden && (surface.chatOwnsScreen || surface.workspaceOwnsScreen) ? null : (
+        <SpatialNav
+          sheet={homeSheet}
+          setSheet={setHomeSheet}
+          onHoldVoice={handleCoreHoldVoice}
+          hidden={navHidden}
+          selfExploration={state.selfExplorationEnabled}
+          onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
+        />
       )}
 
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every
           scene so tools remain part of the canonical chat surface. */}
-      <GenesisModuleHost renderers={MODULE_RENDERERS} />
+      <GenesisModuleHost renderers={MODULE_RENDERERS} resolve={resolveModule} labelFor={labelForModule} />
+
+      {/* Interface orchestration: the live bridge LÉLU's interface.* tools
+          act through, the consent bar where the user approves or rejects
+          her proposals, and the outlines that preview new window layouts. */}
+      <InterfaceRuntime windowIds={MODULE_WINDOW_IDS} labelOf={moduleLabel} />
+      <InterfaceLayoutPreview />
+      <GenesisErrorBoundary>
+        <InterfaceConsentBar />
+      </GenesisErrorBoundary>
 
       {/* Full-page / special surfaces keep their dedicated mounts. */}
       {state.activePanel === "self-evolution" ? (

@@ -1,0 +1,112 @@
+{
+  "viewport": {
+    "w": 390,
+    "h": 844,
+    "dpr": 1
+  },
+  "steps": [
+    {
+      "slug": "list",
+      "text": "what is in the scene",
+      "typed": {
+        "visible": true,
+        "disabled": false,
+        "value": "w",
+        "box": {
+          "x": 93,
+          "y": 730,
+          "w": 195,
+          "h": 38
+        }
+      },
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            6.000000000000001,
+            2.499999999999999,
+            3.9999999999999996
+          ],
+          "fov": 56,
+          "aspect": 0.46208530805687204
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 390,
+            "cssH": 844
+          },
+          {
+            "w": 390,
+            "h": 844,
+            "cssW": 390,
+            "cssH": 844
+          },
+          {
+            "w": 161,
+            "h": 220,
+            "cssW": 162,
+            "cssH": 220
+          }
+        ],
+        "viewport": {
+          "w": 390,
+          "h": 844,
+          "dpr": 1
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 0,
+        "objects": [],
+        "camera": {
+          "position": [
+            6.000000000000001,
+            2.499999999999999,
+            3.9999999999999996
+          ],
+          "fov": 56,
+          "aspect": 0.46208530805687204
+        },
+        "canvases": [
+          {
+            "w": 120,
+            "h": 174,
+            "cssW": 120,
+            "cssH": 174
+          }
+        ],
+        "viewport": {
+          "w": 390,
+          "h": 844,
+          "dpr": 1
+        }
+      },
+      "msgs": [
+        {
+          "role": "user",
+          "text": "w"
+        },
+        {
+          "role": "assistant",
+          "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+        }
+      ],
+      "latencyMs": 11940,
+      "submitted": false
+    },
+    {
+      "slug": "comet",
+      "text": "add a sphere called Comet",
+      "error": "TimeoutError: locator.click: Timeout 8000ms exceeded.\nCall log:\n  - waiting for locator('textarea').nth(1)\n    - locator resolved to <textarea rows=\"1\" enterkeyhint=\"send\" placeholder=\"Message LÉLU…\">"
+    },
+    {
+      "slug": "focus",
+      "text": "show me Comet",
+      "error": "TimeoutError: locator.click: Timeout 8000ms exceeded.\nCall log:\n  - waiting for locator('textarea').nth(1)\n    - locator resolved to <textarea rows=\"1\" enterkeyhint=\"send\" placeholder=\"Message LÉLU…\">"
+    }
+  ]
+}

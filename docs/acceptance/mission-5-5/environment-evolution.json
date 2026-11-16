@@ -1,0 +1,4 @@
+{
+  "result": "BLOCKED",
+  "reason": "same provider quota; the environment.compose/mutate_surface/save_state/restore_state path is wired and unit-covered (tests/environment-integration.test.ts) but not driven live this mission"
+}

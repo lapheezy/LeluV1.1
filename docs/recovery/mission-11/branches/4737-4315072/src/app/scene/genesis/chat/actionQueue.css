@@ -1,0 +1,290 @@
+/*
+ * ==========================================================
+ * LÉLU — THE ACTION QUEUE
+ *
+ * A single compact line above the composer, in the chat's own
+ * twilight glass. The orb marks the step running right now; the
+ * animation lives only on that node, so a settled queue costs
+ * nothing. Everything is transform/opacity so a queue updating
+ * mid-stream does not repaint the transcript.
+ * ==========================================================
+ */
+
+.lelu-aq {
+  flex-shrink: 0;
+  margin: 0 10px 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 236, 252, 0.13);
+  background: rgba(18, 10, 40, 0.55);
+  color: rgba(246, 240, 255, 0.92);
+  font-family: inherit;
+  overflow: hidden;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.lelu-aq[data-lelu-action-queue="running"] { border-color: rgba(103, 232, 249, 0.26); }
+.lelu-aq[data-lelu-action-queue="asking"] { border-color: rgba(255, 214, 150, 0.42); }
+.lelu-aq[data-lelu-action-queue="waiting"] { border-color: rgba(255, 214, 150, 0.3); }
+.lelu-aq[data-lelu-action-queue="failed"] { border-color: rgba(255, 140, 170, 0.35); }
+
+.lelu-aq-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lelu-aq-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 248, 0.62);
+}
+.lelu-aq-state.is-running { color: rgba(200, 246, 255, 0.92); }
+.lelu-aq-state.is-asking,
+.lelu-aq-state.is-waiting { color: rgba(255, 222, 170, 0.95); }
+.lelu-aq-state.is-failed { color: rgba(255, 178, 198, 0.95); }
+.lelu-aq-spin { animation: lelu-aq-spin 1.1s linear infinite; }
+
+.lelu-aq-track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  /* A queue longer than the row fades at the end instead of clipping a word. */
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 14px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 14px), transparent);
+}
+
+.lelu-aq-more {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: rgba(226, 232, 248, 0.45);
+}
+
+.lelu-aq-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  max-width: 40%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 236, 252, 0.1);
+  background: rgba(255, 240, 252, 0.05);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(238, 228, 255, 0.7);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+.lelu-aq-node.is-queued {
+  border-style: dashed;
+  color: rgba(224, 212, 248, 0.5);
+}
+.lelu-aq-node.is-completed {
+  color: rgba(190, 246, 214, 0.78);
+  border-color: rgba(160, 240, 200, 0.18);
+}
+.lelu-aq-node.is-failed {
+  color: rgba(255, 178, 198, 0.92);
+  border-color: rgba(255, 150, 180, 0.3);
+}
+.lelu-aq-node.is-cancelled { text-decoration: line-through; opacity: 0.6; }
+.lelu-aq-node.is-running,
+.lelu-aq-node.is-retrying {
+  color: #f4fbff;
+  border-color: rgba(103, 232, 249, 0.42);
+  background: rgba(44, 82, 120, 0.42);
+}
+.lelu-aq-node.is-asking {
+  color: #fff0d2;
+  border-color: rgba(255, 214, 150, 0.5);
+  background: rgba(96, 64, 24, 0.35);
+}
+
+.lelu-aq-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * On a phone there is room for about three things. A finished step has
+ * already told its story, so it shrinks to its tick and the width goes to
+ * the step that is running now and to any failure, which still needs its
+ * words. Nothing is lost: the expanded view lists every label in full.
+ */
+@media (max-width: 430px) {
+  .lelu-aq-node.is-completed .lelu-aq-label,
+  .lelu-aq-node.is-cancelled .lelu-aq-label { display: none; }
+  .lelu-aq-node { max-width: 62%; }
+  .lelu-aq-node.is-completed,
+  .lelu-aq-node.is-cancelled { padding: 2px 5px; }
+}
+.lelu-aq-mark { font-size: 10.5px; line-height: 1; }
+.lelu-aq-ask {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(255, 214, 150, 0.28);
+  color: #fff3dc;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+/* The orb: Pac-Man's position, in LÉLU's own language. */
+.lelu-aq-orb {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #7ff0ff 45%, #3aa8d8 100%);
+  box-shadow: 0 0 8px rgba(123, 236, 255, 0.75);
+  animation: lelu-aq-orb 1.5s ease-in-out infinite;
+}
+
+.lelu-aq-next {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: rgba(226, 232, 248, 0.35);
+  letter-spacing: 0.08em;
+}
+
+.lelu-aq-chevron { flex-shrink: 0; color: rgba(226, 232, 248, 0.45); }
+
+.lelu-aq-body {
+  padding: 0 10px 8px;
+  max-height: min(38vh, 260px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  animation: lelu-aq-open 150ms ease-out both;
+}
+
+.lelu-aq-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.lelu-aq-list li {
+  display: flex;
+  gap: 7px;
+  padding: 5px 7px;
+  border-radius: 10px;
+  background: rgba(255, 240, 252, 0.035);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.lelu-aq-list li.is-running,
+.lelu-aq-list li.is-retrying { background: rgba(60, 120, 160, 0.22); }
+.lelu-aq-list li.is-asking { background: rgba(120, 80, 30, 0.26); }
+.lelu-aq-list li.is-failed { background: rgba(120, 30, 60, 0.24); }
+.lelu-aq-row-mark { flex-shrink: 0; width: 14px; display: inline-flex; justify-content: center; padding-top: 1px; }
+.lelu-aq-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.lelu-aq-row-label { overflow-wrap: anywhere; color: rgba(248, 243, 255, 0.94); }
+.lelu-aq-row-label em {
+  font-style: normal;
+  margin-right: 5px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 248, 0.5);
+}
+.lelu-aq-row-text small {
+  color: rgba(232, 226, 248, 0.66);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.lelu-aq-row-meta {
+  font-size: 10.5px;
+  color: rgba(214, 224, 244, 0.5);
+  text-transform: lowercase;
+}
+.lelu-aq-link {
+  align-self: flex-start;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 236, 252, 0.14);
+  background: rgba(255, 240, 252, 0.06);
+  color: rgba(224, 238, 255, 0.86);
+  font: inherit;
+  font-size: 10.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lelu-aq-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: rgba(214, 224, 244, 0.5);
+}
+.lelu-aq-dismiss {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 236, 252, 0.14);
+  background: transparent;
+  color: rgba(226, 232, 248, 0.66);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+@keyframes lelu-aq-orb {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.35); opacity: 1; }
+}
+@keyframes lelu-aq-spin { to { transform: rotate(360deg); } }
+@keyframes lelu-aq-open {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+
+/*
+ * Reduced motion: the queue still tells the truth, it just stops moving.
+ * The active node keeps its colour and border, so "where LÉLU is" is still
+ * visible without a pulse.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .lelu-aq-orb,
+  .lelu-aq-spin,
+  .lelu-aq-body { animation: none; }
+  .lelu-aq-node { transition: none; }
+  .lelu-aq-orb { box-shadow: 0 0 0 2px rgba(123, 236, 255, 0.4); }
+}

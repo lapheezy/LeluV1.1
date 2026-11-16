@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-11-06",
+  "server": "vite dev :3013, Host pv-1fb0099bf53a-20687709-e391-42a8-b6a9-96c58abc4a09.style.dev",
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/integration/opencode/health",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "tokenAccepted": true,
+        "state": "not_configured",
+        "detail": "OPENCODE_BASE_URL is unset — no OpenCode server is configured, so no task can be dispatched to it. The local engineering runtime is a different engine and is not substituted.",
+        "checkedAt": 1793991816355,
+        "contacted": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/integration/opencode/run",
+      "request": { "objective": "add a test" },
+      "status": 503,
+      "body": {
+        "ok": false,
+        "state": "not_configured",
+        "detail": "OPENCODE_BASE_URL is unset — OpenCode is not configured, so nothing was dispatched.",
+        "summary": "OPENCODE_BASE_URL is unset — OpenCode is not configured, so nothing was dispatched.",
+        "changedFiles": [],
+        "commands": [],
+        "artifacts": [],
+        "contacted": false
+      }
+    }
+  ],
+  "interpretation": "The adapter and its orchestrator backend are real and registered; the engine itself is not configured in this environment. OPENCODE_BASE_URL unset is reported as NOT_CONFIGURED, and no task is dispatched or silently redirected to the local runtime. The dispatch path (POST /session then POST /session/{id}/message) is implemented and stub-tested, but has not been exercised against a live OpenCode server."
+}

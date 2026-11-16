@@ -1,0 +1,5 @@
+{
+  "result": "NOT TESTED this mission",
+  "prior": "5.6 verified KvStore->localStorage writes 33 lelu.* keys; no environment snapshot existed to save/restore",
+  "cross_device": "absent by architecture"
+}

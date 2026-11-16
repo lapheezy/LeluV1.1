@@ -1,0 +1,84 @@
+{
+ "viewport": [
+  375,
+  812
+ ],
+ "touch": true,
+ "checks": [
+  {
+   "n": "the Creation Studio library opens from App Library → Documents",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "neither editor was loaded before one is opened",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "only the graph editor's code loaded for a graph",
+   "ok": true,
+   "d": "GraphEditor.tsx, @xyflow_react.js, style.css"
+  },
+  {
+   "n": "the hierarchy graph is built from LÉLU's agents",
+   "ok": true,
+   "d": "{\"id\":\"art_70bf3603c95b\",\"kind\":\"graph\",\"revs\":1,\"nodes\":13,\"edges\":12,\"first\":[\"core\",0,0]}"
+  },
+  {
+   "n": "dragging a node moves it and saves the position",
+   "ok": false,
+   "d": "{\"id\":\"shaman\",\"label\":\"SHAMAN\",\"type\":\"router\",\"x\":0,\"y\":140,\"color\":\"#e9d5ff\"}"
+  },
+  {
+   "n": "connecting two nodes adds an edge and saves it",
+   "ok": true,
+   "d": "12 → 13"
+  },
+  {
+   "n": "no horizontal overflow (graph)",
+   "ok": true,
+   "d": "0px"
+  },
+  {
+   "n": "a node added just before closing is saved",
+   "ok": true,
+   "d": "13 → 14"
+  },
+  {
+   "n": "the drawing editor's code loaded only when a drawing was opened",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "drawing a rectangle creates an element and saves it",
+   "ok": true,
+   "d": "{\"id\":\"art_14465569404b\",\"kind\":\"drawing\",\"revs\":2,\"elements\":1}"
+  },
+  {
+   "n": "no horizontal overflow (drawing)",
+   "ok": true,
+   "d": "0px"
+  },
+  {
+   "n": "chat stays reachable while drawing",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "switching back to the graph keeps its edits",
+   "ok": true,
+   "d": "13 edges drawn, 13 stored"
+  },
+  {
+   "n": "after reload the graph and drawing are still there, as saved",
+   "ok": true,
+   "d": "[[\"drawing\",1,2],[\"graph\",14,2]]"
+  },
+  {
+   "n": "no uncaught page errors",
+   "ok": true,
+   "d": ""
+  }
+ ]
+}

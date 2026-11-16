@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3n0t_a78ec5",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: shrug",
+  "meshyTaskId": "01a193c7-a7d8-76f5-adc2-8581796ad5c5",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 317
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480698133,
+  "finishedAt": 1793480754080
+}

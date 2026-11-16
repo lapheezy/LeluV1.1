@@ -1,0 +1,6 @@
+[Unit]
+Description=LÉLU server-state backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/lelu-backup

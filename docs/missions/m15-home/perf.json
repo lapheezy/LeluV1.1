@@ -1,0 +1,11 @@
+{
+  "what": "Production builds (vite build + vite preview), Playwright iPhone 15 Pro profile, CDP CPU throttle 4x, headless Chromium with SwiftShader (no GPU). Median per batch.",
+  "builds": { "base": "9c30176 (merge base, before Mission 15 Home)", "mission15": "14c8924" },
+  "batches": [
+    { "runs": 3, "base": {"homeVisibleMs":4144,"domNodes":159,"layoutMs":108,"recalcStyleMs":98,"scriptMs":4089,"homeRemountMs":488}, "mission15": {"homeVisibleMs":4874,"domNodes":185,"layoutMs":89,"recalcStyleMs":121,"scriptMs":4375,"homeRemountMs":473} },
+    { "runs": 5, "order": "mission15, base", "mission15": {"homeVisibleMs":4785,"domNodes":185,"layoutMs":87,"recalcStyleMs":110,"scriptMs":4339,"homeRemountMs":414}, "base": {"homeVisibleMs":4694,"domNodes":159,"layoutMs":93,"recalcStyleMs":92,"scriptMs":4535,"homeRemountMs":407} },
+    { "runs": 5, "order": "mission15, base (second round)", "mission15": {"homeVisibleMs":4870,"domNodes":185,"layoutMs":93,"recalcStyleMs":101,"scriptMs":4404,"homeRemountMs":403}, "base": {"homeVisibleMs":4918,"domNodes":159,"layoutMs":101,"recalcStyleMs":114,"scriptMs":4525,"homeRemountMs":447} }
+  ],
+  "reading": "The 3-run batch showed +730 ms home-visible; two alternating 5-run batches did not reproduce it (+91 ms, -48 ms). Home re-mount cost is unchanged (~400-450 ms at 4x throttle). DOM nodes +26 (module wrappers). Not measured: real iPhone Safari, real GPU.",
+  "bundle": { "totalRawDelta": 96985, "totalGzipDelta": 31830, "totalGzipBase": 9286878, "lazyStudioGzip": 3560, "dependenciesAdded": 0 }
+}

@@ -1,0 +1,74 @@
+{
+ "viewport": "375x812",
+ "dpr": 1,
+ "at": "2026-11-07T16:40:16.482Z",
+ "shots": [
+  "01-shell",
+  "02-panel",
+  "03-two-user-portals",
+  "04-agent-portal",
+  "05-destination"
+ ],
+ "steps": [
+  "OK identity-gate",
+  "NO cosmos",
+  "OK spatial-nav",
+  "OK portals-panel",
+  "OK create-A",
+  "OK create-B",
+  "OK travel-portal-A",
+  "OK reopen-panel",
+  "NO remove-B"
+ ],
+ "errors": [],
+ "checks": {
+  "panelVisible": 1,
+  "countAfterA": 1,
+  "noticeA": "Portal “Site Survey” created.",
+  "countAfterB": 2,
+  "noticeB": "Portal “Field Notes” created.",
+  "customIds": [
+   "portal_studio_mw6mrpds_z8fn",
+   "portal_galaxy_mw6mrr89_rmgf"
+  ],
+  "agentCreate": {
+   "ok": true,
+   "portal": {
+    "id": "portal_projects_mw6ms24x_0903",
+    "destination": "projects",
+    "label": "Agent Relay",
+    "createdBy": "agent",
+    "createdAt": 1794069702609,
+    "workspace": "default"
+   },
+   "reason": null,
+   "requestId": "acc-1794069702608"
+  },
+  "countAfterAgent": 3,
+  "agentIds": [
+   "portal_studio_mw6mrpds_z8fn",
+   "portal_galaxy_mw6mrr89_rmgf",
+   "portal_projects_mw6ms24x_0903"
+  ],
+  "agentRemove": {
+   "ok": true,
+   "id": "portal_projects_mw6ms24x_0903"
+  },
+  "countAfterAgentRemove": 2,
+  "beforeTravel": {
+   "current": "core",
+   "destination": "",
+   "progress": "100",
+   "transition": ""
+  },
+  "afterTravel": {
+   "current": "studio",
+   "destination": "",
+   "progress": "100",
+   "transition": ""
+  },
+  "bodyScene": "studio",
+  "bodyTransition": "",
+  "noticeRemove": ""
+ }
+}

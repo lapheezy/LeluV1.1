@@ -1,0 +1,293 @@
+src/app/scene/genesis/GenesisDock.tsx(71,5): error TS2322: Type '"creation"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisDock.tsx(85,5): error TS2322: Type '"eng-studio"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisDock.tsx(86,5): error TS2322: Type '"voice-studio"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisDock.tsx(87,5): error TS2322: Type '"infra-monitor"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisDock.tsx(88,5): error TS2322: Type '"security-center"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisInterface.tsx(27,10): error TS2614: Module '"./GenesisCore"' has no exported member 'conversationIdOf'. Did you mean to use 'import conversationIdOf from "./GenesisCore"' instead?
+src/app/scene/genesis/GenesisInterface.tsx(119,3): error TS2353: Object literal may only specify known properties, and 'creation' does not exist in type 'Partial<Record<GenesisPanel, (props: { onClose: () => void; }) => ReactNode>>'.
+src/app/scene/genesis/GenesisInterface.tsx(119,16): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisInterface.tsx(121,20): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisInterface.tsx(122,22): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisInterface.tsx(123,23): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisInterface.tsx(124,25): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisInterface.tsx(284,5): error TS2339: Property 'applyModuleLayout' does not exist on type 'GenesisContextValue'.
+src/app/scene/genesis/GenesisInterface.tsx(893,55): error TS2322: Type '{ renderers: Partial<Record<GenesisPanel, (props: { onClose: () => void; }) => ReactNode>>; resolve: (id: string) => (({ onClose }: { onClose: () => void; }) => Element) | undefined; labelFor: (id: string) => string | undefined; }' is not assignable to type 'IntrinsicAttributes & { renderers: Partial<Record<GenesisPanel, (props: { onClose: () => void; }) => ReactNode>>; }'.
+  Property 'resolve' does not exist on type 'IntrinsicAttributes & { renderers: Partial<Record<GenesisPanel, (props: { onClose: () => void; }) => ReactNode>>; }'.
+src/app/scene/genesis/GenesisSettingsPanel.tsx(237,5): error TS2322: Type '"eng-studio"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisSettingsPanel.tsx(238,5): error TS2322: Type '"voice-studio"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisSettingsPanel.tsx(239,5): error TS2322: Type '"infra-monitor"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisSettingsPanel.tsx(240,5): error TS2322: Type '"security-center"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/chat/universe/ChatUniverse.tsx(35,10): error TS2614: Module '"../../GenesisCore"' has no exported member 'chatWindowId'. Did you mean to use 'import chatWindowId from "../../GenesisCore"' instead?
+src/app/scene/genesis/chat/universe/ChatUniverse.tsx(35,24): error TS2614: Module '"../../GenesisCore"' has no exported member 'conversationIdOf'. Did you mean to use 'import conversationIdOf from "../../GenesisCore"' instead?
+src/app/scene/genesis/home/HomeSheets.tsx(18,10): error TS2614: Module '"../GenesisCore"' has no exported member 'conversationIdOf'. Did you mean to use 'import conversationIdOf from "../GenesisCore"' instead?
+src/app/scene/genesis/home/homeCatalog.ts(31,5): error TS2322: Type '"creation"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(27,46): error TS2614: Module '"../GenesisCore"' has no exported member 'ModuleLayoutTarget'. Did you mean to use 'import ModuleLayoutTarget from "../GenesisCore"' instead?
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(56,18): error TS2339: Property 'applyModuleLayout' does not exist on type 'GenesisContextValue'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(107,28): error TS2339: Property 'rotation' does not exist on type 'ModuleState'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(108,22): error TS2339: Property 'group' does not exist on type 'ModuleState'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(108,43): error TS2339: Property 'group' does not exist on type 'ModuleState'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(230,107): error TS2339: Property 'rotation' does not exist on type 'ModuleState'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(240,25): error TS2339: Property 'rotation' does not exist on type 'ModuleState'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(241,19): error TS2339: Property 'group' does not exist on type 'ModuleState'.
+src/app/scene/genesis/interface/InterfaceRuntime.tsx(241,40): error TS2339: Property 'group' does not exist on type 'ModuleState'.
+src/app/scene/genesis/studio/GenesisCreationStudio.tsx(73,16): error TS7053: Element implicitly has an 'any' type because expression of type 'ArtifactSpec' can't be used to index type '{ readonly document: LucideIcon; readonly deck: LucideIcon; readonly workbook: LucideIcon; }'.
+src/app/scene/genesis/studio/StudioArtifactCards.tsx(13,15): error TS2305: Module '"../../../../core/studio/StudioTypes"' has no exported member 'ExportFormat'.
+src/app/scene/genesis/studio/StudioArtifactWindow.tsx(15,10): error TS2305: Module '"../../../../core/studio/StudioTypes"' has no exported member 'FORMATS_BY_KIND'.
+src/app/scene/genesis/studio/StudioArtifactWindow.tsx(15,32): error TS2305: Module '"../../../../core/studio/StudioTypes"' has no exported member 'ExportFormat'.
+src/app/scene/genesis/studio/StudioArtifactWindow.tsx(88,48): error TS7006: Parameter 'format' implicitly has an 'any' type.
+src/app/scene/genesis/studio/StudioArtifactWindow.tsx(106,50): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/app/scene/genesis/studio/StudioArtifactWindow.tsx(106,88): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/app/scene/genesis/studio/StudioArtifactWindow.tsx(115,39): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/app/scene/genesis/studio/useStudio.ts(6,10): error TS2305: Module '"../../../../core/studio/StudioTypes"' has no exported member 'MIME'.
+src/app/scene/genesis/studio/useStudio.ts(6,21): error TS2305: Module '"../../../../core/studio/StudioTypes"' has no exported member 'ExportFormat'.
+src/app/scene/genesis/useGenesisScene.ts(32,10): error TS2300: Duplicate identifier 'IS_DEV'.
+src/app/scene/genesis/useGenesisScene.ts(34,10): error TS2300: Duplicate identifier 'IS_DEV'.
+src/core/atelier/AtelierPackage.ts(22,15): error TS2305: Module '"../studio/StudioTypes"' has no exported member 'DeckSpec'.
+src/core/atelier/AtelierPackage.ts(22,25): error TS2305: Module '"../studio/StudioTypes"' has no exported member 'DocumentSpec'.
+src/core/atelier/AtelierPackage.ts(22,39): error TS2305: Module '"../studio/StudioTypes"' has no exported member 'WorkbookSpec'.
+src/core/atelier/AtelierTools.ts(30,15): error TS2305: Module '"../studio/StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/atelier/AtelierTools.ts(30,29): error TS2305: Module '"../studio/StudioTypes"' has no exported member 'ExportFormat'.
+src/core/env/buildEnv.ts(40,14): error TS2451: Cannot redeclare block-scoped variable 'IS_DEV'.
+src/core/env/buildEnv.ts(50,14): error TS2451: Cannot redeclare block-scoped variable 'IS_DEV'.
+src/core/studio/ChartSvg.ts(12,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/ChartSvg.ts(47,39): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(68,51): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(69,34): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(69,37): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(74,21): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(74,28): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(97,45): error TS7006: Parameter 'label' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(97,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(103,17): error TS7006: Parameter 'y' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(103,20): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(110,33): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(116,27): error TS7006: Parameter 'label' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(116,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(124,23): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(124,26): error TS7006: Parameter 'si' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(125,35): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(125,38): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(128,22): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(136,23): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(136,26): error TS7006: Parameter 'si' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(138,27): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(138,30): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/ChartSvg.ts(151,52): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioExport.ts(18,10): error TS2305: Module '"./StudioTypes"' has no exported member 'cellText'.
+src/core/studio/StudioExport.ts(18,20): error TS2305: Module '"./StudioTypes"' has no exported member 'FORMATS_BY_KIND'.
+src/core/studio/StudioExport.ts(18,37): error TS2305: Module '"./StudioTypes"' has no exported member 'isFormula'.
+src/core/studio/StudioExport.ts(18,48): error TS2305: Module '"./StudioTypes"' has no exported member 'MIME'.
+src/core/studio/StudioExport.ts(18,59): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioExport.ts(18,78): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartKind'.
+src/core/studio/StudioExport.ts(18,94): error TS2305: Module '"./StudioTypes"' has no exported member 'ExportFormat'.
+src/core/studio/StudioExport.ts(53,66): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/core/studio/StudioExport.ts(147,93): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioExport.ts(148,50): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioExportClient.ts(8,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioExportClient.ts(8,29): error TS2305: Module '"./StudioTypes"' has no exported member 'ExportFormat'.
+src/core/studio/StudioOps.ts(16,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioOps.ts(16,29): error TS2305: Module '"./StudioTypes"' has no exported member 'Block'.
+src/core/studio/StudioOps.ts(16,36): error TS2305: Module '"./StudioTypes"' has no exported member 'Cell'.
+src/core/studio/StudioOps.ts(16,42): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartKind'.
+src/core/studio/StudioOps.ts(16,53): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/StudioOps.ts(16,64): error TS2305: Module '"./StudioTypes"' has no exported member 'DeckSpec'.
+src/core/studio/StudioOps.ts(16,74): error TS2305: Module '"./StudioTypes"' has no exported member 'DocumentSpec'.
+src/core/studio/StudioOps.ts(16,88): error TS2305: Module '"./StudioTypes"' has no exported member 'SheetSpec'.
+src/core/studio/StudioOps.ts(16,99): error TS2305: Module '"./StudioTypes"' has no exported member 'SlideSpec'.
+src/core/studio/StudioOps.ts(16,110): error TS2305: Module '"./StudioTypes"' has no exported member 'Source'.
+src/core/studio/StudioOps.ts(16,118): error TS2305: Module '"./StudioTypes"' has no exported member 'WorkbookSpec'.
+src/core/studio/StudioOps.ts(273,43): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(273,46): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(273,91): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(285,43): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(320,41): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(321,91): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(345,31): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(371,43): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(371,146): error TS7006: Parameter 'se' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(372,41): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(372,44): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(373,25): error TS7006: Parameter 'sh' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(373,94): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(373,97): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(373,138): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/StudioOps.ts(373,275): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(10,10): error TS2305: Module '"./StudioTypes"' has no exported member 'cellText'.
+src/core/studio/StudioPreview.ts(10,20): error TS2305: Module '"./StudioTypes"' has no exported member 'DEFAULT_THEME'.
+src/core/studio/StudioPreview.ts(10,40): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioPreview.ts(10,59): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/StudioPreview.ts(10,75): error TS2305: Module '"./StudioTypes"' has no exported member 'DeckSpec'.
+src/core/studio/StudioPreview.ts(10,90): error TS2305: Module '"./StudioTypes"' has no exported member 'SlideSpec'.
+src/core/studio/StudioPreview.ts(27,81): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(27,162): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(27,201): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(27,204): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(44,114): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(44,117): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(56,124): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(57,128): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(58,40): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(58,73): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(59,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(60,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(68,37): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(71,31): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioPreview.ts(73,31): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioReader.ts(16,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioReader.ts(16,29): error TS2305: Module '"./StudioTypes"' has no exported member 'Block'.
+src/core/studio/StudioReader.ts(16,36): error TS2305: Module '"./StudioTypes"' has no exported member 'Cell'.
+src/core/studio/StudioReader.ts(16,42): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartKind'.
+src/core/studio/StudioReader.ts(16,53): error TS2305: Module '"./StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/StudioReader.ts(16,64): error TS2305: Module '"./StudioTypes"' has no exported member 'ExportFormat'.
+src/core/studio/StudioReader.ts(16,78): error TS2305: Module '"./StudioTypes"' has no exported member 'SheetSpec'.
+src/core/studio/StudioReader.ts(16,89): error TS2305: Module '"./StudioTypes"' has no exported member 'SlideSpec'.
+src/core/studio/StudioReader.ts(16,100): error TS2305: Module '"./StudioTypes"' has no exported member 'Source'.
+src/core/studio/StudioReader.ts(193,31): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/studio/StudioReader.ts(193,37): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioStore.ts(20,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioStore.ts(20,29): error TS2305: Module '"./StudioTypes"' has no exported member 'ExportFormat'.
+src/core/studio/StudioTools.ts(31,10): error TS2305: Module '"./StudioTypes"' has no exported member 'FORMATS_BY_KIND'.
+src/core/studio/StudioTools.ts(31,32): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/StudioTools.ts(31,51): error TS2305: Module '"./StudioTypes"' has no exported member 'ExportFormat'.
+src/core/studio/StudioTools.ts(133,26): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(133,29): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(138,138): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(139,161): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(144,26): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(144,29): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(144,263): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(148,37): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(148,40): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(148,83): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(150,107): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/StudioTools.ts(153,91): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/studioExport.worker.ts(12,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ArtifactSpec'.
+src/core/studio/studioExport.worker.ts(12,29): error TS2305: Module '"./StudioTypes"' has no exported member 'ExportFormat'.
+src/core/studio/writers/docxWriter.ts(9,15): error TS2305: Module '"../StudioTypes"' has no exported member 'Block'.
+src/core/studio/writers/docxWriter.ts(9,22): error TS2305: Module '"../StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/writers/docxWriter.ts(9,33): error TS2305: Module '"../StudioTypes"' has no exported member 'DocumentSpec'.
+src/core/studio/writers/docxWriter.ts(46,56): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/docxWriter.ts(55,56): error TS7006: Parameter 'y' implicitly has an 'any' type.
+src/core/studio/writers/docxWriter.ts(55,59): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/docxWriter.ts(63,33): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/docxWriter.ts(63,36): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(11,10): error TS2305: Module '"../StudioTypes"' has no exported member 'DEFAULT_THEME'.
+src/core/studio/writers/pdfWriter.ts(11,30): error TS2305: Module '"../StudioTypes"' has no exported member 'Block'.
+src/core/studio/writers/pdfWriter.ts(11,42): error TS2305: Module '"../StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/writers/pdfWriter.ts(11,58): error TS2305: Module '"../StudioTypes"' has no exported member 'DeckSpec'.
+src/core/studio/writers/pdfWriter.ts(11,73): error TS2305: Module '"../StudioTypes"' has no exported member 'DocumentSpec'.
+src/core/studio/writers/pdfWriter.ts(134,53): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(135,36): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(135,39): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(140,23): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(140,26): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(154,35): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(164,62): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(164,65): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(166,44): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(166,47): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(170,31): error TS7006: Parameter 'label' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(170,38): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(174,25): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(174,28): error TS7006: Parameter 'si' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(177,31): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(177,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(186,31): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(186,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(189,56): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(249,44): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(249,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(260,26): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(260,29): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(271,88): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(286,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(289,28): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/pdfWriter.ts(292,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(8,10): error TS2305: Module '"../StudioTypes"' has no exported member 'DEFAULT_THEME'.
+src/core/studio/writers/pptxWriter.ts(8,30): error TS2305: Module '"../StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/writers/pptxWriter.ts(8,46): error TS2305: Module '"../StudioTypes"' has no exported member 'DeckSpec'.
+src/core/studio/writers/pptxWriter.ts(8,61): error TS2305: Module '"../StudioTypes"' has no exported member 'DeckTheme'.
+src/core/studio/writers/pptxWriter.ts(8,77): error TS2305: Module '"../StudioTypes"' has no exported member 'SlideSpec'.
+src/core/studio/writers/pptxWriter.ts(39,86): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(39,89): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(40,105): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(68,24): error TS7006: Parameter 'spec' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(68,30): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(92,48): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(93,43): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(93,74): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(93,77): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/pptxWriter.ts(110,25): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(8,3): error TS2305: Module '"../StudioTypes"' has no exported member 'cellText'.
+src/core/studio/writers/textWriters.ts(9,3): error TS2305: Module '"../StudioTypes"' has no exported member 'isFormula'.
+src/core/studio/writers/textWriters.ts(10,8): error TS2305: Module '"../StudioTypes"' has no exported member 'Block'.
+src/core/studio/writers/textWriters.ts(11,8): error TS2305: Module '"../StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/writers/textWriters.ts(12,8): error TS2305: Module '"../StudioTypes"' has no exported member 'DeckSpec'.
+src/core/studio/writers/textWriters.ts(13,8): error TS2305: Module '"../StudioTypes"' has no exported member 'DocumentSpec'.
+src/core/studio/writers/textWriters.ts(14,8): error TS2305: Module '"../StudioTypes"' has no exported member 'SheetSpec'.
+src/core/studio/writers/textWriters.ts(15,8): error TS2305: Module '"../StudioTypes"' has no exported member 'Source'.
+src/core/studio/writers/textWriters.ts(16,8): error TS2305: Module '"../StudioTypes"' has no exported member 'WorkbookSpec'.
+src/core/studio/writers/textWriters.ts(25,135): error TS7006: Parameter 'v' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(25,138): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(28,40): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(29,29): error TS7006: Parameter 'label' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(29,36): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(29,71): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(43,33): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/core/studio/writers/textWriters.ts(47,45): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(47,51): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(69,35): error TS7006: Parameter 'slide' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(69,42): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(72,62): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(73,58): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(83,49): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(83,105): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(98,35): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+src/core/studio/writers/textWriters.ts(104,42): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(126,35): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(126,38): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(126,223): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(126,316): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(131,78): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(131,147): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(131,195): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(142,44): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(142,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(143,123): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(149,74): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(149,77): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(178,44): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(178,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(184,64): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(184,93): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(184,96): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(192,82): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(192,85): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(201,51): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(201,64): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/writers/textWriters.ts(202,36): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(10,10): error TS2305: Module '"../StudioTypes"' has no exported member 'isFormula'.
+src/core/studio/writers/xlsxWriter.ts(10,26): error TS2305: Module '"../StudioTypes"' has no exported member 'ChartSpec'.
+src/core/studio/writers/xlsxWriter.ts(10,42): error TS2305: Module '"../StudioTypes"' has no exported member 'SheetSpec'.
+src/core/studio/writers/xlsxWriter.ts(10,58): error TS2305: Module '"../StudioTypes"' has no exported member 'WorkbookSpec'.
+src/core/studio/writers/xlsxWriter.ts(25,26): error TS7006: Parameter 'cell' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(32,28): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(32,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(33,64): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(42,37): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(82,36): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(86,36): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(93,20): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(94,34): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(109,27): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(109,30): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(155,46): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(155,107): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(161,23): error TS7031: Binding element 'chart' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(161,30): error TS7031: Binding element 'ranges' implicitly has an 'any' type.
+src/core/studio/writers/xlsxWriter.ts(161,40): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/core/tools/ToolDispatcher.ts(35,1): error TS6133: 'studioToolExecutors' is declared but its value is never read.
+src/core/tools/ToolDispatcher.ts(403,7): error TS6133: 'CORE_EXECUTORS' is declared but its value is never read.
+src/core/tools/ToolDispatcher.ts(2556,7): error TS2304: Cannot find name 'EXECUTORS'.
+plugins/loadEnvFiles.ts(29,10): error TS2300: Duplicate identifier 'fillBareSecretAliases'.
+plugins/loadEnvFiles.ts(53,10): error TS2300: Duplicate identifier 'fillBareSecretAliases'.

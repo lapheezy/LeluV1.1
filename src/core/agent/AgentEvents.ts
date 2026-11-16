@@ -123,8 +123,17 @@ export type AgentEvent =
       query?: string;
       provider?: string;
       status?: "complete" | "blocked" | "error";
+      /** How long the executor actually ran, when it was measured. */
+      durationMs?: number;
     }
   | { type: "tool_failed"; taskId: string; tool: string; error?: string }
+  /**
+   * One stage of one REAL tool invocation, produced only by the code that
+   * observed it (the dispatcher). Carries an execution id so every stage of
+   * the same call can be stitched together, and so a suppressed duplicate is
+   * never mistaken for a second execution.
+   */
+  | { type: "execution_evidence"; taskId: string; record: import("../tools/ExecutionEvidence").ExecutionRecord }
   /**
    * What LÉLU said she was doing while she called tools — the text a
    * model returns alongside a tool request ("I'm checking current
@@ -189,6 +198,19 @@ export type AgentEvent =
       source?: string;
       /** What is known about it as text (a capture's title and visible text). */
       text?: string;
+    }
+  | {
+      /** A Creation Studio artifact was made or revised (and possibly exported) in this turn. */
+      type: "studio_artifact";
+      taskId: string;
+      artifactId: string;
+      rev: number;
+      title: string;
+      /** "design" is an Atelier project (artifactId is the project id). */
+      kind: "document" | "deck" | "workbook" | "graph" | "drawing" | "visual" | "design";
+      action: "created" | "revised" | "exported" | "restored" | "opened";
+      /** Exports of this revision and whether each one passed read-back verification. */
+      exports?: Array<{ format: string; filename: string; ok: boolean; size: number }>;
     }
   | { type: "workspace_open"; taskId: string }
   | { type: "workspace_focus"; taskId: string; view: string }

@@ -1,0 +1,35 @@
+{
+  "mission": "unified-mobile-orchestration",
+  "workflow": "B",
+  "at": "2026-11-08T13:59:00.318Z",
+  "steps": [
+    {
+      "step": "before-portal",
+      "dom": {
+        "universeDialogs": 0,
+        "universeWindows": 0,
+        "universeThreads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "universes": 0,
+        "legacyMultiChatTabs": false
+      }
+    },
+    {
+      "step": "after-portal",
+      "dom": {
+        "universeDialogs": 0,
+        "universeWindows": 0,
+        "universeThreads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "universes": 0,
+        "legacyMultiChatTabs": false
+      }
+    }
+  ],
+  "threadsClickable": 0,
+  "newChatButton": 0,
+  "conversationWindowOpened": false,
+  "result": "UNIVERSE_ONLY"
+}

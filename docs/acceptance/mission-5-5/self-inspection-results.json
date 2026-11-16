@@ -1,0 +1,5 @@
+{
+  "result": "BLOCKED",
+  "reason": "no model call available once Groq's daily quota was spent; inspection needs model reasoning over real state",
+  "capability_notes": "structural inspection exists (WorkspaceEngine state, EnvironmentOrchestrationEngine.getSnapshots/getRevisionHistory). No screenshot/visual-inspection tool is offered to the model, so visual self-inspection would have been coarse even with a provider."
+}

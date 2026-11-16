@@ -1,0 +1,14 @@
+{
+  "result": "PARTIAL",
+  "proven": [
+    "the model selected environment.compose on its own",
+    "the dispatcher ran it",
+    "the engine returned ok:true"
+  ],
+  "not_proven": [
+    "the composed surfaces rendered in Cosmos/Genesis (renderer process died before capture)",
+    "screenshot of the created environment"
+  ],
+  "renderer_stability": "the headless renderer terminated during long turns; two 3-minute runs ended this way and one 80-second run completed",
+  "blocking_after": "provider quota (Groq 429 for the day after ~12 calls; OpenRouter free tier already exhausted)"
+}

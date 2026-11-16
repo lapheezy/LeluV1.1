@@ -1,0 +1,205 @@
+{
+  "at": "2026-11-14T21:14:12.943Z",
+  "base": "http://127.0.0.1:5174/",
+  "rows": [
+    {
+      "id": "wikipedia.summary",
+      "ok": true,
+      "ms": 5034,
+      "rows": 1,
+      "detail": "Coral bleaching is the process where corals become white due to loss of symbiotic algae and photosynthetic pigments. Thi",
+      "citation": {
+        "title": "Wikipedia — Coral bleaching",
+        "url": "https://en.wikipedia.org/wiki/Coral_bleaching",
+        "accessed": "2026-11-14T21:13:14.938Z",
+        "attribution": "Text from Wikipedia, CC BY-SA 4.0"
+      },
+      "hosts": [
+        "en.wikipedia.org"
+      ],
+      "relay": false
+    },
+    {
+      "id": "wikipedia.search",
+      "ok": true,
+      "ms": 1279,
+      "rows": 5,
+      "detail": "5 articles for “coral bleaching”.",
+      "citation": {
+        "title": "Wikipedia search — coral bleaching",
+        "url": "https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&origin=*&srlimit=5&srsearch=coral%20bleaching",
+        "accessed": "2026-11-14T21:13:22.130Z",
+        "attribution": "Wikipedia, CC BY-SA 4.0"
+      },
+      "hosts": [
+        "en.wikipedia.org"
+      ],
+      "relay": false
+    },
+    {
+      "id": "wikidata.sparql",
+      "ok": true,
+      "ms": 1017,
+      "rows": 5,
+      "detail": "5 result rows.",
+      "citation": {
+        "title": "Wikidata Query Service",
+        "url": "https://query.wikidata.org/sparql?format=json&query=SELECT%20%3Fc%20%3FcLabel%20%3Fpop%20WHERE%20%7B%20%3Fc%20wdt%3AP31%20wd%3AQ6256%3B%20wdt%3AP1082%20%3Fpop.%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20'en'.%20%7D%20%7D%20ORDER%20BY%20DESC(%3Fpop)%20LIMIT%205",
+        "accessed": "2026-11-14T21:13:24.443Z",
+        "attribution": "Wikidata (CC0)"
+      },
+      "hosts": [
+        "query.wikidata.org"
+      ],
+      "relay": false
+    },
+    {
+      "id": "crossref.works",
+      "ok": true,
+      "ms": 3597,
+      "rows": 5,
+      "detail": "5 works for “coral bleaching”.",
+      "citation": {
+        "title": "Crossref — coral bleaching",
+        "url": "https://api.crossref.org/works?query=coral%20bleaching&rows=5&select=DOI,title,author,issued,container-title,is-referenced-by-count,URL",
+        "accessed": "2026-11-14T21:13:28.749Z",
+        "attribution": "Metadata from Crossref"
+      },
+      "hosts": [
+        "api.crossref.org"
+      ],
+      "relay": false
+    },
+    {
+      "id": "arxiv.search",
+      "ok": true,
+      "ms": 8839,
+      "rows": 3,
+      "detail": "3 preprints for “coral reef”.",
+      "citation": {
+        "title": "arXiv — coral reef",
+        "url": "https://export.arxiv.org/api/query?search_query=all:coral%20reef&start=0&max_results=3&sortBy=relevance",
+        "accessed": "2026-11-14T21:13:35.785Z",
+        "attribution": "Thank you to arXiv for use of its open access interoperability"
+      },
+      "hosts": [
+        "export.arxiv.org",
+        "api.allorigins.win"
+      ],
+      "relay": true
+    },
+    {
+      "id": "openalex.works",
+      "ok": false,
+      "ms": 1078,
+      "rows": 0,
+      "detail": "OpenAlex scholarly works refused with 429 (rate limit: Keyless requests share a small free daily budget per IP address; heavier use needs a (free) key, which LÉLU does not create)",
+      "citation": null,
+      "hosts": [
+        "api.openalex.org"
+      ],
+      "relay": false
+    },
+    {
+      "id": "usgs.earthquakes",
+      "ok": true,
+      "ms": 2403,
+      "rows": 120,
+      "detail": "120 earthquakes (USGS Magnitude 4.5+ Earthquakes, Past Week). Strongest: M6.4 30 km WSW of Lata, Solomon Islands.",
+      "citation": {
+        "title": "USGS — USGS Magnitude 4.5+ Earthquakes, Past Week",
+        "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+        "accessed": "2026-11-14T21:13:48.058Z",
+        "attribution": "U.S. Geological Survey Earthquake Hazards Program"
+      },
+      "hosts": [
+        "earthquake.usgs.gov"
+      ],
+      "relay": false
+    },
+    {
+      "id": "nws.forecast",
+      "ok": true,
+      "ms": 5396,
+      "rows": 14,
+      "detail": "This Afternoon: 49°F, Partly Sunny; Tonight: 44°F, Partly Cloudy",
+      "citation": {
+        "title": "National Weather Service forecast",
+        "url": "https://api.weather.gov/gridpoints/OKX/33,42/forecast",
+        "accessed": "2026-11-14T21:13:50.465Z",
+        "attribution": "NOAA / National Weather Service"
+      },
+      "hosts": [
+        "api.weather.gov"
+      ],
+      "relay": false
+    },
+    {
+      "id": "openmeteo.forecast",
+      "ok": false,
+      "ms": 904,
+      "rows": 0,
+      "detail": "Open-Meteo forecast refused with 429 (rate limit: Non-commercial use only; < 10,000 calls/day, 5,000/hour, 600/minute)",
+      "citation": null,
+      "hosts": [
+        "api.open-meteo.com"
+      ],
+      "relay": false
+    },
+    {
+      "id": "hackernews.top",
+      "ok": true,
+      "ms": 4769,
+      "rows": 5,
+      "detail": "5 top stories.",
+      "citation": {
+        "title": "Hacker News — top stories",
+        "url": "https://news.ycombinator.com/",
+        "accessed": "2026-11-14T21:14:00.211Z",
+        "attribution": "Hacker News (Y Combinator)"
+      },
+      "hosts": [
+        "hacker-news.firebaseio.com"
+      ],
+      "relay": false
+    },
+    {
+      "id": "github.releases",
+      "ok": true,
+      "ms": 936,
+      "rows": 3,
+      "detail": "3 releases of mrdoob/three.js.",
+      "citation": {
+        "title": "GitHub — mrdoob/three.js releases",
+        "url": "https://github.com/mrdoob/three.js/releases",
+        "accessed": "2026-11-14T21:14:07.124Z",
+        "attribution": "GitHub"
+      },
+      "hosts": [
+        "api.github.com"
+      ],
+      "relay": false
+    },
+    {
+      "id": "nominatim.search",
+      "ok": true,
+      "ms": 2504,
+      "rows": 1,
+      "detail": "Lisbon, Portugal at 38.7077507, -9.1365919",
+      "citation": {
+        "title": "OpenStreetMap — Lisbon",
+        "url": "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=Lisbon",
+        "accessed": "2026-11-14T21:14:10.438Z",
+        "attribution": "© OpenStreetMap contributors (ODbL)"
+      },
+      "hosts": [
+        "nominatim.openstreetmap.org"
+      ],
+      "relay": false
+    }
+  ],
+  "corsConsole": [
+    "Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:coral%20reef&start=0&max_results=3&sortBy=relevance' from origin 'http://127.0.0.1:5174' has been blocked by CORS policy: No 'Ac",
+    "Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20need"
+  ]
+}

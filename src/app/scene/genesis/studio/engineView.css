@@ -1,0 +1,229 @@
+/* The engine experience: one column on a phone, side-by-side controls on a
+   desktop, and never a nested scrollbar around the canvas. */
+
+.eng {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: var(--lelu-color-text, #f4f0ff);
+}
+
+.eng-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.eng-chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(185, 140, 255, 0.18);
+  border: 1px solid rgba(185, 140, 255, 0.35);
+  font: 600 11px/1.6 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.eng-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.eng-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.eng-btn[aria-pressed="true"] { border-color: rgba(185, 140, 255, 0.55); background: rgba(185, 140, 255, 0.16); }
+
+.eng-slider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  opacity: 0.9;
+  min-width: 0;
+  flex: 1 1 150px;
+}
+
+.eng-slider span { opacity: 0.65; white-space: nowrap; }
+.eng-slider input { flex: 1 1 auto; min-width: 60px; accent-color: #b98cff; }
+.eng-slider em { font-style: normal; opacity: 0.65; min-width: 34px; text-align: right; }
+
+.eng-stage {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #07060f;
+  border: 1px solid rgba(185, 140, 255, 0.22);
+}
+
+.eng-canvas {
+  width: 100%;
+  height: clamp(260px, 46vh, 460px);
+  min-height: 240px;
+}
+
+.eng-canvas canvas { display: block; width: 100% !important; height: 100% !important; }
+
+.eng-labels { position: absolute; inset: 0; pointer-events: none; }
+
+.eng-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(10, 6, 24, 0.82);
+  border: 1px solid rgba(185, 140, 255, 0.32);
+  color: #f4f0ff;
+  font: 500 10.5px/1.5 system-ui, sans-serif;
+  white-space: nowrap;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.eng-layers {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.eng-layer { display: inline-flex; align-items: center; pointer-events: auto; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(7, 5, 18, 0.78); }
+.eng-layer.is-off { opacity: 0.45; }
+
+.eng-layer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.eng-layer-toggle i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.eng-layer-toggle em { font-style: normal; opacity: 0.55; }
+
+.eng-layer-isolate {
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.eng-layer-isolate:hover { opacity: 1; }
+
+.eng-cycle {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.eng-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 7px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.eng-step strong { font-size: 11px; font-weight: 600; }
+.eng-step span { font-size: 10px; opacity: 0.66; line-height: 1.35; }
+.eng-step.is-active { border-color: rgba(255, 138, 76, 0.65); background: rgba(255, 138, 76, 0.14); }
+
+.eng-detail {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.eng-note { margin: 0; font-size: 10.5px; opacity: 0.55; }
+
+.eng-error {
+  position: absolute;
+  inset: auto 8px 8px 8px;
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(120, 20, 20, 0.75);
+  font-size: 11.5px;
+  color: #ffd9d9;
+}
+
+/* Phones: the stage keeps more of the screen, the controls read as a sheet. */
+@media (max-width: 640px) {
+  .eng-bar { gap: 5px; }
+  .eng-slider { flex-basis: 100%; }
+  .eng-canvas { height: clamp(220px, 38vh, 340px); min-height: 200px; }
+  .eng-cycle { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .eng-label { font-size: 9.5px; padding: 1px 4px; }
+  /*
+   * On a phone the chips leave the canvas.
+   *
+   * As an overlay the eight layer chips sat on top of the piston and the
+   * crankshaft — the very parts they switch. They read as a strip under the
+   * stage instead, still inside the dark panel, covering nothing.
+   */
+  .eng-layers {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 6px 6px 8px;
+    gap: 3px;
+    pointer-events: auto;
+  }
+  .eng-layer-toggle { font-size: 9.5px; padding: 2px 5px; }
+  .eng-layer-isolate { display: none; }
+}
+
+/* Parameters: the other half of a construction. Two columns on a desktop,
+   one on a phone, and never taller than it needs to be. */
+.eng-params { margin-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 6px; }
+.eng-params summary { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11.5px; opacity: 0.85; }
+.eng-params summary em { font-style: normal; opacity: 0.6; }
+.eng-params-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 6px; margin: 8px 0; }
+.eng-param { display: flex; flex-direction: column; gap: 3px; font-size: 11px; min-width: 0; }
+.eng-param span { display: flex; justify-content: space-between; gap: 6px; opacity: 0.8; }
+.eng-param span em { font-style: normal; opacity: 0.7; }
+.eng-param input[type="range"] { width: 100%; min-width: 0; accent-color: #b98cff; }
+.eng-param select { border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 11px; padding: 4px 6px; }
+@media (max-width: 640px) {
+  .eng-params-grid { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,0 +1,47 @@
+{
+  "at": "2026-11-09T18:31:06.942Z",
+  "base": "http://127.0.0.1:3013",
+  "steps": [
+    {
+      "spelling": "https://github.com/typesense/typesense.git",
+      "id": "acq-typesense-typesense-f7ve8",
+      "ok": true,
+      "commit": "3423e2e0daf335a38135aaf20032ce5664497908"
+    },
+    {
+      "spelling": "typesense/typesense",
+      "id": "acq-typesense-typesense-f7ve8",
+      "same": true,
+      "ok": true,
+      "created": null
+    },
+    {
+      "spelling": "https://www.github.com/Typesense/Typesense",
+      "id": "acq-typesense-typesense-f7ve8",
+      "same": true,
+      "ok": true,
+      "created": null
+    }
+  ],
+  "concurrent": {
+    "target": "sindresorhus/quick-lru",
+    "ids": [
+      "acq-sindresorhus-quick-lru-lk0e2",
+      "acq-sindresorhus-quick-lru-lk0e2"
+    ],
+    "same": true,
+    "created": [
+      null,
+      null
+    ]
+  },
+  "differentRepo": {
+    "id": "acq-octocat-hello-world-impyw",
+    "distinct": true
+  },
+  "verdict": {
+    "threeSpellingsOneRecord": true,
+    "concurrentSingleRecord": true,
+    "differentRepoDistinct": true
+  }
+}

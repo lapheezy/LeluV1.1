@@ -1,0 +1,56 @@
+/*
+ * Sketch is a canvas tool inside a window that can be 328px wide.
+ * Keep the document aspect ratio, stack the tool rail and layers, and
+ * never let the 1200px canvas establish a wider layout than the window.
+ */
+@media (max-width: 700px) {
+  .lelu-sketch-body {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+
+  .lelu-sketch-tools {
+    width: 100% !important;
+    max-height: none !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 6px !important;
+  }
+
+  .lelu-sketch-tools > div {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .lelu-sketch-tools > label {
+    flex: 0 0 auto;
+    min-width: 54px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lelu-sketch-canvas {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 8px !important;
+    overflow: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .lelu-sketch-canvas canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 56vh !important;
+    object-fit: contain;
+  }
+
+  .lelu-sketch-side {
+    width: 100% !important;
+    max-height: 28vh !important;
+    box-sizing: border-box !important;
+  }
+}

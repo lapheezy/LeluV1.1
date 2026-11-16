@@ -1,0 +1,125 @@
+{
+ "rows": [
+  {
+   "step": "home",
+   "presences": [
+    "hero"
+   ],
+   "avatarCanvases": 1,
+   "canvasIds": [
+    1
+   ],
+   "contexts": 8,
+   "avatarContexts": 1,
+   "texMB": 104,
+   "heap": 450,
+   "rect": [
+    522,
+    42,
+    395,
+    330
+   ]
+  },
+  {
+   "step": "chat",
+   "presences": [
+    "hero"
+   ],
+   "avatarCanvases": 1,
+   "canvasIds": [
+    1
+   ],
+   "contexts": 8,
+   "avatarContexts": 1,
+   "texMB": 104,
+   "heap": 501,
+   "rect": [
+    522,
+    42,
+    395,
+    330
+   ]
+  },
+  {
+   "step": "studio-library",
+   "presences": [
+    "planned"
+   ],
+   "avatarCanvases": 1,
+   "canvasIds": [
+    1
+   ],
+   "contexts": 11,
+   "avatarContexts": 1,
+   "texMB": 108,
+   "heap": 509,
+   "rect": [
+    1042,
+    120,
+    208,
+    340
+   ]
+  },
+  {
+   "step": "graph",
+   "presences": [
+    "planned"
+   ],
+   "avatarCanvases": 1,
+   "canvasIds": [
+    1
+   ],
+   "contexts": 11,
+   "avatarContexts": 1,
+   "texMB": 108,
+   "heap": 490,
+   "rect": [
+    1042,
+    120,
+    208,
+    340
+   ]
+  },
+  {
+   "step": "drawing",
+   "presences": [
+    "planned"
+   ],
+   "avatarCanvases": 1,
+   "canvasIds": [
+    1
+   ],
+   "contexts": 13,
+   "avatarContexts": 1,
+   "texMB": 108,
+   "heap": 566,
+   "rect": [
+    884,
+    8,
+    140,
+    100
+   ]
+  },
+  {
+   "step": "home-again",
+   "presences": [
+    "hero"
+   ],
+   "avatarCanvases": 1,
+   "canvasIds": [
+    1
+   ],
+   "contexts": 14,
+   "avatarContexts": 1,
+   "texMB": 108,
+   "heap": 562,
+   "rect": [
+    884,
+    8,
+    140,
+    100
+   ]
+  }
+ ],
+ "errors": []
+}

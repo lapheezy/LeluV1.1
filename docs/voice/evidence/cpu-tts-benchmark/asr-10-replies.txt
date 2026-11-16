@@ -1,0 +1,10 @@
+run-quality/q00.wav | 5.12 s | Of course, I'll remind you tomorrow morning at nine.
+run-quality/q01.wav | 3.52 s | That's a good question. Let me think about it for a moment.
+run-quality/q02.wav | 5.2 s | are you here? I found three new messages for you.
+run-quality/q03.wav | 4.0 s | The weather today is sunny, with a high of 24 degrees.
+run-quality/q04.wav | 4.88 s | I'm sorry, I didn't catch that. Could you say it again?
+run-quality/q05.wav | 5.36 s | Your meeting with the design team starts in 15 minutes.
+run-quality/q06.wav | 5.04 s | Hello, it's lovely to hear from you again.
+run-quality/q07.wav | 3.6 s | I saved the document and shared it with your project folder.
+run-quality/q08.wav | 5.28 s | Sure, here is a short summary of what we discussed today.
+run-quality/q09.wav | 4.56 s | Good night, sleep well, and I'll be here when you wake up.

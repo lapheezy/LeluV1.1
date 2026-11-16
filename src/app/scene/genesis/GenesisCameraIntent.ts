@@ -78,6 +78,21 @@ export function dispatchV2CameraCommand(command: GenesisV2CameraCommand): void {
 }
 
 /**
+ * LÉLU taking the camera for a spatial command is the same signal a user drag
+ * emits: autonomous camera systems (ExplorationController, the presence
+ * engine) pause on it instead of flying somewhere else mid-command.
+ */
+export function beginSpatialCameraTakeover(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("genesis-user-camera-start"));
+}
+
+export function endSpatialCameraTakeover(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("genesis-user-camera-end"));
+}
+
+/**
  * Request the browser to make the Gen V2 viewport fullscreen. Browsers
  * require a user gesture (or an agent action that originates from one),
  * so callers that cannot prove a gesture get a silent no-op.

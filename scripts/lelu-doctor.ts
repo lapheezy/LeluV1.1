@@ -70,7 +70,7 @@ const aiProviders: { name: string; key: string; aliases?: string[] }[] = [
   {
     name: "Anthropic",
     key: "VITE_ANTHROPIC_API_KEY",
-    aliases: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+    aliases: ["ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
   },
   {
     name: "Gemini",

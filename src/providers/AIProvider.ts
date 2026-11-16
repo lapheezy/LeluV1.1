@@ -7,6 +7,19 @@
 
 import type { AIIntent } from "../core/router/AIIntent";
 
+/**
+ * The output budget a conversational request asks for when nothing named one.
+ *
+ * Leaving `max_tokens` unset is not neutral: OpenRouter assumes the model's
+ * whole 16,384-token ceiling and refuses the request when the account cannot
+ * afford it — measured in Mission 6.1.4 after the tool payload had already
+ * been cut from ~21,756 to 531 tokens: `402 … You requested up to 16384
+ * tokens, but can only afford 14696`. 2,048 leaves room for a real answer, a
+ * streamed reply and a tool call, at a fraction of the tokens the unset
+ * request reserves.
+ */
+export const DEFAULT_OUTPUT_TOKENS = 2_048;
+
 export interface AIMessage {
 
   role:
@@ -57,6 +70,38 @@ export interface AIMessage {
    */
   toolError?:
     boolean;
+
+
+  /**
+   * On an assistant turn, the provider's own content blocks exactly as it
+   * returned them (see AIResponse.providerBlocks). Only the provider named
+   * here reads them; every other provider replays `content`/`toolCalls`.
+   */
+  providerBlocks?:
+    ProviderBlocks;
+
+}
+
+
+
+/**
+ * A provider's raw response content, kept so a tool loop can hand the
+ * turn back VERBATIM. Current Claude models return thinking blocks next to
+ * tool_use blocks; rebuilding the turn from text + toolCalls drops them,
+ * which loses the model's reasoning between tool rounds.
+ */
+export interface ProviderBlocks {
+
+  provider:
+    string;
+
+  blocks:
+    Array<
+      Record<
+        string,
+        unknown
+      >
+    >;
 
 }
 
@@ -289,6 +334,9 @@ export interface AIRequest {
     boolean;
 
 
+
+
+
   /**
    * Maximum tokens.
    */
@@ -322,6 +370,18 @@ export interface AIRequest {
    */
   forceIntent?:
     AIIntent;
+
+
+
+  /**
+   * What KIND of work this turn is, set by the router (never by a user).
+   * "coding" = an engineering-intent turn: the coding provider leads and
+   * a provider with a dedicated coding model (Fireworks → Kimi) uses it.
+   * Unlike `model`, it does not pin one model id onto every provider in
+   * the fallback chain. Providers without a coding model ignore it.
+   */
+  workload?:
+    "coding";
 
 }
 
@@ -371,6 +431,16 @@ export interface AIResponse {
    */
   stopReason?:
     string;
+
+
+
+  /**
+   * The provider's raw content for this turn, when it needs it replayed
+   * unchanged on the next tool round. The router copies it onto the
+   * assistant turn it records; it is never shown or persisted.
+   */
+  providerBlocks?:
+    ProviderBlocks;
 
 
 

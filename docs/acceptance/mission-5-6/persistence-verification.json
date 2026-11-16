@@ -1,0 +1,18 @@
+{
+  "result": "PARTIAL",
+  "mechanism": "KvStore -> localStorage (first backend) with sessionStorage/window.name as fallbacks; EnvironmentOrchestrationEngine.persistToStorage writes environment.snapshots + environment.revisions",
+  "observed_after_a_real_session": {
+    "lelu_keys_present": 33,
+    "examples": [
+      "lelu.lelu.layout.v2",
+      "lelu.lelu.spatial.portals.v1",
+      "lelu.projects.v1",
+      "lelu.multichat.workspace.v1",
+      "lelu.lelu.reflection.last.v1"
+    ],
+    "source": "renderer-stability.json finalDom.storage"
+  },
+  "verified": "the persistence plumbing writes real keys in a real session",
+  "not_verified": "no environment snapshot existed this mission (no model), so save -> reload -> restore -> continue was NOT demonstrated",
+  "cross_device": "absent by architecture: localStorage is per-device; no server-side persistence is claimed"
+}

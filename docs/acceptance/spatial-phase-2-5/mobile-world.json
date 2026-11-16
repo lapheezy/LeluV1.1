@@ -1,0 +1,147 @@
+[
+  {
+    "label": "loaded",
+    "canvases": [
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 162,
+        "h": 220
+      }
+    ],
+    "revision": 0,
+    "nodes": 29,
+    "objects": [],
+    "textareas": 1
+  },
+  {
+    "label": "chat-open",
+    "canvases": [
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 162,
+        "h": 220
+      }
+    ],
+    "revision": 0,
+    "nodes": 29,
+    "objects": [],
+    "textareas": 2
+  },
+  {
+    "label": "created",
+    "canvases": [
+      {
+        "w": 120,
+        "h": 174
+      }
+    ],
+    "revision": 0,
+    "nodes": 0,
+    "objects": [],
+    "textareas": 3
+  },
+  {
+    "label": "after-window-chrome",
+    "canvases": [
+      {
+        "w": 120,
+        "h": 174
+      }
+    ],
+    "revision": 1,
+    "nodes": 0,
+    "objects": [
+      {
+        "name": "Vega",
+        "rendered": false
+      }
+    ],
+    "textareas": 3
+  },
+  {
+    "label": "after-close-chat",
+    "canvases": [
+      {
+        "w": 120,
+        "h": 174
+      }
+    ],
+    "revision": 1,
+    "nodes": 0,
+    "objects": [
+      {
+        "name": "Vega",
+        "rendered": false
+      }
+    ],
+    "textareas": 3
+  },
+  {
+    "label": "after-escape",
+    "canvases": [
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 162,
+        "h": 220
+      }
+    ],
+    "revision": 1,
+    "nodes": 28,
+    "objects": [
+      {
+        "name": "Vega",
+        "rendered": true,
+        "visible": true
+      }
+    ],
+    "textareas": 2
+  },
+  {
+    "label": "final",
+    "canvases": [
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 390,
+        "h": 844
+      },
+      {
+        "w": 162,
+        "h": 220
+      }
+    ],
+    "revision": 1,
+    "nodes": 28,
+    "objects": [
+      {
+        "name": "Vega",
+        "rendered": true,
+        "visible": true
+      }
+    ],
+    "textareas": 2
+  }
+]

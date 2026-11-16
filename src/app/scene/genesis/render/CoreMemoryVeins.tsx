@@ -22,10 +22,11 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Color, Group, Mesh, MeshBasicMaterial } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 
 export default function CoreMemoryVeins() {
-  const { getLiveUniverse, engineRuntime } = useGenesis();
+  // Stable scene context: both getters are read inside the frame.
+  const scene = useGenesisScene("CoreMemoryVeins");
 
   const group = useRef<Group>(null);
 
@@ -62,7 +63,7 @@ export default function CoreMemoryVeins() {
       return;
     }
 
-    const liveUniverse = getLiveUniverse();
+    const liveUniverse = scene.getLiveUniverse();
     const memoryEnergy =
       (liveUniverse.memory.shortTerm +
         liveUniverse.memory.longTerm +
@@ -72,7 +73,7 @@ export default function CoreMemoryVeins() {
 
     // ONE visual state — the lattice is part of the same living system
     // as the Core, so it takes the Core's current engine-state color.
-    const vs = engineRuntime?.getEngineBus().getVisualState();
+    const vs = scene.engineRuntime?.getEngineBus().getVisualState();
 
     group.current.rotation.y +=
       delta * (0.008 + memoryEnergy * 0.02 + emergence * 0.01);

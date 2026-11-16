@@ -113,10 +113,15 @@ test("ToolRegistry has all builtin tools registered", () => {
 test("ToolRegistry search finds GitHub tools", () => {
   const registry = ToolRegistry.getInstance();
   const results = registry.search("github");
-  assert.ok(results.length >= 6, `Expected >=6 GitHub tools, got ${results.length}`);
-  for (const tool of results) {
-    assert.equal(tool.category, "GitHub");
-  }
+  const githubTools = results.filter((tool) => tool.category === "GitHub");
+  assert.ok(githubTools.length >= 6, `Expected >=6 GitHub tools, got ${githubTools.length}`);
+  // Acquisition tools legitimately mention GitHub in their descriptions, so a
+  // text search may return them too; every GitHub-category tool must still be
+  // filed under GitHub.
+  assert.ok(
+    results.every((tool) => tool.category === "GitHub" || tool.category === "Acquisition"),
+    `Unexpected category in github search: ${results.map((tool) => `${tool.id}:${tool.category}`).join(", ")}`,
+  );
 });
 
 test("ToolRegistry search finds engineering tools", () => {

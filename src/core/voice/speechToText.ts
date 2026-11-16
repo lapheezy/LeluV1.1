@@ -12,7 +12,7 @@
  * ==========================================================
  */
 
-import { postTranscription } from "./transcriptionTransport";
+import { postTranscription, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import type { VoiceErrorKind } from "./VoiceEngine";
 
@@ -96,6 +96,9 @@ export function buildTranscriptionForm(audioBlob: Blob, model: string, language?
 
   // Request verbose JSON for timestamps and confidence
   formData.append("response_format", "verbose_json");
+  // Whisper spells unfamiliar names by sound ("Lou", "Lulu"); a prompt with
+  // her name biases it to the right spelling. Not a language hint.
+  formData.append("prompt", WHISPER_NAME_HINT);
 
   return formData;
 }

@@ -1,0 +1,23 @@
+# Secrets must never enter the build context OR the image. `.env` is
+# needed for the VITE_ values the build inlines, so it is NOT ignored
+# here — instead the Dockerfile deletes it from the runtime layer, and
+# server-only secrets are supplied at run time. Review `docker history`
+# before publishing an image built from a machine with a real .env.
+.git
+.github
+node_modules
+dist
+coverage
+*.log
+
+# Evidence and generated artifacts are large and are not part of the app.
+docs/evidence
+artifacts
+.lelu-sandbox
+.lelu-baseline.json
+
+# Local state that must never be copied into an image.
+data
+*.sqlite
+*.db
+.DS_Store

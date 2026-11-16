@@ -1,0 +1,389 @@
+{
+ "viewport": "390x844",
+ "at": "2026-11-08T07:10:59.890Z",
+ "phases": [
+  {
+   "phase": "opened",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 196,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 366,
+      "h": 732,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "dragged",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 196,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 366,
+      "h": 732,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "released",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 196,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 366,
+      "h": 732,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "pinned",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 196,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Unpin — auto-arrange may tile it again"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 366,
+      "h": 732,
+      "manual": false,
+      "pinned": true
+     }
+    ],
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "unpinned",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 196,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 366,
+      "h": 732,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  }
+ ],
+ "errors": [],
+ "identity": {
+  "moduleId": "creation",
+  "presentation": "inline",
+  "host": "creation",
+  "content": [
+   "creation"
+  ],
+  "canvases": 1
+ },
+ "placement": {
+  "before": {
+   "x": 8,
+   "y": 16,
+   "w": 376,
+   "h": 456
+  },
+  "after": {
+   "x": 8,
+   "y": 16,
+   "w": 376,
+   "h": 456
+  },
+  "dx": 0,
+  "dy": 0,
+  "storeEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 366,
+   "h": 732,
+   "manual": false,
+   "pinned": false
+  },
+  "safeArea": {
+   "top": 16,
+   "bottom": 372
+  },
+  "controls": [
+   {
+    "label": "Back to the chat — this keeps running"
+   },
+   {
+    "label": "Pin — keep this window where it is"
+   },
+   {
+    "label": "Minimize — keeps running"
+   },
+   {
+    "label": "Expand"
+   },
+   {
+    "label": "Close"
+   }
+  ],
+  "canvases": [
+   1,
+   1
+  ]
+ },
+ "pin": {
+  "pinnedEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 366,
+   "h": 732,
+   "manual": false,
+   "pinned": true
+  },
+  "unpinnedEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 366,
+   "h": 732,
+   "manual": false,
+   "pinned": false
+  }
+ },
+ "preReload": {
+  "rect": {
+   "x": 8,
+   "y": 16,
+   "w": 376,
+   "h": 456
+  },
+  "store": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 366,
+   "h": 732,
+   "manual": false,
+   "pinned": false
+  }
+ },
+ "result": "BLOCKED: page.waitForTimeout: Target page, context or browser has been closed"
+}

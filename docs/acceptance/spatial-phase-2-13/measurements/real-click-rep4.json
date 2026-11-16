@@ -1,0 +1,134 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "entry": {
+    "immersive": true,
+    "dataImmersive": "true",
+    "settle": {
+      "frame": 22,
+      "stableFrames": 0,
+      "deltaPosition": 0.0082,
+      "deltaRotation": 0.0005,
+      "position": [
+        0,
+        3.5026,
+        7.9922
+      ],
+      "quaternion": [
+        -0.1691,
+        0,
+        0,
+        0.9856
+      ]
+    }
+  },
+  "attempts": [
+    {
+      "destination": "files",
+      "aim": {
+        "found": null,
+        "centre": {
+          "x": 337,
+          "y": 466
+        },
+        "radius": 18,
+        "id": "scene:files",
+        "tried": 84,
+        "sample": [
+          {
+            "x": 337,
+            "y": 466,
+            "top": "DIV",
+            "pick": "scene:files"
+          },
+          {
+            "x": 331,
+            "y": 460,
+            "top": "DIV",
+            "pick": null
+          },
+          {
+            "x": 331,
+            "y": 466,
+            "top": "DIV",
+            "pick": "scene:files"
+          },
+          {
+            "x": 331,
+            "y": 472,
+            "top": "DIV",
+            "pick": null
+          },
+          {
+            "x": 337,
+            "y": 460,
+            "top": "DIV",
+            "pick": null
+          },
+          {
+            "x": 337,
+            "y": 466,
+            "top": "DIV",
+            "pick": "scene:files"
+          }
+        ]
+      },
+      "clicked": false
+    },
+    {
+      "destination": "studio",
+      "aim": {
+        "found": null,
+        "centre": {
+          "x": 855,
+          "y": 445
+        },
+        "radius": 18,
+        "id": "scene:studio",
+        "tried": 84,
+        "sample": [
+          {
+            "x": 855,
+            "y": 445,
+            "top": "DIV",
+            "pick": "scene:studio"
+          },
+          {
+            "x": 849,
+            "y": 439,
+            "top": "DIV",
+            "pick": "scene:studio"
+          },
+          {
+            "x": 849,
+            "y": 445,
+            "top": "DIV",
+            "pick": "scene:studio"
+          },
+          {
+            "x": 849,
+            "y": 451,
+            "top": "DIV",
+            "pick": "scene:studio"
+          },
+          {
+            "x": 855,
+            "y": 439,
+            "top": "DIV",
+            "pick": "scene:studio"
+          },
+          {
+            "x": 855,
+            "y": 445,
+            "top": "DIV",
+            "pick": "scene:studio"
+          }
+        ]
+      },
+      "clicked": false
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,5 @@
+{
+  "result": "BLOCKED",
+  "reason": "no constructed environment and no reliable model turn",
+  "capability": "structural channel exists via describeWorkspace in CognitiveContext; no visual channel to the model"
+}

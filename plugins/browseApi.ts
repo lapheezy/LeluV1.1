@@ -22,12 +22,19 @@
  * SAFETY
  * ------
  * A server-side URL fetcher is an SSRF vector, so this endpoint:
- *   - accepts http/https only,
- *   - refuses loopback, link-local, and RFC1918 private address targets,
- *   - caps response size and time,
+ *   - requires a Supabase-verified signed-in user, rate-limited per user
+ *     (plugins/requestGuard.ts) — it is not an open proxy;
+ *   - fetches through plugins/safeFetch.ts: resolved addresses checked
+ *     (IPv4/IPv6, private/loopback/link-local/reserved), the socket pinned
+ *     to the checked address, every redirect re-checked, at most 5, loops
+ *     refused, the body streamed and cut off at 2 MB (raw and decoded);
  *   - returns ONLY extracted text (never response headers, cookies, or
  *     any environment value), so no credential can leak through it.
  */
+
+import { safeFetch, SafeFetchError, type SafeFetchOptions } from "./safeFetch.ts";
+import { createGuard, createRateLimiter, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
+import { createFirecrawl, FirecrawlError, type FirecrawlClient } from "./firecrawl.ts";
 
 interface ConnectLikeReq {
   method?: string;
@@ -42,9 +49,33 @@ interface ConnectLikeRes {
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
 
-/** Hard cap so a huge page can never exhaust the server. */
-const MAX_BYTES = 2_000_000;
-const TIMEOUT_MS = 15000;
+
+/** One header value, as Node gives it. */
+function header(req: { headers?: Record<string, string | string[] | undefined> }, name: string): string {
+  const value = req.headers?.[name];
+  return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+/**
+ * Is this the app's OWN page asking (not a third party driving the relay)?
+ *
+ * Reading a public page is not an action on the user's project, so LÉLU's
+ * page may do it without a Supabase session — a guest chat, or a local
+ * preview where no project is configured, would otherwise have a browser
+ * that can never read anything. Everything that needs identity still does.
+ */
+function fromOwnPage(req: { headers?: Record<string, string | string[] | undefined> }): boolean {
+  const site = header(req, "sec-fetch-site");
+  if (site) return site === "same-origin";
+  const origin = header(req, "origin");
+  const host = header(req, "host");
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
 
 function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
   res.statusCode = status;
@@ -55,8 +86,8 @@ function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
 
 /**
  * Refuse anything that points back inside the host's own network.
- * Hostname-based (pre-DNS) — a deliberate, conservative first line of
- * defence, not a claim of complete SSRF immunity.
+ * Hostname-based (pre-DNS). Kept for selfViewApi's own checks; the browse
+ * relay itself uses safeFetch, which also checks resolved addresses.
  */
 export function isBlockedHost(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
@@ -107,85 +138,146 @@ export function extractReadable(html: string): { title: string; text: string } {
   return { title, text };
 }
 
-export function createBrowseApi(): {
+export interface BrowseApiOptions {
+  /** Identity + rate gate. Default: Supabase-verified identity (plugins/requestGuard). */
+  guard?: Guard;
+  /** Passed to safeFetch (tests inject a resolver and a fixture dialler). */
+  fetchOptions?: SafeFetchOptions;
+  /** Rendering fallback. Default: Firecrawl with every FIRECRAWL_API_KEY* configured. */
+  firecrawl?: FirecrawlClient;
+}
+
+/**
+ * Below this, a "read" page is a script shell or an interstitial, not the
+ * page: the same threshold idea as browser.read's own MIN_READABLE_CHARS.
+ */
+export const THIN_PAGE_CHARS = 200;
+
+const BROWSE_LIMIT = { max: 30, windowMs: 60_000 };
+
+export function createBrowseApi(options: BrowseApiOptions = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
+  handle: Handler;
 } {
-  return {
-    attach(middlewares) {
-      middlewares.use("/api/browse", (req, res, next) => {
-        if ((req.method ?? "GET") !== "GET") {
-          next();
-          return;
-        }
+  const guard = options.guard ?? createGuard();
+  const firecrawl = options.firecrawl ?? createFirecrawl((name) => process.env[name]);
+  // Guest reads are still capped, per address, and well below a signed-in user's.
+  const anonymousLimiter = createRateLimiter();
 
-        const requestUrl = new URL(req.url ?? "", "http://localhost");
-        const target = requestUrl.searchParams.get("url")?.trim() ?? "";
-        if (!target) {
-          sendJson(res, { ok: false, error: "Missing ?url=" }, 400);
-          return;
-        }
+  /**
+   * The gate: identity first. A same-origin reader (the app's own page) may
+   * read public pages without a session, at a lower rate; a cross-origin
+   * caller without a session is refused exactly as before.
+   */
+  const allowed = async (req: GuardRequest, res: ConnectLikeRes): Promise<boolean> => {
+    const decision = await guard.check(req, "user", "browse", BROWSE_LIMIT);
+    if (decision.ok) return true;
+    // 401 (no session) and 503 (no project configured to verify one) are the
+    // two "nobody to authenticate" cases; a 403/429 refusal stays a refusal.
+    if ((decision.status === 401 || decision.status === 503) && fromOwnPage(req)) {
+      const address = req.socket?.remoteAddress ?? "local";
+      const take = anonymousLimiter.take(`browse-local:${address}`, { max: 30, windowMs: 60_000 });
+      if (take.ok) return true;
+      res.statusCode = 429;
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("Retry-After", String(take.retryAfterSeconds));
+      res.end(JSON.stringify({ ok: false, error: "Too many page reads from this address; try again shortly." }));
+      return false;
+    }
+    sendRefusal(res, decision);
+    return false;
+  };
 
-        let parsed: URL;
+  /**
+   * Render the page with Firecrawl. The same address rules as the direct
+   * fetch apply first: an internal host is refused here, never forwarded.
+   */
+  const rendered = async (target: string) => {
+    let parsed: URL;
+    try {
+      parsed = new URL(target);
+    } catch {
+      return null;
+    }
+    if (!/^https?:$/.test(parsed.protocol) || isBlockedHost(parsed.hostname)) return null;
+    return firecrawl.scrape(parsed.toString());
+  };
+
+  const handle: Handler = (req, res, next) => {
+    if ((req.method ?? "GET") !== "GET") {
+      next();
+      return;
+    }
+    const requestUrl = new URL(req.url ?? "", "http://localhost");
+    if (requestUrl.pathname.replace(/\/+$/, "").endsWith("/status")) {
+      void (async () => {
+        if (!(await allowed(req as unknown as GuardRequest, res))) return;
+        sendJson(res, { ok: true, firecrawl: { configured: firecrawl.configured(), keys: firecrawl.keyCount(), slots: firecrawl.configured() ? await firecrawl.credits() : [] } });
+      })();
+      return;
+    }
+    const target = requestUrl.searchParams.get("url")?.trim() ?? "";
+    // render=1 asks for the rendered page first (a site known to be script-built).
+    const renderFirst = requestUrl.searchParams.get("render") === "1";
+    void (async () => {
+      // Who is asking comes first: an anonymous caller learns nothing,
+      // not even whether the URL would have been allowed.
+      if (!(await allowed(req as unknown as GuardRequest, res))) return;
+      if (!target) {
+        sendJson(res, { ok: false, error: "Missing ?url=" }, 400);
+        return;
+      }
+      /*
+       * Direct fetch first (free); Firecrawl when the direct read is refused
+       * by the site, errors, or comes back as a near-empty script shell.
+       * Measured reason: script-built pages extracted to a few dozen
+       * characters and browser.read reported them unreadable.
+       */
+      const tryRendered = async (why: string): Promise<boolean> => {
+        if (!firecrawl.configured()) return false;
         try {
-          parsed = new URL(target);
-        } catch {
-          sendJson(res, { ok: false, error: "Invalid URL." }, 400);
+          const page = await rendered(target);
+          if (!page || page.text.length === 0) return false;
+          sendJson(res, { ok: true, url: page.url, title: page.title, text: page.text, truncated: false, via: "firecrawl", reason: why });
+          return true;
+        } catch (error) {
+          if (error instanceof FirecrawlError) console.warn(`[browse] firecrawl fallback failed (${why}): ${error.message} ${JSON.stringify(error.attempts)}`);
+          return false;
+        }
+      };
+      if (renderFirst && (await tryRendered("requested"))) return;
+      try {
+        const page = await safeFetch(target, options.fetchOptions);
+        const { title, text } = /html|xml/i.test(page.contentType)
+          ? extractReadable(page.body)
+          : { title: "", text: page.body.replace(/\s+/g, " ").trim() };
+        if (text.length < THIN_PAGE_CHARS && !renderFirst && (await tryRendered("thin page"))) return;
+        sendJson(res, { ok: true, url: page.url, title, text, truncated: page.truncated, redirects: page.redirects.length, via: "direct", embeddable: page.embeddable });
+      } catch (error) {
+        if (error instanceof SafeFetchError) {
+          // An internal address or a bad URL is final; a site that refused
+          // or failed the plain fetch may still render.
+          const final = ["blocked_address", "port_not_allowed", "invalid_url", "unsupported_protocol"].includes(error.code);
+          if (!final && !renderFirst && (await tryRendered(error.code))) return;
+          const status = error.code === "blocked_address" || error.code === "port_not_allowed" ? 403
+            : error.code === "invalid_url" || error.code === "unsupported_protocol" ? 400
+            : error.code === "unsupported_content" ? 415
+            : error.code === "timeout" ? 504
+            : 502;
+          sendJson(res, { ok: false, url: target, code: error.code, error: error.message }, status);
           return;
         }
-        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-          sendJson(res, { ok: false, error: "Only http and https are supported." }, 400);
-          return;
-        }
-        if (isBlockedHost(parsed.hostname)) {
-          sendJson(res, { ok: false, error: "That address is not permitted." }, 403);
-          return;
-        }
-
-        void (async () => {
-          try {
-            const response = await fetch(parsed.toString(), {
-              redirect: "follow",
-              signal: AbortSignal.timeout(TIMEOUT_MS),
-              headers: {
-                // Identify honestly; some sites reject an empty UA.
-                "User-Agent": "Lelu/1.0 (+in-app reader)",
-                Accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8",
-              },
-            });
-
-            if (!response.ok) {
-              sendJson(res, { ok: false, url: parsed.toString(), error: `HTTP ${response.status}` }, 502);
-              return;
-            }
-
-            const contentType = response.headers.get("content-type") ?? "";
-            const body = await response.text();
-            const clipped = body.length > MAX_BYTES ? body.slice(0, MAX_BYTES) : body;
-
-            const { title, text } = /html|xml/i.test(contentType)
-              ? extractReadable(clipped)
-              : { title: "", text: clipped.replace(/\s+/g, " ").trim() };
-
-            sendJson(res, {
-              ok: true,
-              url: response.url || parsed.toString(),
-              title,
-              text,
-              truncated: body.length > MAX_BYTES,
-            });
-          } catch (error) {
-            sendJson(
-              res,
-              {
-                ok: false,
-                url: parsed.toString(),
-                error: error instanceof Error ? error.message : String(error),
-              },
-              502,
-            );
-          }
-        })();
-      });
+        if (!renderFirst && (await tryRendered("fetch failed"))) return;
+        // Never echo an internal error message: it can name hosts or paths.
+        sendJson(res, { ok: false, url: target, error: "The page could not be read." }, 502);
+      }
+    })();
+  };
+  return {
+    handle,
+    attach(middlewares) {
+      middlewares.use("/api/browse", handle); // includes /api/browse/status
     },
   };
 }

@@ -124,6 +124,10 @@ export default class EngineeringResolver {
     }
 
     if (providersAvailable > 0) {
+      // Engineering work goes to the coding provider/model (Fireworks →
+      // Kimi), including prompts caught here by keyword rather than by
+      // the intent detector.
+      context.request.workload = "coding";
       context.logger.info("EngineeringResolver", "Diagnostics attached; provider will reason over them.", {
         findingCount: findings.length,
       });

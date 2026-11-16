@@ -1,0 +1,85 @@
+{
+  "source": "docs/acceptance/mission-5-5/turn-create2.json (real browser session, real composer, no injected responses)",
+  "prompt": "Create a visual environment for investigating the future of sustainable cities.",
+  "provider": "Groq",
+  "model": "openai/gpt-oss-120b",
+  "trace": [
+    "startGroupCollapsed: \ud83d\udfe2 [5:52:29 PM] [ProviderResolver] Tool environment_compose -> ok",
+    "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_compose -> ok, Provider: -, Duration: -, Confidence: -}"
+  ],
+  "trace_all_tool_lines": 2,
+  "tool_result": {
+    "tool": "environment_compose",
+    "ok": true,
+    "round": 1
+  },
+  "sequence": "prompt -> ProviderResolver chose Groq -> model returned a tool call -> ToolDispatcher -> EnvironmentOrchestrationEngine.composeEnvironment -> ok:true -> result fed back to the model",
+  "model_requests": [
+    {
+      "url": "/api/model/status",
+      "status": 200,
+      "at": 1794160268425
+    },
+    {
+      "url": "/api/model/openrouter/chat/completions",
+      "status": 429,
+      "at": 1794160280372
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160282536
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160337973
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160347138
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 429,
+      "at": 1794160349388
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 429,
+      "at": 1794160349725
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160385599
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160389910
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160432381
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160478956
+    },
+    {
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "at": 1794160528458
+    }
+  ],
+  "caveat": "the tool EXECUTED and returned ok:true. The renderer died before the probe could snapshot the resulting DOM, so the visual outcome is recorded as PARTIAL, not proven.",
+  "prior_failure_root_cause": {
+    "observed": "Groq 413: Request too large, TPM limit 8000, requested 19553",
+    "consequence": "ProviderResolver retried the same request WITHOUT tool schemas, so the model had no tools to choose from and answered in prose",
+    "fix": "tools are now scoped per turn (ToolSchemas.toolSchemasForRequest): an environment turn is offered the six environment tools, every other turn is unchanged"
+  }
+}

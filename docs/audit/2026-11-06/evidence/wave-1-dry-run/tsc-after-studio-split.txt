@@ -1,0 +1,10 @@
+src/app/scene/genesis/useGenesisScene.ts(32,10): error TS2300: Duplicate identifier 'IS_DEV'.
+src/app/scene/genesis/useGenesisScene.ts(34,10): error TS2300: Duplicate identifier 'IS_DEV'.
+src/core/env/buildEnv.ts(40,14): error TS2451: Cannot redeclare block-scoped variable 'IS_DEV'.
+src/core/env/buildEnv.ts(50,14): error TS2451: Cannot redeclare block-scoped variable 'IS_DEV'.
+src/core/tools/ToolDispatcher.ts(35,1): error TS6133: 'studioToolExecutors' is declared but its value is never read.
+src/core/tools/ToolDispatcher.ts(403,7): error TS6133: 'CORE_EXECUTORS' is declared but its value is never read.
+src/core/tools/ToolDispatcher.ts(2556,7): error TS2304: Cannot find name 'EXECUTORS'.
+plugins/loadEnvFiles.ts(29,10): error TS2300: Duplicate identifier 'fillBareSecretAliases'.
+plugins/loadEnvFiles.ts(53,10): error TS2300: Duplicate identifier 'fillBareSecretAliases'.
+src/core/studio/StudioAssets.ts(16,37): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './StudioProjectTypes.js'?

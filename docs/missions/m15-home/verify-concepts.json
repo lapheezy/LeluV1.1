@@ -1,0 +1,164 @@
+{
+  "at": "2026-11-15T21:23:06.311Z",
+  "verified": 26,
+  "failed": 0,
+  "results": [
+    {
+      "name": "studio lists all sixty concepts",
+      "status": "VERIFIED",
+      "detail": "60 listed",
+      "picture": "docs/missions/m15-home/shots-15.1/step-01-ok.jpg"
+    },
+    {
+      "name": "all sixty concepts render on iPhone, tablet and desktop with live modules and no errors",
+      "status": "VERIFIED",
+      "detail": "60 × 3 frames",
+      "picture": "docs/missions/m15-home/shots-15.1/step-02-ok.jpg"
+    },
+    {
+      "name": "the sixty use the new families (column, strip, rows, stage, lanes, radial, constellation, scatter, twozone)",
+      "status": "VERIFIED",
+      "detail": "bento, grid, split, strip, column, stage, focus, orbit, layered, spatial, constellation, freeform, masonry, rows, deck, lanes, twozone, radial, scatter",
+      "picture": "docs/missions/m15-home/shots-15.1/step-03-ok.jpg"
+    },
+    {
+      "name": "Research shows the concept's notes (composition … references)",
+      "status": "VERIFIED",
+      "detail": "Composition, Where modules sit, Hierarchy, Navigation, Input, Phone / desktop, Strengths, Weaknesses, Accessibility, Performance, Complexity, References",
+      "picture": "docs/missions/m15-home/shots-15.1/step-04-ok.jpg"
+    },
+    {
+      "name": "her research notes are saved",
+      "status": "VERIFIED",
+      "detail": "{\"concept-36\":\"Kanban with a fire border — try it on the tablet.\"}",
+      "picture": "docs/missions/m15-home/shots-15.1/step-05-ok.jpg"
+    },
+    {
+      "name": "Look: the Ocean theme puts a water barrier around every surface",
+      "status": "VERIFIED",
+      "detail": "27 water rings",
+      "picture": "docs/missions/m15-home/shots-15.1/step-06-ok.jpg"
+    },
+    {
+      "name": "Look: a second border layers inside the first (water outside, fire inside)",
+      "status": "VERIFIED",
+      "detail": "27 inner fire rings",
+      "picture": "docs/missions/m15-home/shots-15.1/step-07-ok.jpg"
+    },
+    {
+      "name": "Look: the font changes on the Home's surfaces",
+      "status": "VERIFIED",
+      "detail": "ui-rounded, \"SF Pro Rounded\", Nunito, \"Varela Round\", \"Arial Rounded MT Bold\", s",
+      "picture": "docs/missions/m15-home/shots-15.1/step-08-ok.jpg"
+    },
+    {
+      "name": "Look: the theme's glass reaches the modules",
+      "status": "VERIFIED",
+      "detail": "rgba(8, 47, 73, 0.55)",
+      "picture": "docs/missions/m15-home/shots-15.1/step-09-ok.jpg"
+    },
+    {
+      "name": "Look: every border effect can be chosen (snow, fire, ice, aurora, lightning, lava…)",
+      "status": "VERIFIED",
+      "detail": "",
+      "picture": "docs/missions/m15-home/shots-15.1/step-10-ok.jpg"
+    },
+    {
+      "name": "Layout: changing the desktop family re-lays the Home (lanes → radial)",
+      "status": "VERIFIED",
+      "detail": "",
+      "picture": "docs/missions/m15-home/shots-15.1/step-11-ok.jpg"
+    },
+    {
+      "name": "Save to My layouts keeps her edited layout with its look",
+      "status": "VERIFIED",
+      "detail": "layout-mwic9d2n-2 lanes ocean/snow",
+      "picture": "docs/missions/m15-home/shots-15.1/step-12-ok.jpg"
+    },
+    {
+      "name": "Blend: Fire Kanban × Radial menu (70% B) makes a working draft",
+      "status": "VERIFIED",
+      "detail": "radial/radial/radial",
+      "picture": "docs/missions/m15-home/shots-15.1/step-13-ok.jpg"
+    },
+    {
+      "name": "Merge: phone from A (rows), tablet and desktop from B (constellation)",
+      "status": "VERIFIED",
+      "detail": "rows/constellation/constellation",
+      "picture": "docs/missions/m15-home/shots-15.1/step-14-ok.jpg"
+    },
+    {
+      "name": "New layout: a layout made from scratch, families picked per device",
+      "status": "VERIFIED",
+      "detail": "column/strip/scatter",
+      "picture": "docs/missions/m15-home/shots-15.1/step-15-ok.jpg"
+    },
+    {
+      "name": "LÉLU suggests a concept with her reason, and changes nothing yet",
+      "status": "VERIFIED",
+      "detail": "LÉLU suggests #44 Activity-driven hero: She is working on something, so what she is doing should be the hero. Nothing changes until you pres",
+      "picture": "docs/missions/m15-home/shots-15.1/step-16-ok.jpg"
+    },
+    {
+      "name": "Use: the Home becomes #13 Planetary navigation, with its stardust look",
+      "status": "VERIFIED",
+      "detail": "{\"kind\":\"constellation\",\"fx\":8,\"template\":\"concept-13\"}",
+      "picture": "docs/missions/m15-home/shots-15.1/step-17-ok.jpg"
+    },
+    {
+      "name": "after a reload the Home keeps the concept layout and its look",
+      "status": "VERIFIED",
+      "detail": "{\"kind\":\"constellation\",\"fx\":8}",
+      "picture": "docs/missions/m15-home/shots-15.1/step-18-ok.jpg"
+    },
+    {
+      "name": "after a reload her layouts and notes are still there",
+      "status": "VERIFIED",
+      "detail": "Fire Kanban, Fire Kanban × Radial menu",
+      "picture": "docs/missions/m15-home/shots-15.1/step-19-ok.jpg"
+    },
+    {
+      "name": "the edit bar offers her own layouts",
+      "status": "VERIFIED",
+      "detail": "layout-mwic9d2n-2|Fire Kanban, layout-mwic9sr6-4|Fire Kanban × Radial menu",
+      "picture": "docs/missions/m15-home/shots-15.1/step-20-ok.jpg"
+    },
+    {
+      "name": "a presentation made from her layout is the board, with snow borders",
+      "status": "VERIFIED",
+      "detail": "{\"kind\":\"lanes\",\"snow\":9,\"heads\":[\"Now\",\"Next\",\"Later\"]}",
+      "picture": "docs/missions/m15-home/shots-15.1/step-21-ok.jpg"
+    },
+    {
+      "name": "Research with LÉLU opens the conversation with the /research prompt ready to send",
+      "status": "VERIFIED",
+      "detail": "/research \"Masonry gallery\" home screen layout — UX patterns, accessibility, examples (references: Pinterest)",
+      "picture": "docs/missions/m15-home/shots-15.1/step-22-ok.jpg"
+    },
+    {
+      "name": "iPhone: the studio opens on #30 Story rings at phone width",
+      "status": "VERIFIED",
+      "detail": "{\"kind\":\"strip\",\"rings\":\"true\"}",
+      "picture": "docs/missions/m15-home/shots-15.1/step-23-ok.jpg"
+    },
+    {
+      "name": "iPhone: picking Frost gives snow borders",
+      "status": "VERIFIED",
+      "detail": "",
+      "picture": "docs/missions/m15-home/shots-15.1/step-24-ok.jpg"
+    },
+    {
+      "name": "iPhone: the Home is Story rings with snow borders",
+      "status": "VERIFIED",
+      "detail": "{\"kind\":\"strip\",\"snow\":8}",
+      "picture": "docs/missions/m15-home/shots-15.1/step-25-ok.jpg"
+    },
+    {
+      "name": "no page errors during the run",
+      "status": "VERIFIED",
+      "detail": "",
+      "picture": "docs/missions/m15-home/shots-15.1/step-26-ok.jpg"
+    }
+  ],
+  "otherErrors": 126
+}

@@ -31,7 +31,7 @@ import {
   Vector3,
 } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 
 const PARTICLE_COUNT = 420;
 const ARC_COUNT = 14;
@@ -198,7 +198,14 @@ function createRingGeometry(): BufferGeometry {
 }
 
 export default function CoreEmission() {
-  const { engineRuntime } = useGenesis();
+  /*
+   * The STABLE scene context. This layer needs the runtime and nothing else,
+   * and the runtime is a getter on that context — so reading useGenesis()
+   * here only re-rendered the emission (and the Core it hangs off) on every
+   * universe publish and every streamed token. The getter is read inside the
+   * frame, which is what the runtime is for.
+   */
+  const scene = useGenesisScene("CoreEmission");
 
   const root = useRef<Group>(null);
   const particlesRef = useRef<{ geometry: BufferGeometry; material: ShaderMaterial } | null>(null);
@@ -241,7 +248,7 @@ export default function CoreEmission() {
 
     // The ONE visual state — same derivation, same colors, same pulse
     // as the Core surface. This emission is energy leaving that Core.
-    const vs = engineRuntime?.getEngineBus().getVisualState();
+    const vs = scene.engineRuntime?.getEngineBus().getVisualState();
     if (!vs) {
       return;
     }

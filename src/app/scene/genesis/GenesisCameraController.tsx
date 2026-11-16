@@ -43,6 +43,16 @@ import { genesisCameraIntentBus }
   from "./GenesisCameraIntent";
 
 import {
+  recallCameraPose,
+  rememberCameraPose,
+} from "./cameraPoseMemory";
+
+import {
+  noteUserCameraEnd,
+  noteUserCameraStart,
+} from "./cameraOwnership";
+
+import {
   PLANET_CENTER,
   PLANET_RADIUS,
 } from "./render/PlanetExplorer";
@@ -51,6 +61,9 @@ import {
   cosmosScaleStore,
   scaleFromDistance,
 } from "./cosmos/CosmosScales";
+
+import { useSpatialCamera }
+  from "../spatial/useSpatialCamera";
 
 interface GenesisCameraControllerProps {
   navigator: GenesisNavigator;
@@ -98,6 +111,21 @@ export default function GenesisCameraController({
   const controlsRef = useRef<any>(null);
   const followTarget = useRef(new Vector3(0, 0, 0));
   const keysRef = useRef<Record<string, boolean>>({});
+  /**
+   * True while the camera is held by a gesture OR by a spatial command
+   * (LÉLU frames an object, then holds the view for the reveal). The
+   * planet-following drift below must not run then: it lerps the controls
+   * target back to the origin every frame, which slid a freshly framed
+   * object out of the middle of the screen while it was being looked at.
+   */
+  const cameraHeld = useRef(false);
+
+  /*
+   * Spatial transitions move THIS camera through THIS OrbitControls —
+   * the one controller stays authoritative, and a pointer press during
+   * a cinematic flight hands control straight back to the user.
+   */
+  useSpatialCamera(camera as PerspectiveCamera, controlsRef);
 
   /*
    * Responsive framing: on narrow/portrait viewports the same composition
@@ -136,12 +164,70 @@ export default function GenesisCameraController({
     return unsubscribe;
   }, [navigator]);
 
+  /*
+   * The phone unmounts this whole world while chat owns the screen, so a mount
+   * used to reset the view to the origin even though the scene the user was
+   * looking at had not changed. Restore the pose this session left behind;
+   * the origin is the right answer only for a world that was never left.
+   */
   useEffect(() => {
-    if (controlsRef.current) {
-      controlsRef.current.target.set(0, 0, 0);
-      controlsRef.current.update();
-    }
+    let cancelled = false;
+    let attempts = 0;
+    /*
+     * OrbitControls attaches its ref on the first commit, AFTER this effect
+     * runs, so reading controlsRef.current here returned null and the pose
+     * was silently never restored — the remount started at the canvas
+     * default (0, 0, 5). Wait for the controls, then restore once. A reveal
+     * that has taken the camera in the meantime wins: it is a newer, more
+     * deliberate view than the one being restored.
+     */
+    const apply = () => {
+      if (cancelled) return;
+      const controls = controlsRef.current;
+      if (!controls) {
+        if (attempts++ < 60) requestAnimationFrame(apply);
+        return;
+      }
+      /*
+       * Restore unconditionally: framing a NEW object happens later (the
+       * bridge waits for the target to be rendered), so a fresh reveal still
+       * wins. Skipping while a previous reveal owned the camera was wrong —
+       * that claim is exactly the view this pose came from.
+       */
+      const remembered = recallCameraPose();
+      if (remembered) {
+        camera.position.set(remembered.position[0], remembered.position[1], remembered.position[2]);
+        controls.target.set(remembered.target[0], remembered.target[1], remembered.target[2]);
+      } else {
+        controls.target.set(0, 0, 0);
+      }
+      controls.update();
+    };
+    apply();
+    return () => {
+      cancelled = true;
+    };
   }, [camera]);
+
+  /*
+   * Remember the view while the world is live (throttled), not only on
+   * unmount. By cleanup time OrbitControls has already detached, so the
+   * unmount-only save silently stored nothing and a phone came back to the
+   * default pose. Saving during the live frames cannot miss the view.
+   */
+  const lastPoseSave = useRef(0);
+  useEffect(
+    () => () => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+      rememberCameraPose({
+        position: [camera.position.x, camera.position.y, camera.position.z],
+        target: [controls.target.x, controls.target.y, controls.target.z],
+        fov: (camera as PerspectiveCamera).isPerspectiveCamera ? (camera as PerspectiveCamera).fov : undefined,
+      });
+    },
+    [camera],
+  );
 
   /*
    * Cosmos navigation — dispatched by the cosmos map panel tap.
@@ -199,6 +285,21 @@ export default function GenesisCameraController({
    * view plane so it reads as walking, not zooming.
    */
   useEffect(() => {
+    const hold = () => {
+      cameraHeld.current = true;
+    };
+    const release = () => {
+      cameraHeld.current = false;
+    };
+    window.addEventListener("genesis-user-camera-start", hold);
+    window.addEventListener("genesis-user-camera-end", release);
+    return () => {
+      window.removeEventListener("genesis-user-camera-start", hold);
+      window.removeEventListener("genesis-user-camera-end", release);
+    };
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const key = e.key.toLowerCase();
       if (key === "arrowup" || key === "arrowdown" || key === "arrowleft" || key === "arrowright") {
@@ -241,14 +342,16 @@ export default function GenesisCameraController({
     const toCam = camera.position.clone().sub(PLANET_CENTER);
     const dist = toCam.length();
 
-    if (dist < PLANET_RADIUS + 2.5 && dist > 0.001) {
-      // Entering the planet: focus the controls on the surface under us.
-      const dir = toCam.clone().normalize();
-      const surface = PLANET_CENTER.clone().addScaledVector(dir, PLANET_RADIUS);
-      controls.target.lerp(surface, 0.06);
-    } else if (controls.target.distanceTo(PLANET_CENTER) < 4) {
-      // Leaving the planet: gently drift the target back to the origin.
-      controls.target.lerp(ORIGIN, 0.04);
+    if (!cameraHeld.current) {
+      if (dist < PLANET_RADIUS + 2.5 && dist > 0.001) {
+        // Entering the planet: focus the controls on the surface under us.
+        const dir = toCam.clone().normalize();
+        const surface = PLANET_CENTER.clone().addScaledVector(dir, PLANET_RADIUS);
+        controls.target.lerp(surface, 0.06);
+      } else if (controls.target.distanceTo(PLANET_CENTER) < 4) {
+        // Leaving the planet: gently drift the target back to the origin.
+        controls.target.lerp(ORIGIN, 0.04);
+      }
     }
 
     // WASD / arrow-key walking at close range.
@@ -284,6 +387,18 @@ export default function GenesisCameraController({
     }
 
     controls.update();
+
+    // Keep the pose fresh for a surface that unmounts this world (chat on a
+    // phone): the last live frame is the view the user expects to return to.
+    const now = performance.now();
+    if (now - lastPoseSave.current > 400) {
+      lastPoseSave.current = now;
+      rememberCameraPose({
+        position: [camera.position.x, camera.position.y, camera.position.z],
+        target: [controls.target.x, controls.target.y, controls.target.z],
+        fov: (camera as PerspectiveCamera).isPerspectiveCamera ? (camera as PerspectiveCamera).fov : undefined,
+      });
+    }
   });
 
   /*
@@ -302,6 +417,19 @@ export default function GenesisCameraController({
         camera.position.set(0, 0, 6.8);
         controls.target.set(0, 0, 0);
         controls.update();
+        return;
+      }
+
+      /*
+       * A fly request (LÉLU's spatial camera: focus, frame, orbit, zoom) is a
+       * real destination, not a zoom step. Without this branch every spatial
+       * camera command was applied as a 1.3× dolly along the current view axis
+       * and the camera never arrived at the pose the caller asked for.
+       */
+      if (intent.type === "fly") {
+        const destination = new Vector3(...intent.position);
+        const lookAt = intent.lookAt ? new Vector3(...intent.lookAt) : controls.target.clone();
+        flyCameraTo(camera as PerspectiveCamera, controls, destination, lookAt, 0.9);
         return;
       }
 
@@ -346,16 +474,13 @@ export default function GenesisCameraController({
       onStart={() => {
         if (userCameraActive.current) return;
         userCameraActive.current = true;
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("genesis-user-camera-start"));
-        }
+        // A real gesture is the one thing that ends a reveal's hold.
+        noteUserCameraStart();
       }}
       onEnd={() => {
         if (!userCameraActive.current) return;
         userCameraActive.current = false;
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("genesis-user-camera-end"));
-        }
+        noteUserCameraEnd();
       }}
     />
   );

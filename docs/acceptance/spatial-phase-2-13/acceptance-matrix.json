@@ -1,0 +1,395 @@
+{
+  "mission": "5.4 / 5.4B.1 — portal targeting",
+  "status": "not-passed-8-of-10-and-one-wrong-destination",
+  "branch": "claude/mission-5-4-spatial-interaction",
+  "start": {
+    "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
+    "tree": "1c42ab0fd45c0caa8fcb6c16e1d74146eec50a62",
+    "note": "local origin ref was stale at 1031053, an ancestor of Mission 5.3's ae5a9cb; git ls-remote was the authority"
+  },
+  "environment": {
+    "browser": "Chromium headless=new, --enable-unsafe-swiftshader (software compositor)",
+    "viewport": "1440x900, DPR 1, reducedMotion reduce",
+    "realDevicePerformance": false
+  },
+  "gates": {
+    "typescript": {
+      "command": "npx tsc -b --force",
+      "errors": 0
+    },
+    "tests": {
+      "command": "bun run test (same file list, run as two halves because the runner killed two full runs)",
+      "half1": {
+        "tests": 864,
+        "pass": 864,
+        "fail": 0,
+        "skipped": 0
+      },
+      "half2": {
+        "tests": 874,
+        "pass": 872,
+        "fail": 0,
+        "skipped": 2
+      },
+      "totalPass": 1736,
+      "totalFail": 0
+    },
+    "lint": {
+      "command": "bun run lint",
+      "errors": 0,
+      "warnings": 130
+    },
+    "build": {
+      "command": "bun run build",
+      "exit": 0,
+      "duration": "7.13s"
+    },
+    "portalTests": {
+      "command": "tsx --test tests/portal-field.test.ts tests/spatial-experience.test.ts tests/spatial-portals.test.ts",
+      "tests": 40,
+      "pass": 40,
+      "fail": 0
+    }
+  },
+  "requirements": [
+    {
+      "id": "A1",
+      "requirement": "Every registry portal produces a visible 3D representation",
+      "status": "PASS",
+      "evidence": {
+        "registry": 11,
+        "placed": 11,
+        "drawn": 11,
+        "hitSurfaces": 11
+      }
+    },
+    {
+      "id": "A2",
+      "requirement": "Portals are individually distinguishable (identity, label, hover/focus/selection)",
+      "status": "PARTIAL",
+      "evidence": {
+        "uniqueRingSlots": 11,
+        "labelsInDom": 11,
+        "hoverAndSelectionFeedback": "implemented (accent intensity, label state, aria-pressed)",
+        "gap": "mesh appearance differs only by accent and size; per-mesh visual distinction was not verified from pixels"
+      }
+    },
+    {
+      "id": "A3",
+      "requirement": "Visuals update on create/remove/rename with no stale or duplicate objects",
+      "status": "PARTIAL",
+      "evidence": {
+        "unit": "portal-field tests pass (create/remove/rename/reload, duplicates [], collisions [])",
+        "live": "not exercised this mission"
+      }
+    },
+    {
+      "id": "B1",
+      "requirement": "Clicking an actual 3D portal initiates a real spatial transition",
+      "status": "PASS",
+      "evidence": {
+        "click": "real mouse click on canvas at a raycaster-confirmed point",
+        "transition": "environment-morph (real transition started from a canvas click)"
+      }
+    },
+    {
+      "id": "B2",
+      "requirement": "The selected portal identifies its actual registry destination",
+      "status": "FAIL",
+      "evidence": {
+        "geometry": {
+          "overlappingMouths": "[]",
+          "portalsDrawn": 11,
+          "onScreen": 11,
+          "mouthRadius": 0.46,
+          "rule": "hitRadius <= 0.45 * nearest-neighbour distance"
+        },
+        "clickAimed": "scene:files",
+        "clickAttributedByRaycaster": "spatial-portal-hit-scene:files",
+        "clickPointOffsetPx": 44,
+        "landedScene": "media",
+        "secondTarget": "scene:studio projected off screen (9538,-25794) — no clickable point",
+        "verdict": "the overlapping-mouth defect is fixed and proven; the click identity chain is still not established"
+      }
+    },
+    {
+      "id": "B3",
+      "requirement": "Rapid repeat selection / selection during a transition / removal during interaction",
+      "status": "PARTIAL",
+      "evidence": {
+        "guard": "clicks during an in-flight transition to another destination are refused in the component",
+        "measured": "rapid run started a transition; completion and removal cases not measured"
+      }
+    },
+    {
+      "id": "B4",
+      "requirement": "Travel after reload",
+      "status": "UNVERIFIED",
+      "evidence": {
+        "reason": "probe did not complete the reload pass"
+      }
+    },
+    {
+      "id": "C",
+      "requirement": "Conversation identity and usable chat survive real portal travel",
+      "status": "UNVERIFIED",
+      "evidence": {
+        "reason": "not attempted"
+      }
+    },
+    {
+      "id": "D",
+      "requirement": "Creation Studio artifact lifecycle inside the spatial environment",
+      "status": "UNVERIFIED",
+      "evidence": {
+        "reason": "not attempted"
+      }
+    },
+    {
+      "id": "E",
+      "requirement": "Manual and pinned module placement, persisted across reload",
+      "status": "UNVERIFIED",
+      "evidence": {
+        "reason": "existing drag/pin and ModuleLayoutStore were not modified and not exercised"
+      }
+    },
+    {
+      "id": "F",
+      "requirement": "Lifecycle/performance measurements",
+      "status": "UNVERIFIED",
+      "evidence": {
+        "reason": "not attempted"
+      }
+    },
+    {
+      "id": "G",
+      "requirement": "Capability presentation contract with one real integration",
+      "status": "UNVERIFIED",
+      "evidence": {
+        "reason": "not attempted"
+      }
+    }
+  ],
+  "artifacts": {
+    "report": "docs/acceptance/MISSION-5-4-SPATIAL-INTERACTION.md",
+    "measurements": [
+      "docs/acceptance/spatial-phase-2-13/measurements/portal-click.json",
+      "docs/acceptance/spatial-phase-2-13/measurements/interaction.json"
+    ],
+    "scripts": [
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-interaction.mjs",
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-portal-click.mjs"
+    ]
+  },
+  "mission54b1": {
+    "branch": "claude/mission-5-4-spatial-interaction",
+    "baseCommit": "382088d",
+    "rootCause": "mouth radius came from each portal own size while slots were spaced 2piR/N; coplanar equidistant discs tied in the raycast and the tie was broken by traversal order",
+    "fix": "mouth radius derived from nearest-neighbour distance (<=0.45d), extras clustered in orbits, ring fitted to the narrower screen axis",
+    "remaining": {
+      "candidate1": "screen-space overlap under a grazing camera is not covered by a ring-plane guarantee",
+      "candidate2": "harness clicked 44px off centre and read the field while the camera was moving (studio projected far off screen while onScreen said 11)"
+    },
+    "harnessBugs": [
+      "orb is a toggle and was pressed every settle",
+      "window.__leluImmersive is not set in this build",
+      "three canvases on the page; only one draws the field"
+    ],
+    "measurements": [
+      "docs/acceptance/spatial-phase-2-13/measurements/portal-targets-1440x900.json"
+    ],
+    "scripts": [
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-portal-targets.mjs"
+    ]
+  },
+  "mission54b2": {
+    "report": "docs/acceptance/MISSION-5-4B-2-REPORT.md",
+    "instrumentation": [
+      "src/app/scene/spatial/portalTrace.ts",
+      "SpatialPortals CameraSettleProbe",
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-settled-targets.mjs"
+    ],
+    "measured": {
+      "cameraSettles": false,
+      "settleSample": {
+        "stableFrames": 0,
+        "deltaPosition": 0,
+        "deltaRotation": 0.0049
+      },
+      "immersive": "false",
+      "clicksDeliveredToPortalHandler": 0,
+      "field": {
+        "registry": 11,
+        "drawn": 11,
+        "onScreen": 11,
+        "overlappingMouths": []
+      }
+    },
+    "verdict": {
+      "A": "UNTESTED - no handler ran",
+      "B": "UNTESTED",
+      "C": "CONFIRMED - Core camera rotates every frame, projections stale",
+      "D": "NOT DECIDED"
+    },
+    "blocker": "the app never enters immersive mode in this environment, so the home HUD covers the canvas and pointer clicks never reach the Genesis canvas",
+    "nextStep": "assert data-immersive === true before any attempt (or measure on a surface with no HUD), then read __leluPortalEvents[-1].delivered.portalId"
+  },
+  "mission54b3": {
+    "report": "docs/acceptance/MISSION-5-4B-3-REPORT.md",
+    "immersiveEntry": {
+      "control": "button.lch-cosmos",
+      "pointerPress": true,
+      "dataImmersive": "true",
+      "homeHidden": true,
+      "rendererMounted": true
+    },
+    "orbDefect": "div[data-spatial-group=communication] covers the navigator orb centre, so the advertised tap cannot reach it",
+    "camera": {
+      "settles": false,
+      "idle": {
+        "deltaPosition": 0,
+        "deltaRotation": 0.0049
+      },
+      "entry": {
+        "deltaPosition": 3.0054,
+        "deltaRotation": 0.427
+      },
+      "cause": "GenesisCameraController lerps OrbitControls target every frame with damping"
+    },
+    "firstClick": {
+      "aimed": [
+        "scene:files",
+        "scene:studio"
+      ],
+      "raycastAtCentre": "matches aimed portal",
+      "topElementAtCentre": "HUD BUTTON/DIV above canvas",
+      "handlerRan": false,
+      "delivered": null
+    },
+    "verdict": {
+      "A": "ruled out - no R3F event produced",
+      "B": "untested",
+      "C": "confirmed present",
+      "D": "undecided",
+      "E": "confirmed primary cause - UI layer intercepts the click"
+    },
+    "nextStep": "make immersive chrome non-interactive where the field is drawn, then rerun probe-settled-targets.mjs and read __leluPortalEvents.at(-1).delivered.portalId",
+    "reachability": {
+      "script": "docs/acceptance/spatial-phase-2-13/scripts/probe-first-real-click.mjs",
+      "files": {
+        "mouthPixelsSampled": 84,
+        "canvasOnTop": 0,
+        "verdict": "entirely behind interface chrome - unclickable"
+      },
+      "studio": {
+        "reachablePixel": [
+          806,
+          396
+        ],
+        "clickDelivered": true,
+        "r3fEvent": false,
+        "landed": "core",
+        "reason": "mouth moved under the pixel between sampling and press (camera deltaRotation 0.0049/frame)"
+      }
+    },
+    "status": "FAIL"
+  },
+  "mission54b4": {
+    "report": "docs/acceptance/MISSION-5-4B-4-REPORT.md",
+    "changes": [
+      "SpatialNavigator containers pointer-events none with controls restored",
+      "portal label wrapper and chip pointer-events none (keyboard retained)",
+      "GenesisCoreBody defers when the press also hits a portal",
+      "index.css expresses the routing rule once"
+    ],
+    "evidence": "docs/acceptance/spatial-phase-2-13/measurements/real-click-summary.json",
+    "firstCorrectTravels": {
+      "files": 1,
+      "studio": 2,
+      "reps": 5,
+      "note": "reps 4-5 predate the wrapper fix and are retained"
+    },
+    "remainingFailure": "reachable pixel and correct raycast, but no R3F event at press time — camera rotation between sampling and delivery under automation",
+    "notChanged": "portal geometry, placement, identity, registry, camera behaviour"
+  },
+  "mission54b5": {
+    "report": "docs/acceptance/MISSION-5-4B-5-REPORT.md",
+    "script": "docs/acceptance/spatial-phase-2-13/scripts/probe-reliable-clicks.mjs",
+    "evidence": "docs/acceptance/spatial-phase-2-13/measurements/reliable-clicks-1440x900-burst.json",
+    "result": {
+      "files": "0/5",
+      "studio": "0/5",
+      "wrongDestination": 0,
+      "canvasPointerDownWithoutR3FEvent": "6 of 10"
+    },
+    "cause": {
+      "dispatch": "burst release precedes R3F click-pair resolution",
+      "travel": "refused because the entry transition was still in flight"
+    },
+    "note": "gated rerun exceeded the command cap; the evidence file is the un-gated run",
+    "appSourceChanged": false
+  },
+  "mission54b6": {
+    "report": "docs/acceptance/MISSION-5-4B-6-REPORT.md",
+    "rootCause": "portal mouth attached only R3F onClick, which is synthesised from a pointerdown/up pair resolved on one frame; a fast press produced no activation (measured 6/10), and delivered clicks were refused because the entry flight still owned the camera",
+    "files": [
+      "src/app/scene/spatial/SpatialPortals.tsx"
+    ],
+    "change": [
+      "beginPress records pointer id + start point and takes pointer capture",
+      "endPress activates only for the same pointer released within 18px",
+      "single activate() path preserves the trace and the busyElsewhere guard",
+      "activations within 500ms collapse so pointer-up and click cannot double-fire"
+    ],
+    "acceptance": {
+      "files": "no evidence",
+      "studio": "no evidence",
+      "reason": "each fresh load ~75s under SwiftShader; 290s command ceiling allowed ~3 loads per invocation"
+    },
+    "gates": {
+      "tsc": "0 errors",
+      "portalTests": "40 pass / 0 fail",
+      "suite": "not run"
+    }
+  },
+  "mission54b7": {
+    "report": "docs/acceptance/MISSION-5-4B-7-REPORT.md",
+    "evidence": "docs/acceptance/spatial-phase-5-4b-7/batch-summary.json",
+    "activation": {
+      "delivered": "9/10",
+      "files": "4/5",
+      "studio": "5/5"
+    },
+    "identity": {
+      "correct": "9/10",
+      "wrongOne": "files press delivered scene:projects"
+    },
+    "destination": {
+      "reached": "0/10",
+      "wrongTravel": 0
+    },
+    "case": "B — correct identity delivered, destination never reached",
+    "gates": {
+      "tsc": "0 errors",
+      "portalTests": "40 pass / 0 fail",
+      "suite": "not run"
+    }
+  },
+  "mission54b8": {
+    "report": "docs/acceptance/MISSION-5-4B-8-REPORT.md",
+    "evidence": "docs/acceptance/spatial-phase-5-4b-8/summary.json",
+    "rootCause": "GSAP lag smoothing clamped each transition tick to ~33ms; at ~3fps the journey advanced at 11% of wall clock and never arrived",
+    "fix": "tweenDriver calls ticker.lagSmoothing(0) so transitions use real elapsed time",
+    "result": {
+      "files": "4/5",
+      "studio": "4/5",
+      "wrongDestination": 1,
+      "lostActivation": 1
+    },
+    "gates": {
+      "tsc": "0 errors",
+      "portalTests": "40 pass / 0 fail",
+      "suite": "not run"
+    }
+  }
+}

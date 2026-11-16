@@ -1,0 +1,70 @@
+CONSOLEARGS ["🟢 [6:35:20 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:35:20 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:36:13 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:36:13 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:37:11 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:37:11 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+[{"t":971,"m":"GET","u":"/api/github/status","done":2016},
+{"t":971,"m":"POST","u":"/api/acquisition","done":2016},
+{"t":2023,"console":"🟢 [6:36:26 PM] [BrainResolver] Memories passed to cognition as context (provider will reason over them)."},
+{"t":2027,"m":"POST","u":"/api/resources/gap","done":2040},
+{"t":2040,"m":"POST","u":"/api/resources/discover","done":3528},
+{"t":3562,"m":"GET","u":"/api/voice/status","done":4267},
+{"t":44772,"m":"GET","u":"/api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3"},
+{"t":44785,"m":"GET","u":"/api/knowledge/relay?provider=guardian&path=%2Fsearch%3Fq%3DLatest%2520frontier%2520model%"},
+{"t":44795,"m":"GET","u":"/api/knowledge/relay?provider=newsdata&path=%2Fapi%2F1%2Fnews%3Fq%3DLatest%2520frontier%25"},
+{"t":45476,"m":"GET","u":"/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20m"},
+{"t":46139,"m":"GET","u":"/api/knowledge/relay?provider=news&path=%2Fv2%2Feverything%3Fq%3DLatest%2520frontier%2520m"},
+{"t":46742,"console":"🟢 [6:37:11 PM] [ProviderResolver] Model routing decision"},
+{"t":46745,"console":"🟢 [6:37:11 PM] [ProviderResolver] Trying Groq"},
+{"t":46746,"console":"🟢 [6:37:11 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":46746,"console":"🟢 [6:37:11 PM] [ProviderResolver] Request budget"},
+{"t":46749,"m":"POST","u":"/api/model/groq/chat/completions","done":48141},
+{"t":48165,"console":"🟢 [6:37:12 PM] [ProviderResolver] Groq generated response"}]
+ROUTING_TRACE {
+ "intent": "search",
+ "stages": "time:0 cognitive-state:0 brain:2 intelligence:1 surface:0",
+ "notes": [
+  "final: owner=acquisition provider=acquisition model=repo-workforce chars=91"
+ ]
+}
+APPCALLS []
+{
+ "prompt": "Find a free open-source library so you can export my world as an STL file.",
+ "firstAnswerTextMs": null,
+ "settledMs": 44945,
+ "modelRequests": 2,
+ "reqs": [
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4449,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": -1
+  },
+  {
+   "t": 46749,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 3631,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": 48140
+  }
+ ],
+ "answer": "Already covered: Export 3D objects as STL (3D printing) — my world.export tool does it now."
+}

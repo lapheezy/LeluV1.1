@@ -24,6 +24,10 @@ import test from "node:test";
 
 import { createModelApi, BROKERED, brokerPath } from "../plugins/modelApi";
 import { endpointUrl, endpoint } from "../src/core/Endpoints";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 /* ------------------------------ harness ------------------------------ */
 
@@ -110,9 +114,14 @@ test("the broker path helper and the routing agree", () => {
 });
 
 /* ------------------------------ status ------------------------------ */
+// The Anthropic tests below opt in with LELU_ENABLE_ANTHROPIC=true: since the
+// master integration the broker refuses Anthropic unless the SERVER opts in.
+// They test broker mechanics (status, forwarding, error passthrough, missing
+// credential) with Anthropic as the example provider; the policy refusal
+// itself is pinned in anthropic-integration.test.ts.
 
 test("status reports which providers have a credential, and never what it is", async () => {
-  const api = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? SECRET : undefined));
+  const api = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? SECRET : name === "LELU_ENABLE_ANTHROPIC" ? "true" : undefined));
   const { response } = await call(api, "/status", { method: "GET" });
 
   assert.equal(response.status, 200);
@@ -145,7 +154,7 @@ test("a brokered call reaches the real upstream carrying the SERVER's credential
   }) as never;
 
   try {
-    const api = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? SECRET : undefined));
+    const api = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? SECRET : name === "LELU_ENABLE_ANTHROPIC" ? "true" : undefined));
     const { response } = await call(api, "/anthropic/messages", {
       body: JSON.stringify({ model: "m", messages: [] }),
       // A page trying to supply its own credential must not be trusted.
@@ -179,7 +188,7 @@ test("an upstream error is returned as it happened, not softened", async () => {
   })) as never;
 
   try {
-    const api = createModelApi(() => SECRET);
+    const api = createModelApi((name) => (name === "LELU_ENABLE_ANTHROPIC" ? "true" : SECRET));
     const { response } = await call(api, "/anthropic/messages", { body: "{}" });
     // The caller has to be able to tell "your key is wrong" from
     // "the network is down"; a broker that hid that would cost hours.
@@ -191,7 +200,9 @@ test("an upstream error is returned as it happened, not softened", async () => {
 });
 
 test("no credential is reported as a missing credential, not as a failed call", async () => {
-  const api = createModelApi(() => undefined);
+  // Opted in, so the broker reaches its credential check (opted out it
+  // refuses by policy first — see anthropic-integration.test.ts).
+  const api = createModelApi((name) => (name === "LELU_ENABLE_ANTHROPIC" ? "true" : undefined));
   const { response } = await call(api, "/anthropic/messages", { body: "{}" });
 
   assert.equal(response.status, 503);

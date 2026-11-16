@@ -1,0 +1,230 @@
+{
+ "rows": [
+  {
+   "n": 1,
+   "mode": "after-reply",
+   "said": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "heard": "Hey, Leilu. My name is Sam and my favorite color is teal. Just say hello",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 3824,
+   "repeated": false,
+   "heardAtAll": true
+  },
+  {
+   "n": 2,
+   "mode": "after-reply",
+   "said": "What is the capital of Peru? One sentence.",
+   "heard": "What is the capital of Peru?",
+   "wordMatchPct": 75,
+   "sttLatencyMs": 766,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 3,
+   "mode": "after-reply",
+   "said": "And roughly how many people live there? One sentence.",
+   "heard": "And roughly how many people live there? One sentence",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 10940,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 4,
+   "mode": "after-reply",
+   "said": "What is two plus two times three?",
+   "heard": "What is two plus two times three?",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 6038,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 5,
+   "mode": "after-reply",
+   "said": "Name one animal that lives in the Andes.",
+   "heard": "Name one animal that lives in the Andes.",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 19088,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 6,
+   "mode": "after-reply",
+   "said": "Give me one tip for better sleep, in one sentence.",
+   "heard": "What's a synonym for happy?",
+   "wordMatchPct": 10,
+   "sttLatencyMs": 244974,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 7,
+   "mode": "after-reply",
+   "said": "What's a synonym for happy?",
+   "heard": null,
+   "wordMatchPct": null,
+   "sttLatencyMs": null,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 8,
+   "mode": "after-reply",
+   "said": "How do you say thank you in Spanish?",
+   "heard": "How do you say thank you in Spanish?",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 18809,
+   "repeated": true,
+   "heardAtAll": false
+  },
+  {
+   "n": 9,
+   "mode": "after-reply",
+   "said": "What is my favorite color?",
+   "heard": "What is my favorite color?",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 11789,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 10,
+   "mode": "after-reply",
+   "said": "Tell me one fun fact about octopuses, in one sentence.",
+   "heard": "Tell me one fun fact about octopuses in one sentence.",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 23919,
+   "repeated": true,
+   "heardAtAll": false
+  },
+  {
+   "n": 11,
+   "mode": "after-reply",
+   "said": "Explain in detail, in about eight sentences, how a rainbow forms.",
+   "heard": "Explain in detail in about eight sentences how a rainbow forms.",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 16505,
+   "repeated": true,
+   "heardAtAll": false
+  },
+  {
+   "n": 12,
+   "mode": "barge-in",
+   "said": "Stop. Just one sentence please.",
+   "heard": "Stop. Just one sentence, please.",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 14054,
+   "repeated": false,
+   "heardAtAll": true
+  },
+  {
+   "n": 13,
+   "mode": "after-reply",
+   "said": "What is the boiling point of water in Fahrenheit?",
+   "heard": "What is the boiling point of water in Fahrenheit?",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 19386,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 14,
+   "mode": "after-reply",
+   "said": "Which planet is the largest in our solar system?",
+   "heard": "Recommend one classic novel in one sentence.",
+   "wordMatchPct": 11,
+   "sttLatencyMs": 245902,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 15,
+   "mode": "after-reply",
+   "said": "Recommend one classic novel, in one sentence.",
+   "heard": "Recommend one classic novel in one sentence.",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 10508,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 16,
+   "mode": "after-reply",
+   "said": "What is the square root of eighty-one?",
+   "heard": "What is the square root of 81?",
+   "wordMatchPct": 75,
+   "sttLatencyMs": 16431,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 17,
+   "mode": "after-reply",
+   "said": "Name a famous painting by Leonardo da Vinci.",
+   "heard": "What did I say my favorite color was?",
+   "wordMatchPct": 0,
+   "sttLatencyMs": 255322,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 18,
+   "mode": "after-reply",
+   "said": "What did I say my favorite color was?",
+   "heard": "What did I say my favorite color was?",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 14876,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 19,
+   "mode": "after-reply",
+   "said": "What's my name, and which city did we talk about first?",
+   "heard": "What's my name and which city did we talk about first?",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 22817,
+   "repeated": true,
+   "heardAtAll": true
+  },
+  {
+   "n": 20,
+   "mode": "after-reply",
+   "said": "Thanks Lélu, that's all for now.",
+   "heard": "Thanks, Leilu. That's all for now",
+   "wordMatchPct": 100,
+   "sttLatencyMs": 29170,
+   "repeated": true,
+   "heardAtAll": false
+  }
+ ],
+ "summary": {
+  "spoken": 20,
+  "heard": 19,
+  "meanWordMatch": 83,
+  "sttLatencyMs": [
+   766,
+   3824,
+   6038,
+   10508,
+   10940,
+   11789,
+   14054,
+   14876,
+   16431,
+   16505,
+   18809,
+   19088,
+   19386,
+   22817,
+   23919,
+   29170,
+   244974,
+   245902,
+   255322
+  ]
+ }
+}

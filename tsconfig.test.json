@@ -1,0 +1,16 @@
+{
+  // The node test runner (tsx) compiles src/ with esbuild. Without this file it
+  // applies no compiler options at all — the root tsconfig.json lists no files —
+  // so .tsx modules got the CLASSIC JSX transform (React.createElement) and any
+  // component without `import React` failed with "React is not defined".
+  //
+  // This carries ONLY what the test runtime must share with the app build
+  // (tsconfig.app.json): the automatic JSX runtime and the @og path alias.
+  // Nothing else (target, class-field semantics) is changed, so non-JSX tests
+  // compile exactly as before.
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": { "@og/*": ["./src/og/*"] }
+  }
+}

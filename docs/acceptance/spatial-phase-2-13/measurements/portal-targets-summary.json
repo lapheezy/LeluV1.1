@@ -1,0 +1,40 @@
+{
+  "runs": [
+    {
+      "output": "docs/acceptance/spatial-phase-2-13/measurements/portal-targets-1440x900.json",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "field": {
+        "registryCount": 11,
+        "placedCount": 11,
+        "drawnCount": 11,
+        "duplicates": [],
+        "collisions": [],
+        "overlappingMouths": [],
+        "onScreen": 11
+      },
+      "attempts": [
+        {
+          "id": "scene:galaxy",
+          "destination": "galaxy",
+          "matches": false
+        },
+        {
+          "id": "scene:planet",
+          "destination": "planet",
+          "matches": false
+        },
+        {
+          "id": "scene:portal",
+          "destination": "portal",
+          "matches": false
+        }
+      ],
+      "rapid": null,
+      "conflict": null,
+      "reload": null
+    }
+  ]
+}

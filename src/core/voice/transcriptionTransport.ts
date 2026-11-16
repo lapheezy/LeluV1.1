@@ -26,8 +26,13 @@
 import { endpointUrl } from "../Endpoints";
 import { authHeaders, primeBrokerStatus, providerConfigured } from "../model/BrokerTransport";
 
-/** Groq's Whisper endpoint, relative to the groq endpoint base. */
-const TRANSCRIPTION_PATH = "openai/v1/audio/transcriptions";
+/** Groq's Whisper endpoint, relative to the groq endpoint base — which already
+ *  ends in /openai/v1 (Endpoints.ts). Repeating that segment here produced
+ *  …/openai/v1/openai/v1/audio/transcriptions, a 404 for every transcription. */
+const TRANSCRIPTION_PATH = "audio/transcriptions";
+
+/** Vocabulary hint for Whisper so her name is transcribed as written. */
+export const WHISPER_NAME_HINT = "Talking with Lélu.";
 
 /**
  * Post a prepared multipart transcription request.

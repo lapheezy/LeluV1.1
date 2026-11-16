@@ -60,7 +60,9 @@ test("availability is computed once for concurrent turns, reused while fresh, re
 
 test("the router waits (bounded) for known availability before choosing a resolver", () => {
   const router = readFileSync("src/core/AIRouter.ts", "utf8");
-  const route = router.slice(router.indexOf("public async route("));
-  assert.match(route, /^public async route\(context: RouterContext\): Promise<AIResponse> \{\s*\/\/[^]*?await Promise\.race\(\[\s*ToolRegistry\.getInstance\(\)\.ensureAvailability\(\)/);
+  // `route()` now opens a trace and delegates to `routeThroughStages()`;
+  // the availability wait must still be the first thing that happens there.
+  const route = router.slice(router.indexOf("private async routeThroughStages("));
+  assert.match(route, /^private async routeThroughStages\(context: RouterContext\): Promise<AIResponse> \{\s*\/\/[^]*?await Promise\.race\(\[\s*ToolRegistry\.getInstance\(\)\.ensureAvailability\(\)/);
   assert.ok(route.indexOf("ensureAvailability") < route.indexOf("this.time.execute"), "before the first resolver runs");
 });

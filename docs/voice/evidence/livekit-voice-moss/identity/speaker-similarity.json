@@ -1,0 +1,44 @@
+{
+ "model": "speechbrain/spkrec-ecapa-voxceleb (cosine)",
+ "rows": [
+  {
+   "item": "REF 12-30s vs REF 30-48s (same real speaker)",
+   "vs_heldout_mean": 0.771
+  },
+  {
+   "item": "MOSS app 1",
+   "vs_heldout_mean": 0.285,
+   "vs_conditioning": 0.341
+  },
+  {
+   "item": "MOSS app 2",
+   "vs_heldout_mean": 0.336,
+   "vs_conditioning": 0.348
+  },
+  {
+   "item": "MOSS app 3",
+   "vs_heldout_mean": 0.413,
+   "vs_conditioning": 0.476
+  },
+  {
+   "item": "MOSS received over LiveKit (Opus)",
+   "vs_heldout_mean": 0.219,
+   "vs_conditioning": 0.245
+  },
+  {
+   "item": "VoxCPM2 app-speech (prior)",
+   "vs_heldout_mean": 0.433,
+   "vs_conditioning": 0.395
+  },
+  {
+   "item": "VoxCPM2 app-stream (prior)",
+   "vs_heldout_mean": 0.267,
+   "vs_conditioning": 0.348
+  },
+  {
+   "item": "NEG ElevenLabs voice",
+   "vs_heldout_mean": -0.063,
+   "vs_conditioning": -0.023
+  }
+ ]
+}

@@ -1,0 +1,211 @@
+{
+  "mission": "5.4B.11",
+  "scenario": "tap",
+  "batch": 2,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "records": [
+    {
+      "loadId": "tap-b2-l1",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "files",
+      "aim": {
+        "x": 475,
+        "y": 516,
+        "portalId": "scene:files",
+        "destination": "files",
+        "hitRadius": 0.35352972903093005,
+        "mouthCentre": {
+          "x": 475,
+          "y": 516
+        },
+        "margin": 0
+      },
+      "scenario": "tap",
+      "armed": {
+        "check0": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "expected": "scene:files",
+          "ok": true
+        }
+      },
+      "pressVerifiedInsideMouth": true,
+      "setupMisses": [
+        {
+          "x": 475,
+          "y": 516,
+          "pick": null,
+          "at": 2615
+        }
+      ],
+      "pressPick": null,
+      "press": [],
+      "pressProbe": [
+        {
+          "x": 475,
+          "y": 516,
+          "pick": null,
+          "object": "",
+          "element": "CANVAS"
+        }
+      ],
+      "claimedAtDown": null,
+      "resolvedAtUp": null,
+      "moved": null,
+      "outcome": null,
+      "refusal": null,
+      "onSelectCalls": 0,
+      "travel": {
+        "ms": 1281,
+        "finalScene": "core",
+        "dataset": "core",
+        "destination": null
+      },
+      "doubleActivation": false,
+      "identityHeld": false,
+      "travelled": false,
+      "outcomeClass": "no-claim",
+      "matches": false,
+      "universe": {
+        "dialogCount": 1,
+        "label": "Chat Universe",
+        "windows": 0,
+        "threads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "legacyTabs": false,
+        "replacementChars": 0,
+        "bodyScene": "core"
+      }
+    },
+    {
+      "loadId": "tap-b2-l2",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "files",
+      "aim": {
+        "x": 337,
+        "y": 463,
+        "portalId": "scene:files",
+        "destination": "files",
+        "hitRadius": 0.35352972903093005,
+        "mouthCentre": {
+          "x": 337,
+          "y": 463
+        },
+        "margin": 0
+      },
+      "scenario": "tap",
+      "armed": {
+        "check0": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "expected": "scene:files",
+          "ok": true
+        }
+      },
+      "pressVerifiedInsideMouth": true,
+      "pressPick": "scene:files",
+      "press": [
+        {
+          "t": 17294,
+          "phase": "down",
+          "pointerId": 1,
+          "client": {
+            "x": 337,
+            "y": 463
+          },
+          "portalId": "scene:files",
+          "destination": "files",
+          "intersections": [
+            {
+              "name": "spatial-portal-hit-scene:files",
+              "portalId": "scene:files",
+              "distance": 6.498
+            }
+          ],
+          "mouthCentre": {
+            "x": 337,
+            "y": 460
+          },
+          "distanceFromCentre": 3,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        },
+        {
+          "t": 17363,
+          "phase": "up",
+          "pointerId": 1,
+          "client": {
+            "x": 337,
+            "y": 463
+          },
+          "portalId": "scene:files",
+          "destination": "files",
+          "intersections": [],
+          "mouthCentre": null,
+          "distanceFromCentre": null,
+          "moved": 0,
+          "outcome": "activated",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "pressProbe": [
+        {
+          "x": 337,
+          "y": 463,
+          "pick": "scene:files",
+          "object": "spatial-portal-hit-scene:files",
+          "element": "CANVAS"
+        }
+      ],
+      "claimedAtDown": "scene:files",
+      "resolvedAtUp": "scene:files",
+      "moved": 0,
+      "outcome": "activated",
+      "refusal": null,
+      "onSelectCalls": 1,
+      "travel": {
+        "ms": 1210,
+        "finalScene": "files",
+        "dataset": "core",
+        "destination": null
+      },
+      "doubleActivation": false,
+      "identityHeld": true,
+      "travelled": true,
+      "outcomeClass": "arrived",
+      "matches": true,
+      "universe": {
+        "dialogCount": 0,
+        "label": null,
+        "windows": 0,
+        "threads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "legacyTabs": false,
+        "replacementChars": 0,
+        "bodyScene": "files"
+      }
+    }
+  ]
+}

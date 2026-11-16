@@ -20,13 +20,17 @@
  */
 
 export const genesisTheme = {
+  // Each glass value reads the interface design tokens when an approved
+  // theme sets them (see core/interface/DesignTokens), and falls back to
+  // the original Genesis value — so the default look is byte-for-byte the
+  // same and every panel using these constants is themeable for free.
   glass: {
-    panel: "linear-gradient(135deg, rgba(2, 8, 23, 0.92), rgba(30, 41, 59, 0.68))",
-    panelAlt: "linear-gradient(135deg, rgba(2, 8, 23, 0.92), rgba(14, 116, 144, 0.65))",
-    chip: "rgba(2, 6, 23, 0.8)",
-    border: "1px solid rgba(255,255,255,0.16)",
-    borderSoft: "1px solid rgba(255,255,255,0.12)",
-    borderAccent: "1px solid rgba(125, 211, 252, 0.4)",
+    panel: "var(--lelu-surface-bg, linear-gradient(135deg, rgba(2, 8, 23, 0.92), rgba(30, 41, 59, 0.68)))",
+    panelAlt: "var(--lelu-surface-bg, linear-gradient(135deg, rgba(2, 8, 23, 0.92), rgba(14, 116, 144, 0.65)))",
+    chip: "var(--lelu-chrome-bg, rgba(2, 6, 23, 0.8))",
+    border: "var(--lelu-border, 1px solid rgba(255,255,255,0.16))",
+    borderSoft: "var(--lelu-border-soft, 1px solid rgba(255,255,255,0.12))",
+    borderAccent: "var(--lelu-border-accent, 1px solid rgba(125, 211, 252, 0.4))",
     // Kept for any caller still reading the old single-layer shadow directly.
     shadow: "0 24px 70px rgba(0, 153, 255, 0.28)",
     blur: "blur(24px)",

@@ -170,7 +170,6 @@ test("core navigation and transient surfaces use the hierarchy, not literals", (
     "src/app/scene/genesis/GenesisDock.tsx",
     "src/app/scene/genesis/GenesisCommandPalette.tsx",
     "src/app/scene/genesis/GenesisMobileMenu.tsx",
-    "src/app/scene/genesis/MultiChatTabs.tsx",
     "src/app/scene/genesis/OgDockTabs.tsx",
   ]) {
     const source = code(file);

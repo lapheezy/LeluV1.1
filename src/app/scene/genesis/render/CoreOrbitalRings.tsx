@@ -24,7 +24,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { AdditiveBlending, Color, Group, MeshBasicMaterial } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 
 interface RingSeed {
   radius: number;
@@ -46,7 +46,9 @@ const RING_SEEDS: RingSeed[] = [
 ];
 
 export default function CoreOrbitalRings() {
-  const { engineRuntime } = useGenesis();
+  // Stable scene context: the rings only need the runtime getter, so they
+  // must not re-render when the universe publishes (see useGenesisScene).
+  const scene = useGenesisScene("CoreOrbitalRings");
   const root = useRef<Group>(null);
   const ringsRef = useRef<(Group | null)[]>([]);
 
@@ -74,7 +76,7 @@ export default function CoreOrbitalRings() {
       return;
     }
 
-    const vs = engineRuntime?.getEngineBus().getVisualState();
+    const vs = scene.engineRuntime?.getEngineBus().getVisualState();
     const activity = vs?.activity ?? 0.3;
     const time = vs?.time ?? performance.now() * 0.001;
 

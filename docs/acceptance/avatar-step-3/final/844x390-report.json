@@ -1,0 +1,79 @@
+{
+ "viewport": [
+  844,
+  390
+ ],
+ "touch": true,
+ "checks": [
+  {
+   "n": "she is present on Home, as one presence",
+   "s": "PASS",
+   "d": "{\"place\":\"hero\",\"framing\":\"face\",\"placed\":\"false\",\"vis\":\"visible\",\"rect\":[311,14,223,220],\"canvas\":1,\"count\":1,\"ctx\":1,\"frames\":4}"
+  },
+  {
+   "n": "dragging her with real input moves and places her",
+   "s": "PASS",
+   "d": "[311,14,223,220] → [76,84,223,220]"
+  },
+  {
+   "n": "she is not a window: no title bar, no resize grip",
+   "s": "PASS",
+   "d": ""
+  },
+  {
+   "n": "after reload she is where you put her",
+   "s": "PASS",
+   "d": "[76,84,223,220] vs [76,84,223,220]"
+  },
+  {
+   "n": "“return” gives her back her own place",
+   "s": "PASS",
+   "d": "{\"place\":\"hero\",\"framing\":\"face\",\"placed\":\"false\",\"vis\":\"visible\",\"rect\":[311,14,223,220],\"canvas\":1,\"count\":1,\"ctx\":1,\"frames\":80}"
+  },
+  {
+   "n": "tapping her opens the conversation",
+   "s": "PASS",
+   "d": ""
+  },
+  {
+   "n": "in chat she covers no composer or message input",
+   "s": "PASS",
+   "d": "place=edge"
+  },
+  {
+   "n": "with a graph open she covers no node and no graph control",
+   "s": "PASS",
+   "d": "place=edge rect=[722,110,120,170]"
+  },
+  {
+   "n": "her layout box blocks nothing outside her visible body",
+   "s": "PASS",
+   "d": "{\"sampled\":0,\"blocked\":0}"
+  },
+  {
+   "n": "with a drawing open she stays off the drawing tools",
+   "s": "PASS",
+   "d": "place=edge rect=[722,110,120,170]"
+  },
+  {
+   "n": "no horizontal overflow",
+   "s": "PASS",
+   "d": "0px"
+  },
+  {
+   "n": "one canvas for her through every screen (never rebuilt)",
+   "s": "PASS",
+   "d": "canvas ids seen: 1"
+  },
+  {
+   "n": "one avatar WebGL context since the reload",
+   "s": "PASS",
+   "d": "avatar contexts: 1"
+  },
+  {
+   "n": "no uncaught page errors",
+   "s": "PASS",
+   "d": ""
+  }
+ ]
+}

@@ -1,0 +1,38 @@
+{
+  "verified_by": "real broker requests + adapter logs",
+  "providers": {
+    "groq": {
+      "class": "CAPACITY-LIMITED",
+      "authenticated": true,
+      "tool_call_capable": true,
+      "evidence": "HTTP 200 real completion; environment_compose tool call proven in 5.5; 200 observed live this mission",
+      "limits": "intermittent 429 daily allowance"
+    },
+    "openrouter": {
+      "class": "CAPACITY-LIMITED",
+      "authenticated": true,
+      "evidence": "/api/v1/key 200, chat 429 free-models-per-day"
+    },
+    "github_models": {
+      "class": "INVALID-CREDENTIALS / UNAVAILABLE",
+      "authenticated": false,
+      "evidence": "broker POST returns 200 text/plain 'OK' (not a completion); 5.5 /user probe 401 Bad credentials"
+    },
+    "cerebras": {
+      "class": "UNAVAILABLE"
+    },
+    "mistral": {
+      "class": "UNAVAILABLE"
+    },
+    "fireworks": {
+      "class": "UNAVAILABLE"
+    },
+    "gemini": {
+      "class": "UNAVAILABLE"
+    },
+    "anthropic": {
+      "class": "EXCLUDED BY MISSION POLICY - not enabled, not used, not suggested"
+    }
+  },
+  "secrets_exposed": false
+}

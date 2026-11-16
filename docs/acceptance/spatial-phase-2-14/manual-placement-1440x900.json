@@ -1,0 +1,94 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T23:17:45.339Z",
+ "deviceScaleFactor": 1,
+ "touch": false,
+ "input": "real CDP mouse events at element coordinates (page.mouse); pointer down/move/up, no DOM click and no direct state mutation",
+ "methodNote": "Playwright actionability waits are bypassed because the spatial surface animates continuously and never reports a stable box; the events themselves are genuine browser input at the on-screen coordinates.",
+ "path": [
+  {
+   "step": "Studio button",
+   "modules": [
+    "visualstudio"
+   ],
+   "studioLibrary": 0
+  }
+ ],
+ "steps": [
+  "OK-pointer gate initial",
+  "OK-pointer Studio button",
+  "shot i01-module-open",
+  "OK-pointer title-bar drag",
+  "OK-pointer open-portal-panel",
+  "shot i02-manual-placement",
+  "OK-pointer pin",
+  "OK-pointer pinned reposition",
+  "shot i03-pinned",
+  "OK-pointer unpin",
+  "shot i04-unpinned",
+  "gate absent reload"
+ ],
+ "checks": {
+  "moduleBefore": [],
+  "openedModule": "visualstudio",
+  "rectBefore": {
+   "x": 88,
+   "y": 64,
+   "w": 1338,
+   "h": 818
+  },
+  "chrome": {
+   "x": 89,
+   "y": 65,
+   "w": 1336,
+   "h": 41
+  },
+  "grab": {
+   "x": 623,
+   "y": 86
+  },
+  "dragMs": 55004,
+  "probe": {
+   "pointerMovesSeen": 17,
+   "frames": 32,
+   "maxFrameGapMs": 11252,
+   "longTasks": 17,
+   "longTaskMs": 49223
+  },
+  "rectAfterDrag": {
+   "x": 228,
+   "y": 154,
+   "w": 1338,
+   "h": 818
+  },
+  "moved": {
+   "dx": 140,
+   "dy": 90
+  },
+  "counterAfterDrag": "0 placed · 0 pinned",
+  "pinLabel": "Pin Visual Studio",
+  "pinPressed": "false",
+  "rectBeforePinnedMove": {
+   "x": 228,
+   "y": 154,
+   "w": 1338,
+   "h": 818
+  },
+  "rectWhilePinned": {
+   "x": 158,
+   "y": 199,
+   "w": 1338,
+   "h": 818
+  },
+  "counterWhilePinned": "0 placed · 0 pinned",
+  "pinLabelAfterUnpin": "Unpin Visual Studio",
+  "rectAfterUnpin": {
+   "x": 158,
+   "y": 199,
+   "w": 1338,
+   "h": 818
+  },
+  "reopenedModule": null
+ },
+ "errors": []
+}

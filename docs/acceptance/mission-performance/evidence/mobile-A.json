@@ -1,0 +1,36 @@
+{
+ "profile": "mobile",
+ "runs": 3,
+ "median": {
+  "fcp": 4164,
+  "rootPainted": 4142,
+  "app": 7635.399999999907,
+  "chat": null,
+  "boot": null,
+  "provider": null,
+  "canvas": 4501,
+  "longTasks": 6,
+  "longMs": 802,
+  "tbt": 502,
+  "heapMB": 21.4,
+  "transferKB": 2840,
+  "jsFiles": 377,
+  "resources": 250
+ },
+ "apiCalls": {
+  "/api/forge/characters/lelu_character/active": 1,
+  "/api/model/status": 1,
+  "/api/livekit/status": 1,
+  "/api/forge/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v001_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v002_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v003_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v004_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v005_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v006_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v007_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v008_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v009_animation_01a193c7/motion.glb": 1,
+  "/api/forge/assets/characters/lelu_character/animations/v010_animation_01a193c7/motion.glb": 1
+ }
+}

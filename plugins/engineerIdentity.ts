@@ -35,6 +35,12 @@
 export interface VerifiedIdentity {
   userId: string;
   email: string | null;
+  /**
+   * The LÉLU role from app_metadata.lelu_role, as Supabase returned it.
+   * app_metadata is writable only server-side (service role / SQL), never by
+   * the user; user_metadata is user-editable and is deliberately ignored.
+   */
+  role?: string | null;
 }
 
 export interface IdentityCheck {
@@ -155,9 +161,9 @@ export async function verifyRequestIdentity(req: {
     };
   }
 
-  let user: { id?: string; email?: string } | null = null;
+  let user: { id?: string; email?: string; app_metadata?: { lelu_role?: unknown } } | null = null;
   try {
-    user = (await response.json()) as { id?: string; email?: string };
+    user = (await response.json()) as { id?: string; email?: string; app_metadata?: { lelu_role?: unknown } };
   } catch {
     user = null;
   }
@@ -169,7 +175,37 @@ export async function verifyRequestIdentity(req: {
   return {
     ok: true,
     status: 200,
-    identity: { userId: user.id, email: user.email ?? null },
+    identity: {
+      userId: user.id,
+      email: user.email ?? null,
+      role: typeof user.app_metadata?.lelu_role === "string" ? user.app_metadata.lelu_role : null,
+    },
     reason: `Verified Supabase identity ${user.email ?? user.id}.`,
   };
+}
+
+/**
+ * Re-verify a user's PASSWORD with Supabase (the password grant), on the
+ * server. Used only to RAISE the server-stored autonomy level: code in the
+ * page holds the session token, never the password, so a successful
+ * re-verification is evidence the human typed it. The password is sent to
+ * Supabase and nowhere else; it is never logged, stored or returned.
+ *
+ * `email` must be the email of the identity already verified from the
+ * session, so one account cannot vouch for another.
+ */
+export async function reverifyPassword(email: string | null, password: unknown): Promise<boolean> {
+  const settings = config();
+  if (!settings || !email || typeof password !== "string" || password.length === 0) return false;
+  try {
+    const response = await fetch(`${settings.url}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: { apikey: settings.anonKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }

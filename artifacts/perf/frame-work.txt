@@ -1,0 +1,29 @@
+
+=== PER-FRAME JAVASCRIPT REMOVED  (real three.js math, replica of the deleted loops) ===
+
+per call, ms        old        new
+  cities            0.045       0.000   (built once: 0.06 ms, then nothing)
+  population        0.032       0.015   (old 60 Hz, new 12 Hz)
+  vehicles          0.013       0.008   (old 60 Hz, new 12 Hz)
+  weather           0.001       0.001
+
+per SECOND at 60 Hz
+  cities            2.70 ms     0.00 ms
+  population        1.91 ms       0.18 ms
+  vehicles          0.79 ms       0.10 ms
+  weather           0.06 ms       0.05 ms
+  TOTAL             5.46 ms       0.33 ms   → 94% less main-thread work while the civilization layers are visible
+
+=== LIFECYCLE PERSISTENCE ===
+  state size            2615 bytes
+  old (10 writes/s)     0.08 ms of stringify per second
+  new (0.5 writes/s)    0.00 ms of stringify per second
+
+=== DRAW CALLS (structural, counted from the source, not timed) ===
+  energy particles      40 meshes -> 1 point cloud   (-39 calls)
+  material traversal    ~80 objects walked per frame -> one pre-collected list, touched only when activity moves
+
+=== WHAT THIS DOES NOT MEASURE ===
+  Frames per second on a GPU. That needs a browser with a real
+  renderer: run scripts/measure-scene-perf.mjs (or read
+  window.__leluRenderStats) on the machine you care about.

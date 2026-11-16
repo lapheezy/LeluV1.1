@@ -1,0 +1,7 @@
+{
+ "viewport": "430x932",
+ "at": "2026-11-08T07:12:14.152Z",
+ "phases": [],
+ "errors": [],
+ "result": "BLOCKED: browser.newContext: Protocol error (Target.createBrowserContext): Failed to create browser context."
+}

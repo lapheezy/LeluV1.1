@@ -1,0 +1,42 @@
+{
+  "gate": "C",
+  "verdict": "PASS",
+  "design": "no new subsystem: the existing broker records the last real upstream outcome per provider as it serves normal traffic, so /status can report evidence instead of configuration. No probe is ever fired to render a badge.",
+  "quotaCost": "0 extra requests; evidence is a by-product of requests that were already being made",
+  "statesImplemented": [
+    "POLICY_DISABLED",
+    "UNCONFIGURED",
+    "CONFIGURED",
+    "AUTHENTICATION_FAILED",
+    "UNREACHABLE",
+    "CAPACITY_LIMITED",
+    "COMPLETION_VERIFIED",
+    "TOOL_CALLING_VERIFIED",
+    "CONTRACT_VIOLATION",
+    "COOLDOWN"
+  ],
+  "liveStatusResponse": {
+    "anthropic": "POLICY_DISABLED",
+    "groq": "CONFIGURED -> COMPLETION_VERIFIED after one real call",
+    "openrouter": "CONFIGURED -> CAPACITY_LIMITED",
+    "cerebras": "UNCONFIGURED",
+    "mistral": "UNCONFIGURED",
+    "fireworks": "UNCONFIGURED",
+    "gemini": "UNCONFIGURED",
+    "githubModels": "CONFIGURED -> CONTRACT_VIOLATION after one real attempt"
+  },
+  "transitionAfterLiveAttempt": {
+    "provider": "githubModels",
+    "from": "CONFIGURED",
+    "to": "CONTRACT_VIOLATION",
+    "evidence": {
+      "httpStatus": 200,
+      "note": "2xx response was not a completion",
+      "at": "recorded"
+    }
+  },
+  "backCompatibility": "existing `providers` booleans kept unchanged; `states` added alongside",
+  "toolCallingClaimPolicy": "TOOL_CALLING_VERIFIED is set only when a real response body contains a tool_calls entry; a text completion can never produce it (pinned by test)",
+  "credentialLeakCheck": "status payload asserted free of the credential in tests",
+  "anthropic": "POLICY_DISABLED, untouched, never enabled"
+}

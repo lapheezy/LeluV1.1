@@ -1,0 +1,58 @@
+{
+ "id": "navigator-summon",
+ "selector": "[data-spatial-control=\"chat\"]",
+ "viewport": "390x844",
+ "mobile": true,
+ "at": "2026-11-08T19:08:26.515Z",
+ "gate": {
+  "gate": true,
+  "labels": [
+   "Sign in",
+   "Create account",
+   "Continue without an account"
+  ],
+  "home": true,
+  "text": "LÉLU · CLOUD IDENTITY\n\nSign in to carry memory, projects and conversations across your devices. You can also continue without an account — everything works, it just stays here.\n\nSign in\nCreate account\nContinue without an",
+  "settleMs": 3064,
+  "dismissed": "detached",
+  "presentAfter": false
+ },
+ "hit": {
+  "present": true,
+  "cx": 316,
+  "cy": 738,
+  "reachable": true,
+  "topAria": "SPAN"
+ },
+ "clickOutcome": "pointer-click",
+ "clickError": null,
+ "dialogMs": 1969,
+ "universe": {
+  "dialog": true,
+  "cards": 3,
+  "chatCards": 3,
+  "composer": {
+   "present": true,
+   "disabled": false,
+   "placeholder": "Message LÉLU…"
+  },
+  "chatWindows": 0,
+  "markedComposers": 0,
+  "gate": false
+ },
+ "typed": "Mission 3.1 entry check",
+ "typeError": null,
+ "windowOpen": {
+  "chatWindows": 0,
+  "markedComposers": 0,
+  "textareas": 1,
+  "gate": false
+ },
+ "pageErrors": [],
+ "consoleErrors": [
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+ ]
+}

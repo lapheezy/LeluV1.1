@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3lkj_de5c40",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: agree",
+  "meshyTaskId": "01a193c7-a07a-7516-b5cf-aa62c47fe864",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 25
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480696272,
+  "finishedAt": 1793480742488
+}

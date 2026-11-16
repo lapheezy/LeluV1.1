@@ -1,0 +1,70 @@
+{
+ "commit": "7a2bf49",
+ "at": "2026-11-07T06:53:44.828Z",
+ "results": [
+  {
+   "viewport": "1440x900",
+   "mobile": false,
+   "dpr": 1,
+   "shots": [
+    "01-genesis-shell",
+    "02-cosmos",
+    "03-portal-ring",
+    "04-portals-and-layout",
+    "05-creation-studio",
+    "06-chat-open"
+   ],
+   "steps": [
+    "FAIL identity-gate TimeoutError: locator.click: Timeout 5000ms exceed",
+    "FAIL cosmos TimeoutError: locator.click: Timeout 5000ms exceed",
+    "NO spatial-nav",
+    "OK portals-layout",
+    "FAIL studio TimeoutError: locator.click: Timeout 5000ms exceed",
+    "FAIL chat TimeoutError: locator.click: Timeout 5000ms exceed"
+   ],
+   "errors": [
+    "C Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectu"
+   ],
+   "metrics": {
+    "fpsIdle": 0,
+    "fpsSpatial": 1,
+    "canvases": 3,
+    "textLen": 1873,
+    "heapMB": 391,
+    "heapLimitMB": 3586,
+    "cameraOwner": null,
+    "probe": {
+     "revision": 0,
+     "presence": {
+      "traversal": "idle",
+      "attention": null,
+      "lastAction": "",
+      "lastActionAt": 0,
+      "revision": 0
+     },
+     "camera": {
+      "position": [
+       -3.0000000000000004,
+       1.5000000000000009,
+       7.000000000000001
+      ],
+      "direction": [
+       0.3933878514435401,
+       -0.05192719639054742,
+       -0.9179049867015936
+      ],
+      "fov": 49,
+      "aspect": 1.6,
+      "near": 0.1,
+      "far": 1000,
+      "updatedAt": 1794034424762
+     },
+     "nodes": 29,
+     "objects": []
+    },
+    "reveal": null,
+    "glRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+   }
+  }
+ ]
+}

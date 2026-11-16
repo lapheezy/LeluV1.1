@@ -1,0 +1,379 @@
+{
+  "capturedAt": "2026-11-06T19:41:22.615Z",
+  "headBeforePhase25": "58f845a14ba0fa81c27ee8586d9263677165af70",
+  "gates": {
+    "typecheck": "exit 0",
+    "spatialSuite": "23 pass, 0 fail",
+    "lint": "0 errors, 108 warnings",
+    "fullSuite": {
+      "pass": 1329,
+      "fail": 38,
+      "skip": 6,
+      "exit": 1
+    },
+    "baselinePhase24": {
+      "pass": 1329,
+      "fail": 38,
+      "skip": 6
+    },
+    "newFailures": [],
+    "note": "run with env -u CHROME -u LD_LIBRARY_PATH -u FONTCONFIG_FILE; exporting CHROME makes a browser-dependent layout test run instead of skip (one extra failure, unrelated to this work)",
+    "playwright": {
+      "traces": 3,
+      "screenshots": 20,
+      "crashes": 0
+    }
+  },
+  "desktop": {
+    "scenario": "desktop-continuous-camera 1440x900",
+    "steps": [
+      {
+        "text": "create a cube called Nova",
+        "submitted": true,
+        "revision": [
+          0,
+          1
+        ],
+        "camera": [
+          0.3,
+          3.35,
+          7.85
+        ],
+        "reply": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+      },
+      {
+        "text": "show me Nova",
+        "submitted": true,
+        "revision": [
+          1,
+          1
+        ],
+        "camera": [
+          1.74,
+          0.39,
+          4.86
+        ],
+        "reply": "Framed \"Nova\" — camera at (1.74, 0.39, 4.86) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+      },
+      {
+        "text": "orbit around Nova by 30 degrees",
+        "submitted": true,
+        "revision": [
+          1,
+          1
+        ],
+        "camera": [
+          0.68,
+          0.39,
+          5.3
+        ],
+        "reply": "Orbited 30° around \"Nova\" — camera at (0.68, 0.39, 5.3) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+      },
+      {
+        "text": "zoom out",
+        "submitted": true,
+        "revision": [
+          1,
+          1
+        ],
+        "camera": [
+          0.79,
+          1.09,
+          6.19
+        ],
+        "reply": "Zoomed the camera out — camera at (0.79, 1.09, 6.19) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+      },
+      {
+        "text": "return to the original view",
+        "submitted": true,
+        "revision": [
+          1,
+          1
+        ],
+        "camera": [
+          0,
+          0,
+          6.8
+        ],
+        "reply": "Returned the camera to the opening Genesis view — camera at (0, 0, 6.8) looking at (0, 0, 0). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+      },
+      {
+        "text": "what is in the scene",
+        "submitted": true,
+        "revision": [
+          1,
+          1
+        ],
+        "camera": [
+          0,
+          0,
+          6.8
+        ],
+        "reply": "Scene revision 1: 1 object — \"Nova\" (box) at (2.2, -1.35, 2.2)."
+      }
+    ],
+    "objects": [
+      {
+        "name": "Nova",
+        "rendered": true,
+        "visible": true,
+        "world": [
+          0.3860309720253505,
+          -1.35,
+          3.0872285449310626
+        ],
+        "local": [
+          2.2,
+          -1.35,
+          2.2
+        ]
+      }
+    ],
+    "bubble": {
+      "w": 491,
+      "h": 64,
+      "paragraphChars": 63
+    }
+  },
+  "mobile": {
+    "chat": {
+      "scenario": "mobile-continuous-chat 390x844",
+      "messages": [
+        {
+          "text": "add a sphere called Comet",
+          "submitted": true,
+          "revision": [
+            0,
+            1
+          ],
+          "visibleComposers": 2,
+          "composerY": [
+            695,
+            693
+          ],
+          "bubble": {
+            "w": 270,
+            "h": 85
+          }
+        },
+        {
+          "text": "what is in the scene",
+          "submitted": true,
+          "revision": [
+            1,
+            1
+          ],
+          "visibleComposers": 2,
+          "composerY": [
+            695,
+            693
+          ],
+          "bubble": {
+            "w": 270,
+            "h": 85
+          }
+        },
+        {
+          "text": "show me Comet",
+          "submitted": true,
+          "revision": [
+            1,
+            1
+          ],
+          "visibleComposers": 2,
+          "composerY": [
+            695,
+            693
+          ],
+          "bubble": {
+            "w": 270,
+            "h": 169
+          }
+        },
+        {
+          "text": "zoom in",
+          "submitted": true,
+          "revision": [
+            1,
+            1
+          ],
+          "visibleComposers": 2,
+          "composerY": [
+            695,
+            693
+          ],
+          "bubble": {
+            "w": 270,
+            "h": 190
+          }
+        }
+      ]
+    },
+    "narrow": {
+      "scenario": "mobile-narrow-focus 375x812",
+      "messages": [
+        {
+          "text": "add a cube called Nova",
+          "submitted": true,
+          "revision": [
+            0,
+            1
+          ]
+        },
+        {
+          "text": "show me Nova",
+          "submitted": true,
+          "revision": [
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    "worldAfterChat": [
+      {
+        "label": "loaded",
+        "canvases": [
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 162,
+            "h": 220
+          }
+        ],
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "textareas": 1
+      },
+      {
+        "label": "created",
+        "canvases": [
+          {
+            "w": 120,
+            "h": 174
+          }
+        ],
+        "revision": 0,
+        "nodes": 0,
+        "objects": [],
+        "textareas": 3
+      },
+      {
+        "label": "after-escape",
+        "canvases": [
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 162,
+            "h": 220
+          }
+        ],
+        "revision": 1,
+        "nodes": 28,
+        "objects": [
+          {
+            "name": "Vega",
+            "rendered": true,
+            "visible": true
+          }
+        ],
+        "textareas": 2
+      },
+      {
+        "label": "final",
+        "canvases": [
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 390,
+            "h": 844
+          },
+          {
+            "w": 162,
+            "h": 220
+          }
+        ],
+        "revision": 1,
+        "nodes": 28,
+        "objects": [
+          {
+            "name": "Vega",
+            "rendered": true,
+            "visible": true
+          }
+        ],
+        "textareas": 2
+      }
+    ],
+    "verdict": "routine level: object exists in the live scene (rendered:true, visible:true, 28 nodes) after chat closes, but the captured pixels show the Home dashboard and no object; visual rendering is NOT verified",
+    "worldShots": [
+      {
+        "viewport": {
+          "w": 1440,
+          "h": 900
+        },
+        "revision": 1,
+        "objects": [
+          {
+            "name": "Nova",
+            "rendered": true,
+            "visible": true,
+            "world": [
+              -2.2938918172287446,
+              -1.35,
+              -2.10191825027783
+            ]
+          }
+        ],
+        "canvases": 3,
+        "nodes": 28,
+        "image": "screenshots/1440x900-07-world.png"
+      },
+      {
+        "viewport": {
+          "w": 390,
+          "h": 844
+        },
+        "revision": 1,
+        "objects": [
+          {
+            "name": "Vega",
+            "rendered": true,
+            "visible": true,
+            "world": [
+              2.24489482245865,
+              -1.35,
+              2.1541697324255455
+            ]
+          }
+        ],
+        "canvases": 3,
+        "nodes": 28,
+        "image": "screenshots/390x844-23-world.png"
+      }
+    ]
+  },
+  "evidence": {
+    "report": "docs/acceptance/spatial-phase-2-5/REPORT.md",
+    "environment": "docs/acceptance/spatial-phase-2-5/environment.md",
+    "diagnostics": "diagnostics.json",
+    "mobileWorld": "mobile-world.json",
+    "traces": "traces/*.zip",
+    "screenshots": "screenshots/"
+  }
+}

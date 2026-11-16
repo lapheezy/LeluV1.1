@@ -1,0 +1,28 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T17:02:15.098Z",
+ "shots": [
+  "23-chat-after-travel"
+ ],
+ "steps": [
+  "OK gate",
+  "OK summon-chat",
+  "OK send",
+  "OK travel"
+ ],
+ "checks": {
+  "messageBefore": 2,
+  "transcriptBefore": 1781,
+  "inputBefore": 1,
+  "afterTravel": {
+   "scene": "studio",
+   "transition": ""
+  },
+  "travelCompleted": true,
+  "messageAfter": 1,
+  "transcriptAfter": 1768,
+  "inputAfter": 1,
+  "canvases": 3
+ },
+ "errors": []
+}

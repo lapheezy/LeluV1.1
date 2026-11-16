@@ -1,0 +1,17 @@
+{
+  "mission": "5.7",
+  "starting_branch": "claude/mission-5-6-live-autonomy-completion",
+  "starting_commit": "59f91376aa2b0f5f1787f167e73413982509cb9b",
+  "verified": {
+    "local_head": "59f9137",
+    "remote_head": "59f9137",
+    "tree": "clean",
+    "canonical": "ce768e08\u2026 unchanged",
+    "mission_branch": "claude/mission-5-7-provider-resilience-autonomy"
+  },
+  "prior_work": {
+    "toolSchemasForRequest": true,
+    "two_step_degradation": true,
+    "environment_tool_ids": 6
+  }
+}

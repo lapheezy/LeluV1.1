@@ -52,7 +52,7 @@ test("the unprefixed names the operator is told to set are resolved", () => {
 test("resolution goes through the chain that can see the runtime bridge", () => {
   // The browser cannot read process.env, so an unprefixed value reaches it
   // only as a __LELU_* global — which only resolveEnv consults.
-  assert.match(code("src/core/config/supabaseEnv.ts"), /import \{ resolveFirst \} from "\.\.\/resolveEnv"/);
+  assert.match(code("src/core/config/supabaseEnv.ts"), /import \{ resolveFirst \} from "\.\.\/resolveEnv(\.ts)?"/);
 
   // Behavioural, not textual: a value published the way the bridge
   // publishes one is actually found.

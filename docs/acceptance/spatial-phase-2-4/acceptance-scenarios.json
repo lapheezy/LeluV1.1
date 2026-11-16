@@ -1,0 +1,273 @@
+{
+  "capturedAt": "2026-11-06T18:12:09.303Z",
+  "head": "2a134494f7e9fd944b61daff46198ed01327563d",
+  "scenarios": [
+    {
+      "name": "camera-focus-and-orbit",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "error": "Error: keyboard.press: Target page, context or browser has been closed\nBrowser logs:\n\n[pid=322099][err] [322099:322099:1106/181209.747210:ERROR:ui/gfx/render_text_harfbuzz.cc:1156]  TextRunHarfBuzz er",
+      "runs": [
+        {
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                -5,
+                3.000000000000001,
+                5.000000000000001
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -2.2610613469107634,
+                  -1.35,
+                  2.137194793533356
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                -5,
+                2.9999999999999996,
+                5.000000000000001
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 6188
+        }
+      ]
+    },
+    {
+      "name": "delete-with-approval",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "runs": [
+        {
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                1.500054760001412,
+                4.999945239998588
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  2.83545121532575,
+                  -1.35,
+                  -1.280709336855061
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 5727
+        },
+        {
+          "text": "delete Nova, I approve",
+          "typed": "delete Nova, I approve",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  2.83545121532575,
+                  -1.35,
+                  -1.280709336855061
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 2,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "delete Nova, I approve"
+            },
+            {
+              "role": "assistant",
+              "text": "Deleted \"Nova\". Scene revision 2."
+            }
+          ],
+          "latencyMs": 1197
+        }
+      ]
+    },
+    {
+      "name": "mobile-flow",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "error": "TimeoutError: locator.click: Timeout 6000ms exceeded.\nCall log:\n  - waiting for locator('textarea').nth(1)\n    - locator resolved to <textarea rows=\"1\" enterkeyhint=\"send\" placeholder=\"Message LÉLU…\">",
+      "runs": [
+        {
+          "text": "add a sphere called Comet",
+          "typed": "add a sphere called Comet",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 56
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 56
+            },
+            "canvases": 1,
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "add a sphere called Comet"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 4398
+        }
+      ]
+    }
+  ]
+}

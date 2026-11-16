@@ -142,7 +142,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
             env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY"),
           ),
           VITE_ANTHROPIC_API_KEY: presence(
-            env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY"),
+            env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("LELU_ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY"),
           ),
           // Supabase needs BOTH halves, and neither was reported here at
           // all — so a project with a key and no URL looked fine from
@@ -177,7 +177,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
         const groqKey = env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY") || "";
         const openrouterKey = env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY") || "";
         const anthropicKey =
-          env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY") || "";
+          env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("LELU_ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY") || "";
 
         if (groqKey) {
           try {

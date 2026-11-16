@@ -1,0 +1,6 @@
+[Unit]
+Description=LÉLU health watchdog
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/lelu-healthcheck

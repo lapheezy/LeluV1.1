@@ -1,0 +1,32 @@
+{
+  "result": "PARTIAL",
+  "baseline_5_6": {
+    "survived_ms": 338480,
+    "heap_mb": [
+      141.2,
+      407.5
+    ],
+    "listeners": [
+      8961,
+      17424
+    ],
+    "nodes": [
+      1150,
+      1055
+    ],
+    "crashes": 0
+  },
+  "this_mission": {
+    "attribution_baseline": {
+      "window_listeners": 63,
+      "distinct_sites": 57,
+      "document_listeners": 3,
+      "heapMB": 87.9,
+      "nodes": 614
+    },
+    "after_cycle_sample": "not captured - probe exceeded 280s budget while the live cycle held a browser",
+    "crashes": 0
+  },
+  "crash_reproduced": false,
+  "conclusion": "attribution method implemented and baseline captured; no leak claimed and none denied"
+}

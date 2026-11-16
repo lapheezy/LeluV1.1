@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-11-06",
+  "source": "window.__LELU_ROUTING_TRACE__ (live dev server :3013)",
+  "id": "route-mw5d53i7-0eo14f",
+  "prompt": "What is operational right now?",
+  "intent": "search",
+  "startedAt": 1793993048575,
+  "finishedAt": 1793993050778,
+  "stages": [
+    { "stage": "time", "handled": false, "durationMs": 0 },
+    { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+    { "stage": "brain", "handled": false, "durationMs": 2 },
+    { "stage": "intelligence", "handled": true, "durationMs": 2200, "provider": "intelligence", "model": "operational-snapshot" }
+  ],
+  "notes": [
+    { "at": 1793993048578, "stage": "intelligence.intent", "detail": "snapshot", "ok": true },
+    { "at": 1793993050777, "stage": "intelligence.fetch", "detail": "snapshot answered from live state (operational-snapshot)", "ok": true },
+    { "at": 1793993050778, "stage": "final", "detail": "owner=IntelligenceResolver provider=intelligence model=operational-snapshot chars=1520", "ok": true }
+  ],
+  "owner": "IntelligenceResolver",
+  "provider": "intelligence",
+  "model": "operational-snapshot",
+  "renderedExcerpt": "…engineering.workspace.runtime — BLOCKED: configured but not reachable right now / engineering.local.execute — BLOCKED … / Every line above comes from the four studio sources; 0 failed. Nothing here is inferred."
+}

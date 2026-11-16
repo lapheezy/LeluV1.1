@@ -43,6 +43,8 @@ import type EngineRuntime from "./engines/EngineRuntime";
 import { useSceneMountLog } from "./useSceneMountLog";
 import LivingSystemVisuals from "./LivingSystemVisuals";
 import WorkspaceVisual from "./WorkspaceVisual";
+import PlaceInWorldButton from "./spatial/PlaceInWorldButton";
+import { NeuralEmbedSlot, NeuralToggle } from "./neural/NeuralEmbedSlot";
 import {
   type VisualStateRuntime,
   type VisualStateStructure,
@@ -56,7 +58,19 @@ const FIELD_BG =
 
 /* ------------------------------ shell --------------------------------- */
 
-export default function LivingSystemUI() {
+/**
+ * `embedded` (Mission 17): the System UI as a region of an interface
+ * composition. It then renders whatever the shared interface focus is —
+ * it is not the scene that owns the screen — and its two ways out (back to
+ * Genesis, into the Room) are the composition's to decide. Everything else
+ * is the same component reading the same VisualEngine.
+ */
+export interface LivingSystemEmbedding {
+  onExit: () => void;
+  onOpenRoom: () => void;
+}
+
+export default function LivingSystemUI({ embedded }: { embedded?: LivingSystemEmbedding } = {}) {
   // TEMP DEBUG — scene-isolation lifecycle log (see useSceneMountLog).
   useSceneMountLog("LivingSystemUI");
 
@@ -74,6 +88,8 @@ export default function LivingSystemUI() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // M17.2-WP02: the Neural Map card inside the System UI.
+  const [neural, setNeural] = useState(false);
   const { state: visualState, engine: visualEngine } = useVisual();
   const { state: workspaceState, engine: workspaceEngine } = useWorkspace();
   const { openPanel, setDialogue, engineRuntime, state: genesisState } = useGenesis();
@@ -109,7 +125,7 @@ export default function LivingSystemUI() {
   // If the shared state somehow no longer points at this environment,
   // render nothing rather than a wrong-looking shell (the switch UI
   // calls setInterfaceFocus, so this only happens during transition).
-  if (interfaceFocus !== "visual") {
+  if (interfaceFocus !== "visual" && !embedded) {
     return null;
   }
 
@@ -118,6 +134,7 @@ export default function LivingSystemUI() {
   return (
     <div
       data-workspace="lelu-system"
+      data-embedded={embedded ? "true" : undefined}
       className="lelu-living-system-ui"
       style={{
         position: "fixed",
@@ -152,11 +169,34 @@ export default function LivingSystemUI() {
         views={workspaceState.views.filter((view) => !view.minimized)}
         focusId={workspaceState.focusId}
         onFocusView={(id) => workspaceEngine.focusView(id)}
-        onExit={() => visualEngine.setInterfaceFocus("genesis")}
-        onOpenLab={() => {
-          visualEngine.setInterfaceFocus("genesis");
-          openPanel("genesisv2");
-        }}
+        neuralOpen={neural}
+        onNeural={() => setNeural(!neural)}
+        onExit={embedded ? embedded.onExit : () => visualEngine.setInterfaceFocus("genesis")}
+        onOpenLab={
+          embedded
+            ? embedded.onOpenRoom
+            : () => {
+                visualEngine.setInterfaceFocus("genesis");
+                openPanel("genesisv2");
+              }
+        }
+      />
+
+      <NeuralEmbedSlot
+        open={neural}
+        host="system"
+        hostLabel="LÉLU System"
+        focus="interface:lelu-system"
+        context={[
+          { id: "interface:lelu-system", label: "LÉLU System UI" },
+          { id: "interface:lelu-room", label: "LÉLU's Room" },
+          { id: "interface:cosmos", label: "Cosmos" },
+          { id: "capability:interface.open", label: "interface.open" },
+          { id: "capability:neural.inspect", label: "neural.inspect" },
+        ]}
+        unindexed={`the live modes (Heartbeat, Matrix, Nerve, Neuron, Core) and the ${workspaceState.views.length} workspace view(s) — runtime signals and presentation state that no authority exposes as entities`}
+        onClose={() => setNeural(false)}
+        style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 60px)", right: 16, zIndex: 5 }}
       />
 
       {/* The central presence — click to talk to LÉLU. */}
@@ -175,6 +215,7 @@ export default function LivingSystemUI() {
         focusId={workspaceState.focusId}
         selectedId={workspaceState.selectedId}
         besideChat={chatBox}
+        mobile={mobile}
         onSelectView={(id) => workspaceEngine.selectView(id)}
         onCloseView={(id) => workspaceEngine.closeView(id)}
         onOpenChat={() => {
@@ -296,6 +337,8 @@ function SystemNav({
   views,
   focusId,
   onFocusView,
+  neuralOpen,
+  onNeural,
   onExit,
   onOpenLab,
 }: {
@@ -305,6 +348,8 @@ function SystemNav({
   views: WorkspaceView[];
   focusId: string | null;
   onFocusView: (id: string) => void;
+  neuralOpen: boolean;
+  onNeural: () => void;
   onExit: () => void;
   onOpenLab: () => void;
 }) {
@@ -392,6 +437,8 @@ function SystemNav({
       >
         Views {views.length > 0 ? `· ${views.length}` : ""}
       </button>
+
+      <NeuralToggle host="system" open={neuralOpen} onToggle={onNeural} style={{ flexShrink: 0, fontSize: 10.5 }} />
 
       {/* UI #3 — Genesis v2 Transformation Lab, reachable from this
           environment too: it switches to the primary environment and
@@ -577,6 +624,7 @@ function SystemWorkspace({
   focusId,
   selectedId,
   besideChat,
+  mobile,
   onSelectView,
   onCloseView,
   onOpenChat,
@@ -586,10 +634,33 @@ function SystemWorkspace({
   selectedId: string | null;
   /** The open chat window's horizontal extent: artifacts go beside it. */
   besideChat: { left: number; right: number } | null;
+  /** Phone layout: one scrollable column that stays inside the viewport. */
+  mobile: boolean;
   onSelectView: (id: string | null) => void;
   onCloseView: (id: string) => void;
   onOpenChat: () => void;
 }) {
+  /**
+   * A short phone (360x640 and smaller) needs DIFFERENT numbers, not smaller
+   * cards.
+   *
+   * The column reserved 92px at the top and 132px at the bottom for the core
+   * and the activity strip. On a 640px screen that left 416px of field, so the
+   * first surface started below the fold and every card had to be scrolled to
+   * before it could be read. The reserve is right for 844; it is not right for
+   * 640. This is measured off the viewport rather than inferred from the width,
+   * because the failing size has the SAME width as a taller phone that works.
+   */
+  const [shortViewport, setShortViewport] = useState(
+    () => typeof window !== "undefined" && window.innerHeight < 700,
+  );
+  useEffect(() => {
+    const onResize = () => setShortViewport(window.innerHeight < 700);
+    window.addEventListener("resize", onResize);
+    onResize();
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const ordered = useMemo(() => {
     const list = [...views];
     // The user's selection first (status views refreshing must not push it
@@ -620,7 +691,36 @@ function SystemWorkspace({
   }
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
+    <div
+      style={
+        mobile
+          ? {
+              // Desktop places surfaces in a field around the core; a phone
+              // has no field to place them in. The measured phone result was
+              // cards at x = -88 (outside the viewport) because the desktop
+              // percentage slots and the chat-beside column were reused at
+              // 390 px. Here the same surfaces become one scrolling column
+              // between the navigation and the activity strip — nothing off
+              // screen, nothing under the core.
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 2,
+              pointerEvents: "auto",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              paddingTop: shortViewport ? 72 : 92,
+              paddingBottom: shortViewport ? "calc(env(safe-area-inset-bottom, 0px) + 96px)" : 132,
+            }
+          : { position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }
+      }
+    >
       {ordered.map((view, index) => {
         const focused = view.id === focusId;
         const selected = view.id === selectedId;
@@ -633,13 +733,42 @@ function SystemWorkspace({
             data-kind={view.kind}
             data-selected={selected ? "true" : "false"}
             data-revision={view.revision}
+            /**
+             * Select on PRESS, not on click.
+             *
+             * A press that spans a re-render (the scene mounts, the layout
+             * settles, the chat opens) can end on a different element and
+             * never produce a click — measured: the first press after a
+             * compose left every surface data-selected="false" and the
+             * engine selectedId null, while the very next press worked.
+             * The press itself is the user's intent, so it is what selects.
+             * Controls inside the card keep their own behaviour.
+             */
+            onPointerDown={(event) => {
+              const target = event.target as HTMLElement | null;
+              if (target?.closest("button, a, input, select, textarea")) return;
+              onSelectView(view.id);
+            }}
             onClick={() => onSelectView(view.id)}
             style={{
-              position: "absolute",
-              ...position,
-              width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
-              minWidth: column ? undefined : focused ? 260 : 180,
-              maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+              ...(mobile
+                ? {
+                    position: "relative" as const,
+                    margin: "0 12px 8px",
+                    width: "auto",
+                    minWidth: 0,
+                    // Short screens get shorter cards so several are readable
+                    // without scrolling past the first one.
+                    maxHeight: shortViewport ? "min(42dvh, 240px)" : "min(52dvh, 380px)",
+                    flexShrink: 0,
+                  }
+                : {
+                    position: "absolute" as const,
+                    ...position,
+                    width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
+                    minWidth: column ? undefined : focused ? 260 : 180,
+                    maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+                  }),
               pointerEvents: "auto",
               overflow: "hidden",
               borderRadius: 14,
@@ -719,6 +848,25 @@ function SystemWorkspace({
                   Selected · ask LÉLU
                 </button>
               ) : null}
+              {/* The view is the subject: place it as a real scene object. */}
+              <PlaceInWorldButton
+                name={view.title}
+                kind="box"
+                color={view.kind === "image" ? "#c084fc" : "#67e8f9"}
+                scale={0.8}
+                label="In world"
+                buttonStyle={{
+                  border: "1px solid rgba(103, 232, 249, 0.4)",
+                  background: "rgba(56, 189, 248, 0.14)",
+                  color: "#bae6fd",
+                  borderRadius: 999,
+                  padding: "2px 8px",
+                  fontSize: 10,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                }}
+              />
               <button
                 type="button"
                 onClick={(event) => {

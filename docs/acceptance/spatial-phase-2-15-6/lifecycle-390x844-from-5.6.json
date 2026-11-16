@@ -1,0 +1,571 @@
+{
+ "viewport": "390x844",
+ "at": "2026-11-08T07:59:07.388Z",
+ "phases": [
+  {
+   "phase": "opened",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 16,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "chrome": {
+     "x": 196,
+     "y": 38,
+     "left": 9,
+     "right": 383,
+     "w": 374,
+     "h": 41
+    },
+    "capture": [],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 16,
+     "w": 366,
+     "h": 732,
+     "manual": false,
+     "pinned": false
+    },
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "touch-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 155,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "chrome": {
+     "x": 196,
+     "y": 177,
+     "left": 9,
+     "right": 383,
+     "w": 374,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 2,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 155,
+     "w": 374,
+     "h": 454,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "pointer-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 155,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "chrome": {
+     "x": 196,
+     "y": 177,
+     "left": 9,
+     "right": 383,
+     "w": 374,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 1,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 155,
+     "w": 374,
+     "h": 454,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  },
+  {
+   "phase": "second-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 155,
+      "w": 376,
+      "h": 456
+     }
+    ],
+    "chrome": {
+     "x": 196,
+     "y": 177,
+     "left": 9,
+     "right": 383,
+     "w": 374,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 1,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 155,
+     "w": 374,
+     "h": 454,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 390,
+     "h": 844
+    }
+   }
+  }
+ ],
+ "errors": [],
+ "identity": {
+  "moduleId": "creation",
+  "presentation": "inline",
+  "host": "creation",
+  "canvases": 1,
+  "contents": [
+   "creation"
+  ]
+ },
+ "pressPoint": {
+  "x": 49,
+  "y": 38,
+  "chrome": {
+   "x": 196,
+   "y": 38,
+   "left": 9,
+   "right": 383,
+   "w": 374,
+   "h": 41
+  }
+ },
+ "touch": {
+  "pointer": {
+   "id": 2,
+   "type": "touch",
+   "target": "STRONG",
+   "onChrome": true,
+   "onControl": false
+  },
+  "events": {
+   "down": 1,
+   "move": 6,
+   "up": 1,
+   "cancel": 0
+  },
+  "moveOnChrome": 6,
+  "capture": [
+   {
+    "id": 2,
+    "held": true
+   }
+  ],
+  "live": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": true,
+   "x": 8,
+   "y": 96,
+   "w": 376,
+   "h": 456
+  },
+  "liveDelta": {
+   "dx": 0,
+   "dy": 80
+  },
+  "atRelease": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "atReleaseStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "settled": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "settledStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "committedSameGesture": true
+ },
+ "pointer": {
+  "pointer": {
+   "id": 1,
+   "type": "mouse",
+   "target": "DIV",
+   "onChrome": false,
+   "onControl": false
+  },
+  "events": {
+   "down": 1,
+   "move": 13,
+   "up": 1,
+   "cancel": 0
+  },
+  "moveOnChrome": 0,
+  "capture": [
+   {
+    "id": 1,
+    "held": false
+   }
+  ],
+  "live": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "liveDelta": {
+   "dx": 0,
+   "dy": 139
+  },
+  "atRelease": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "atReleaseStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "settled": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "settledStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "committedSameGesture": true
+ },
+ "secondDrag": {
+  "startedAt": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "committedBefore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "startedFromCommit": true,
+  "pointer": {
+   "id": 1,
+   "type": "mouse",
+   "target": "DIV",
+   "onChrome": false,
+   "onControl": false
+  },
+  "events": {
+   "down": 1,
+   "move": 13,
+   "up": 1,
+   "cancel": 0
+  },
+  "moveOnChrome": 0,
+  "capture": [
+   {
+    "id": 1,
+    "held": false
+   }
+  ],
+  "live": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "liveDelta": {
+   "dx": 0,
+   "dy": 139
+  },
+  "atRelease": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "atReleaseStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "settled": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "settledStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "committedSameGesture": true
+ },
+ "pin": {
+  "tapped": {
+   "pin": true,
+   "unpin": true
+  },
+  "before": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "pinnedRect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "unpinnedRect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "pinnedFlag": true,
+  "unpinnedFlag": false,
+  "geometryUnchanged": true
+ },
+ "preReload": {
+  "rect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "store": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  }
+ },
+ "reload": {
+  "rect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 155,
+   "w": 376,
+   "h": 456
+  },
+  "presentation": "inline",
+  "host": "creation",
+  "windows": 1,
+  "hosts": 1,
+  "contents": [
+   "creation"
+  ],
+  "canvases": 1,
+  "store": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 155,
+   "w": 374,
+   "h": 454,
+   "manual": true,
+   "pinned": false
+  },
+  "delta": {
+   "dx": 0,
+   "dy": 0,
+   "dw": 0,
+   "dh": 0
+  }
+ },
+ "restoredWithin1px": true,
+ "samePresenter": true,
+ "singleSurface": true,
+ "result": "ACCEPTED",
+ "verdicts": {
+  "movedVisibly": true,
+  "touchMovedVisibly": true,
+  "sameGestureCommit": true,
+  "restoredWithin1px": true,
+  "samePresenter": true,
+  "singleSurface": true
+ }
+}

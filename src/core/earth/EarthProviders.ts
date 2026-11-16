@@ -27,6 +27,7 @@
  * ==========================================================
  */
 
+import { knowledgeAvailable, knowledgeFetch } from "../../providers/aiRelay";
 import {
   earthDistanceKm,
   type DataSource,
@@ -84,12 +85,6 @@ export class ProviderHintError extends Error {
     this.name = "ProviderHintError";
     this.hint = hint;
   }
-}
-
-async function fetchText(url: string, timeoutMs = 15000): Promise<string> {
-  const res = await corsFetch(url, undefined, timeoutMs);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
 }
 
 /* ------------------------------------------------------------------
@@ -559,8 +554,10 @@ function numOrUndefined(value: string | undefined): number | undefined {
 const FIRMS_SOURCES = ["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT"];
 
 async function fetchFires(ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
-  const apiKey = key("VITE_FIRMS_API_KEY");
-  if (!apiKey) return [];
+  // The FIRMS map key stays on the server: the knowledge relay inserts it
+  // into the path. It used to be read here from a VITE_ variable, which a
+  // production build compiles into the bundle.
+  if (knowledgeAvailable("firms") === false) return [];
   const focus = ctx.focus;
   if (!focus) return [];
   // Viewport-bounded query: bbox around the current focus, scaled by the
@@ -579,9 +576,14 @@ async function fetchFires(ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
       // /api/area/csv/{MAP_KEY}/{SOURCE}/{west,south,east,north}/{DAY_RANGE}
       // DAY_RANGE=2 → most recent data (today + yesterday); NRT detections
       // carry their own acq_date/acq_time so freshness stays truthful.
-      const text = await fetchText(
-        `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${source}/${bbox}/2`,
+      const response = await knowledgeFetch(
+        "firms",
+        `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${source}/${bbox}/2`,
+        { signal: AbortSignal.timeout(15000) },
       );
+      if (response.status === 503) return [];
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const text = await response.text();
       const lines = text.split(/\r?\n/);
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCsvLine(lines[i]);
@@ -1076,7 +1078,7 @@ export function registerEarthProviders(): void {
     license: "NASA data — see FIRMS terms",
     updateIntervalMs: 600000,
     authRequired: true,
-    configured: () => Boolean(key("VITE_FIRMS_API_KEY")),
+    configured: () => knowledgeAvailable("firms") !== false,
     fetch: fetchFires,
   });
 

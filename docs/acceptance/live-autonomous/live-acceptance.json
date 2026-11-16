@@ -1,0 +1,54 @@
+{
+ "at": "2026-11-08T14:00:44.245Z",
+ "port": "4318",
+ "stages": [
+  "A"
+ ],
+ "turns": [
+  {
+   "stage": "A",
+   "at": "2026-11-08T14:03:15.298Z",
+   "prompt": "Research the development of spatial computing interfaces and organize the most important findings into a visual workspace. Include the major concepts, important technical developments, and open questions.",
+   "requests": [],
+   "result": "BLOCKED: no composer ({\"window\":false,\"input\":false,\"label\":null})"
+  }
+ ],
+ "requests": [
+  {
+   "at": 1794146524000,
+   "path": "/api/model/openrouter/chat/completions",
+   "provider": "openrouter",
+   "model": "openrouter/free",
+   "stream": false,
+   "toolCount": 0,
+   "tools": [],
+   "environmentTools": [],
+   "messageCount": 4,
+   "systemChars": 1834,
+   "status": 429,
+   "bodyChars": 1776,
+   "toolCallsSeen": [],
+   "bodyHead": "{\"error\":{\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\",\"code\":429,\"metadata\":{\"headers\":{\"X-RateLimit-Limit\":\"50\",\"X-RateLimit-Remaining\":\"0\",\"X-RateLimit-Reset\":\"1794182400000\"},\"limit_source\":\"openrouter_free_tier_daily\",\"remedy_hint\":\"Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.\",\"provider_name\":null,\"previous_errors\":[{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Provider returned error\",\"provider_name\":\"Phala\",\"raw\":\"xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"}]}},\"user_id\":\"user_3IHUuwWv3X6BTaiQEb2jLD4IQQh\"}"
+  },
+  {
+   "at": 1794146538408,
+   "path": "/api/model/groq/chat/completions",
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "toolCount": 0,
+   "tools": [],
+   "environmentTools": [],
+   "messageCount": 4,
+   "systemChars": 1834,
+   "status": 429,
+   "bodyChars": 382,
+   "toolCallsSeen": [],
+   "bodyHead": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199247, Requested 1562. Please try again in 5m49.488s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing\",\"type\":\"tokens\",\"code\":\"rate_limit_exceeded\"}}\n"
+  }
+ ],
+ "errors": [],
+ "chatOpened": "not-found:{\"window\":false,\"input\":false,\"label\":null}",
+ "current": "A",
+ "finishedAt": "2026-11-08T14:03:15.317Z"
+}

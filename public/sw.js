@@ -2,7 +2,10 @@
  * Strategy: precache the shell, stale-while-revalidate for assets,
  * network-first for navigations so the app always has a fresh core.
  */
-const VERSION = "lelu-v1";
+// v2 — a model file is no longer copied into Cache Storage (see isModelAsset).
+// The name change also drops the v1 cache on activate, which is where a
+// previous version would have kept a duplicate copy of a large model.
+const VERSION = "lelu-v2";
 // Relative paths on purpose: the app may be served at the site root
 // (custom domain) or under a GitHub Pages project subpath — relative
 // URLs resolve against the service worker's own scope either way.
@@ -36,12 +39,31 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/**
+ * A reconstructed model (`.glb`) is owned by the HTTP cache and by
+ * IndexedDB — NOT by Cache Storage.
+ *
+ * Caching it here was a bug with three consequences: a model of tens of
+ * megabytes was stored a second time on the phone; a replaced model at
+ * the same URL kept being served from this cache, so a new version never
+ * arrived; and `cache.put` failing on quota threw an unhandled rejection
+ * that nothing reported. The asset is served by the network with its
+ * ETag/304 (server.ts) and persisted deliberately in IndexedDB, so the
+ * service worker steps aside and lets those two do their jobs.
+ */
+function isModelAsset(url) {
+  return /\.(glb|gltf|fbx|bin)$/i.test(url.pathname) || url.pathname.includes("/models/");
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Models bypass this cache entirely — see isModelAsset.
+  if (isModelAsset(url)) return;
 
   // Navigations: network first, fall back to cached shell (offline).
   if (request.mode === "navigate") {

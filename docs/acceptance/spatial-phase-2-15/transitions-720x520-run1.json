@@ -1,0 +1,177 @@
+{
+ "viewport": "720x520",
+ "at": "2026-11-08T03:48:21.340Z",
+ "requestedSteps": 5,
+ "input": "real CDP mouse at element coordinates",
+ "interface": "spatial rail portal panel: [data-portal-travel=\"scene:…\"] (the registry's built-in ring), [data-spatial-control=\"core\"] to return",
+ "method": "a transition counts only when [data-spatial-nav][data-spatial-current] equals the destination and no transition is in flight; the run aborts on the first miss",
+ "transitions": [
+  {
+   "step": 1,
+   "want": "studio",
+   "before": "core",
+   "after": "studio",
+   "arrived": true,
+   "kind": "",
+   "ms": 12576
+  },
+  {
+   "step": 2,
+   "want": "core",
+   "before": "studio",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 2710
+  },
+  {
+   "step": 3,
+   "want": "studio",
+   "before": "core",
+   "after": "studio",
+   "arrived": true,
+   "kind": "",
+   "ms": 43703
+  },
+  {
+   "step": 4,
+   "want": "core",
+   "before": "studio",
+   "after": "core",
+   "arrived": true,
+   "kind": "",
+   "ms": 14180
+  },
+  {
+   "step": 5,
+   "want": "studio",
+   "before": "core",
+   "after": "studio",
+   "arrived": true,
+   "kind": "",
+   "ms": 29419
+  }
+ ],
+ "samples": [
+  {
+   "navCurrent": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1070,
+   "moduleWindows": 0,
+   "heapMB": 264.4,
+   "at": 1794109734550
+  },
+  {
+   "navCurrent": "studio",
+   "transition": "",
+   "canvases": 1,
+   "nodes": 993,
+   "moduleWindows": 1,
+   "heapMB": 411.7,
+   "at": 1794109751778
+  },
+  {
+   "navCurrent": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1033,
+   "moduleWindows": 0,
+   "heapMB": 420.3,
+   "at": 1794109754491
+  },
+  {
+   "navCurrent": "studio",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1201,
+   "moduleWindows": 0,
+   "heapMB": 403.8,
+   "at": 1794109798198
+  },
+  {
+   "navCurrent": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1199,
+   "moduleWindows": 0,
+   "heapMB": 405.7,
+   "at": 1794109812383
+  },
+  {
+   "navCurrent": "studio",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1204,
+   "moduleWindows": 0,
+   "heapMB": 385.7,
+   "at": 1794109841808
+  }
+ ],
+ "notes": [],
+ "errors": [],
+ "crashed": null,
+ "census": {
+  "travel": [
+   "scene:galaxy",
+   "scene:planet",
+   "scene:portal",
+   "scene:agents",
+   "scene:browser",
+   "scene:studio",
+   "scene:research",
+   "scene:projects",
+   "scene:files",
+   "scene:media",
+   "scene:conversation"
+  ],
+  "destinations": [
+   "galaxy",
+   "planet",
+   "portal",
+   "agents",
+   "browser",
+   "studio",
+   "research",
+   "projects",
+   "files",
+   "media",
+   "conversation"
+  ],
+  "builtin": 11,
+  "nav": "core"
+ },
+ "aborted": null,
+ "memory": {
+  "samples": [
+   264.4,
+   411.7,
+   420.3,
+   403.8,
+   405.7,
+   385.7
+  ],
+  "firstMB": 264.4,
+  "lastMB": 385.7,
+  "deltaMB": 121.3,
+  "maxMB": 420.3,
+  "canvases": [
+   3,
+   1,
+   3,
+   3,
+   3,
+   3
+  ],
+  "nodes": [
+   1070,
+   993,
+   1033,
+   1201,
+   1199,
+   1204
+  ],
+  "gcExposed": false
+ },
+ "result": "COMPLETE: 5/5 verified transitions"
+}

@@ -182,6 +182,18 @@ export function extractOpenAIText(choice: unknown): string {
  * answering". Collapsing them into one message sends whoever is
  * debugging to the wrong place.
  */
+/**
+ * Did the provider stop because the output budget ran out?
+ *
+ * `length` (OpenAI-compatible) and `max_tokens` (Anthropic-style) both mean
+ * the answer was cut off mid-thought. A 200 response carrying either is not a
+ * complete answer, and downstream code should not have to know the two
+ * spellings or parse the reason itself.
+ */
+export function isTruncating(finishReason: unknown): boolean {
+  return finishReason === "length" || finishReason === "max_tokens";
+}
+
 export function describeEmptyChoice(provider: string, choice: unknown): string {
   const reason = (choice as { finish_reason?: string } | undefined)?.finish_reason;
   if (reason === "length") {

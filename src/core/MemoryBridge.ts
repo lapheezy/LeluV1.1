@@ -42,7 +42,10 @@ export default class MemoryBridge {
     const orchestrator = MemoryOrchestrator.getInstance();
     orchestrator.register(new LocalMemoryProvider(brain));
     orchestrator.register(new SupabaseMemoryProvider());
-    orchestrator.register(new OgArchiveProvider());
+    const archive = new OgArchiveProvider();
+    orchestrator.register(archive);
+    // The archive is a frozen snapshot: load it now, not on the first turn.
+    archive.prefetch();
     orchestrator.register(new PersonalityMemoryProvider());
   }
 

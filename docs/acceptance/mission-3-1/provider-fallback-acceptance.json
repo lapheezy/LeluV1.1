@@ -1,0 +1,18 @@
+{
+ "fix": {
+  "file": "src/providers/GitHubModelsProvider.ts",
+  "change": "generate() now throws only when the provider is NOT brokered and has no local token, matching GroqProvider/OpenRouterProvider.",
+  "diff": "-    if (!this.apiKey) {\n+    if (!isBrokered(\"githubModels\") && !this.apiKey) {"
+ },
+ "typecheck": "bunx tsc -b --force \u2192 0",
+ "focused_tests": "23 pass / 0 fail across provider-fallback, provider-rung-budget, provider-availability, provider-fallback-cognition",
+ "real_provider_reverification": {
+  "status": "BLOCKED",
+  "reason": "During the verification window Groq and OpenRouter were both inside a ~14-minute quota cooldown (measured retryInMs 845144 / 845592), so a fresh tool-carrying turn could not be delivered to the chain."
+ },
+ "broker_direct_probe": {
+  "githubModels": 200,
+  "note": "The broker answers 200 for githubModels with a tool schema, so the rung that now passes the guard has a working upstream."
+ },
+ "verdict": "PARTIAL \u2014 defect found, fixed, typechecked and unit-tested; live end-to-end confirmation pending provider availability."
+}

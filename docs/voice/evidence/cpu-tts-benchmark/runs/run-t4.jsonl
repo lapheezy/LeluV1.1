@@ -1,0 +1,12 @@
+{"event": "start", "t": 0.004, "threads": 4, "mode": "full", "label": "t4", "peakMiB": 28, "rssMiB": 28}
+{"event": "imported", "t": 1.054, "peakMiB": 286, "rssMiB": 286}
+{"event": "loaded", "t": 3.699, "loadSeconds": 2.64, "loadCpuSeconds": 3.31, "peakMiB": 1503, "rssMiB": 1503}
+{"event": "reference_encoded", "t": 5.324, "seconds": 1.63, "promptFrames": 150, "peakMiB": 2761, "rssMiB": 2761}
+{"event": "synth", "t": 14.726, "sentence": "short", "run": 1, "chars": 31, "firstAudioMs": 268, "totalMs": 4748, "audioSeconds": 2.56, "rtf": 1.855, "cpuSeconds": 18.24, "cancelled": false, "peakMiB": 3113, "rssMiB": 3113}
+{"event": "synth", "t": 19.705, "sentence": "short", "run": 2, "chars": 31, "firstAudioMs": 279, "totalMs": 4976, "audioSeconds": 2.72, "rtf": 1.829, "cpuSeconds": 19.21, "cancelled": false, "peakMiB": 3119, "rssMiB": 3119}
+{"event": "synth", "t": 30.819, "sentence": "medium", "run": 1, "chars": 67, "firstAudioMs": 309, "totalMs": 11103, "audioSeconds": 6.56, "rtf": 1.693, "cpuSeconds": 43.06, "cancelled": false, "peakMiB": 3143, "rssMiB": 3143}
+{"event": "synth", "t": 38.421, "sentence": "medium", "run": 2, "chars": 67, "firstAudioMs": 310, "totalMs": 7597, "audioSeconds": 4.4, "rtf": 1.727, "cpuSeconds": 29.53, "cancelled": false, "peakMiB": 3145, "rssMiB": 3145}
+{"event": "synth", "t": 60.881, "sentence": "long", "run": 1, "chars": 182, "firstAudioMs": 332, "totalMs": 22444, "audioSeconds": 12.64, "rtf": 1.776, "cpuSeconds": 86.8, "cancelled": false, "peakMiB": 3206, "rssMiB": 3206}
+{"event": "synth", "t": 82.572, "sentence": "long", "run": 2, "chars": 182, "firstAudioMs": 332, "totalMs": 21675, "audioSeconds": 12.32, "rtf": 1.759, "cpuSeconds": 84.19, "cancelled": false, "peakMiB": 3210, "rssMiB": 3210}
+{"event": "cancel", "t": 83.095, "chars": 182, "firstAudioMs": 419, "totalMs": 521, "audioSeconds": 0.08, "rtf": 6.516, "cpuSeconds": 2.0, "cancelled": true, "stopToReturnMs": 101.3, "peakMiB": 3210, "rssMiB": 3210}
+{"event": "done", "t": 83.095, "peakMiB": 3210, "rssMiB": 3210}

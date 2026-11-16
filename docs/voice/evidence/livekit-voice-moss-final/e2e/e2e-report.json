@@ -1,0 +1,292 @@
+{
+ "base": "http://127.0.0.1:5173/",
+ "ranAt": "2026-11-14T11:46:30.940Z",
+ "realDevice": false,
+ "mic": "fake (WAV file)",
+ "stop": {
+  "rmsBeforeStopMax": 0.2208124178506328,
+  "lastAudibleAfterStopMs": 160,
+  "elementMutedAfterStop": true
+ },
+ "phaseAfterStop": "listening",
+ "continuity": {
+  "found": true,
+  "reply": "I couldn't get an answer in time — the model provider took too long to reply and the other providers are unavailable right now. Nothing was lost; ask me again.",
+  "conversationLength": 6,
+  "roles": [
+   "user",
+   "assistant",
+   "user",
+   "assistant",
+   "user",
+   "assistant"
+  ]
+ },
+ "timeline": [
+  {
+   "t": 16055,
+   "kind": "chat-open"
+  },
+  {
+   "t": 17270,
+   "kind": "livekit",
+   "connection": "connecting",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 18983,
+   "kind": "agent-audio-attached",
+   "index": 1
+  },
+  {
+   "t": 18984,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 18997,
+   "kind": "connected"
+  },
+  {
+   "t": 19131,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 19131,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 19162,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 19172,
+   "kind": "agent-listening"
+  },
+  {
+   "t": 54579,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 54581,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": null
+  },
+  {
+   "t": 54581,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 54610,
+   "kind": "q1-heard"
+  },
+  {
+   "t": 56145,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": "Paris is the capital of France."
+  },
+  {
+   "t": 56146,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 56146,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 56189,
+   "kind": "q1-speaking"
+  },
+  {
+   "t": 58171,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 60494,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 60516,
+   "kind": "q1-spoke"
+  },
+  {
+   "t": 209745,
+   "kind": "utterance",
+   "text": "Lélu, tell me a long story about the ocean with at least six sentences."
+  },
+  {
+   "t": 209746,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": null
+  },
+  {
+   "t": 209746,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 209766,
+   "kind": "q2-heard"
+  },
+  {
+   "t": 210902,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": "The ocean stretched out before her like an endless sapphire tapestry, its surface shimmering under the golden kiss of sunrise. As the tide rolled in, it whispered ancient lullabies that carried the scent of distant rainforests and the echo of forgotten shipwrecks. A lone dolphin leapt from the deep, its sleek body arcing through the air before diving back into the cool, turquoise abyss, where scho"
+  },
+  {
+   "t": 210902,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 210903,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 212922,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 213154,
+   "kind": "q2-audible"
+  },
+  {
+   "t": 215246,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 215270,
+   "kind": "stop-clicked"
+  },
+  {
+   "t": 219277,
+   "kind": "stop-measured",
+   "rmsBeforeStopMax": 0.2208124178506328,
+   "lastAudibleAfterStopMs": 160,
+   "elementMutedAfterStop": true
+  },
+  {
+   "t": 219279,
+   "kind": "phase-after-stop",
+   "phase": "listening"
+  },
+  {
+   "t": 219279,
+   "kind": "livekit-server-killed"
+  },
+  {
+   "t": 227309,
+   "kind": "recovered-after-server-restart"
+  },
+  {
+   "t": 230416,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 230419,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 230419,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 230456,
+   "kind": "ended"
+  },
+  {
+   "t": 233019,
+   "kind": "state",
+   "phase": "speaking",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 233083,
+   "kind": "typed",
+   "question": "In one sentence: what was the first thing I asked you by voice a moment ago?"
+  },
+  {
+   "t": 246749,
+   "kind": "continuity",
+   "found": true,
+   "reply": "I couldn't get an answer in time — the model provider took too long to reply and the other providers are unavailable right now. Nothing was lost; ask me again.",
+   "conversationLength": 6,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant"
+   ]
+  },
+  {
+   "t": 246770,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  }
+ ]
+}

@@ -109,3 +109,17 @@ test("LÉLU can turn companion mode on and off herself, through her real tool", 
   assert.match(on.content, /ON \(small, choosing your own/);
   assert.deepEqual([CompanionStore.getInstance().get().enabled, CompanionStore.getInstance().get().pinned], [true, false]);
 });
+
+test("her window docks beside a floating chat box, else in the right corner", async () => {
+  const { dockedWindow } = await import("../src/app/scene/genesis/avatar/presencePlacement");
+  const viewport = { width: 1440, height: 900 };
+  const chat = { left: 410, top: 112, width: 620, height: 700 };
+  const beside = dockedWindow(viewport, chat, false);
+  assert.equal(beside.left, chat.left + chat.width + 12, "just right of the chat box");
+  assert.equal(beside.top + beside.height, chat.top + chat.height, "bottoms aligned");
+  const corner = dockedWindow(viewport, null, false);
+  assert.equal(corner.left + corner.width, viewport.width - 12, "right corner without a chat");
+  const phone = dockedWindow({ width: 390, height: 664 }, { left: 0, top: 0, width: 390, height: 664 }, true);
+  assert.equal(phone.left + phone.width, 390 - 12, "phone: right corner");
+  assert.ok(phone.top + phone.height <= 664 - 100, "phone: above the composer");
+});

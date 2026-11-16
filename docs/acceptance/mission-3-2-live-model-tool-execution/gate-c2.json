@@ -1,0 +1,366 @@
+{
+ "tag": "gate-c2",
+ "at": "2026-11-08T20:27:03.441Z",
+ "prompt": "Create a new interactive studio environment in my Cosmos. Include a central workspace, a research area, and a visual presentation area. Make the environment accessible for me to explore and modify.",
+ "cues": {
+  "disabled": false,
+  "target": "New chat"
+ },
+ "typedChars": 197,
+ "elapsedMs": 37332,
+ "requests": [
+  {
+   "at": 1794169586094,
+   "path": "https://nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories?select=id%2Ckey%2Cvalue%2Ccreated_at&or=%28value.ilike.%25create%25%2Ckey.ilike.%25create%25%2Cvalue.ilike.%25interactive%25%2Ckey.ilike.%25interactive%25%2Cvalue.ilike.%25studio%25%2Ckey.ilike.%25studio%25%2Cvalue.ilike.%25environment%25%2Ckey.ilike.%25environment%25%29&order=created_at.desc&limit=4",
+   "bytes": null
+  },
+  {
+   "at": 1794169589088,
+   "path": "/api/model/openrouter/chat/completions",
+   "bytes": 16916,
+   "model": "openrouter/free",
+   "messages": 4,
+   "stream": true,
+   "tools": 6,
+   "toolNames": [
+    "environment_compose",
+    "environment_present_artifact",
+    "environment_mutate_surface",
+    "environment_manage_workspace",
+    "environment_save_state",
+    "environment_restore_state"
+   ]
+  },
+  {
+   "at": 1794169591620,
+   "path": "/api/model/groq/chat/completions",
+   "bytes": 5380,
+   "model": "openai/gpt-oss-20b",
+   "messages": 4,
+   "stream": false,
+   "tools": 0,
+   "toolNames": []
+  },
+  {
+   "at": 1794169591633,
+   "path": "/api/model/groq/chat/completions",
+   "bytes": 16919,
+   "model": "openai/gpt-oss-20b",
+   "messages": 4,
+   "stream": true,
+   "tools": 6,
+   "toolNames": [
+    "environment_compose",
+    "environment_present_artifact",
+    "environment_mutate_surface",
+    "environment_manage_workspace",
+    "environment_save_state",
+    "environment_restore_state"
+   ]
+  },
+  {
+   "at": 1794169592358,
+   "path": "/api/model/groq/chat/completions",
+   "bytes": 17776,
+   "model": "openai/gpt-oss-20b",
+   "messages": 6,
+   "stream": true,
+   "tools": 6,
+   "toolNames": [
+    "environment_compose",
+    "environment_present_artifact",
+    "environment_mutate_surface",
+    "environment_manage_workspace",
+    "environment_save_state",
+    "environment_restore_state"
+   ]
+  },
+  {
+   "at": 1794169592445,
+   "path": "/api/model/groq/chat/completions",
+   "bytes": 15462,
+   "model": "openai/gpt-oss-20b",
+   "messages": 4,
+   "stream": true,
+   "tools": 3,
+   "toolNames": [
+    "environment_compose",
+    "environment_present_artifact",
+    "environment_mutate_surface"
+   ]
+  },
+  {
+   "at": 1794169592519,
+   "path": "/api/model/groq/chat/completions",
+   "bytes": 12865,
+   "model": "openai/gpt-oss-20b",
+   "messages": 4,
+   "stream": true,
+   "tools": 0,
+   "toolNames": []
+  }
+ ],
+ "responses": [
+  {
+   "at": 1794169498898,
+   "path": "/api/model/status",
+   "status": 200,
+   "model": null,
+   "streamed": false,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "sseNames": [],
+   "usage": null,
+   "error": null
+  },
+  {
+   "at": 1794169591638,
+   "path": "/api/model/openrouter/chat/completions",
+   "status": 429,
+   "model": null,
+   "streamed": true,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "sseNames": [],
+   "usage": null,
+   "error": "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day"
+  },
+  {
+   "at": 1794169592365,
+   "path": "/api/model/groq/chat/completions",
+   "status": 200,
+   "model": null,
+   "streamed": true,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": true,
+   "sseNames": [
+    "\"name\":\"environment_compose\""
+   ],
+   "usage": null,
+   "error": null
+  },
+  {
+   "at": 1794169592451,
+   "path": "/api/model/groq/chat/completions",
+   "status": 429,
+   "model": null,
+   "streamed": true,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "sseNames": [],
+   "usage": null,
+   "error": "Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 4735, Requested 3697. Please tr"
+  },
+  {
+   "at": 1794169592528,
+   "path": "/api/model/groq/chat/completions",
+   "status": 429,
+   "model": null,
+   "streamed": true,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "sseNames": [],
+   "usage": null,
+   "error": "Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 4724, Requested 3822. Please tr"
+  },
+  {
+   "at": 1794169592834,
+   "path": "/api/model/groq/chat/completions",
+   "status": 429,
+   "model": null,
+   "streamed": true,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "sseNames": [],
+   "usage": null,
+   "error": "Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 4715, Requested 3367. Please tr"
+  },
+  {
+   "at": 1794169592887,
+   "path": "/api/model/groq/chat/completions",
+   "status": 200,
+   "model": "openai/gpt-oss-20b",
+   "streamed": false,
+   "toolCalls": [],
+   "textLen": 0,
+   "sseHasToolCalls": false,
+   "sseNames": [],
+   "usage": {
+    "queue_time": 0.179037433,
+    "prompt_tokens": 1203,
+    "prompt_time": 0.067829808,
+    "completion_tokens": 700,
+    "completion_time": 0.75023902,
+    "total_tokens": 1903,
+    "total_time": 0.818068828,
+    "completion_tokens_details": {
+     "reasoning_tokens": 698
+    }
+   },
+   "error": null
+  }
+ ],
+ "dom": {
+  "chatWindow": false,
+  "messages": [],
+  "surfaces": [
+   "window",
+   "panel"
+  ],
+  "modules": [
+   "chat:a55e9027-c9e6-4e51-9395-b6b851b85d49"
+  ],
+  "bodyTail": "ck\nCreate a new interactive studio envi\nnow\nEngineering\nnow\n3\n1 window — minimize\n◍\nCREATE A NEW INTERACTIVE STUDIO ENVI\n📍\n—\n⤢\n✕\nCreate a new interactive studio envi\n⚙️\nWorking with tools\n1 tool used\nDone\n\nCreate a new interactive studio environment in my Cosmos. Include a central workspace, a research area, and a visual presentation area. Make the environment accessible for me to explore and modify.\n\nI did the work — I ran environment_compose — but Groq failed before it could write the summary: Groq failed 429: Rate limit reached for model openai/gpt-oss-20b in organization org_01m23qhezbeeb9d4t04bra28s6 service tier on_demand on tokens per minute (TPM): Limit 8000, Used 4715, Requested 3367. Please try again in 615ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing. Nothing was repeated, and everything I ran is listed above.\n\nSend\ncore|idle|100",
+  "gate": false
+ },
+ "samples": [
+  {
+   "t": 2748,
+   "win": false,
+   "msgs": 0,
+   "reqs": 83,
+   "resps": 1,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 5368,
+   "win": false,
+   "msgs": 0,
+   "reqs": 84,
+   "resps": 1,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 7880,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 10400,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 12905,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 15411,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 17916,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 20420,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 22925,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 25431,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  },
+  {
+   "t": 27936,
+   "win": false,
+   "msgs": 0,
+   "reqs": 89,
+   "resps": 7,
+   "toolCalls": 0,
+   "sending": null
+  }
+ ],
+ "providerLog": [
+  "info:%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+  "startGroupCollapsed:🟢 [8:26:17 PM] [ProviderResolver] Trying OpenRouter",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+  "info:[StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-device) → OpenRouter → Groq → Cerebras → Mistral → Fireworks → Anthropic → Gemini → GitHub Models\n ",
+  "info:[Orchestrator] Processing request: Create a new interactive studio environment in my Cosmos. Include a central workspace, a research ar",
+  "log:Metadata: {prompt: Create a new interactive studio environment in my …ironment accessible for me to explore and modify.}",
+  "startGroupCollapsed:🟢 [8:26:29 PM] [ProviderResolver] Trying OpenRouter",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: OpenRouter, priority: 2, fallbackReason: OpenRouter timed out after its 12.0s budget., latencyMs: 14346}",
+  "startGroupCollapsed:🟢 [8:26:31 PM] [ProviderResolver] Trying Groq",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying Groq, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: OpenRouter, priority: 2, fallbackReason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, latencyMs: 2564}",
+  "startGroupCollapsed:🟢 [8:26:31 PM] [ProviderResolver] Trying Groq",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying Groq, Provider: -, Duration: -, Confidence: -}",
+  "startGroupCollapsed:🟢 [8:26:32 PM] [ProviderResolver] Tool environment_compose -> ok",
+  "table:{Stage: ProviderResolver, Success: true, Message: Tool environment_compose -> ok, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {tool: environment_compose, ok: true, round: 1}",
+  "startGroupCollapsed:🟢 [8:26:32 PM] [ProviderResolver] Groq refused the request as too large; retrying with a reduced tool set.",
+  "table:{Stage: ProviderResolver, Success: true, Message: Groq refused the request as too large; retrying with a reduced tool set., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4735, Requeste}",
+  "startGroupCollapsed:🟢 [8:26:32 PM] [ProviderResolver] Groq refused the reduced set too; retrying without tools.",
+  "table:{Stage: ProviderResolver, Success: true, Message: Groq refused the reduced set too; retrying without tools., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4724, Requeste}",
+  "startGroupCollapsed:🔴 [8:26:32 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+  "table:{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4715, Requeste}",
+  "startGroupCollapsed:🟢 [8:27:00 PM] [ProviderResolver] Trying Groq",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying Groq, Provider: -, Duration: -, Confidence: -}"
+ ],
+ "pageErrors": [],
+ "consoleErrors": [
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+  "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+  "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+  "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+ ]
+}

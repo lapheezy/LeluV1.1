@@ -13,9 +13,15 @@
  * ==========================================================
  */
 
-import { postTranscription, transcriptionAvailable } from "./transcriptionTransport";
+import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import { mapMediaError } from "./speechToText";
+import { detectTurnOnAudioThread } from "./vadWorklet";
+import { resolveFirst } from "../resolveEnv";
+import { elevenLabsReady, forgetElevenLabsStatus, speakText, stopSpeaking } from "./elevenLabsTts";
+import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
+import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
+import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
 
 /* ---------------------------------------------------------
  * Types
@@ -168,6 +174,12 @@ export interface VoiceState {
   permission: "unknown" | "granted" | "denied";
   error: string | null;
   errorKind: VoiceErrorKind | null;
+  /**
+   * The last turn-level failure, told apart: provider timeout, transcription
+   * failure, playback failure, user cancellation, network failure, provider
+   * unavailable. Shown, never spoken as her answer.
+   */
+  turnFailure?: (VoiceTurnFailure & { at: number }) | null;
 }
 
 export interface VoiceTurn {
@@ -175,6 +187,8 @@ export interface VoiceTurn {
   user: string;
   response: string | null;
   timestamp: number;
+  /** Set when the turn ended in a failure rather than an answer. */
+  failure?: VoiceTurnFailure | null;
 }
 
 /** How far the text-to-speech pipeline actually got for the last
@@ -258,7 +272,25 @@ function getGroqApiKey(): string {
  * Transcribe a Blob of audio via the Groq Whisper API.
  * Accepts webm, ogg, wav, mp4, and m4a formats.
  */
+/**
+ * Groq Whisper, metered like every other billed call (UsageBudgetGate,
+ * kind "api", source "groq-whisper"). Before Phase 10 it was not counted.
+ */
 async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
+  const gate = UsageBudgetGate.getInstance();
+  const reservation = await gate.reserve("api", "groq-whisper");
+  const started = Date.now();
+  try {
+    const text = await transcribeViaWhisperUnmetered(audioBlob);
+    await gate.settle(reservation, { operation: "stt", model: "whisper-large-v3-turbo", ok: true, latencyMs: Date.now() - started });
+    return text;
+  } catch (error) {
+    await gate.settle(reservation, { operation: "stt", model: "whisper-large-v3-turbo", ok: false, latencyMs: Date.now() - started, error: (error as Error).message });
+    throw error;
+  }
+}
+
+async function transcribeViaWhisperUnmetered(audioBlob: Blob): Promise<string> {
   const apiKey = getGroqApiKey();
 
   const mime = audioBlob.type || "audio/webm";
@@ -274,6 +306,9 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   formData.append("file", audioBlob, `recording.${ext}`);
   formData.append("model", "whisper-large-v3-turbo");
   formData.append("response_format", "verbose_json");
+  // Whisper spells unfamiliar names by sound ("Lou", "Lulu"); a prompt with
+  // her name biases it to the right spelling. Not a language hint.
+  formData.append("prompt", WHISPER_NAME_HINT);
 
   // No local key is the normal case: the request is relayed same-origin
   // and the server attaches the credential (see voice/transcriptionTransport.ts).
@@ -292,9 +327,8 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   const data = await response.json();
   const text = typeof data?.text === "string" ? data.text.trim() : "";
 
-  if (!text) {
-    throw new Error("Whisper returned empty transcription.");
-  }
+  // An empty transcript is silence, not a failure: the loop goes back to
+  // listening. (Throwing here logged an error for every quiet moment.)
 
   return text;
 }
@@ -368,7 +402,19 @@ class VoiceEngine {
 
   /** Groq Whisper fallback: active when Web Speech API is unavailable. */
   private whisperFallbackActive = false;
+  private whisperLoopBusy = false;
+  /** Last submitted utterance, to drop an identical one arriving moments later. */
+  private lastUtterance: { text: string; at: number } | null = null;
   private whisperFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Web Speech watchdog: a recognizer that neither returns results nor
+   * raises an error (seen when the browser's speech service is unreachable)
+   * would otherwise leave the user talking into a dead mic. The watchdog
+   * listens to the mic level; speech energy with no recognition result
+   * shortly after means the recognizer is not working -> switch to Whisper.
+   */
+  private webSpeechWatchdog: { stop: () => void } | null = null;
+  private webSpeechGotResult = false;
 
   private readonly stateListeners = new Set<StateListener>();
   private readonly interimListeners = new Set<InterimListener>();
@@ -380,14 +426,27 @@ class VoiceEngine {
 
   /** Utterances queued in speechSynthesis that have not ended yet. */
   private pendingUtterances = 0;
+  /** Streamed speech deferred until the server says which voice speaks. */
+  private awaitingVoice = 0;
   /** A streamed reply is being spoken (begin → feed… → finish). */
   private streaming = false;
   /** speakResponse() is walking its chunk chain. */
   private chainActive = false;
+  /** Streamed segments handed to her server voice that have not finished. */
+  private streamSegmentsPending = 0;
   /** The recognizer is currently running (between onstart and onend). */
   private recognitionRunning = false;
   /** Barge-ins this session (diagnostics). */
   private bargeIns = 0;
+
+  /* LiveKit transport mode (see livekitTransport.ts). When set, the mic is
+   * LiveKit's, transcripts arrive from the voice agent, and replies are spoken
+   * by the agent through the VoxCPM2 worker. Cognition does not move. */
+  private livekit: import("./livekitTransport").LivekitVoiceTransport | null = null;
+  private livekitStatus: import("./livekitTransport").LivekitStatus | null = null;
+  private livekitSpeaking = false;
+  private livekitTurn = 0;
+  private readonly livekitListeners = new Set<(status: import("./livekitTransport").LivekitStatus | null) => void>();
 
   /** How long each recording chunk is (ms) before sending to Whisper. */
   private static readonly WHISPER_CHUNK_MS = 5000;
@@ -472,6 +531,16 @@ class VoiceEngine {
   }
 
   async toggle(): Promise<void> {
+    if (this.livekit) {
+      await this.endLivekitSession();
+      return;
+    }
+    // iOS: audio may only be unlocked inside the tap itself, before any await.
+    this.unlockAudio();
+    if (!this._state.active && (await this.livekitPreferred())) {
+      await this.startLivekitSession();
+      return;
+    }
     if (this._state.active) {
       this.stop();
     } else {
@@ -526,9 +595,19 @@ class VoiceEngine {
     };
   }
 
-  /** Whether her voice is audibly playing right now (queue not drained). */
+  /**
+   * Whether she is speaking right now: browser utterances queued, OR her
+   * ElevenLabs reply chain running (synthesising or playing a segment).
+   * Counting only browser utterances made this false for the whole of her
+   * real voice, so barge-in never fired on it (found live, 2026-11-07).
+   */
   isSpeaking(): boolean {
-    return this.pendingUtterances > 0;
+    return (
+      this.pendingUtterances > 0 ||
+      this.awaitingVoice > 0 ||
+      (this.chainActive && this.elevenLabs) ||
+      this.livekitSpeaking
+    );
   }
 
   /** How many times the user has interrupted her this session. */
@@ -544,10 +623,186 @@ class VoiceEngine {
   }
 
   /* ---------------------------------------------------------
+   * LiveKit voice session (transport only)
+   * --------------------------------------------------------- */
+
+  onLivekitStatus(listener: (status: import("./livekitTransport").LivekitStatus | null) => void): () => void {
+    this.livekitListeners.add(listener);
+    listener(this.livekitStatus);
+    return () => {
+      this.livekitListeners.delete(listener);
+    };
+  }
+
+  private livekitProbe: Promise<boolean> | null = null;
+  private livekitProbedAt = 0;
+
+  /**
+   * Is a LiveKit voice transport configured on this server? Asked once and
+   * re-asked after a minute if the answer was no, so every existing voice
+   * entry point (composer mic, navigator mic, holding the planet) uses LiveKit
+   * where it exists and the browser voice where it does not.
+   */
+  livekitPreferred(): Promise<boolean> {
+    if (this.livekitProbe && (Date.now() - this.livekitProbedAt < 60_000)) return this.livekitProbe;
+    this.livekitProbedAt = Date.now();
+    this.livekitProbe = (typeof fetch === "undefined"
+      ? Promise.resolve(false)
+      : fetch("/api/livekit/status")
+          .then((response) => (response.ok ? response.json() : null))
+          .then((body: { configured?: boolean } | null) => Boolean(body?.configured))
+          .catch(() => false)).then((configured) => {
+      if (configured) this.livekitProbedAt = Number.POSITIVE_INFINITY; // stable: do not re-ask
+      return configured;
+    });
+    return this.livekitProbe;
+  }
+
+  /** Called from a tap when iOS refused to start her audio. */
+  async enableLivekitAudio(): Promise<void> {
+    this.unlockAudio();
+    await this.livekit?.unlock();
+  }
+
+  getLivekitStatus(): import("./livekitTransport").LivekitStatus | null {
+    return this.livekitStatus;
+  }
+
+  private publishLivekitStatus(status: import("./livekitTransport").LivekitStatus | null): void {
+    this.livekitStatus = status;
+    for (const listener of this.livekitListeners) listener(status);
+  }
+
+  /**
+   * Start a voice session over LiveKit. Must be called from a user gesture
+   * (iOS audio). The browser-voice session, if running, is stopped first: one
+   * microphone, one engine.
+   */
+  async startLivekitSession(): Promise<void> {
+    if (this.livekit) return;
+    if (this._state.active) this.stop();
+    this.unlockAudio();
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      this.setError("Microphone requires HTTPS. Open this page over HTTPS.", "insecure");
+      return;
+    }
+    const [{ LivekitVoiceTransport }, { sessionAuthHeader }] = await Promise.all([
+      import("./livekitTransport"),
+      import("../persistence/sessionAuth"),
+    ]);
+    const transport = new LivekitVoiceTransport({
+      authHeader: sessionAuthHeader,
+      onStatus: (status) => {
+        this.publishLivekitStatus(status);
+        if (status.connection === "failed" && this.livekit === transport) {
+          this.setError(status.error ?? "Voice session failed.", "network");
+        }
+      },
+      onMicError: (error) => {
+        const diagnosis = mapMediaError(error instanceof DOMException || error instanceof Error ? error : { name: String(error) });
+        this.updateState({ ...this._state, permission: diagnosis.kind === "permission" ? "denied" : this._state.permission });
+        this.setError(diagnosis.message, diagnosis.kind);
+      },
+      onMessage: (message) => this.onAgentMessage(message),
+    });
+    this.livekit = transport;
+    try {
+      await transport.connect();
+      await transport.unlock();
+      this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
+      this.updateState({ ...this._state, active: true, phase: "listening", permission: "granted", error: null, errorKind: null });
+    } catch (error) {
+      this.livekit = null;
+      await transport.disconnect().catch(() => {});
+      if (!this._state.error) this.setError((error as Error).message || "Voice session failed.", "network");
+    }
+  }
+
+  /** End the voice session. The conversation stays where it is: text chat continues it. */
+  async endLivekitSession(): Promise<void> {
+    const transport = this.livekit;
+    if (!transport) return;
+    transport.stop();
+    this.cancelInFlightTurn("voice session ended");
+    this.livekit = null;
+    this.livekitSpeaking = false;
+    await transport.disconnect();
+    this.updateState({ ...this._state, active: false, phase: "idle", error: null, errorKind: null });
+    this.emitInterim("");
+    this.emitTurn(null);
+  }
+
+  async setMicMuted(muted: boolean): Promise<void> {
+    await this.livekit?.setMicMuted(muted);
+  }
+
+  /**
+   * STOP button: she stops talking now (local audio muted at once, the agent
+   * drops queued audio and its generation) and any reply still being
+   * thought about is cancelled.
+   */
+  stopSpeakingNow(): void {
+    this.cancelSpeech();
+    this.cancelInFlightTurn("stopped by user");
+  }
+
+  private onAgentMessage(message: import("./livekitTransport").AgentMessage): void {
+    switch (message.type) {
+      case "transcript":
+        this.emitInterim("");
+        void this.handleUserSpeech(message.text);
+        break;
+      case "user_speaking":
+        if (this.livekitSpeaking) this.bargeIns += 1;
+        break;
+      case "speaking":
+        this.livekitSpeaking = true;
+        this.patchDiagnostics({ ttsRequested: true, audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
+        this.updateState({ ...this._state, phase: "speaking" });
+        this.emitSpeechActivity({ speaking: true, kind: "start", text: this.lastSpokenText, at: Date.now() });
+        break;
+      case "spoke":
+      case "stopped":
+        // Only the reply we are waiting on may end "speaking": a late notice
+        // about an older, superseded turn must not flip a new reply to listening.
+        if (message.turnId !== null && message.turnId !== undefined && message.turnId !== this.livekitTurn) break;
+        if (this.livekitSpeaking) this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
+        this.livekitSpeaking = false;
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "idle" });
+        if (this._state.phase === "speaking") this.updateState({ ...this._state, phase: this._state.active ? "listening" : "idle" });
+        break;
+      case "error":
+        this.noteFailure({ kind: message.where === "stt" ? "transcription-failure" : "playback-failure", message: `Voice ${message.where} failed: ${message.detail}` });
+        if (message.where === "tts" && this._state.phase === "speaking") this.updateState({ ...this._state, phase: "listening" });
+        break;
+      default:
+        break;
+    }
+  }
+
+  /** Hand a finished reply to the agent to be spoken in her VoxCPM2 voice. */
+  private speakThroughLivekit(text: string): void {
+    const clean = text.trim();
+    this.patchDiagnostics({ responseReceived: true });
+    if (!clean || !this.livekit) {
+      this.updateState({ ...this._state, phase: "listening" });
+      return;
+    }
+    this.lastSpokenText = clean;
+    this.livekitTurn += 1;
+    this.patchDiagnostics({ ttsRequested: true, ttsStage: "requested" });
+    this.updateState({ ...this._state, phase: "speaking" });
+    this.livekit.sendReply(this.livekitTurn, clean);
+  }
+
+  /* ---------------------------------------------------------
    * Start / Stop
    * --------------------------------------------------------- */
 
   private async start(): Promise<void> {
+    // Learn now whether the server holds her voice, so the first reply
+    // rarely has to wait for the answer.
+    void this.probeElevenLabs();
     this.unlockAudio();
     this.updateState({
       ...this._state,
@@ -587,12 +842,16 @@ class VoiceEngine {
       return;
     }
 
-    // Start speech recognition — Web Speech API or Groq Whisper fallback
+    // Which ears: ElevenLabs when the server has it (unless the browser
+    // recognizer is explicitly preferred), else Web Speech, else Whisper.
+    const sttPreference = (resolveFirst("LELU_VOICE_STT") ?? "").trim().toLowerCase();
+    this.preferElevenLabsStt = sttPreference !== "browser" && (await elevenLabsSttReady().catch(() => false));
     this.startRecognition();
   }
 
   private stop(): void {
     this.cancelSpeech();
+    this.cancelInFlightTurn("voice stopped");
     this.stopRecognition();
     this.stopWhisperFallback();
 
@@ -678,7 +937,22 @@ class VoiceEngine {
     return Boolean(w.SpeechRecognition || w.webkitSpeechRecognition);
   }
 
+  /**
+   * Set at session start: the server can transcribe with ElevenLabs (her
+   * selected ears). Then LÉLU records and transcribes with it from the first
+   * sentence, the same on every browser — instead of trying the browser's
+   * recognizer first, which on a browser where it fails SILENTLY costs the
+   * user's first sentence to discover the failure (found live, 2026-11-07).
+   * LELU_VOICE_STT=browser keeps the browser recognizer first (live partials).
+   */
+  private preferElevenLabsStt = false;
+
   private startRecognition(): void {
+    if (this.preferElevenLabsStt) {
+      console.info("[VoiceEngine] ElevenLabs transcription is configured — recording turns for it directly.");
+      this.startWhisperFallback();
+      return;
+    }
     if (VoiceEngine.hasSpeechRecognitionAPI()) {
       this.startWebSpeechRecognition();
     } else {
@@ -723,6 +997,12 @@ class VoiceEngine {
           }
         }
 
+        if (interimText || finalText) {
+          // The browser recognizer works — the watchdog is no longer needed.
+          this.webSpeechGotResult = true;
+          this.stopWebSpeechWatchdog();
+        }
+
         // BARGE-IN. The mic stays open while she speaks; when what it hears
         // is the user (not her own voice coming back), she stops talking
         // and the user's words become the next turn.
@@ -730,6 +1010,7 @@ class VoiceEngine {
         if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
           this.bargeIns += 1;
           this.cancelSpeech();
+          this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
         }
 
         if (interimText) {
@@ -751,6 +1032,24 @@ class VoiceEngine {
         }
         if (diagnosis.kind !== "permission") {
           console.warn("[VoiceEngine] Recognition error:", event.error);
+        }
+        // The browser's recognizer is a remote service (Google in Chrome,
+        // Apple/Siri in Safari). When IT fails — not the microphone — the
+        // microphone stream is still good: switch to Whisper through the
+        // server instead of leaving the user with a dead mic button.
+        // "audio-capture" while OUR microphone stream is live means the
+        // browser's recognizer could not open its own capture (seen in
+        // embedded/headless Chromium), not that the mic is busy: the stream
+        // LÉLU records from works, so switch now. Before, the engine kept
+        // retrying the recognizer and lost the user's first sentence (live
+        // run, 2026-11-07: ~54 s until the watchdog switched).
+        const ownMicLive = Boolean(this.mediaStream?.getAudioTracks().some((track) => track.readyState === "live"));
+        const recognizerOnly = event.error === "audio-capture" && ownMicLive;
+        if ((diagnosis.kind === "service" || diagnosis.kind === "offline" || recognizerOnly) && this._state.active) {
+          console.info("[VoiceEngine] Browser speech service unavailable — switching to Whisper.");
+          this.stopRecognition();
+          this.startWhisperFallback();
+          return;
         }
         this.setError(diagnosis.message, diagnosis.kind);
       };
@@ -784,15 +1083,105 @@ class VoiceEngine {
       recognition.start();
       this.recognitionRunning = true;
       this.recognition = recognition;
+      if (!this.webSpeechGotResult) this.startWebSpeechWatchdog();
     } catch (error) {
       console.warn("[VoiceEngine] Could not start recognition:", error);
       this.setError("Speech recognition is not supported in this browser.", "unsupported");
     }
   }
 
+  /** Speech heard on the mic but no recognition result within this window -> fallback. */
+  private static readonly WEB_SPEECH_SILENT_MS = 6000;
+
+  private startWebSpeechWatchdog(): void {
+    this.stopWebSpeechWatchdog();
+    const stream = this.mediaStream;
+    const Ctx =
+      typeof AudioContext !== "undefined"
+        ? AudioContext
+        : typeof window !== "undefined"
+          ? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+          : undefined;
+    if (!stream || !Ctx) return;
+    let ctx: AudioContext;
+    try {
+      ctx = new Ctx();
+      void ctx.resume().catch(() => {});
+    } catch {
+      return;
+    }
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    const buf = new Float32Array(analyser.fftSize);
+    const started = Date.now();
+    const floorSamples: number[] = [];
+    let threshold = 0.02;
+    let speechMs = 0;
+    let heardAt = 0;
+    let last = started;
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const dt = now - last;
+      last = now;
+      if (!this._state.active || this._state.phase !== "listening") {
+        // LÉLU speaking or thinking: her own voice must not count as the user's.
+        speechMs = 0;
+        return;
+      }
+      analyser.getFloatTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+      const level = Math.sqrt(sum / buf.length);
+      if (now - started < 300) {
+        floorSamples.push(level);
+        return;
+      }
+      if (floorSamples.length) {
+        const sorted = [...floorSamples].sort((a, b) => a - b);
+        threshold = Math.min(0.06, Math.max(0.012, sorted[Math.floor(sorted.length / 2)] * 2.5));
+        floorSamples.length = 0;
+      }
+      if (level > threshold) {
+        speechMs += dt;
+        if (speechMs >= 400 && !heardAt) heardAt = now;
+      } else {
+        speechMs = 0;
+      }
+      if (heardAt && !this.webSpeechGotResult && now - heardAt > VoiceEngine.WEB_SPEECH_SILENT_MS) {
+        console.info("[VoiceEngine] Browser recognizer heard speech but returned nothing — switching to Whisper.");
+        this.stopRecognition();
+        this.startWhisperFallback();
+      }
+    }, 50);
+    this.webSpeechWatchdog = {
+      stop: () => {
+        clearInterval(timer);
+        setTimeout(() => ctx.close().catch(() => {}), 0);
+      },
+    };
+  }
+
+  private stopWebSpeechWatchdog(): void {
+    if (this.webSpeechWatchdog) {
+      this.webSpeechWatchdog.stop();
+      this.webSpeechWatchdog = null;
+    }
+  }
+
   private stopRecognition(): void {
+    this.stopWebSpeechWatchdog();
     this.recognitionRunning = false;
     if (this.recognition) {
+      // onend restarts recognition while voice is active; detach it first so
+      // an intentional stop (or a switch to Whisper) is not undone.
+      try {
+        (this.recognition as unknown as { onend: unknown; onerror: unknown; onresult: unknown }).onend = null;
+        (this.recognition as unknown as { onerror: unknown }).onerror = null;
+        (this.recognition as unknown as { onresult: unknown }).onresult = null;
+      } catch {
+        // ignore
+      }
       try {
         this.recognition.abort();
       } catch {
@@ -812,17 +1201,56 @@ class VoiceEngine {
 
   private startWhisperFallback(): void {
     if (this.whisperFallbackActive) return;
-
-    if (!getGroqApiKey()) {
-      this.setError(
-        "Voice requires a Groq API key for transcription. Set VITE_GROQ_API_KEY.",
-        "offline",
-      );
-      return;
-    }
-
+    // Claim the loop now so a second caller (e.g. a recognition error racing
+    // the availability check) cannot start a parallel one.
     this.whisperFallbackActive = true;
-    this.whisperFallbackLoop();
+    void (async () => {
+      // The key normally lives on the SERVER (the broker attaches it), so the
+      // browser holding none is the expected case, not a missing key. Only
+      // when neither this runtime nor the relay can transcribe is it an error.
+      if (!getGroqApiKey() && !(await elevenLabsSttReady())) {
+        if (!this.relayGroqAvailable) await this.refreshRelayDiagnostics();
+        if (!this.relayGroqAvailable) {
+          this.whisperFallbackActive = false;
+          this.setError(
+            "Voice transcription is not available: the server has no GROQ_API_KEY configured.",
+            "offline",
+          );
+          return;
+        }
+      }
+      if (!this.whisperFallbackActive) return;
+      this.whisperFallbackLoop();
+    })();
+  }
+
+  /** Last transcriber used and how long it took (diagnostics, evidence). */
+  private lastTranscription: { engine: "elevenlabs" | "whisper"; ms: number; at: number } | null = null;
+
+  getLastTranscription(): { engine: "elevenlabs" | "whisper"; ms: number; at: number } | null {
+    return this.lastTranscription;
+  }
+
+  /**
+   * One utterance → text. ElevenLabs Scribe first when the server has it;
+   * Groq Whisper only when ElevenLabs fails TECHNICALLY. A spent budget is
+   * rethrown: it is not a reason to spend on a different transcriber.
+   */
+  private async transcribeUtterance(chunk: Blob): Promise<string> {
+    const started = Date.now();
+    if (await elevenLabsSttReady()) {
+      try {
+        const text = await transcribeWithElevenLabs(chunk);
+        this.lastTranscription = { engine: "elevenlabs", ms: Date.now() - started, at: Date.now() };
+        return text;
+      } catch (error) {
+        if (error instanceof BudgetExhaustedError) throw error;
+        console.warn("[VoiceEngine] ElevenLabs transcription failed; using Whisper.", (error as Error).message);
+      }
+    }
+    const text = await transcribeViaWhisper(chunk);
+    this.lastTranscription = { engine: "whisper", ms: Date.now() - started, at: Date.now() };
+    return text;
   }
 
   private stopWhisperFallback(): void {
@@ -839,46 +1267,84 @@ class VoiceEngine {
    */
   private async whisperFallbackLoop(): Promise<void> {
     if (!this.whisperFallbackActive || !this.mediaStream) return;
+    // Single flight. The loop is (re)started from several places — after a
+    // reply is spoken, after every cancelled utterance's end event (iOS
+    // fires those too), after errors — and each extra call used to start a
+    // parallel recorder, so one sentence was transcribed and submitted
+    // several times (measured: 8 identical transcriptions in 0.5 s).
+    if (this.whisperLoopBusy) return;
+    this.whisperLoopBusy = true;
+    let again = false;
 
     try {
       // Record a chunk of audio
-      const chunk = await this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
+      // One spoken turn (voice-activity detected), not a fixed slice of time.
+      const chunk = await this.recordUtterance();
 
       // If voice was stopped during recording, bail out
       if (!this.whisperFallbackActive || !this._state.active) return;
 
       if (!chunk || chunk.size === 0) {
-        // No audio captured — loop again
-        this.whisperFallbackLoop();
+        // Nothing said — keep listening
+        again = true;
         return;
       }
 
-      // Transcribe via Groq Whisper
-      this.updateState({ ...this._state, phase: "processing" });
-      const transcript = await transcribeViaWhisper(chunk);
+      // Transcribe: ElevenLabs Scribe when configured, Groq Whisper otherwise.
+      // While she speaks or thinks, the phase is hers to show, not ours.
+      const busy = this.isSpeaking() || (this._turn !== null && this._turn.response === null);
+      if (!busy) this.updateState({ ...this._state, phase: "processing" });
+      const transcript = await this.transcribeUtterance(chunk);
 
       if (!this.whisperFallbackActive || !this._state.active) return;
 
       if (transcript.trim()) {
         this.emitInterim("");
-        this.handleUserSpeech(transcript.trim());
+        const heard = transcript.trim();
+        // BARGE-IN on the recording path. The loop keeps listening while she
+        // speaks; what it hears is either the user (she stops, their words
+        // become the next turn) or her own voice coming back through the mic
+        // (handleUserSpeech's echo filter drops it). Same rule as the Web
+        // Speech path. Before, this path stopped listening while she spoke,
+        // so she could not be interrupted at all.
+        if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
+          this.bargeIns += 1;
+          this.cancelSpeech();
+          this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
+        }
+        this.handleUserSpeech(heard);
+        // Keep listening through her thinking and speaking.
+        again = true;
       } else {
-        // Silence — go back to listening
-        this.updateState({ ...this._state, phase: "listening" });
-        this.whisperFallbackLoop();
+        // Silence — go back to listening (unless she is speaking or thinking)
+        if (!busy) this.updateState({ ...this._state, phase: "listening" });
+        again = true;
       }
     } catch (error) {
       if (!this.whisperFallbackActive) return;
+      if (error instanceof BudgetExhaustedError) {
+        // A spent transcription budget is not a transient error: say so and
+        // stop listening, rather than recording utterances it may not send.
+        this.stopWhisperFallback();
+        this.setError(budgetNotice(error), "service");
+        return;
+      }
       const msg = error instanceof Error ? error.message : String(error);
       console.error("[VoiceEngine] Whisper fallback error:", msg);
+      // The person spoke and nothing could transcribe it: say so (on screen).
+      this.noteFailure({ kind: "transcription-failure", message: "I couldn't make out what you said — transcription failed. Please say it again." });
 
       // Don't treat transient errors as fatal — retry after a short delay
       if (this._state.active) {
         this.updateState({ ...this._state, phase: "listening" });
         this.whisperFallbackTimer = setTimeout(() => {
+          this.whisperFallbackTimer = null;
           this.whisperFallbackLoop();
         }, 1000);
       }
+    } finally {
+      this.whisperLoopBusy = false;
+      if (again) setTimeout(() => this.whisperFallbackLoop(), 0);
     }
   }
 
@@ -887,6 +1353,143 @@ class VoiceEngine {
    * Uses MediaRecorder (supported in Safari 14.5+) or WAV capture
    * as a fallback. Returns a Blob of the recorded audio.
    */
+  /**
+   * Record ONE spoken turn: start when the person starts speaking, stop after
+   * a short silence. Replaces fixed 5 s chunks on the Whisper path, which cut
+   * sentences in half and uploaded silence (Whisper then invents "Thank you."
+   * on empty audio, and LÉLU answered a sentence nobody said).
+   *
+   * Energy-based voice activity on the live stream (AnalyserNode): the noise
+   * floor is learned from the first ~300 ms, speech is energy above it for
+   * ≥150 ms, the turn ends after 900 ms below it. No speech within 10 s →
+   * nothing is uploaded. A turn is capped at 20 s. Falls back to a fixed
+   * chunk when Web Audio is unavailable.
+   */
+  private async recordUtterance(): Promise<Blob | null> {
+    if (!this.mediaStream) return null;
+    const Ctx =
+      typeof AudioContext !== "undefined"
+        ? AudioContext
+        : (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx || typeof MediaRecorder === "undefined") return this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
+
+    const stream = this.mediaStream;
+    let ctx: AudioContext;
+    try {
+      ctx = new Ctx();
+      await ctx.resume().catch(() => {});
+    } catch {
+      return this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
+    }
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    source.connect(analyser);
+    const buf = new Float32Array(analyser.fftSize);
+    const rms = () => {
+      analyser.getFloatTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+      return Math.sqrt(sum / buf.length);
+    };
+
+    const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"].find((m) => MediaRecorder.isTypeSupported(m)) ?? "";
+    const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+    const parts: Blob[] = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) parts.push(e.data);
+    };
+    const stopped = new Promise<void>((resolve) => {
+      recorder.onstop = () => resolve();
+      recorder.onerror = () => resolve();
+    });
+    recorder.start(250);
+
+    const STEP = 50;
+    const started = Date.now();
+    let last = started;
+    let peak = 0;
+    let lastLevel = 0;
+    let minLevel = 1;
+    const floorSamples: number[] = [];
+    let threshold = 0.015;
+    let speechMs = 0;
+    let silenceMs = 0;
+    let spoke = false;
+    // Audio-thread detection first: measured in audio time, so a busy page
+    // cannot cut a turn short or run it past its end (vadWorklet.ts).
+    const onAudioThread = await detectTurnOnAudioThread(
+      ctx,
+      source,
+      () => !this.whisperFallbackActive || !this._state.active || !this.mediaStream,
+    );
+    let detectedOn = "main";
+    if (onAudioThread) {
+      detectedOn = "audio";
+      spoke = onAudioThread.spoke;
+      peak = onAudioThread.peak;
+      threshold = onAudioThread.threshold;
+      silenceMs = Math.round(onAudioThread.silenceMs);
+    } else await new Promise<void>((resolve) => {
+      const timer = setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - started;
+        // Real elapsed time, not ticks: a busy page delays intervals.
+        const dt = Math.min(500, now - last);
+        last = now;
+        if (!this.whisperFallbackActive || !this._state.active || !this.mediaStream) {
+          clearInterval(timer);
+          resolve();
+          return;
+        }
+        const level = rms();
+        lastLevel = level;
+        if (elapsed > 300 && level < minLevel) minLevel = level;
+        if (elapsed < 300) {
+          floorSamples.push(level);
+          return;
+        }
+        if (floorSamples.length && threshold === 0.015) {
+          const sorted = [...floorSamples].sort((a, b) => a - b);
+          // Capped: if the user is already talking when the turn starts, the "floor" is speech.
+          threshold = Math.min(0.06, Math.max(0.012, sorted[Math.floor(sorted.length / 2)] * 2.5));
+        }
+        // Silence is judged against the speaker's own loudness too: automatic
+        // gain control lifts room noise in pauses, so a fixed floor alone can
+        // miss the end of a sentence.
+        const speaking = level > threshold && (!spoke || level > peak * 0.2);
+        if (speaking) {
+          speechMs += dt;
+          silenceMs = 0;
+          if (speechMs >= 150) spoke = true;
+          if (level > peak) peak = level;
+        } else {
+          silenceMs += dt;
+          if (!spoke) speechMs = 0;
+        }
+        const done =
+          (spoke && silenceMs >= 900) || // end of the turn
+          elapsed >= 20_000 || // cap
+          (!spoke && elapsed >= 10_000); // nothing said
+        if (done) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, STEP);
+    });
+    if (recorder.state === "recording") recorder.stop();
+    await stopped;
+    try {
+      source.disconnect();
+      await ctx.close();
+    } catch {
+      // ignore
+    }
+    console.debug("[VoiceEngine] turn", JSON.stringify({ on: detectedOn, audioMs: onAudioThread ? Math.round(onAudioThread.ms) : undefined, spoke, ms: Date.now() - started, peak: +peak.toFixed(4), threshold: +threshold.toFixed(4), lastLevel: +lastLevel.toFixed(4), minLevel: +minLevel.toFixed(4), silenceMs }));
+    if (!spoke || parts.length === 0) return null;
+    return new Blob(parts, { type: mime || "audio/webm" });
+  }
+
   private async recordAudioChunk(durationMs: number): Promise<Blob | null> {
     if (!this.mediaStream) return null;
 
@@ -1008,6 +1611,21 @@ class VoiceEngine {
     }
   }
 
+  /** Stop the AI turn in flight, if any (see AIService.cancelActiveTurn). */
+  /** Record a turn-level failure on the state (visible, not spoken). */
+  private noteFailure(failure: VoiceTurnFailure): void {
+    this.updateState({ ...this._state, turnFailure: { ...failure, at: Date.now() } });
+  }
+
+  private cancelInFlightTurn(reason: string): void {
+    if (this._turn && this._turn.response === null) {
+      this.noteFailure({ kind: "user-cancellation", message: `Stopped (${reason}).` });
+    }
+    void import("../../core/AIService")
+      .then(({ default: AIService }) => AIService.getInstance().cancelActiveTurn(reason))
+      .catch(() => {});
+  }
+
   /* ---------------------------------------------------------
    * User Speech Handling
    * --------------------------------------------------------- */
@@ -1022,8 +1640,24 @@ class VoiceEngine {
       return;
     }
 
+    // Never submit the same sentence twice in a row within a few seconds
+    // (a restarted recognizer or a duplicated audio chunk re-delivering it).
+    const normalized = text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").trim();
+    if (this.lastUtterance && this.lastUtterance.text === normalized && Date.now() - this.lastUtterance.at < 4000) {
+      return;
+    }
+    this.lastUtterance = { text: normalized, at: Date.now() };
+
     // Emit the utterance so VoiceBridge can persist it
     this.emitUtterance(text);
+
+    // Barge-in on THINKING, not only on speech: if the previous turn is
+    // still being processed, the user has moved on. Its reply was already
+    // going to be discarded (the turnId check below); stopping it also
+    // stops its model call and any further tool runs.
+    if (this._turn && this._turn.response === null) {
+      this.cancelInFlightTurn("superseded by new speech");
+    }
 
     const turnId = crypto.randomUUID();
     this._turn = { id: turnId, user: text, response: null, timestamp: Date.now() };
@@ -1038,9 +1672,29 @@ class VoiceEngine {
       // The conversation the user was in when they spoke owns the reply,
       // even if they switch before it arrives.
       const conversationId = MultiChatStore.getInstance().getActiveId();
-      const response = await ai.chat(text, undefined, undefined, conversationId ? { conversationId } : undefined);
+      // A shared screen rides along with the spoken turn, as with typed ones.
+      const { default: ScreenShare } = await import("../perception/ScreenShare");
+      const seen = ScreenShare.getInstance().attachmentsFor(text);
+      // Spoken words are the user's own: the second (and last) consent source.
+      const { captureSpendConsent } = await import("../spend/SpendConsent");
+      const consent = await captureSpendConsent(text, "spoken").catch(() => null);
+      const { captureCapabilityDecision } = await import("../acquisition/CapabilityLedgerClient");
+      const decision = await captureCapabilityDecision(text, "spoken").catch(() => null);
+      const note = [consent?.note, decision?.note].filter(Boolean).join("\n\n") || undefined;
+      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, note, conversationId ? { conversationId } : undefined);
 
       if (this._turn?.id === turnId) {
+        // A failure notice is not her answer: it is shown in the
+        // conversation and on the voice state, and she goes back to
+        // listening without reading it out (Mission 10.3: the offline notice
+        // was spoken as the answer on 18 of 20 turns).
+        const failure = failureFromResponse(response as { text?: string; provider?: string; metadata?: Record<string, unknown> });
+        if (failure) {
+          this._turn = { ...this._turn, response: response.text, failure };
+          this.emitTurn(this._turn);
+          this.updateState({ ...this._state, phase: "listening", turnFailure: { ...failure, at: Date.now() } });
+          return;
+        }
         this._turn = { ...this._turn, response: response.text };
         this.emitTurn(this._turn);
         this.updateState({ ...this._state, phase: "speaking" });
@@ -1049,10 +1703,10 @@ class VoiceEngine {
     } catch (error) {
       console.error("[VoiceEngine] Chat failed:", error);
       if (this._turn?.id === turnId) {
-        const errorMsg = "I couldn't process that. Please try again.";
-        this._turn = { ...this._turn, response: errorMsg };
+        const failure = failureFromError(error);
+        this._turn = { ...this._turn, response: failure.message, failure };
         this.emitTurn(this._turn);
-        this.speakResponse(errorMsg);
+        this.updateState({ ...this._state, phase: this._state.active ? "listening" : this._state.phase, turnFailure: { ...failure, at: Date.now() } });
       }
     }
   }
@@ -1061,14 +1715,171 @@ class VoiceEngine {
    * Text-to-Speech
    * --------------------------------------------------------- */
 
+  /* ---- Her own voice: ElevenLabs, brokered by the server ---- */
+
+  /** The server holds an ElevenLabs key and it answered. */
+  private elevenLabs = false;
+
+  /**
+   * Ask the server once per session whether her voice is available.
+   *
+   * Deliberately not awaited: the first reply may still use the browser
+   * engine while this resolves, but nothing is ever claimed as working
+   * before the server has said so.
+   */
+  private elevenLabsProbe: Promise<void> | null = null;
+
+  /**
+   * Ask the server once whether it holds her voice. Returns the pending
+   * answer so speakResponse can WAIT for it: fire-and-forget meant the first
+   * reply of every session was decided before the answer arrived and was
+   * spoken by the browser's voice, not hers (found live, 2026-11-07).
+   */
+  private probeElevenLabs(): Promise<void> {
+    if (this.elevenLabsProbe) return this.elevenLabsProbe;
+    this.elevenLabsProbe = elevenLabsReady().then((ready) => {
+      this.elevenLabs = ready;
+    });
+    return this.elevenLabsProbe;
+  }
+
+  /**
+   * Her voice failed mid-reply. This reply falls back to the browser engine,
+   * but the session is NOT written off: the cached probe and the cached
+   * status answer are both cleared, so the next reply asks the server again.
+   *
+   * Found live (2026-11-11): one refused segment set elevenLabs = false and
+   * left elevenLabsProbe resolved for the rest of the session, so every later
+   * answer was handed to a browser voice — and on a runtime that has none, she
+   * stayed silent until the page was reloaded even though the server was fine.
+   */
+  private demoteFromElevenLabs(): void {
+    this.elevenLabs = false;
+    this.elevenLabsProbe = null;
+    this.elevenLabsSettled = false;
+    forgetElevenLabsStatus();
+  }
+
+  private elevenLabsSettled = false;
+
+  /**
+   * Run `speak` once the one-time "does her server hold her voice?" answer is
+   * known, so a streamed reply is never split across two engines.
+   */
+  private whenVoiceSettled(speak: () => void): void {
+    if (this.elevenLabsSettled) {
+      speak();
+      return;
+    }
+    // A reply waiting on "which voice?" is already committed to be spoken.
+    // Counted as speaking so barge-in and the echo guard cover that window
+    // too, instead of reading "silent" until the probe answers.
+    this.awaitingVoice += 1;
+    void this.probeElevenLabs()
+      .catch(() => {
+        // An unanswerable probe means "no server voice known": the browser
+        // fallback speaks, and settling here keeps speak() from re-deferring.
+      })
+      .finally(() => {
+        this.elevenLabsSettled = true;
+        this.awaitingVoice = Math.max(0, this.awaitingVoice - 1);
+        speak();
+      });
+  }
+
+  /**
+   * Speak the whole reply through ElevenLabs, one segment at a time.
+   *
+   * Segments are chained rather than queued blind so barge-in — which
+   * sets cancelFlag — stops the NEXT segment too, and a failure demotes
+   * the pipeline to the browser engine instead of going silent.
+   */
+  private speakThroughElevenLabs(text: string): void {
+    const segments = chunkForSpeech(text);
+    if (segments.length === 0) {
+      this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
+      this.settleSpeech();
+      return;
+    }
+    this.patchDiagnostics({ ttsRequested: true });
+    let index = 0;
+    this.chainActive = true;
+
+    const next = (): void => {
+      if (this.cancelFlag || index >= segments.length) {
+        this.chainActive = false;
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "ended" });
+        this.settleSpeech();
+        if (this._state.active) {
+          this.updateState({ ...this._state, phase: "listening" });
+          if (this.whisperFallbackActive && !this.whisperFallbackTimer) {
+            this.whisperFallbackLoop();
+          }
+        }
+        return;
+      }
+      const segment = segments[index];
+      index += 1;
+      void speakText(segment, {
+        onStart: () =>
+          this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" }),
+        onEnd: () => next(),
+        onFail: () => {
+          // Her voice failed mid-reply: say the rest with the browser engine
+          // rather than leaving the reply unspoken, and report the failure.
+          this.demoteFromElevenLabs();
+          this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
+          // Only promise a browser voice when the browser actually has one.
+          // On a machine with no speech engine the old wording told the user
+          // the rest of the reply was being spoken while nothing played at all.
+          const browserVoice = typeof speechSynthesis !== "undefined" && (speechSynthesis.getVoices?.().length ?? 0) > 0;
+          if (!browserVoice) this.patchDiagnostics({ ttsAvailable: false });
+          this.noteFailure({
+            kind: "playback-failure",
+            message: browserVoice
+              ? "Her voice could not be played; the rest of the reply uses the browser voice. The answer itself is in the conversation."
+              : "Her own voice could not be played, and this browser has no speech engine — so nothing was spoken. The answer itself is in the conversation.",
+          });
+          const rest = segments.slice(index - 1).join(" ").trim();
+          index = segments.length;
+          if (typeof speechSynthesis !== "undefined" && rest) {
+            for (const chunk of chunkForSpeech(rest)) {
+              try {
+                speechSynthesis.speak(this.createUtterance(chunk));
+              } catch {
+                // ignore
+              }
+            }
+          }
+          next();
+        },
+      });
+    };
+    next();
+  }
+
   speakResponse(text: string): void {
+    if (this.livekit) {
+      this.speakThroughLivekit(text);
+      return;
+    }
+    // Decide the voice only once the server has answered whether it holds
+    // hers (bounded: an unreachable server is a "no" after the fetch fails).
+    if (!this.elevenLabsSettled) {
+      void this.probeElevenLabs().then(() => {
+        this.elevenLabsSettled = true;
+        this.speakResponse(text);
+      });
+      return;
+    }
     // A response reached the speech layer — true regardless of whether
     // TTS then works, which is exactly what makes this diagnosable.
     this.patchDiagnostics({ responseReceived: true });
 
-    if (typeof speechSynthesis === "undefined") {
-      // No TTS engine in this runtime: nothing was ever requested of a
-      // provider that does not exist, and the stage is honestly failed.
+    if (typeof speechSynthesis === "undefined" && !this.elevenLabs) {
+      // Neither a browser engine nor a server voice: nothing was ever
+      // requested of a provider that does not exist, and the stage is
+      // honestly failed.
       this.patchDiagnostics({
         ttsAvailable: false,
         ttsRequested: false,
@@ -1090,6 +1901,14 @@ class VoiceEngine {
     this.lastSpokenText = text.trim();
     this.cancelFlag = false;
     // speaking flag is managed by cancelFlag and phase state
+
+    // One voice everywhere: if her server holds the ElevenLabs key, this is
+    // the speaker, on every machine. The browser engine stays the fallback.
+    void this.probeElevenLabs();
+    if (this.elevenLabs) {
+      this.speakThroughElevenLabs(text.trim());
+      return;
+    }
 
     const chunks = chunkForSpeech(text.trim());
     let index = 0;
@@ -1139,9 +1958,18 @@ class VoiceEngine {
   }
 
   cancelSpeech(): void {
+    // LiveKit: mute locally now and tell the agent to drop audio + generation.
+    if (this.livekit) {
+      this.livekit.stop();
+      if (this.livekitSpeaking) this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
+      this.livekitSpeaking = false;
+    }
     this.cancelFlag = true;
     this.chainActive = false;
     this.streaming = false;
+    // Real audio, not just the browser queue: barge-in must stop a playing
+    // MP3 too, or she keeps talking over the user.
+    stopSpeaking();
     if (typeof speechSynthesis !== "undefined") {
       try {
         speechSynthesis.cancel();
@@ -1161,6 +1989,7 @@ class VoiceEngine {
     }
     this.streamFinalizing = false;
     this.streamCursor = 0;
+    this.streamSegmentsPending = 0;
   }
 
   /* ---------------------------------------------------------
@@ -1176,6 +2005,11 @@ class VoiceEngine {
   private streamFinalizing = false;
 
   beginStreamingSpeech(): void {
+    if (this.livekit) {
+      // The agent speaks whole replies; nothing is queued per token here.
+      this.cancelSpeech();
+      return;
+    }
     this.cancelSpeech();
     this.cancelFlag = false;
     this.streamCursor = 0;
@@ -1186,7 +2020,32 @@ class VoiceEngine {
   }
 
   feedStreamingSpeech(fullText: string): void {
-    if (typeof speechSynthesis === "undefined" || this.cancelFlag || this.streamFinalizing) {
+    if (this.livekit) return;
+    // Which speaker to use is answered by the server ONCE per session. Before
+    // that answer arrives the browser engine used to take the first
+    // sentences — a different voice, on a machine that may have none at all —
+    // exactly the bug speakResponse already waits out. Wait for the same
+    // answer here, then speak the same text: the cursor has not moved, so
+    // nothing is said twice.
+    // WHICH SPEAKER — decided before the first sentence, not after it.
+    //
+    // This used to wait only when the browser had NO speech engine, so on a
+    // machine that has browser voices the probe (async, below) had not
+    // answered yet, `this.elevenLabs` was still false, and the opening
+    // sentences of every reply were spoken in the browser's voice. That is
+    // the wrong voice, and it is what a listener hears as "the old voice".
+    // On a server without her voice the fallback is unchanged: the probe
+    // settles false and the browser engine speaks.
+    if (!this.elevenLabsSettled) {
+      void this.probeElevenLabs();
+      this.whenVoiceSettled(() => this.feedStreamingSpeech(fullText));
+      return;
+    }
+    if (
+      (typeof speechSynthesis === "undefined" && !this.elevenLabs) ||
+      this.cancelFlag ||
+      this.streamFinalizing
+    ) {
       return;
     }
     const rest = fullText.slice(this.streamCursor);
@@ -1200,6 +2059,13 @@ class VoiceEngine {
     // replies used to leave it empty, so her own voice could come back
     // through the open mic as a user turn.
     this.lastSpokenText = fullText.slice(0, this.streamCursor).trim();
+    void this.probeElevenLabs();
+    if (this.elevenLabs) {
+      // speakText() serialises, so streamed sentences stay in order and in
+      // the same voice.
+      this.speakStreamSegment(segment);
+      return;
+    }
     try {
       speechSynthesis.speak(this.createUtterance(segment));
     } catch {
@@ -1208,9 +2074,20 @@ class VoiceEngine {
   }
 
   finishStreamingSpeech(fullText: string): void {
+    if (this.livekit) {
+      this.speakThroughLivekit(fullText);
+      return;
+    }
+    // Same rule as feedStreamingSpeech: never let the browser's voice take
+    // the tail of a reply because the server's answer had not arrived yet.
+    if (!this.elevenLabsSettled) {
+      void this.probeElevenLabs();
+      this.whenVoiceSettled(() => this.finishStreamingSpeech(fullText));
+      return;
+    }
     this.streamFinalizing = true;
     this.streaming = false;
-    if (typeof speechSynthesis === "undefined" || this.cancelFlag) {
+    if ((typeof speechSynthesis === "undefined" && !this.elevenLabs) || this.cancelFlag) {
       this.settleSpeech();
       return;
     }
@@ -1223,12 +2100,38 @@ class VoiceEngine {
       return;
     }
     for (const chunk of chunkForSpeech(rest)) {
+      if (this.elevenLabs) {
+        this.speakStreamSegment(chunk);
+        continue;
+      }
       try {
         speechSynthesis.speak(this.createUtterance(chunk));
       } catch {
         // ignore
       }
     }
+  }
+
+  /**
+   * Speak one streamed segment through her server voice, and COUNT it.
+   *
+   * Streamed playback used to be fire-and-forget: `isSpeaking()` stayed
+   * false for the whole of a streamed reply, so a user talking over one
+   * could not interrupt it (barge-in only worked for speakResponse), and
+   * nothing cleared the "speaking" phase when the last segment ended.
+   * Counting the segment makes both true for the path every typed reply
+   * and every streamed answer actually takes.
+   */
+  private speakStreamSegment(segment: string): void {
+    this.streamSegmentsPending += 1;
+    this.chainActive = true;
+    void speakText(segment).finally(() => {
+      this.streamSegmentsPending = Math.max(0, this.streamSegmentsPending - 1);
+      if (this.streamSegmentsPending === 0) {
+        this.chainActive = false;
+        this.settleSpeech();
+      }
+    });
   }
 
   /* ---------------------------------------------------------
@@ -1319,6 +2222,12 @@ class VoiceEngine {
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
+    // Word timing for the 3D avatar's mouth and nods (SPEECH_BOUNDARY_EVENT in core/avatar/AvatarBehaviour).
+    utterance.onboundary = (event) => {
+      if (event.name && event.name !== "word") return;
+      if (typeof window === "undefined") return;
+      window.dispatchEvent(new CustomEvent("lelu:speech-boundary", { detail: { charLength: event.charLength || 4 } }));
+    };
     // Every utterance is counted from queue to end, so "speaking" means
     // audio is actually queued or playing — and the avatar can move with
     // the real start, word boundaries and end of her speech. Listeners

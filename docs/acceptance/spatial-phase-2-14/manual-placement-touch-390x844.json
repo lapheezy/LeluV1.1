@@ -1,0 +1,46 @@
+{
+ "viewport": "390x844",
+ "at": "2026-11-07T23:42:32.910Z",
+ "deviceScaleFactor": 1,
+ "touch": true,
+ "input": "real CDP touch events (Input.dispatchTouchEvent: touchStart/touchEnd to tap, touchStart → touchMove × N → touchEnd to drag)",
+ "steps": [
+  "OK-touch gate",
+  "OK-touch Studio",
+  "OK-touch portal-panel",
+  "OK-touch drag"
+ ],
+ "checks": {
+  "openAttempts": [
+   {
+    "label": "Studio",
+    "found": true,
+    "modules": 1
+   }
+  ],
+  "moduleRect": {
+   "x": 16,
+   "y": 101,
+   "w": 358,
+   "h": 642
+  },
+  "counterBefore": "0 placed · 0 pinned",
+  "touchDrag": {
+   "ok": false,
+   "settledMs": 30282,
+   "value": {
+    "x": 16,
+    "y": 101,
+    "w": 358,
+    "h": 642
+   }
+  },
+  "counterAfterTouchDrag": {
+   "ok": false,
+   "settledMs": 30005,
+   "value": "0 placed · 0 pinned"
+  },
+  "pass": false
+ },
+ "errors": []
+}

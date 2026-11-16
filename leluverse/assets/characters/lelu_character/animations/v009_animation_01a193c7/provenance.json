@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3l4l_a29bed",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: listen",
+  "meshyTaskId": "01a193c7-9e45-7010-98c4-fc288249a2e3",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 47
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480695793,
+  "finishedAt": 1793480738610
+}

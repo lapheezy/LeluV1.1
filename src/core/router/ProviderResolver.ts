@@ -9,17 +9,26 @@
  * configured provider is attempted immediately.
  */
 
+import { continuationContext } from "./continuationContext";
+import { resolveFirst } from "../resolveEnv";
+import { classifyChainFailure } from "../voice/turnFailure";
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
-import type { AIMessage, AIResponse } from "../../providers/AIProvider";
+import type { AIMessage, AIRequest, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
-import { toolSchemasForModel } from "../tools/ToolSchemas";
+import { reducedToolSchemas, toolSchemasForRequest } from "../tools/ToolSchemas";
+import { describeRequestBudget, fitRequestBudget, type SchemaTier } from "./RequestBudget";
 import { labelOtherChats } from "../multichat/ContextProvenance";
+import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 
+
+import { inspectRequest } from "../observability/RequestIntegrity";
+import { assessTurn, checkCall, inLoopNote, qualityNotice, type QualityCall } from "./qualityCheckpoint";
+import { partialWorkReply, summarizeToolResult, type ToolRunRecord } from "./partialWork";
 /**
  * TERMINATION, not a round quota.
  *
@@ -55,10 +64,143 @@ const NO_PROGRESS_REPEATS = 3;
  * this shorter bound, and is then told to answer from what it found.
  */
 const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
+
+/**
+ * How many tokens a TOOL turn may reserve for its reply.
+ *
+ * Providers that meter prompt and `max_tokens` together refuse the whole
+ * request when their sum crosses a per-minute ceiling: measured on Groq's
+ * free tier, a 19.5k-token tool payload against an 8k TPM limit was refused
+ * outright. A 2048-token reply budget on top of an already-narrowed tool set
+ * leaves no room for a second round, so the loop dies after one tool call.
+ * This is a reservation, not a cap on what she can say in the final answer —
+ * only rounds that carry tools are trimmed, and the plain reply keeps its own
+ * budget.
+ */
 const RESEARCH_LOOP_MAX_ROUNDS = 16;
 const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
 
+/**
+ * ONE provider attempt, bounded.
+ *
+ * Measured live (2026-11-06): an ordinary chat turn spent 20.1 s inside
+ * the chain and then answered with the offline notice, while the provider
+ * that answers in under a second had only the tail of that time left. The
+ * wait was spent on a slow rung, not on an answer — and a rung whose
+ * credential is out of quota for the day was re-paid for on every turn.
+ *
+ * So each attempt gets its own deadline, comfortably below the chain's
+ * total, and the next provider is tried while time is still on the clock.
+ * A deadline is NOT a user Stop: the turn's own signal is untouched, so
+ * the chain falls through instead of settling the turn as cancelled.
+ */
+const PROVIDER_RUNG_BUDGET_MS = 12_000;
+
+/** The whole fallback chain. No new rung starts once this is spent. */
+const CHAIN_BUDGET_MS = 20_000;
+
+/** A positive millisecond setting from the environment, or undefined. */
+function configuredMs(name: string): number | undefined {
+  const value = Number(resolveFirst(name));
+  return Number.isFinite(value) && value >= 1000 && value <= 600_000 ? value : undefined;
+}
+
+/** Too little left to be worth starting another provider. */
+const MIN_RUNG_SLICE_MS = 1_500;
+
 export default class ProviderResolver {
+  private readonly rungBudgetMs: number;
+  private readonly chainBudgetMs: number;
+  /** Operator ceiling for one request body, in UTF-8 bytes. */
+  private readonly requestCeilingBytes?: number;
+
+  /**
+   * Budgets are injectable so a test can prove the cut-off in
+   * milliseconds instead of waiting out the production numbers.
+   */
+  constructor(budget: { rungBudgetMs?: number; chainBudgetMs?: number; requestCeilingBytes?: number } = {}) {
+    // Operator overrides (defaults unchanged). A rung covers a whole tool
+    // loop, so slow providers doing research can need more than 12 s.
+    this.rungBudgetMs = budget.rungBudgetMs ?? configuredMs("LELU_PROVIDER_RUNG_BUDGET_MS") ?? PROVIDER_RUNG_BUDGET_MS;
+    this.chainBudgetMs = budget.chainBudgetMs ?? configuredMs("LELU_CHAIN_BUDGET_MS") ?? CHAIN_BUDGET_MS;
+    this.requestCeilingBytes = budget.requestCeilingBytes ?? configuredMs("LELU_REQUEST_CEILING_BYTES") ?? undefined;
+  }
+
+  /**
+   * Apply the request ceiling BEFORE the request is handed to a provider.
+   *
+   * The degradation in `executeRung` reacts to a 413 that has already
+   * happened, and it resends the same history; a turn whose HISTORY is the
+   * problem is refused twice and then answers with no work done. This is the
+   * same decision made first: tool schemas first (from the end), then the
+   * oldest history, then the oldest text — never the prompt, never the most
+   * recent twelve messages. When nothing changes, the request is untouched.
+   */
+  private fitFor(
+    provider: AIProvider,
+    context: RouterContext,
+    messages: AIMessage[],
+    tools: Array<{ name: string; description?: string; parameters?: unknown }>,
+    tier: SchemaTier,
+  ) {
+    const fitted = fitRequestBudget({
+      messages,
+      prompt: context.request.prompt,
+      tools,
+      tier,
+      provider: provider.name,
+      model: context.request.model,
+      ...(context.request.maxTokens ? { maxTokens: context.request.maxTokens } : {}),
+      ...(this.requestCeilingBytes ? { limitBytes: this.requestCeilingBytes } : {}),
+      protectedTail: 12,
+    });
+    // DID THE PERSON'S REQUEST SURVIVE? The fitter is allowed to drop tool
+    // schemas and old history, never the prompt. Comparing the payload with
+    // the prompt is the check that would have caught a subject-less request
+    // before it reached a provider.
+    const promptText = context.request.prompt ?? "";
+    if (promptText) {
+      const rawHadPrompt = (context.request.messages ?? []).some(
+        (message) => typeof message.content === "string" && message.content.includes(promptText),
+      );
+      const integrity = inspectRequest({
+        originalUserInput: promptText,
+        fitted,
+        payloadText: JSON.stringify(fitted.messages),
+        tier: fitted.tier,
+      });
+      if (rawHadPrompt && !integrity.providerPayload.promptPresent) {
+        context.logger.error("ProviderResolver", "The user's request is no longer in the payload", {
+          original: integrity.originalUserInput,
+          fitted: integrity.fittedRequest,
+          payload: integrity.providerPayload,
+          semantic: integrity.semanticPreservation,
+        });
+      } else if (!integrity.semanticPreservation.ok) {
+        context.logger.info("ProviderResolver", "Request kept; some references were shortened", {
+          missing: integrity.semanticPreservation.missing,
+          ceiling: integrity.fittedRequest.ceilingSource,
+        });
+      }
+    }
+
+    if (fitted.changed) {
+      context.logger.info("ProviderResolver", "Request budget enforced before send", {
+        provider: provider.name,
+        ceilingBytes: fitted.ceiling.bytes,
+        ceilingSource: fitted.ceiling.source,
+        tier: fitted.tier,
+        totalBytes: fitted.budget.totalBytes,
+        toolCount: fitted.budget.toolCount,
+        droppedTools: fitted.droppedTools,
+        droppedMessages: fitted.droppedMessages,
+        trimmedMessages: fitted.trimmedMessages,
+        notes: fitted.notes,
+      });
+    }
+    return fitted;
+  }
+
   public async execute(context: RouterContext): Promise<ProviderResult> {
     /**
      * Tools that really executed, across every provider attempt.
@@ -70,7 +212,9 @@ export default class ProviderResolver {
      * outlives the attempt and is attached to whatever answer is
      * finally returned, including the offline one.
      */
-    const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
+    const toolsReallyRun: Array<ToolRunRecord> = [];
+    /** Why each provider in the chain failed — so the final notice can say timeout vs network vs unavailable. */
+    const chainErrors: string[] = [];
 
     // The last point before any provider sees the context: whatever her
     // cognition put in it that quotes ANOTHER chat is labelled with that
@@ -107,13 +251,20 @@ export default class ProviderResolver {
     // optional fallbacks — in offline mode they are skipped even when
     // a key happens to be configured, so LÉLU stays local-first.
     const router = ModelRouter.getInstance();
-    const decision = router.route(context.request);
+    const decision = router.route(context.request, context.intent);
+    // Mark coding turns on the request itself so a provider with a
+    // dedicated coding model (Fireworks → Kimi) selects it. Not `model`:
+    // that would pin a Fireworks id onto every provider in the chain.
+    if (decision.workload === "coding") {
+      context.request.workload = "coding";
+    }
 
     context.logger.info(
       "ProviderResolver",
       "Model routing decision",
       {
         modality: decision.modality,
+        workload: decision.workload ?? "general",
         hardwareTier: decision.hardware.tier,
         offlineEnabled: decision.offlineEnabled,
         preferredProviders: decision.preferredProviders,
@@ -148,6 +299,7 @@ export default class ProviderResolver {
     // still falls through to every other configured provider instead of
     // breaking the agent.
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
+    const chainStarted = Date.now();
 
     for (const provider of ordered) {
       // The user pressed Stop: do not start another provider.
@@ -161,6 +313,8 @@ export default class ProviderResolver {
         continue;
       }
 
+      /** Tools that ran on THIS attempt — a fallback would repeat them. */
+      const toolsBeforeRung = toolsReallyRun.length;
       try {
         context.logger.info(
           "ProviderResolver",
@@ -182,7 +336,23 @@ export default class ProviderResolver {
           priority: provider.priority,
         });
 
-        const response = await this.executeProvider(provider, context, toolsReallyRun);
+        // Start a rung only while the chain has time to hear its answer.
+        const remaining = this.chainBudgetMs - (Date.now() - chainStarted);
+        if (remaining < MIN_RUNG_SLICE_MS) {
+          context.logger.info(
+            "ProviderResolver",
+            `Not trying ${provider.name}: the fallback chain's ${Math.round(this.chainBudgetMs / 1000)}s budget is spent.`,
+            { provider: provider.name, chainElapsedMs: Date.now() - chainStarted },
+          );
+          break;
+        }
+
+        const response = await this.executeRung(
+          provider,
+          context,
+          toolsReallyRun,
+          Math.min(this.rungBudgetMs, remaining),
+        );
         events.emit({
           type: "provider_status",
           taskId,
@@ -217,9 +387,99 @@ export default class ProviderResolver {
         // healthy provider into failure cooldown, and falling through ran
         // every other provider and then answered with the offline notice
         // — "all providers are unreachable" — to a turn the user ended.
-        throwIfStopped(context, error);
+        //
+        // It is also not an exception the UI should have to catch: a stop
+        // is settled HERE, as a cancelled answer that says what already
+        // ran, so the caller gets one ordinary result and every other
+        // provider is left alone.
+        if (stopped(context, error)) {
+          const ran = (toolsReallyRun ?? []).map((tool) => tool.tool);
+          // Nothing ran: there is nothing to report, so the AbortError goes
+          // back to the caller exactly as a pre-flight stop always has.
+          if (ran.length === 0) throwIfStopped(context, error);
+          return {
+            handled: true,
+            response: {
+              text: ran.length ? `Stopped. Already ran: ${ran.join(", ")}.` : "Stopped before anything ran.",
+              provider: "cancelled",
+              model: "stopped",
+              processingTime: Date.now() - context.started,
+              metadata: { success: false, toolLoopStopped: "user" },
+            },
+          };
+        }
+        // A spent budget is not a provider failure, and it must not fall
+        // through to the next provider: that could be a paid one the user
+        // never chose. Stop here and say why, inside the chat.
+        if (error instanceof BudgetExhaustedError) {
+          context.logger.info("ProviderResolver", "Budget refused the call before dispatch.", {
+            provider: provider.name,
+            scope: error.scope,
+            reason: error.message,
+          });
+          AgentEventBus.getInstance().emit({
+            type: "provider_status",
+            taskId: String(context.request.timestamp ?? Date.now()),
+            provider: provider.name,
+            status: "budget reached — not sent",
+          });
+          return {
+            handled: true,
+            response: {
+              text: budgetNotice(error),
+              provider: "budget",
+              model: "none",
+              processingTime: Date.now() - context.started,
+              metadata: { success: false, budgetExhausted: { source: error.source, scope: error.scope, reason: error.message } },
+            },
+          };
+        }
         const message = error instanceof Error ? error.message : String(error);
+        // Did this attempt already do real work before it failed?
+        //
+        // Falling through now would hand the next provider the SAME messages
+        // and the SAME tools, so every edit already made would be made
+        // again — and the user's reply would be replaced by the offline
+        // notice. That is the measured product-creation stall: tools ran,
+        // then the turn "stuck" with nothing to show. The turn ends here,
+        // naming what ran, and nothing is repeated.
+        const ranThisRung = toolsReallyRun.slice(toolsBeforeRung);
+        if (ranThisRung.length > 0) {
+          const names = [...new Set(ranThisRung.map((tool) => tool.tool))];
+          context.aiProviders.markFailure(provider.name, message);
+          AgentEventBus.getInstance().emit({
+            type: "provider_status",
+            taskId: String(context.request.timestamp ?? Date.now()),
+            provider: provider.name,
+            status: "failed after running tools — not falling back",
+          });
+          context.logger.error(
+            "ProviderResolver",
+            `${provider.name} failed after running tools; not repeating them on another provider.`,
+            { provider: provider.name, ran: names, fallbackReason: message.slice(0, 200) },
+          );
+          return {
+            handled: true,
+            response: {
+              text: partialWorkReply(ranThisRung, provider.name, message),
+              provider: provider.name,
+              model: context.request.model ?? "unknown",
+              processingTime: Date.now() - context.started,
+              metadata: {
+                success: false,
+                partial: true,
+                toolsExecuted: ranThisRung,
+                // The same contract the fallback path keeps: work that
+                // happened before the answer is marked as such, so nothing
+                // reads it as the answering provider's own doing.
+                toolsRanBeforeFallback: true,
+                toolLoopStopped: "provider-failed-after-tools",
+              },
+            },
+          };
+        }
         context.aiProviders.markFailure(provider.name, message);
+        chainErrors.push(message);
         AgentEventBus.getInstance().emit({
           type: "provider_status",
           taskId: String(context.request.timestamp ?? Date.now()),
@@ -252,7 +512,7 @@ export default class ProviderResolver {
 
     return {
       handled: true,
-      response: this.withRealTools(this.offline(context), toolsReallyRun),
+      response: this.withRealTools(this.offline(context, false, chainErrors), toolsReallyRun),
     };
   }
 
@@ -290,29 +550,176 @@ export default class ProviderResolver {
    * model that keeps requesting tools, and a bounded one that keeps
    * offering tools ends on a tool request with no text.
    */
+  /**
+   * ONE provider attempt: its own deadline, and one narrow retry.
+   *
+   * The retry exists for a measured request shape. An ordinary "write me a
+   * poem" turn carried 87 tool schemas — an 86,331-character request, 17,816
+   * of them system context — and the same prompt with no schemas answered in
+   * 452 ms. The schemas ARE the bulk of the request, and a conversational
+   * answer needs none of them, so a refusal about the request's SIZE is met
+   * with the request the provider will accept rather than with the offline
+   * notice.
+   *
+   * Only a size refusal retries. The refusal measured on the day this was
+   * written was a spent DAILY allowance (`tokens per day (TPD): Used 199144`
+   * of 200000), which is not in this pattern on purpose: sending that smaller
+   * still exceeds what is left, so it is parked by the registry instead.
+   */
+  private async executeRung(
+    provider: AIProvider,
+    context: RouterContext,
+    toolsReallyRun: Array<ToolRunRecord> | undefined,
+    budgetMs: number,
+  ): Promise<AIResponse> {
+    const rung = new AbortController();
+    let expired = false;
+    /**
+     * The rung deadline is a STALL watchdog, not a total.
+     *
+     * Measured live (2026-11-06): a product-creation turn ran several tool
+     * rounds inside one rung, each round a real edit. The fixed 12 s
+     * deadline fired mid-round, the abort surfaced as a provider failure,
+     * and the chain fell through carrying the ORIGINAL messages and tools —
+     * so the work was repeated on the next provider, and the reply the user
+     * was waiting for became the offline notice. That is the reported "stuck
+     * conversation after successful multi-tool execution".
+     *
+     * So every round that returns and every tool that finishes re-arms it. A
+     * silent provider is still cut off at the same budget; a turn visibly
+     * making progress is bounded by the tool loop's own budget instead.
+     */
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        expired = true;
+        rung.abort();
+      }, budgetMs);
+    };
+    arm();
+    const onProgress = () => {
+      if (!expired) arm();
+    };
+
+    try {
+      try {
+        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "full", onProgress);
+      } catch (error) {
+        // A user Stop outranks the deadline: the turn ended, it did not time
+        // out, and settling it as a timeout would hide the Stop.
+        if (context.request.signal?.aborted) throwIfStopped(context, error);
+        // The deadline fired: report it as the provider's, not as a Stop.
+        if (expired) {
+          throw new Error(
+            `${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`,
+          );
+        }
+
+        const reason = error instanceof Error ? error.message : String(error);
+        const offeredTools =
+          provider.supportsTools === true && context.request.allowTools === true;
+        if (!offeredTools || !requestTooLarge(reason)) throw error;
+
+        // Degrade in TWO steps, not one. Dropping every tool on the first
+        // refusal is what turned a size error into a model that described
+        // work it could not do; a smaller set still lets it act.
+        context.logger.info(
+          "ProviderResolver",
+          `${provider.name} refused the request as too large; retrying with a reduced tool set.`,
+          { provider: provider.name, fallbackReason: reason.slice(0, 200) },
+        );
+
+        try {
+          return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "reduced", onProgress);
+        } catch (again) {
+          if (context.request.signal?.aborted) throwIfStopped(context, again);
+          if (expired) {
+            throw new Error(`${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`);
+          }
+          const secondReason = again instanceof Error ? again.message : String(again);
+          if (!requestTooLarge(secondReason)) throw again;
+
+          context.logger.info(
+            "ProviderResolver",
+            `${provider.name} refused the reduced set too; retrying without tools.`,
+            { provider: provider.name, fallbackReason: secondReason.slice(0, 200) },
+          );
+          return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "none", onProgress);
+        }
+      }
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  /** The request as this attempt sends it: the user's signal, plus the rung's. */
+  private withRungSignal(request: AIRequest, rung?: AbortSignal): AIRequest {
+    if (!rung) return request;
+    return {
+      ...request,
+      signal: request.signal ? AbortSignal.any([request.signal, rung]) : rung,
+    };
+  }
+
   private async generateWithTools(
     provider: AIProvider,
     context: RouterContext,
-    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+    toolsReallyRun?: Array<ToolRunRecord>,
+    rungSignal?: AbortSignal,
+    toolMode: "full" | "reduced" | "none" = "full",
+    onProgress?: () => void,
   ): Promise<AIResponse> {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
     // provider exactly as they did before, or their parsers break.
-    const tools =
-      provider.supportsTools === true && context.request.allowTools === true
-        ? toolSchemasForModel()
+    const offeredTools =
+      toolMode !== "none" && provider.supportsTools === true && context.request.allowTools === true
+        ? toolMode === "reduced"
+          ? reducedToolSchemas(context.request.prompt, context.intent)
+          : toolSchemasForRequest(context.request.prompt, context.intent)
         : [];
+    const requestedTier: SchemaTier =
+      toolMode === "reduced" ? "REDUCED" : toolMode === "none" ? "NONE" : "FULL";
+
+    /**
+     * THE CEILING, APPLIED HERE — the last point before a provider sees it.
+     * Everything below sends `fitted`, not the raw context, so a request that
+     * can only be refused is made acceptable first.
+     */
+    const fitted = this.fitFor(provider, context, context.request.messages ?? [], offeredTools, requestedTier);
+    const tools = fitted.tools;
+
+    // The request as it will actually be sent, measured at the boundary where
+    // it is assembled. Lengths and counts only: never content, never a key.
+    context.logger.info(
+      "ProviderResolver",
+      "Request budget",
+      describeRequestBudget({
+        messages: fitted.messages as never,
+        prompt: context.request.prompt,
+        tools,
+        tier: fitted.tier,
+        provider: provider.name,
+        model: context.request.model,
+      }) as unknown as Record<string, unknown>,
+    );
 
     // No native tool support, or nothing currently executable to offer:
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return provider.generate(context.request);
+      return gatedGenerate(provider, {
+        ...this.withRungSignal(context.request, rungSignal),
+        messages: fitted.messages,
+      });
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
-    const messages: AIMessage[] = [...(context.request.messages ?? [])];
-    const executed: Array<{ tool: string; ok: boolean }> = [];
+    const messages: AIMessage[] = [...fitted.messages];
+    const executed: Array<ToolRunRecord> = [];
+    // What the tools produced, for the quality checkpoint (arguments only — no model).
+    const qualityCalls: QualityCall[] = [];
     // What the model ASKED for, separately from what really ran.
     //
     // These are the same list on this path, by construction — every
@@ -325,7 +732,13 @@ export default class ProviderResolver {
     // to catch.
     const requested: string[] = [];
 
-    let response = await provider.generate({ ...context.request, messages, tools });
+    let response = await gatedGenerate(provider, {
+      ...this.withRungSignal(context.request, rungSignal),
+      messages,
+      tools,
+    });
+    // A round that came back is proof the rung is alive.
+    onProgress?.();
     let promptMaterialized = false;
 
     const loopStarted = Date.now();
@@ -335,6 +748,7 @@ export default class ProviderResolver {
     for (let round = 1; round <= TOOL_LOOP_MAX_ROUNDS; round += 1) {
       const calls = response.toolCalls ?? [];
       if (calls.length === 0) break;
+      if (context.request.signal?.aborted) throw new Error("cancelled");
 
       // A stuck model repeats itself exactly. Detect that on the calls
       // it is ASKING for, before running them again.
@@ -387,26 +801,79 @@ export default class ProviderResolver {
         role: "assistant",
         content: response.text ?? "",
         toolCalls: calls,
+        // Replayed verbatim by the provider that produced it (Anthropic's
+        // thinking blocks must survive the round trip); ignored by others.
+        ...(response.providerBlocks ? { providerBlocks: response.providerBlocks } : {}),
       });
 
+      // A model that asks for the same call twice in one round must not run
+      // it twice: a side-effecting tool would apply its change again. The
+      // repeat reuses the first result and says so.
+      const seenThisRound = new Map<string, { ok: boolean; content: string }>();
+
       for (const call of calls) {
+        // Never start a tool after the user pressed stop.
+        throwIfStopped(context);
         requested.push(call.name);
-        const result = await dispatchToolCall(call, taskId, context);
+        const callKey = `${call.name}:${JSON.stringify(call.arguments ?? {})}`;
+        const already = seenThisRound.get(callKey);
+        if (already) {
+          executed.push({ tool: call.name, ok: already.ok });
+          // A suppressed repeat is evidence of its own: it was NOT executed a
+          // second time, and the record must never read as another success.
+          AgentEventBus.getInstance().emit({
+            type: "execution_evidence",
+            taskId,
+            record: {
+              executionId: `chat-suppressed-${Date.now().toString(36)}-${call.id}`,
+              taskId,
+              path: "chat",
+              tool: call.name,
+              approval: "not-required",
+              stage: "suppressed",
+              outcome: "suppressed",
+              reason: `Repeated ${call.name} with identical arguments in the same round; the first result was reused instead of running it again.`,
+            },
+          });
+          context.logger.info(
+            "ProviderResolver",
+            `Tool ${call.name} was requested twice in one round; the repeat reused the first result`,
+            { tool: call.name, round },
+          );
+          messages.push({
+            role: "tool",
+            content: `Not run again: ${call.name} was already executed with these exact arguments in this round. Its result was:\n\n${already.content}`,
+            toolCallId: call.id,
+            toolName: call.name,
+            toolError: !already.ok,
+          });
+          continue;
+        }
+        const result = await dispatchToolCall(call, taskId, context, {
+          path: "chat",
+          turnSignature: context.request.prompt,
+        });
+        seenThisRound.set(callKey, { ok: result.ok, content: result.content });
+        // A tool that finished running is progress, however long it took.
+        onProgress?.();
         executed.push({ tool: call.name, ok: result.ok });
         // ALSO record it where a later provider failure cannot erase it.
         // A tool that ran, ran: if this provider throws on the next
         // round the chain falls through, and without this the cycle
         // would report "no action taken" about a workflow it really
         // created.
-        toolsReallyRun?.push({ tool: call.name, ok: result.ok });
+        toolsReallyRun?.push({ tool: call.name, ok: result.ok, summary: summarizeToolResult(result.content) });
         context.logger.info("ProviderResolver", `Tool ${call.name} -> ${result.ok ? "ok" : "failed"}`, {
           tool: call.name,
           ok: result.ok,
           round,
         });
+        const qualityCall: QualityCall = { name: call.name, args: (call.arguments ?? {}) as Record<string, unknown>, ok: result.ok };
+        qualityCalls.push(qualityCall);
+        const deficiency = checkCall(context.request.prompt ?? "", qualityCall);
         messages.push({
           role: "tool",
-          content: result.content,
+          content: deficiency ? `${result.content}${inLoopNote(deficiency)}` : result.content,
           toolCallId: call.id,
           toolName: call.name,
           toolError: !result.ok,
@@ -439,11 +906,26 @@ export default class ProviderResolver {
         });
       }
 
-      response = await provider.generate({
-        ...context.request,
+      // The history grew while the tools ran: fit it again before the next
+      // round, so a long tool loop cannot walk into the same 413 the first
+      // request was trimmed to avoid. The most recent twelve messages are
+      // protected — that is this round's question and its results.
+      const refitted = this.fitFor(
+        provider,
+        context,
         messages,
-        ...(stopReason ? {} : { tools }),
+        stopReason ? [] : tools,
+        stopReason ? "NONE" : tools.length === offeredTools.length ? requestedTier : "REDUCED",
+      );
+      response = await gatedGenerate(provider, {
+        ...this.withRungSignal(context.request, rungSignal),
+        // A continuation round re-reads tool results; LÉLU's full self-state
+        // was given on round 0 and is not re-sent (see continuationContext).
+        context: continuationContext(context.request.context),
+        messages: refitted.messages,
+        ...(refitted.tools.length ? { tools: refitted.tools } : {}),
       });
+      onProgress?.();
 
       if (stopReason) break;
     }
@@ -475,11 +957,14 @@ export default class ProviderResolver {
         claims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`),
       });
     }
+    // Quality checkpoint: what is still below the bar is said, not hidden.
+    const deficiencies = assessTurn(context.request.prompt ?? "", qualityCalls);
     return {
       ...response,
-      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}`,
+      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
+        ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
         ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
@@ -495,10 +980,20 @@ export default class ProviderResolver {
   private async executeProvider(
     provider: AIProvider,
     context: RouterContext,
-    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+    toolsReallyRun?: Array<ToolRunRecord>,
+    rungSignal?: AbortSignal,
+    toolMode: "full" | "reduced" | "none" = "full",
+    onProgress?: () => void,
   ): Promise<AIResponse> {
     const started = Date.now();
-    const response = await this.generateWithTools(provider, context, toolsReallyRun);
+    const response = await this.generateWithTools(
+      provider,
+      context,
+      toolsReallyRun,
+      rungSignal,
+      toolMode,
+      onProgress,
+    );
 
     if (!response || typeof response.text !== "string") {
       throw new Error(`${provider.name} returned an invalid response.`);
@@ -535,7 +1030,7 @@ export default class ProviderResolver {
    */
   private withRealTools(
     response: AIResponse,
-    toolsReallyRun: Array<{ tool: string; ok: boolean }>,
+    toolsReallyRun: Array<ToolRunRecord>,
   ): AIResponse {
     if (toolsReallyRun.length === 0) return response;
     return {
@@ -548,7 +1043,7 @@ export default class ProviderResolver {
     };
   }
 
-  private offline(context: RouterContext, offlineMode = false): AIResponse {
+  private offline(context: RouterContext, offlineMode = false, chainErrors: string[] = []): AIResponse {
     const started = context.started;
 
     // If knowledge tools already retrieved real data for this
@@ -577,6 +1072,22 @@ export default class ProviderResolver {
       };
     }
 
+    // Say what really happened. "Unreachable or unconfigured" was read out
+    // for every failure — including a provider that was reached and simply
+    // ran out of time (Mission 10.3, 18 of 20 turns).
+    const failureKind = offlineMode ? "provider-unavailable" : classifyChainFailure(chainErrors);
+    if (!offlineMode && chainErrors.length > 0 && failureKind !== "provider-unavailable") {
+      return {
+        text:
+          failureKind === "provider-timeout"
+            ? "I couldn't get an answer in time — the model provider took too long to reply and the other providers are unavailable right now. Nothing was lost; ask me again."
+            : "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
+        provider: "offline",
+        model: "offline",
+        processingTime: Date.now() - started,
+        metadata: { success: false, reason: "all-ai-providers-failed", failureKind, offline: true },
+      };
+    }
     return {
       text: offlineMode
         ? "I'm in local / offline mode right now — remote AI providers are disabled, and no local model runtime is installed yet, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Turn offline mode off in Settings → Local-first model engine, or ask \"who are you\" / \"who am I\"."
@@ -587,6 +1098,7 @@ export default class ProviderResolver {
       metadata: {
         success: false,
         reason: "all-ai-providers-failed",
+        failureKind,
         offline: true,
         identity: true,
         memory: true,
@@ -597,6 +1109,21 @@ export default class ProviderResolver {
 
 
 /**
+ * Did the provider refuse the REQUEST for its size, rather than fail?
+ *
+ * Deliberately only the size ceilings — 413, a token/context ceiling, or a
+ * tokens-per-minute limit — because those are the refusals the SAME provider
+ * answers when the request is smaller. A daily quota and a refused credential
+ * are not here: sending those smaller changes nothing, and the registry gives
+ * them their own cooldown instead of a retry.
+ */
+function requestTooLarge(reason: string): boolean {
+  return /\b413\b|too large|tokens per minute|\btpm\b|maximum context|context length|request entity/i.test(
+    reason,
+  );
+}
+
+/**
  * Rethrow as an AbortError when the turn's own signal has been aborted
  * (the user pressed Stop), so AIService settles it as cancelled.
  */
@@ -605,4 +1132,21 @@ function throwIfStopped(context: RouterContext, cause?: unknown): void {
   if (!signal?.aborted) return;
   if (cause instanceof Error && cause.name === "AbortError") throw cause;
   throw new DOMException("Turn stopped by the user.", "AbortError");
+}
+
+/**
+ * Has the TURN been stopped? Only when the turn's own signal is aborted.
+ *
+ * An AbortError from below with the turn's signal intact is a provider
+ * aborting its own request — e.g. OpenRouter's internal 30 s
+ * AbortSignal.timeout, which surfaces in Chrome as "BodyStreamBuffer was
+ * aborted" (AbortError). Treating that as a Stop settled live voice turns as
+ * "Stopped before anything ran." instead of falling through to the next
+ * provider (found live, 2026-11-07). A Stop always aborts the turn signal
+ * (AIService composes it from the turn and conversation controllers), so
+ * nothing a user does is missed by this.
+ */
+function stopped(context: RouterContext, _cause?: unknown): boolean {
+  const signal = (context.request as { signal?: AbortSignal }).signal;
+  return Boolean(signal?.aborted);
 }

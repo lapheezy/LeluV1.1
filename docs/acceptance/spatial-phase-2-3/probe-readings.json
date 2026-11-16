@@ -1,0 +1,79 @@
+{
+  "capturedAt": "2026-11-06T16:52:00Z",
+  "source": "docs/acceptance/spatial-phase-2-3/screenshots/*.png via .lelu-sandbox/audit/capture.mjs",
+  "method": "Playwright Chromium 1234 headless, LD_LIBRARY_PATH=/tmp/sysroot, viewport set per run and read back from innerWidth/innerHeight",
+  "note": "nodes = live scene nodes published by SpatialLayer. objects = authored spatial objects, which remain empty because no spatial chat command could be submitted (see REPORT.md section 2).",
+  "readings": [
+    {
+      "viewport": { "w": 1440, "h": 900, "dpr": 1 },
+      "canvases": [
+        { "w": 480, "h": 270, "cssW": 1440, "cssH": 900 },
+        { "w": 1440, "h": 900, "cssW": 1440, "cssH": 900 },
+        { "w": 395, "h": 330, "cssW": 395, "cssH": 330 }
+      ],
+      "nodes": 29,
+      "revision": 0,
+      "authoredObjects": [],
+      "camera": { "position": [6, 2.5, 4], "fov": 49, "aspect": 1.6, "near": 0.1, "far": 1000 },
+      "screenshots": ["viewport-1440x900-01-home.png", "viewport-1440x900-02-genesis.png"]
+    },
+    {
+      "viewport": { "w": 1280, "h": 800, "dpr": 1 },
+      "canvases": [
+        { "w": 480, "h": 270, "cssW": 1280, "cssH": 800 },
+        { "w": 1280, "h": 800, "cssW": 1280, "cssH": 800 },
+        { "w": 395, "h": 330, "cssW": 395, "cssH": 330 }
+      ],
+      "nodes": 29,
+      "revision": 0,
+      "authoredObjects": [],
+      "screenshots": ["viewport-1280x800-01-home.png", "viewport-1280x800-02-genesis.png"]
+    },
+    {
+      "viewport": { "w": 1024, "h": 768, "dpr": 1 },
+      "canvases": [
+        { "w": 480, "h": 270, "cssW": 1024, "cssH": 768 },
+        { "w": 1024, "h": 768, "cssW": 1024, "cssH": 768 },
+        { "w": 365, "h": 330, "cssW": 365, "cssH": 330 }
+      ],
+      "nodes": 29,
+      "revision": 0,
+      "authoredObjects": [],
+      "screenshots": ["viewport-1024x768-01-home.png", "viewport-1024x768-02-genesis.png"]
+    },
+    {
+      "viewport": { "w": 390, "h": 844, "dpr": 1 },
+      "canvases": [
+        { "w": 480, "h": 270, "cssW": 390, "cssH": 844 },
+        { "w": 390, "h": 844, "cssW": 390, "cssH": 844 },
+        { "w": 120, "h": 174, "cssW": 120, "cssH": 174 }
+      ],
+      "nodes": 29,
+      "revision": 0,
+      "authoredObjects": [],
+      "screenshots": ["viewport-390x844-01-home.png", "viewport-390x844-02-genesis.png"]
+    },
+    {
+      "viewport": { "w": 375, "h": 812, "dpr": 1 },
+      "canvases": [
+        { "w": 480, "h": 270, "cssW": 375, "cssH": 812 },
+        { "w": 375, "h": 812, "cssW": 375, "cssH": 812 },
+        { "w": 120, "h": 174, "cssW": 120, "cssH": 174 }
+      ],
+      "nodes": 29,
+      "revision": 0,
+      "authoredObjects": [],
+      "screenshots": ["viewport-375x812-01-home.png", "viewport-375x812-02-genesis.png"]
+    },
+    {
+      "viewport": { "w": 328, "h": 528, "dpr": 1 },
+      "canvases": [{ "w": 120, "h": 174, "cssW": 120, "cssH": 174 }],
+      "nodes": 0,
+      "revision": 0,
+      "authoredObjects": [],
+      "camera": { "position": [0, 0.9, 3.2], "fov": 55, "aspect": 0.6212, "near": 0.1, "far": 1000 },
+      "superseded": true,
+      "note": "Cloud browser panel viewport. Superseded by the 1440×900 Chromium runs; kept as the pre-repair baseline that motivated Gate A."
+    }
+  ]
+}

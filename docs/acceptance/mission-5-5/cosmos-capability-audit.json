@@ -1,0 +1,22 @@
+{
+  "existing_systems": {
+    "WorkspaceEngine": "views, layout modes, split/focus/resize, layout persistence",
+    "GenesisModuleHost": "renders workspace surfaces as module windows",
+    "PortalRegistry/SpatialNavigator": "spatial navigation (5.4B.11, unchanged)",
+    "EnvironmentOrchestrationEngine": "compose, mutate, manage, snapshot, restore",
+    "Chat Universe": "conversation surfaces (unchanged)"
+  },
+  "what_lelu_can_choose_today": [
+    "which of the six environment tools to call",
+    "the surface kinds inside a compose call (diagram/table/chart/file/browser/timeline)",
+    "layout mode (auto/grid/split/stack)",
+    "environment category (research/creative/development/data/planning/3d/conversation)",
+    "optional 3D scene objects"
+  ],
+  "limitations": [
+    "presentation vocabulary is the six tools plus VisualSpec kinds; there is no tool that lets her invent a new rendering form",
+    "no visual (screenshot) feedback channel to the model",
+    "single-window vs spatial presentation is chosen by the composer, not by a first-class 'presentation strategy' decision"
+  ],
+  "new_systems_added_this_mission": 0
+}

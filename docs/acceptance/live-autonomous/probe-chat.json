@@ -1,0 +1,33 @@
+{
+ "errors": [],
+ "steps": [
+  {
+   "name": "home",
+   "chatWindow": false,
+   "surface": [],
+   "windows": [],
+   "inputs": [],
+   "sends": [
+    "Travel to Conversation",
+    "What LÉLU is doing — open chat",
+    "Summon the chat",
+    "Travel to Conversation"
+   ],
+   "text": "LÉLU unknown · unknown · development · built 2026-11-08 13:53Z ◈ Governor galaxy ◈ Creation world ◈ Dimensional portal ◈ Agent universes ◈ Browser ◈ Genesis Studios ◈ Research ◈ Projects ◈ Files ◈ Media ◈ Conversation ATMOSPHERE Rainbow rainbow 0.24 LÉLU+ Workspace Weather Use my location NOW Working Ready when you are Chat Browser Studio Workspaces Agents Files Active Workspaces Place in world Je"
+  },
+  {
+   "name": "after button[aria-label=\"Travel to Conversation\"]",
+   "chatWindow": false,
+   "surface": [],
+   "windows": [],
+   "inputs": [],
+   "sends": [
+    "Travel to Conversation",
+    "What LÉLU is doing — open chat",
+    "Summon the chat",
+    "Travel to Conversation"
+   ],
+   "text": "LÉLU unknown · unknown · development · built 2026-11-08 13:53Z ◈ Governor galaxy ◈ Creation world ◈ Dimensional portal ◈ Agent universes ◈ Browser ◈ Genesis Studios ◈ Research ◈ Projects ◈ Files ◈ Media ◈ Conversation ATMOSPHERE Deep Black Space static 0.07 rainbow 0.42 ⚡ 0.06 LÉLU+ Workspace 1 Weather Use my location NOW Finished Ready when you are Chat Browser Studio Workspaces Agents Files Acti"
+  }
+ ]
+}

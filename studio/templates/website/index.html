@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Aurora — a responsive studio site built in the LÉLU software studio." />
+    <meta name="theme-color" content="#070b16" />
+    <title>Aurora — design that answers</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Aurora home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Aurora
+      </a>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="menu-lines" aria-hidden="true"></span>
+        <span class="menu-label">Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Primary">
+        <a href="#work">Work</a>
+        <a href="#approach">Approach</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span aria-hidden="true">◐</span>
+        <span class="theme-label">Night</span>
+      </button>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <p class="eyebrow">Independent design + engineering studio</p>
+        <h1 id="hero-title">Interfaces that answer before you finish asking.</h1>
+        <p class="lede">
+          Aurora designs and builds responsive products: real navigation, real forms, real data —
+          reviewed on a phone before anything ships.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#work">See the work</a>
+          <a class="button ghost" href="#contact">Start a project</a>
+        </div>
+        <dl class="hero-stats">
+          <div><dt>Projects shipped</dt><dd data-count="24">24</dd></div>
+          <div><dt>Response time</dt><dd>&lt; 1 day</dd></div>
+          <div><dt>Viewports tested</dt><dd data-count="4">4</dd></div>
+        </dl>
+      </section>
+
+      <section class="section" id="work" aria-labelledby="work-title">
+        <header class="section-head">
+          <div>
+            <p class="eyebrow">Selected work</p>
+            <h2 id="work-title">Filter it the way you think.</h2>
+          </div>
+          <div class="filters" id="filters" role="group" aria-label="Filter projects">
+            <button type="button" class="chip is-active" data-filter="all" aria-pressed="true">All</button>
+            <button type="button" class="chip" data-filter="product" aria-pressed="false">Product</button>
+            <button type="button" class="chip" data-filter="brand" aria-pressed="false">Brand</button>
+            <button type="button" class="chip" data-filter="systems" aria-pressed="false">Systems</button>
+          </div>
+        </header>
+
+        <p class="result-count" id="result-count" role="status">Showing 5 of 5 projects.</p>
+
+        <ul class="work-grid" id="work-grid">
+          <li class="card" data-tags="product systems">
+            <p class="card-tag">Product · Systems</p>
+            <h3>Pulse Board</h3>
+            <p>A task board whose columns, counts and status changes come from a real HTTP API.</p>
+            <a href="#contact">Discuss this build</a>
+          </li>
+          <li class="card" data-tags="brand">
+            <p class="card-tag">Brand</p>
+            <h3>Night Orchard</h3>
+            <p>Identity, packaging and a storefront with a working basket.</p>
+            <a href="#contact">Discuss this build</a>
+          </li>
+          <li class="card" data-tags="product">
+            <p class="card-tag">Product</p>
+            <h3>Quiet Hours</h3>
+            <p>Focus timer with local schedules and an honest, interruptible flow.</p>
+            <a href="#contact">Discuss this build</a>
+          </li>
+          <li class="card" data-tags="systems">
+            <p class="card-tag">Systems</p>
+            <h3>Atlas Index</h3>
+            <p>Searchable operations manual that survives a flaky network.</p>
+            <a href="#contact">Discuss this build</a>
+          </li>
+          <li class="card" data-tags="brand product">
+            <p class="card-tag">Brand · Product</p>
+            <h3>Solstice Field</h3>
+            <p>Event platform with schedules, speaker pages and ticket tiers.</p>
+            <a href="#contact">Discuss this build</a>
+          </li>
+        </ul>
+        <p class="empty" id="empty-state" hidden>No projects match that filter.</p>
+      </section>
+
+      <section class="section split" id="approach" aria-labelledby="approach-title">
+        <div>
+          <p class="eyebrow">Approach</p>
+          <h2 id="approach-title">Measured, not guessed.</h2>
+          <p>
+            Every surface is checked at four viewports, with keyboard focus and reduced motion respected.
+            A pretty layout that traps a tap on a phone is not finished work.
+          </p>
+        </div>
+        <ol class="steps">
+          <li><span>01</span>Understand the constraint before drawing.</li>
+          <li><span>02</span>Build the smallest honest version.</li>
+          <li><span>03</span>Measure it on real screens.</li>
+          <li><span>04</span>Ship, then keep it alive.</li>
+        </ol>
+      </section>
+
+      <section class="section about" id="about" aria-labelledby="about-title">
+        <p class="eyebrow">About</p>
+        <h2 id="about-title">Small studio. Long attention spans.</h2>
+        <p>
+          Aurora is a two-person practice: design and engineering in the same room, so a layout
+          decision is made by the person who has to build it.
+        </p>
+      </section>
+
+      <section class="section contact" id="contact" aria-labelledby="contact-title">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2 id="contact-title">Tell us what has to work.</h2>
+          <p>We answer with a scope and a date, not a deck.</p>
+        </div>
+        <form id="contact-form" novalidate>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" name="name" autocomplete="name" aria-describedby="name-error" />
+            <p class="error" id="name-error" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" aria-describedby="email-error" />
+            <p class="error" id="email-error" role="alert" hidden></p>
+          </div>
+          <div class="field">
+            <label for="message">What are you building?</label>
+            <textarea id="message" name="message" rows="4" aria-describedby="message-error"></textarea>
+            <p class="error" id="message-error" role="alert" hidden></p>
+          </div>
+          <button class="button primary" type="submit">Send the brief</button>
+          <p class="form-status" id="form-status" role="status" hidden></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span id="year">2026</span> Aurora Studio. Built with LÉLU.</p>
+      <a href="#top">Back to top</a>
+    </footer>
+
+    <script type="module" src="src/site.js"></script>
+  </body>
+</html>

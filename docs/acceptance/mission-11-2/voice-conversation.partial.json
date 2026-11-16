@@ -1,0 +1,1035 @@
+{
+ "at": "2026-11-10T06:48:36.434Z",
+ "spoken": [
+  {
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Leilu, in one short sentence, what are you?",
+   "spokeAt": 26694,
+   "endedAt": 30328,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is two plus two? Just the number.",
+   "spokeAt": 40440,
+   "endedAt": 43676,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 3,
+   "mode": "after-reply",
+   "text": "Please remember this. My favorite color is teal.",
+   "spokeAt": 56513,
+   "endedAt": 60799,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 4,
+   "mode": "after-reply",
+   "text": "What is my favorite color? One word.",
+   "spokeAt": 82106,
+   "endedAt": 85486,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 5,
+   "mode": "after-reply",
+   "text": "Hold on, stop. Just say the word paused.",
+   "spokeAt": 99298,
+   "endedAt": 103231,
+   "repeated": false,
+   "heard": true
+  }
+ ],
+ "events": [
+  {
+   "t": 15454,
+   "kind": "console",
+   "text": "🟢 [6:47:05 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 15454,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 15844,
+   "kind": "console",
+   "text": "🔴 [6:47:06 AM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 15845,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 15847,
+   "kind": "console",
+   "text": "🟢 [6:47:06 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 15847,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 16037,
+   "kind": "phase",
+   "phase": "idle",
+   "error": null
+  },
+  {
+   "t": 16041,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 17011,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription is configured — recording turns for it directly."
+  },
+  {
+   "t": 17014,
+   "kind": "voice-on"
+  },
+  {
+   "t": 30330,
+   "kind": "user-said",
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Leilu, in one short sentence, what are you?",
+   "seconds": 3.6
+  },
+  {
+   "t": 30841,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10815,\"spoke\":true,\"ms\":13827,\"peak\":0.2465,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 30842,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 31405,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription failed; using Whisper. ElevenLabs refused the request."
+  },
+  {
+   "t": 32449,
+   "kind": "utterance",
+   "text": "Lélu, in one short sentence, what are you?",
+   "at": 1794293242798
+  },
+  {
+   "t": 32449,
+   "kind": "turn",
+   "user": "Lélu, in one short sentence, what are you?",
+   "response": null
+  },
+  {
+   "t": 32450,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 36278,
+   "kind": "console",
+   "text": "🟢 [6:47:26 AM] [ProviderResolver] Request budget enforced before send"
+  },
+  {
+   "t": 36278,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget enforced before send, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 36278,
+   "kind": "console",
+   "text": "🟢 [6:47:26 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 36278,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 37355,
+   "kind": "console",
+   "text": "🟢 [6:47:27 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 37355,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 37949,
+   "kind": "turn",
+   "user": "Lélu, in one short sentence, what are you?",
+   "response": "I’m Lélu, your personal AI companion and creative partner."
+  },
+  {
+   "t": 37949,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 37951,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 38404,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 38405,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 43677,
+   "kind": "user-said",
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is two plus two? Just the number.",
+   "seconds": 3.1
+  },
+  {
+   "t": 44260,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11076,\"spoke\":true,\"ms\":11744,\"peak\":0.2612,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 44261,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 45402,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription failed; using Whisper. ElevenLabs refused the request."
+  },
+  {
+   "t": 46001,
+   "kind": "utterance",
+   "text": "What is 2 plus 2? Just the number.",
+   "at": 1794293256350
+  },
+  {
+   "t": 46001,
+   "kind": "turn",
+   "user": "What is 2 plus 2? Just the number.",
+   "response": null
+  },
+  {
+   "t": 46001,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 51519,
+   "kind": "console",
+   "text": "🟢 [6:47:41 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 51519,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 52663,
+   "kind": "console",
+   "text": "🔴 [6:47:43 AM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 52663,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 52696,
+   "kind": "console",
+   "text": "🟢 [6:47:43 AM] [ProviderResolver] Request budget enforced before send"
+  },
+  {
+   "t": 52696,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget enforced before send, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 52697,
+   "kind": "console",
+   "text": "🟢 [6:47:43 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 52697,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 53859,
+   "kind": "console",
+   "text": "🟢 [6:47:44 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 53859,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 54871,
+   "kind": "turn",
+   "user": "What is 2 plus 2? Just the number.",
+   "response": "4"
+  },
+  {
+   "t": 54871,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 54872,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 54946,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 56981,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10922,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 60800,
+   "kind": "user-said",
+   "n": 3,
+   "mode": "after-reply",
+   "text": "Please remember this. My favorite color is teal.",
+   "seconds": 3.9
+  },
+  {
+   "t": 60892,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3344,\"spoke\":true,\"ms\":3885,\"peak\":0.2449,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 60893,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 61427,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription failed; using Whisper. ElevenLabs refused the request."
+  },
+  {
+   "t": 62440,
+   "kind": "utterance",
+   "text": "Remember this. My favorite color is teal.",
+   "at": 1794293272790
+  },
+  {
+   "t": 62441,
+   "kind": "turn",
+   "user": "Remember this. My favorite color is teal.",
+   "response": null
+  },
+  {
+   "t": 62441,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 65771,
+   "kind": "console",
+   "text": "🟢 [6:47:56 AM] [ProviderResolver] Request budget enforced before send"
+  },
+  {
+   "t": 65771,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget enforced before send, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 65771,
+   "kind": "console",
+   "text": "🟢 [6:47:56 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 65771,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 66866,
+   "kind": "console",
+   "text": "🟢 [6:47:57 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 66866,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 67962,
+   "kind": "turn",
+   "user": "Remember this. My favorite color is teal.",
+   "response": "Got it—I’ve saved that your favorite color is teal."
+  },
+  {
+   "t": 67963,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 67964,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 67989,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 72769,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10310,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 77180,
+   "kind": "user-typed-blocked",
+   "reason": "TimeoutError: page.click: Timeout 8000ms exceeded.",
+   "coveredBy": "no composer"
+  },
+  {
+   "t": 82767,
+   "kind": "console",
+   "text": "🟢 [6:48:13 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 82767,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 83889,
+   "kind": "console",
+   "text": "🔴 [6:48:14 AM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 83889,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 83890,
+   "kind": "console",
+   "text": "🟢 [6:48:14 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 83890,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 85488,
+   "kind": "user-said",
+   "n": 4,
+   "mode": "after-reply",
+   "text": "What is my favorite color? One word.",
+   "seconds": 3.2
+  },
+  {
+   "t": 86111,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12591,\"spoke\":true,\"ms\":13312,\"peak\":0.2568,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 86114,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 87749,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription failed; using Whisper. ElevenLabs refused the request."
+  },
+  {
+   "t": 88313,
+   "kind": "utterance",
+   "text": "What is my favorite color? One word.",
+   "at": 1794293298663
+  },
+  {
+   "t": 88313,
+   "kind": "turn",
+   "user": "What is my favorite color? One word.",
+   "response": null
+  },
+  {
+   "t": 88313,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 93857,
+   "kind": "console",
+   "text": "🟢 [6:48:24 AM] [ProviderResolver] Request budget enforced before send"
+  },
+  {
+   "t": 93857,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget enforced before send, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 93857,
+   "kind": "console",
+   "text": "🟢 [6:48:24 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 93857,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 94965,
+   "kind": "console",
+   "text": "🟢 [6:48:25 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 94965,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 95576,
+   "kind": "console",
+   "text": "🟢 [6:48:25 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 95576,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 96128,
+   "kind": "console",
+   "text": "🔴 [6:48:26 AM] [ProviderResolver] Groq failed; falling back to the next provider."
+  },
+  {
+   "t": 96129,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 96131,
+   "kind": "console",
+   "text": "🟢 [6:48:26 AM] [ProviderResolver] Request budget"
+  },
+  {
+   "t": 96131,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 97152,
+   "kind": "console",
+   "text": "🔴 [6:48:27 AM] [ProviderResolver] GitHub Models failed; falling back to the next provider."
+  },
+  {
+   "t": 97152,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: GitHub Models failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 97152,
+   "kind": "console",
+   "text": "🔴 [6:48:27 AM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 97152,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 97155,
+   "kind": "turn",
+   "user": "What is my favorite color? One word.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 97155,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 99315,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10948,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 103233,
+   "kind": "user-said",
+   "n": 5,
+   "mode": "after-reply",
+   "text": "Hold on, stop. Just say the word paused.",
+   "seconds": 3.7
+  },
+  {
+   "t": 103776,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3971,\"spoke\":true,\"ms\":4443,\"peak\":0.2374,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 103776,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 104897,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription failed; using Whisper. ElevenLabs refused the request."
+  },
+  {
+   "t": 105503,
+   "kind": "utterance",
+   "text": "Hold on, stop, just say the word paused.",
+   "at": 1794293315853
+  },
+  {
+   "t": 105503,
+   "kind": "turn",
+   "user": "Hold on, stop, just say the word paused.",
+   "response": null
+  },
+  {
+   "t": 105504,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  }
+ ],
+ "turns": [
+  {
+   "id": "5a265c62-1397-4dab-8294-081f14ecc2ea",
+   "user": "Lélu, in one short sentence, what are you?",
+   "response": "I’m Lélu, your personal AI companion and creative partner.",
+   "at": 1794293248299,
+   "startedAt": 1794293242799,
+   "respondedAt": 1794293248299
+  },
+  {
+   "id": "95d03017-2e40-4619-9bcc-3804637da4d0",
+   "user": "What is 2 plus 2? Just the number.",
+   "response": "4",
+   "at": 1794293265221,
+   "startedAt": 1794293256351,
+   "respondedAt": 1794293265221
+  },
+  {
+   "id": "86c9a487-98c4-440f-8c27-7374f0767822",
+   "user": "Remember this. My favorite color is teal.",
+   "response": "Got it—I’ve saved that your favorite color is teal.",
+   "at": 1794293278313,
+   "startedAt": 1794293272790,
+   "respondedAt": 1794293278313
+  },
+  {
+   "id": "ebdc3c25-926a-4f30-b05b-d5825890a3f9",
+   "user": "What is my favorite color? One word.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794293307505,
+   "startedAt": 1794293298663,
+   "respondedAt": 1794293307505
+  },
+  {
+   "id": "0b37dab6-b644-4db8-8616-99b4d64daf89",
+   "user": "Hold on, stop, just say the word paused.",
+   "response": null,
+   "at": 1794293315853,
+   "startedAt": 1794293315853
+  }
+ ],
+ "ledger": [
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 389,
+   "error": "OpenRouter HTTP 402: This request requires more credits, or fewer max_tokens. You requested up to 700 tokens, but can only afford 463. To increase, visit https://openrouter.ai/settings/credits and upg"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": true,
+   "model": "openai/gpt-oss-120b",
+   "in": 1203,
+   "out": 459,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4547
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 563,
+   "error": "ElevenLabs refused the request."
+  },
+  {
+   "kind": "api",
+   "source": "groq-whisper",
+   "op": "stt",
+   "ok": true,
+   "model": "whisper-large-v3-turbo",
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1042
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1076,
+   "error": "Groq failed 413: Request too large for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 12713, pl"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": true,
+   "model": "openai/gpt-oss-120b",
+   "in": 3809,
+   "out": 105,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 588
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 454,
+   "error": "HTTP 502"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1140,
+   "error": "ElevenLabs refused the request."
+  },
+  {
+   "kind": "api",
+   "source": "groq-whisper",
+   "op": "stt",
+   "ok": true,
+   "model": "whisper-large-v3-turbo",
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 598
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 507
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 641
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 7,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 564
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1141,
+   "error": "OpenRouter HTTP 402: This request requires more credits, or fewer max_tokens. You requested up to 16384 tokens, but can only afford 463. To increase, visit https://openrouter.ai/settings/credits and u"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1156,
+   "error": "Groq failed 413: Request too large for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 12841, pl"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": true,
+   "model": "openai/gpt-oss-120b",
+   "in": 4237,
+   "out": 39,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1010
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 533,
+   "error": "ElevenLabs refused the request."
+  },
+  {
+   "kind": "api",
+   "source": "groq-whisper",
+   "op": "stt",
+   "ok": true,
+   "model": "whisper-large-v3-turbo",
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1013
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1094,
+   "error": "Groq failed 413: Request too large for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 12868, pl"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": true,
+   "model": "openai/gpt-oss-120b",
+   "in": 3966,
+   "out": 145,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1092
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1121,
+   "error": "OpenRouter HTTP 402: This request requires more credits, or fewer max_tokens. You requested up to 700 tokens, but can only afford 463. To increase, visit https://openrouter.ai/settings/credits and upg"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": true,
+   "model": "openai/gpt-oss-120b",
+   "in": 1511,
+   "out": 385,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1619
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 595,
+   "error": "ElevenLabs refused the request."
+  },
+  {
+   "kind": "api",
+   "source": "groq-whisper",
+   "op": "stt",
+   "ok": true,
+   "model": "whisper-large-v3-turbo",
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 563
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1106,
+   "error": "Groq failed 413: Request too large for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 13028, pl"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 609,
+   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5753, Request"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 551,
+   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5671, Request"
+  },
+  {
+   "kind": "ai",
+   "source": "GitHub Models",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1019,
+   "error": "GitHub Models HTTP 502: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"provider\":\"githubModels\",\"error\":\"Upstream answered 2xx without a JSON completion; refusing to report it as one.\",\"upstreamStatu"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1120,
+   "error": "ElevenLabs refused the request."
+  },
+  {
+   "kind": "api",
+   "source": "groq-whisper",
+   "op": "stt",
+   "ok": true,
+   "model": "whisper-large-v3-turbo",
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 605
+  }
+ ]
+}

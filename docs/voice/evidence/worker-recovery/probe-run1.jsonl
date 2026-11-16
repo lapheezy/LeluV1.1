@@ -1,0 +1,6 @@
+{"phase": "start", "t": 0.0, "rssGiB": 0.01, "peakGiB": 0.01, "pid": 1344}
+{"phase": "torch_imported", "t": 1.6, "rssGiB": 0.24, "peakGiB": 0.24, "threads": 4}
+{"phase": "reference_ready", "t": 1.6, "rssGiB": 0.25, "peakGiB": 0.25, "reference": "/home/user/LeluV1.1/.voxcpm/reference-9ac99650243c-12s.wav"}
+{"phase": "model_loaded", "t": 20.7, "rssGiB": 6.28, "peakGiB": 10.85, "loadSeconds": 17.7, "sampleRate": 48000}
+{"phase": "generated", "t": 38.0, "rssGiB": 6.05, "peakGiB": 10.85, "bytes": 353324, "out": "/home/user/LeluV1.1/.voxcpm/evidence/probe.wav", "cached": false, "ms": 17312, "audioSeconds": 3.68, "rtf": 4.7}
+exit=0

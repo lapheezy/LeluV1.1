@@ -24,10 +24,13 @@ repo even if `.env` itself is ever recreated.
 | `VITE_MISTRAL_API_KEY` | Mistral — fallback #3 | yes |
 | `VITE_MISTRAL_MODEL` | Mistral model override | no |
 | `VITE_FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
-| `VITE_FIREWORKS_MODEL` | Fireworks model override | no |
+| `VITE_FIREWORKS_MODEL` | Fireworks chat model override | no |
+| `FIREWORKS_CODING_MODEL` | Fireworks model for coding turns. Default `accounts/fireworks/models/kimi-k3p1-pro` (serverless). `accounts/fireworks/models/kimi-k2p7-code` works only once you have a dedicated Fireworks deployment of it | no |
+| `VITE_CODING_PROVIDER` | Provider that leads coding (engineering) turns. Default `fireworks` | no |
+| `LELU_ENABLE_ANTHROPIC` | `true` opts in to Anthropic (chat + managed engineering agent). **Default off**: Anthropic is unavailable and never a fallback | no |
 | `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
-| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — fallback #6 | yes |
+| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — only used when `LELU_ENABLE_ANTHROPIC=true` | yes |
 | `VITE_ANTHROPIC_MODEL` | Anthropic model override | no |
 | `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models | no |
 
@@ -111,9 +114,8 @@ Endpoints (same-origin by default, no credentials):
   happened to be bundled at build time.
 
 Safety model: command whitelist + workspace path boundary + origin
-guard + optional `LELU_ENGINEER_TOKEN` (when set, POSTs must carry
-`x-lelu-token`; the app reports `token required` honestly if it is
-missing).
+guard + a **required** access token (`LELU_ENGINEER_TOKEN`), enforced
+fail-closed by `plugins/engineerAuth.ts`.
 
 ### Connecting a deployed front-end to a real development runtime
 
@@ -130,7 +132,7 @@ To point a deployed front-end at a real runtime instead:
 | --- | --- | --- |
 | `VITE_LELU_ENGINEER_URL` | client | Base URL of the engineering runtime. Empty (default) means same origin. |
 | `VITE_LELU_ENGINEER_TOKEN` | client | Sent as `x-lelu-token`. Required only when the runtime sets `LELU_ENGINEER_TOKEN`. |
-| `LELU_ENGINEER_TOKEN` | server | When set, every POST must carry the matching token. |
+| `LELU_ENGINEER_TOKEN` | server | **Required.** Unset ⇒ the whole engineering runtime is DISABLED: every `/api/engineer/*` route and `/api/browser/capture` answers `503`. That is the correct state on a public host. |
 | `LELU_ENGINEER_ALLOWED_ORIGINS` | server | Comma-separated exact origins (or `*`) permitted to call cross-origin. **Empty by default — same-origin only.** |
 
 `LELU_ENGINEER_ALLOWED_ORIGINS` is what makes the cross-origin case work
@@ -160,12 +162,34 @@ the standalone runtime:
 - allowlisted origin + token → `200`
 - CORS headers are echoed only for an allowlisted origin
 
-`GET /api/engineer/status` stays reachable without a token, because a
-client has to be able to discover whether a runtime exists and whether a
-token is required before it can present one. When a token IS configured,
-an unauthenticated probe gets only the capability fields — the absolute
-`workspaceRoot` and the `runtimeInfo` engine/version/cwd details are
-returned only to a caller that already holds the token.
+`GET /api/engineer/status` is token-gated like every other route. A
+client that has no token gets `401` with `tokenRequired: true` and
+nothing else — no workspace path, no operation list, no engine or
+version. All capability detail (including `workspaceRoot` and
+`runtimeInfo`) is returned only to a caller that presents the token.
+
+With `LELU_ENGINEER_TOKEN` **unset** every route answers `503` and
+reports `disabled: true`. Fail-closed is the default on purpose: this
+surface reads source, runs commands, spawns preview servers and drives
+a headless browser, so a host that has not configured a token must
+expose none of it instead of all of it.
+
+There is **no loopback exemption.** Behind a reverse proxy every
+request arrives from `127.0.0.1`, so exempting local addresses would
+be a total bypass on exactly the deployment this protects.
+
+**Working locally.** The token is required in development too, so a
+development shell needs the pair in `.env.local` (never committed):
+
+```
+LELU_ENGINEER_TOKEN=dev-local-only
+VITE_LELU_ENGINEER_TOKEN=dev-local-only
+```
+
+The client value must be present at **build** time (`VITE_` names are
+inlined by Vite); the server value is read at run time. They must
+match. Only the `VITE_` name reaches the browser — `scripts/verify-bundle-secrets.ts`
+asserts the server-side name never does.
 
 Fires are real NASA VIIRS NRT hotspots via the FIRMS area CSV API
 (bbox-bounded around the camera focus, with acquisition timestamps,
@@ -260,6 +284,9 @@ instance, a gateway, or a proxy.
 | `OPENALEX_API_URL` | `https://api.openalex.org` |
 | `GDELT_API_URL` | `https://api.gdeltproject.org` |
 | `HACKERNEWS_API_URL` | `https://hn.algolia.com/api/v1` |
+| `DICTIONARY_API_URL` | `https://api.dictionaryapi.dev` |
+| `OPENLIBRARY_API_URL` | `https://openlibrary.org` |
+| `FRANKFURTER_API_URL` | `https://api.frankfurter.dev` |
 | `MESHY_API_URL` | `https://api.meshy.ai` |
 
 ### All endpoints have consumers
@@ -343,6 +370,46 @@ sends. Below Anthropic's minimum cacheable length the marker is ignored;
 above it, measured on a 3163-token context, a follow-up turn billed 13
 fresh input tokens instead of 3163.
 
+### Anthropic request behaviour
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `ANTHROPIC_MODEL` / `VITE_ANTHROPIC_MODEL` | `claude-opus-5-5` | Model id for every Anthropic call. |
+| `ANTHROPIC_REFUSAL_FALLBACK` | on | `off` stops sending `fallbacks: "default"` + `anthropic-beta: server-side-fallback-2026-07-01`. Only sent for models that take it (Opus 5 / 5.5, Fable 5.1, Sonnet 5.5). Bridged to the page — a switch, not a secret. |
+| `LELU_BROKER_RATE_PER_MIN` | `120` | Credentialed broker requests per client address per minute; `0` disables. Over the limit: `429` + `Retry-After`. |
+
+What the provider does with each kind of reply (`src/providers/AnthropicProvider.ts`,
+pinned by `tests/anthropic-integration.test.ts`):
+
+- **Sampling params** (`temperature`) are sent only to models that still accept
+  them (Claude 3.x and the 4.0–4.6 family). Current models reject them with a 400.
+- **429 / 529 / 5xx / 408 / 409** are retried up to twice on Anthropic itself
+  (honouring `retry-after`, capped at 8s) before the fallback chain moves on.
+  400/401/403/404 are not retried. A timeout is not retried.
+- **`stop_reason: "refusal"`** is returned as LÉLU's answer, not thrown. A throw
+  would send the same request to the next vendor in the chain. A streamed
+  refusal replaces the partial text on screen.
+- **`stop_reason: "max_tokens"` during a tool call**: the last (truncated) call
+  is dropped and never executed (`metadata.truncatedToolCall` names it).
+- **Tool loop replay**: an assistant tool turn is replayed from its raw blocks
+  (`AIResponse.providerBlocks`), so thinking blocks survive between rounds.
+  History is sent back unchanged on every round, including the closing round
+  where the router withholds tools (verified live: the API accepts that).
+- **Streams**: `stop_reason` and final usage are read from `message_delta`. An
+  `error` event fails the turn (the chain moves on) instead of returning partial
+  text as a finished answer.
+
+The broker forwards one page-supplied header for Anthropic, `anthropic-beta`,
+and only when its value is a comma-separated list of beta names. It aborts the
+upstream request when the client disconnects, so an abandoned stream stops
+billing.
+
+The origin check stops other websites from driving the broker through a
+visitor's browser. It cannot stop a non-browser client on the network, which
+can forge `Origin`. The rate limit caps what such a client can spend. Real
+protection for a server exposed beyond localhost means putting authentication
+in front of `/api/model/*`. That is not implemented here.
+
 ---
 
 ## Model credentials are server-owned
@@ -364,7 +431,7 @@ process environment, first match wins:
 
 | Provider | Environment names (in order) |
 | --- | --- |
-| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
+| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `LELU_ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
 | `groq` | `VITE_GROQ_API_KEY`, `GROQ_API_KEY` |
 | `openrouter` | `VITE_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`, `OPEN_ROUTER_API_KEY` |
 | `cerebras` | `VITE_CEREBRAS_API_KEY`, `CEREBRAS_API_KEY` |
@@ -380,7 +447,9 @@ Setting the unprefixed name is preferable and does the same thing.
 
 Note `ANTHROPIC_API_KEY` is reserved by some hosting runtimes (a managed
 Claude Code container strips it, since it is what the session itself
-authenticates with). Where that applies, use `VITE_ANTHROPIC_API_KEY`.
+authenticates with). Where that applies, use `LELU_ANTHROPIC_API_KEY`: it is
+read by the same broker and, having no `VITE_` prefix, is never exposed by the
+Vite dev server.
 
 ### Verifying without exposing anything
 
@@ -404,3 +473,35 @@ Supabase SERVICE ROLE key is never bridged.
 Knowledge/data providers (news, YouTube, Geoapify, Guardian, NewsData, NASA)
 still read their keys in the browser. They call those APIs directly from the
 page and have no broker; moving them behind one is a separate change.
+
+## 3D Forge (Meshy) — server-owned
+
+Character and asset generation runs through `plugins/meshyForge.ts`, mounted at
+`/api/forge` by both `vite.config.ts` (dev/preview) and `server.ts`. It is the
+only code that holds the Meshy credential; the page talks to `/api/forge` and
+never sees it. (Before this, avatar reconstruction called Meshy from the
+browser with `VITE_MESHY_API_KEY`, and the runtime key bridge published
+`MESHY_API_KEY` into every page. Both paths are gone.)
+
+| Variable | Purpose | Without it |
+|---|---|---|
+| `MESHY_API_KEY` (or `MESHY_API`) | Meshy API key (paid plan). Read server-side only. | Jobs can be planned and priced; approving one fails with "MESHY_API_KEY is not set on the server". |
+| `MESHY_API_URL` | API base, default `https://api.meshy.ai` | Default is used |
+| `FORGE_ASSET_ROOT` | Where references, outputs and the ledger live, default `leluverse/assets` | Default is used |
+| `FORGE_AUTO_APPROVE_CREDITS` | Jobs estimated at or under this many credits submit without approval. Default `0`: every spend is approved. | Every job waits for approval |
+
+`VITE_MESHY_API_KEY` is still read as a fallback name so an existing setup
+keeps working, but `/api/forge/status` reports it with a warning: Vite's dev
+server exposes every `VITE_` variable to the page. Rename it and rotate it.
+
+Deno (`main.ts`) does not mount the Forge: its ledger and asset store are
+files on disk, and a Deno Deploy filesystem is read-only.
+
+### Supabase keys: what is accepted
+
+- `SUPABASE_PUBLISHABLE_KEY` (and its aliases) must be a **publishable** key (`sb_publishable_…`) or a legacy **anon** JWT.
+- Admin credentials are refused and are never written into the page:
+  - `sbp_…` personal access tokens
+  - `sb_secret_…` keys
+  - `service_role` JWTs
+- When nothing usable is set, the project's public URL and publishable key in `src/core/config/supabasePublic.ts` apply. They are only used as a pair.

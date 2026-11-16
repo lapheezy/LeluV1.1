@@ -201,7 +201,7 @@ async function setup(name, viewport) {
 /* -------------------- phone: composer, chip, keyboard focus -------------------- */
 {
   const name = "phone";
-  const { browser, page, errors, shot, dismiss, open, waitFor, setFocus } = await setup(name, { width: 390, height: 844 });
+  const { browser, page, errors, shot, dismiss, open, setFocus } = await setup(name, { width: 390, height: 844 });
   // Layout check only: an artifact and a selection are set up directly
   // (the flow above is where she produces and changes them).
   await page.evaluate(async () => {

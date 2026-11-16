@@ -1,0 +1,139 @@
+{
+  "opa": {
+    "available": true,
+    "version": "Version: 1.22.2",
+    "detail": "OPA Version: 1.22.2 with /workspace/chats/1fb0099bf53a9ab2f6fe75bd/policies/lelu"
+  },
+  "decisions": [
+    {
+      "case": "read own file",
+      "action": "READ",
+      "engine": "opa",
+      "allowed": true,
+      "requiresApproval": false,
+      "risk": "low",
+      "rule": "permitted",
+      "reason": "Permitted: user may READ file \"file:src/App.tsx\" at autonomy 3.",
+      "referenceAllowed": true,
+      "agrees": true,
+      "durationMs": 29
+    },
+    {
+      "case": "write own file",
+      "action": "WRITE",
+      "engine": "opa",
+      "allowed": true,
+      "requiresApproval": false,
+      "risk": "medium",
+      "rule": "permitted",
+      "reason": "Permitted: user may WRITE file \"file:src/App.tsx\" at autonomy 3.",
+      "referenceAllowed": true,
+      "agrees": true,
+      "durationMs": 25
+    },
+    {
+      "case": "write at observe level",
+      "action": "WRITE",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "medium",
+      "rule": "deny_autonomy",
+      "reason": "WRITE requires autonomy level 2; the current level is 0.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 25
+    },
+    {
+      "case": "delete without approval",
+      "action": "DELETE",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "critical",
+      "rule": "deny_autonomy",
+      "reason": "DELETE requires autonomy level 4; the current level is 3.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 23
+    },
+    {
+      "case": "delete with approval",
+      "action": "DELETE",
+      "engine": "opa",
+      "allowed": true,
+      "requiresApproval": true,
+      "risk": "critical",
+      "rule": "permitted",
+      "reason": "Permitted: user may DELETE file \"file:src/App.tsx\" at autonomy 5.",
+      "referenceAllowed": true,
+      "agrees": true,
+      "durationMs": 24
+    },
+    {
+      "case": "administer as agent",
+      "action": "ADMINISTER",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "critical",
+      "rule": "deny_agent_action",
+      "reason": "An agent may not ADMINISTER — only the user may.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 26
+    },
+    {
+      "case": "agent self-elevation",
+      "action": "READ",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "low",
+      "rule": "deny_self_elevation",
+      "reason": "An agent may never elevate its own privileges.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 25
+    },
+    {
+      "case": "cross-user write",
+      "action": "WRITE",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "medium",
+      "rule": "deny_cross_user",
+      "reason": "Cross-user access refused: file \"file:theirs.ts\" belongs to another user.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 26
+    },
+    {
+      "case": "device access without relationship",
+      "action": "ACCESS_EXTERNAL_DEVICE",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "high",
+      "rule": "deny_device_relationship",
+      "reason": "Device access refused: no authorized relationship to that device.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 25
+    },
+    {
+      "case": "production deploy without approval",
+      "action": "DEPLOY",
+      "engine": "opa",
+      "allowed": false,
+      "requiresApproval": false,
+      "risk": "critical",
+      "rule": "deny_deploy_approval",
+      "reason": "Deployment refused: no human approval covers this call.",
+      "referenceAllowed": false,
+      "agrees": true,
+      "durationMs": 26
+    }
+  ]
+}

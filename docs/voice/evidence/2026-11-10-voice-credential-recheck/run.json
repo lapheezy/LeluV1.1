@@ -1,0 +1,24 @@
+{
+  "milestone": "voice credential recheck (numbered platform secrets + ElevenLabs slot rotation)",
+  "measured": "2026-11-10",
+  "method": "bunx vite --host 0.0.0.0 --port 5173, then real HTTP requests; per-key upstream calls with tsx",
+  "secrets": "names, lengths and provider-reported counts only — no values recorded",
+  "platform_secrets": { "Elevenlabs": 51, "Elevenlabs2": 51, "Elevenlabs3": 51, "Groq1..3": 56, "Openrouter1..3": 73 },
+  "credential_auth": {
+    "groq": "GROQ_API_KEY, GROQ_API_KEY_2, GROQ_API_KEY_3 -> HTTP 200 each",
+    "openrouter": "OPENROUTER_API_KEY, OPENROUTER_API_KEY_2, OPENROUTER_API_KEY_3 -> HTTP 200 each",
+    "elevenlabs": "all three keys -> HTTP 200 /v1/user/subscription"
+  },
+  "elevenlabs_characters": { "Elevenlabs": "10000/10000", "Elevenlabs2": "0/10000", "Elevenlabs3": "0/10000" },
+  "routes": {
+    "GET /api/voice/status": { "configured": true, "stt": true, "voiceId": "cgSgspJ2msm6clMCkdW9", "modelId": "eleven_v3" },
+    "GET /api/model/status": { "groq": "CONFIGURED", "openrouter": "CONFIGURED", "githubModels": "CONFIGURED" },
+    "POST /api/voice/tts": [
+      { "http": 200, "contentType": "audio/mpeg", "bytes": 82798, "characterCost": 57, "rotation": "spent account refused once, fresh account spoke" },
+      { "http": 200, "contentType": "audio/mpeg", "bytes": 71514, "characterCost": 57 }
+    ]
+  },
+  "checks": { "tsc -b --force": 0, "tests": "71/71 across voice, bare-secret-aliases, provider-key-ring, config-status" },
+  "samples": ["tts-sample-1.mp3", "tts-sample-2.mp3"],
+  "not_verified": "audible playback through the app UI and the Playwright harness (no /opt/pw-browsers/chromium, no audio device)"
+}

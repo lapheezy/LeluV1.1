@@ -32,6 +32,7 @@ import AgentEventBus, {
 } from "../../../core/agent/AgentEvents";
 import { genesisTheme } from "./GenesisTheme";
 import { ownerForTask } from "../../../core/multichat/TurnOwnership";
+import ApprovalGate from "../../../core/agentic/ApprovalGate";
 
 /* --------------------------- bounded store --------------------------- */
 
@@ -446,6 +447,35 @@ export default function GenesisExecutionTimeline({ conversationId, approvalsOnly
           },
         ]);
       }
+    }
+
+    // A consent point is DURABLE in ApprovalGate, but this view only replayed
+    // the event ring buffer — so a request older than the last 40 events was
+    // never rendered. A pending approval that is not on screen cannot be
+    // given, and the task waits forever while the chat says "waiting for your
+    // approval" with no control to give it. Seed from the gate itself: same
+    // cards, same bus, one source of truth (the gate), no second approval path.
+    for (const request of ApprovalGate.getInstance().pending() as Array<{
+      id: string;
+      taskId: string;
+      title?: string;
+      detail?: string;
+      systemsAffected?: string[];
+    }>) {
+      if (conversationId) {
+        const owner = ownerForTask(request.taskId);
+        if (owner !== null && owner !== conversationId) continue;
+      }
+      setApprovals((current) => [
+        ...current.filter((a) => a.approvalId !== request.id),
+        {
+          approvalId: request.id,
+          taskId: request.taskId,
+          title: request.title ?? "Approve this step?",
+          detail: request.detail ?? "",
+          systemsAffected: request.systemsAffected ?? [],
+        },
+      ]);
     }
 
     return bus.subscribe((event) => {

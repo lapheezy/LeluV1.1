@@ -1,0 +1,51 @@
+{
+ "viewport": "360x640",
+ "at": "2026-11-08T04:57:44.946Z",
+ "touch": true,
+ "input": "real CDP touch events (touchStart → touchMove × 12 → touchEnd)",
+ "persistence": "page.reload() in the SAME tab: the renderer is destroyed and recreated by the app itself, never a second live canvas",
+ "steps": [
+  "tap studio: Studio"
+ ],
+ "checks": {
+  "openedVia": "studio:Studio",
+  "opened": {
+   "x": 16,
+   "y": 50,
+   "w": 328,
+   "h": 540
+  },
+  "canvasesBefore": 1,
+  "chrome": {
+   "x": 180,
+   "y": 72,
+   "w": 326,
+   "h": 41
+  },
+  "pointerEvents": {
+   "down": 1,
+   "move": 12,
+   "up": 1
+  },
+  "drag": {
+   "before": {
+    "x": 16,
+    "y": 50,
+    "w": 328,
+    "h": 540
+   },
+   "after": {
+    "x": 16,
+    "y": 50,
+    "w": 328,
+    "h": 540
+   },
+   "dx": 0,
+   "dy": 0,
+   "settledMs": 60151
+  },
+  "counter": "0 placed · 0 pinned",
+  "pinned": null
+ },
+ "errors": []
+}

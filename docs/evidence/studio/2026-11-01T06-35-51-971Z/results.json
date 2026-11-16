@@ -1,0 +1,266 @@
+{
+  "stamp": "2026-11-01T06-35-51-971Z",
+  "origin": "http://127.0.0.1:5199",
+  "health": {
+    "ok": true,
+    "runtime": "studio",
+    "root": ".lelu-studio",
+    "templates": [
+      "application",
+      "game",
+      "website"
+    ],
+    "capabilities": {
+      "node": true,
+      "godot": false,
+      "unity": false,
+      "unreal": false,
+      "headlessBrowser": true
+    }
+  },
+  "demos": [
+    {
+      "slug": "aurora-site",
+      "files": 7,
+      "notes": []
+    },
+    {
+      "slug": "pulse-board",
+      "files": 8,
+      "notes": []
+    },
+    {
+      "slug": "rift-runner-3d",
+      "files": 9,
+      "notes": [
+        "The character card uses Session 3B's real reference image; the rigged GLB is still awaiting Meshy approval."
+      ]
+    }
+  ],
+  "builds": {
+    "aurora-site": {
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 119,
+      "output": "built aurora-site: 8 files, 28.5 KB source, 2 referenced assets verified",
+      "artifact": "dist",
+      "bytes": 30011,
+      "timedOut": false,
+      "version": {
+        "files": 7,
+        "bytes": 29211,
+        "hash": "7e03838a"
+      }
+    },
+    "pulse-board": {
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 145,
+      "output": "built pulse-board: 5 files, 14.8 KB, backend imports and serves 3 checked routes",
+      "artifact": "dist",
+      "bytes": 15682,
+      "timedOut": false,
+      "version": {
+        "files": 8,
+        "bytes": 30620,
+        "hash": "d70a30d0"
+      }
+    },
+    "rift-runner-3d": {
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 117,
+      "output": "built rift-runner-3d: 8 files, 3.25 MB, three.js 0.62 MB verified, 5 obstacles / 4 shards in the real world",
+      "artifact": "dist",
+      "bytes": 3407016,
+      "timedOut": false,
+      "version": {
+        "files": 9,
+        "bytes": 3414651,
+        "hash": "b11ea7c6"
+      }
+    }
+  },
+  "tests": {
+    "aurora-site": {
+      "ok": true,
+      "exitCode": 0,
+      "passed": 0,
+      "failed": 0,
+      "durationMs": 312,
+      "output": "✔ filterProjects returns only matching projects (2.095219ms)\n✔ filterProjects treats all and unknown filters as everything (0.311795ms)\n✔ filterProjects does not mutate its input (0.244659ms)\n✔ describeCount reports singular and plural honestly (0.223038ms)\n✔ validateContact accepts a complete brief (0.51683ms)\n✔ validateContact names every field that is wrong (0.402374ms)\n✔ validateContact rejects a blank form and trims whitespace (0.240601ms)\n✔ theme toggles between two values and is labelled (0.20823ms)\n✔ confirmation uses the person's name when there is one (0.288911ms)\nℹ tests 9\nℹ suites 0\nℹ pass 9\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 133.615948",
+      "timedOut": false
+    },
+    "pulse-board": {
+      "ok": true,
+      "exitCode": 0,
+      "passed": 0,
+      "failed": 0,
+      "durationMs": 336,
+      "output": "✔ health reports the service without inventing data (32.438048ms)\n✔ creating a task persists it and returns an id (9.430317ms)\n✔ the core workflow moves a task across every lane (12.720988ms)\n✔ lane filtering is done by the backend, not the browser (4.047992ms)\n✔ invalid input is refused with a named reason (4.185359ms)\n✔ unknown tasks and routes are 404, not silent successes (2.635733ms)\n✔ deleting a task removes it from the store (2.836079ms)\n✔ stats are computed from the real task list (0.874249ms)\n✔ validation is pure and reports every problem (0.235713ms)\nℹ tests 9\nℹ suites 0\nℹ pass 9\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 214.220052",
+      "timedOut": false
+    },
+    "rift-runner-3d": {
+      "ok": true,
+      "exitCode": 0,
+      "passed": 0,
+      "failed": 0,
+      "durationMs": 241,
+      "output": "✔ a new run starts at the spawn with every shard uncollected (6.450178ms)\n✔ the spawn point and world edge behave consistently (0.336602ms)\n✔ circle/rectangle collision is exact at the boundary (0.228138ms)\n✔ moving into a pillar is refused and counted as a collision (0.304651ms)\n✔ movement slides along a wall instead of sticking (0.287219ms)\n✔ walking onto a shard collects it and hides the dialogue (0.359995ms)\n✔ the gate opens only when all four shards are collected (0.295234ms)\n✔ talking to the Keeper gives real progress, and talking to air does nothing (0.396263ms)\n✔ reaching the open gate wins, and a won run stops accepting input (0.472056ms)\n✔ a frame of movement is bounded by dt, so a slow tab cannot teleport (0.64476ms)\n✔ every obstacle is inside the world and actually blocks its centre (0.286677ms)\nℹ tests 11\nℹ suites 0\nℹ pass 11\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 148.949106",
+      "timedOut": false
+    }
+  },
+  "deployment": {
+    "ok": true,
+    "status": "prepared",
+    "environment": "production",
+    "target": ".lelu-studio/aurora-site/deploy/production",
+    "note": "Prepared only. No STUDIO_PUBLISH_TARGET is configured, so nothing was published to a live host."
+  },
+  "approval": {
+    "id": "approval-ee5b38b8",
+    "slug": "aurora-site",
+    "action": "production-deploy",
+    "reason": "Publish the verified build of the Aurora site to the production host.",
+    "scope": [],
+    "requestedAt": 1793514955038,
+    "expiresAt": 1793515855038,
+    "status": "approved",
+    "decidedAt": 1793514955043,
+    "decidedBy": "owner@example.com"
+  },
+  "results": [
+    {
+      "name": "dev server becomes reachable",
+      "ok": true,
+      "detail": "http://127.0.0.1:5199"
+    },
+    {
+      "name": "studio runtime reports itself",
+      "ok": true,
+      "detail": "studio"
+    },
+    {
+      "name": "all three templates are present",
+      "ok": true,
+      "detail": "application, game, website"
+    },
+    {
+      "name": "the three demonstration projects are written to disk",
+      "ok": true,
+      "detail": "aurora-site:7 pulse-board:8 rift-runner-3d:9"
+    },
+    {
+      "name": "website builds (exit 0)",
+      "ok": true,
+      "detail": "30011 B"
+    },
+    {
+      "name": "website tests pass",
+      "ok": false,
+      "detail": "0/0"
+    },
+    {
+      "name": "website preview serves the real built page",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "website preview serves its stylesheet",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "application builds (exit 0)",
+      "ok": true,
+      "detail": "15682 B"
+    },
+    {
+      "name": "application tests pass against its real HTTP server",
+      "ok": false,
+      "detail": "0/0"
+    },
+    {
+      "name": "application preview serves its UI",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "the application's real backend is reached through the preview",
+      "ok": false,
+      "detail": "HTTP 404"
+    },
+    {
+      "name": "the backend's stats reflect the created task",
+      "ok": false,
+      "detail": "total 0"
+    },
+    {
+      "name": "3D game builds (exit 0)",
+      "ok": true,
+      "detail": "3407016 B"
+    },
+    {
+      "name": "3D game world logic tests pass",
+      "ok": false,
+      "detail": "0/0"
+    },
+    {
+      "name": "game preview serves the real built game",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "vendored three.js is served for offline play",
+      "ok": true,
+      "detail": "650153 chars"
+    },
+    {
+      "name": "Session 3B's character card is in the build",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "asset pipeline reports unrun Mesh jobs honestly",
+      "ok": true,
+      "detail": "forge-c4c1e9c2, forge-ca8f7b98"
+    },
+    {
+      "name": "production deployment is refused without human approval",
+      "ok": true,
+      "detail": "Production deployment needs a live human approval for this project. No approval "
+    },
+    {
+      "name": "an approval can be requested for a protected action",
+      "ok": true,
+      "detail": "approval-ee5b38b8"
+    },
+    {
+      "name": "an approval cannot be granted without the person's explicit confirmation",
+      "ok": true,
+      "detail": "An approval can only be decided by the person, through the Studio pane"
+    },
+    {
+      "name": "a person can approve it",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "an approved production deployment is prepared, with a real manifest",
+      "ok": true,
+      "detail": ".lelu-studio/aurora-site/deploy/production · Prepared only. No STUDIO_PUBLISH_TARGET is configured, so nothing was publi"
+    },
+    {
+      "name": "the deployment manifest records the approving person and the files",
+      "ok": false,
+      "detail": "8 files"
+    },
+    {
+      "name": "a credential in frontend source is refused",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "passed": 20,
+  "failed": 6
+}

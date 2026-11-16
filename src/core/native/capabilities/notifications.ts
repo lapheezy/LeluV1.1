@@ -13,6 +13,7 @@
  * ==========================================================
  */
 
+import { assetUrl } from "../../env/buildEnv";
 import type { NativeCapability, PermissionState } from "../NativeCapability";
 import { hasNotificationApi, notificationPermissionState } from "./helpers";
 
@@ -66,7 +67,7 @@ export const notificationsCapability: NativeCapability = {
     new Notification(title, {
       body,
       tag,
-      icon: `${import.meta.env.BASE_URL}apple-touch-icon.png`,
+      icon: assetUrl("apple-touch-icon.png"),
     });
     return { ok: true, state: "authorized", result: { shown: true, title } };
   },

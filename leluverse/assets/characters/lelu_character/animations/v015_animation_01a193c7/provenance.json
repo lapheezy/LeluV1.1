@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3ndk_b34dde",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: hand_on_hip",
+  "meshyTaskId": "01a193c7-a99f-773e-9b90-c96ba63b19a0",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 315
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480698666,
+  "finishedAt": 1793480756732
+}

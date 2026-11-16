@@ -35,10 +35,24 @@ import WorldLifecycle from "../app/scene/genesis/engines/WorldLifecycle";
 import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
+import { registerForgeTools } from "./forge/ForgeTools";
+import { registerWorldTools } from "./world/WorldTools";
+import { registerAgenticTools } from "./agentic/AgenticTools";
+import { registerInterfaceTools } from "./interface/InterfaceTools";
+import { registerEnvironmentTools } from "./orchestrator/EnvironmentTools";
+import { registerStudioTools } from "./studio/StudioTools";
+import { registerAtelierTools } from "./atelier/AtelierTools";
+import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
+import { registerCosmosObjectTools } from "./cosmos/objects/CosmosObjectTools";
+import { registerCosmosTools } from "./cosmos/CosmosTools";
+import { registerInterfaceCompositionTools } from "./interface/InterfaceCompositionTools";
+import { registerNeuralMapTools } from "./neural/NeuralMapTools";
+import { connectNeuralMap } from "./neural/connectNeuralMap";
+import TaskExecutor from "./agentic/TaskExecutor";
+import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
-import AnthropicEngineeringAgent from "./engineering/AnthropicEngineeringAgent";
 
 // -- types ---------------------------------------------------------------
 
@@ -179,6 +193,52 @@ export default class Bootstrap {
       const tasks = TaskEngine.getInstance();
       // Earth Core tool registry (spatial capabilities for cognition)
       registerEarthTools();
+      // 3D Forge (character/asset generation through the server-side Meshy broker)
+      registerForgeTools();
+      registerWorldTools();
+      // Capability ledger (server authority shared by every session/device):
+      // applies its cached snapshot, then hydrates. Loaded lazily — no
+      // cold-start cost beyond a dynamic import.
+      void import("./acquisition/CapabilityLedgerClient").then((m) => m.default.getInstance().init()).catch(() => undefined);
+      // Agency: capability discovery, delegation, multi-step tasks,
+      // approvals, reflection. Tasks cut off by the last shutdown are
+      // marked paused (resumable) rather than left "running" forever.
+      registerAgenticTools();
+      // Interface orchestration: LÉLU inspects, designs and previews her own
+      // environment (windows, typography, themes, 3D Cosmos); the user
+      // approves before anything is applied.
+      registerInterfaceTools();
+      // Session 02 environment orchestration: compose, present, mutate and
+      // manage real workspaces through the same tool table.
+      registerEnvironmentTools();
+      // Creation Studio: documents, presentations and spreadsheets made,
+      // revised, exported (and verified from the written bytes) in chat.
+      registerStudioTools();
+      // Atelier: research-to-production design (directions, BOM, drawings,
+      // 3D models, dossiers), every file verified from its bytes.
+      registerAtelierTools();
+      // Creative kit + public data: generative art, Mermaid, interactive
+      // charts, three.js scenes → GLB, films → WebM, public no-key data,
+      // device capabilities and the tool capability catalog.
+      registerCreativeKitTools();
+      // Cosmos objects: a construction becomes an independent object in the
+      // scene, locally, with no model call per move.
+      registerCosmosObjectTools();
+      // Cosmos: the navigable map and the workspace API, offered through the
+      // same dispatcher/gate/approval path as every other tool.
+      registerCosmosTools();
+      // Interfaces (Mission 17): list, open and compose LÉLU's interfaces —
+      // Cosmos, her Room, the System UI, the original LÉLU — as tools.
+      registerInterfaceCompositionTools();
+      // The Neural Map (M17.2): one index over the Cosmos authorities, kept
+      // live by their own change notifications, readable as tools.
+      registerNeuralMapTools();
+      connectNeuralMap();
+      const interrupted = TaskExecutor.getInstance().recoverInterrupted();
+      if (interrupted.length) {
+        console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);
+      }
+      DailyReflection.getInstance().start();
       // Recompute ToolRegistry availability from real runtime state
       // (autonomy gate, GitHub connection, device features) — it was
       // previously a catalog of hardcoded booleans nobody ever checked.
@@ -189,16 +249,28 @@ export default class Bootstrap {
       // key that starts the session, and a repository token for the clone.
       // Declaring it available without them would put a capability in the
       // catalogue that fails the moment cognition tries to use it.
-      try {
-        const engineering = AnthropicEngineeringAgent.getInstance().availability();
-        ToolRegistry.getInstance().updateAvailability("engineering.remote", engineering.available);
-        if (!engineering.available) {
-          console.info("[Bootstrap] Remote engineering agent unavailable —", engineering.reason);
-        }
-      } catch (error) {
-        ToolRegistry.getInstance().updateAvailability("engineering.remote", false);
-        console.warn("[Bootstrap] Remote engineering availability check failed (contained)", error);
-      }
+      /*
+       * Deferred, not imported: this module is 175 KB (measured with
+       * scripts/measure-boot-graph.mjs) and startup needs exactly one boolean
+       * from it — whether the remote engineering capability can run. Loading
+       * it before first paint spent that download on every launch, including
+       * the launches that never use remote engineering. The flag is still set,
+       * a moment later, from the same real availability() call.
+       */
+      void import("./engineering/AnthropicEngineeringAgent")
+        .then(({ default: AnthropicEngineeringAgent }) => {
+          try {
+            const engineering = AnthropicEngineeringAgent.getInstance().availability();
+            ToolRegistry.getInstance().updateAvailability("engineering.remote", engineering.available);
+            if (!engineering.available) {
+              console.info("[Bootstrap] Remote engineering agent unavailable —", engineering.reason);
+            }
+          } catch (error) {
+            ToolRegistry.getInstance().updateAvailability("engineering.remote", false);
+            console.warn("[Bootstrap] Remote engineering availability check failed (contained)", error);
+          }
+        })
+        .catch(() => ToolRegistry.getInstance().updateAvailability("engineering.remote", false));
       steps.push(step("services", "DONE",
         `OK — ${tasks.list().length} tasks, proactive + background engines started`));
     } catch (error) {

@@ -1,0 +1,12 @@
+Run on ea8c11c (final Phase 6 code), 2026-11-05T20:24:17Z. Each file: tsx --tsconfig tsconfig.app.json --test, 150 s cap.
+tsc -b exit=0
+proposal-engineering exit=0 # pass 6 # fail 0 
+workspace-baseline exit=0 # pass 2 # fail 0 
+engineering-workspace exit=0 # pass 14 # fail 0 
+engineering-agent exit=0 # pass 3 # fail 0 
+development-loop exit=0 # pass 44 # fail 0 
+ui-truthfulness exit=0 # pass 3 # fail 0 
+architecture-integrity exit=0 # pass 6 # fail 0 
+live-notifications exit=0 # pass 5 # fail 0 
+config-status exit=0 # pass 6 # fail 0 
+runtime-integration exit=0 # pass 19 # fail 0 

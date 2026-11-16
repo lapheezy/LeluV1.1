@@ -38,6 +38,10 @@ export interface ChatMessage {
    * the merged sources apart.
    */
   origin?: { conversationId: string; title: string };
+  /** Images the user attached to this message (data URLs). */
+  attachments?: string[];
+  /** 3D files the user attached, kept with the message so the thread can show them later. */
+  models?: Array<{ name: string; format: "glb" | "gltf" | "stl" | "obj"; src: string; size: number }>;
 }
 
 export interface ChatConversation {

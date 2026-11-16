@@ -18,9 +18,11 @@
 
 
 import WorkspaceRuntime from "../engineering/WorkspaceRuntime";
+import COMMAND_CENTER_TOOL_DEFINITIONS from "../acquisition/CommandCenterToolDefinitions";
 import GitHubIntegration from "../engineering/GitHubIntegration";
 import SandboxFS from "../engineering/SandboxFS";
 import UIActionBus from "../cognition/UIActionBus";
+import type { CapabilityProfile } from "../creative/kit/CapabilityProfiles";
 
 export type RiskLevel = 0 | 1 | 2 | 3 | 4;
 
@@ -46,6 +48,8 @@ export interface ToolDefinition {
   dependency?: string;
   executionRoute?: string;
   verificationMethod?: string;
+  /** Where it runs, offline/network/credentials, limits, license, resources, fallbacks. */
+  profile?: CapabilityProfile;
 }
 
 type ToolListener = (tools: ToolDefinition[]) => void;
@@ -57,6 +61,18 @@ export default class ToolRegistry {
 
   private constructor() {
     this.registerBuiltinTools();
+    this.registerCommandCenterTools();
+  }
+
+  /**
+   * Mission 8's workforce tools. Claude's canonical registry already declares
+   * repo.research/acquire/inspect/status, so the registrar never replaces an
+   * existing id: the newer definitions stay authoritative.
+   */
+  private registerCommandCenterTools(): void {
+    for (const tool of COMMAND_CENTER_TOOL_DEFINITIONS) {
+      if (!this.tools.has(tool.id)) this.tools.set(tool.id, tool);
+    }
   }
 
   static getInstance(): ToolRegistry {
@@ -308,14 +324,26 @@ export default class ToolRegistry {
     // offered at L3 with no runtime to run it on, and project.read's
     // answer depended on which of the two had run last. This is the
     // single writer now; EngineeringWorkspace answers and writes nothing.
-    let runtimeReachable = false;
-    try {
+    //
+    // The three network probes (development runtime, acquisition runtime,
+    // GitHub) are independent and used to run one after another. A chat
+    // turn awaits this refresh whenever it is stale, and the serial chain
+    // was measured at ~1.6 s of a real turn before the model was called.
+    // They start together now; each result is applied exactly as before.
+    const probeRuntime = (async () => {
       const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
-      runtimeReachable = await EngineeringWorkspace.getInstance().runtimeReachable();
-    } catch {
-      // Unreachable means unavailable, never "assume yes".
-      runtimeReachable = false;
-    }
+      return EngineeringWorkspace.getInstance().runtimeReachable();
+    })();
+    const probeAcquisition = (async () => {
+      const { default: AcquisitionRuntime } = await import("../acquisition/AcquisitionRuntime");
+      return AcquisitionRuntime.getInstance().status();
+    })();
+    const probeGitHub = GitHubIntegration.getInstance().getStatus();
+    // Settled up front so no probe can reject unobserved while another is awaited.
+    const [runtimeProbe, acquisitionProbe, githubProbe] = await Promise.allSettled([probeRuntime, probeAcquisition, probeGitHub]);
+
+    // Unreachable means unavailable, never "assume yes".
+    const runtimeReachable = runtimeProbe.status === "fulfilled" ? runtimeProbe.value : false;
 
     // Workspace commands need BOTH: the same autonomy-gate check
     // WorkspaceRuntime itself enforces, AND a runtime to run on. Either
@@ -346,12 +374,35 @@ export default class ToolRegistry {
       this.updateAvailability(id, runtimeReachable);
     }
 
+    // Mission 8: one real acquisition-runtime probe governs the pipeline,
+    // maintenance and executor tools. When no runtime answers, cognition is
+    // not offered a tool this deployment cannot execute.
+    try {
+      if (acquisitionProbe.status === "rejected") throw acquisitionProbe.reason;
+      const acquisition = acquisitionProbe.value;
+      for (const id of [
+        "repo.search",
+        "repo.exec",
+        "repo.commit",
+        "repo.rollback",
+        "repo.pipeline",
+        "repo.maintenance",
+      ]) {
+        this.updateAvailability(id, acquisition.ok);
+      }
+    } catch {
+      for (const id of ["repo.search", "repo.exec", "repo.commit", "repo.rollback", "repo.pipeline", "repo.maintenance"]) {
+        this.updateAvailability(id, false);
+      }
+    }
+
     // GitHub: one real probe (network/config), shared by every github.*
     // entry — they all depend on the same configured connection today,
     // so claiming per-entry granularity nothing actually differentiates
     // would just be a more specific-looking guess.
     try {
-      const status = await GitHubIntegration.getInstance().getStatus();
+      if (githubProbe.status === "rejected") throw githubProbe.reason;
+      const status = githubProbe.value;
       for (const id of ["github.auth", "github.repos", "github.files", "github.branches", "github.commits", "github.prs"]) {
         this.updateAvailability(id, status.configured);
       }
@@ -428,6 +479,146 @@ export default class ToolRegistry {
         executionRoute: "MemoryEngine.learn",
       },
 
+      // Environment operator tools (Session 02) — the surface LÉLU arranges
+      // her own environment with. Every one has a real executor in
+      // orchestrator/EnvironmentTools.ts, reached through the same dispatcher.
+      {
+        id: "environment.compose",
+        name: "Compose Operational Environment",
+        description:
+          "Build an operational environment for the task at hand: its workspaces, ".concat(
+            "the visual surfaces inside them, and optional 3D cosmos objects.",
+          ),
+        category: "Environment",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.composeEnvironment",
+        verificationMethod: "the created views are read back from WorkspaceEngine",
+      },
+      {
+        id: "environment.present_artifact",
+        name: "Present Visual Artifact",
+        description:
+          "Present a diagram, table, document, browser or chart in the active environment ".concat(
+            "so the person can look at it, instead of describing it in chat.",
+          ),
+        category: "Environment",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkspaceEngine.openView",
+        verificationMethod: "the workspace view exists with that kind and title",
+      },
+      {
+        id: "environment.mutate_surface",
+        name: "Mutate Presentation Surface",
+        description:
+          "Revise a surface that is already on screen — its text, diagram nodes, table rows " +
+          "or focus — in place, keeping the environment instead of replacing it.",
+        category: "Environment",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.mutateSurface",
+        verificationMethod: "the revised view's revision increases",
+      },
+      {
+        id: "environment.manage_workspace",
+        name: "Manage Workspace Arrangement",
+        description:
+          "Arrange, focus, lock or minimise the surfaces in the environment (auto, grid, split, stack).",
+        category: "Environment",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "WorkspaceEngine.setLayout",
+        verificationMethod: "WorkspaceEngine reports the new layout",
+      },
+      {
+        id: "environment.save_state",
+        name: "Save Environment State",
+        description: "Snapshot the environment's surfaces, layout and focus so it can be restored later.",
+        category: "Environment",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.saveSnapshot",
+        verificationMethod: "the snapshot id is returned and can be restored",
+      },
+      {
+        id: "environment.restore_state",
+        name: "Restore Environment State",
+        description: "Restore a saved environment snapshot, reconstructing its surfaces and layout.",
+        category: "Environment",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.restoreSnapshot",
+        verificationMethod: "the restored views match the snapshot",
+      },
+
+      // Repository workforce (Mission 9) — Mission 7's acquisition executives,
+      // finally reachable from a conversation. Each one has a real executor in
+      // orchestrator/AcquisitionTools.ts and runs through the same dispatcher;
+      // a registry entry with no executor is never offered, so these two halves
+      // have to stay together.
+      {
+        id: "repo.research",
+        name: "Research Repositories",
+        description:
+          "Search real code hosts for open-source repositories that could close a capability gap, ".concat(
+            "then rank them with their licence obligations and the risks they carry.",
+          ),
+        category: "Repository",
+        permissions: ["READ", "EXTERNAL_ACTION"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "RepoExecutive.proposals",
+        verificationMethod: "every candidate is a real repository whose findings were read back",
+      },
+      {
+        id: "repo.acquire",
+        name: "Acquire Repository Capability",
+        description:
+          "Acquire a repository into an isolated workspace, inspect its real files, adapt the useful ".concat(
+            "implementation, run the repository's own tests and prepare it for integration. ",
+            "A commit needs explicit authorization; canonical code is never modified without approval.",
+          ),
+        category: "Repository",
+        permissions: ["READ", "WRITE", "EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 2,
+        available: true,
+        executionRoute: "RepoExecutor.execute",
+        verificationMethod: "the written files and the repository's own test exit codes are read back",
+      },
+      {
+        id: "repo.inspect",
+        name: "Inspect Acquired Repository",
+        description:
+          "Read an acquisition's real tree, manifest and licence instead of describing them from memory.",
+        category: "Repository",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "RepoExecutor.inspect",
+        verificationMethod: "the tree and licence come from the files on disk",
+      },
+      {
+        id: "repo.status",
+        name: "Repository Workforce Status",
+        description:
+          "Report what the repository workforce has acquired, which assignments exist and which ".concat(
+            "capabilities are registered, including what failed.",
+          ),
+        category: "Repository",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AcquisitionStore and AcquisitionRuntime status",
+        verificationMethod: "the runtime and the store answer for themselves",
+      },
+
       // Research
       {
         id: "research.web",
@@ -463,6 +654,16 @@ export default class ToolRegistry {
         riskLevel: 0,
         available: true,
         executionRoute: "CompanionStore",
+      },
+      {
+        id: "avatar.gesture",
+        name: "Gesture",
+        description: "Move your own 3D body: wave, dance, bow, nod/agree, shrug, make a heart, cheer, jump, look around, walk, sit on your sofa, stand up, walk off for a bit or come back",
+        category: "Creative",
+        permissions: ["WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AvatarCommandBus.issue",
       },
       {
         id: "artifact.read",
@@ -1111,6 +1312,172 @@ export default class ToolRegistry {
         available: false,
         executionRoute: "EngineeringWorkspace.gitCommit",
         verificationMethod: "git returns the commit sha and stat",
+      },
+
+      /* ---- Session 3C: the software studio ----
+         Websites, applications and games, built on the real studio runtime.
+         Every entry has an executor in StudioToolExecutors; a build or test
+         result is a process exit code, never a summary. */
+      {
+        id: "studio.engine",
+        name: "Choose a Development Engine",
+        description:
+          "Decide the right engine for a website, application or game from its real requirements " +
+          "(dimension, targets, team, realism) and this runtime's measured capabilities. Games are not " +
+          "assumed to need Godot, Unity or Unreal; those are reported unavailable when their editors are.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioEngines.recommendEngine",
+        verificationMethod: "the runtime's own capability probe",
+      },
+      {
+        id: "studio.list",
+        name: "List Studio Projects",
+        description: "List every studio project with its kind, engine, versions and last build result.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioLibrary.list",
+      },
+      {
+        id: "studio.create",
+        name: "Create Studio Project",
+        description:
+          "Scaffold a new website, application or 3D/2D game in an isolated studio directory on the " +
+          "runtime. Real template files are copied; nothing is deployed and the real project is untouched.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.scaffold",
+        verificationMethod: "the runtime counts the files it wrote",
+      },
+      {
+        id: "studio.files",
+        name: "List Studio Files",
+        description: "List files and directories inside a studio project.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioRuntime.tree",
+      },
+      {
+        id: "studio.read",
+        name: "Read Studio File",
+        description: "Read a real file from a studio project.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioRuntime.read",
+      },
+      {
+        id: "studio.write",
+        name: "Write Studio File",
+        description:
+          "Write a file in an isolated studio project. A file that would expose a credential to the " +
+          "browser is refused, and nothing outside the project directory can be written.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.write",
+        verificationMethod: "the server re-reads the path and refuses secret-shaped content",
+      },
+      {
+        id: "studio.build",
+        name: "Build Studio Project",
+        description:
+          "Run the project's own build and report its real exit code, duration and output directory.",
+        category: "Studio",
+        permissions: ["EXECUTE"],
+        riskLevel: 2,
+        available: true,
+        executionRoute: "StudioRuntime.build",
+        verificationMethod: "child process exit code plus the dist directory on disk",
+      },
+      {
+        id: "studio.test",
+        name: "Test Studio Project",
+        description:
+          "Run the project's node:test suite and report how many tests passed and failed, from the " +
+          "test runner's own output and exit code.",
+        category: "Studio",
+        permissions: ["EXECUTE"],
+        riskLevel: 2,
+        available: true,
+        executionRoute: "StudioRuntime.test",
+        verificationMethod: "node --test exit code and # pass / # fail counts",
+      },
+      {
+        id: "studio.preview",
+        name: "Preview Studio Project",
+        description:
+          "Serve the project's real build output (or its backend, for an application) at a same-origin " +
+          "URL that can be shown inside a Cosmos window.",
+        category: "Studio",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.previewUrl",
+        verificationMethod: "the preview URL is fetched and must answer",
+      },
+      {
+        id: "studio.assets",
+        name: "Studio Asset References",
+        description:
+          "Read Session 3B's forge ledger and character references. Unrun Meshy jobs are reported as " +
+          "awaiting approval — never as models that exist.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioAssets.assetRefsFromLedger",
+      },
+      {
+        id: "studio.approval",
+        name: "Request Human Approval",
+        description:
+          "Ask a person to approve a protected act: production deploy, paid service, production " +
+          "database, auth/security change, secret management or LÉLU CORE change. This only REQUESTS; " +
+          "the decision is made in the Studio panel and cannot be granted by a tool.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.requestApproval",
+        verificationMethod: "the approval stays pending until a person decides",
+      },
+      {
+        id: "studio.deploy",
+        name: "Deploy Studio Project",
+        description:
+          "Prepare a deployment of the built output, or publish it where a publish target is " +
+          "configured. Production publishing needs a live human approval id.",
+        category: "Studio",
+        permissions: ["EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 3,
+        available: true,
+        executionRoute: "StudioRuntime.deploy",
+        verificationMethod: "the deployment directory and manifest written on disk",
+      },
+      {
+        id: "studio.workflow",
+        name: "Studio Development Workflow",
+        description:
+          "Read or advance the development workflow (understand → research → architect → generate → " +
+          "build → integrate → test → debug → preview → approve → deploy → maintain). A stage is only " +
+          "recorded with its real evidence, and stages cannot be skipped.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioPipeline.advance",
+        verificationMethod: "each stage stores the evidence it was given",
       },
     ];
 

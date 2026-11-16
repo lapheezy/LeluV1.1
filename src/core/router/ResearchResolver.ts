@@ -31,7 +31,9 @@ import IntentDetector from "./IntentDetector";
 import AgentEventBus from "../agent/AgentEvents";
 import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
 import { withDeadline } from "../runtime/BackgroundTimer";
+import UsageLedger from "../observability/UsageLedger";
 
+import { isInstruction, querySubject } from "./RequestQuery";
 /** Current-information phrases: these force a live tool call.
  *  Deliberately NARROW — a bare "update", "now", "today" or "current"
  *  must never drag a local/execution command ("update your avatar…",
@@ -79,9 +81,18 @@ const DOMAIN_CAPS: Array<[RegExp, string[]]> = [
   [/(?:instagram|\big\b|reels?|social media|posts?)/i, ["instagram", "social", "media"]],
   [/rss|google news|elpheru/i, ["rss", "news", "current-events"]],
   [/tech|startup|developer|hacker/i, ["technology", "developer", "startups"]],
+  // Specific domains (see SPECIFIC_DOMAIN_CAPS). Found live: "today's
+  // exchange rate" consulted news feeds and never the rates.
+  [/\b(?:define|definition|meaning of|what does \S+ mean|synonyms?)\b/i, ["dictionary", "definition", "language"]],
+  [/\b(?:books?|novels?|authors?|isbn|written by)\b/i, ["books", "literature", "authors"]],
+  [/\b(?:exchange rates?|currenc(?:y|ies)|convert \d|forex|usd|eur|gbp|jpy)\b/i, ["currency", "exchange-rate", "finance"]],
+  [/\b(?:earthquakes?|quakes?|seismic|tremors?)\b/i, ["earthquake", "geology", "hazards"]],
 ];
 
 const MAX_PROVIDERS = 4;
+
+/** Capabilities only a dedicated source has; asking for one ranks that source first. */
+const SPECIFIC_DOMAIN_CAPS = new Set(["dictionary", "books", "currency", "exchange-rate", "earthquake"]);
 
 /**
  * Total wall-clock budget for the WHOLE research phase of one turn,
@@ -158,11 +169,21 @@ export default class ResearchResolver {
     // encyclopedia sources come back empty).
     const toolFocus = context.researchFocus;
     const invokedAsTool = (context as { toolInvoked?: boolean }).toolInvoked === true;
+    const selected = this.selectProviders(context, prompt);
+    // "news" is appended to the query only when a NEWS source will read it.
+    // For an encyclopedia question classified "search" ("what is the capital
+    // of Australia?") it made Wikipedia, Wikidata and Wikimedia all return
+    // nothing for "…capital of Australia news", which then ran two more
+    // fallback rounds: measured 5.2 s of research before the model ran.
+    const newsSourceSelected = selected.some((provider) =>
+      (provider.capabilities ?? []).some((cap: string) => cap === "news" || cap === "current-events"),
+    );
+    const queryIntent: AIIntent | undefined =
+      intent === "search" && !newsSourceSelected ? ("chat" as AIIntent) : intent;
     const query =
       invokedAsTool && !(toolFocus ?? []).includes("news")
         ? this.buildQuery(prompt, "chat")
-        : this.buildQuery(prompt, intent);
-    const selected = this.selectProviders(context, prompt);
+        : this.buildQuery(prompt, queryIntent);
 
     // WHO ASKED FOR THIS SEARCH?
     //
@@ -391,7 +412,11 @@ export default class ResearchResolver {
       .all()
       .map((provider) => {
         const matches = provider.capabilities.filter((cap) => wanted.has(cap)).length;
-        return { provider, matches };
+        // A dedicated source for a domain the question names (rates,
+        // definitions, books, earthquakes) ranks above general ones, which
+        // otherwise win on tag count alone ("what is" → 4 encyclopedia tags).
+        const specific = provider.capabilities.some((cap) => wanted.has(cap) && SPECIFIC_DOMAIN_CAPS.has(cap));
+        return { provider, matches: matches + (specific ? 100 : 0) };
       })
       .filter((item) => item.matches > 0)
       .sort((a, b) => b.matches - a.matches || a.provider.priority - b.provider.priority);
@@ -446,24 +471,40 @@ export default class ResearchResolver {
     const collected: KnowledgeResult[] = [];
     const started = Date.now();
 
-    for (const provider of providers) {
-      if (collected.length >= MAX_RESULTS) {
-        break;
-      }
-
-      // Stop the moment the phase is out of time. Without this the loop
-      // spends a full per-provider timeout on every remaining provider
-      // even when the turn has already waited too long.
+    /*
+     * The providers of one round run CONCURRENTLY.
+     *
+     * They are independent sources for the same query, and this used to
+     * await them one after another: measured on a real turn, Wikipedia,
+     * Wikidata and Wikimedia each took ~0.7 s in sequence, per round. Every
+     * guarantee is kept per provider — canSearch, the usage budget checked
+     * before the call, a timeout capped by the shared phase deadline, the
+     * ledger record and the attempted list — and results are still taken in
+     * the providers' priority order, up to MAX_RESULTS.
+     */
+    const run = async (provider: any): Promise<KnowledgeResult[]> => {
+      // Never start once the phase is out of time.
       const remaining = deadline - Date.now();
       if (remaining <= 0) {
         attempted.push({ provider: provider.name, error: "research-budget-exhausted" });
-        continue;
+        return [];
       }
 
       if (!provider.canSearch?.(query)) {
         attempted.push({ provider: provider.name, error: "provider-cannot-handle-query" });
-        continue;
+        return [];
       }
+
+      // A configured budget is a hard cap, checked before the call. A
+      // refused source is recorded like any other failed attempt, so the
+      // answer says why it was not consulted.
+      const ledger = UsageLedger.getInstance();
+      const budget = ledger.check("api", provider.name);
+      if (!budget.allowed) {
+        attempted.push({ provider: provider.name, error: budget.reason ?? "budget-reached" });
+        return [];
+      }
+      if (budget.warning) context.logger.info("ResearchResolver", `Budget warning: ${budget.warning}`, { provider: provider.name });
 
       // Never wait longer than the phase has left.
       const timeoutMs = Math.min(provider.timeout ?? 10000, remaining);
@@ -482,12 +523,10 @@ export default class ResearchResolver {
         // Validate the response shape before accepting it — an HTTP
         // 200 with a malformed/empty payload is a failure, not success.
         const usable = Array.isArray(results)
-          ? results.filter((result) => result && typeof result.title === "string" && result.title.trim().length > 0)
+          ? results.filter((result: KnowledgeResult) => result && typeof result.title === "string" && result.title.trim().length > 0)
           : [];
 
-        for (const result of usable.slice(0, MAX_RESULTS - collected.length)) {
-          collected.push(result);
-        }
+        ledger.record({ kind: "api", source: provider.name, operation: "search", ok: true, latencyMs: Date.now() - providerStarted, results: usable.length });
 
         context.logger.info("ResearchResolver", `${provider.name} returned ${usable.length} usable result(s)`, {
           query,
@@ -498,15 +537,34 @@ export default class ResearchResolver {
         if (usable.length === 0) {
           attempted.push({ provider: provider.name, error: "0-usable-results" });
         }
+        return usable;
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
         attempted.push({ provider: provider.name, error: reason });
+        ledger.record({
+          kind: "api",
+          source: provider.name,
+          operation: "search",
+          ok: false,
+          latencyMs: Date.now() - providerStarted,
+          rateLimited: /\b429\b|rate.?limit|too many requests/i.test(reason),
+          error: reason,
+        });
         context.logger.error("ResearchResolver", `${provider.name} failed; trying next knowledge provider.`, {
           provider: provider.name,
           reason,
           latencyMs: Date.now() - providerStarted,
         });
+        return [];
       }
+    };
+
+    const perProvider = await Promise.all(providers.map((provider) => run(provider)));
+    for (const usable of perProvider) {
+      for (const result of usable.slice(0, MAX_RESULTS - collected.length)) {
+        collected.push(result);
+      }
+      if (collected.length >= MAX_RESULTS) break;
     }
 
     context.logger.info("ResearchResolver", "Research complete", {
@@ -524,42 +582,35 @@ export default class ResearchResolver {
    * "What's the latest news about AI?" → "AI"). A subjectless
    * current-events ask becomes a general world-news query.
    */
+  /**
+   * The phrase this request should be searched with.
+   *
+   * This used to remove every word its filler list matched — "find", "could",
+   * "LÉLU" — and then keep only the first 120 characters, mid-word. A request
+   * for "a maintained open-source library … typo-tolerant search" therefore
+   * reached research as "maintained … typo-tolerant search. Compare relevant
+   * candidates, inspect their licenses, and rec", and the repository it should
+   * have found was never named. querySubject keeps the subject, protects URLs
+   * and owner/name identifiers, shortens only at a word boundary, and reports
+   * anything it lifted so the omission is visible instead of silent.
+   */
   private buildQuery(prompt: string, intent?: AIIntent): string {
-    const cleaned = prompt
-      .trim()
-      .replace(/[?.!]+$/g, "")
-      // Contraction tails ("what's" → "what") so no stray "'s"
-      // leaks into the provider query.
-      .replace(/[’']s\b/gi, "");
+    const news = intent === "news" || intent === "search";
+    const subject = querySubject(prompt, { maxChars: news ? 120 : 160 });
+    let query = subject.query;
 
-    // For news/search intent: preserve topic words + add "news" context.
-    // This ensures "What's Tampa news?" → "Tampa news" (not just "Tampa").
-    if (intent === "news" || intent === "search") {
-      const NEWS_KEEPER =
-        /\b(?:can|you|could|please|hey|lelu|lélu|tell|me|give|show|find|research|look|up|do|does|know|what|whats|who|whose|when|where|how|is|are|was|were|there|the|a|an|latest|current|recently|breaking|todays|happening|happened|going|on|in|about|with|for|of|right|now|world|worldwide|global|updates|headlines?|events?|anything|something)\b/gi;
-      let query = cleaned
-        .replace(NEWS_KEEPER, "")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (!/news/i.test(query)) {
-        query = query ? `${query} news` : "major world news";
-      }
-      return query.slice(0, 120);
+    // Work to do, not a phrase to look up: the instruction is kept as written,
+    // because cutting it is how an approval requirement or a constraint
+    // disappears from a request that still looks complete.
+    if (isInstruction(prompt) && subject.method === "verbatim") {
+      return query.replace(/\s+/g, " ").trim();
     }
 
-    const FILLER =
-      /\b(?:can|you|could|please|hey|lelu|lélu|tell|me|give|show|find|search|research|look|up|do|does|know|what|whats|who|whose|when|where|how|is|are|was|were|there|the|a|an|latest|current|recently|recent|breaking|today|todays|happening|happened|going|on|in|about|with|for|of|right|now|world|worldwide|global|update|updates|news|headlines?|events?|anything|something)\b/gi;
-
-    let query = cleaned
-      .replace(FILLER, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (query.length < 2) {
-      query = "major world news";
+    if (news && !/news/i.test(query)) {
+      query = query ? `${query} news` : "major world news";
     }
-
-    return query.slice(0, 120);
+    if (query.length < 2) query = "major world news";
+    return query.replace(/\s+/g, " ").trim();
   }
 
   private fallbackQueries(query: string): string[] {

@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3jlw_7a230f",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: talk_open",
+  "meshyTaskId": "01a193c7-9692-70cb-b240-9e27c6a77603",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 313
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480693791,
+  "finishedAt": 1793480724981
+}

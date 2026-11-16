@@ -1,0 +1,3132 @@
+{
+ "at": "2026-11-07T15:35:39.603Z",
+ "spoken": [
+  {
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "spokeAt": 32678,
+   "endedAt": 37340,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is the capital of Peru? One sentence.",
+   "spokeAt": 98059,
+   "endedAt": 102331,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 3,
+   "mode": "after-reply",
+   "text": "And roughly how many people live there? One sentence.",
+   "spokeAt": 224479,
+   "endedAt": 228275,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 4,
+   "mode": "after-reply",
+   "text": "What is two plus two times three?",
+   "spokeAt": 344884,
+   "endedAt": 348568,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 5,
+   "mode": "after-reply",
+   "text": "Name one animal that lives in the Andes.",
+   "spokeAt": 545539,
+   "endedAt": 549766,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 6,
+   "mode": "after-reply",
+   "text": "Give me one tip for better sleep, in one sentence.",
+   "spokeAt": 774786,
+   "endedAt": 778043,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 7,
+   "mode": "after-reply",
+   "text": "What's a synonym for happy?",
+   "spokeAt": 1042710,
+   "endedAt": 1049144,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 8,
+   "mode": "after-reply",
+   "text": "How do you say thank you in Spanish?",
+   "spokeAt": 1313487,
+   "endedAt": 1317422,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 9,
+   "mode": "after-reply",
+   "text": "What is my favorite color?",
+   "spokeAt": 1575347,
+   "endedAt": 1583051,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 10,
+   "mode": "after-reply",
+   "text": "Tell me one fun fact about octopuses, in one sentence.",
+   "spokeAt": 1828690,
+   "endedAt": 1837896,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 11,
+   "mode": "after-reply",
+   "text": "Explain in detail, in about eight sentences, how a rainbow forms.",
+   "spokeAt": 2109599,
+   "endedAt": 2115707,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 12,
+   "mode": "barge-in",
+   "text": "Stop. Just one sentence please.",
+   "spokeAt": 2316296,
+   "endedAt": 2325122,
+   "repeated": false,
+   "heard": false
+  },
+  {
+   "n": 13,
+   "mode": "after-reply",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "spokeAt": 2625845,
+   "endedAt": 2634353,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 14,
+   "mode": "after-reply",
+   "text": "Which planet is the largest in our solar system?",
+   "spokeAt": 2865534,
+   "endedAt": 2870012,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 15,
+   "mode": "after-reply",
+   "text": "Recommend one classic novel, in one sentence.",
+   "spokeAt": 3104279,
+   "endedAt": 3110581,
+   "repeated": true,
+   "heard": false
+  }
+ ],
+ "events": [
+  {
+   "t": 15720,
+   "kind": "phase",
+   "phase": "idle",
+   "error": null
+  },
+  {
+   "t": 15723,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 17305,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription is configured — recording turns for it directly."
+  },
+  {
+   "t": 17308,
+   "kind": "voice-on"
+  },
+  {
+   "t": 31112,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13802,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 37341,
+   "kind": "user-said",
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "seconds": 3.9
+  },
+  {
+   "t": 39636,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1411,\"spoke\":true,\"ms\":6958,\"peak\":0.2976,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 39637,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 43224,
+   "kind": "utterance",
+   "text": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello",
+   "at": 1794062438516
+  },
+  {
+   "t": 43226,
+   "kind": "turn",
+   "user": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello",
+   "response": null
+  },
+  {
+   "t": 43226,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 57771,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14501,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 71584,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13768,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 87933,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14678,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 89812,
+   "kind": "turn",
+   "user": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 89817,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 89817,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 98096,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 102331,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 102332,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 102334,
+   "kind": "user-said",
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is the capital of Peru? One sentence.",
+   "seconds": 3.5
+  },
+  {
+   "t": 102366,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10762,\"spoke\":true,\"ms\":14391,\"peak\":0.333,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 102366,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 114106,
+   "kind": "utterance",
+   "text": "What is the capital of Peru?",
+   "at": 1794062509398
+  },
+  {
+   "t": 114107,
+   "kind": "turn",
+   "user": "What is the capital of Peru?",
+   "response": null
+  },
+  {
+   "t": 114107,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 133465,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17522,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 148629,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13419,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 164603,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15929,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 178827,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12346,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 188236,
+   "kind": "turn",
+   "user": "What is the capital of Peru?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 188237,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 188237,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 197915,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19034,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 197946,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 202061,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 202063,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 202065,
+   "kind": "user-said",
+   "n": 3,
+   "mode": "after-reply",
+   "text": "And roughly how many people live there? One sentence.",
+   "seconds": 3.4
+  },
+  {
+   "t": 215411,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17466,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 228276,
+   "kind": "user-repeated",
+   "n": 3
+  },
+  {
+   "t": 228279,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7210,\"spoke\":true,\"ms\":10972,\"peak\":0.3047,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 228280,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 235388,
+   "kind": "utterance",
+   "text": "And roughly how many people live there? One sentence.",
+   "at": 1794062630680
+  },
+  {
+   "t": 235389,
+   "kind": "turn",
+   "user": "And roughly how many people live there? One sentence.",
+   "response": null
+  },
+  {
+   "t": 235389,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 253469,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16226,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 273427,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17592,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 294441,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17867,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 302840,
+   "kind": "turn",
+   "user": "And roughly how many people live there? One sentence.",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 302844,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 302845,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 310466,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15974,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 314958,
+   "kind": "user-said",
+   "n": 4,
+   "mode": "after-reply",
+   "text": "What is two plus two times three?",
+   "seconds": 2
+  },
+  {
+   "t": 319795,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 319815,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 319816,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 333823,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21790,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 348569,
+   "kind": "user-repeated",
+   "n": 4
+  },
+  {
+   "t": 348574,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6635,\"spoke\":true,\"ms\":14720,\"peak\":0.3511,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 348574,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 368407,
+   "kind": "utterance",
+   "text": "What is two plus two times three?",
+   "at": 1794062763699
+  },
+  {
+   "t": 368407,
+   "kind": "turn",
+   "user": "What is two plus two times three?",
+   "response": null
+  },
+  {
+   "t": 368408,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 393479,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15671,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 419277,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19398,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 447183,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25690,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 463731,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13773,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 485004,
+   "kind": "turn",
+   "user": "What is two plus two times three?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 485004,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 485004,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 490195,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20148,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 513595,
+   "kind": "user-said",
+   "n": 5,
+   "mode": "after-reply",
+   "text": "Name one animal that lives in the Andes.",
+   "seconds": 2.2
+  },
+  {
+   "t": 516733,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10971,\"spoke\":true,\"ms\":23894,\"peak\":0.3621,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 516739,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 519722,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 519723,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 537029,
+   "kind": "utterance",
+   "text": "Name one animal that lives in the Andes",
+   "at": 1794062932315
+  },
+  {
+   "t": 537030,
+   "kind": "turn",
+   "user": "Name one animal that lives in the Andes",
+   "response": null
+  },
+  {
+   "t": 537030,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 549772,
+   "kind": "user-repeated",
+   "n": 5
+  },
+  {
+   "t": 549776,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":12721,\"peak\":0.3615,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 553833,
+   "kind": "utterance",
+   "text": "Name one animal that lives in the Andes",
+   "at": 1794062949126
+  },
+  {
+   "t": 553834,
+   "kind": "turn",
+   "user": "Name one animal that lives in the Andes",
+   "response": null
+  },
+  {
+   "t": 553835,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 571933,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18094,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 599534,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24005,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 625659,
+   "kind": "turn",
+   "user": "Name one animal that lives in the Andes",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 625661,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 625661,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 629234,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":29627,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 655516,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23572,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 655517,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 662929,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 662932,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 676537,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16853,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 699621,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19991,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 726199,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22418,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 733146,
+   "kind": "not-ready",
+   "before": 6
+  },
+  {
+   "t": 751001,
+   "kind": "user-said",
+   "n": 6,
+   "mode": "after-reply",
+   "text": "Give me one tip for better sleep, in one sentence.",
+   "seconds": 2.8
+  },
+  {
+   "t": 751001,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20840,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 771651,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15692,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 778044,
+   "kind": "user-repeated",
+   "n": 6
+  },
+  {
+   "t": 797392,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22622,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 825288,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23662,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 851200,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22140,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 874545,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20297,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 894894,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17410,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 921428,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22233,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 945969,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24479,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 971069,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22771,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 987426,
+   "kind": "not-ready",
+   "before": 7
+  },
+  {
+   "t": 1001901,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25352,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1007912,
+   "kind": "user-said",
+   "n": 7,
+   "mode": "after-reply",
+   "text": "What's a synonym for happy?",
+   "seconds": 1.7
+  },
+  {
+   "t": 1025738,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20755,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1049148,
+   "kind": "user-repeated",
+   "n": 7
+  },
+  {
+   "t": 1049156,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":8882,\"spoke\":true,\"ms\":18908,\"peak\":0.3209,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1049156,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1071723,
+   "kind": "utterance",
+   "text": "What's a synonym for happy?",
+   "at": 1794063467003
+  },
+  {
+   "t": 1071724,
+   "kind": "turn",
+   "user": "What's a synonym for happy?",
+   "response": null
+  },
+  {
+   "t": 1071724,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1100121,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24101,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1122475,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19509,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1151002,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24375,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1164633,
+   "kind": "turn",
+   "user": "What's a synonym for happy?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 1164634,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1164635,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1173612,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22569,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1198111,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21967,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1202860,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1209833,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1209833,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1228342,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25479,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1252412,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20940,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1262016,
+   "kind": "not-ready",
+   "before": 8
+  },
+  {
+   "t": 1275281,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20187,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1280933,
+   "kind": "user-said",
+   "n": 8,
+   "mode": "after-reply",
+   "text": "How do you say thank you in Spanish?",
+   "seconds": 1.9
+  },
+  {
+   "t": 1295482,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14549,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1317424,
+   "kind": "user-repeated",
+   "n": 8
+  },
+  {
+   "t": 1317431,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7732,\"spoke\":true,\"ms\":15540,\"peak\":0.2882,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1317431,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1353746,
+   "kind": "utterance",
+   "text": "How do you say thank you in Spanish?",
+   "at": 1794063749038
+  },
+  {
+   "t": 1353746,
+   "kind": "turn",
+   "user": "How do you say thank you in Spanish?",
+   "response": null
+  },
+  {
+   "t": 1353760,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1385226,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27098,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1419507,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":34230,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1449237,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25935,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1457364,
+   "kind": "turn",
+   "user": "How do you say thank you in Spanish?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 1457365,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1457365,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1474345,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25074,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1476940,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1488387,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1488388,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1493119,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18762,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1521635,
+   "kind": "not-ready",
+   "before": 9
+  },
+  {
+   "t": 1526192,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24038,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1544189,
+   "kind": "user-said",
+   "n": 9,
+   "mode": "after-reply",
+   "text": "What is my favorite color?",
+   "seconds": 1.5
+  },
+  {
+   "t": 1548028,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2038,\"spoke\":true,\"ms\":17997,\"peak\":0.2626,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1548028,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1568675,
+   "kind": "utterance",
+   "text": "What is my favorite color?",
+   "at": 1794063963967
+  },
+  {
+   "t": 1568675,
+   "kind": "turn",
+   "user": "What is my favorite color?",
+   "response": null
+  },
+  {
+   "t": 1568676,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1583055,
+   "kind": "user-repeated",
+   "n": 9
+  },
+  {
+   "t": 1594353,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22931,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1621386,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23658,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1649757,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":28295,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1669497,
+   "kind": "turn",
+   "user": "What is my favorite color?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 1669498,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1669499,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1671132,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18485,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1700376,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":29168,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1700444,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1712058,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1712060,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1721824,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21379,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1740135,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15461,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1770125,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22027,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1776972,
+   "kind": "not-ready",
+   "before": 10
+  },
+  {
+   "t": 1795378,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22088,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1799910,
+   "kind": "user-said",
+   "n": 10,
+   "mode": "after-reply",
+   "text": "Tell me one fun fact about octopuses, in one sentence.",
+   "seconds": 3.3
+  },
+  {
+   "t": 1819945,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20113,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1837901,
+   "kind": "user-repeated",
+   "n": 10
+  },
+  {
+   "t": 1837907,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3866,\"spoke\":true,\"ms\":12076,\"peak\":0.3085,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1837907,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1857407,
+   "kind": "utterance",
+   "text": "Tell me one fun fact about octopuses in one sentence.",
+   "at": 1794064252693
+  },
+  {
+   "t": 1857407,
+   "kind": "turn",
+   "user": "Tell me one fun fact about octopuses in one sentence.",
+   "response": null
+  },
+  {
+   "t": 1857407,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1885795,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22490,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1915862,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22255,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1945949,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25036,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1976784,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27208,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1976789,
+   "kind": "turn",
+   "user": "Tell me one fun fact about octopuses in one sentence.",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 1976789,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1976790,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1999986,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19174,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2008609,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2014337,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2014338,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2023039,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20217,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2045872,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17344,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2046372,
+   "kind": "not-ready",
+   "before": 11
+  },
+  {
+   "t": 2074348,
+   "kind": "user-said",
+   "n": 11,
+   "mode": "after-reply",
+   "text": "Explain in detail, in about eight sentences, how a rainbow forms.",
+   "seconds": 3.9
+  },
+  {
+   "t": 2074353,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25332,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2105746,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23615,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2115709,
+   "kind": "user-repeated",
+   "n": 11
+  },
+  {
+   "t": 2135016,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":29193,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2164796,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26627,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2197364,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27804,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2221038,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23596,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2258855,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27397,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2283492,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21273,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2311717,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25136,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2325124,
+   "kind": "user-said",
+   "n": 12,
+   "mode": "barge-in",
+   "text": "Stop. Just one sentence please.",
+   "seconds": 1.8
+  },
+  {
+   "t": 2338830,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22535,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2368492,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26245,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2395687,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24119,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2420163,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21772,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2457210,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":31066,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2479020,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21724,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2506536,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22236,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2533362,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26745,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2553240,
+   "kind": "not-ready",
+   "before": 13
+  },
+  {
+   "t": 2557983,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16068,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2582344,
+   "kind": "user-said",
+   "n": 13,
+   "mode": "after-reply",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "seconds": 2.7
+  },
+  {
+   "t": 2582421,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6844,\"spoke\":true,\"ms\":16386,\"peak\":0.3722,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2582421,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2609151,
+   "kind": "utterance",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "at": 1794065004441
+  },
+  {
+   "t": 2609152,
+   "kind": "turn",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": null
+  },
+  {
+   "t": 2609152,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2634354,
+   "kind": "user-repeated",
+   "n": 13
+  },
+  {
+   "t": 2637234,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3082,\"spoke\":true,\"ms\":17320,\"peak\":0.3725,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2648734,
+   "kind": "utterance",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "at": 1794065044026
+  },
+  {
+   "t": 2648735,
+   "kind": "turn",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": null
+  },
+  {
+   "t": 2648736,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2682284,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24643,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2706411,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20981,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2722472,
+   "kind": "console",
+   "text": "Metadata: {provider: wikimedia, reason: wikimedia timed out, latencyMs: 11724}"
+  },
+  {
+   "t": 2724128,
+   "kind": "console",
+   "text": "Metadata: {provider: wikidata, reason: wikidata timed out, latencyMs: 13308}"
+  },
+  {
+   "t": 2732434,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21686,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2755963,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21344,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2763106,
+   "kind": "turn",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 2763107,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 2763107,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2778378,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22354,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2783834,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2791364,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2791368,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2799407,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18382,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2818932,
+   "kind": "not-ready",
+   "before": 14
+  },
+  {
+   "t": 2826560,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21643,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2837500,
+   "kind": "user-said",
+   "n": 14,
+   "mode": "after-reply",
+   "text": "Which planet is the largest in our solar system?",
+   "seconds": 2.3
+  },
+  {
+   "t": 2844983,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":12992,\"peak\":0.3162,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2844985,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2856452,
+   "kind": "utterance",
+   "text": "Which planet is the largest in our solar system?",
+   "at": 1794065251738
+  },
+  {
+   "t": 2856453,
+   "kind": "turn",
+   "user": "Which planet is the largest in our solar system?",
+   "response": null
+  },
+  {
+   "t": 2856453,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2870017,
+   "kind": "user-repeated",
+   "n": 14
+  },
+  {
+   "t": 2872357,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2978,\"spoke\":true,\"ms\":11366,\"peak\":0.3357,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2887416,
+   "kind": "utterance",
+   "text": "Which planet is the largest in our solar system?",
+   "at": 1794065282708
+  },
+  {
+   "t": 2887417,
+   "kind": "turn",
+   "user": "Which planet is the largest in our solar system?",
+   "response": null
+  },
+  {
+   "t": 2887419,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2911553,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17412,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2933123,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17152,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2954051,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20855,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2958641,
+   "kind": "turn",
+   "user": "Which planet is the largest in our solar system?",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 2958642,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 2958642,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2975280,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19001,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2981210,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2986943,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2986944,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2996501,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19135,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3015633,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17307,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3030424,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14733,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3047413,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15211,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3058174,
+   "kind": "not-ready",
+   "before": 15
+  },
+  {
+   "t": 3068220,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16738,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3079947,
+   "kind": "user-said",
+   "n": 15,
+   "mode": "after-reply",
+   "text": "Recommend one classic novel, in one sentence.",
+   "seconds": 2.9
+  },
+  {
+   "t": 3089526,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19139,\"peak\":0.0871,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9561}"
+  },
+  {
+   "t": 3110584,
+   "kind": "user-repeated",
+   "n": 15
+  },
+  {
+   "t": 3110595,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11964,\"spoke\":true,\"ms\":18933,\"peak\":0.35,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 3110597,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3128758,
+   "kind": "utterance",
+   "text": "Recommend one classic novel in one sentence.",
+   "at": 1794065524042
+  },
+  {
+   "t": 3128759,
+   "kind": "turn",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": null
+  },
+  {
+   "t": 3128759,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3152358,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21672,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3175906,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15720,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3195647,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15611,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3213830,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18121,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3220238,
+   "kind": "turn",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 3220238,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 3220240,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3247562,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":29593,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3258123,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3263091,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3263092,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3270226,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19818,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3290242,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17359,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3310945,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16167,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3337221,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21468,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3337291,
+   "kind": "user-typed-blocked",
+   "reason": "TimeoutError: page.click: Timeout 8000ms exceeded.",
+   "coveredBy": "DIV."
+  }
+ ],
+ "turns": [
+  {
+   "id": "69c31f47-5571-49d3-8fde-d3bba60a2390",
+   "user": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello",
+   "response": "Stopped before anything ran.",
+   "at": 1794062485103,
+   "startedAt": 1794062438516,
+   "respondedAt": 1794062485103
+  },
+  {
+   "id": "e5d7fa50-b40b-4b66-b611-78cab315c464",
+   "user": "What is the capital of Peru?",
+   "response": "Stopped before anything ran.",
+   "at": 1794062583528,
+   "startedAt": 1794062509398,
+   "respondedAt": 1794062583528
+  },
+  {
+   "id": "8a6ebaf7-8d16-47d5-a8da-a93494c766c4",
+   "user": "And roughly how many people live there? One sentence.",
+   "response": "Stopped before anything ran.",
+   "at": 1794062698132,
+   "startedAt": 1794062630680,
+   "respondedAt": 1794062698132
+  },
+  {
+   "id": "16fa1316-2482-4ea8-93e9-3889139c3c8e",
+   "user": "What is two plus two times three?",
+   "response": "Stopped before anything ran.",
+   "at": 1794062880295,
+   "startedAt": 1794062763699,
+   "respondedAt": 1794062880295
+  },
+  {
+   "id": "10a99e75-fcd3-4e7b-8204-7812bff4ffd3",
+   "user": "Name one animal that lives in the Andes",
+   "response": null,
+   "at": 1794062932315,
+   "startedAt": 1794062932315
+  },
+  {
+   "id": "4ac4e249-4687-4150-a502-c332c7f18535",
+   "user": "Name one animal that lives in the Andes",
+   "response": "Stopped before anything ran.",
+   "at": 1794063020951,
+   "startedAt": 1794062949126,
+   "respondedAt": 1794063020951
+  },
+  {
+   "id": "726f0a50-e8cb-4a96-b3bc-a424d05aebbe",
+   "user": "What's a synonym for happy?",
+   "response": "Stopped before anything ran.",
+   "at": 1794063559923,
+   "startedAt": 1794063467003,
+   "respondedAt": 1794063559923
+  },
+  {
+   "id": "9040e676-18ed-432c-9018-58e76ccb717b",
+   "user": "How do you say thank you in Spanish?",
+   "response": "Stopped before anything ran.",
+   "at": 1794063852654,
+   "startedAt": 1794063749038,
+   "respondedAt": 1794063852654
+  },
+  {
+   "id": "d59adc3f-aa8c-4803-ba6c-ced0ccf4603e",
+   "user": "What is my favorite color?",
+   "response": "Stopped before anything ran.",
+   "at": 1794064064789,
+   "startedAt": 1794063963967,
+   "respondedAt": 1794064064789
+  },
+  {
+   "id": "1e14e3bc-06be-4a14-8e5e-badd8c327223",
+   "user": "Tell me one fun fact about octopuses in one sentence.",
+   "response": "Stopped before anything ran.",
+   "at": 1794064372081,
+   "startedAt": 1794064252693,
+   "respondedAt": 1794064372081
+  },
+  {
+   "id": "35911cd2-a054-4653-b85c-22e035085880",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": null,
+   "at": 1794065004441,
+   "startedAt": 1794065004441
+  },
+  {
+   "id": "4a669f04-eba2-42d9-af5a-8081dbfc7d21",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": "Stopped before anything ran.",
+   "at": 1794065158398,
+   "startedAt": 1794065044027,
+   "respondedAt": 1794065158398
+  },
+  {
+   "id": "dfaaa987-4df1-452c-90a2-f3059bb11670",
+   "user": "Which planet is the largest in our solar system?",
+   "response": null,
+   "at": 1794065251738,
+   "startedAt": 1794065251738
+  },
+  {
+   "id": "d0c9e428-6c79-4ffb-a3f9-074fe738e556",
+   "user": "Which planet is the largest in our solar system?",
+   "response": "Stopped before anything ran.",
+   "at": 1794065353933,
+   "startedAt": 1794065282709,
+   "respondedAt": 1794065353933
+  },
+  {
+   "id": "30dfb88b-b95b-498d-b059-4c22398b9bea",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": "Stopped before anything ran.",
+   "at": 1794065615530,
+   "startedAt": 1794065524042,
+   "respondedAt": 1794065615530
+  }
+ ],
+ "ledger": [
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1599,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 681,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "github",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 0,
+   "error": "GitHub token missing."
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 21266,
+   "out": 166,
+   "cost": "reported",
+   "usd": 0.000245148,
+   "ms": 3037
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 722
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 760,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 745,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "github",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 0,
+   "error": "GitHub token missing."
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 31531,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2370
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1377,
+   "out": 456,
+   "cost": "reported",
+   "usd": 0.00053961,
+   "ms": 8856
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 12,
+   "cost": "reported",
+   "usd": 0.0012,
+   "ms": 3639
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 33569,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1901
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1165,
+   "out": 532,
+   "cost": "reported",
+   "usd": 0.00023407496,
+   "ms": 18508
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 15,
+   "cost": "reported",
+   "usd": 0.0015,
+   "ms": 9649
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 568,
+   "out": 135,
+   "cost": "reported",
+   "usd": 0.0000959,
+   "ms": 14578
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1397,
+   "out": 502,
+   "cost": "reported",
+   "usd": 0.000603735,
+   "ms": 14354
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5817
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4247,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6305,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2768
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2760,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 32238,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5193
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1144,
+   "out": 381,
+   "cost": "reported",
+   "usd": 0.000243156,
+   "ms": 9073
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 19,
+   "cost": "reported",
+   "usd": 0.0019,
+   "ms": 14333
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 561,
+   "out": 160,
+   "cost": "reported",
+   "usd": 0.000094178,
+   "ms": 6677
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 12,
+   "cost": "reported",
+   "usd": 0.0012,
+   "ms": 4059
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 36443,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6277
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1171,
+   "out": 432,
+   "cost": "reported",
+   "usd": 0.000513465,
+   "ms": 10731
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 564,
+   "out": 64,
+   "cost": "reported",
+   "usd": 0.000085188,
+   "ms": 11599
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1719,
+   "out": 691,
+   "cost": "reported",
+   "usd": 0.000586128,
+   "ms": 12033
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1562,
+   "out": 482,
+   "cost": "reported",
+   "usd": 0.000300356,
+   "ms": 15097
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1249,
+   "out": 533,
+   "cost": "reported",
+   "usd": 0.000456435,
+   "ms": 8828
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1201,
+   "out": 363,
+   "cost": "reported",
+   "usd": 0.000338298,
+   "ms": 8122
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1160,
+   "out": 470,
+   "cost": "reported",
+   "usd": 0.000288712,
+   "ms": 13321
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 16,
+   "cost": "reported",
+   "usd": 0.0016,
+   "ms": 14704
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 37970,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8968
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1359,
+   "out": 542,
+   "cost": "reported",
+   "usd": 0.000322069764,
+   "ms": 17177
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1323,
+   "out": 489,
+   "cost": "reported",
+   "usd": 0.00031065,
+   "ms": 14363
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 16,
+   "cost": "reported",
+   "usd": 0.0016,
+   "ms": 19363
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1222,
+   "out": 573,
+   "cost": "reported",
+   "usd": 0.000344304,
+   "ms": 19353
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 37862,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2906
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1167,
+   "out": 404,
+   "cost": "reported",
+   "usd": 0.00027336472,
+   "ms": 17074
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 564,
+   "out": 49,
+   "cost": "reported",
+   "usd": 0.00019615,
+   "ms": 15605
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 10,
+   "cost": "reported",
+   "usd": 0.001,
+   "ms": 10123
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1111,
+   "out": 382,
+   "cost": "reported",
+   "usd": 0.0007917,
+   "ms": 11051
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 34401,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1703
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1345,
+   "out": 460,
+   "cost": "reported",
+   "usd": 0.00066885,
+   "ms": 14449
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1221,
+   "out": 607,
+   "cost": "reported",
+   "usd": 0.00026161296,
+   "ms": 12674
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1197,
+   "out": 471,
+   "cost": "reported",
+   "usd": 0.000544275,
+   "ms": 11100
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 7,
+   "cost": "reported",
+   "usd": 0.0007,
+   "ms": 10379
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1173,
+   "out": 350,
+   "cost": "reported",
+   "usd": 0.00023365,
+   "ms": 12063
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 36358,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8100
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 572,
+   "out": 74,
+   "cost": "reported",
+   "usd": 0.000042184,
+   "ms": 12891
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1405,
+   "out": 444,
+   "cost": "reported",
+   "usd": 0.000429435,
+   "ms": 11560
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1270,
+   "out": 471,
+   "cost": "reported",
+   "usd": 0.000296472,
+   "ms": 13295
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1297,
+   "out": 432,
+   "cost": "reported",
+   "usd": 0.000272630424,
+   "ms": 14184
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1413,
+   "out": 700,
+   "cost": "reported",
+   "usd": 0.000540093,
+   "ms": 15496
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1152,
+   "out": 350,
+   "cost": "reported",
+   "usd": 0.000228184,
+   "ms": 14697
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1315,
+   "out": 660,
+   "cost": "reported",
+   "usd": 0.0007119,
+   "ms": 18199
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1240,
+   "out": 520,
+   "cost": "reported",
+   "usd": 0.000366768,
+   "ms": 19077
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1448,
+   "out": 676,
+   "cost": "reported",
+   "usd": 0.000382272,
+   "ms": 29076
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 14,
+   "cost": "reported",
+   "usd": 0.0014,
+   "ms": 13764
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 10,
+   "cost": "reported",
+   "usd": 0.001,
+   "ms": 11497
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1245,
+   "out": 349,
+   "cost": "reported",
+   "usd": 0.00023675,
+   "ms": 14855
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7004
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7223,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 0
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 11721,
+   "error": "wikimedia timed out"
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 13308,
+   "error": "wikidata timed out"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4284
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4004
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 30684,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4473
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1703,
+   "out": 591,
+   "cost": "reported",
+   "usd": 0.00073206,
+   "ms": 12962
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 565,
+   "out": 117,
+   "cost": "reported",
+   "usd": 0.00009579,
+   "ms": 8387
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 6,
+   "cost": "reported",
+   "usd": 0.0006,
+   "ms": 6854
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1311,
+   "out": 413,
+   "cost": "reported",
+   "usd": 0.000528225,
+   "ms": 6902
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 8,
+   "cost": "reported",
+   "usd": 0.0008,
+   "ms": 15058
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 566,
+   "out": 87,
+   "cost": "reported",
+   "usd": 0.0000718,
+   "ms": 11457
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 31144,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4357
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1393,
+   "out": 982,
+   "cost": "reported",
+   "usd": 0.000958,
+   "ms": 19089
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 566,
+   "out": 36,
+   "cost": "reported",
+   "usd": 0.00012034,
+   "ms": 5606
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1259,
+   "out": 323,
+   "cost": "reported",
+   "usd": 0.000344385,
+   "ms": 7997
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 566,
+   "out": 57,
+   "cost": "reported",
+   "usd": 0.000075414,
+   "ms": 11721
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 18,
+   "cost": "reported",
+   "usd": 0.0018,
+   "ms": 9352
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1366,
+   "out": 312,
+   "cost": "reported",
+   "usd": 0.000223308,
+   "ms": 11204
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 34185,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5164
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1647,
+   "out": 570,
+   "cost": "reported",
+   "usd": 0.000573228,
+   "ms": 13932
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 562,
+   "out": 124,
+   "cost": "reported",
+   "usd": 0.0002368,
+   "ms": 9780
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1595,
+   "out": 336,
+   "cost": "reported",
+   "usd": 0.000220425,
+   "ms": 12585
+  }
+ ]
+}

@@ -1,0 +1,37 @@
+{
+  "at": "2026-11-15T02:05:30.505Z",
+  "calls": [
+    "openrouter 200",
+    "groq 429",
+    "cerebras 401",
+    "openrouter 200",
+    "openrouter 200",
+    "openrouter 200",
+    "openrouter 200",
+    "openrouter 200",
+    "openrouter 200"
+  ],
+  "errors": [],
+  "results": [
+    {
+      "name": "p1-chat: “In one short sentence, what is a coral reef?”",
+      "ok": false,
+      "detail": "24 s · provider offline · model requests [openrouter 200, groq 429, cerebras 401] · artifacts [] · I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared "
+    },
+    {
+      "name": "p2-creative: “Make me a generative artwork of ocean currents in ocean colours”",
+      "ok": true,
+      "detail": "24 s · provider OpenRouter · model requests [openrouter 200, openrouter 200, openrouter 200, openrouter 200, openrouter 200, openrouter 200] · artifacts [visual] · Your generative artwork of ocean currents is ready — a flow field in ocean colours (1200×800). Both SVG and PNG have been created and verified."
+    },
+    {
+      "name": "no request to Anthropic",
+      "ok": true,
+      "detail": "openrouter 200, groq 429, cerebras 401, openrouter 200, openrouter 200, openrouter 200, openrouter 200, openrouter 200, openrouter 200"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

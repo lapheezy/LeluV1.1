@@ -1,0 +1,21 @@
+{
+  "mission": "5.6-live-autonomy-completion",
+  "directive_stated_start": "claude/mission-5-5-autonomy-activation @ a2f0e03",
+  "verified_reality": {
+    "a2f0e03_branch": "claude/live-autonomous-activation",
+    "a2f0e03_merge_base_with_mission55": "61b27c8",
+    "a2f0e03_has_toolSchemasForRequest": false,
+    "mission55_branch_head": "5619efd3ffb7c609b2ddc7e5a3dec79eab473680",
+    "mission55_branch_has_toolSchemasForRequest": true
+  },
+  "base_used": "5619efd (the Mission 5.5 branch named in the directive, which contains the verified fix)",
+  "mission_branch": "claude/mission-5-6-live-autonomy-completion",
+  "working_tree_at_start": "clean",
+  "canonical": "claude/master-integration @ ce768e08cebd71eaa05418c5942ad637a8ac0596 (untouched)",
+  "prior_evidence": "all Mission 2.15.x, 5.2-5.4B, unified-mobile and mission-5-5 directories preserved",
+  "dev_server": {
+    "port": 3013,
+    "health": 200,
+    "note": "already-running vite dev server reused; a second start would collide on the port"
+  }
+}

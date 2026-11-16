@@ -22,6 +22,8 @@
  * ==========================================================
  */
 
+import { sessionAuthHeader } from "../persistence/sessionAuth";
+
 export interface BrowserPage {
   url: string;
   title: string;
@@ -102,15 +104,33 @@ export default class BrowserTool {
    * static deployment with no runtime), so the caller can report the
    * honest "blocked" result rather than inventing content.
    */
+  /**
+   * Read one page, for callers that are not the browser tool itself.
+   *
+   * Construction uses this to check a page before citing it: a source is only
+   * called verified when the page was actually read. Returns the same shape as
+   * the private reader, so "no reader" and "the site refused" stay distinct.
+   */
+  public static readPage(url: string, timeoutMs = 20_000): Promise<{ title: string; text: string; url: string } | { error: string } | null> {
+    return BrowserTool.readViaServer(url, timeoutMs);
+  }
+
   private static async readViaServer(
     url: string,
     timeoutMs: number,
   ): Promise<{ title: string; text: string; url: string } | { error: string } | null> {
     try {
       const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, {
-        signal: AbortSignal.timeout(timeoutMs),
+        // The server may render the page with Firecrawl after a failed or
+        // empty direct read; that takes longer than a plain fetch.
+        signal: AbortSignal.timeout(Math.max(timeoutMs, 30_000)),
+        // The reader runs on the server and requires a signed-in user.
+        headers: sessionAuthHeader(),
       });
-      if (!response.ok) return null;
+      if (response.status === 401) return { error: "reading pages on the server needs you to be signed in" };
+      if (response.status === 429) return { error: "the page reader is rate-limited; try again in a minute" };
+      // 403/415/502/504 carry the reader's own reason; anything else means no reader.
+      if (!response.ok && ![403, 415, 502, 504].includes(response.status)) return null;
       const payload = (await response.json()) as {
         ok?: boolean;
         url?: string;
@@ -131,6 +151,27 @@ export default class BrowserTool {
         title: payload.title ?? "",
         text: payload.text,
       };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Ask LÉLU's server reader about a page before the frame shows it:
+   * whether the site allows embedding (a verdict only — the server never
+   * returns headers) and its readable text. null when no reader is
+   * available (static deployment, not signed in): the caller then keeps
+   * its own fallbacks rather than guessing.
+   */
+  static async probe(rawUrl: string): Promise<{ embeddable: boolean; title: string; text: string; url: string } | null> {
+    const url = BrowserTool.normalizeUrl(rawUrl);
+    if (!url) return null;
+    try {
+      const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(20_000), headers: sessionAuthHeader() });
+      if (!response.ok) return null;
+      const payload = (await response.json()) as { ok?: boolean; embeddable?: boolean; title?: string; text?: string; url?: string };
+      if (payload.ok !== true || typeof payload.embeddable !== "boolean") return null;
+      return { embeddable: payload.embeddable, title: payload.title ?? "", text: payload.text ?? "", url: payload.url ?? url };
     } catch {
       return null;
     }

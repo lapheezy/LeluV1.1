@@ -1,0 +1,31 @@
+{
+  "result": "BLOCKED",
+  "live_attempt": "Gate E instruction submitted through the real Chat Universe composer, guest session, no injected responses",
+  "observed": {
+    "turns": 3,
+    "waited_ms": [
+      173133,
+      170992,
+      171017
+    ],
+    "module_windows": 1,
+    "module_contents": [
+      "chat surface"
+    ],
+    "requests": [
+      {
+        "groq": 200
+      },
+      {
+        "groq": 429
+      },
+      {
+        "openrouter": 429
+      }
+    ],
+    "page_errors": 0,
+    "crashes": 0
+  },
+  "interpretation": "one Groq request succeeded but no environment surface was created; later turns fell through to the provider notice",
+  "not_counted": "the deterministic '1 tool used / 1 issue' line is not model autonomy"
+}

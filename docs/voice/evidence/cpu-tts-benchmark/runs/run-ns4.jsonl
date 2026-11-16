@@ -1,0 +1,12 @@
+{"event": "start", "t": 0.004, "threads": 4, "mode": "full", "label": "ns4", "peakMiB": 28, "rssMiB": 28}
+{"event": "imported", "t": 1.233, "peakMiB": 286, "rssMiB": 286}
+{"event": "loaded", "t": 4.128, "loadSeconds": 2.9, "loadCpuSeconds": 2.86, "peakMiB": 1503, "rssMiB": 1503}
+{"event": "reference_encoded", "t": 5.914, "seconds": 1.79, "promptFrames": 150, "peakMiB": 2761, "rssMiB": 2761}
+{"event": "synth", "t": 11.216, "sentence": "short", "run": 1, "chars": 31, "firstAudioMs": 306, "totalMs": 2675, "audioSeconds": 2.56, "rtf": 1.045, "cpuSeconds": 5.63, "cancelled": false, "codecMs": 945, "peakMiB": 3113, "rssMiB": 3113}
+{"event": "synth", "t": 13.996, "sentence": "short", "run": 2, "chars": 31, "firstAudioMs": 288, "totalMs": 2776, "audioSeconds": 2.72, "rtf": 1.021, "cpuSeconds": 5.7, "cancelled": false, "codecMs": 930, "peakMiB": 3119, "rssMiB": 3119}
+{"event": "synth", "t": 20.788, "sentence": "medium", "run": 1, "chars": 67, "firstAudioMs": 319, "totalMs": 6775, "audioSeconds": 6.56, "rtf": 1.033, "cpuSeconds": 13.73, "cancelled": false, "codecMs": 2520, "peakMiB": 3143, "rssMiB": 3143}
+{"event": "synth", "t": 24.493, "sentence": "medium", "run": 2, "chars": 67, "firstAudioMs": 325, "totalMs": 3700, "audioSeconds": 4.4, "rtf": 0.841, "cpuSeconds": 8.22, "cancelled": false, "codecMs": 1079, "peakMiB": 3162, "rssMiB": 3162}
+{"event": "synth", "t": 33.986, "sentence": "long", "run": 1, "chars": 182, "firstAudioMs": 332, "totalMs": 9466, "audioSeconds": 12.64, "rtf": 0.749, "cpuSeconds": 21.08, "cancelled": false, "codecMs": 2120, "peakMiB": 3244, "rssMiB": 3244}
+{"event": "synth", "t": 44.045, "sentence": "long", "run": 2, "chars": 182, "firstAudioMs": 361, "totalMs": 10047, "audioSeconds": 12.32, "rtf": 0.816, "cpuSeconds": 22.01, "cancelled": false, "codecMs": 2553, "peakMiB": 3244, "rssMiB": 3244}
+{"event": "cancel", "t": 44.452, "chars": 182, "firstAudioMs": 355, "totalMs": 406, "audioSeconds": 0.08, "rtf": 5.078, "cpuSeconds": 1.08, "cancelled": true, "codecMs": 31, "stopToReturnMs": 51.0, "peakMiB": 3244, "rssMiB": 3244}
+{"event": "done", "t": 44.453, "peakMiB": 3244, "rssMiB": 3244}

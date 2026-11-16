@@ -1,0 +1,172 @@
+{
+  "milestone": "Mission 5.8 — voice resource intelligence",
+  "measured": "2026-11-10",
+  "startingCommit": "d586fdb",
+  "method": "bunx vite --host 0.0.0.0 --port 5173 plus real HTTP calls against the running route layer; oxlint; bunx tsc -b --force; full tsx test suite",
+  "secrets": "no key value, no environment-variable name and no upstream response body is recorded here",
+  "statusContract": {
+    "GET /api/voice/status": {
+      "configured": true,
+      "stt": true,
+      "voiceId": "cgSgspJ2msm6clMCkdW9",
+      "modelId": "eleven_v3",
+      "sttModelId": "scribe_v1",
+      "note": "shape unchanged from d586fdb: the browser client contract was not broken"
+    }
+  },
+  "resourcesBeforeAnyCall": {
+    "availability": {
+      "tts": true,
+      "stt": true
+    },
+    "credentials": 3,
+    "ready": 3,
+    "remainingCharacters": 30000,
+    "usedCharacters": 0,
+    "note": "internal ledger starts empty and says so; it is an estimate, not a claim about the provider"
+  },
+  "tts": {
+    "http": 200,
+    "contentType": "audio/mpeg",
+    "bytes": 81545,
+    "durationSeconds": 1.96,
+    "characterCost": 68,
+    "account": "account-2",
+    "xLeluRemaining": 9932,
+    "rotation": "account-1 (the truly spent account) refused once with 401, cooled, and was reported exhausted instead of being retried per sentence"
+  },
+  "stt": {
+    "http": 200,
+    "text": "Mission 5.8: I can account for every character I spend",
+    "languageCode": "eng",
+    "model": "scribe_v1",
+    "latencyMs": 524,
+    "usage": {
+      "characterCost": 6,
+      "fiatCostUsd": 0.0006
+    },
+    "account": "account-2",
+    "source": "the audio produced by the TTS call above — a real synthesis to transcription round trip"
+  },
+  "reconcile": {
+    "http": 200,
+    "accounts": [
+      {
+        "account": "account-1",
+        "upstreamUsed": 10000,
+        "upstreamLimit": 10000,
+        "internalUsed": 0,
+        "lagging": false
+      },
+      {
+        "account": "account-2",
+        "upstreamUsed": 152,
+        "upstreamLimit": 10000,
+        "internalUsed": 68,
+        "lagging": false
+      },
+      {
+        "account": "account-3",
+        "upstreamUsed": 0,
+        "upstreamLimit": 10000,
+        "internalUsed": 0,
+        "lagging": false
+      }
+    ],
+    "note": "the provider's counters were AHEAD of this process (152 vs 68); usedCharacters takes the larger and never lowers the internal bound"
+  },
+  "resourcesAfter": {
+    "availability": {
+      "tts": true,
+      "stt": true
+    },
+    "activeCredential": {
+      "tts": "account-2",
+      "stt": "account-2"
+    },
+    "totals": {
+      "credentials": 3,
+      "ready": 2,
+      "cooling": 0,
+      "exhausted": 1,
+      "usedCharacters": 10152,
+      "remainingCharacters": 19848,
+      "calls": 3,
+      "ok": 2,
+      "failed": 1,
+      "reportedCharacters": 68,
+      "estimateDriftCharacters": 0
+    },
+    "lowQuota": [
+      {
+        "label": "account-1",
+        "remainingCharacters": 0,
+        "utilization": 1
+      }
+    ],
+    "lastSuccess": {
+      "kind": "stt",
+      "label": "account-2",
+      "reportedCharacters": 6
+    },
+    "lastFailure": {
+      "kind": "tts",
+      "label": "account-1",
+      "status": 401,
+      "reason": "ElevenLabs HTTP 401"
+    },
+    "history": [
+      {
+        "kind": "stt",
+        "label": "account-2",
+        "ok": true,
+        "reportedCharacters": 6
+      },
+      {
+        "kind": "tts",
+        "label": "account-2",
+        "ok": true,
+        "reportedCharacters": 68
+      },
+      {
+        "kind": "tts",
+        "label": "account-1",
+        "ok": false,
+        "reportedCharacters": null
+      }
+    ]
+  },
+  "sanitization": {
+    "checked": "both /api/voice/resources payloads (before and after)",
+    "regexes": [
+      "xi-api",
+      "ELEVENLABS_API_KEY",
+      "Elevenlabs[0-9]"
+    ],
+    "matches": 0
+  },
+  "checks": {
+    "tsc -b --force": {
+      "exit": 0
+    },
+    "oxlint": {
+      "files": 5,
+      "warnings": 0,
+      "errors": 0
+    },
+    "tests": {
+      "run": 1966,
+      "pass": 1960,
+      "fail": 0,
+      "newFile": "tests/voice-resources.test.ts",
+      "newTests": 14
+    }
+  },
+  "audioSample": "tts-sample-58.mp3",
+  "notVerified": [
+    "audible playback inside the app UI (no /opt/pw-browsers/chromium, no audio device in this VM)",
+    "the dashboard's visual layout (compiled, never rendered)",
+    "counters surviving a restart (they are per-process; reconcile is the durable truth)",
+    "any tier other than the free 10,000-character allowance"
+  ]
+}

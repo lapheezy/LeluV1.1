@@ -40,7 +40,7 @@ function code(path: string): string {
  * ------------------------------------------------------------------ */
 
 test("the memory phase events bracket a real recall", () => {
-  const source = code("src/core/orchestrator/Orchestrator.ts");
+  const source = code("src/core/router/BrainResolver.ts");
 
   // The two events are no longer adjacent with nothing between them.
   const started = source.indexOf("memory_read_started");
@@ -55,20 +55,20 @@ test("the memory phase events bracket a real recall", () => {
 });
 
 test("the recalled count comes from the result, never a literal", () => {
-  const source = code("src/core/orchestrator/Orchestrator.ts");
+  const source = code("src/core/router/BrainResolver.ts");
   assert.ok(
     !/memory_retrieval[^}]*count:\s*0\b/.test(source),
     "memory_retrieval is still reporting a hardcoded count of 0",
   );
   assert.match(
     source,
-    /count:\s*recalled/,
+    /count:\s*memories\.length/,
     "the retrieval count is not taken from the recall's own result",
   );
 });
 
 test("a failed recall is reported as a failure, not as a completed read", () => {
-  const source = code("src/core/orchestrator/Orchestrator.ts");
+  const source = code("src/core/router/BrainResolver.ts");
   const started = source.indexOf("memory_read_started");
   const window = source.slice(started, started + 1600);
   assert.match(window, /phase: "error"/, "a recall that throws still reports a successful read");

@@ -15,6 +15,7 @@
  * ==========================================================
  */
 
+import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 import AIService from "../AIService";
 import { ingest, type IngestionResult } from "./IngestionPipeline";
 import MemoryOrchestrator from "./MemoryProvider";
@@ -55,10 +56,12 @@ export async function ingestSource(
     for (const provider of available) {
       if (provider.name.startsWith("Local")) continue; // no browser runtime here
       try {
-        const response = await provider.generate({ prompt, messages: [] });
+        const response = await gatedGenerate(provider, { prompt, messages: [] }, "read-source");
         const text = response?.text?.trim();
         if (text) return text;
-      } catch {
+      } catch (error) {
+        // A spent budget stops here, as in chat: never on to another provider.
+        if (error instanceof BudgetExhaustedError) throw new Error(budgetNotice(error));
         // Fall through to the next provider, exactly as the chain would.
       }
     }

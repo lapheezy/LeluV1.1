@@ -1,0 +1,135 @@
+[
+  {
+    "n": 1,
+    "name": "desktop-home-bar-gone",
+    "ok": true,
+    "note": "bar hidden, side tab present",
+    "file": "docs/missions/m15-home/shots-15.2/step-01-ok-desktop-home-bar-gone.png"
+  },
+  {
+    "n": 2,
+    "name": "desktop-tab-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-02-ok-desktop-tab-opens-bar.png"
+  },
+  {
+    "n": 3,
+    "name": "desktop-bar-clear-of-home-nav",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-03-ok-desktop-bar-clear-of-home-nav.png"
+  },
+  {
+    "n": 4,
+    "name": "desktop-x-puts-it-away",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-04-ok-desktop-x-puts-it-away.png"
+  },
+  {
+    "n": 5,
+    "name": "desktop-menu-has-spatial",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-05-ok-desktop-menu-has-spatial.png"
+  },
+  {
+    "n": 6,
+    "name": "desktop-menu-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-06-ok-desktop-menu-opens-bar.png"
+  },
+  {
+    "n": 7,
+    "name": "desktop-escape-puts-it-away",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-07-ok-desktop-escape-puts-it-away.png"
+  },
+  {
+    "n": 8,
+    "name": "desktop-reload-stays-away",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-08-ok-desktop-reload-stays-away.png"
+  },
+  {
+    "n": 9,
+    "name": "phone-home-bar-gone",
+    "ok": true,
+    "note": "bar hidden, side tab present",
+    "file": "docs/missions/m15-home/shots-15.2/step-09-ok-phone-home-bar-gone.png"
+  },
+  {
+    "n": 10,
+    "name": "phone-tab-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-10-ok-phone-tab-opens-bar.png"
+  },
+  {
+    "n": 11,
+    "name": "phone-x-puts-it-away",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-11-ok-phone-x-puts-it-away.png"
+  },
+  {
+    "n": 12,
+    "name": "phone-menu-has-spatial",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-12-ok-phone-menu-has-spatial.png"
+  },
+  {
+    "n": 13,
+    "name": "phone-menu-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-13-ok-phone-menu-opens-bar.png"
+  },
+  {
+    "n": 14,
+    "name": "phone-escape-puts-it-away",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-14-ok-phone-escape-puts-it-away.png"
+  },
+  {
+    "n": 15,
+    "name": "phone-reload-stays-away",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-15-ok-phone-reload-stays-away.png"
+  },
+  {
+    "n": 16,
+    "name": "lelu-reply-open",
+    "ok": true,
+    "note": "LÉLU answered",
+    "file": "docs/missions/m15-home/shots-15.2/step-16-ok-lelu-reply-open.png"
+  },
+  {
+    "n": 17,
+    "name": "lelu-opened-bar",
+    "ok": true,
+    "note": "body flag true",
+    "file": "docs/missions/m15-home/shots-15.2/step-17-ok-lelu-opened-bar.png"
+  },
+  {
+    "n": 18,
+    "name": "lelu-reply-hide",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-18-ok-lelu-reply-hide.png"
+  },
+  {
+    "n": 19,
+    "name": "lelu-hid-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2/step-19-ok-lelu-hid-bar.png"
+  }
+]

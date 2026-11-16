@@ -1,0 +1,569 @@
+{
+ "startedAt": "2026-11-08T21:48:37.675Z",
+ "turns": [
+  {
+   "label": "t1-compose",
+   "prompt": "Use your environment tools: compose an environment titled Field Lab with two surfaces — a notes workspace and a research board.",
+   "ms": 55945,
+   "tools": [
+    "🟢 [9:50:35 PM] [ProviderResolver] Tool environment_compose -> ok"
+   ],
+   "state": {
+    "label": "t1-compose",
+    "focus": "visual",
+    "host": true,
+    "domCount": 5,
+    "views": [
+     {
+      "id": "view-providers",
+      "rev": 9,
+      "selected": "false",
+      "x": 374,
+      "y": 108,
+      "w": 462,
+      "h": 416,
+      "visible": true
+     },
+     {
+      "id": "view-memory",
+      "rev": 3,
+      "selected": "false",
+      "x": 58,
+      "y": 162,
+      "w": 302,
+      "h": 302,
+      "visible": true
+     },
+     {
+      "id": "view-2f7c5176",
+      "rev": 1,
+      "selected": "false",
+      "x": 58,
+      "y": 468,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     },
+     {
+      "id": "view-1c749332",
+      "rev": 1,
+      "selected": "false",
+      "x": 720,
+      "y": 576,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     },
+     {
+      "id": "view-executive",
+      "rev": 1,
+      "selected": "false",
+      "x": 1037,
+      "y": 144,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     }
+    ],
+    "engine": {
+     "focusId": "view-providers",
+     "selectedId": null,
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 9,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 3,
+       "text": ""
+      },
+      {
+       "id": "view-2f7c5176",
+       "title": "Notes Workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1c749332",
+       "title": "Research Board",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "snapshots": []
+   }
+  },
+  {
+   "label": "t3-save",
+   "prompt": "Save the current environment state as a snapshot named field-lab-v1.",
+   "ms": 15006,
+   "tools": [],
+   "state": {
+    "label": "t3-save",
+    "focus": "visual",
+    "host": true,
+    "domCount": 5,
+    "views": [
+     {
+      "id": "view-memory",
+      "rev": 5,
+      "selected": "false",
+      "x": 374,
+      "y": 108,
+      "w": 462,
+      "h": 416,
+      "visible": true
+     },
+     {
+      "id": "view-providers",
+      "rev": 15,
+      "selected": "false",
+      "x": 58,
+      "y": 162,
+      "w": 302,
+      "h": 302,
+      "visible": true
+     },
+     {
+      "id": "view-2f7c5176",
+      "rev": 1,
+      "selected": "false",
+      "x": 58,
+      "y": 468,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     },
+     {
+      "id": "view-1c749332",
+      "rev": 1,
+      "selected": "false",
+      "x": 720,
+      "y": 576,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     },
+     {
+      "id": "view-executive",
+      "rev": 1,
+      "selected": "false",
+      "x": 1037,
+      "y": 144,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     }
+    ],
+    "engine": {
+     "focusId": "view-memory",
+     "selectedId": null,
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 15,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-2f7c5176",
+       "title": "Notes Workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1c749332",
+       "title": "Research Board",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "snapshots": []
+   }
+  }
+ ],
+ "steps": [
+  {
+   "label": "boot",
+   "focus": "genesis",
+   "host": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "focusId": "view-providers",
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 2,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": []
+  },
+  {
+   "label": "after-compose",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-providers",
+     "rev": 9,
+     "selected": "false",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-memory",
+     "rev": 3,
+     "selected": "false",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-2f7c5176",
+     "rev": 1,
+     "selected": "false",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-1c749332",
+     "rev": 1,
+     "selected": "false",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "selected": "false",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "focusId": "view-providers",
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 9,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 3,
+      "text": ""
+     },
+     {
+      "id": "view-2f7c5176",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-1c749332",
+      "title": "Research Board",
+      "revision": 1,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": []
+  },
+  {
+   "label": "after-real-click",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-providers",
+     "rev": 9,
+     "selected": "false",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-memory",
+     "rev": 3,
+     "selected": "false",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-2f7c5176",
+     "rev": 1,
+     "selected": "false",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-1c749332",
+     "rev": 1,
+     "selected": "false",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "selected": "false",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "focusId": "view-providers",
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 9,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 3,
+      "text": ""
+     },
+     {
+      "id": "view-2f7c5176",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-1c749332",
+      "title": "Research Board",
+      "revision": 1,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": []
+  },
+  {
+   "label": "after-save",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-memory",
+     "rev": 5,
+     "selected": "false",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-providers",
+     "rev": 15,
+     "selected": "false",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-2f7c5176",
+     "rev": 1,
+     "selected": "false",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-1c749332",
+     "rev": 1,
+     "selected": "false",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "selected": "false",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "focusId": "view-memory",
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 15,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 5,
+      "text": ""
+     },
+     {
+      "id": "view-2f7c5176",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-1c749332",
+      "title": "Research Board",
+      "revision": 1,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": []
+  }
+ ],
+ "console": [
+  "🟢 [9:50:35 PM] [ProviderResolver] Tool environment_compose -> ok",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 3961, Requeste}",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 3953, Requeste}",
+  "🔴 [9:51:15 PM] [ProviderResolver] Groq failed; falling back to the next provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, priority: 2.5, fallbackReason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, latencyMs: 1645}",
+  "Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 1959}"
+ ],
+ "newViews": [
+  {
+   "id": "view-2f7c5176",
+   "title": "Notes Workspace",
+   "revision": 1,
+   "text": ""
+  },
+  {
+   "id": "view-1c749332",
+   "title": "Research Board",
+   "revision": 1,
+   "text": ""
+  }
+ ],
+ "idsBeforeReload": [
+  {
+   "id": "view-executive",
+   "revision": 1
+  },
+  {
+   "id": "view-providers",
+   "revision": 15
+  },
+  {
+   "id": "view-memory",
+   "revision": 5
+  },
+  {
+   "id": "view-2f7c5176",
+   "revision": 1
+  },
+  {
+   "id": "view-1c749332",
+   "revision": 1
+  }
+ ],
+ "elapsedMs": 170515,
+ "finishedAt": "2026-11-08T21:51:28.190Z"
+}

@@ -43,7 +43,9 @@ const BOARD_WIDE: ReadonlySet<string> = new Set(["user", "lelu", "shaman"]);
  */
 const EXECUTIVE_SIGNALS: ReadonlyArray<[ExecutiveId, RegExp]> = [
   ["maat", /\b(secur\w*|secret\w*|credential\w*|privacy|private key|permission\w*|vulnerab\w*|inject\w*|attack\w*|threat\w*|auth\w*)\b/i],
-  ["forge", /\b(new agent|create (an? )?agent|agent template|specialist agent|spawn (an? )?agent)\b/i],
+  // Agent Forge creates and evolves the workforce — and the capabilities it
+  // works with: finding, evaluating and sandbox-testing new tools.
+  ["forge", /\b(new agent|create (an? )?agent|agent template|specialist agent|spawn (an? )?agent|new capabilit\w*|missing capabilit\w*|capability gap|open[- ]source (?:tool|librar\w*|package)|(?:find|evaluate|sandbox[- ]test|vet) (?:a |an |the )?(?:free )?(?:tool|librar\w*|package|resource)s?)\b/i],
   ["caretaker", /\b(health\w*|wellness|medical|medicine|sleep|nutrition|diet|exercise|routine\w*|travel\w*|biolog\w*)\b/i],
   ["architect", /\b(architect\w*|refactor\w*|dependenc\w*|subsystem\w*|research\w*|investigat\w*|analy[sz]\w*|study)\b/i],
   ["engineering", /\b(code|coding|implement\w*|build\w*|bug\w*|fix\w*|test\w*|deploy\w*|compile\w*|render\w*|video|script\w*|debug\w*)\b/i],
@@ -158,10 +160,16 @@ export default class Shaman {
       };
     }
 
-    const candidates = this.store
+    const pool = this.store
       .runnable()
       .filter((agent) => !exclude.has(agent.id))
       .filter((agent) => !request.executive || executiveOf(agent) === request.executive);
+    // Capability development is Agent Forge's domain: when the wording says
+    // so, match within its galaxy first (a general researcher must not take
+    // "evaluate an open-source tool" just because a word overlaps).
+    const forgeWork = !request.executive && this.classify(objective) === "forge";
+    const forgeAgents = forgeWork ? pool.filter((agent) => executiveOf(agent) === "forge") : [];
+    const candidates = forgeAgents.length > 0 ? forgeAgents : pool;
     if (candidates.length === 0) {
       return {
         ok: false,

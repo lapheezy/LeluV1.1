@@ -28,6 +28,7 @@ import SketchStore, {
   type SketchStrokeTool,
 } from "../../../core/creative/SketchDocument";
 import { executeToolCommand, toolCommandExamples } from "../../../core/creative/CreativeToolInterface";
+import "./sketchPanel.css";
 
 const fieldStyle: CSSProperties = {
   boxSizing: "border-box",
@@ -472,8 +473,10 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
   }
 
   function createDocument() {
-    const name = window.prompt("Sketch name:", `Sketch ${docs.length + 1}`)?.trim() || `Sketch ${docs.length + 1}`;
-    const created = store.create(name);
+    // A native prompt blocks the browser (and every automated acceptance
+    // run) and cannot be styled on a phone. Create immediately with the
+    // default name; the document's own name field remains editable.
+    const created = store.create(`Sketch ${docs.length + 1}`);
     setDocId(created.id);
   }
 
@@ -497,9 +500,10 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
           No sketch open. Create one, or pick one from the library.
         </div>
       ) : (
-        <div style={{ display: "flex", gap: 12, height: "min(78vh, 860px)" }}>
+        <div className="lelu-sketch-body" style={{ display: "flex", gap: 12, height: "min(78vh, 860px)" }}>
           {/* toolbar */}
           <div
+            className="lelu-sketch-tools"
             style={{
               width: 64,
               flexShrink: 0,
@@ -607,6 +611,7 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
 
           {/* canvas */}
           <div
+            className="lelu-sketch-canvas"
             style={{
               flex: 1,
               minWidth: 0,
@@ -622,6 +627,7 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
             }}
           >
             <canvas
+              className="lelu-sketch-surface"
               ref={canvasRef}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
@@ -641,6 +647,7 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
 
           {/* layers + export */}
           <div
+            className="lelu-sketch-side"
             style={{
               width: 200,
               flexShrink: 0,

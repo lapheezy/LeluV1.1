@@ -1,0 +1,107 @@
+{
+ "at": "2026-11-08T14:09:59.195Z",
+ "port": "4318",
+ "prompt": "Research the development of spatial computing interfaces and organize the most important findings into a visual workspace. Include the major concepts, important technical developments, and open questions.",
+ "requests": [
+  {
+   "at": 1794147075904,
+   "provider": "openrouter",
+   "model": "openrouter/free",
+   "stream": false,
+   "toolCount": 0,
+   "environmentTools": [],
+   "messages": 4,
+   "promptChars": 5100,
+   "status": 429,
+   "bodyChars": 1776,
+   "toolCalls": [],
+   "bodyHead": "{\"error\":{\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\",\"code\":429,\"metadata\":{\"headers\":{\"X-RateLimit-Limit\":\"50\",\"X-RateLimit-Remaining\":\"0\",\"X-RateLimit-Reset\":\"1794182400000\"},\"limit_source\":\"openrouter_free_tier_daily\",\"remedy_hint\":\"Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.\",\"provider_name\":null,\"previous_errors\":[{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":\"Provider returned error\",\"provider_name\":\"Phala\",\"raw\":\"xingchen-agi/xing4.0-29b-a4b:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok\"},{\"code\":429,\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day\"},{\"code\":429,\"message\":"
+  },
+  {
+   "at": 1794147080227,
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "toolCount": 0,
+   "environmentTools": [],
+   "messages": 4,
+   "promptChars": 5100,
+   "status": 200,
+   "bodyChars": 2709,
+   "toolCalls": [],
+   "bodyHead": "{\"id\":\"chatcmpl-b2795001-2466-42ba-a952-3adc5592c806\",\"object\":\"chat.completion\",\"created\":1794147081,\"model\":\"openai/gpt-oss-120b\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"**ANSWER**  \\n- The engineering runtime is currently unreachable (the `/api/engineer/status` endpoint returned **503**).  \\n- Only the **build‑time static snapshot** is available: 632 files can be read, but no live files, directory listings, command execution, or runtime state can be inspected.  \\n- The snapshot reliably shows the **provider configuration** (names, priorities, enabled/disabled flags, readiness, and that none have succeeded yet) and the **self‑diagnostic summary** (8 checks OK, 0 warnings, 0 errors).  \\n- Anything that requires live interaction—current provider success, actual runtime metrics, live filesystem contents, or command results—cannot be trusted from this snapshot and must be treated as **build‑time only** information.\\n\\n**CONFIDENCE**  \\n- **Verified** – the 503 response, file count, provider list, and self‑diagnostic counts are directly reported in the snapshot.  \\n- **Inferred** – that live state, command output, and directory listings are unavailable because the runtime is unreachable; this follows logically from “live files … NOT available.”  \\n- **Unverified** – the underlying cause of the 503 and any runtime‑only conditions (e.g., network issues, service crashes) are not established by the snapshot.\\n\\n**NEXT**  \\nWhat specific condition or failure is"
+  },
+  {
+   "at": 1794147162384,
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "stream": false,
+   "toolCount": 0,
+   "environmentTools": [],
+   "messages": 4,
+   "promptChars": 6184,
+   "status": 429,
+   "bodyChars": 382,
+   "toolCalls": [],
+   "bodyHead": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199455, Requested 2074. Please try again in 11m0.528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing\",\"type\":\"tokens\",\"code\":\"rate_limit_exceeded\"}}\n"
+  }
+ ],
+ "errors": [],
+ "steps": [
+  {
+   "selector": "button[aria-label=\"Summon the chat\"]",
+   "found": true,
+   "opened": false
+  },
+  {
+   "selector": "button[aria-label=\"What LÉLU is doing — open chat\"]",
+   "found": true,
+   "opened": false
+  },
+  {
+   "selector": "button[aria-label=\"Travel to Conversation\"]",
+   "found": true,
+   "opened": false
+  }
+ ],
+ "afterSummon": {
+  "chatWindow": false,
+  "assistant": [],
+  "surfaces": [
+   {
+    "kind": "project",
+    "text": ""
+   },
+   {
+    "kind": "project",
+    "text": ""
+   },
+   {
+    "kind": "start",
+    "text": ""
+   },
+   {
+    "kind": "start",
+    "text": ""
+   },
+   {
+    "kind": "message",
+    "text": ""
+   },
+   {
+    "kind": "message",
+    "text": ""
+   },
+   {
+    "kind": "message",
+    "text": ""
+   }
+  ],
+  "windows": [],
+  "activity": "Chat Activity 24H 7D 30D All Now",
+  "sending": null,
+  "body": "LÉLU unknown · unknown · development · built 2026-11-08 13:53Z ◈ Governor galaxy ◈ Creation world ◈ Dimensional portal ◈ Agent universes ◈ Browser ◈ Genesis Studios ◈ Research ◈ Projects ◈ Files ◈ Media ◈ Conversation 🏙 Nova Haven 🏙 Skyreach 🏙 Cloudspire 🏙 Aetheria 🏙 Lumina EARTH MOON ♈ Aries ♉ Taurus ♊ Gemini ♋ Cancer ♌ Leo ♍ Virgo ♎ Libra ♏ Scorpio ♐ Sagittarius ♑ Capricorn ♒ Aquarius ♓ Pisces ☉ Sun ☽ Moon ☿ Mercury ♀ Venus ♂ Mars ♃ Jupiter ♄ Saturn ⛢ Uranus ♆ Neptune ♇ Pluto ✦ ZODIAC OBSERVATORY ✦ LÉLU SHAMAN LÉLU CARETAKER ENGINEERING & SYSTEMS M.S. MA'AT SENTINEL ARCHITECT EXECUTIVE "
+ },
+ "result": "BLOCKED: chat never mounted a composer",
+ "screenshot": "shots/blocked.png"
+}

@@ -1,0 +1,189 @@
+{
+  "mission": "5.4B.2",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "device": "Chromium headless + SwiftShader software compositor (NOT real-device performance)",
+  "settledFramesRequired": 30,
+  "reps": 3,
+  "errors": [],
+  "attempts": [
+    {
+      "destination": "files",
+      "rep": 1,
+      "aim": {
+        "id": "scene:files",
+        "destination": "files",
+        "screen": {
+          "x": 588,
+          "y": 506
+        },
+        "hitRadius": 0.35,
+        "onScreen": true,
+        "insideViewport": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "topElement": "BUTTON",
+        "elements": [
+          "BUTTON",
+          "DIV",
+          "CANVAS",
+          "DIV"
+        ],
+        "canvasOnTop": false,
+        "pickAtCentre": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "distance": 9.457473372128502
+        }
+      },
+      "clickPoint": {
+        "x": 588,
+        "y": 506
+      },
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "transitionDestination": "media",
+      "transitionKind": "environment-morph",
+      "landed": "core",
+      "deliveredMatchesAim": false,
+      "sceneMatchesDestination": false,
+      "matches": false
+    },
+    {
+      "destination": "files",
+      "rep": 2,
+      "aborted": "transition still running",
+      "matches": false
+    },
+    {
+      "destination": "files",
+      "rep": 3,
+      "aborted": "transition still running",
+      "matches": false
+    },
+    {
+      "destination": "studio",
+      "rep": 1,
+      "aborted": "transition still running",
+      "matches": false
+    },
+    {
+      "destination": "studio",
+      "rep": 2,
+      "aim": {
+        "id": "scene:studio",
+        "destination": "studio",
+        "screen": {
+          "x": 878,
+          "y": 67
+        },
+        "hitRadius": 0.97,
+        "onScreen": true,
+        "insideViewport": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "topElement": "DIV",
+        "elements": [
+          "DIV",
+          "DIV",
+          "CANVAS",
+          "DIV"
+        ],
+        "canvasOnTop": false,
+        "pickAtCentre": {
+          "portalId": "scene:studio",
+          "name": "spatial-portal-hit-scene:studio",
+          "distance": 14.052301608945381
+        }
+      },
+      "clickPoint": {
+        "x": 878,
+        "y": 67
+      },
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "transitionDestination": null,
+      "transitionKind": "",
+      "landed": "media",
+      "deliveredMatchesAim": false,
+      "sceneMatchesDestination": false,
+      "matches": false
+    },
+    {
+      "destination": "studio",
+      "rep": 3,
+      "aborted": "transition still running",
+      "matches": false
+    }
+  ],
+  "entryPath": [
+    {
+      "control": "look-at-the-cosmos",
+      "found": true,
+      "point": {
+        "x": 1246,
+        "y": 94
+      },
+      "stack": [
+        "SPAN.lch-cosmos-core",
+        "BUTTON.lch-round lch-cosmos",
+        "DIV.lch-header-right"
+      ]
+    },
+    {
+      "after": {
+        "immersive": "true",
+        "flag": true
+      }
+    }
+  ],
+  "entry": {
+    "ok": true,
+    "reason": null,
+    "immersive": "true",
+    "scene": "core",
+    "settle": {
+      "frame": 37,
+      "stableFrames": 0,
+      "deltaPosition": 3.0054,
+      "deltaRotation": 0.427,
+      "position": [
+        5.3678,
+        2.3946,
+        4.5268
+      ],
+      "quaternion": [
+        -0.08,
+        0.4199,
+        0.0372,
+        0.9033
+      ]
+    },
+    "canvases": 3,
+    "field": {
+      "registry": 11,
+      "drawn": 11,
+      "onScreen": 11,
+      "overlappingMouths": []
+    }
+  },
+  "summary": {
+    "attempts": 6,
+    "deliveredMatchesAim": 0,
+    "sceneMatchesDestination": 0,
+    "fullyMatched": 0,
+    "aborted": 4
+  }
+}

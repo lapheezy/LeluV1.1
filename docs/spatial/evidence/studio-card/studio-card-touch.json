@@ -1,0 +1,114 @@
+{
+ "ranAt": "2026-11-07T13:25:12.110Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": [
+  {
+   "viewport": "375x812",
+   "card": {
+    "found": true,
+    "button": true,
+    "rect": {
+     "x": 221,
+     "y": 191,
+     "w": 75,
+     "h": 34
+    },
+    "visibleFraction": 1,
+    "clippedBy": [],
+    "tapPoint": {
+     "x": 259,
+     "y": 208
+    },
+    "tapHitsButton": true
+   },
+   "tapOpened": "Alpha Field Report",
+   "tapOpenedRight": true,
+   "afterCover": {
+    "s1": "Beta Launch Checklist",
+    "s2": "Beta Launch Checklist",
+    "closedByHand": [
+     false,
+     false
+    ]
+   },
+   "afterCoverRight": true,
+   "ids": {
+    "idA": "art_9322dd984e23",
+    "idB": "art_2407e1216075"
+   },
+   "errors": []
+  },
+  {
+   "viewport": "iPhone13-390x844",
+   "card": {
+    "found": true,
+    "button": true,
+    "rect": {
+     "x": 235,
+     "y": 191,
+     "w": 75,
+     "h": 34
+    },
+    "visibleFraction": 1,
+    "clippedBy": [],
+    "tapPoint": {
+     "x": 273,
+     "y": 208
+    },
+    "tapHitsButton": true
+   },
+   "tapOpened": "Alpha Field Report",
+   "tapOpenedRight": true,
+   "afterCover": {
+    "s1": "Beta Launch Checklist",
+    "s2": "Beta Launch Checklist",
+    "closedByHand": [
+     false,
+     false
+    ]
+   },
+   "afterCoverRight": true,
+   "ids": {
+    "idA": "art_c69e2ba83c49",
+    "idB": "art_3ddb812a94ae"
+   },
+   "errors": []
+  },
+  {
+   "viewport": "desktop-1440x900",
+   "card": {
+    "found": true,
+    "button": true,
+    "rect": {
+     "x": 1176,
+     "y": 262,
+     "w": 75,
+     "h": 32
+    },
+    "visibleFraction": 1,
+    "clippedBy": [],
+    "tapPoint": {
+     "x": 1214,
+     "y": 278
+    },
+    "tapHitsButton": true
+   },
+   "tapOpened": "Alpha Field Report",
+   "tapOpenedRight": true,
+   "afterCover": {
+    "s1": "Beta Launch Checklist",
+    "s2": "Beta Launch Checklist",
+    "closedByHand": [
+     false,
+     false
+    ]
+   },
+   "afterCoverRight": true,
+   "ids": {
+    "idA": "art_0981cb7ee391",
+    "idB": "art_6459dc764bf5"
+   },
+   "errors": []
+  }
+ ]
+}

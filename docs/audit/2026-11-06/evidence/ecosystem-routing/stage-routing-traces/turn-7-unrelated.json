@@ -1,0 +1,33 @@
+{
+  "capturedAt": "2026-11-06",
+  "source": "window.__LELU_ROUTING_TRACE__ (live dev server :3013)",
+  "id": "route-mw5df209-ryd76a",
+  "prompt": "Write me a short poem about the sea.",
+  "intent": "chat",
+  "startedAt": 1793993513193,
+  "finishedAt": 1793993546869,
+  "stages": [
+    { "stage": "time", "handled": false, "durationMs": 0 },
+    { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+    { "stage": "brain", "handled": false, "durationMs": 0 },
+    { "stage": "intelligence", "handled": false, "durationMs": 0 },
+    { "stage": "surface", "handled": false, "durationMs": 1 },
+    { "stage": "tools", "handled": false, "durationMs": 1 },
+    { "stage": "engineering", "handled": false, "durationMs": 0 },
+    { "stage": "creative", "handled": false, "durationMs": 0 },
+    { "stage": "avatar", "handled": false, "durationMs": 1 },
+    { "stage": "research", "handled": false, "durationMs": 0 },
+    { "stage": "deflock", "handled": false, "durationMs": 1 },
+    { "stage": "browser", "handled": false, "durationMs": 0 },
+    { "stage": "workspace", "handled": false, "durationMs": 1 },
+    { "stage": "provider", "handled": true, "durationMs": 20332, "provider": "offline", "model": "offline" }
+  ],
+  "notes": [
+    { "at": 1793993546869, "stage": "final", "detail": "owner=offline provider=offline model=offline chars=307", "ok": true }
+  ],
+  "owner": "offline",
+  "provider": "offline",
+  "model": "offline",
+  "renderedExcerpt": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here …",
+  "interpretation": "The operational stage correctly declined an unrelated prompt (0 ms, handled=false) and the turn went to ProviderResolver. The provider chain itself failed after 20.3 s, so the rendered text is LÉLU's existing offline notice, not a generated poem. Routing: correct. Answer generation: provider unavailable in this environment."
+}

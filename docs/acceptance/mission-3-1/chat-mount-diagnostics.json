@@ -1,0 +1,72 @@
+{
+ "failure_point": "USER ACTION \u2192 CHAT INVOCATION. The click never reached the handler, so nothing after it was ever attempted.",
+ "root_cause": "[data-lelu-signin-gate] mounts AFTER first paint at position:fixed; inset:0; z-index:600; pointer-events:auto. It covers the entire viewport, so real pointer clicks land on the modal instead of the home. A driver that samples for the gate immediately after DOMContentLoaded sees no gate (it is not mounted yet), concludes there is nothing to dismiss, and then clicks into a modal that appeared underneath it.",
+ "measurements": {
+  "gate_rect": "0,0 1440x900",
+  "gate_z_index": 600,
+  "gate_pointer_events": "auto",
+  "element_from_point_at_tile_centre_was_gate": true,
+  "gate_settle_ms": [
+   2925,
+   2993
+  ],
+  "programmatic_element_click_bypasses_gate": true,
+  "universe_event_listener_count": 2,
+  "lelu-open-universe_after_programmatic_click": 1
+ },
+ "selectors": {
+  "mission_3_assumed": "[data-lelu-chat-window] present after opening chat",
+  "actual": "Opening chat mounts the Chat Universe: [role=dialog][aria-label=\"Chat Universe\"] with composer .lcu textarea. [data-lelu-chat-window] is the single-chat window and only exists once a conversation is opened as a module window (chat:<id>).",
+  "composer_marker": "[data-lelu-composer] belongs to the single-chat composer, not the Universe composer"
+ },
+ "overlay_dump": [
+  {
+   "at": {
+    "id": "home-now-tile",
+    "x": 1082,
+    "y": 247
+   },
+   "top": {
+    "tag": "DIV",
+    "cls": "",
+    "id": null,
+    "pe": "auto",
+    "pos": "fixed",
+    "z": "600",
+    "vis": "visible",
+    "disp": "flex",
+    "op": "1",
+    "rect": {
+     "x": 0,
+     "y": 0,
+     "w": 1440,
+     "h": 900
+    },
+    "attrs": [
+     "data-lelu-signin-gate=true",
+     "role=dialog",
+     "aria-modal=true",
+     "aria-label=Sign in to L\u00c9LU",
+     "style=position: fixed; inset: 0px; z-index: 60"
+    ],
+    "html": "<div data-lelu-signin-gate=\"true\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Sign in to L\u00c9LU\" style=\"position: fixed; inset: 0px; z-index: 600; pointer-events: auto; display: flex; align-items: center; justify-content: "
+   },
+   "chain": [
+    "DIV.[pe=auto,z=600]",
+    "DIV.[pe=none,z=auto]",
+    "DIV.[pe=auto,z=auto]",
+    "BODY.[pe=auto,z=auto]",
+    "HTML.[pe=auto,z=auto]"
+   ],
+   "stack": [
+    "DIV.[pe=auto]",
+    "BUTTON.lch-glass lch-now[pe=auto]",
+    "SECTION.lch-hero[pe=auto]",
+    "CANVAS.[pe=auto]",
+    "DIV.[pe=auto]",
+    "DIV.[pe=auto]"
+   ]
+  }
+ ],
+ "verdict": "PARTIAL (diagnosis PASS) \u2014 root cause measured, not guessed."
+}

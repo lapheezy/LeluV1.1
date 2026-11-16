@@ -49,6 +49,8 @@ export const TEMPLATE_EXECUTIVE: Readonly<Record<string, ExecutiveId>> = {
   renderer: "engineering",
   video: "engineering",
   builder: "engineering",
+  // Agent Forge creates and evolves the workforce — including its tools.
+  "resource-intelligence": "forge",
   engineer: "engineering",
   researcher: "architect",
   marketing: "caretaker",

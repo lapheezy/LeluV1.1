@@ -1,0 +1,29 @@
+{
+  "capacity_state": "EXHAUSTED for real turns on 2026-11-08",
+  "anthropic": "excluded by mission policy; not enabled, not probed for use, not used as fallback",
+  "groq": {
+    "model": "openai/gpt-oss-120b",
+    "auth": "valid",
+    "tiny_direct_probe": "HTTP 200 at 18:56 local",
+    "in_app_turns": "HTTP 429 \u2014 'Rate limit reached for model `openai/gpt-oss-120b` ... today at https://console.groq.com/settings/billing'",
+    "kind": "daily token allowance (TPD), not a per-minute refusal"
+  },
+  "openrouter": {
+    "auth": "valid (/api/v1/key 200)",
+    "in_app_turns": "HTTP 429 \u2014 'Rate limit exceeded: free-models-per-day'"
+  },
+  "github_models": {
+    "status_endpoint": "reports githubModels:true",
+    "adapter_at_call_time": "'GitHub Models token missing.'",
+    "kind": "configuration mismatch, not a usable provider"
+  },
+  "other_integrated": {
+    "cerebras": false,
+    "mistral": false,
+    "fireworks": false,
+    "gemini": false
+  },
+  "app_behaviour_observed": "AIProviderRegistry parks each failed provider in a cooldown and ProviderResolver answers 'No AI providers are available.' \u2014 no fabricated completion",
+  "conclusion": "no non-Anthropic provider could serve a model turn; model-driven gates are BLOCKED, engineering and measurement gates were completed instead",
+  "secrets_exposed": false
+}

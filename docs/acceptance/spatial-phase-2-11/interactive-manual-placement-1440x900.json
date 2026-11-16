@@ -1,0 +1,27 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T22:27:43.023Z",
+ "deviceScaleFactor": 1,
+ "note": "the portal panel floats above the workspace, so the drag happens before it is opened and the counter is read afterwards",
+ "steps": [
+  "OK-dom gate",
+  "studio=true",
+  "OK drag-header"
+ ],
+ "checks": {
+  "studioPanel": true,
+  "dragHandle": {
+   "x": 623,
+   "y": 86
+  },
+  "posBefore": {
+   "x": 88,
+   "y": 64
+  },
+  "posAfter": {
+   "x": 178,
+   "y": 119
+  }
+ },
+ "errors": []
+}

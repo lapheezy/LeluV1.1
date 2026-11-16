@@ -1,0 +1,25 @@
+{
+ "observed": [
+  {
+   "case": "provider rate limit (429)",
+   "result": "classified PROVIDER_RATE_LIMITED, provider quarantined, chain advanced \u2014 PASS"
+  },
+  {
+   "case": "provider credential defect",
+   "result": "reported as 'token missing' and fell through; classified, not swallowed \u2014 PASS"
+  },
+  {
+   "case": "no compatible provider",
+   "result": "honest 'missing-credentials-or-provider-cooldown' notice, no fabricated success \u2014 PASS"
+  }
+ ],
+ "not_exercised": [
+  "timeout",
+  "invalid tool arguments",
+  "partial multi-tool execution",
+  "failed follow-up generation",
+  "interrupted conversation",
+  "persistence failure"
+ ],
+ "verdict": "PARTIAL"
+}

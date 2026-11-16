@@ -1,0 +1,135 @@
+{
+  "viewport": "390x844",
+  "capturedAt": "2026-11-06T22:01:00.749Z",
+  "steps": {
+    "create": {
+      "universe": true,
+      "home": false,
+      "canvases": 1,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false
+        }
+      ],
+      "camera": [
+        4,
+        4,
+        -3
+      ],
+      "reveal": null
+    },
+    "recolour": {
+      "universe": true,
+      "home": false,
+      "canvases": 1,
+      "revision": 2,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false
+        }
+      ],
+      "camera": [
+        -5,
+        3,
+        5
+      ],
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1794002499552,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.33, -0.01, 5.99) looking at (2.23, -1.35, 2.17). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.327296726066825,
+            "y": -0.013646766662316567,
+            "z": 5.990495638942095
+          },
+          "target": {
+            "x": 2.2273130736790354,
+            "y": -1.35,
+            "z": 2.17234354369157
+          },
+          "distance": 4.5578565935112545,
+          "fov": 56
+        },
+        "at": 1794002531391
+      }
+    }
+  },
+  "events": [],
+  "before": {
+    "green": 0,
+    "lavender": 234,
+    "bbox": null,
+    "centre": [
+      134,
+      171,
+      235
+    ]
+  },
+  "transcript": "⚙️Working with tools1 tool usedWorkingcreate a cube called NovaCreated \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.paint the cube greenChanged \"Nova\" — colour #22c55e. Scene revision 2.Send",
+  "after": {
+    "green": 46863,
+    "lavender": 489,
+    "bbox": {
+      "x": 89,
+      "y": 316,
+      "w": 237,
+      "h": 233
+    },
+    "centre": [
+      82,
+      200,
+      171
+    ]
+  },
+  "screenshot": "docs/acceptance/spatial-phase-2-7/screenshots/390x844-12-recolour-after.png",
+  "state": {
+    "universe": false,
+    "home": false,
+    "canvases": 3,
+    "revision": 2,
+    "objects": [
+      {
+        "name": "Nova",
+        "rendered": true,
+        "world": [
+          2.2942827122502347,
+          -1.35,
+          2.101491574161007
+        ],
+        "color": "#22c55e"
+      }
+    ],
+    "camera": [
+      4.3,
+      -0.01,
+      6.02
+    ],
+    "reveal": {
+      "target": "Nova",
+      "requestedAt": 1794002566244,
+      "ok": true,
+      "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+      "camera": {
+        "position": {
+          "x": 4.299983652387789,
+          "y": -0.013646766662316567,
+          "z": 6.018152095250525
+        },
+        "target": {
+          "x": 2.2,
+          "y": -1.35,
+          "z": 2.2
+        },
+        "distance": 4.5578565935112545,
+        "fov": 56
+      },
+      "at": 1794002593442
+    }
+  },
+  "greenSeen": true
+}

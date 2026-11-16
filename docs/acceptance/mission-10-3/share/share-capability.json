@@ -1,0 +1,54 @@
+{
+ "ranAt": "2026-11-07T19:12:34.536Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": [
+  {
+   "case": "ios-like",
+   "getDisplayMedia": false,
+   "shareShown": false,
+   "notice": null,
+   "voice": {
+    "active": true,
+    "phase": "listening"
+   },
+   "chatSendLanded": true,
+   "pass": true
+  },
+  {
+   "case": "desktop",
+   "getDisplayMedia": true,
+   "shareShown": true,
+   "notice": null,
+   "voice": {
+    "active": true,
+    "phase": "listening"
+   },
+   "chatSendLanded": true,
+   "pass": true
+  },
+  {
+   "case": "android-like",
+   "getDisplayMedia": true,
+   "shareShown": true,
+   "notice": null,
+   "voice": {
+    "active": true,
+    "phase": "listening"
+   },
+   "chatSendLanded": true,
+   "pass": true
+  },
+  {
+   "case": "refusal",
+   "getDisplayMedia": true,
+   "shareShown": true,
+   "notice": "Screen sharing was declined, so nothing was captured. Choose Share Screen again and allow it when your browser asks.",
+   "voice": {
+    "active": true,
+    "phase": "listening"
+   },
+   "chatSendLanded": true,
+   "pass": true
+  }
+ ]
+}

@@ -1,0 +1,545 @@
+{
+  "at": "2026-11-09T02:05:48.319Z",
+  "viewports": [
+    {
+      "label": "375x812",
+      "viewport": {
+        "w": 375,
+        "h": 812
+      },
+      "host": true,
+      "count": 4,
+      "chatOpen": false,
+      "chatRect": null,
+      "allVisible": true,
+      "allInside": true,
+      "cards": [
+        {
+          "id": "view-providers",
+          "revision": "3",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 92,
+            "w": 351,
+            "h": 382
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-dbc82de9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 482,
+            "w": 351,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-e5397ba9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 568,
+            "w": 351,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-6d0cffdf",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 654,
+            "w": 351,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        }
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
+    },
+    {
+      "label": "360x640",
+      "viewport": {
+        "w": 360,
+        "h": 640
+      },
+      "host": true,
+      "count": 4,
+      "chatOpen": false,
+      "chatRect": null,
+      "allVisible": true,
+      "allInside": true,
+      "cards": [
+        {
+          "id": "view-providers",
+          "revision": "3",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 72,
+            "w": 336,
+            "h": 242
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-dbc82de9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 322,
+            "w": 336,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-e5397ba9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 408,
+            "w": 336,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-6d0cffdf",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 494,
+            "w": 336,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        }
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
+    },
+    {
+      "label": "430x932",
+      "viewport": {
+        "w": 430,
+        "h": 932
+      },
+      "host": true,
+      "count": 4,
+      "chatOpen": false,
+      "chatRect": null,
+      "allVisible": true,
+      "allInside": true,
+      "cards": [
+        {
+          "id": "view-providers",
+          "revision": "3",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 92,
+            "w": 406,
+            "h": 242
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-dbc82de9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 342,
+            "w": 406,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-e5397ba9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 428,
+            "w": 406,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-6d0cffdf",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 514,
+            "w": 406,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        }
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
+    },
+    {
+      "label": "390x844",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "host": true,
+      "count": 4,
+      "chatOpen": false,
+      "chatRect": null,
+      "allVisible": true,
+      "allInside": true,
+      "cards": [
+        {
+          "id": "view-providers",
+          "revision": "3",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 92,
+            "w": 366,
+            "h": 382
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-dbc82de9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 482,
+            "w": 366,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-e5397ba9",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 568,
+            "w": 366,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        },
+        {
+          "id": "view-6d0cffdf",
+          "revision": "1",
+          "selected": "false",
+          "rect": {
+            "x": 12,
+            "y": 654,
+            "w": 366,
+            "h": 78
+          },
+          "inside": true,
+          "visible": true
+        }
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
+    }
+  ],
+  "selection": {
+    "tapped": {
+      "id": "view-providers",
+      "x": null,
+      "y": null
+    },
+    "engineSelected": null,
+    "domSelected": "false",
+    "all": [
+      {
+        "id": "view-providers",
+        "selected": "false"
+      },
+      {
+        "id": "view-dbc82de9",
+        "selected": "false"
+      },
+      {
+        "id": "view-e5397ba9",
+        "selected": "false"
+      },
+      {
+        "id": "view-6d0cffdf",
+        "selected": "false"
+      }
+    ],
+    "tapPoint": {
+      "x": 195,
+      "y": 212
+    },
+    "hit": {
+      "tag": "SECTION",
+      "inCard": false,
+      "cardId": null,
+      "closestDialog": null,
+      "html": "<section class=\"lcu-main\"><header class=\"lcu-head\"><button type=\"button\" class=\"lcu-icon lcu-menu\" a"
+    }
+  },
+  "errors": [],
+  "gateDismissed": false,
+  "initial": {
+    "label": "390x844-before-chat",
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "host": true,
+    "count": 4,
+    "chatOpen": false,
+    "chatRect": null,
+    "allVisible": true,
+    "allInside": true,
+    "cards": [
+      {
+        "id": "view-providers",
+        "revision": "3",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 92,
+          "w": 366,
+          "h": 382
+        },
+        "inside": true,
+        "visible": true
+      },
+      {
+        "id": "view-dbc82de9",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 482,
+          "w": 366,
+          "h": 78
+        },
+        "inside": true,
+        "visible": true
+      },
+      {
+        "id": "view-e5397ba9",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 568,
+          "w": 366,
+          "h": 78
+        },
+        "inside": true,
+        "visible": true
+      },
+      {
+        "id": "view-6d0cffdf",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 654,
+          "w": 366,
+          "h": 78
+        },
+        "inside": true,
+        "visible": true
+      }
+    ]
+  },
+  "talkButton": true,
+  "withChat": {
+    "label": "390x844-chat-open",
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "host": true,
+    "count": 4,
+    "chatOpen": false,
+    "chatRect": null,
+    "allVisible": true,
+    "allInside": true,
+    "cards": [
+      {
+        "id": "view-providers",
+        "revision": "3",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 92,
+          "w": 366,
+          "h": 382
+        },
+        "inside": true,
+        "visible": true
+      },
+      {
+        "id": "view-dbc82de9",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 482,
+          "w": 366,
+          "h": 78
+        },
+        "inside": true,
+        "visible": true
+      },
+      {
+        "id": "view-e5397ba9",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 568,
+          "w": 366,
+          "h": 78
+        },
+        "inside": true,
+        "visible": true
+      },
+      {
+        "id": "view-6d0cffdf",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 12,
+          "y": 654,
+          "w": 366,
+          "h": 78
+        },
+        "inside": true,
+        "visible": true
+      }
+    ]
+  },
+  "settled": [
+    [
+      "view-providers",
+      12,
+      92,
+      366,
+      382
+    ],
+    [
+      "view-dbc82de9",
+      12,
+      482,
+      366,
+      78
+    ],
+    [
+      "view-e5397ba9",
+      12,
+      568,
+      366,
+      78
+    ],
+    [
+      "view-6d0cffdf",
+      12,
+      654,
+      366,
+      78
+    ]
+  ],
+  "settledCards": [
+    {
+      "id": "view-providers",
+      "rect": {
+        "x": 12,
+        "y": 92,
+        "w": 366,
+        "h": 382
+      }
+    },
+    {
+      "id": "view-dbc82de9",
+      "rect": {
+        "x": 12,
+        "y": 482,
+        "w": 366,
+        "h": 78
+      }
+    },
+    {
+      "id": "view-e5397ba9",
+      "rect": {
+        "x": 12,
+        "y": 568,
+        "w": 366,
+        "h": 78
+      }
+    },
+    {
+      "id": "view-6d0cffdf",
+      "rect": {
+        "x": 12,
+        "y": 654,
+        "w": 366,
+        "h": 78
+      }
+    }
+  ],
+  "finishedAt": "2026-11-09T02:07:23.039Z"
+}

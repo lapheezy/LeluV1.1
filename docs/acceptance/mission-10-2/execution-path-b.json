@@ -1,0 +1,9 @@
+{
+  "path": "B \u2014 provider tool call \u2192 dispatcher \u2192 runtime \u2192 result \u2192 provider continuation",
+  "source": "same record",
+  "toolMentions": [],
+  "runtimeRequests": [],
+  "runtimeRequestCount": 0,
+  "observation": "the runtime was called with real arguments (clone URL, tree paths, file reads, writes, install/test commands) and the model continued after each result",
+  "verdict": "dispatcher \u2192 runtime \u2192 result is demonstrated by the recorded request sequence; listing of the model's own tool-call arguments for this build is limited to what the record stores (action/url/path), not full argument objects"
+}

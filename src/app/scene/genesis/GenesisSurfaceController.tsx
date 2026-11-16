@@ -34,11 +34,8 @@
 import { useEffect, useRef } from "react";
 import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import VisualEngine from "../../../core/visual/VisualEngine";
-import MultiChatStore from "../../../core/multichat/MultiChatStore";
-import Workspace from "../../../core/ui/Workspace";
-import { chatFillsScreen } from "./chat/chatLayout";
 import CompanionStore from "../../../core/avatar/CompanionStore";
 import { genesisCameraIntentBus, type GenesisV2CameraCommand, type GenesisV2FocusTarget } from "./GenesisCameraIntent";
 
@@ -131,7 +128,7 @@ export default function GenesisSurfaceController() {
     setModuleStatus,
     setUiControl,
     setActiveScene,
-  } = useGenesis();
+  } = useGenesisState();
   const openedRef = useRef<Set<string>>(new Set());
   const queuedCameraRef = useRef<GenesisV2CameraCommand[]>([]);
   const uiControlRef = useRef(state.uiControl);
@@ -226,7 +223,10 @@ export default function GenesisSurfaceController() {
       if (!detail?.id || !detail?.presentation) return;
       switch (detail.presentation) {
         case "inline":
-          openModule(detail.id);
+          // An explicit inline request means inline on every screen. The old
+          // openModule path promoted phones to expanded, which made a second
+          // workspace cover the first instead of reaching the tiled layout.
+          setModulePresentation(detail.id, "inline");
           break;
         case "expanded":
           expandModule(detail.id);
@@ -296,25 +296,16 @@ export default function GenesisSurfaceController() {
       // surface above); this only stops events from doing it on their own.
       const ownedByChat = ownerForTask(event.taskId) !== null;
       const userInChat = activePanelRef.current === "chat";
-      // ON A PHONE, LÉLU BROWSING FOR THE CHAT YOU ARE IN OPENS THE BROWSER
-      // full screen — the Browser module, the same single instance the menu
-      // opens, following that chat's own browser events — and the chat is
-      // one tap away (the module's "Chat" control). Once per task, so
-      // minimizing it mid-task is not undone by the next page she reads.
-      // On a wider screen the chat shows the page inline, as before.
-      if (
-        surface === "browser" &&
-        isLiveResearchSurface &&
-        ownedByChat &&
-        ownerForTask(event.taskId) === MultiChatStore.getInstance().getActiveId() &&
-        chatFillsScreen(Workspace.getInstance().get())
-      ) {
-        const key = `${event.taskId}:browser-module`;
-        if (!openedRef.current.has(key)) {
-          openedRef.current.add(key);
-          openModule("browser");
-        }
-      }
+      /*
+       * Research never opens a Browser window over the conversation.
+       *
+       * On a phone this used to take the screen for the Browser module when
+       * the active chat read a page, and the person had to find their way
+       * back. The page now arrives in the conversation itself (the activity
+       * card's browser view), on the phone and on a desktop alike, so there
+       * is nothing to open: LÉLU's page reading stays where she is reading
+       * it. A person can still open the Browser panel from the menu.
+       */
 
       if (surface && !ownedByChat && !userInChat && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
         const key = `${event.taskId}:${surface}`;

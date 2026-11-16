@@ -1,0 +1,37 @@
+{
+  "at": 1793981218566,
+  "target": "/workspace/chats/1fb0099bf53a9ab2f6fe75bd/src",
+  "gatePassed": false,
+  "summary": "3/3 scanner(s) ran; 30 finding(s). Gate FAILED — findings at or above the threshold.",
+  "results": [
+    {
+      "scanner": "gitleaks",
+      "ran": true,
+      "detail": "working tree scanned by gitleaks 8.30.1 at /workspace/chats/1fb0099bf53a9ab2f6fe75bd/src",
+      "durationMs": 1194,
+      "count": 9,
+      "severity": {
+        "high": 9
+      }
+    },
+    {
+      "scanner": "trivy",
+      "ran": true,
+      "detail": "filesystem + dependencies scanned by trivy Version: 0.76.2 at /workspace/chats/1fb0099bf53a9ab2f6fe75bd/src",
+      "durationMs": 563,
+      "count": 0,
+      "severity": null
+    },
+    {
+      "scanner": "semgrep",
+      "ran": true,
+      "detail": "static analysis by semgrep 1.184.0 at /workspace/chats/1fb0099bf53a9ab2f6fe75bd/src",
+      "durationMs": 47066,
+      "count": 21,
+      "severity": {
+        "info": 16,
+        "medium": 5
+      }
+    }
+  ]
+}

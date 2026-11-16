@@ -1,0 +1,70 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T23:34:43.847Z",
+ "deviceScaleFactor": 1,
+ "input": "real CDP mouse events at element coordinates (page.mouse): drag by the title bar, pin/unpin by their own buttons, then a fresh page load to test persistence",
+ "steps": [
+  "OK-pointer gate initial",
+  "OK-pointer Studio",
+  "OK-pointer portal-panel",
+  "OK-pointer drag-to-place",
+  "OK-pointer pin",
+  "OK-pointer pinned reposition",
+  "OK-pointer unpin"
+ ],
+ "checks": {
+  "module": "visualstudio",
+  "rectPlaced": {
+   "x": 178,
+   "y": 124,
+   "w": 1338,
+   "h": 818
+  },
+  "counterPlaced": {
+   "ok": true,
+   "settledMs": 1,
+   "value": "1 placed · 0 pinned"
+  },
+  "pin": {
+   "ok": true,
+   "settledMs": 3,
+   "value": {
+    "label": "Unpin Visual Studio",
+    "pressed": "true"
+   }
+  },
+  "counterPinned": "1 placed · 1 pinned",
+  "pinnedMoved": {
+   "ok": true,
+   "settledMs": 28,
+   "value": {
+    "x": 128,
+    "y": 154,
+    "w": 1338,
+    "h": 818
+   }
+  },
+  "counterAfterPinnedMove": "1 placed · 1 pinned",
+  "unpin": {
+   "ok": true,
+   "settledMs": 6,
+   "value": "Pin Visual Studio"
+  },
+  "rectBeforeReload": {
+   "x": 128,
+   "y": 154,
+   "w": 1338,
+   "h": 818
+  },
+  "counterUnpinned": "1 placed · 0 pinned",
+  "layoutStore": {
+   "keys": [
+    "lelu.lelu.layout.v2"
+   ],
+   "manualEntries": 1,
+   "pinnedEntries": 0,
+   "bytes": 233
+  }
+ },
+ "errors": []
+}

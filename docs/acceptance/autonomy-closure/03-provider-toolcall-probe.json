@@ -1,0 +1,28 @@
+{
+  "mission": "autonomy-closure",
+  "method": "POST http://127.0.0.1:3013/api/model/groq/chat/completions through the app's own broker (no SDK, no direct key use)",
+  "requestModel": "openai/gpt-oss-120b",
+  "httpId": "chatcmpl-15331b8b-f7aa-4d2e-a3b0-a7741ce7ba75",
+  "model": "openai/gpt-oss-120b",
+  "finishReason": "tool_calls",
+  "toolCalls": [
+    {
+      "id": "fc_15c22cdb-739e-48d4-9650-ea844a80831f",
+      "name": "environment_compose",
+      "argumentsHead": "{\"content\":\"| Planet | Order from Sun | Diameter (km) |\\n|--------|----------------|---------------|\\n| Mercury | 1 | 4,880 |\\n| Venus   | 2 | 12,104 |\",\"kind\":\"workspace\",\"title\":\"Planets Table\"}"
+    }
+  ],
+  "usage": {
+    "queue_time": 0.231066185,
+    "prompt_tokens": 153,
+    "prompt_time": 0.006070736,
+    "completion_tokens": 364,
+    "completion_time": 0.754271629,
+    "total_tokens": 517,
+    "total_time": 0.760342365,
+    "completion_tokens_details": {
+      "reasoning_tokens": 277
+    }
+  },
+  "verdict": "TOOL CALLING VERIFIED \u2014 finish_reason is tool_calls and the model chose environment_compose with its own arguments"
+}

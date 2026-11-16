@@ -1,0 +1,1 @@
+{"ok":true,"touched":["3d-export-stl"],"covered":[],"missing":[{"id":"3d-export-stl","label":"Export 3D objects as STL (3D printing)","reuse":["three/examples/jsm/exporters/STLExporter.js"],"search":["stl exporter","stl serializer"],"reuseAvailable":["three/examples/jsm/exporters/STLExporter.js"]}],"modelCalls":0}

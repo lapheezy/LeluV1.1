@@ -248,6 +248,17 @@ const TRACE_KEY = "lelu.selfstudy.trace.v1";
 const DEFAULT_INTERVAL_MS = 45_000;
 /** Cheap cycles (no provider, no network) may follow much sooner. */
 const FAST_INTERVAL_MS = 8_000;
+/**
+ * Pace while the page is HIDDEN. Cognition keeps its mission and its
+ * queue; it just stops spending a billed provider call every 45 s on a tab
+ * nobody is looking at. Measured before this existed: an idle, unattended
+ * tab made a model request every ~49 s (≈73 billed calls an hour), and
+ * every additional tab multiplied it. The moment the page is visible
+ * again the next cycle is brought forward (see onVisibility).
+ */
+const HIDDEN_INTERVAL_MS = 5 * 60_000;
+/** Web Lock that elects the ONE tab per browser that runs self-study. */
+const LEADER_LOCK = "lelu-self-study-leader";
 /** An objective that keeps producing nothing is parked, not retried forever. */
 const MAX_ATTEMPTS = 3;
 /**
@@ -381,6 +392,12 @@ export default class SelfStudyEngine {
   public start(intervalMs = DEFAULT_INTERVAL_MS): void {
     if (this.continuous) return;
     this.continuous = true;
+    this.intervalMs = intervalMs;
+    this.claimLeadership();
+    if (typeof document !== "undefined" && !this.visibilityListener) {
+      this.visibilityListener = () => this.onVisibility();
+      document.addEventListener("visibilitychange", this.visibilityListener);
+    }
     this.schedule(1_500, intervalMs);
   }
 
@@ -388,7 +405,60 @@ export default class SelfStudyEngine {
     this.continuous = false;
     this.timer?.stop();
     this.timer = null;
+    this.releaseLeadership?.();
+    this.releaseLeadership = null;
+    if (this.visibilityListener && typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", this.visibilityListener);
+    }
+    this.visibilityListener = null;
   }
+
+  /* --------------------------- resource policy ---------------------------- */
+
+  private intervalMs = DEFAULT_INTERVAL_MS;
+  /**
+   * Whether THIS tab is the one that thinks. Several open tabs of the same
+   * app share one memory and one mission, so each running its own cycle
+   * meant the same investigation paid for once per tab. Outside a browser
+   * (tests, server) there is nothing to share with and this stays true.
+   */
+  private leader = true;
+  private releaseLeadership: (() => void) | null = null;
+  private visibilityListener: (() => void) | null = null;
+
+  private claimLeadership(): void {
+    const locks = (typeof navigator !== "undefined"
+      ? (navigator as unknown as { locks?: { request: (name: string, cb: () => Promise<void>) => Promise<void> } }).locks
+      : undefined);
+    if (typeof document === "undefined" || !locks?.request) return; // not a browser tab: always the leader
+    this.leader = false;
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    this.releaseLeadership = release;
+    // Granted to exactly one tab at a time; the next waiting tab gets it
+    // the moment the holder closes or stops.
+    void locks
+      .request(LEADER_LOCK, () => {
+        this.leader = true;
+        if (this.continuous) this.schedule(1_500, this.intervalMs);
+        return held;
+      })
+      .catch(() => {
+        this.leader = true; // locks unusable: behave as before rather than never think
+      });
+  }
+
+  /** Visible again: the hidden backoff ends now, not up to 5 minutes later. */
+  private onVisibility(): void {
+    if (!this.continuous || this.pageHidden() || this.cycleInFlight) return;
+    this.schedule(1_500, this.intervalMs);
+  }
+
+  private pageHidden(): boolean {
+    return typeof document !== "undefined" && document.visibilityState === "hidden";
+  }
+
+  private cycleInFlight = false;
 
   private schedule(delayMs: number, intervalMs: number): void {
     if (!this.continuous) return;
@@ -408,7 +478,20 @@ export default class SelfStudyEngine {
         this.schedule(FAST_INTERVAL_MS, intervalMs);
         return;
       }
+      // Another tab holds the leadership lock and is doing this work.
+      // Nothing is scheduled here: the lock callback starts this tab's
+      // cycles if it ever becomes the leader.
+      if (!this.leader) return;
+      // Nobody is looking: wait, and let visibilitychange bring it back.
+      if (this.pageHidden()) {
+        this.schedule(HIDDEN_INTERVAL_MS, intervalMs);
+        return;
+      }
+      this.cycleInFlight = true;
       void this.runCycle()
+        .finally(() => {
+          this.cycleInFlight = false;
+        })
         .then((report) => {
           // A cycle that used no provider and no network can follow
           // quickly; one that did should pace itself.

@@ -30,6 +30,7 @@ import GenesisCameraController
   from "./GenesisCameraController";
 
 const CosmosLayer = lazy(() => import("./cosmos/CosmosLayer"));
+const InterfaceSceneLayer = lazy(() => import("./interface/InterfaceSceneLayer"));
 
 import GenesisPlayground
   from "./GenesisPlayground";
@@ -57,6 +58,11 @@ export default function GenesisController() {
 
       <Suspense fallback={null}>
         <CosmosLayer />
+      </Suspense>
+
+      {/* LÉLU-composed environment + 3D objects (interface orchestration) */}
+      <Suspense fallback={null}>
+        <InterfaceSceneLayer />
       </Suspense>
     </>
   );

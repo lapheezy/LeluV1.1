@@ -1,0 +1,6 @@
+{
+  "result": "PARTIAL",
+  "wiring": "Bootstrap.ts:215 start, CognitiveLoop.ts:375 runDueReflections, AgenticTools manual - unchanged",
+  "not_verified": "environment work informing a later operation",
+  "duplicate_system_added": false
+}

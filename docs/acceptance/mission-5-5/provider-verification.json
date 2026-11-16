@@ -1,0 +1,40 @@
+{
+  "method": "direct HTTPS against each provider's own API, server-side, using the credentials the broker would attach; values never printed",
+  "anthropic": {
+    "GET /v1/models": "200",
+    "auth": "valid",
+    "tool_capable": true,
+    "in_chain": "NO - LELU_ENABLE_ANTHROPIC is unset (opt-in policy)"
+  },
+  "groq": {
+    "GET /openai/v1/models": "200",
+    "auth": "valid",
+    "completion": {
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "tool_calls": [
+        "environment_compose"
+      ],
+      "finish_reason": "tool_calls"
+    },
+    "in_chain": "YES (priority 2.5)",
+    "limits": "TPM 8000 is the binding constraint (see tool-execution-traces.json)"
+  },
+  "openrouter": {
+    "GET /api/v1/key": "200",
+    "auth": "valid",
+    "completion": "429 free-models-per-day \u2014 free tier exhausted for the day",
+    "in_chain": "YES but cooling down"
+  },
+  "github": {
+    "GET /user": "401 Bad credentials",
+    "in_chain": "NO - token unusable"
+  },
+  "in_app_requests_observed": [
+    "/api/model/status 200",
+    "/api/model/openrouter/chat/completions 429",
+    "/api/model/groq/chat/completions 200 xN",
+    "413 then 200 (size-refusal retry)"
+  ],
+  "secrets_exposed": false
+}

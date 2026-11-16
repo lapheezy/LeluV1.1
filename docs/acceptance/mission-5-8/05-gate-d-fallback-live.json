@@ -1,0 +1,37 @@
+{
+  "gate": "D",
+  "verdict": "PARTIAL",
+  "unitCoverage": {
+    "provider-rung-budget": "9 tests, PASS (full -> reduced -> none, watchdog, size refusal)",
+    "broker-consolidation": "14 tests, PASS",
+    "tool-schema-scoping": "8 tests, PASS",
+    "broker-contract": "6 tests, PASS"
+  },
+  "liveCompletion": {
+    "provider": "Groq",
+    "model": "openai/gpt-oss-120b",
+    "httpStatus": 200,
+    "contentType": "application/json",
+    "result": "genuine completion (chatcmpl id, choices[], model echoed)",
+    "state": "COMPLETION_VERIFIED"
+  },
+  "liveToolCall": {
+    "obtained": false,
+    "reason": "no full chat turn was driven through the app this mission; the completion probe used max_tokens 16 and asked for a word, so no tool call was requested"
+  },
+  "secondProviderFallback": {
+    "attempted": "OpenRouter meta-llama/llama-3.1-8b-instruct:free",
+    "httpStatus": 404,
+    "body": "This model is unavailable for free. The paid version is available now - use this slug instead: meta-llama/llama-3.1-8b-instruct",
+    "observation": "the free slug was withdrawn upstream. Model identifiers were NOT changed to chase a green result (rule 7).",
+    "state": "CAPACITY_LIMITED"
+  },
+  "cooldown": {
+    "respected": true,
+    "mechanism": "known-rejected providers are excluded from status availability and from the chain"
+  },
+  "notProven": [
+    "a live second-provider tool-calling fallback",
+    "live demonstration that a refused provider does not block the next eligible one within one turn"
+  ]
+}
