@@ -272,9 +272,12 @@ Evidence classes, kept apart:
 ## 13. Delivery
 
 - Starting SHA `3177250eb62a19fcb5763b33ce58d861df143028`.
-- Final SHA: recorded in the session's delivery message after the push; the
-  branch is `freebuff/m17-coe-wp06-projection-integrity`, fast-forward only, no
-  force-push, not merged into integration.
+- Implementation and evidence commit `fc8124fc1ff2033d8978726f97eddb9f751c2faa`
+  (the `try/finally` hardening, `raw.json`, this report), followed by a
+  documentation-only commit for the SHA record itself, which is the branch tip.
+- Branch `freebuff/m17-coe-wp06-projection-integrity`, ordinary fast-forward
+  push, no force-push, no history rewrite, not merged into integration.
+- `3177250` (P02) and `5e6faf1` (P01) remain ancestors.
 
 ## 14. Remaining blockers and next step
 
