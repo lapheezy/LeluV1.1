@@ -11,7 +11,8 @@
 import { chromium } from "playwright";
 import fs from "node:fs";
 
-const OUT = "docs/missions/m15-home/avatar-15.3/verify";
+// WP03 runs set LELU_VERIFY_OUT (e.g. …/wp03/runs/<tag>) so WP02's pictures are kept as they were.
+const OUT = process.env.LELU_VERIFY_OUT ?? "docs/missions/m15-home/avatar-15.3/verify";
 fs.mkdirSync(OUT, { recursive: true });
 const URL = process.env.LELU_URL ?? "http://127.0.0.1:5173/";
 const only = process.argv[2] ?? "all";
@@ -71,6 +72,9 @@ async function framesOver(p, ms = 2500) {
   await p.waitForTimeout(ms);
   return ((await her(p))?.frames ?? 0) - a;
 }
+const mark = (p, ev, d = {}) => p.evaluate(([e, x]) => window.__trace?.push({ t: Math.round(performance.now()), ev: e, ...x }), [ev, d]).catch(() => {});
+/** Called once, in Node, the moment a message is submitted (WP03 world-data release). */
+let onSubmitted = null;
 async function ask(p, words, wait = 4500) {
   if (!(await p.locator(".lcu-input textarea:visible, textarea[placeholder^='Message LÉLU']:visible").count())) {
     await p.evaluate(() => window.dispatchEvent(new CustomEvent("lelu-open-universe")));
@@ -85,6 +89,8 @@ async function ask(p, words, wait = 4500) {
   await box.click();
   await box.fill(words);
   await box.press("Enter");
+  if (onSubmitted) { const f = onSubmitted; onSubmitted = null; f(); }
+  await mark(p, "harness-submitted", { words });
   // The reply that follows THIS message (not the last bubble on the page):
   // a walk is confirmed on arrival, so allow up to `wait` + 20 s.
   const deadline = Date.now() + wait + 50_000;
@@ -103,6 +109,7 @@ async function ask(p, words, wait = 4500) {
     // time, then reopen the chat to read her reply.
     if (!text && !(await p.locator(".lcu-msg").count())) {
       await p.waitForTimeout(wait);
+      await mark(p, "harness-reopens-chat-to-read-reply", { words });
       await p.evaluate(() => window.dispatchEvent(new CustomEvent("lelu-open-universe")));
       await p.waitForTimeout(1500);
       if (!(await p.locator(".lcu-msg").count())) await p.locator("button.lcu-card:visible").first().click().catch(() => {});
@@ -110,6 +117,7 @@ async function ask(p, words, wait = 4500) {
     }
     await p.waitForTimeout(400);
   }
+  await mark(p, "harness-read-reply", { words, text: text.slice(-200) });
   await p.waitForTimeout(800);
   return text || "(no reply)";
 }
@@ -193,6 +201,65 @@ if (only === "all" || only === "contexts") {
   }
 }
 
+/*
+ * M15.3 WP03: a timestamped lifecycle trace of her world commands, recorded
+ * from inside the page. It wraps the app's own AvatarCommandBus singleton
+ * (the module Vite serves to the app) and listens to the presence's own
+ * telemetry; it changes nothing she does. Written to wp03/ per run.
+ */
+const TRACE_OUT = "docs/missions/m15-home/avatar-15.3/wp03";
+const RUN_TAG = process.env.LELU_RUN_TAG ?? only;
+async function installTrace(p) {
+  await p.evaluate(async () => {
+    if (window.__trace) return;
+    const trace = (window.__trace = []);
+    const T = (ev, d = {}) => trace.push({ t: Math.round(performance.now()), ev, ...d });
+    const { default: Bus } = await import("/src/core/avatar/AvatarCommandBus.ts");
+    const { isUniverseOpen, subscribeUniverseOpen } = await import("/src/app/scene/genesis/chat/universe/universeOpen.ts");
+    const { getSceneRenderBudget } = await import("/src/app/scene/genesis/SceneRenderBudget.ts");
+    const bus = Bus.getInstance();
+    const issue = bus.issue.bind(bus);
+    bus.issue = (kind, label, timeout, target) => {
+      T("command-issued", { kind, label, timeout, target });
+      const pr = issue(kind, label, timeout, target);
+      pr.then((o) => T("command-resolved", { label, observation: o }), (r) => T("command-rejected", { label, reason: String(r) }));
+      return pr;
+    };
+    for (const m of ["confirm", "decline"]) {
+      const o = bus[m].bind(bus);
+      bus[m] = (id, s) => { T(`bus-${m}`, { id, text: s }); return o(id, s); };
+    }
+    bus.subscribe((c) => T("command-delivered", { id: c.id, kind: c.kind, target: c.target ?? null }));
+    T("universe", { open: isUniverseOpen() });
+    subscribeUniverseOpen(() => T("universe", { open: isUniverseOpen() }));
+    const budget = getSceneRenderBudget();
+    T("render-budget", { mode: budget.mode() });
+    budget.subscribe(() => T("render-budget", { mode: budget.mode() }));
+    window.addEventListener("lelu:spatial-state", (e) => {
+      const d = e.detail ?? {};
+      if (d.persisted) return T("placement-saved", { position: d.position });
+      T("spatial", { position: d.position, walking: d.walking, goal: d.goal, target: d.target, windows: d.windowObstacleDetail, obstacles: d.obstacles, environment: d.environment });
+    });
+    const f = window.fetch;
+    window.fetch = async (...a) => {
+      const url = String(a[0]?.url ?? a[0]);
+      if (!/\/api\/forge\/(world|avatar)/.test(url)) return f(...a);
+      T("world-load-start", { url });
+      try { const r = await f(...a); T("world-load-done", { url, status: r.status }); return r; } catch (err) { T("world-load-failed", { url, error: String(err) }); throw err; }
+    };
+    let frames = 0;
+    const tick = () => { frames++; requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    setInterval(() => { T("page-fps", { fps: frames }); frames = 0; }, 1000);
+  });
+}
+async function dumpTrace(p, name) {
+  const t = await p.evaluate(() => window.__trace ?? []).catch(() => []);
+  fs.mkdirSync(TRACE_OUT, { recursive: true });
+  fs.writeFileSync(`${TRACE_OUT}/trace-${RUN_TAG}-${name}.json`, JSON.stringify(t, null, 1));
+  return t;
+}
+
 // ------------------------------------------------------------- C. actions
 if (only === "all" || only === "actions") {
   const { ctx, p } = await open({ width: 1440, height: 900 });
@@ -203,11 +270,60 @@ if (only === "all" || only === "actions") {
     await leaveChat(p);
   }
   // Her world: walk, turn, gesture — performed by the world presence.
+  await installTrace(p);
+  await p.evaluate(() => window.__trace.push({ t: Math.round(performance.now()), ev: "enter-world-clicked" }));
+  /*
+   * Her world's data is HELD (the network answers late) until the walk has
+   * been asked, then released 1.5 s later: the command is guaranteed to
+   * arrive while her world is still loading, however fast this machine is.
+   */
+  let releaseWorld;
+  const worldGate = new Promise((r) => { releaseWorld = r; });
+  const worldApi = /\/api\/forge\/world(\/|\?|$)/;
+  await p.route(worldApi, async (route) => { await worldGate; await route.continue().catch(() => {}); });
+  // Timed in Node from the Enter key, not by polling a page that may be drawing at 1 fps.
+  const releaser = new Promise((done) => {
+    onSubmitted = () => setTimeout(() => { releaseWorld(); void mark(p, "harness-released-world-data", { afterSubmitMs: 1500 }); done(); }, 1500);
+  });
   await p.locator('.lsn-item[aria-label="Worlds"]').click();
   await p.waitForTimeout(700);
   await p.locator('[data-world="genesisv2"]').click();
-  for (let i = 0; i < 60 && !(await p.evaluate(() => Boolean(document.querySelector("canvas[data-lelu-spatial]")))); i++) await p.waitForTimeout(500);
   const spatial = () => p.evaluate(() => JSON.parse(document.querySelector("canvas[data-lelu-spatial]")?.dataset.leluSpatial ?? "null"));
+  /*
+   * WP03: the first walk is asked WHILE her world is still loading, through
+   * the real chat path, without waiting for her presence. Whether it really
+   * was issued before the world was ready is read from the trace.
+   */
+  await ask(p, "walk to the studio", 16000);
+  const tr = await p.evaluate(() => window.__trace ?? []);
+  const issuedAt = tr.find((e) => e.ev === "command-issued")?.t ?? 0;
+  // Her world's own data (room, furniture, her saved place) answered after the command?
+  const loaded = tr.find((e) => e.ev === "world-load-done" && e.t >= issuedAt)?.t ?? tr.find((e) => e.ev === "world-load-done")?.t ?? Infinity;
+  const loadedBefore = tr.some((e) => e.ev === "world-load-done" && e.t < issuedAt);
+  const whileLoading = issuedAt < loaded && !loadedBefore;
+  await releaser;
+  await p.unroute(worldApi);
+  await leaveChat(p);
+  // Wait for her measured outcome (arrived / stopped / blocked), up to 40 s.
+  let sLoad = null;
+  for (let i = 0; i < 80; i++) { sLoad = await spatial(); if (sLoad?.goal && !["walking", "waiting-for-world"].includes(sLoad.goal.outcome)) break; await p.waitForTimeout(500); }
+  const tr2 = await p.evaluate(() => window.__trace ?? []);
+  const sp = tr2.filter((e) => e.ev === "spatial" && e.t >= issuedAt);
+  const waiting = sp.filter((e) => e.goal?.outcome === "waiting-for-world");
+  const stoodStill = waiting.every((e) => Math.hypot(e.position[0] - waiting[0].position[0], e.position[2] - waiting[0].position[2]) < 0.01);
+  const firstWalking = sp.find((e) => e.goal?.outcome === "walking");
+  const waitedForWorld = waiting.length > 0 && stoodStill && (!firstWalking || firstWalking.t >= loaded);
+  const arrivedAt = sp.find((e) => e.goal?.outcome === "arrived")?.t;
+  const answer = tr2.find((e) => (e.ev === "command-resolved" || e.ev === "command-rejected") && e.t >= issuedAt);
+  const freeze = (() => { const f = tr2.filter((e) => e.ev === "page-fps" && e.t >= issuedAt); let g = 0; for (let i = 1; i < f.length; i++) g = Math.max(g, f[i].t - f[i - 1].t); return g; })();
+  const arrivedLoad = sLoad?.goal?.outcome === "arrived" && sLoad.goal.remaining <= 0.1;
+  const busAnswer = answer?.ev === "command-resolved" ? `arrived and confirmed ${((answer.t - issuedAt) / 1000).toFixed(1)} s after the command (within the 20 s deadline)` : answer ? `measured progress report at ${((answer.t - issuedAt) / 1000).toFixed(1)} s (“${String(answer.reason).slice(0, 90)}…”), then arrived ${arrivedAt ? ((arrivedAt - issuedAt) / 1000).toFixed(1) : "?"} s after the command` : "no answer";
+  await step(p, "world-walk-while-loading-waits-then-arrives", whileLoading && waitedForWorld && arrivedLoad, `issued ${whileLoading ? "while" : "AFTER"} her world was loading (her world data answered ${((loaded - issuedAt) / 1000).toFixed(1)} s after the command); waited for it without moving ${waitedForWorld}; final ${sLoad?.goal?.outcome}, ${sLoad?.goal?.remaining} m from the point; bus: ${busAnswer}; longest main-thread gap after the command ${(freeze / 1000).toFixed(1)} s (her world's first paint)`);
+  await step(p, "world-walk-while-loading-within-deadline", answer?.ev === "command-resolved", `RECORDED SEPARATELY: ${busAnswer}`);
+  await dumpTrace(p, "world-loading");
+  const backReply = await ask(p, "go back to your spot", 16000);
+  await leaveChat(p);
+  await step(p, "world-back-to-spot-before-sequence", /Done|I didn't .*blocked/.test(backReply), `reply “${backReply.slice(-150)}”`);
   await step(p, "world-presence", Boolean(await spatial()), `in her world at ${JSON.stringify((await spatial())?.position)}`);
   for (const [words, wait] of [["walk to the studio", 16000], ["face me", 6000], ["come closer", 14000], ["dance", 7000], ["go back to your spot", 16000]]) {
     const before = await spatial();
@@ -225,10 +341,14 @@ if (only === "all" || only === "actions") {
       // She said she would keep walking: check that she really arrives.
       for (let i = 0; i < 30; i++) { const s = await spatial(); if (s && !s.walking) break; await p.waitForTimeout(1000); }
       const s = await spatial();
-      later = s?.goal ? `; afterwards: walking ${s.walking}, ${Math.hypot(s.goal.point[0] - s.position[0], s.goal.point[1] - s.position[2]).toFixed(2)} m from the goal` : "";
+      later = s?.goal ? `; afterwards: walking ${s.walking}, outcome ${s.goal.outcome}, ${Math.hypot(s.goal.point[0] - s.position[0], s.goal.point[1] - s.position[2]).toFixed(2)} m from the goal` : "";
     }
-    await step(p, `world-${words.replace(/\W+/g, "-")}`, outcome !== "invalid", `${outcome}; moved ${moved.toFixed(2)} m; reply “${reply.slice(-170)}”${later}`);
+    // WP03: a walk to the Studio must ARRIVE (measured), not be "on its way".
+    const ok = words === "walk to the studio" ? outcome === "done" && after?.goal?.outcome === "arrived" : outcome !== "invalid";
+    await step(p, `world-${words.replace(/\W+/g, "-")}`, ok, `${outcome}; telemetry outcome ${after?.goal?.outcome ?? "-"}, ${after?.goal?.remaining ?? "-"} m from the point; moved ${moved.toFixed(2)} m; reply “${reply.slice(-170)}”${later}`);
+    await p.evaluate((w) => window.__trace?.push({ t: Math.round(performance.now()), ev: "harness-step-done", words: w }), words);
   }
+  await dumpTrace(p, "world");
   await ctx.close();
 }
 

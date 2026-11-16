@@ -26,7 +26,7 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 import AvatarStore from "../../../core/avatar/AvatarProfile";
-import AvatarCommandBus, { type AvatarPlace } from "../../../core/avatar/AvatarCommandBus";
+import AvatarCommandBus, { type AvatarCommand, type AvatarPlace } from "../../../core/avatar/AvatarCommandBus";
 import { useLeluCharacter } from "./avatar/useLeluCharacter";
 import { isUniverseOpen, setUniverseOpen } from "./chat/universe/universeOpen";
 import ForgeClient, {
@@ -39,8 +39,13 @@ import {
   clampToRoom,
   isOccupied,
   nearestFree,
+  planPath,
   planSpatialTarget,
+  remainingOnPath,
   stepTowards,
+  walkPath,
+  type GroundPoint,
+  type PathWalk,
   type SpatialBounds,
   type SpatialObstacle,
 } from "../../../core/avatar/LeluSpatial";
@@ -60,6 +65,38 @@ const SCENE_OBSTACLES: SpatialObstacle[] = [
   { id: "lab", x: 4.5, z: -1.05, radius: 0.8 },
   { id: "vault", x: 0, z: -2.1, radius: 0.8 },
 ];
+
+/**
+ * A walk she was asked to make. `resolved` means the command bus has had its
+ * one answer (arrived, stopped short, blocked, cancelled, or a measured
+ * progress report at the deadline); `outcome` keeps tracking what really
+ * happens after that, so telemetry never claims an arrival that did not
+ * occur (M15.3 WP03).
+ */
+type WalkOutcome = "waiting-for-world" | "walking" | "arrived" | "stopped-short" | "blocked" | "cancelled";
+interface WalkGoal {
+  id: string;
+  label: string;
+  place: AvatarPlace;
+  /** Aimed once her world is ready (see `navReady`). */
+  ready: boolean;
+  point: [number, number];
+  from: [number, number];
+  issuedAt: number;
+  startedAt: number;
+  until: number;
+  resolved: boolean;
+  /** The bus was answered with a progress report, not an outcome. */
+  reported: boolean;
+  outcome: WalkOutcome;
+  walk: PathWalk | null;
+  pathKey: string;
+  replans: number;
+  stillSince: number;
+  best: number;
+  bestAt: number;
+  framesAtStart: number;
+}
 
 function readLocalPlace(): { position: [number, number, number]; facing: number } | null {
   try {
@@ -116,7 +153,16 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
    * measured position reaches it. Asked to face something: the same for
    * her heading.
    */
-  const goal = useRef<{ id: string; label: string; point: [number, number]; from: [number, number]; until: number; confirmed: boolean; stillSince: number; best: number; bestAt: number } | null>(null);
+  const goal = useRef<WalkGoal | null>(null);
+  /*
+   * Her world's first load has settled (its room, furniture and her saved
+   * place are known, or the load failed and the defaults stand). A walk is
+   * not aimed before this: aimed earlier it used default bounds, no
+   * furniture and a position the load was about to replace.
+   */
+  const navReady = useRef(false);
+  /** The last bus command this presence took, so none is taken twice. */
+  const handledCommand = useRef<string | null>(null);
   const faceGoal = useRef<{ id: string; label: string; point: [number, number]; until: number; confirmed: boolean } | null>(null);
   const placeHome = useRef<[number, number] | null>(null);
   const ray = useMemo(() => new THREE.Raycaster(), []);
@@ -151,7 +197,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
            * used to teleport her back and reset her target mid-walk (found in
            * M15.3 WP02: "3.75 m walked, 5.53 m to go" on a 5.7 m walk).
            */
-          const walkingSomewhere = Boolean(goal.current && goal.current.until > performance.now());
+          const walkingSomewhere = Boolean(goal.current && goal.current.ready && goal.current.until > performance.now());
           if (chosen && !positionProp && !walkingSomewhere) {
             position.current.set(chosen[0], chosen[1], chosen[2]);
             plane.constant = -chosen[1];
@@ -169,8 +215,13 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
             target.current.copy(position.current);
             if (typeof yaw.current === "number" && avatar) yaw.current = avatar.facing;
           }
+          navReady.current = true;
         })
-        .catch((error) => console.info("[LÉLU spatial] world unavailable", error instanceof Error ? error.message : error));
+        .catch((error) => {
+          // Her room's defaults stand; a walk can be aimed against them.
+          navReady.current = true;
+          console.info("[LÉLU spatial] world unavailable", error instanceof Error ? error.message : error);
+        });
     void load();
     const changed = () => void load();
     window.addEventListener(FORGE_CHANGED_EVENT, changed);
@@ -295,63 +346,125 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     return [free[0], free[2]];
   }
 
-  // Movement and facing commands from chat, her tools or the executive.
-  useEffect(
-    () =>
-      AvatarCommandBus.getInstance().subscribe((command) => {
-        const kind = command.kind;
-        /*
-         * Asked to act while the Chat Universe covers her world: the world is
-         * not painted (and her walking, which runs in its frames, cannot
-         * happen) under that opaque surface. She steps out of the chat to do
-         * it where you can watch; her reply is waiting in the chat.
-         */
-        if (isUniverseOpen()) setUniverseOpen(false);
-        // A newer command supersedes an older one here as it does on the bus:
-        // asked to face you mid-walk, she stops walking and turns.
-        goal.current = null;
-        faceGoal.current = null;
-        if (kind === "move" || kind === "leave" || kind === "return") {
-          const place: AvatarPlace = command.target?.place ?? (kind === "leave" ? "away" : kind === "return" ? "home" : "viewer");
-          const startedAt = performance.now();
-          const framesAtStart = framesSeen.current;
-          // Under heavy load she may still be on her way at the bus deadline:
-          // say so with what was measured, instead of a silent timeout.
-          // (A timer, so it fires even if her world draws no frame at all.)
-          window.setTimeout(() => {
-            const g = goal.current;
-            if (!g || g.id !== command.id || g.confirmed) return;
-            g.confirmed = true;
-            const walked = Math.hypot(position.current.x - g.from[0], position.current.z - g.from[1]);
-            const left = Math.hypot(g.point[0] - position.current.x, g.point[1] - position.current.z);
-            const fps = (framesSeen.current - framesAtStart) / ((performance.now() - startedAt) / 1000);
-            AvatarCommandBus.getInstance().decline(
-              command.id,
-              `I'm still on my way (${walked.toFixed(2)} m from where I started, ${left.toFixed(2)} m to go; I may be walking around something in my way): my world is rendering slowly right now (${fps.toFixed(1)} frames/s), and I'll keep walking there`,
-            );
-            // Keep walking: the goal stays, only the report was made.
-            goal.current = { ...g, confirmed: true };
-          }, 17_000);
-          goal.current = {
-            id: command.id,
-            label: command.label,
-            point: placePoint(place),
-            from: [position.current.x, position.current.z],
-            until: performance.now() + 60_000,
-            confirmed: false,
-            stillSince: 0,
-            best: Number.POSITIVE_INFINITY,
-            bestAt: performance.now(),
-          };
-          lastTargetPlan.current = 0;
-        } else if (kind === "look" && command.target) {
-          faceGoal.current = { id: command.id, label: command.label, point: placePoint(command.target.place), until: performance.now() + 20_000, confirmed: false };
+  /**
+   * The bus gets exactly ONE answer per walk. Anything she learns after that
+   * (she arrived after all, or got stuck) goes to telemetry, not to a
+   * second answer for a command that has already been answered.
+   */
+  function resolve(asked: WalkGoal, ok: boolean, text: string): void {
+    if (asked.resolved) return;
+    asked.resolved = true;
+    if (ok) AvatarCommandBus.getInstance().confirm(asked.id, text);
+    else AvatarCommandBus.getInstance().decline(asked.id, text);
+  }
+
+  /** Aim a walk: her goal point and the way round whatever is in it. */
+  function aim(asked: WalkGoal, now: number): void {
+    asked.ready = true;
+    asked.point = placePoint(asked.place);
+    asked.from = [position.current.x, position.current.z];
+    asked.startedAt = now;
+    asked.bestAt = now;
+    asked.best = Number.POSITIVE_INFINITY;
+    asked.outcome = "walking";
+    route(asked);
+  }
+
+  /** (Re)plan the route from where she stands; false if there is no way. */
+  function route(asked: WalkGoal): boolean {
+    const list = obstacles();
+    asked.pathKey = obstacleKey(list);
+    const path = planPath([position.current.x, position.current.z], asked.point, bounds, list, CLEARANCE, viewerPoint());
+    asked.walk = path ? { waypoints: path, index: 0 } : null;
+    return Boolean(path);
+  }
+
+  function obstacleKey(list: SpatialObstacle[]): string {
+    return list.map((o) => `${o.x.toFixed(1)},${o.z.toFixed(1)},${o.radius.toFixed(1)}`).join("|");
+  }
+
+  /** Take one command from the bus (live, or one issued before she mounted). */
+  function take(command: AvatarCommand): void {
+    if (handledCommand.current === command.id) return;
+    handledCommand.current = command.id;
+    const kind = command.kind;
+    /*
+     * Asked to act while the Chat Universe covers her world: the world is
+     * not painted (and her walking, which runs in its frames, cannot
+     * happen) under that opaque surface. She steps out of the chat to do
+     * it where you can watch; her reply is waiting in the chat.
+     */
+    if (isUniverseOpen()) setUniverseOpen(false);
+    // A newer command supersedes an older one here as it does on the bus:
+    // asked to face you mid-walk, she stops walking and turns.
+    if (goal.current && goal.current.outcome === "walking") goal.current.outcome = "cancelled";
+    goal.current = null;
+    faceGoal.current = null;
+    if (kind === "move" || kind === "leave" || kind === "return") {
+      const place: AvatarPlace = command.target?.place ?? (kind === "leave" ? "away" : kind === "return" ? "home" : "viewer");
+      const now = performance.now();
+      const asked: WalkGoal = {
+        id: command.id,
+        label: command.label,
+        place,
+        ready: false,
+        point: [position.current.x, position.current.z],
+        from: [position.current.x, position.current.z],
+        issuedAt: now,
+        startedAt: now,
+        until: now + 60_000,
+        resolved: false,
+        reported: false,
+        outcome: "waiting-for-world",
+        walk: null,
+        pathKey: "",
+        replans: 0,
+        stillSince: 0,
+        best: Number.POSITIVE_INFINITY,
+        bestAt: now,
+        framesAtStart: framesSeen.current,
+      };
+      goal.current = asked;
+      // Under heavy load she may still be on her way at the bus deadline:
+      // say so with what was measured, instead of a silent timeout.
+      // (A timer, so it fires even if her world draws no frame at all.)
+      window.setTimeout(() => {
+        if (goal.current !== asked || asked.resolved) return;
+        const fps = (framesSeen.current - asked.framesAtStart) / ((performance.now() - asked.issuedAt) / 1000);
+        if (!asked.ready) {
+          resolve(asked, false, `my world is still loading (${fps.toFixed(1)} frames/s so far), so I haven't started walking yet; I'll walk there as soon as it is ready`);
+        } else {
+          const walked = Math.hypot(position.current.x - asked.from[0], position.current.z - asked.from[1]);
+          const left = asked.walk ? remainingOnPath([position.current.x, position.current.z], asked.walk) : Math.hypot(asked.point[0] - position.current.x, asked.point[1] - position.current.z);
+          resolve(
+            asked,
+            false,
+            `I'm still on my way (${walked.toFixed(2)} m from where I started, ${left.toFixed(2)} m to go on my route): my world is rendering slowly right now (${fps.toFixed(1)} frames/s), and I'll keep walking there`,
+          );
         }
-      }),
-    // placePoint reads refs, the camera and the room bounds.
+        // Keep walking: the goal stays, only the report was made.
+        asked.reported = true;
+      }, 17_000);
+      lastTargetPlan.current = 0;
+    } else if (kind === "look" && command.target) {
+      faceGoal.current = { id: command.id, label: command.label, point: placePoint(command.target.place), until: performance.now() + 20_000, confirmed: false };
+    }
+  }
+
+  // Movement and facing commands from chat, her tools or the executive.
+  useEffect(() => {
+    const bus = AvatarCommandBus.getInstance();
+    /*
+     * A command issued while her world was still mounting (asked as you
+     * entered it) reached no presence here. The bus keeps the active
+     * command; take it now, once, if it is a walk or a turn in a room.
+     */
+    const pending = bus.current;
+    if (pending && pending.target && (pending.kind === "move" || pending.kind === "look") && Date.now() - pending.issuedAt < 20_000) take(pending);
+    return bus.subscribe(take);
+    // take/placePoint read refs, the camera and the room bounds.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bounds, camera],
-  );
+  }, [bounds, camera]);
 
   function applyPosition(x: number, z: number): void {
     const free = isOccupied([x, z], obstacles(), CLEARANCE, viewerPoint())
@@ -383,8 +496,9 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
     // You took her by the hand: a walk she was asked to make ends here, honestly.
     const walkingTo = goal.current;
-    if (walkingTo && !walkingTo.confirmed) {
-      walkingTo.confirmed = true;
+    if (walkingTo && walkingTo.outcome === "walking") walkingTo.outcome = "cancelled";
+    if (walkingTo && !walkingTo.resolved) {
+      walkingTo.resolved = true;
       AvatarCommandBus.getInstance().decline(walkingTo.id, "you moved me yourself before I got there");
     }
     goal.current = null;
@@ -468,17 +582,30 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     scanWindows(now);
 
     const isDragging = Boolean(drag.current);
+    const live = goal.current && goal.current.until > now ? goal.current : null;
+    // Aim a walk only once her world is ready (room, furniture, saved place).
+    if (live && !live.ready && navReady.current && !isDragging) aim(live, now);
+    // The one walk she is actively making on request (not after it ended).
+    const asked = live && live.ready && live.outcome === "walking" ? live : null;
+    if (asked && !isDragging) {
+      // A window opened, closed or moved: replan from where she stands.
+      const key = obstacleKey(obstacles());
+      if (key !== asked.pathKey) route(asked);
+    }
+
     if (!isDragging && now - lastTargetPlan.current > 900) {
       lastTargetPlan.current = now;
       const focus: [number, number] | null = ["WORKING", "BUILDING", "RENDERING", "SEARCHING", "BROWSING", "EXPLORING", "PRESENTING"].includes(activity)
         ? [0, 0.4]
         : null;
-      const asked = goal.current && goal.current.until > now ? goal.current : null;
       // Asked to face something: she stands where she is and turns.
-      const facingNow = !asked && faceGoal.current && faceGoal.current.until > now;
+      const facingNow = !live && faceGoal.current && faceGoal.current.until > now;
+      // A walk that has ended (arrived, stopped, blocked) holds where she is
+      // for a while, instead of pacing back into what stopped her.
+      const holding = live && !asked;
       const next = asked
         ? ([asked.point[0], bounds.floorY, asked.point[1]] as [number, number, number])
-        : facingNow
+        : facingNow || holding
           ? ([position.current.x, bounds.floorY, position.current.z] as [number, number, number])
           : planSpatialTarget({
         activity,
@@ -493,10 +620,35 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
       target.current.set(next[0], next[1], next[2]);
     }
 
-    if (!isDragging) {
+    const turnWith = (from: GroundPoint, to: GroundPoint, stepDt: number) => {
+      const vx = to[0] - from[0];
+      const vz = to[1] - from[1];
+      if (Math.abs(vx) + Math.abs(vz) > 0.0001) {
+        const wantedYaw = Math.atan2(vx, vz);
+        let diff = wantedYaw - yaw.current;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        yaw.current += diff * Math.min(1, stepDt * 7);
+      }
+    };
+
+    if (!isDragging && asked && asked.walk) {
+      /*
+       * A requested walk follows its planned route (LeluSpatial.planPath),
+       * in the same collision-checked increments. Only time since the
+       * command was taken counts: a world paused under the chat before the
+       * command existed is not walked off in its first frame.
+       */
+      const walkSeconds = Math.min(elapsed, (now - asked.startedAt) / 1000);
+      const result = walkPath([position.current.x, position.current.z], asked.walk, walkSeconds, WALK_SPEED, bounds, obstacles(), CLEARANCE, viewerPoint(), turnWith);
+      position.current.set(result.position[0], bounds.floorY, result.position[1]);
+      const aimAt = asked.walk.waypoints[asked.walk.index];
+      if (aimAt) target.current.set(aimAt[0], bounds.floorY, aimAt[1]);
+      walkingRef.current = result.moved;
+    } else if (!isDragging) {
       const to = target.current;
       const d = Math.hypot(to.x - position.current.x, to.z - position.current.z);
-      if (d > 0.06) {
+      if (d > 0.06 && !asked) {
         let moved = false;
         for (let i = 0; i < substeps; i += 1) {
           const left = Math.hypot(to.x - position.current.x, to.z - position.current.z);
@@ -517,15 +669,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
           const fromX = position.current.x;
           const fromZ = position.current.z;
           position.current.set(step.position[0], bounds.floorY, step.position[1]);
-          const vx = step.position[0] - fromX;
-          const vz = step.position[1] - fromZ;
-          if (Math.abs(vx) + Math.abs(vz) > 0.0001) {
-            const wantedYaw = Math.atan2(vx, vz);
-            let diff = wantedYaw - yaw.current;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            yaw.current += diff * Math.min(1, dt * 7);
-          }
+          turnWith([fromX, fromZ], step.position, dt);
         }
         walkingRef.current = moved;
       } else {
@@ -556,35 +700,45 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
 
     if (walkingRef.current !== walking) setWalking(walkingRef.current);
 
-    // Arrived where she was asked to go: confirmed by her measured position.
-    // Furniture, windows and the person's space can stop her short of the
-    // exact point: once she has stood still for a moment she reports how
-    // close she got, or — if the way is blocked — that she could not.
-    const asked = goal.current;
-    if (asked && !asked.confirmed && !isDragging) {
-      const remaining = Math.hypot(asked.point[0] - position.current.x, asked.point[1] - position.current.z);
-      const walked = Math.hypot(position.current.x - asked.from[0], position.current.z - asked.from[1]);
-      const where = `now at x ${position.current.x.toFixed(2)}, z ${position.current.z.toFixed(2)}`;
-      // Progress, not stillness: she can jitter against an obstacle without
-      // ever standing still. No 5 cm of progress in 1.5 s = she has stopped.
-      if (remaining < asked.best - 0.05) {
-        asked.best = remaining;
+    /*
+     * Arrival is measured: the straight distance from where she stands to the
+     * point she was asked to reach. Progress is measured along her route
+     * (going round the Core briefly takes her further from the goal in a
+     * straight line; that is progress, not a stall). This keeps running
+     * after a deadline progress report, so a walk that later arrives or
+     * gets stuck is recorded as such instead of "keep walking" forever.
+     */
+    if (asked && !isDragging) {
+      const here: GroundPoint = [position.current.x, position.current.z];
+      const remaining = Math.hypot(asked.point[0] - here[0], asked.point[1] - here[1]);
+      const onRoute = asked.walk ? remainingOnPath(here, asked.walk) : remaining;
+      const walked = Math.hypot(here[0] - asked.from[0], here[1] - asked.from[1]);
+      const where = `now at x ${here[0].toFixed(2)}, z ${here[1].toFixed(2)}`;
+      if (onRoute < asked.best - 0.05) {
+        asked.best = onRoute;
         asked.bestAt = now;
       }
-      const stalled = !walkingRef.current || now - asked.bestAt > 1500;
+      const stalled = !asked.walk || !walkingRef.current || now - asked.bestAt > 1500;
       if (remaining <= 0.1) {
-        asked.confirmed = true;
-        AvatarCommandBus.getInstance().confirm(asked.id, `walked ${walked.toFixed(2)} m (${asked.label}); ${where}`);
+        asked.outcome = "arrived";
+        resolve(asked, true, `walked ${walked.toFixed(2)} m (${asked.label}); ${where}, ${(remaining * 100).toFixed(0)} cm from the point`);
       } else if (!stalled) {
         asked.stillSince = 0;
       } else {
         asked.stillSince ||= now;
         if (now - asked.stillSince > 1200) {
-          asked.confirmed = true;
-          if (remaining <= 0.8) {
-            AvatarCommandBus.getInstance().confirm(asked.id, `walked ${walked.toFixed(2)} m (${asked.label}), stopping ${(remaining * 100).toFixed(0)} cm short where the room left space; ${where}`);
+          // Something moved into her way: one fresh route from here first.
+          if (asked.replans < 3 && route(asked) && asked.walk) {
+            asked.replans += 1;
+            asked.stillSince = 0;
+            asked.bestAt = now;
+            asked.best = remainingOnPath(here, asked.walk);
+          } else if (remaining <= 0.8) {
+            asked.outcome = "stopped-short";
+            resolve(asked, true, `walked ${walked.toFixed(2)} m (${asked.label}), stopping ${(remaining * 100).toFixed(0)} cm short where the room left space; ${where}`);
           } else {
-            AvatarCommandBus.getInstance().decline(asked.id, `the way is blocked (furniture, a window or your space): I stopped ${remaining.toFixed(2)} m short, ${walked.toFixed(2)} m from where I started`);
+            asked.outcome = "blocked";
+            resolve(asked, false, `the way is blocked (furniture, a window or your space): I stopped ${remaining.toFixed(2)} m short, ${walked.toFixed(2)} m from where I started`);
           }
         }
       }
@@ -611,7 +765,24 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         activity,
         walking: walkingRef.current,
         dragging: isDragging,
-        goal: goal.current && goal.current.until > now ? { label: goal.current.label, point: goal.current.point.map((n) => Number(n.toFixed(2))), arrived: goal.current.confirmed } : null,
+        goal: goal.current && goal.current.until > now
+          ? {
+            id: goal.current.id,
+            label: goal.current.label,
+            place: goal.current.place,
+            ready: goal.current.ready,
+            point: goal.current.point.map((n) => Number(n.toFixed(2))),
+            outcome: goal.current.outcome,
+            // True only when she measured herself at the point.
+            arrived: goal.current.outcome === "arrived",
+            resolved: goal.current.resolved,
+            reported: goal.current.reported,
+            remaining: Number(Math.hypot(goal.current.point[0] - position.current.x, goal.current.point[1] - position.current.z).toFixed(3)),
+            route: goal.current.walk?.waypoints.map((p) => p.map((n) => Number(n.toFixed(2)))) ?? null,
+            routeIndex: goal.current.walk?.index ?? null,
+            replans: goal.current.replans,
+          }
+          : null,
         facingGoal: faceGoal.current && faceGoal.current.until > now ? { label: faceGoal.current.label, done: faceGoal.current.confirmed } : null,
         obstacles: obstacles().length,
         windowObstacles: windowObstacles.current.length,
