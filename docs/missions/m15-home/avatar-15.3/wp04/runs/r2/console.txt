@@ -54,3 +54,16 @@ PASS 53 desktop-panel-form-choice-auto → full/embodied; same canvas true
 PASS 54 desktop-panel-framing-choice-auto → full/embodied; same canvas true
 PASS 55 desktop-panel-close-reopen-1 clicked “Close Avatar”; panel closed true, she left it (planned) within 7 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +0 since start
 PASS 56 desktop-panel-close-reopen-2 clicked “Close Avatar”; panel closed true, she left it (planned) within 7 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +0 since start
+PASS 57 phone-panel-preview-is-her presence preview; full/embodied; her own canvas true; model v005_faceshapes_mvwaqbim/lelu.glb; in the panel's spot true
+PASS 58 phone-panel-preview-animates drew 0 frames in 3 s (measured low-power rest)
+PASS 59 phone-panel-form-choice-hologram → full/hologram; same canvas true
+PASS 60 phone-panel-framing-choice-face → face/hologram; same canvas true
+PASS 61 phone-panel-framing-choice-full → full/hologram; same canvas true
+PASS 62 phone-panel-form-choice-embodied → full/embodied; same canvas true
+PASS 63 phone-panel-form-choice-auto → full/embodied; same canvas true
+PASS 64 phone-panel-framing-choice-auto → full/embodied; same canvas true
+PASS 65 phone-panel-close-reopen-1 tapped “Close Avatar”; panel closed true, she left it (planned) within 5 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +3 since start
+PASS 66 phone-panel-close-reopen-2 tapped “Close Avatar”; panel closed true, she left it (planned) within 28 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +6 since start
+PASS 67 reacts-to-real-turn activities observed during a real chat turn: IDLE → COMPLETED → SPEAKING → LISTENING
+PASS 68 transition-stress 12 transitions (Chat, Home, Browser, Home ×3): frozen on 0; her canvas the same element throughout true; page WebGL contexts created during the loop (Cosmos included): 0
+68/68 verified
