@@ -1,0 +1,68 @@
+{
+  "mission": "M14.5",
+  "evaluatedCommit": "working tree before delivery commit",
+  "status": "PASS",
+  "evidenceClass": [
+    "LOCAL",
+    "DETERMINISTIC",
+    "BROWSER_FIXTURE"
+  ],
+  "realCloud": false,
+  "fullSuite": {
+    "tests": 2276,
+    "pass": 2266,
+    "fail": 2,
+    "skipped": 8,
+    "durationMs": 252816.671186,
+    "knownFailures": [
+      "tests/genesis-interface.test.tsx",
+      "tests/sandbox-security.test.ts"
+    ]
+  },
+  "focusedContinuity": {
+    "tests": 23,
+    "pass": 23,
+    "files": [
+      "tests/continuity-sync.test.ts",
+      "tests/supabase-continuity-transport.test.ts",
+      "tests/continuity-migration.test.ts"
+    ]
+  },
+  "typecheck": {
+    "errors": 0
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 419
+  },
+  "build": {
+    "status": "PASS",
+    "seconds": 7.83
+  },
+  "gitDiffCheck": "PASS",
+  "m143Offline": "PASS",
+  "m143Dispatch": "PASS",
+  "m143DispatchChecks": {
+    "projectOk": true,
+    "sandboxOk": true,
+    "cosmosOk": true,
+    "approvalOk": true,
+    "knowledgeOk": true,
+    "deniedOk": true
+  },
+  "m144Deterministic": {
+    "offline": "PASS",
+    "reconnect": "PASS",
+    "conflict": "PASS",
+    "outbox": "PASS"
+  },
+  "m144MultiContextFixture": "PASS",
+  "baselineFailureComparison": "No new failures. 2266 = 2251 M14.4 passes + 15 new tests; the same two baseline failures remain.",
+  "artifacts": {
+    "offline": "artifacts/m143-offline.json",
+    "dispatch": "artifacts/m143-dispatch.json",
+    "m144": "artifacts/m144",
+    "focusedLog": "/tmp/m145-focused2.log",
+    "fullLog": "/tmp/m145-full-test.log"
+  }
+}

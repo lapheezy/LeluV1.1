@@ -266,6 +266,42 @@ test("a concurrent spatial transform becomes a resolvable conflict, not a duplic
   assert.equal(objects.list().filter((item) => item.link.id === "doc-conflict").length, 1);
 });
 
+test("a hydrated cloud record is adopted on first sync instead of becoming a false conflict", async () => {
+  const { ProjectStore, ContinuityEngine, SimulatedTransport } = await modules();
+  const project = ProjectStore.getInstance().create({ name: "Already in the cloud" });
+  const transport = new SimulatedTransport();
+  transport.seed("projects", [{ id: project.id, updatedAt: project.updatedAt, data: project }]);
+
+  const engine = ContinuityEngine.getInstance();
+  engine.start({ transport, autoProcess: false });
+  await engine.synchronize();
+
+  assert.equal(engine.conflicts().length, 0, "first observation is not a conflict");
+  assert.equal(engine.pending().filter((operation) => operation.recordId === project.id).length, 0, "the unnecessary upload was dropped");
+  const record = engine.evidence().records.find((item: any) => item.id === project.id) as any;
+  assert.equal(record.state, "synced");
+  assert.equal(record.cloudRevision !== null, true);
+});
+
+test("a local edit made before engine start is rebased onto the observed cloud revision", async () => {
+  const { ProjectStore, ContinuityEngine, SimulatedTransport } = await modules();
+  const project = ProjectStore.getInstance().create({ name: "Cloud base" });
+  const transport = new SimulatedTransport();
+  const cloudBase = { ...project, updatedAt: project.updatedAt - 1_000 };
+  transport.seed("projects", [{ id: project.id, updatedAt: cloudBase.updatedAt, data: cloudBase }]);
+  const edited = ProjectStore.getInstance().update(project.id, { name: "Local edit before start" });
+  assert.ok(edited);
+
+  const engine = ContinuityEngine.getInstance();
+  engine.start({ transport, autoProcess: false });
+  await engine.synchronize();
+
+  assert.equal(engine.conflicts().length, 0);
+  assert.equal(engine.pending().filter((operation) => operation.recordId === project.id).length, 0);
+  const remote = transport.cloudRecords("projects").find((item) => item.id === project.id);
+  assert.equal((remote?.data as any).name, "Local edit before start");
+});
+
 test("a spatial object created offline survives reload and remains unique after sync", async () => {
   const { SpatialObjects, ContinuityEngine, SimulatedTransport, KvStore } = await modules();
   SpatialObjects.reset();

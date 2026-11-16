@@ -7,79 +7,79 @@
   ],
   "realDevices": false,
   "realCloud": false,
-  "startedAt": "2026-11-16T10:10:26.791Z",
+  "startedAt": "2026-11-16T11:33:40.600Z",
   "contexts": {
     "a": {
       "label": "device-a",
-      "localKeys": 31,
+      "localKeys": 24,
       "projectReachedCloud": true,
       "created": {
-        "id": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
+        "id": "006e8f0c-055e-4f13-9156-646868bdedf1",
         "name": "M144 two-context project"
       },
       "name": "Device A edit"
     },
     "b": {
       "label": "device-b",
-      "localKeys": 10,
+      "localKeys": 11,
       "seenByB": {
-        "id": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
+        "id": "006e8f0c-055e-4f13-9156-646868bdedf1",
         "name": "M144 two-context project"
       },
       "reconnect": {
-        "conflicts": 10,
+        "conflicts": 1,
         "conflict": {
-          "id": "conflict:projects:15f11941-5d1a-4f19-aeaa-5cc40c5168c7:2:fixture-42",
+          "id": "conflict:projects:006e8f0c-055e-4f13-9156-646868bdedf1:2:fixture-43",
           "local": "Device B edit",
           "cloud": "Device A edit",
           "localRevision": 2,
-          "cloudRevision": "fixture-42"
+          "cloudRevision": "fixture-43"
         },
         "localName": "Device B edit"
       },
       "resolution": {
         "ok": true,
-        "detail": "Conflict conflict:projects:15f11941-5d1a-4f19-aeaa-5cc40c5168c7:2:fixture-42 resolved with keep_cloud; the chosen revision is synced.",
+        "detail": "Conflict conflict:projects:006e8f0c-055e-4f13-9156-646868bdedf1:2:fixture-43 resolved with keep_cloud; the chosen revision is synced.",
         "conflict": {
-          "id": "conflict:projects:15f11941-5d1a-4f19-aeaa-5cc40c5168c7:2:fixture-42",
+          "id": "conflict:projects:006e8f0c-055e-4f13-9156-646868bdedf1:2:fixture-43",
           "authority": "projects",
-          "recordId": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
+          "recordId": "006e8f0c-055e-4f13-9156-646868bdedf1",
           "localRevision": 2,
-          "cloudRevision": "fixture-42",
+          "cloudRevision": "fixture-43",
           "local": {
-            "id": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
-            "updatedAt": 1794823859100,
+            "id": "006e8f0c-055e-4f13-9156-646868bdedf1",
+            "updatedAt": 1794828899318,
             "data": {
-              "id": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
+              "id": "006e8f0c-055e-4f13-9156-646868bdedf1",
               "name": "Device B edit",
               "description": "",
               "status": "active",
               "agentIds": [],
               "items": [],
-              "createdAt": 1794823852662,
-              "updatedAt": 1794823859100
+              "createdAt": 1794828888888,
+              "updatedAt": 1794828899318
             }
           },
           "cloud": {
-            "id": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
-            "updatedAt": 1794823858628,
+            "id": "006e8f0c-055e-4f13-9156-646868bdedf1",
+            "updatedAt": 1794828898856,
             "data": {
-              "id": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
+              "id": "006e8f0c-055e-4f13-9156-646868bdedf1",
               "name": "Device A edit",
               "description": "",
               "status": "active",
               "agentIds": [],
               "items": [],
-              "createdAt": 1794823852662,
-              "updatedAt": 1794823858628
+              "createdAt": 1794828888888,
+              "updatedAt": 1794828898856
             },
-            "cloudRevision": "fixture-42"
+            "cloudRevision": "fixture-43"
           },
-          "detectedAt": 1794823864494,
+          "detectedAt": 1794828902235,
           "state": "resolved",
           "reason": "Local and cloud revisions both changed since the last synchronization.",
           "resolution": "keep_cloud",
-          "resolvedAt": 1794823864562
+          "resolvedAt": 1794828902259
         }
       },
       "nameAfter": "Device A edit"
@@ -88,13 +88,13 @@
       "before": {
         "pending": 0,
         "status": {
-          "localOnly": true,
+          "localOnly": false,
           "pending": 0,
-          "conflicts": 9,
+          "conflicts": 0,
           "failed": 0,
           "uploading": 0,
           "lastError": null,
-          "lastProcessedAt": 1794823852264,
+          "lastProcessedAt": 1794828888461,
           "authorities": [
             {
               "authority": "projects",
@@ -118,13 +118,13 @@
             },
             {
               "authority": "knowledge",
-              "local": 28,
+              "local": 30,
               "pending": 0,
-              "synced": 19,
-              "conflicts": 9,
+              "synced": 30,
+              "conflicts": 0,
               "failed": 0,
-              "state": "conflict",
-              "detail": "9 unresolved conflict(s); local data remains authoritative."
+              "state": "synced",
+              "detail": "Local and cloud revisions agree."
             },
             {
               "authority": "knowledgeGraph",
@@ -162,13 +162,13 @@
       "after": {
         "pending": 0,
         "status": {
-          "localOnly": true,
+          "localOnly": false,
           "pending": 0,
-          "conflicts": 9,
+          "conflicts": 0,
           "failed": 0,
           "uploading": 0,
           "lastError": null,
-          "lastProcessedAt": 1794823852271,
+          "lastProcessedAt": 1794828888500,
           "authorities": [
             {
               "authority": "projects",
@@ -192,13 +192,13 @@
             },
             {
               "authority": "knowledge",
-              "local": 28,
+              "local": 30,
               "pending": 0,
-              "synced": 19,
-              "conflicts": 9,
+              "synced": 30,
+              "conflicts": 0,
               "failed": 0,
-              "state": "conflict",
-              "detail": "9 unresolved conflict(s); local data remains authoritative."
+              "state": "synced",
+              "detail": "Local and cloud revisions agree."
             },
             {
               "authority": "knowledgeGraph",
@@ -241,11 +241,11 @@
     }
   },
   "conflict": {
-    "id": "conflict:projects:15f11941-5d1a-4f19-aeaa-5cc40c5168c7:2:fixture-42",
+    "id": "conflict:projects:006e8f0c-055e-4f13-9156-646868bdedf1:2:fixture-43",
     "local": "Device B edit",
     "cloud": "Device A edit",
     "localRevision": 2,
-    "cloudRevision": "fixture-42"
+    "cloudRevision": "fixture-43"
   },
   "status": "PASS",
   "consoleErrors": [
@@ -254,57 +254,66 @@
     "device-a: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "device-a: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "device-a: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "device-a: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
     "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "device-a: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
     "device-a: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-    "device-b: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "device-b: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "device-b: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "device-a: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
+    "device-a: Failed to load resource: net::ERR_FAILED",
     "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "device-a: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "device-a: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "device-a: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "device-a: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "device-b: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
     "device-b: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "device-a: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "device-a: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
     "device-a: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "device-b: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "device-b: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
     "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "device-a: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "device-b: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance' from origin 'http://127",
+    "device-b: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
     "device-b: Failed to load resource: net::ERR_FAILED",
     "device-b: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "device-a: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
-    "device-a: Failed to load resource: net::ERR_FAILED"
+    "device-b: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "device-b: [GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "device-a: Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
   ],
   "requests": [
     {
       "context": "device-a",
       "authority": "projects",
-      "recordId": "33c6e933-64f8-4300-8446-90df3aa45087",
+      "recordId": "46163028-04d1-459f-8735-910b52557d41",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "projects:33c6e933-64f8-4300-8446-90df3aa45087:r1"
+      "idempotencyKey": "projects:46163028-04d1-459f-8735-910b52557d41:r1"
     },
     {
       "context": "device-a",
       "authority": "projects",
-      "recordId": "e5551f87-3f9c-4a82-8bfc-9f4769ad395a",
+      "recordId": "2c862f5b-9d64-41ff-bbaf-a1026fd1b769",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "projects:e5551f87-3f9c-4a82-8bfc-9f4769ad395a:r1"
+      "idempotencyKey": "projects:2c862f5b-9d64-41ff-bbaf-a1026fd1b769:r1"
     },
     {
       "context": "device-a",
       "authority": "conversations",
-      "recordId": "a9faac7e-06ef-4e1b-914f-6c6769ccc2b6",
+      "recordId": "c3fde593-12bb-49f0-8329-f017f57f277b",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "conversations:a9faac7e-06ef-4e1b-914f-6c6769ccc2b6:r1"
+      "idempotencyKey": "conversations:c3fde593-12bb-49f0-8329-f017f57f277b:r1"
     },
     {
       "context": "device-a",
@@ -525,244 +534,180 @@
     {
       "context": "device-a",
       "authority": "knowledge",
-      "recordId": "selfdev-2bf06669",
+      "recordId": "selfdev-6dbf9ade",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-2bf06669:r1"
+      "idempotencyKey": "knowledge:selfdev-6dbf9ade:r1"
     },
     {
       "context": "device-a",
       "authority": "conversations",
-      "recordId": "fa73c7b8-2f24-4bb8-8d68-ebd1be1513ab",
+      "recordId": "51b4501e-c085-49f6-a3cf-03dde29aeb76",
       "localRevision": 4,
       "expectedCloudRevision": null,
-      "idempotencyKey": "conversations:fa73c7b8-2f24-4bb8-8d68-ebd1be1513ab:r4"
+      "idempotencyKey": "conversations:51b4501e-c085-49f6-a3cf-03dde29aeb76:r4"
+    },
+    {
+      "context": "device-a",
+      "authority": "knowledge",
+      "recordId": "selfdev-704069a4",
+      "localRevision": 1,
+      "expectedCloudRevision": null,
+      "idempotencyKey": "knowledge:selfdev-704069a4:r1"
     },
     {
       "context": "device-b",
       "authority": "projects",
-      "recordId": "fe39cfab-fa01-4293-aa4c-5b21dbf604eb",
+      "recordId": "bc6af33d-df03-4c3f-9671-1c06b98a5a78",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "projects:fe39cfab-fa01-4293-aa4c-5b21dbf604eb:r1"
+      "idempotencyKey": "projects:bc6af33d-df03-4c3f-9671-1c06b98a5a78:r1"
     },
     {
       "context": "device-b",
       "authority": "projects",
-      "recordId": "12b5aacc-edda-4212-8e58-c5667297af20",
+      "recordId": "b7b05e9b-8a50-46d5-96e8-8da6c53dbe57",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "projects:12b5aacc-edda-4212-8e58-c5667297af20:r1"
+      "idempotencyKey": "projects:b7b05e9b-8a50-46d5-96e8-8da6c53dbe57:r1"
     },
     {
       "context": "device-b",
       "authority": "conversations",
-      "recordId": "d9812b45-a80f-4a77-86a5-7c64abb813bd",
+      "recordId": "d7ea2578-7f47-4c5d-a707-71152ca0ea57",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "conversations:d9812b45-a80f-4a77-86a5-7c64abb813bd:r1"
+      "idempotencyKey": "conversations:d7ea2578-7f47-4c5d-a707-71152ca0ea57:r1"
     },
     {
       "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "computing-filesystems-permissions",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:computing-filesystems-permissions:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "computing-storage-persistence",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:computing-storage-persistence:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "computing-indexeddb",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:computing-indexeddb:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "computing-browser-environment-limits",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:computing-browser-environment-limits:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "software-provider-fallback-chains",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:software-provider-fallback-chains:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "software-prompt-context-enrichment",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:software-prompt-context-enrichment:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "software-virtual-sandbox-design",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:software-virtual-sandbox-design:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "creative-canvas-raster-pipelines",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:creative-canvas-raster-pipelines:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "creative-svg-export-from-sketch-documents",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:creative-svg-export-from-sketch-documents:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "ai-retrieval-augmented-generation",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:ai-retrieval-augmented-generation:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "ai-multimodal-vision",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:ai-multimodal-vision:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-sandbox-first-development",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-sandbox-first-development:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-no-runtime-self-modification",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-no-runtime-self-modification:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-architecture-map-is-queryable",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-architecture-map-is-queryable:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-capability-status-honesty",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-capability-status-honesty:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-ui-evolution-is-data-defined",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-ui-evolution-is-data-defined:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-rollback-is-mandatory",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-rollback-is-mandatory:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "cosmosNavigation",
-      "recordId": "rooms",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "cosmosNavigation:rooms:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "knowledge",
-      "recordId": "selfdev-1d292ba7",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-1d292ba7:r1"
-    },
-    {
-      "context": "device-b",
-      "authority": "conversations",
-      "recordId": "1feb3665-d585-4629-8365-b0167ac8f014",
-      "localRevision": 4,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "conversations:1feb3665-d585-4629-8365-b0167ac8f014:r4"
-    },
-    {
-      "context": "device-a",
-      "authority": "knowledge",
-      "recordId": "selfdev-379edcba",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-379edcba:r1"
-    },
-    {
-      "context": "device-a",
-      "authority": "projects",
-      "recordId": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
-      "localRevision": 1,
-      "expectedCloudRevision": null,
-      "idempotencyKey": "projects:15f11941-5d1a-4f19-aeaa-5cc40c5168c7:r1"
-    },
-    {
-      "context": "device-a",
       "authority": "knowledge",
       "recordId": "software-state-of-the-art-agent-memory",
-      "localRevision": 2,
+      "localRevision": 1,
       "expectedCloudRevision": "fixture-11",
-      "idempotencyKey": "knowledge:software-state-of-the-art-agent-memory:r2"
+      "idempotencyKey": "knowledge:software-state-of-the-art-agent-memory:r1"
     },
     {
       "context": "device-b",
       "authority": "knowledge",
-      "recordId": "selfdev-e5a2a4a2",
+      "recordId": "software-self-modifying-systems",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-12",
+      "idempotencyKey": "knowledge:software-self-modifying-systems:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "creative-procedural-environment-generation",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-15",
+      "idempotencyKey": "knowledge:creative-procedural-environment-generation:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "engineering-electronics-fundamentals",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-16",
+      "idempotencyKey": "knowledge:engineering-electronics-fundamentals:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "engineering-materials-for-product-design",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-17",
+      "idempotencyKey": "knowledge:engineering-materials-for-product-design:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "ai-agent-tool-use-loops",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-19",
+      "idempotencyKey": "knowledge:ai-agent-tool-use-loops:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "ai-latest-frontier-model-architectures",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-21",
+      "idempotencyKey": "knowledge:ai-latest-frontier-model-architectures:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "selfdev-diagnostics-before-proposals",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-26",
+      "idempotencyKey": "knowledge:selfdev-diagnostics-before-proposals:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "selfdev-trust-must-be-earned",
+      "localRevision": 1,
+      "expectedCloudRevision": "fixture-29",
+      "idempotencyKey": "knowledge:selfdev-trust-must-be-earned:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "conversations",
+      "recordId": "c48df659-954b-4b0b-911a-65ae55e3eeae",
+      "localRevision": 4,
+      "expectedCloudRevision": null,
+      "idempotencyKey": "conversations:c48df659-954b-4b0b-911a-65ae55e3eeae:r4"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "selfdev-991a0cdf",
       "localRevision": 1,
       "expectedCloudRevision": null,
-      "idempotencyKey": "knowledge:selfdev-e5a2a4a2:r1"
+      "idempotencyKey": "knowledge:selfdev-991a0cdf:r1"
+    },
+    {
+      "context": "device-b",
+      "authority": "knowledge",
+      "recordId": "selfdev-a18619a2",
+      "localRevision": 1,
+      "expectedCloudRevision": null,
+      "idempotencyKey": "knowledge:selfdev-a18619a2:r1"
+    },
+    {
+      "context": "device-a",
+      "authority": "knowledge",
+      "recordId": "selfdev-893ed334",
+      "localRevision": 1,
+      "expectedCloudRevision": null,
+      "idempotencyKey": "knowledge:selfdev-893ed334:r1"
     },
     {
       "context": "device-a",
       "authority": "projects",
-      "recordId": "15f11941-5d1a-4f19-aeaa-5cc40c5168c7",
+      "recordId": "006e8f0c-055e-4f13-9156-646868bdedf1",
+      "localRevision": 1,
+      "expectedCloudRevision": null,
+      "idempotencyKey": "projects:006e8f0c-055e-4f13-9156-646868bdedf1:r1"
+    },
+    {
+      "context": "device-a",
+      "authority": "knowledge",
+      "recordId": "software-self-modifying-systems",
       "localRevision": 2,
-      "expectedCloudRevision": "fixture-39",
-      "idempotencyKey": "projects:15f11941-5d1a-4f19-aeaa-5cc40c5168c7:r2"
+      "expectedCloudRevision": "fixture-12",
+      "idempotencyKey": "knowledge:software-self-modifying-systems:r2"
+    },
+    {
+      "context": "device-a",
+      "authority": "projects",
+      "recordId": "006e8f0c-055e-4f13-9156-646868bdedf1",
+      "localRevision": 2,
+      "expectedCloudRevision": "fixture-41",
+      "idempotencyKey": "projects:006e8f0c-055e-4f13-9156-646868bdedf1:r2"
     }
   ],
   "note": "Two independent Chromium contexts, each with its own localStorage and continuity metadata, against a local conditional-write fixture. Not physical devices, not Supabase.",
-  "finishedAt": "2026-11-16T10:11:04.919Z"
+  "finishedAt": "2026-11-16T11:35:02.695Z"
 }

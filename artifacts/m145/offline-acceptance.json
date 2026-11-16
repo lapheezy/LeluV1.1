@@ -1,0 +1,30 @@
+{
+  "mission": "M14.5",
+  "baselineBranch": "mission-14.4/local-first-continuity",
+  "baselineCommit": "b17c1190d5fcd0ee4f1f637d40a8736d5d2adef5",
+  "status": "PASS",
+  "evidenceClass": [
+    "BROWSER",
+    "PRODUCTION_BUILD",
+    "LOCAL"
+  ],
+  "realCloud": false,
+  "supabaseConfigured": false,
+  "cloudLabel": "Cloud sync off",
+  "bootReadyMs": 1941,
+  "reloadReadyMs": 2064,
+  "projectSurvivesReload": true,
+  "chatSurvivesReload": true,
+  "knowledgeSurvivesReload": true,
+  "knowledgeRevision": 1,
+  "offlineTurnCompleted": true,
+  "offlineProjectPresent": true,
+  "supabaseAttempts": [],
+  "blockedExternalHosts": [
+    "cdn.jsdelivr.net"
+  ],
+  "sourceArtifact": "artifacts/m143-offline.json",
+  "startedAt": "2026-11-16T11:32:03.580Z",
+  "finishedAt": "2026-11-16T11:33:07.901Z",
+  "note": "Final M14.5 production build, network blocked except loopback. No Supabase URL/key was configured."
+}

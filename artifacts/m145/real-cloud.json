@@ -1,0 +1,20 @@
+{
+  "mission": "M14.5",
+  "status": "BLOCKED",
+  "evidenceClass": [
+    "REAL_AUTHENTICATED_SUPABASE"
+  ],
+  "realCloud": false,
+  "startedAt": "2026-11-16T11:29:07.176Z",
+  "finishedAt": "2026-11-16T11:29:07.177Z",
+  "missingNames": [
+    "LELU_M145_SUPABASE_URL",
+    "LELU_M145_SUPABASE_PUBLISHABLE_KEY",
+    "LELU_M145_EMAIL",
+    "LELU_M145_PASSWORD",
+    "LELU_M145_PROJECT_REF"
+  ],
+  "reason": "LELU_M145_ALLOW_REAL is not 1; real cloud execution is opt-in.",
+  "checks": [],
+  "note": "No request was attempted. Supply an isolated test project via .lelu-runtime/m145-supabase.env; never use production credentials."
+}

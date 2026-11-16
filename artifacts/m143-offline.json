@@ -1,7 +1,7 @@
 {
   "mission": "M14.3",
   "base": "4582382",
-  "startedAt": "2026-11-16T10:17:56.506Z",
+  "startedAt": "2026-11-16T11:32:03.580Z",
   "evidenceClass": [
     "BROWSER",
     "NETWORK",
@@ -9,15 +9,7 @@
   ],
   "blockedExternal": [
     "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
-    "https://hn.algolia.com/api/v1/search?query=Map%20the%20offline%20acceptance%20path.&tags=story",
-    "https://en.wikipedia.org/api/rest_v1/page/summary/Map%20the%20offline%20acceptance%20path.",
-    "https://api.gdeltproject.org/api/v2/doc/doc?query=Map+the+offline+acceptance+path.&mode=artlist&format=json&maxrecords=10",
-    "https://api.allorigins.win/raw?url=https%3A%2F%2Fapi.gdeltproject.org%2Fapi%2Fv2%2Fdoc%2Fdoc%3Fquery%3DMap%2Bthe%2Boffline%2Bacceptance%2Bpath.%26mode%3Dartlist%26format%3Djson%26maxrecords%3D10",
-    "https://nominatim.openstreetmap.org/search?q=Map+the+offline+acceptance+path.&format=jsonv2&limit=10",
-    "https://nominatim.openstreetmap.org/search?q=Map+the+offline+acceptance+path.&format=jsonv2&limit=10&addressdetails=1",
-    "https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance",
-    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
-    "https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance"
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js"
   ],
   "consoleErrors": [
     "Failed to load resource: net::ERR_FAILED",
@@ -28,23 +20,6 @@
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: net::ERR_FAILED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
@@ -53,33 +28,33 @@
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
     "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
     "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: net::ERR_FAILED",
-    "Failed to load resource: net::ERR_FAILED"
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
   ],
   "phases": {
     "boot": {
       "title": "LÉLU",
-      "readyMs": 1711,
-      "ms": 10114,
+      "readyMs": 1941,
+      "ms": 10142,
       "controls": 37,
       "cloudLabel": "Cloud sync off"
     },
     "projectTurn": {
-      "reply": "Project created: Map the Offline Acceptance Path\nObjective: Map the offline acceptance path.\nExecution:\n[Map the Offline Acceptance Path] No results returned after attempting: hackernews (Failed to fetch); wikipedia (Failed to fetch); youtube (YouTube 503); gdelt (Failed to fetch); openstreetmap (Failed to fetch); nominatim (Failed to fetch).\n(No AI provider was reachable, so this was organised by text parsing. Tell me the real title or what it refers to and I'll correct it.)",
+      "reply": "Project created: Offline Acceptance Path Mapping\nObjective: Map the offline acceptance path.\nTasks:\n• Map the offline acceptance path.",
       "projectFound": true,
-      "projectId": "8b550f75-20c3-49be-841c-294a86a6b62f",
-      "projectName": "Map the Offline Acceptance Path",
+      "projectId": "3dcf7aa0-7e92-48c7-b001-d971f58c3477",
+      "projectName": "Offline Acceptance Path Mapping",
       "knowledgeNodes": 1,
       "knowledgeEdges": 0,
       "knowledgeRevision": 1,
       "knowledgeProvenance": "local"
     },
     "reload": {
-      "readyMs": 1912,
-      "ms": 9992,
+      "readyMs": 2064,
+      "ms": 10392,
       "projectStillPresent": true,
       "chatStillPresent": true,
       "knowledgeRevision": 1
@@ -97,19 +72,13 @@
       "chatCount": 2
     },
     "network": {
-      "blockedExternalCount": 10,
+      "blockedExternalCount": 2,
       "blockedExternalHosts": [
-        "cdn.jsdelivr.net",
-        "hn.algolia.com",
-        "en.wikipedia.org",
-        "api.gdeltproject.org",
-        "api.allorigins.win",
-        "nominatim.openstreetmap.org",
-        "export.arxiv.org"
+        "cdn.jsdelivr.net"
       ],
       "supabaseAttempts": []
     }
   },
-  "finishedAt": "2026-11-16T10:18:56.784Z",
+  "finishedAt": "2026-11-16T11:33:07.901Z",
   "status": "PASS"
 }

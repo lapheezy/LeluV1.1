@@ -2,8 +2,8 @@
   "mission": "M14.4",
   "baselineBranch": "mission-14.3/independent-runtime-acceptance",
   "baselineCommit": "9363966",
-  "startedAt": "2026-11-16T10:11:23.575Z",
-  "finishedAt": "2026-11-16T10:11:23.895Z",
+  "startedAt": "2026-11-16T11:33:39.862Z",
+  "finishedAt": "2026-11-16T11:33:40.188Z",
   "realCloud": false,
   "cloudCredential": "not present in this environment",
   "evidenceBoundary": "All cloud behavior below is produced by SimulatedTransport and is labelled SIMULATED. No Supabase request was made.",
@@ -25,7 +25,7 @@
     "nodesAfterRepeatedSync": 1,
     "edgesAfterRepeatedSync": 1,
     "revision": 2,
-    "spatialObjectId": "obj-8325da20",
+    "spatialObjectId": "obj-67da71a4",
     "spatialObjectPreserved": true,
     "note": "The local knowledge graph remains the authority; repeated application does not duplicate node or edge identities."
   }
