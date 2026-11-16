@@ -1,0 +1,637 @@
+{
+  "evidence": "DISPATCH",
+  "objects": [
+    {
+      "id": "obj_1",
+      "name": "chair — 46 × 48 × 86 cm",
+      "frame": {
+        "position": [
+          0.8,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          45,
+          0
+        ],
+        "scale": 8
+      }
+    },
+    {
+      "id": "obj_2",
+      "name": "chair — 46 × 48 × 86 cm",
+      "frame": {
+        "position": [
+          -1.6,
+          0.9,
+          9.97
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 4
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "a chair is built by the deterministic construction engine",
+      "ok": true,
+      "detail": {
+        "text": "build a chair",
+        "plan": [
+          "creative.build"
+        ],
+        "reply": "Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n\n✓ build (creative.build)\n  Parameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\n  Change it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modi",
+        "ok": true,
+        "after": []
+      }
+    },
+    {
+      "name": "the construction becomes a Cosmos object",
+      "ok": true,
+      "detail": {
+        "plan": [
+          "cosmos.object.spawn"
+        ],
+        "objects": [
+          "obj_1"
+        ]
+      }
+    },
+    {
+      "name": "select resolves “it” to the object from the conversation",
+      "ok": true,
+      "detail": {
+        "plan": [
+          "cosmos.object.select"
+        ],
+        "selected": "obj_1"
+      }
+    },
+    {
+      "name": "rotate acts on the same object",
+      "ok": true,
+      "detail": {
+        "plan": [
+          "cosmos.object.transform"
+        ],
+        "frame": {
+          "position": [
+            0.8,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            45,
+            0
+          ],
+          "scale": 8
+        }
+      }
+    },
+    {
+      "name": "scale doubles the same object",
+      "ok": true,
+      "detail": {
+        "plan": [
+          "cosmos.object.transform"
+        ],
+        "before": 4,
+        "after": 8
+      }
+    },
+    {
+      "name": "move keeps the identity and the earlier transforms",
+      "ok": true,
+      "detail": {
+        "plan": [
+          "cosmos.object.position"
+        ],
+        "frame": {
+          "position": [
+            0.8,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            45,
+            0
+          ],
+          "scale": 8
+        }
+      }
+    },
+    {
+      "name": "move went left in world metres",
+      "ok": true,
+      "detail": {
+        "before": [
+          3.2,
+          0.9,
+          7.2
+        ],
+        "after": [
+          2,
+          0.9,
+          7.2
+        ]
+      }
+    },
+    {
+      "name": "the transform survives a reload of the persisted state",
+      "ok": true,
+      "detail": {
+        "persistedObject": {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "description": "furniture · furniture · 9 parts",
+          "domain": "furniture",
+          "builder": "furniture",
+          "source": {
+            "artifactId": "art_b68e5e76b869",
+            "rev": 1
+          },
+          "params": {
+            "kind": "chair",
+            "width": 0.46,
+            "depth": 0.48,
+            "height": 0.86,
+            "seatHeight": 0.45,
+            "material": "oak"
+          },
+          "scene": {
+            "background": "#07060f",
+            "camera": {
+              "position": [
+                0.782,
+                1.634,
+                1.248
+              ],
+              "target": [
+                0,
+                0.387,
+                0
+              ],
+              "fov": 40
+            },
+            "lights": [
+              {
+                "type": "hemisphere",
+                "color": "#cfd8ff",
+                "intensity": 0.55,
+                "position": [
+                  0,
+                  1,
+                  0
+                ],
+                "ground": "#161027"
+              },
+              {
+                "type": "directional",
+                "color": "#ffffff",
+                "intensity": 1.7,
+                "position": [
+                  1.2,
+                  1.8,
+                  1.4
+                ]
+              },
+              {
+                "type": "directional",
+                "color": "#b98cff",
+                "intensity": 0.6,
+                "position": [
+                  -1.4,
+                  0.6,
+                  -1.2
+                ]
+              }
+            ],
+            "objects": [
+              {
+                "id": "surface",
+                "shape": "box",
+                "position": [
+                  0,
+                  0.45,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#c99a6a",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.46,
+                  "height": 0.045,
+                  "depth": 0.48
+                }
+              },
+              {
+                "id": "leg-left-back",
+                "shape": "box",
+                "position": [
+                  -0.19,
+                  0.21375,
+                  -0.19999999999999998
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#6f757e",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.032,
+                  "height": 0.4275,
+                  "depth": 0.032
+                }
+              },
+              {
+                "id": "leg-left-front",
+                "shape": "box",
+                "position": [
+                  -0.19,
+                  0.21375,
+                  0.19999999999999998
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#6f757e",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.032,
+                  "height": 0.4275,
+                  "depth": 0.032
+                }
+              },
+              {
+                "id": "leg-right-back",
+                "shape": "box",
+                "position": [
+                  0.19,
+                  0.21375,
+                  -0.19999999999999998
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#6f757e",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.032,
+                  "height": 0.4275,
+                  "depth": 0.032
+                }
+              },
+              {
+                "id": "leg-right-front",
+                "shape": "box",
+                "position": [
+                  0.19,
+                  0.21375,
+                  0.19999999999999998
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#6f757e",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.032,
+                  "height": 0.4275,
+                  "depth": 0.032
+                }
+              },
+              {
+                "id": "back",
+                "shape": "box",
+                "position": [
+                  0,
+                  0.655,
+                  -0.19999999999999998
+                ],
+                "rotation": [
+                  -8,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#c99a6a",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.4324,
+                  "height": 0.41,
+                  "depth": 0.04
+                }
+              },
+              {
+                "id": "cushion",
+                "shape": "box",
+                "position": [
+                  0,
+                  0.5075000000000001,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#8b6bd6",
+                "metalness": 0.02,
+                "roughness": 0.92,
+                "opacity": 1,
+                "size": {
+                  "width": 0.41400000000000003,
+                  "height": 0.07,
+                  "depth": 0.4128
+                }
+              },
+              {
+                "id": "stretcher-back",
+                "shape": "box",
+                "position": [
+                  0,
+                  0.11970000000000001,
+                  -0.19999999999999998
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#6f757e",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.38,
+                  "height": 0.024,
+                  "depth": 0.024
+                }
+              },
+              {
+                "id": "stretcher-front",
+                "shape": "box",
+                "position": [
+                  0,
+                  0.11970000000000001,
+                  0.19999999999999998
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "color": "#6f757e",
+                "metalness": 0.05,
+                "roughness": 0.7,
+                "opacity": 1,
+                "size": {
+                  "width": 0.38,
+                  "height": 0.024,
+                  "depth": 0.024
+                }
+              }
+            ],
+            "duration": 4,
+            "seed": 4242,
+            "preset": "furniture"
+          },
+          "partCount": 9,
+          "frame": {
+            "position": [
+              2,
+              0.9,
+              7.2
+            ],
+            "rotation": [
+              0,
+              90,
+              0
+            ],
+            "scale": 8
+          },
+          "motion": {
+            "kind": "still",
+            "speed": 0.08,
+            "axis": "y",
+            "paused": false
+          },
+          "parent": null,
+          "children": [],
+          "group": null,
+          "visible": true,
+          "locked": false,
+          "place": "cosmos",
+          "createdAt": 1794829999746,
+          "updatedAt": 1794829999753,
+          "provenance": [
+            {
+              "at": 1794829999746,
+              "action": "spawned",
+              "detail": "from art_b68e5e76b869 revision 1"
+            },
+            {
+              "at": 1794829999751,
+              "action": "transformed",
+              "detail": "rotated"
+            },
+            {
+              "at": 1794829999752,
+              "action": "transformed",
+              "detail": "rescaled"
+            },
+            {
+              "at": 1794829999753,
+              "action": "transformed",
+              "detail": "moved"
+            }
+          ]
+        },
+        "live": {
+          "position": [
+            0.8,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            45,
+            0
+          ],
+          "scale": 8
+        }
+      }
+    },
+    {
+      "name": "a fresh conversation has no referent and refuses instead of guessing",
+      "ok": true,
+      "detail": {
+        "plan": [
+          "cosmos.object.transform"
+        ],
+        "reply": "Done locally on the Cosmos scene — no model involved: turn the it 45°.\n\n✗ turn (cosmos.object.transform)\n  Nothing moved: I could not tell which object “it” means — the Cosmos has chair — 46 × 48 × 86 cm.\n\n0 of 1 steps succeeded; the failures are shown with their reasons.",
+        "frame": {
+          "position": [
+            0.8,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            45,
+            0
+          ],
+          "scale": 8
+        }
+      }
+    },
+    {
+      "name": "a name that matches two objects is refused",
+      "ok": true,
+      "detail": {
+        "reply": "Done locally on the Cosmos scene — no model involved: select “chair”.\n\n✗ select (cosmos.object.select)\n  Nothing selected: “chair” matches 2 objects (chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm) — say which one.\n\n0 of 1 steps succeeded; the failures are shown with their reasons.",
+        "plan": [
+          "cosmos.object.select"
+        ]
+      }
+    },
+    {
+      "name": "a dropped write is retried once and recovers",
+      "ok": true,
+      "detail": {
+        "dropped": 1,
+        "reply": "Done locally on the Cosmos scene — no model involved: turn the it 45°.\n\n✓ turn (cosmos.object.transform)\n  Moved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_b68e5e76b869@r1. — applied on retry after the first attempt did not reach the store\n\nEverything above ran and was verified."
+      }
+    },
+    {
+      "name": "a permanent fault is reported as a failure",
+      "ok": true,
+      "detail": {
+        "reply": "Done locally on the Cosmos scene — no model involved: turn the it 30°.\n\n✗ turn (cosmos.object.transform)\n  Moved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_b68e5e76b869@r1. — verification failed: the store recorded the change; rotation is what was asked for\n\n0 of 1 steps succeeded; the failures are shown with their reasons."
+      }
+    },
+    {
+      "name": "the conversation still resolves after the faults",
+      "ok": true,
+      "detail": {
+        "text": "move it to the left",
+        "plan": [
+          "cosmos.object.position"
+        ],
+        "reply": "Done locally on the Cosmos scene — no model involved: move it left.\n\n✓ move (cosmos.object.position)\n  Moved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [0.8, 0.9, 7.2] · scale 8.00 · from art_b68e5e76b869@r1.\n\nEverything above ran and was verified.",
+        "ok": true,
+        "after": [
+          {
+            "id": "obj_1",
+            "frame": {
+              "position": [
+                0.8,
+                0.9,
+                7.2
+              ],
+              "rotation": [
+                0,
+                45,
+                0
+              ],
+              "scale": 8
+            }
+          },
+          {
+            "id": "obj_2",
+            "frame": {
+              "position": [
+                -1.6,
+                0.9,
+                9.97
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": 4
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "failures": 0,
+  "ok": true
+}
