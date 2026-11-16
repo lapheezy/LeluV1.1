@@ -299,13 +299,26 @@ export function networkIsolationAvailable(): boolean {
   return netnsAvailable;
 }
 
-/** Disables network APIs in-process when no network namespace is available. */
+/**
+ * Disables network APIs in-process when no network namespace is available.
+ *
+ * Order matters: Node builds stdio streams and some modules (tls extends
+ * net.Socket) lazily from `net`, so every stream and module is created
+ * BEFORE any export is replaced. Replacing while importing crashed the
+ * child at load ("Class extends value … is not a constructor") on every
+ * host without `unshare -rn`, such as the GitHub Actions runners.
+ */
 const NETWORK_GUARD = `
 const deny = () => { throw new Error("network disabled in the LÉLU sandbox"); };
+void process.stdout; void process.stderr; void process.stdin;
+const modules = [];
+for (const m of ["node:net", "node:tls", "node:http", "node:https", "node:http2", "node:dgram", "node:dns", "node:dns/promises"]) modules.push(await import(m));
 globalThis.fetch = deny; globalThis.WebSocket = undefined;
-for (const m of ["node:net", "node:tls", "node:http", "node:https", "node:http2", "node:dgram", "node:dns"]) {
-  const mod = await import(m);
-  for (const k of Object.keys(mod.default ?? {})) { if (typeof mod.default[k] === "function") { try { mod.default[k] = deny; } catch {} } }
+// dns.promises is an object, not a function: its resolvers are denied too.
+const targets = modules.map((mod) => mod.default ?? {});
+if (targets[6]?.promises) targets.push(targets[6].promises);
+for (const target of targets) {
+  for (const k of Object.keys(target)) { if (typeof target[k] === "function") { try { target[k] = deny; } catch {} } }
 }
 `;
 
