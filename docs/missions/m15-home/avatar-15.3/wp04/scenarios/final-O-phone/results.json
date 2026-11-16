@@ -1,0 +1,73 @@
+[
+ {
+  "scenario": "O repeated world/Home transitions",
+  "issuedAtPageMs": 113472,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 13139,
+   "text": "walked 4.94 m (walk to the studio); now at x -3.95, z 0.33, 9 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.092,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.947,
+    -2.55,
+    0.335
+   ]
+  },
+  "arrivedMsAfterIssue": 14002,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.45,
+    3.96
+   ],
+   [
+    -1.12,
+    3.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "counts": [
+   {
+    "cycle": 1,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 7,
+    "environment": "home",
+    "obstacles": 4
+   },
+   {
+    "cycle": 2,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 11,
+    "environment": "home",
+    "obstacles": 4
+   },
+   {
+    "cycle": 3,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 15,
+    "environment": null,
+    "obstacles": 4
+   }
+  ],
+  "oneWorldOnePresence": true,
+  "ok": true
+ }
+]

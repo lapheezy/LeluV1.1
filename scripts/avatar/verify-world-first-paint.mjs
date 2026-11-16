@@ -275,7 +275,14 @@ if (only.includes("O")) {
     const s = await spatial(p);
     counts.push({ cycle: i + 1, ...c, environment: s?.environment ?? null, obstacles: s?.obstacles ?? null });
     await shot(p, `O-in-world-${i + 1}`);
-    await p.locator('.lsn-item[aria-label="Home"]').click().catch(() => {});
+    if (mobile) {
+      // A phone's way out of her world: the GENESIS V2 pill, then "◂ Genesis v1" (real taps).
+      if (!(await p.locator("button:visible", { hasText: "Core Evolution" }).count())) await p.locator("button:visible", { hasText: "GENESIS V2" }).first().tap();
+      await p.waitForTimeout(1200);
+      await p.locator("button:visible", { hasText: "Genesis v1" }).first().tap();
+    } else {
+      await p.locator('.lsn-item[aria-label="Home"]').click();
+    }
     await p.waitForTimeout(2500);
     await shot(p, `O-home-${i + 1}`);
   }

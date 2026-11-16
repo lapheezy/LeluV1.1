@@ -1,0 +1,6 @@
+
+> lelu@0.0.0 verify:bundle
+> node scripts/verify-no-tests-in-bundle.mjs
+
+PASS: no test files in dist/ (1517 files scanned).
+EXIT 0
