@@ -29,6 +29,7 @@ import CapabilityRegistry, {
   type Capability,
   type CapabilityStatus,
 } from "../../../core/selfdev/CapabilityRegistry";
+import DevelopmentRecordTab from "./DevelopmentRecordTab";
 import ImprovementQueue, {
   IMPROVEMENT_STATUSES,
   type ImprovementProposal,
@@ -96,10 +97,11 @@ const STATUS_COLORS: Record<string, string> = {
   "Rolled Back": "#f87171",
 };
 
-type Tab = "overview" | "architecture" | "capabilities" | "diagnostics" | "improvements" | "chat" | "uilab" | "code";
+type Tab = "overview" | "development" | "architecture" | "capabilities" | "diagnostics" | "improvements" | "chat" | "uilab" | "code";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "development", label: "Development" },
   { id: "architecture", label: "Architecture" },
   { id: "capabilities", label: "Capabilities" },
   { id: "diagnostics", label: "Diagnostics" },
@@ -487,6 +489,8 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
         ) : null}
 
         {/* ============================ IMPROVEMENTS */}
+        {tab === "development" ? <DevelopmentRecordTab /> : null}
+
         {tab === "improvements" ? (
           <ImprovementsTab
             proposals={proposals}

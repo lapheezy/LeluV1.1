@@ -1,6 +1,6 @@
 # Improvement 2: "Background work has its own budget and yields to conversation" — Gate 2 evidence
 
-Status: **IMPLEMENTED ON BRANCH, AWAITING YOUR ACCEPTANCE.** Not deployed. The next improvement will not start until you accept or return this one.
+Status: **ACCEPTED by the owner at Gate 2 (2026-11-16).** Implemented on branch `claude/cool-mccarthy-dliwu9`; deployment is the owner's step.
 
 Approved at Gate 1, with your amendment: *"the cap is minimal at first, up to 10 calls, unless further permission is given or extended. She must learn to use what she has efficiently and wisely before being given more."*
 

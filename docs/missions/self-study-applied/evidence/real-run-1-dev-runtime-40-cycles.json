@@ -1,0 +1,1173 @@
+{
+  "sourceAccess": {
+    "reachable": true,
+    "runtime": "node-server"
+  },
+  "allowance": {
+    "cap": 10,
+    "ownerSet": false,
+    "usedToday": 1,
+    "inFlight": 0,
+    "remaining": 9,
+    "paused": {
+      "until": 1794873600000,
+      "reason": "Groq reported its daily limit"
+    },
+    "nextAllowedAt": 1794873600000,
+    "blockedBy": "paused",
+    "slotOpenedAt": 1794873600000,
+    "rationed": true
+  },
+  "usageByPurpose": [
+    {
+      "purpose": "self-study",
+      "background": true,
+      "totals": {
+        "calls": 1,
+        "ok": 0,
+        "failed": 1,
+        "rateLimited": 1,
+        "tokenReportedCalls": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0,
+        "reportedCostUsd": 0,
+        "unknownCostCalls": 1,
+        "totalLatencyMs": 417
+      }
+    }
+  ],
+  "usageEvents": [
+    {
+      "source": "Groq",
+      "operation": "self-study",
+      "ok": false,
+      "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_[redacted]` service tier `on_demand` on tokens per day "
+    }
+  ],
+  "conclusions": [
+    {
+      "question": "Why can I not answer “Is what I believe about Canvas raster pipelines still true” with the tools I have?",
+      "verdict": "no-change",
+      "learned": "Inspected the capability registry and live manifest (8 not available). Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0. partial: Render — cloud rendering requires provider keys; no photorealistic local generation partial: Video projects — no actual video generation yet; no editing layer yet",
+      "evidence": [
+        "Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0.",
+        "partial: Render — cloud rendering requires provider keys; no photorealistic local generation",
+        "partial: Video projects — no actual video generation yet; no editing layer yet",
+        "partial: Avatar identity — 2D config only — no animation or embodied avatar yet"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:why-can-i-not-answer-is-what-i-believe-about-canvas-raster-pipelines-still-true-",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y4pnwu191664i",
+      "cycle": 40,
+      "concludedAt": 1794859048199,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "Is what I believe about Canvas raster pipelines still true?",
+      "verdict": "insufficient",
+      "learned": "No knowledge provider was able to take this query.",
+      "evidence": [
+        "Skipped during failure cooldown: youtube, arxiv, news."
+      ],
+      "relevance": "The question “Is what I believe about Canvas raster pipelines still true?” is still open; the evidence did not address it.",
+      "subject": "knowledge:creative-canvas-raster-pipelines",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "iyqu7jlm7zvn",
+      "cycle": 39,
+      "concludedAt": 1794859048195
+    },
+    {
+      "question": "What is causing this failure: arxiv failed: timeout?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: node-server, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — node-server (bun 1.4.4) at http://127.0.0.1:4199, workspace “lelu-ws”, operations: typecheck, build, test, inspect. Active AI provider: none has succeeded yet. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — node-server (bun 1.4.4) at http://127.0.0.1:4199, workspace “lelu-ws”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: none has succeeded yet.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, never succeeded."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "arxiv failed: timeout",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1v0jaqn1on73i3",
+      "cycle": 37,
+      "concludedAt": 1794859048188,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "Is what I believe about Virtual sandbox design still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-virtual-sandbox-design",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 35,
+      "concludedAt": 1794859042174
+    },
+    {
+      "question": "Is what I believe about Prompt/context enrichment still true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 34,
+      "concludedAt": 1794859042171,
+      "note": "Same evidence as the study concluded in cycle 31; nothing new to conclude."
+    },
+    {
+      "question": "Is what I believe about Provider fallback chains still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-provider-fallback-chains",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 33,
+      "concludedAt": 1794859042167
+    },
+    {
+      "question": "Is what I believe about Browser environment limits still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:computing-browser-environment-limits",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 32,
+      "concludedAt": 1794859042164
+    },
+    {
+      "question": "Is what I believe about IndexedDB still true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 31,
+      "concludedAt": 1794859042161,
+      "note": "Same evidence as the study concluded in cycle 6; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to storage?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1eq1o8zd39mzr",
+      "cycle": 30,
+      "concludedAt": 1794859042158,
+      "note": "Same evidence as the study concluded in cycle 25; nothing new to conclude."
+    },
+    {
+      "question": "Is what I believe about Storage persistence still true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Persistence layer”: working, 1 file(s). Persistence layer (storage) — kind storage, status working. Description: The shared KvStore (localStorage → sessionStorage → window.name) used by every persistent store, offline-first. Files (1): src/core/storage/KvStore.ts",
+      "evidence": [
+        "Persistence layer (storage) — kind storage, status working.",
+        "Description: The shared KvStore (localStorage → sessionStorage → window.name) used by every persistent store, offline-first.",
+        "Files (1): src/core/storage/KvStore.ts",
+        "Depends on: nothing."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "storage",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1xrofjgkvfwkg",
+      "cycle": 29,
+      "concludedAt": 1794859042150
+    },
+    {
+      "question": "What does src/core/router/AIIntent.ts contribute to src/providers/AIProvider.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/router/AIIntent.ts (307 bytes) from the development runtime. Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/router/AIIntent.ts: 18 line(s). Exports: type AIIntent.",
+      "evidence": [
+        "Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/router/AIIntent.ts: 18 line(s).",
+        "Exports: type AIIntent.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/router/AIIntent.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "ypcq6a10e4kse",
+      "cycle": 28,
+      "concludedAt": 1794859042147
+    },
+    {
+      "question": "Is what I believe about Filesystems & permissions still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:computing-filesystems-permissions",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 27,
+      "concludedAt": 1794859042139
+    },
+    {
+      "question": "What does src/providers/Provider.ts contribute to src/providers/BaseProvider.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/Provider.ts (840 bytes) from the development runtime. Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/providers/Provider.ts: 63 line(s). Exports: interface KnowledgeResult, interface Provider.",
+      "evidence": [
+        "Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/providers/Provider.ts: 63 line(s).",
+        "Exports: interface KnowledgeResult, interface Provider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/Provider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1klkzxq1tdcd0q",
+      "cycle": 26,
+      "concludedAt": 1794859042135
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/creative/SketchDocument.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1eq1o8zd39mzr",
+      "cycle": 25,
+      "concludedAt": 1794859042130
+    },
+    {
+      "question": "What does src/core/creative/SketchDocument.ts contribute to src/core/creative/CreativeToolInterface.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/SketchDocument.ts (11944 bytes) from the development runtime. Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/creative/SketchDocument.ts: 407 line(s). Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImage",
+      "evidence": [
+        "Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/creative/SketchDocument.ts: 407 line(s).",
+        "Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, function exportDocument, class SketchStore.",
+        "Public methods: list, subscribe, get, save, create, remove."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/SketchDocument.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "10xn6a71jbaiyr",
+      "cycle": 24,
+      "concludedAt": 1794859042127,
+      "note": "Same evidence as the study concluded in cycle 17; nothing new to conclude."
+    },
+    {
+      "question": "What do I still not understand that “Jewelry: Collection concepts, pendants, renders and reference material.” depends on?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Jewelry: Collection concepts, pendants, renders and reference material.",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 23,
+      "concludedAt": 1794859042122,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/providers/AIProvider.ts contribute to providers?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/AIProvider.ts (10972 bytes) from the development runtime. Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/providers/AIProvider.ts: 580 line(s). Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+      "evidence": [
+        "Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/providers/AIProvider.ts: 580 line(s).",
+        "Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/AIProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1yj1fuz14q5blr",
+      "cycle": 22,
+      "concludedAt": 1794859042120
+    },
+    {
+      "question": "What does src/providers/BaseProvider.ts contribute to providers?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/BaseProvider.ts (1104 bytes) from the development runtime. Read src/providers/BaseProvider.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/providers/BaseProvider.ts: 64 line(s). Exports: class BaseProvider.",
+      "evidence": [
+        "Read src/providers/BaseProvider.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/providers/BaseProvider.ts: 64 line(s).",
+        "Exports: class BaseProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/BaseProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "3afv7z1irmu1n",
+      "cycle": 21,
+      "concludedAt": 1794859042115
+    },
+    {
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/core/memory/MemoryStore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/ResponsePattern.ts (3897 bytes) from the development runtime. Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/brain/ResponsePattern.ts: 204 line(s). Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+      "evidence": [
+        "Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/brain/ResponsePattern.ts: 204 line(s).",
+        "Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/ResponsePattern.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y7fiezkzrm6v",
+      "cycle": 20,
+      "concludedAt": 1794859042109,
+      "note": "Same evidence as the study concluded in cycle 12; nothing new to conclude."
+    },
+    {
+      "question": "What do I still not understand that “Fashion: Garment concepts, fabric direction, styling and editorial renders.” depends on?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Fashion: Garment concepts, fabric direction, styling and editorial renders.",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 19,
+      "concludedAt": 1794859042102,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What is genuinely missing before “Render” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Render” (partial). Capability “Render” (render) — status partial. Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys. Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+      "evidence": [
+        "Capability “Render” (render) — status partial.",
+        "Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys.",
+        "Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "render",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1f0pxpr1f36rsz",
+      "cycle": 18,
+      "concludedAt": 1794859042100,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/creative/SketchDocument.ts contribute to creative?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/SketchDocument.ts (11944 bytes) from the development runtime. Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/creative/SketchDocument.ts: 407 line(s). Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImage",
+      "evidence": [
+        "Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/creative/SketchDocument.ts: 407 line(s).",
+        "Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, function exportDocument, class SketchStore.",
+        "Public methods: list, subscribe, get, save, create, remove."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/SketchDocument.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "10xn6a71jbaiyr",
+      "cycle": 17,
+      "concludedAt": 1794859042097
+    },
+    {
+      "question": "What is genuinely missing before “Video projects” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Video projects” (partial). Capability “Video projects” (video) — status partial. Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation. Limitations: no actual video generation yet; no editing layer yet.",
+      "evidence": [
+        "Capability “Video projects” (video) — status partial.",
+        "Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation.",
+        "Limitations: no actual video generation yet; no editing layer yet.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "video",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "lfn0qh37pra5",
+      "cycle": 16,
+      "concludedAt": 1794859042091,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/creative/CreativeToolInterface.ts contribute to creative?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/CreativeToolInterface.ts (14593 bytes) from the development runtime. Read src/core/creative/CreativeToolInterface.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/creative/CreativeToolInterface.ts: 456 line(s). Exports: interface ToolCommandResult, interface ToolCommandInput, type ToolExecutor, function executeToolCommand, function toolCommandExamples.",
+      "evidence": [
+        "Read src/core/creative/CreativeToolInterface.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/creative/CreativeToolInterface.ts: 456 line(s).",
+        "Exports: interface ToolCommandResult, interface ToolCommandInput, type ToolExecutor, function executeToolCommand, function toolCommandExamples.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/CreativeToolInterface.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "14wyqec1sm6iao",
+      "cycle": 15,
+      "concludedAt": 1794859042089
+    },
+    {
+      "question": "What exactly is incomplete in the AI provider registry subsystem?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “AI provider registry”: provider-dependent, 4 file(s). AI provider registry (providers) — kind service, status provider-dependent. Description: Priority/cooldown/fallback registry of AI + knowledge providers, with per-agent provider preference. Files (4): src/providers/AIProvider.ts, src/providers/BaseProvider.ts, src/core/AIProviderRegistry.ts, src/core/router/ProviderResolver.ts",
+      "evidence": [
+        "AI provider registry (providers) — kind service, status provider-dependent.",
+        "Description: Priority/cooldown/fallback registry of AI + knowledge providers, with per-agent provider preference.",
+        "Files (4): src/providers/AIProvider.ts, src/providers/BaseProvider.ts, src/core/AIProviderRegistry.ts, src/core/router/ProviderResolver.ts",
+        "Depends on: nothing."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "providers",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "dvdknvr2zc9j",
+      "cycle": 14,
+      "concludedAt": 1794859042083,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What exactly is incomplete in the Creative systems subsystem?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Creative systems”: partial, 6 file(s). Creative systems (creative) — kind creative, status partial. Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity. Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+      "evidence": [
+        "Creative systems (creative) — kind creative, status partial.",
+        "Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity.",
+        "Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "creative",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8er06ckhjai",
+      "cycle": 13,
+      "concludedAt": 1794859042081,
+      "note": "Same evidence as the study concluded in cycle 9; nothing new to conclude."
+    },
+    {
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/brain/PatternMemory.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/ResponsePattern.ts (3897 bytes) from the development runtime. Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/brain/ResponsePattern.ts: 204 line(s). Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+      "evidence": [
+        "Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/brain/ResponsePattern.ts: 204 line(s).",
+        "Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/ResponsePattern.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y7fiezkzrm6v",
+      "cycle": 12,
+      "concludedAt": 1794859042079
+    },
+    {
+      "question": "What is the state of cognition?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Cognition” (available). Capability “Cognition” (cognition) — status available. Description: Context enrichment, reasoning and planning resolvers, and the cognitive loop. Limitations: reasoning is heuristic, not a model call.",
+      "evidence": [
+        "Capability “Cognition” (cognition) — status available.",
+        "Description: Context enrichment, reasoning and planning resolvers, and the cognitive loop.",
+        "Limitations: reasoning is heuristic, not a model call.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "cognition",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "dgua0p1s6vg2d",
+      "cycle": 11,
+      "concludedAt": 1794859042071
+    },
+    {
+      "question": "What does src/core/memory/MemoryStore.ts contribute to memory?",
+      "verdict": "no-change",
+      "learned": "Read src/core/memory/MemoryStore.ts (1626 bytes) from the development runtime. Read src/core/memory/MemoryStore.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/core/memory/MemoryStore.ts: 227 line(s). Exports: type MemorySpace, interface MemoryMetadata, interface MemoryRecord, interface MemoryStore.",
+      "evidence": [
+        "Read src/core/memory/MemoryStore.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/core/memory/MemoryStore.ts: 227 line(s).",
+        "Exports: type MemorySpace, interface MemoryMetadata, interface MemoryRecord, interface MemoryStore.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/memory/MemoryStore.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "emibbo78ekw8",
+      "cycle": 10,
+      "concludedAt": 1794859042068
+    },
+    {
+      "question": "What is the state of creative?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Creative systems”: partial, 6 file(s). Creative systems (creative) — kind creative, status partial. Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity. Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+      "evidence": [
+        "Creative systems (creative) — kind creative, status partial.",
+        "Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity.",
+        "Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "creative",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8er06ckhjai",
+      "cycle": 9,
+      "concludedAt": 1794859042055
+    },
+    {
+      "question": "What is genuinely missing before “Avatar identity” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Avatar identity” (partial). Capability “Avatar identity” (avatar) — status partial. Description: Persistent avatar identity (appearance, identity, presence) with a reference image. Limitations: 2D config only — no animation or embodied avatar yet.",
+      "evidence": [
+        "Capability “Avatar identity” (avatar) — status partial.",
+        "Description: Persistent avatar identity (appearance, identity, presence) with a reference image.",
+        "Limitations: 2D config only — no animation or embodied avatar yet.",
+        "Dependencies: cognition."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "avatar",
+      "category": "personality",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1tio1q6pu5c8a",
+      "cycle": 8,
+      "concludedAt": 1794859042052,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/brain/PatternMemory.ts contribute to memory?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/PatternMemory.ts (11307 bytes) from the development runtime. Read src/brain/PatternMemory.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now. src/brain/PatternMemory.ts: 843 line(s). Exports: class PatternMemory.",
+      "evidence": [
+        "Read src/brain/PatternMemory.ts from the REAL DEVELOPMENT RUNTIME (node-server) — this is the file on disk right now.",
+        "src/brain/PatternMemory.ts: 843 line(s).",
+        "Exports: class PatternMemory.",
+        "Public methods: initialize, add, get, update, remove, clear, getAll, mergeRemote, search."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/PatternMemory.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8h756f1y4j7gr",
+      "cycle": 7,
+      "concludedAt": 1794859042049
+    },
+    {
+      "question": "What do I actually know about State-of-the-art agent memory, and is it true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 6,
+      "concludedAt": 1794859042035,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What do I actually know about Procedural environment generation, and is it true?",
+      "verdict": "no-change",
+      "learned": "arxiv returned 10 result(s) for “Procedural environment generation Techniques for generating terrain, textures and environments from rules rather than hand-authoring.” (tried: arxiv). Skipped during failure cooldown: youtube. arxiv — Tabletop Roleplaying Games as Procedural Content Generators: Matthew Guzdial, Devi Acharya, Max Kreminski et al.. Tabletop roleplaying games (TTRPGs) and procedural content generators can both be understood as systems of rules for producing content. In this paper, we argue that TTRPG design can usefu (https://arxiv.org/abs/2007.06108v2) arxiv — InfiniteDiffusion: ",
+      "evidence": [
+        "Skipped during failure cooldown: youtube.",
+        "arxiv — Tabletop Roleplaying Games as Procedural Content Generators: Matthew Guzdial, Devi Acharya, Max Kreminski et al.. Tabletop roleplaying games (TTRPGs) and procedural content generators can both be understood as systems of rules for producing content. In this paper, we argue that TTRPG design can usefu (https://arxiv.org/abs/2007.06108v2)",
+        "arxiv — InfiniteDiffusion: Bridging Learned Fidelity and Procedural Utility for Open-World Terrain Generation: Alexander Goslin. For decades, procedural worlds have been built on procedural noise functions such as Perlin noise, which are fast and infinite, yet fundamentally limited in realism and large-scale coherence. Conversely, diffusion models o (https://arxiv.org/abs/2512.08309v4)",
+        "arxiv — Ensemble Learning For Mega Man Level Generation: Bowei Li, Ruohan Chen, Yuqing Xue et al.. Procedural content generation via machine learning (PCGML) is the process of procedurally generating game content using models trained on existing game content. PCGML methods can struggle to capture (https://arxiv.org/abs/2107.12524v1)"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:creative-procedural-environment-generation",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1wsykbd1ehnj05",
+      "cycle": 5,
+      "concludedAt": 1794859042032,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What is causing this failure: provider Groq — priority ., enabled, IN COOLDOWN, last failure: Groq failed : Rate limit reached for?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: node-server, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — node-server (bun 1.4.4) at http://127.0.0.1:4199, workspace “lelu-ws”, operations: typecheck, build, test, inspect. Active AI provider: none has succeeded yet. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — node-server (bun 1.4.4) at http://127.0.0.1:4199, workspace “lelu-ws”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: none has succeeded yet.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, never succeeded."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "provider Groq — priority ., enabled, IN COOLDOWN, last failure: Groq failed : Rate limit reached for",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "ze4e2s1brs2xk",
+      "cycle": 4,
+      "concludedAt": 1794859042008,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What is the state of providers?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: node-server, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — node-server (bun 1.4.4) at http://127.0.0.1:4199, workspace “lelu-ws”, operations: typecheck, build, test, inspect. Active AI provider: none has succeeded yet. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — node-server (bun 1.4.4) at http://127.0.0.1:4199, workspace “lelu-ws”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: none has succeeded yet.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, never succeeded."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "providers",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "ze4e2s1brs2xk",
+      "cycle": 3,
+      "concludedAt": 1794859042003
+    },
+    {
+      "question": "What do I actually know about Self-modifying systems, and is it true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 0 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-self-modifying-systems",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 2,
+      "concludedAt": 1794859041993,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "question": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "verdict": "no-change",
+      "learned": "arxiv returned 10 result(s) for “Latest frontier model architectures Current SOTA model families, benchmarks and pricing — needs provider docs + research to stay current.” (tried: youtube, gnews, arxiv). youtube failed: Failed to parse URL from /api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3DLatest%2Bfrontier%2Bmodel%2Barchitectures%2BCurrent%2BSOTA%2Bmodel%2Bfamilies%252C%2Bbenchmarks%2Band%2Bpricing%2B%25E2%2580%2594%2Bneeds%2Bprovider%2Bdocs%2B%252B%2Bresearch%2Bto%2Bstay%2Bcurrent.%26type%3Dvideo%26maxResults%3D10. gnews failed: Failed to parse UR",
+      "evidence": [
+        "youtube failed: Failed to parse URL from /api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3DLatest%2Bfrontier%2Bmodel%2Barchitectures%2BCurrent%2BSOTA%2Bmodel%2Bfamilies%252C%2Bbenchmarks%2Band%2Bpricing%2B%25E2%2580%2594%2Bneeds%2Bprovider%2Bdocs%2B%252B%2Bresearch%2Bto%2Bstay%2Bcurrent.%26type%3Dvideo%26maxResults%3D10.",
+        "gnews failed: Failed to parse URL from /api/knowledge/relay?provider=gnews&path=%2Fapi%2Fv4%2Fsearch%3Fq%3DLatest%2520frontier%2520model%2520architectures%2520Current%2520SOTA%2520model%2520families%252C%2520benchmarks%2520and%2520pricing%2520%25E2%2580%2594%2520needs%2520provider%2520docs%2520%252B%2520research%2520to%2520stay%2520current.%26lang%3Den%26max%3D10.",
+        "arxiv — On model-independent pricing/hedging using shortfall risk and quantiles: Erhan Bayraktar, Zhou Zhou. We consider the pricing and hedging of exotic options in a model-independent set-up using \\emph{shortfall risk and quantiles}. We assume that the marginal distributions at certain times are given. This is tantamo (https://arxiv.org/abs/1307.2493v1)",
+        "arxiv — A Critical Look at the Current Usage of Foundation Model for Dense Recognition Task: Shiqi Yang, Atsushi Hashimoto, Yoshitaka Ushiku. In recent years large model trained on huge amount of cross-modality data, which is usually be termed as foundation model, achieves conspicuous accomplishment in many fields, such as image re (https://arxiv.org/abs/2307.02862v2)"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:ai-latest-frontier-model-architectures",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1xrjb81c1t5j1",
+      "cycle": 1,
+      "concludedAt": 1794859041448,
+      "note": "Not sent — Background model use is paused until 2026-11-17T00:00:00.000Z: Groq reported its daily limit. Conversation is not affected. Concluded from the evidence alone."
+    }
+  ],
+  "proposals": [],
+  "rows": [
+    {
+      "c": 1,
+      "q": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "origin": "knowledge-gap",
+      "tool": "knowledge-providers",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Not sent — Background model use is paused until 2026-11-17T00:00:00.000Z: Groq reported its daily limit. Conversation is not affected. Concluded from the evidence alone."
+    },
+    {
+      "c": 2,
+      "q": "What do I actually know about Self-modifying systems, and is it true?",
+      "origin": "knowledge-gap",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 3,
+      "q": "What is the state of providers?",
+      "origin": "discovery",
+      "tool": "runtime-status",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 4,
+      "q": "What is causing this failure: provider Groq — priority ., enabled, IN COOLDOWN, last failure: Groq failed : Rate limit reached for?",
+      "origin": "contradiction",
+      "tool": "runtime-status",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 5,
+      "q": "What do I actually know about Procedural environment generation, and is it true?",
+      "origin": "knowledge-gap",
+      "tool": "knowledge-providers",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 6,
+      "q": "What do I actually know about State-of-the-art agent memory, and is it true?",
+      "origin": "knowledge-gap",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 7,
+      "q": "What does src/brain/PatternMemory.ts contribute to memory?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 8,
+      "q": "What is genuinely missing before “Avatar identity” works?",
+      "origin": "architecture",
+      "tool": "capability-registry",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 9,
+      "q": "What is the state of creative?",
+      "origin": "discovery",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 10,
+      "q": "What does src/core/memory/MemoryStore.ts contribute to memory?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 11,
+      "q": "What is the state of cognition?",
+      "origin": "discovery",
+      "tool": "capability-registry",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 12,
+      "q": "What does src/brain/ResponsePattern.ts contribute to src/brain/PatternMemory.ts?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 13,
+      "q": "What exactly is incomplete in the Creative systems subsystem?",
+      "origin": "architecture",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 9; nothing new to conclude."
+    },
+    {
+      "c": 14,
+      "q": "What exactly is incomplete in the AI provider registry subsystem?",
+      "origin": "architecture",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 15,
+      "q": "What does src/core/creative/CreativeToolInterface.ts contribute to creative?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 16,
+      "q": "What is genuinely missing before “Video projects” works?",
+      "origin": "architecture",
+      "tool": "capability-registry",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 17,
+      "q": "What does src/core/creative/SketchDocument.ts contribute to creative?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 18,
+      "q": "What is genuinely missing before “Render” works?",
+      "origin": "architecture",
+      "tool": "capability-registry",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 19,
+      "q": "What do I still not understand that “Fashion: Garment concepts, fabric direction, styling and editorial renders.” depends on?",
+      "origin": "mission",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 20,
+      "q": "What does src/brain/ResponsePattern.ts contribute to src/core/memory/MemoryStore.ts?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 12; nothing new to conclude."
+    },
+    {
+      "c": 21,
+      "q": "What does src/providers/BaseProvider.ts contribute to providers?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 22,
+      "q": "What does src/providers/AIProvider.ts contribute to providers?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 23,
+      "q": "What do I still not understand that “Jewelry: Collection concepts, pendants, renders and reference material.” depends on?",
+      "origin": "mission",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 24,
+      "q": "What does src/core/creative/SketchDocument.ts contribute to src/core/creative/CreativeToolInterface.ts?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 17; nothing new to conclude."
+    },
+    {
+      "c": 25,
+      "q": "What does src/core/storage/KvStore.ts contribute to src/core/creative/SketchDocument.ts?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 26,
+      "q": "What does src/providers/Provider.ts contribute to src/providers/BaseProvider.ts?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 27,
+      "q": "Is what I believe about Filesystems & permissions still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 28,
+      "q": "What does src/core/router/AIIntent.ts contribute to src/providers/AIProvider.ts?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 29,
+      "q": "Is what I believe about Storage persistence still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 30,
+      "q": "What does src/core/storage/KvStore.ts contribute to storage?",
+      "origin": "discovery",
+      "tool": "source-read",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 25; nothing new to conclude."
+    },
+    {
+      "c": 31,
+      "q": "Is what I believe about IndexedDB still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 6; nothing new to conclude."
+    },
+    {
+      "c": 32,
+      "q": "Is what I believe about Browser environment limits still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 33,
+      "q": "Is what I believe about Provider fallback chains still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 34,
+      "q": "Is what I believe about Prompt/context enrichment still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 31; nothing new to conclude."
+    },
+    {
+      "c": 35,
+      "q": "Is what I believe about Virtual sandbox design still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 36,
+      "q": "Is what I believe about Canvas raster pipelines still true?",
+      "origin": "revalidation",
+      "tool": "knowledge-providers",
+      "evOrigin": "none",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 37,
+      "q": "What is causing this failure: arxiv failed: timeout?",
+      "origin": "contradiction",
+      "tool": "runtime-status",
+      "evOrigin": "development-runtime",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    },
+    {
+      "c": 38,
+      "q": "Is what I believe about Canvas raster pipelines still true?",
+      "origin": "revalidation",
+      "tool": "knowledge-providers",
+      "evOrigin": "none",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 39,
+      "q": "Is what I believe about Canvas raster pipelines still true?",
+      "origin": "revalidation",
+      "tool": "knowledge-providers",
+      "evOrigin": "none",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "c": 40,
+      "q": "Why can I not answer “Is what I believe about Canvas raster pipelines still true” with the tools I have?",
+      "origin": "unresolved",
+      "tool": "capability-registry",
+      "evOrigin": "none",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget paused: Groq reported its daily limit; concluded from the evidence alone."
+    }
+  ]
+}

@@ -33,6 +33,8 @@ import ImprovementQueue from "../selfdev/ImprovementQueue";
 import ToolRegistry from "../tools/ToolRegistry";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import UsageBudgetGate, { type BackgroundAllowance } from "../observability/UsageBudgetGate";
+import StudyObjectivesStore from "./StudyObjectives";
+import { buildDevelopmentRecord, formatDevelopmentRecord } from "../selfdev/DevelopmentRecord";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import WorkspaceEngine from "../workspace/WorkspaceEngine";
 import { describeWorkspace } from "../workspace/WorkspaceArtifacts";
@@ -766,6 +768,18 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     sections.push(formatBackgroundAllowance(UsageBudgetGate.getInstance().backgroundAllowance()));
   } catch {
     // allowance unavailable — omit rather than guess
+  }
+
+  // Her development record: what her study concluded, what she proposed,
+  // and where each proposal stands with the owner. Read from the stores.
+  try {
+    sections.push(
+      formatDevelopmentRecord(
+        buildDevelopmentRecord(StudyObjectivesStore.getInstance().list(), ImprovementQueue.getInstance().list()),
+      ),
+    );
+  } catch {
+    // record unavailable — omit rather than guess
   }
 
   // Autonomy

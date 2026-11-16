@@ -61,7 +61,7 @@ import SelfModel from "./SelfModel";
 import StudyAgentRouter, { type Investigation } from "./StudyAgentRouter";
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import { computePriority, type PriorityAdjustment } from "./Prioritization";
-import ImprovementQueue, { PENDING_APPROVAL_STATUSES } from "../selfdev/ImprovementQueue";
+import ImprovementQueue, { isSettledByOwner } from "../selfdev/ImprovementQueue";
 import UsageBudgetGate from "../observability/UsageBudgetGate";
 import {
   categoryFor,
@@ -302,6 +302,8 @@ const MAX_ATTEMPTS = 3;
  * draws on the same provider quotas as conversation, so it is capped.
  */
 export const SYNTHESIS_PER_HOUR = 12;
+/** How often the standing self-test check is raised. */
+const SELF_TEST_WINDOW_MS = 6 * 60 * 60_000;
 /**
  * Origins whose conclusions are worth a model's judgement. Follow-ups that
  * only read a surfaced file ("discovery") and snapshot re-checks
@@ -316,7 +318,7 @@ const JUDGEMENT_ORIGINS = new Set<string>([
   "unresolved",
 ]);
 /** Why a "change" conclusion is waiting instead of being proposed. */
-export const HELD_FOR_DECISION = "Another self-study proposal is awaiting your decision; this one is held until then.";
+export const HELD_FOR_DECISION = "Another self-study proposal is not finished yet (awaiting your approval, in development, or awaiting your acceptance); this one is held until then.";
 const CLOSED_PROPOSAL_STATUSES = ["Integrated", "Recorded", "Rejected", "Rolled Back", "Failed"];
 /**
  * Hard ceiling on any single external step (an investigation, a provider
@@ -1243,6 +1245,22 @@ export default class SelfStudyEngine {
       });
     }
 
+    /* e2. Her own self-test suite — a standing check, once per 6-hour window.
+       Running her tests is the one way to find real breakage without
+       spending a model call: a FAILING test is evidence a deterministic
+       conclusion can turn into a proposal. Before this, a cycle only ran
+       the suite if a lead happened to mention "test" (0 of 40 cycles did). */
+    const window = new Date(Math.floor(Date.now() / SELF_TEST_WINDOW_MS) * SELF_TEST_WINDOW_MS).toISOString().slice(0, 13);
+    add({
+      question: "Do my own self-tests still pass?",
+      detail: "Standing check: run the self-test suite and treat any failure as evidence about my own code.",
+      origin: "revalidation",
+      domain: "testing",
+      priority: 58,
+      createdInCycle: this.cycle,
+      target: `self-tests@${window}`,
+    });
+
     /* f. The mission itself — the persistent generator. */
     const missionItems = [
       ...mission.longTerm,
@@ -1398,7 +1416,8 @@ export default class SelfStudyEngine {
 
   /** The real handle a study is about. */
   private subjectOf(objective: StudyObjective): string {
-    const target = objective.target?.trim();
+    // A windowed target ("self-tests@2026-11-16T18") is one subject across windows.
+    const target = objective.target?.trim().replace(/@\d{4}-\d{2}-\d{2}T\d{2}$/, "");
     if (target && (isSourcePath(target) || /^[\w@./~-]{2,80}$/.test(target))) return target;
     if (objective.knowledgeId) return `knowledge:${objective.knowledgeId}`;
     if (target) return target.slice(0, 100);
@@ -1594,9 +1613,15 @@ export default class SelfStudyEngine {
       .filter((proposal) => proposal.origin?.kind === "self-study");
   }
 
-  /** The self-study proposal currently awaiting the owner's decision. */
+  /**
+   * The self-study proposal the owner has not finished with: awaiting
+   * approval, being implemented, implemented but not yet accepted, or
+   * returned with feedback. While one exists, no other is proposed — LÉLU
+   * advances to the next improvement only after the owner accepts (or
+   * rejects) this one.
+   */
   public pendingProposal() {
-    return this.selfStudyProposals().find((proposal) => PENDING_APPROVAL_STATUSES.includes(proposal.status)) ?? null;
+    return this.selfStudyProposals().find((proposal) => !isSettledByOwner(proposal)) ?? null;
   }
 
   /**
