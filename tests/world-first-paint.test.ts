@@ -45,3 +45,15 @@ test("WP04: the GPU is probed once per page, not on every environment refresh", 
   assert.match(env, /if \(gpuProbe\) return gpuProbe;/);
   assert.match(env, /gpuProbe = probeGpuNow\(\);/);
 });
+
+test("WP04: on a phone, her world's own panel entry does not 'own the screen' and unmount every scene", async () => {
+  const { resolveSurface } = await import("../src/app/scene/genesis/surface/Surface");
+  // What useSurface now passes for a phone in her world: the scene's own
+  // entry ("genesisv2": inline) is not counted as a module window.
+  const surface = resolveSurface({ activePanel: "genesisv2", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true });
+  assert.equal(surface.cosmosRendered, true);
+  // A real window over it still owns a phone screen, as before.
+  assert.equal(resolveSurface({ activePanel: "genesisv2", minimized: false, openModuleCount: 1, visibleModuleCount: 1, compact: true }).cosmosRendered, false);
+  const hook = readFileSync("src/app/scene/genesis/surface/useSurface.ts", "utf8");
+  assert.match(hook, /\.filter\(\(\[id\]\) => id !== state\.activeScene\)/);
+});

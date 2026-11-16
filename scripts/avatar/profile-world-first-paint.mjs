@@ -132,7 +132,7 @@ await cdp.send("Profiler.enable");
 await cdp.send("Profiler.setSamplingInterval", { interval: 250 });
 const mark = (ev, d = {}) => p.evaluate(([e, x]) => window.__marks.push({ t: Math.round(performance.now()), ev: e, ...x }), [ev, d]).catch(() => {});
 
-let profileStart;
+let profileStart; // eslint-disable-line no-unused-vars
 if (scenario === "A") {
   await mark("profile-start");
   await cdp.send("Profiler.start");

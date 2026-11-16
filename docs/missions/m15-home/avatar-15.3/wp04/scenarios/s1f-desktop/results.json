@@ -1,0 +1,46 @@
+[
+ {
+  "scenario": "F world initialisation delayed",
+  "issuedAtPageMs": 35527,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 16207,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.97, z 0.30, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.969,
+    -2.55,
+    0.304
+   ]
+  },
+  "arrivedMsAfterIssue": 16199,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -0.45,
+    5.25
+   ],
+   [
+    -1.52,
+    4.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "worldDataAfterCommandMs": 5309,
+  "waitedForWorld": true,
+  "movedBeforeReady": false,
+  "ok": true
+ }
+]

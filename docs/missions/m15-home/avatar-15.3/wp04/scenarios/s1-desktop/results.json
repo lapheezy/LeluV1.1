@@ -1,0 +1,368 @@
+[
+ {
+  "scenario": "A world entered normally",
+  "issuedAtPageMs": 39771,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 9910,
+   "text": "walked 5.66 m (walk to the studio); now at x -3.94, z 0.25, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.057,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.938,
+    -2.55,
+    0.25
+   ]
+  },
+  "arrivedMsAfterIssue": 9905,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    2.24,
+    2.82
+   ],
+   [
+    1.68,
+    0.68
+   ],
+   [
+    0.08,
+    -0.12
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "ok": true
+ },
+ {
+  "scenario": "B world entered from the Chat Universe",
+  "issuedAtPageMs": 28511,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 5302,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ]
+  },
+  "arrivedMsAfterIssue": 5297,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -2.06,
+    2.53
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "ok": true
+ },
+ {
+  "scenario": "C walk asked before world loading begins",
+  "issuedAtPageMs": 27252,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 18652,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.30, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.054,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.961,
+    -2.55,
+    0.298
+   ]
+  },
+  "arrivedMsAfterIssue": 18649,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.45,
+    3.96
+   ],
+   [
+    -1.12,
+    3.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "askedBeforeWorld": true,
+  "ok": true
+ },
+ {
+  "scenario": "D walk asked during world initialisation",
+  "issuedAtPageMs": 27594,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 9574,
+   "text": "walked 4.95 m (walk to the studio); now at x -3.96, z 0.33, 8 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.08,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.957,
+    -2.55,
+    0.326
+   ]
+  },
+  "arrivedMsAfterIssue": 9571,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -0.45,
+    5.25
+   ],
+   [
+    -1.52,
+    4.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "worldDataAfterCommandMs": 1997,
+  "waitedForWorld": true,
+  "movedBeforeReady": false,
+  "ok": true
+ },
+ {
+  "scenario": "F world initialisation delayed",
+  "issuedAtPageMs": 28592,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 6416,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ]
+  },
+  "arrivedMsAfterIssue": 6404,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -2.06,
+    2.53
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "worldDataAfterCommandMs": null,
+  "waitedForWorld": false,
+  "movedBeforeReady": false,
+  "ok": true
+ },
+ {
+  "scenario": "E walk asked immediately after world readiness",
+  "issuedAtPageMs": 29812,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 9207,
+   "text": "walked 5.66 m (walk to the studio); now at x -3.98, z 0.31, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.058,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.975,
+    -2.55,
+    0.31
+   ]
+  },
+  "arrivedMsAfterIssue": 9204,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    2.13,
+    2.66
+   ],
+   [
+    1.68,
+    0.68
+   ],
+   [
+    0.08,
+    -0.12
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "ok": true
+ },
+ {
+  "scenario": "G main thread blocked 3 s mid-walk",
+  "issuedAtPageMs": 29855,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 13062,
+   "text": "walked 5.67 m (walk to the studio); now at x -3.94, z 0.25, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.058,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.937,
+    -2.55,
+    0.251
+   ]
+  },
+  "arrivedMsAfterIssue": 13058,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    2.13,
+    2.66
+   ],
+   [
+    1.68,
+    0.68
+   ],
+   [
+    0.08,
+    -0.12
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "falseBlocked": false,
+  "ok": true
+ },
+ {
+  "scenario": "O repeated world/Home transitions",
+  "issuedAtPageMs": 124911,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 8009,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.97, z 0.31, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.059,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.967,
+    -2.55,
+    0.308
+   ]
+  },
+  "arrivedMsAfterIssue": 8005,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -2.06,
+    2.53
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "counts": [
+   {
+    "cycle": 1,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 7,
+    "environment": "home",
+    "obstacles": 4
+   },
+   {
+    "cycle": 2,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 11,
+    "environment": "home",
+    "obstacles": 4
+   },
+   {
+    "cycle": 3,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 15,
+    "environment": "home",
+    "obstacles": 4
+   }
+  ],
+  "oneWorldOnePresence": true,
+  "ok": true
+ }
+]

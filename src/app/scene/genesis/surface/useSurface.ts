@@ -18,8 +18,14 @@ export function useSurface(): Surface {
   // openPanel() records every panel in `modules`, chat included; the chat
   // is not a module window, and counting it made opening chat on a phone
   // read as "a workspace owns the screen" — which hid the chat.
+  // Likewise the ACTIVE SCENE's own entry (her world, "genesisv2", is
+  // recorded as a panel when chosen): it is the scene, not a window over it.
+  // Counted, a phone read it as "a workspace owns the screen", unmounted
+  // every scene, and showed a black screen where her world should be;
+  // her walks there then timed out (M15.3 WP04, measured at 393×852).
   const modules = Object.entries(state.modules)
     .filter(([id]) => id !== "chat")
+    .filter(([id]) => id !== state.activeScene)
     .map(([, module]) => module);
   const openModuleCount = modules.filter((module) => module.presentation !== "closed").length;
   const visibleModuleCount = modules.filter((module) => module.presentation === "inline" || module.presentation === "expanded").length;
