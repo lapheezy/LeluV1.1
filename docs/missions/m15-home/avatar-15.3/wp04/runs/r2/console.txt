@@ -14,3 +14,43 @@ PASS 13 desktop-studio creative → full/embodied; drew 4 frames in 3 s; same ca
 PASS 14 desktop-home-after-studio home → face/embodied; drew 4 frames in 3 s; same canvas true; page WebGL contexts +0
 PASS 15 desktop-code engineering → face/hologram; drew 5 frames in 3 s; same canvas true; page WebGL contexts +0
 PASS 16 desktop-home-after-code home → face/embodied; drew 4 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 17 phone-home home → face/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 18 phone-chat chat → face/embodied; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +0
+PASS 19 phone-home-after-chat home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +3
+PASS 20 phone-browser browser → face/hologram; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +3
+PASS 21 phone-home-after-browser home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +6
+PASS 22 phone-studio creative → full/embodied; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +6
+PASS 23 phone-home-after-studio home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +9
+PASS 24 phone-code engineering → face/hologram; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +9
+PASS 25 phone-home-after-code home → face/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +12
+PASS 26 overlay-wave reply “Done — watch my environment. played her “wave” animation (hand moved 33 cm). My telemetry verified the movement myself.”
+PASS 27 overlay-dance reply “Done — watch my environment. played her “dance_love” animation (hand moved 49 cm). My telemetry verified the movement myself.”
+PASS 28 overlay-move-to-the-left reply “Done — watch my environment. moved 1210 px to the left of the screen (now at x 12). My telemetry verified the movement myself.”
+PASS 29 overlay-go-back-to-your-spot reply “Done — watch my environment. back in her own place on the interface. My telemetry verified the movement myself.”
+PASS 30 world-walk-while-loading-waits-then-arrives issued while her world was loading (her world data answered 4.9 s after the command); waited for it without moving true; final arrived, 0.06 m from the point; bus: arrived and confirmed 13.1 s after the command (within the 20 s deadline); longest main-thread gap after the command 3.8 s (her world's first paint)
+PASS 31 world-walk-while-loading-within-deadline RECORDED SEPARATELY: arrived and confirmed 13.1 s after the command (within the 20 s deadline)
+PASS 32 world-back-to-spot-before-sequence reply “Done — watch my environment. walked 6.04 m (walk to her spot); now at x -0.50, z 5.25, 5 cm from the point. My telemetry verified the movement myself.”
+PASS 33 world-presence in her world at [-0.496,-2.55,5.25]
+PASS 34 world-walk-to-the-studio done; telemetry outcome arrived, 0.077 m from the point; moved 6.02 m; reply “Done — watch my environment. walked 6.02 m (walk to the studio); now at x -3.96, z 0.32, 8 cm from the point. My telemetry verified the movement myself.”
+PASS 35 world-face-me done; telemetry outcome -, - m from the point; moved 0.00 m; reply “Done — watch my environment. turned to you (heading 24°, within 2.5°). My telemetry verified the movement myself.”
+PASS 36 world-come-closer done; telemetry outcome arrived, 0.094 m from the point; moved 8.61 m; reply “Done — watch my environment. walked 8.61 m (come closer); now at x -0.51, z 8.22, 9 cm from the point. My telemetry verified the movement myself.”
+PASS 37 world-dance done; telemetry outcome -, - m from the point; moved 2.92 m; reply “Done — watch my environment. played her “dance_love” animation (hand moved 215 cm). My telemetry verified the movement myself.”
+PASS 38 world-go-back-to-your-spot done; telemetry outcome arrived, 0.053 m from the point; moved 1.04 m; reply “Done — watch my environment. walked 1.04 m (walk to her spot); now at x -0.42, z 5.29, 5 cm from the point. My telemetry verified the movement myself.”
+PASS 39 desktop-library-open 20 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 5 frames
+PASS 40 desktop-library-closed she is back in front (sheet none); her body takes touches true (pointer-events auto)
+PASS 41 tablet-library-open 20 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 5 frames
+PASS 42 tablet-library-closed she is back in front (sheet none); her body takes touches true (pointer-events auto)
+PASS 43 phone-portrait-library-open 12 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 4 frames
+PASS 44 phone-portrait-library-closed she is back in front (sheet none); her body takes touches true (pointer-events auto)
+PASS 45 phone-landscape-library-open 5 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 4 frames
+PASS 46 phone-landscape-library-closed she is back in front (sheet none); her body takes touches true (pointer-events auto)
+PASS 47 desktop-panel-preview-is-her presence preview; full/embodied; her own canvas true; model v005_faceshapes_mvwaqbim/lelu.glb; in the panel's spot true
+PASS 48 desktop-panel-preview-animates drew 4 frames in 3 s
+PASS 49 desktop-panel-form-choice-hologram → full/hologram; same canvas true
+PASS 50 desktop-panel-framing-choice-face → face/hologram; same canvas true
+PASS 51 desktop-panel-framing-choice-full → full/hologram; same canvas true
+PASS 52 desktop-panel-form-choice-embodied → full/embodied; same canvas true
+PASS 53 desktop-panel-form-choice-auto → full/embodied; same canvas true
+PASS 54 desktop-panel-framing-choice-auto → full/embodied; same canvas true
+PASS 55 desktop-panel-close-reopen-1 clicked “Close Avatar”; panel closed true, she left it (planned) within 7 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +0 since start
+PASS 56 desktop-panel-close-reopen-2 clicked “Close Avatar”; panel closed true, she left it (planned) within 7 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +0 since start
