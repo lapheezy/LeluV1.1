@@ -19,6 +19,7 @@ import LeluIdentity, { type LeluIdentityState } from "../identity/LeluIdentity";
 import DailyRecord, { type DailyStore } from "../identity/DailyRecord";
 import CuriosityLedger, { type LedgerSnapshot } from "../curiosity/CuriosityLedger";
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+import { requestEmailLink, verifyEmailCode } from "./emailAuth";
 
 /**
  * LÉLU's development records, synced as per-user documents in the EXISTING
@@ -211,6 +212,27 @@ export default class SupabasePersistence {
       return "Could not reach Supabase. Check the network and that SUPABASE_URL is correct.";
     }
     return message;
+  }
+
+  /**
+   * Passwordless email sign-in. Supabase sends a normal sign-in link (and,
+   * where the project's template includes one, a one-time code). This is the
+   * browser-facing path; no password is collected, stored or transmitted.
+   */
+  public async requestEmailSignIn(email: string): Promise<{ error: string | null }> {
+    if (!this.client) await this.initialize(this.runtimeBrain ?? undefined, this.runtimeUser ?? undefined);
+    if (!this.client) return { error: "Supabase is not configured." };
+    const redirectTo = typeof window !== "undefined"
+      ? `${window.location.origin}${window.location.pathname}`
+      : undefined;
+    return requestEmailLink(this.client.auth, email, redirectTo);
+  }
+
+  /** Verify an emailed one-time code when one is present in the email. */
+  public async verifyEmailCode(email: string, token: string): Promise<{ error: string | null }> {
+    if (!this.client) await this.initialize(this.runtimeBrain ?? undefined, this.runtimeUser ?? undefined);
+    if (!this.client) return { error: "Supabase is not configured." };
+    return verifyEmailCode(this.client.auth, email, token);
   }
 
   public async signInWithEmail(email: string, password: string): Promise<{ error: string | null }> {

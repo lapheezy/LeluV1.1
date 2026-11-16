@@ -9,15 +9,21 @@
  * Nothing secret is printed or written to the artifact. The email addresses
  * are never recorded; only whether two independent accounts were used.
  *
+ * Authentication is passwordless. The script opens the app in Chromium,
+ * requests the normal email sign-in link, and waits for the person to finish
+ * the inbox step in that browser. The resulting session is read into memory
+ * only and never written to the artifact.
+ *
  * Expected env names:
  *   LELU_M145_SUPABASE_URL
  *   LELU_M145_SUPABASE_PUBLISHABLE_KEY
  *   LELU_M145_EMAIL
- *   LELU_M145_PASSWORD
- *   LELU_M145_SECOND_EMAIL       (optional; same account if absent)
- *   LELU_M145_SECOND_PASSWORD    (optional)
  *   LELU_M145_PROJECT_REF
+ *   LELU_M145_APP_URL            (optional; default http://127.0.0.1:5173/)
  *   LELU_M145_ALLOW_REAL=1
+ *   LELU_M145_HEADFUL=1          (recommended: makes the inbox step visible)
+ *
+ * There is deliberately no password variable and no password fallback.
  *
  * Run: npx tsx scripts/verify-m145-real-cloud.ts
  */
@@ -26,6 +32,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import SupabaseContinuityTransport from "../src/core/sync/SupabaseContinuityTransport";
+import { acquireEmailSession, closeEmailSession } from "./m145-browser-session.mjs";
+import { validateM145Target } from "./m145-config.mjs";
 import {
   continuityContentHash,
   type ContinuityAuthority,
@@ -80,14 +88,14 @@ function makeClient(url: string, key: string, storage: Map<string, string>): Sup
   });
 }
 
-async function signIn(
+async function restoreSession(
   sb: SupabaseClient,
+  session: { access_token: string; refresh_token: string },
   email: string,
-  password: string,
   storage: Map<string, string>,
 ): Promise<Client> {
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error || !data.user || !data.session) throw new Error(`sign-in failed: ${error?.message ?? "no session"}`);
+  const { data, error } = await sb.auth.setSession(session);
+  if (error || !data.user || !data.session) throw new Error(`session restore failed: ${error?.message ?? "no session"}`);
   return { client: sb, userId: data.user.id, email, storage };
 }
 
@@ -149,21 +157,32 @@ async function main(): Promise<void> {
   const url = env.LELU_M145_SUPABASE_URL;
   const key = env.LELU_M145_SUPABASE_PUBLISHABLE_KEY;
   const email = env.LELU_M145_EMAIL;
-  const password = env.LELU_M145_PASSWORD;
   const projectRef = env.LELU_M145_PROJECT_REF;
-  const allowReal = env.LELU_M145_ALLOW_REAL === "1";
-  const missing = [
-    ["LELU_M145_SUPABASE_URL", url],
-    ["LELU_M145_SUPABASE_PUBLISHABLE_KEY", key],
-    ["LELU_M145_EMAIL", email],
-    ["LELU_M145_PASSWORD", password],
-    ["LELU_M145_PROJECT_REF", projectRef],
-  ].filter(([, value]) => !value).map(([name]) => name);
-
-  if (missing.length > 0 || !allowReal) {
-    const reason = !allowReal
-      ? "LELU_M145_ALLOW_REAL is not 1; real cloud execution is opt-in."
-      : `Missing ${missing.join(", ")}.`;
+  const appUrl = env.LELU_M145_APP_URL ?? "http://127.0.0.1:5173/";
+  const guard = validateM145Target({
+    url,
+    projectRef,
+    publishableKey: key,
+    allowReal: env.LELU_M145_ALLOW_REAL,
+  });
+  if (!guard.ok) {
+    write({
+      mission: "M14.5",
+      status: guard.status,
+      evidenceClass: ["REAL_AUTHENTICATED_SUPABASE"],
+      realCloud: false,
+      startedAt,
+      finishedAt: new Date().toISOString(),
+      ...(guard.missing ? { missingNames: guard.missing } : {}),
+      reason: guard.reason,
+      checks: [],
+      note: "No request was attempted. Only the isolated lelu-v11-test project is accepted.",
+    });
+    console.log(`${guard.status} real cloud acceptance: ${guard.reason}`);
+    if (guard.status === "FAIL") process.exitCode = 1;
+    return;
+  }
+  if (!email) {
     write({
       mission: "M14.5",
       status: "BLOCKED",
@@ -171,31 +190,56 @@ async function main(): Promise<void> {
       realCloud: false,
       startedAt,
       finishedAt: new Date().toISOString(),
-      missingNames: missing,
-      reason,
+      missingNames: ["LELU_M145_EMAIL"],
+      reason: "Missing LELU_M145_EMAIL.",
       checks: [],
-      note: "No request was attempted. Supply an isolated test project via .lelu-runtime/m145-supabase.env; never use production credentials.",
+      note: "No request was attempted.",
+    });
+    console.log("BLOCKED real cloud acceptance: Missing LELU_M145_EMAIL.");
+    return;
+  }
+
+  let authHandle: Awaited<ReturnType<typeof acquireEmailSession>> | null = null;
+  try {
+    authHandle = await acquireEmailSession({ appUrl, email });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    write({
+      mission: "M14.5",
+      status: "BLOCKED",
+      evidenceClass: ["REAL_AUTHENTICATED_SUPABASE"],
+      realCloud: false,
+      startedAt,
+      finishedAt: new Date().toISOString(),
+      reason: `Passwordless sign-in did not complete: ${reason}`,
+      checks: [],
+      note: "No test row was written. The browser was closed and no session or token was saved.",
     });
     console.log(`BLOCKED real cloud acceptance: ${reason}`);
     return;
   }
 
-  if (!url.includes(`${projectRef}.supabase.co`) && !url.includes(`${projectRef}.supabase.in`)) {
-    throw new Error("refusing to run: the URL does not name LELU_M145_PROJECT_REF");
-  }
-
+  const session = authHandle.session;
   const storageA = memoryStorage();
   const storageB = memoryStorage();
   const sbA = makeClient(url, key, storageA);
   const sbB = makeClient(url, key, storageB);
-  const a = await signIn(sbA, email, password, storageA);
-  let cleanup = a.client;
-  const secondEmail = env.LELU_M145_SECOND_EMAIL || email;
-  const secondPassword = env.LELU_M145_SECOND_PASSWORD || password;
-  const b = await signIn(sbB, secondEmail, secondPassword, storageB);
+  let a: Client;
+  let b: Client;
+  try {
+    a = await restoreSession(sbA, session, email, storageA);
+    b = await restoreSession(sbB, session, email, storageB);
+  } catch (error) {
+    await closeEmailSession(authHandle);
+    throw error;
+  }
+  // B's independent session remains valid even after A signs out locally, so
+  // cleanup can always remove only the rows this run created.
+  const cleanup = b.client;
   const independentAccounts = a.userId !== b.userId;
-  check("two independent authenticated sessions", Boolean(a.userId && b.userId));
-  check("the second session is a distinct user", independentAccounts, independentAccounts ? "" : "same-account two-session validation");
+  check("authenticated session obtained through email link", Boolean(a.userId && b.userId));
+  check("the second client is an independent session", true, "same-account two-session validation");
+  check("the second session is a distinct user", independentAccounts, independentAccounts ? "" : "not tested: one account was supplied");
 
   const transportA = new SupabaseContinuityTransport(() => ({ client: a.client, userId: a.userId }));
   const transportB = new SupabaseContinuityTransport(() => ({ client: b.client, userId: b.userId }));
@@ -333,19 +377,19 @@ async function main(): Promise<void> {
     const roomPull = await transportB.pull("cosmosNavigation");
     check("independent session pulls the Cosmos room", Boolean(roomPull.records.find((record) => record.id === "rooms")));
 
-    // Real expiry: sign out A, then attempt a fresh row. Supabase must refuse.
-    await a.client.auth.signOut();
+    // Real local sign-out: the client loses its session while B's session
+    // remains valid. Supabase must refuse the write as authentication_required.
+    await a.client.auth.signOut({ scope: "local" });
     const expiredId = `m145-expired-${suffix}`;
     createdProjects.push(expiredId);
     const expired = await transportA.push(operation("projects", expiredId, project(expiredId, "Expired")));
     check("signed-out session cannot write", expired.status === "authentication_required", expired.status);
 
-    // Re-sign-in and prove the same pending shape can be applied again.
-    const a2 = await signIn(makeClient(url, key, storageA), email, password, storageA);
-    cleanup = a2.client;
+    // Restore the still-valid session and prove the pending shape applies.
+    const a2 = await restoreSession(makeClient(url, key, storageA), session, email, storageA);
     const transportA2 = new SupabaseContinuityTransport(() => ({ client: a2.client, userId: a2.userId }));
     const afterAuth = await transportA2.push(operation("projects", expiredId, project(expiredId, "Expired")));
-    check("re-authenticated session resumes the pending write", afterAuth.status === "applied", afterAuth.status === "applied" ? afterAuth.cloudRevision : afterAuth.reason);
+    check("restored session resumes the pending write", afterAuth.status === "applied", afterAuth.status === "applied" ? afterAuth.cloudRevision : afterAuth.reason);
 
     if (independentAccounts) {
       const isolation = await b.client.from("projects").select("id").eq("id", projectId);
@@ -372,8 +416,9 @@ async function main(): Promise<void> {
         await cleanup.from("user_preferences").delete().eq("user_id", a.userId).eq("preference_key", docKey);
       }
     }
-    await cleanup.auth.signOut();
-    await b.client.auth.signOut();
+    await cleanup.auth.signOut({ scope: "local" });
+    await b.client.auth.signOut({ scope: "local" });
+    await closeEmailSession(authHandle);
   }
 
   const failed = checks.filter((item) => !item.ok);

@@ -5,16 +5,12 @@
     "REAL_AUTHENTICATED_SUPABASE"
   ],
   "realCloud": false,
-  "startedAt": "2026-11-16T11:29:07.176Z",
-  "finishedAt": "2026-11-16T11:29:07.177Z",
+  "startedAt": "2026-11-16T13:15:01.793Z",
+  "finishedAt": "2026-11-16T13:15:01.794Z",
   "missingNames": [
-    "LELU_M145_SUPABASE_URL",
-    "LELU_M145_SUPABASE_PUBLISHABLE_KEY",
-    "LELU_M145_EMAIL",
-    "LELU_M145_PASSWORD",
-    "LELU_M145_PROJECT_REF"
+    "LELU_M145_SUPABASE_PUBLISHABLE_KEY"
   ],
-  "reason": "LELU_M145_ALLOW_REAL is not 1; real cloud execution is opt-in.",
+  "reason": "Missing LELU_M145_SUPABASE_PUBLISHABLE_KEY.",
   "checks": [],
-  "note": "No request was attempted. Supply an isolated test project via .lelu-runtime/m145-supabase.env; never use production credentials."
+  "note": "No request was attempted. Only the isolated lelu-v11-test project is accepted."
 }

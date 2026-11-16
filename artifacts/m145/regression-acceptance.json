@@ -7,13 +7,17 @@
     "DETERMINISTIC",
     "BROWSER_FIXTURE"
   ],
-  "realCloud": false,
+  "realCloud": {
+    "status": "BLOCKED",
+    "reason": "Missing LELU_M145_SUPABASE_PUBLISHABLE_KEY.",
+    "projectRef": "ugshflwlyakipeduifkd"
+  },
   "fullSuite": {
-    "tests": 2276,
-    "pass": 2266,
+    "tests": 2296,
+    "pass": 2286,
     "fail": 2,
     "skipped": 8,
-    "durationMs": 252816.671186,
+    "durationMs": 216826.148461,
     "knownFailures": [
       "tests/genesis-interface.test.tsx",
       "tests/sandbox-security.test.ts"
@@ -33,12 +37,12 @@
   },
   "lint": {
     "errors": 0,
-    "warnings": 419
+    "warnings": 180,
+    "note": "Installed oxlint dependency set; no lint errors."
   },
   "build": {
     "status": "PASS",
-    "secondsFirstRun": 7.83,
-    "secondsFinalRerun": 12.98
+    "seconds": 5.23
   },
   "gitDiffCheck": "PASS",
   "m143Offline": "PASS",
@@ -58,12 +62,17 @@
     "outbox": "PASS"
   },
   "m144MultiContextFixture": "PASS",
-  "baselineFailureComparison": "No new failures. 2266 = 2251 M14.4 passes + 15 new tests; the same two baseline failures remain.",
+  "baselineFailureComparison": "No new failures. 2286 = 2251 M14.4 passes + 15 continuity tests + 20 passwordless auth tests. The same two baseline failures remain.",
   "artifacts": {
     "offline": "artifacts/m143-offline.json",
     "dispatch": "artifacts/m143-dispatch.json",
     "m144": "artifacts/m144",
     "focusedLog": "/tmp/m145-focused2.log",
     "fullLog": "/tmp/m145-full-test.log"
+  },
+  "passwordlessAuth": {
+    "tests": 20,
+    "pass": 20,
+    "file": "tests/email-auth.test.ts"
   }
 }

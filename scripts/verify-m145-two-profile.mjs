@@ -6,14 +6,20 @@
  * transport, and leaves each context with its own localStorage.
  *
  * It refuses to run without LELU_M145_ALLOW_REAL=1 and the same isolated
- * project names as the Node harness. If those are absent it writes a BLOCKED
- * artifact and makes no request.
+ * project configuration as the Node harness. If those are absent it writes a
+ * BLOCKED artifact and makes no request.
+ *
+ * Authentication is passwordless. Profile A requests the normal email link;
+ * the person completes it in that visible browser. Profile B is a second
+ * independent context seeded with A's authenticated storage state, so it has
+ * separate localStorage but the same account. No password is collected.
  *
  * Run (with a dev server already running under the matching env):
- *   LELU_M145_APP_URL=http://127.0.0.1:5173/ npx tsx scripts/verify-m145-two-profile.mjs
+ *   LELU_M145_HEADFUL=1 LELU_M145_APP_URL=http://127.0.0.1:5173/ npx tsx scripts/verify-m145-two-profile.mjs
  */
 import fs from "node:fs";
 import { chromium } from "playwright";
+import { validateM145Target } from "./m145-config.mjs";
 
 const ENV_FILE = ".lelu-runtime/m145-supabase.env";
 const OUT = "artifacts/m145/two-profile-acceptance.json";
@@ -37,8 +43,12 @@ function write(value) {
 }
 
 const env = { ...readEnv(), ...process.env };
-const missing = ["LELU_M145_SUPABASE_URL", "LELU_M145_SUPABASE_PUBLISHABLE_KEY", "LELU_M145_EMAIL", "LELU_M145_PASSWORD", "LELU_M145_PROJECT_REF"]
-  .filter((name) => !env[name]);
+const guard = validateM145Target({
+  url: env.LELU_M145_SUPABASE_URL,
+  projectRef: env.LELU_M145_PROJECT_REF,
+  publishableKey: env.LELU_M145_SUPABASE_PUBLISHABLE_KEY,
+  allowReal: env.LELU_M145_ALLOW_REAL,
+});
 const result = {
   mission: "M14.5",
   evidenceClass: ["BROWSER", "REAL_AUTHENTICATED_SUPABASE", "TWO_INDEPENDENT_PROFILES"],
@@ -49,13 +59,19 @@ const result = {
   checks: [],
 };
 
-if (missing.length > 0 || env.LELU_M145_ALLOW_REAL !== "1") {
-  result.reason = env.LELU_M145_ALLOW_REAL !== "1"
-    ? "LELU_M145_ALLOW_REAL is not 1."
-    : `Missing ${missing.join(", ")}.`;
-  result.missingNames = missing;
+if (!guard.ok) {
+  result.status = guard.status;
+  result.reason = guard.reason;
+  if (guard.missing) result.missingNames = guard.missing;
   write(result);
-  console.log(`BLOCKED two-profile acceptance: ${result.reason}`);
+  console.log(`${guard.status} two-profile acceptance: ${guard.reason}`);
+  process.exit(guard.status === "FAIL" ? 1 : 0);
+}
+if (!env.LELU_M145_EMAIL) {
+  result.reason = "Missing LELU_M145_EMAIL.";
+  result.missingNames = ["LELU_M145_EMAIL"];
+  write(result);
+  console.log("BLOCKED two-profile acceptance: Missing LELU_M145_EMAIL.");
   process.exit(0);
 }
 
@@ -64,17 +80,17 @@ const check = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"} ${name}${detail ? ` — ${detail}` : ""}`);
 };
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: env.LELU_M145_HEADFUL !== "1" });
+const signInTimeout = Number(env.LELU_M145_AUTH_TIMEOUT_MS ?? 10 * 60 * 1000);
 
-async function signIn(context, email, password) {
-  const page = await context.newPage();
+async function requestEmailSignIn(page, email) {
   await page.goto(APP, { waitUntil: "domcontentloaded", timeout: 40_000 });
   const gate = page.locator("[data-lelu-signin-gate]");
   await gate.waitFor({ state: "visible", timeout: 40_000 });
-  await gate.locator('input[type="email"]').fill(email);
-  await gate.locator('input[type="password"]').fill(password);
-  await gate.locator('button[type="submit"]').click();
-  await gate.waitFor({ state: "detached", timeout: 45_000 });
+  await gate.locator("[data-lelu-auth-email]").fill(email);
+  await gate.locator("[data-lelu-auth-submit]").click();
+  console.log("PASS email sign-in requested; complete the inbox step in the visible browser");
+  await gate.waitFor({ state: "detached", timeout: signInTimeout });
   const state = await page.evaluate(async () => {
     const { default: Persistence } = await import("/src/core/persistence/SupabasePersistence.ts");
     const persistence = Persistence.getInstance();
@@ -84,7 +100,7 @@ async function signIn(context, email, password) {
     }
     return { status: persistence.getStatus(), email: persistence.getAuthState().email };
   });
-  return { page, state };
+  return state;
 }
 
 async function installEngine(page) {
@@ -115,12 +131,29 @@ async function drain(page, rounds = 30) {
 
 try {
   const contextA = await browser.newContext();
-  const contextB = await browser.newContext();
-  const a = await signIn(contextA, env.LELU_M145_EMAIL, env.LELU_M145_PASSWORD);
-  const b = await signIn(contextB, env.LELU_M145_SECOND_EMAIL || env.LELU_M145_EMAIL, env.LELU_M145_SECOND_PASSWORD || env.LELU_M145_PASSWORD);
-  check("profile A is authenticated", a.state.status === "connected", a.state.status);
-  check("profile B is authenticated", b.state.status === "connected", b.state.status);
-  check("profiles use independent browser storage", await a.page.evaluate(() => localStorage.length) >= 0 && await b.page.evaluate(() => localStorage.length) >= 0);
+  const pageA = await contextA.newPage();
+  const stateA = await requestEmailSignIn(pageA, env.LELU_M145_EMAIL);
+  check("profile A is authenticated through email", stateA.status === "connected", stateA.status);
+
+  // A second independent context gets its own localStorage, seeded once from
+  // the real authenticated session. No password and no second email needed.
+  const authState = await contextA.storageState();
+  const contextB = await browser.newContext({ storageState: authState });
+  const pageB = await contextB.newPage();
+  await pageB.goto(APP, { waitUntil: "domcontentloaded", timeout: 40_000 });
+  const stateB = await pageB.evaluate(async () => {
+    const { default: Persistence } = await import("/src/core/persistence/SupabasePersistence.ts");
+    const persistence = Persistence.getInstance();
+    for (let index = 0; index < 80; index += 1) {
+      if (persistence.getStatus() === "connected") break;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    return { status: persistence.getStatus(), email: persistence.getAuthState().email };
+  });
+  const a = { page: pageA, state: stateA };
+  const b = { page: pageB, state: stateB };
+  check("profile B is authenticated from independent storage", b.state.status === "connected", b.state.status);
+  check("profiles have independent browser storage", await a.page.evaluate(() => localStorage.length) >= 0 && await b.page.evaluate(() => localStorage.length) >= 0);
 
   await installEngine(a.page);
   await installEngine(b.page);
@@ -188,7 +221,7 @@ try {
   result.projectRef = env.LELU_M145_PROJECT_REF;
   result.projectId = created.id;
   result.finishedAt = new Date().toISOString();
-  result.note = "Two independent Chromium contexts with separate localStorage and real Supabase sign-in. This is a two-profile browser test, not physical-device testing.";
+  result.note = "Two independent Chromium contexts with separate localStorage; profile A completed passwordless email sign-in and profile B was seeded once from that real session. Same account, no password. This is a two-profile browser test, not physical-device testing.";
   write(result);
   if (result.status !== "PASS") process.exitCode = 1;
 } catch (error) {
