@@ -1,0 +1,300 @@
+{
+  "mission": "M14.3",
+  "base": "4582382",
+  "startedAt": "2026-11-16T09:06:58.701Z",
+  "evidenceClass": [
+    "BROWSER",
+    "DISPATCH",
+    "LIVE"
+  ],
+  "blockedExternal": [
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}"
+  ],
+  "trace": {
+    "autonomyLevel": 3,
+    "project": {
+      "label": "project",
+      "prompt": "Create a local project named M143 Scripted Dispatch and then report it.",
+      "durationMs": 469,
+      "response": "The project was created through the dispatcher.",
+      "handled": true,
+      "requests": [
+        {
+          "offered": [
+            "system_config",
+            "capabilities_list",
+            "capabilities_activate",
+            "project_preview",
+            "project_manage",
+            "project_search",
+            "repo_status",
+            "spatial_portal_create",
+            "repo_inspect",
+            "atelier_project",
+            "studio_create",
+            "studio_build",
+            "studio_test",
+            "studio_write"
+          ],
+          "toolResults": [
+            {
+              "name": "project_manage",
+              "content": "Created project \"M143 Scripted Dispatch\" (c63966dc-1968-4cee-b27c-2cb74571b5ba)."
+            }
+          ]
+        },
+        {
+          "offered": [
+            "system_config",
+            "capabilities_list",
+            "capabilities_activate",
+            "project_preview",
+            "project_manage",
+            "project_search",
+            "repo_status",
+            "spatial_portal_create",
+            "repo_inspect",
+            "atelier_project",
+            "studio_create",
+            "studio_build",
+            "studio_test",
+            "studio_write"
+          ],
+          "toolResults": [
+            {
+              "name": "project_manage",
+              "content": "Created project \"M143 Scripted Dispatch\" (c63966dc-1968-4cee-b27c-2cb74571b5ba)."
+            }
+          ]
+        }
+      ],
+      "persisted": true,
+      "projectId": "c63966dc-1968-4cee-b27c-2cb74571b5ba",
+      "toolResult": "Created project \"M143 Scripted Dispatch\" (c63966dc-1968-4cee-b27c-2cb74571b5ba)."
+    },
+    "sandbox": {
+      "label": "sandbox",
+      "prompt": "Write a local proof file in the sandbox, then read it back.",
+      "durationMs": 12,
+      "response": "The sandbox file was written and read back.",
+      "handled": true,
+      "requests": [
+        {
+          "offered": [
+            "system_config",
+            "capabilities_list",
+            "capabilities_activate",
+            "sandbox_read",
+            "sandbox_write",
+            "sandbox_execute",
+            "resources_sandbox",
+            "studio_write",
+            "creative_export",
+            "studio_read",
+            "project_search",
+            "artifact_read",
+            "chats_read",
+            "browser_read"
+          ],
+          "toolResults": [
+            {
+              "name": "sandbox_write",
+              "content": "Wrote 20 character(s) to \"m143/proof.txt\"."
+            },
+            {
+              "name": "sandbox_read",
+              "content": "local dispatch proof"
+            }
+          ]
+        },
+        {
+          "offered": [
+            "system_config",
+            "capabilities_list",
+            "capabilities_activate",
+            "sandbox_read",
+            "sandbox_write",
+            "sandbox_execute",
+            "resources_sandbox",
+            "studio_write",
+            "creative_export",
+            "studio_read",
+            "project_search",
+            "artifact_read",
+            "chats_read",
+            "browser_read"
+          ],
+          "toolResults": [
+            {
+              "name": "sandbox_write",
+              "content": "Wrote 20 character(s) to \"m143/proof.txt\"."
+            }
+          ]
+        },
+        {
+          "offered": [
+            "system_config",
+            "capabilities_list",
+            "capabilities_activate",
+            "sandbox_read",
+            "sandbox_write",
+            "sandbox_execute",
+            "resources_sandbox",
+            "studio_write",
+            "creative_export",
+            "studio_read",
+            "project_search",
+            "artifact_read",
+            "chats_read",
+            "browser_read"
+          ],
+          "toolResults": [
+            {
+              "name": "sandbox_write",
+              "content": "Wrote 20 character(s) to \"m143/proof.txt\"."
+            },
+            {
+              "name": "sandbox_read",
+              "content": "local dispatch proof"
+            }
+          ]
+        }
+      ],
+      "readBack": "local dispatch proof",
+      "toolResults": [
+        {
+          "name": "sandbox_write",
+          "content": "Wrote 20 character(s) to \"m143/proof.txt\"."
+        },
+        {
+          "name": "sandbox_read",
+          "content": "local dispatch proof"
+        },
+        {
+          "name": "sandbox_write",
+          "content": "Wrote 20 character(s) to \"m143/proof.txt\"."
+        },
+        {
+          "name": "sandbox_write",
+          "content": "Wrote 20 character(s) to \"m143/proof.txt\"."
+        },
+        {
+          "name": "sandbox_read",
+          "content": "local dispatch proof"
+        }
+      ]
+    },
+    "cosmos": {
+      "approvalId": "approval-566cfa12-673b-4e6d-b837-ddb1aa4830a4",
+      "pendingResult": "NOT DONE YET — this is a yellow action: Waiting for approval: create room “M143 Scripted Room” Nothing in the workspace has changed. The user can approve or reject it from the approvals shown in the conversation (approval id approval-566cfa12-673b-4e6d-b837-ddb1aa4830a4). After they approve, call cosmos_workspace again with the same arguments plus that approvalId; after they reject it, do not retry.",
+      "label": "cosmos-approved",
+      "prompt": "Create a room in the cosmos called M143 Scripted Room.",
+      "durationMs": 5,
+      "response": "The approved Cosmos room was created.",
+      "handled": true,
+      "requests": [
+        {
+          "offered": [
+            "environment_compose",
+            "environment_present_artifact",
+            "environment_mutate_surface",
+            "environment_manage_workspace",
+            "environment_save_state",
+            "environment_restore_state"
+          ],
+          "toolResults": [
+            {
+              "name": "cosmos_workspace",
+              "content": "YELLOW: Created room \"M143 Scripted Room\""
+            }
+          ]
+        },
+        {
+          "offered": [
+            "environment_compose",
+            "environment_present_artifact",
+            "environment_mutate_surface",
+            "environment_manage_workspace",
+            "environment_save_state",
+            "environment_restore_state"
+          ],
+          "toolResults": [
+            {
+              "name": "cosmos_workspace",
+              "content": "YELLOW: Created room \"M143 Scripted Room\""
+            }
+          ]
+        }
+      ],
+      "roomCreated": true,
+      "roomId": "room-e1b164e9",
+      "roomLabel": "M143 Scripted Room",
+      "toolResult": "YELLOW: Created room \"M143 Scripted Room\""
+    },
+    "knowledge": {
+      "nodeCreated": true,
+      "edgeCreated": true,
+      "revision": 2
+    },
+    "denial": {
+      "authPreflight": {
+        "ready": false,
+        "reason": "No authenticated session. Applying changes to the real project requires a signed-in Supabase identity; sandbox work does not."
+      },
+      "projectApply": {
+        "ok": false,
+        "content": "\"project.apply\" was NOT run: changing the real project requires an explicit authorization from the signed-in user, and none is currently held. No authenticated session. Applying changes to the real project requires a signed-in Supabase identity; sandbox work does not. The sandbox copy is unchanged and nothing was written to the real project."
+      },
+      "unknownTool": {
+        "ok": false,
+        "content": "There is no tool named \"not_a_real_tool\", so nothing was executed."
+      },
+      "invalidArguments": {
+        "ok": false,
+        "content": "open-workspace needs a view {kind, title} (plus url for open-browser)."
+      }
+    }
+  },
+  "reload": {
+    "projectStillPresent": true,
+    "roomStillPresent": true,
+    "knowledgeNodeStillPresent": true,
+    "knowledgeEdgeStillPresent": true,
+    "knowledgeRevision": 2,
+    "knowledgeProvenance": "local",
+    "supabaseKeys": []
+  },
+  "status": "PASS",
+  "checks": {
+    "projectOk": true,
+    "sandboxOk": true,
+    "cosmosOk": true,
+    "approvalOk": true,
+    "knowledgeOk": true,
+    "deniedOk": true
+  }
+}

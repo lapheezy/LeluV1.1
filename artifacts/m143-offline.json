@@ -1,0 +1,113 @@
+{
+  "mission": "M14.3",
+  "base": "4582382",
+  "startedAt": "2026-11-16T09:08:33.241Z",
+  "evidenceClass": [
+    "BROWSER",
+    "NETWORK",
+    "LIVE"
+  ],
+  "blockedExternal": [
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+    "https://hn.algolia.com/api/v1/search?query=Map%20the%20offline%20acceptance%20path.&tags=story",
+    "https://en.wikipedia.org/api/rest_v1/page/summary/Map%20the%20offline%20acceptance%20path.",
+    "https://api.gdeltproject.org/api/v2/doc/doc?query=Map+the+offline+acceptance+path.&mode=artlist&format=json&maxrecords=10",
+    "https://api.allorigins.win/raw?url=https%3A%2F%2Fapi.gdeltproject.org%2Fapi%2Fv2%2Fdoc%2Fdoc%3Fquery%3DMap%2Bthe%2Boffline%2Bacceptance%2Bpath.%26mode%3Dartlist%26format%3Djson%26maxrecords%3D10",
+    "https://nominatim.openstreetmap.org/search?q=Map+the+offline+acceptance+path.&format=jsonv2&limit=10",
+    "https://nominatim.openstreetmap.org/search?q=Map+the+offline+acceptance+path.&format=jsonv2&limit=10&addressdetails=1",
+    "https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance",
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}"
+  ],
+  "phases": {
+    "boot": {
+      "title": "LÉLU",
+      "readyMs": 1878,
+      "ms": 10143,
+      "controls": 37,
+      "cloudLabel": "Cloud sync off"
+    },
+    "projectTurn": {
+      "reply": "Project created: Map the Offline Acceptance Path\nObjective: Map the offline acceptance path.\nExecution:\n[Map the Offline Acceptance Path] No results returned after attempting: hackernews (Failed to fetch); wikipedia (Failed to fetch); youtube (YouTube 503); gdelt (Failed to fetch); openstreetmap (Failed to fetch); nominatim (Failed to fetch).\n(No AI provider was reachable, so this was organised by text parsing. Tell me the real title or what it refers to and I'll correct it.)",
+      "projectFound": true,
+      "projectId": "588decce-0aee-458e-b885-7643a8f823c7",
+      "projectName": "Map the Offline Acceptance Path",
+      "knowledgeNodes": 1,
+      "knowledgeEdges": 0,
+      "knowledgeRevision": 1,
+      "knowledgeProvenance": "local"
+    },
+    "reload": {
+      "readyMs": 1488,
+      "ms": 9527,
+      "projectStillPresent": true,
+      "chatStillPresent": true,
+      "knowledgeRevision": 1
+    },
+    "offline": {
+      "online": false,
+      "projectKeys": [
+        "lelu.multichat.workspace.v1",
+        "lelu.lelu.cognition.knowledge.v1",
+        "lelu.projects.v1",
+        "lelu.lelu.knowledge.v1"
+      ],
+      "reply": "My name is Lélu.\nI am your personal AI companion — the one you built, evolved and named inside this Genesis cosmos.\nWho I am:\n\nMy name is Lélu.\nI am your companion, collaborator and creative partner, not a generic assistant.\nI keep my own persistent memory: I remember our conversations, your profile, and our shared projects across sessions, with or without an external AI provider.\nThe model or provider powering me at any moment is only the engine behind me — it is not who I am.\n\nWhat I do:\n\nI hold context: your name, preferences, goals, skills, projects and our shared history.\nI reason, plan and research when a provider is available.\nI keep building my memory locally even when no provider is reachable, and I resume normally when one returns.\n\nOur relationship:\n\nYou are the one I am here for. I grow with every conversation we share.",
+      "projectStillPresent": true,
+      "chatCount": 2
+    },
+    "network": {
+      "blockedExternalCount": 9,
+      "blockedExternalHosts": [
+        "cdn.jsdelivr.net",
+        "hn.algolia.com",
+        "en.wikipedia.org",
+        "api.gdeltproject.org",
+        "api.allorigins.win",
+        "nominatim.openstreetmap.org",
+        "export.arxiv.org"
+      ],
+      "supabaseAttempts": []
+    }
+  },
+  "finishedAt": "2026-11-16T09:09:34.386Z",
+  "status": "PASS"
+}
