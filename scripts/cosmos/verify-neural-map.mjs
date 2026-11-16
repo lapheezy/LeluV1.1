@@ -302,8 +302,10 @@ const errors = [];
   // Every map update recorded during the session's operations (before the reload).
   const all = ops.flatMap((o) => o.mapUpdates.filter((u) => u.authority === "cosmos.objects").map((u) => u.ms));
   const objPerf = all.length ? { n: all.length, maxMs: Math.max(...all), avgMs: Math.round((all.reduce((a, b) => a + b, 0) / all.length) * 1000) / 1000 } : null;
-  const otherAuthorities = ops.flatMap((o) => o.mapUpdates.filter((u) => u.authority !== "cosmos.objects"));
-  check("O10", "Every object operation in the session updated the map in < 5 ms, touching only the objects partition", objPerf && objPerf.maxMs < 5 && otherAuthorities.length === 0, `${JSON.stringify(objPerf)} · other partitions rebuilt: ${otherAuthorities.length}`);
+  // Since M17.2-WP02 the chat itself (chats) and the orchestrator's checkpoint project (projects) are
+  // in the map and really change on every chat turn; no OTHER Cosmos-side partition may be rebuilt.
+  const otherAuthorities = ops.flatMap((o) => o.mapUpdates.filter((u) => !["cosmos.objects", "chats", "projects"].includes(u.authority)));
+  check("O10", "Every object operation in the session updated the map in < 5 ms; no other Cosmos-side partition was rebuilt (the chat's own chats/projects updates are real changes since WP02)", objPerf && objPerf.maxMs < 5 && otherAuthorities.length === 0, `${JSON.stringify(objPerf)} · other partitions rebuilt: ${otherAuthorities.length}`);
   results.push({ objective: "O10", name: "Per-operation timings (chat round trip incl. UI; map update per authority)", status: "MEASURED", detail: JSON.stringify(ops.map((x) => ({ text: x.text, ms: x.ms, map: x.mapUpdates }))), informational: true });
   await ctx.close();
 }
