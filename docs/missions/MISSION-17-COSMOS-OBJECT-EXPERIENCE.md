@@ -330,3 +330,135 @@ cosmos-objects 10, cosmos-object-experience 11, creative-build 18,
 creative-kit 17, creation-studio-tools 9, chat-surface 31, module-layout 11,
 security-containment 18 — **139 pass, 0 fail**. No lint script exists.
 Not run: the full suite, WebGL-off, memory profiling, physical devices.
+
+---
+
+# WP03 — RESPONSIVE CANVAS, WIDE-VIEWPORT RENDERING & ROOM HAZARDS
+
+**Status: the canvas was never the defect — it tracks every viewport exactly (measured below). Two real causes of "wide screens are empty" were found and one was fixed: the ring was on the far side of the camera, and the Cosmos could be entered without framing the objects. One open blocker remains: an autonomous spatial transition writes the camera pose and can override both framing and the user's orbit.**
+
+## 1. Root cause, part 1 — the "canvas stuck at 384×661" was my instrument
+
+WP02 reported the world canvas staying 384×661 at 1440×900. That was a
+measurement error, not the app: the Cloud browser panel re-applies its own
+viewport between tool calls, so a size set in one call was gone by the next, and
+the reading of "384 × 661" was taken after the reset.
+
+Measured inside a single call, with the drawing buffer read from the canvas
+element itself:
+
+| viewport | canvas CSS | drawing buffer | camera aspect | fov | dpr |
+| --- | --- | --- | --- | --- | --- |
+| 384×661 | 384×661 | 384×661 | 0.581 | 55 | 1 |
+| 390×844 | 390×844 | 390×844 | 0.462 | 56 | 1 |
+| 844×390 | 844×390 | 844×390 | 2.164 | 48 | 1 |
+| 932×430 | 932×430 | 932×430 | 2.167 | 48 | 1 |
+| 1280×800 | 1280×800 | 1280×800 | 1.600 | 49 | 1 |
+| 1440×900 | 1440×900 | 1440×900 | 1.600 | 49 | 1 |
+
+Aspect equals width/height to three decimals at every size, the projection is
+rebuilt with it, and the field of view adapts (56° portrait → 48–49° wide). The
+surface, the renderer and the camera already agree. **No resize code was
+needed, and none was added.**
+
+## 2. Root cause, part 2 — the ring was behind the camera
+
+The real reason a wide window showed no objects: the resting camera is at
+z ≈ 6.8 looking at the origin (OrbitControls reset) and the spatial runtime
+samples poses like (0, 1.5, 5) or (6, 2.5, 4). WP02's ring sat at
+`RING_DEPTH = +7.2` — on the *viewer's* side of that camera, 32 m past the core
+at z = −25. Every object on it projected far outside the frame: at 1440×900 the
+probe reported screen x of −542, −4185 and −10583 px with `inFrustum: false`
+for four of five objects, while the core and the sky painted normally. That is
+exactly "the canvas renders but nothing is there".
+
+Fix (placement maths untouched otherwise):
+
+- `RING_DEPTH = −7.2`: between the viewer and the core cluster.
+  `VIEWER_DEPTH = 6.8` is now a named constant, and a test asserts every slot is
+  in front of it and clear of the core at −25.
+- `PLACEMENT_VERSION = 3`, and `legacyRingSignature()` distinguishes the two
+  earlier schemes: `"cluster"` (v1's depth divided by 100) from
+  `"behind-camera"` (v2's ring at +7.2), so the repair can say which it undid.
+- Migration records `action: "auto-placed"` — deliberately not one of the
+  user-move actions — so a store-written position may be repaired again while a
+  person's is never touched. v2's already-shipped repair entries
+  (`relocated`, detail `placement v1 → v2: …`) are still read as the store's own
+  move, so objects it repaired are not stranded on the far side.
+
+**Live proof (portrait, real app, existing store):** on load,
+`obj_legacy [3.2, 0.9, 7.2] → [3.2, 0.9, −7.2]`, `obj_1 [1.6, 0.9, 9.97] →
+[1.6, 0.9, −4.43]`, `obj_2 [−1.6, 0.9, 9.97] → [−1.6, 0.9, −4.43]`, all
+`placementVersion 3`, last provenance `auto-placed`; the two objects a person
+had relocated (`obj_5`, `obj_6`) kept their exact positions and `placementVersion
+2`. Store payload now says `placementVersion: 3`.
+
+## 3. Root cause, part 3 — entering the Cosmos did not frame the objects
+
+`CosmosObjectsDock.enter()` requests `camera("all")` (frame every object) with a
+retry until the scene's bridge is listening. The home orb's
+"Look at the Cosmos" button only called `HomeStore.setImmersive(true)` — it
+opened the Cosmos **without** framing, leaving the camera wherever the spatial
+runtime last sampled. Two doors, two behaviours.
+
+Now the orb issues the same `cosmosViewBus.request({ mode: "open", frame: true })`
+the dock and the tool use: one entry, one behaviour.
+
+**Live proof:** pressing the orb at 384×661 flew the camera to
+(0.2, 7.58, 23.67) and all five objects reported `inFrustum: true` inside the
+viewport, with the dock showing "5 objects".
+
+## 4. Room hazards from the real geometry
+
+`src/core/cosmos/roomHazards.ts` is the single source of the markers' placement
+facts: `ROOMS_Z_OFFSET` (−25, the depth the scene draws at),
+`roomMarkerRadius(level)` (1.2 galaxy / 0.7 planet / 0.4 room) and
+`roomHazardVolumes(nodes)` (centre `[x, y, z − 25]`, radius = drawn radius +
+the torus tube). `CosmosRooms3D` draws with those same helpers and publishes the
+volumes; the core publishes its own under a different key.
+
+`setHazards(source, hazards)` now stores volumes per source, so the core and the
+rooms cannot clear each other's. `openSlot` also stops relying on four fixed
+rings: it widens up to 24 rings, because the old last-resort `ringSlot(...)`
+return could land *inside* the hazard it was avoiding (found by a failing test,
+fixed, and now covered).
+
+## 5. Files changed
+
+- `src/core/cosmos/objects/CosmosObjectTypes.ts` — `RING_DEPTH` sign,
+  `LEGACY_RING_DEPTH`, `VIEWER_DEPTH`, `PLACEMENT_VERSION = 3`,
+  `legacyRingSignature`.
+- `src/core/cosmos/objects/CosmosObjectStore.ts` — per-source hazards,
+  `auto-placed` migration provenance, widening `openSlot`.
+- `src/core/cosmos/roomHazards.ts` — **new**, the markers' drawn geometry.
+- `src/app/scene/genesis/cosmos/CosmosRooms3D.tsx` — draws from and publishes
+  the same numbers.
+- `src/app/scene/genesis/cosmos/CosmosLayer.tsx` — `setHazards("core", …)`.
+- `src/app/scene/genesis/home/CosmosHome.tsx` — the orb opens and frames.
+- `tests/cosmos-object-placement.test.ts` — 19 tests (was 14).
+
+## 6. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · 144 tests pass, 0 fail
+(placement 19, cosmos-objects 10, cosmos-object-experience 11, creative-build
+18, creative-kit 17, creation-studio-tools 9, chat-surface 31, module-layout 11,
+security-containment 18). No lint script exists in this project.
+Not run: full suite, WebGL-off matrix, memory profiling, physical devices.
+
+## 7. Open blocker (honest)
+
+`useSpatialCamera` writes `camera.position`, the controls target and the fov
+whenever `SpatialRuntime` reports a transition — and `SpatialExperience` calls
+`runtime.start("core")` on mount. Observed live: the camera moved
+(−0.02, 1.5, 5) → (6, 2.5, 4) → (0.2, 7.58, 23.67) → (−1.37, 1.79, 2.97) →
+(6, 2.5, 4) without user input between my calls, overriding the object framing
+and moving objects out of frame again. This is the remaining reason a capture
+can show an empty Cosmos, and it also makes a tap land where the object *was*.
+
+Not fixed here: it is a camera-authority question (which system owns the camera
+while the user is standing in their own Cosmos) that wants its own work package.
+Pointer selection was verified only up to the point the pose moved.
+
+Viewport screenshots: `m17-wp03-vp-844x390.png`, `m17-wp03-vp-1440x900.png`,
+`m17-wp03-portrait-framed.png`, `m17-wp03-desktop-framed.png`; measurements in
+`m17-wp03-viewports.json`.

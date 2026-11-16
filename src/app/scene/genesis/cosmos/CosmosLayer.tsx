@@ -695,7 +695,7 @@ export default function CosmosLayer() {
         center: [entity.position.x, entity.position.y, entity.position.z - 25] as [number, number, number],
         radius: 2.4 * Math.max(0.25, entity.scale ?? 1),
       }));
-    CosmosObjectStore.getInstance().setHazards(hazards);
+    CosmosObjectStore.getInstance().setHazards("core", hazards);
   }, [state.entities]);
 
   return (

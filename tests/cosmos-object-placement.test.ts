@@ -13,16 +13,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import CosmosObjectStore, { needsPlacementNormalization } from "../src/core/cosmos/objects/CosmosObjectStore";
 import {
+  LEGACY_RING_DEPTH,
   PLACEMENT_VERSION,
   RING_DEPTH,
   RING_HEIGHT,
   RING_RADIUS,
+  VIEWER_DEPTH,
   isLegacyRingPosition,
+  legacyRingSignature,
   ringSlot,
   type CosmosObject,
   type Scene3DProgram,
   type Vec3,
 } from "../src/core/cosmos/objects/CosmosObjectTypes";
+import { ROOMS_Z_OFFSET, roomHazardVolumes, roomMarkerRadius } from "../src/core/cosmos/roomHazards";
 
 /* ------------------------------------------------------------------ */
 /* fixtures                                                            */
@@ -56,13 +60,16 @@ function provenance(action: string) {
 /* the ring maths                                                      */
 /* ------------------------------------------------------------------ */
 
-test("the ring keeps its depth: slots sit in front of the core, not on it", () => {
+test("the ring keeps its depth, and that depth is between the viewer and the core", () => {
   // The bug: Math.round((z + sin * r * 100) / 100) / 100 divides z by 100.
   for (let index = 0; index < 6; index += 1) {
     const [, y, z] = ringSlot(index);
     assert.equal(y, RING_HEIGHT);
     assert.ok(z >= RING_DEPTH - RING_RADIUS - 0.01 && z <= RING_DEPTH + RING_RADIUS + 0.01, `slot ${index} depth ${z}`);
-    assert.ok(z > 0, `slot ${index} must be in front of the origin, not inside the cluster (z ${z})`);
+    // In front of the resting camera (z 6.8), or it projects behind the viewer.
+    assert.ok(z < VIEWER_DEPTH - 0.5, `slot ${index} must be in front of the viewer, got z ${z}`);
+    // And in front of the core's cluster drawn at -25, not inside it.
+    assert.ok(z > ROOMS_Z_OFFSET + 4, `slot ${index} must be clear of the core at ${ROOMS_Z_OFFSET}, got z ${z}`);
   }
   // Six distinct slots, and each is a ring radius from the ring's centre.
   const slots = Array.from({ length: 6 }, (_, index) => ringSlot(index));
@@ -92,8 +99,24 @@ test("the values the broken maths produced are recognised as legacy", () => {
     [1.6, 0.9, 0.03], // a slot the old maths left at the origin's depth
   ] as Vec3[];
   for (const position of legacy) {
-    assert.ok(isLegacyRingPosition(position), `${position.join(",")} should read as a legacy slot`);
+    assert.equal(legacyRingSignature(position), "cluster", `${position.join(",")} should read as a legacy slot`);
   }
+});
+
+test("v2's ring — round, but behind the viewer — is recognised apart from it", () => {
+  // What v2's corrected maths wrote: RING_DEPTH 7.2, beyond the camera at 6.8.
+  const v2 = [
+    [3.2, 0.9, LEGACY_RING_DEPTH],
+    [1.6, 0.9, 9.97],
+    [-1.6, 0.9, 9.97],
+    [-3.2, 0.9, LEGACY_RING_DEPTH],
+    [-1.6, 0.9, 4.43],
+  ] as Vec3[];
+  for (const position of v2) {
+    assert.equal(legacyRingSignature(position), "behind-camera", `${position.join(",")} sits on v2's far-side ring`);
+  }
+  // Distinct from the cluster signature, so the repair can describe itself.
+  assert.notEqual(legacyRingSignature([3.2, 0.9, 0]), legacyRingSignature([3.2, 0.9, LEGACY_RING_DEPTH]));
 });
 
 test("a corrected slot, a raised object and a placed object are not legacy", () => {
@@ -103,6 +126,21 @@ test("a corrected slot, a raised object and a placed object are not legacy", () 
   assert.equal(isLegacyRingPosition([2, 4.5, 1]), false, "an object lifted by hand is not a legacy slot");
   assert.equal(isLegacyRingPosition([0, 0.9, 0]), false, "the origin itself is not a ring slot");
   assert.equal(isLegacyRingPosition([12, 0.9, 12]), false, "far from the cluster is not legacy");
+  assert.equal(isLegacyRingPosition([0, 0.9, LEGACY_RING_DEPTH]), false, "the far ring's centre is not one of its slots");
+});
+
+test("an object v2 parked behind the camera is normalised; one a person moved is not", () => {
+  const behind = { position: [1.6, 0.9, 9.97] as Vec3, rotation: [0, 0, 0] as Vec3, scale: 1 };
+  // v2 wrote it, nobody moved it: fair game for the v3 repair.
+  assert.equal(needsPlacementNormalization({ frame: behind, provenance: provenance("spawned"), placementVersion: 2 }), true);
+  // v2's own repair recorded a `relocated` entry; that is still the store's move.
+  const repairedByV2 = [{ at: 1, action: "relocated", detail: "placement v1 → v2: out of the core's room cluster to [1.6, 0.9, 9.97] (was [1.6, 0.9, 0.03])" }];
+  assert.equal(needsPlacementNormalization({ frame: behind, provenance: repairedByV2, placementVersion: 2 }), true);
+  // A person relocating it to the same place keeps it there.
+  const byHand = [{ at: 1, action: "relocated", detail: "out to a clear spot at [1.6, 0.9, 9.97] (was [3.7, 0.9, 0])" }];
+  assert.equal(needsPlacementNormalization({ frame: behind, provenance: byHand, placementVersion: 2 }), false);
+  // Normalised once, never again.
+  assert.equal(needsPlacementNormalization({ frame: behind, provenance: provenance("spawned"), placementVersion: PLACEMENT_VERSION }), false);
 });
 
 test("normalisation is one-time and never touches a person's placement", () => {
@@ -139,18 +177,55 @@ test("two objects do not spawn in the same place, and keep identical geometry", 
 
 test("placement honours the hazard volumes the scene reports", () => {
   const store = CosmosObjectStore.createIsolated();
-  store.setHazards([{ id: "core", center: [0, 0, 0], radius: RING_DEPTH + RING_RADIUS + 4 }]);
+  const reach = RING_RADIUS * 4 + RING_RADIUS + 4;
+  store.setHazards("core", [{ id: "core", center: [0, 0, 0], radius: reach }]);
   const spawned = store.spawn({ name: "chair", scene: box(0.46, 0.86, 0.48) });
   assert.ok(spawned.ok);
   const [x, y, z] = spawned.value.frame.position;
   const distance = Math.hypot(x, y, z);
-  assert.ok(distance > RING_DEPTH + RING_RADIUS + 4, `landed ${distance} from the core, inside the ${RING_DEPTH + RING_RADIUS + 4} hazard`);
+  assert.ok(distance > reach, `landed ${distance} from the core, inside the ${reach} hazard`);
   // And with nothing reported, it is back on the near ring.
   const free = CosmosObjectStore.createIsolated();
-  free.setHazards([]);
+  free.setHazards("core", [] as never[]);
   const near = free.spawn({ name: "chair", scene: box(0.46, 0.86, 0.48) });
   assert.ok(near.ok);
   assert.equal(Math.hypot(near.value.frame.position[0], near.value.frame.position[2] - RING_DEPTH) <= RING_RADIUS + 0.02, true);
+});
+
+test("hazards from different sources add up instead of replacing each other", () => {
+  const store = CosmosObjectStore.createIsolated();
+  store.setHazards("core", [{ id: "core", center: [0, 0, ROOMS_Z_OFFSET], radius: 2.4 }]);
+  store.setHazards("rooms", roomHazardVolumes([
+    { id: "room-1", label: "Studio", level: "room", position: [0, 0, 4] } as never,
+    { id: "galaxy-1", label: "Milky", level: "galaxy", position: [6, 0, -2] } as never,
+  ]));
+  assert.deepEqual(store.hazards_().map((hazard) => hazard.id).sort(), ["core", "room-marker:galaxy-1", "room-marker:room-1"]);
+  // Clearing one source leaves the other's volumes in place.
+  store.setHazards("rooms", []);
+  assert.deepEqual(store.hazards_().map((hazard) => hazard.id), ["core"]);
+});
+
+test("room hazard volumes come from the transform and radius the markers are drawn with", () => {
+  const node = { id: "studio", label: "Studio", level: "room", position: [1.5, 0.25, 3] } as never;
+  const [hazard] = roomHazardVolumes([node]);
+  // Same depth offset, same radius the torus is drawn with, plus its tube.
+  assert.deepEqual(hazard.center, [1.5, 0.25, 3 + ROOMS_Z_OFFSET]);
+  assert.equal(hazard.radius, roomMarkerRadius("room") + 0.05);
+  assert.ok(roomMarkerRadius("galaxy") > roomMarkerRadius("planet") && roomMarkerRadius("planet") > roomMarkerRadius("room"));
+  // No node, no volume: a marker that is not drawn excludes nothing.
+  assert.deepEqual(roomHazardVolumes([]), []);
+});
+
+test("an object is not placed on top of a room marker", () => {
+  const store = CosmosObjectStore.createIsolated();
+  // A marker sitting exactly on the near ring's first slot.
+  const slot = ringSlot(0);
+  store.setHazards("rooms", roomHazardVolumes([
+    { id: "studio", label: "Studio", level: "galaxy", position: [slot[0], slot[1], slot[2] - ROOMS_Z_OFFSET] } as never,
+  ]));
+  const spawned = store.spawn({ name: "chair", scene: box(0.46, 0.86, 0.48) });
+  assert.ok(spawned.ok);
+  assert.notDeepEqual(spawned.value.frame.position, slot, "the marker's own slot is taken");
 });
 
 test("a large object is placed by its bounds, not by its centre", () => {
@@ -182,7 +257,8 @@ test("relocate brings an object out and undo puts it back exactly", () => {
   assert.ok(moved.ok);
   const after = [...moved.value.frame.position] as Vec3;
   assert.notDeepEqual(after, before);
-  assert.ok(after[2] > 0, `must come out in front of the cluster, got z ${after[2]}`);
+  assert.ok(after[2] < VIEWER_DEPTH - 0.5, `must come out in front of the viewer at ${VIEWER_DEPTH}, got z ${after[2]}`);
+  assert.ok(after[2] > ROOMS_Z_OFFSET, `must come out in front of the core at ${ROOMS_Z_OFFSET}, got z ${after[2]}`);
   assert.equal(JSON.stringify(moved.value.scene), scene, "geometry is untouched");
   assert.equal(moved.value.id, id, "identity is untouched");
 
@@ -228,7 +304,7 @@ test("an object that was already placed by hand keeps its slot through a relocat
 
 test("hazard reporting is sanitised: no NaN or negative radii reach placement", () => {
   const store = CosmosObjectStore.createIsolated();
-  store.setHazards([
+  store.setHazards("core", [
     { id: "bad", center: [Number.NaN, 0, 0], radius: 5 },
     { id: "negative", center: [0, 0, 0], radius: -2 },
     { id: "good", center: [0, 0, 0], radius: 3 } as { id: string; center: Vec3; radius: number },

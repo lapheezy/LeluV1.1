@@ -29,9 +29,12 @@ import CosmosNavigation, { type NavNode, type NavigationState } from "../../../.
 import SpatialObjects, { type SpatialObject } from "../../../../core/cosmos/SpatialObjects";
 import CosmosFocus, { type FocusTarget } from "../../../../core/cosmos/CosmosFocus";
 import WorkspaceAPI from "../../../../core/workspace/WorkspaceAPI";
+import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore";
+
+import { ROOMS_Z_OFFSET, roomHazardVolumes, roomMarkerRadius } from "../../../../core/cosmos/roomHazards";
 
 /** The scene draws its entities at this depth. */
-const Z_OFFSET = -25;
+const Z_OFFSET = ROOMS_Z_OFFSET;
 const MAX_NODES = 70;
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -68,7 +71,7 @@ function DestinationRing({ node, current, focused }: { node: NavNode; current: b
   const group = useRef<Group>(null);
   const color = useMemo(() => new Color(LEVEL_COLOR[node.level] ?? "#94a3b8"), [node.level]);
   const [hovered, setHovered] = useState(false);
-  const radius = node.level === "galaxy" ? 1.2 : node.level === "planet" ? 0.7 : 0.4;
+  const radius = roomMarkerRadius(node.level);
 
   useFrame(({ clock }) => {
     if (!group.current) return;
@@ -232,6 +235,18 @@ export default function CosmosRooms3D() {
     () => state.nodes.filter((node) => node.level !== "core").slice(0, MAX_NODES),
     [state.nodes],
   );
+
+  /*
+   * The store owns placement; this tells it where these markers are. Both
+   * numbers come from the same helpers `DestinationRing` draws with, so a
+   * marker that moves on screen moves its exclusion volume with it, and a
+   * marker that is not drawn (filtered out, or past MAX_NODES) excludes
+   * nothing.
+   */
+  useEffect(() => {
+    CosmosObjectStore.getInstance().setHazards("rooms", roomHazardVolumes(nodes));
+    return () => CosmosObjectStore.getInstance().setHazards("rooms", []);
+  }, [nodes]);
 
   const room = useMemo(
     () => state.nodes.find((node) => node.id === state.currentId) ?? null,

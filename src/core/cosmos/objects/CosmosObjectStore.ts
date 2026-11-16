@@ -25,6 +25,7 @@ import {
   frameOf,
   isLegacyRingPosition,
   isVec3,
+  legacyRingSignature,
   ringSlot,
   type CosmosGroups,
   type CosmosObject,
@@ -49,6 +50,8 @@ export interface CosmosHazard {
 
 /** How much clear space to leave between two objects' boxes. */
 const PLACEMENT_GAP = 0.35;
+/** How many rings the open-slot search widens through before it gives up. */
+const MAX_RINGS = 24;
 
 const STORE_KEY = "lelu.cosmos.objects.v1";
 const MAX_OBJECTS = 120;
@@ -61,6 +64,13 @@ const HISTORY_PERSISTED = 4;
  * position on such an object is left exactly as it is.
  */
 const MOVED_ACTIONS = new Set(["moved", "nudged", "positioned", "placed", "relocated", "duplicated", "extracted", "transformed"]);
+/**
+ * A position this store wrote itself, moving an object out of a scheme it no
+ * longer uses. Deliberately NOT one of MOVED_ACTIONS: it is not a person's
+ * choice, so a later migration may move that object again. A user's own move
+ * is never recorded with this action.
+ */
+const AUTO_PLACED = "auto-placed";
 
 /**
  * Whether a stored object's position should be normalised on load: it carries
@@ -70,7 +80,21 @@ const MOVED_ACTIONS = new Set(["moved", "nudged", "positioned", "placed", "reloc
 export function needsPlacementNormalization(object: Pick<CosmosObject, "frame" | "provenance" | "placementVersion">): boolean {
   if ((object.placementVersion ?? 0) >= PLACEMENT_VERSION) return false;
   if (!isLegacyRingPosition(object.frame.position)) return false;
-  return !object.provenance.some((entry) => MOVED_ACTIONS.has(entry.action));
+  return !object.provenance.some((entry) => MOVED_ACTIONS.has(entry.action) && !isSelfPlacedMove(entry));
+}
+
+/**
+ * Whether this provenance entry is the store moving an object out of an old
+ * scheme, rather than a person choosing where it goes.
+ *
+ * `AUTO_PLACED` is the action that says so from now on. v2 shipped its own
+ * repair as a plain `relocated` entry, so that exact, self-describing form is
+ * still read as the store's own move — otherwise the objects it repaired would
+ * be stuck on the far side of the camera forever.
+ */
+function isSelfPlacedMove(entry: { action: string; detail: string }): boolean {
+  if (entry.action === AUTO_PLACED) return true;
+  return entry.action === "relocated" && /^placement v\d+ → v\d+:/.test(entry.detail);
 }
 
 export interface SpawnInput {
@@ -149,7 +173,7 @@ export default class CosmosObjectStore {
   /** the state as of the last commit — what the next operation started from */
   private last: CosmosSnapshot;
   /** volumes objects must not be placed inside (the core's cluster) */
-  private hazards: CosmosHazard[] = [];
+  private hazardSources = new Map<string, CosmosHazard[]>();
 
   static getInstance(): CosmosObjectStore {
     if (!CosmosObjectStore.instance) CosmosObjectStore.instance = new CosmosObjectStore();
@@ -276,17 +300,23 @@ export default class CosmosObjectStore {
   }
 
   /**
-   * The volumes placement must respect. The scene owns what is drawn; this is
-   * how it tells the store, so nothing here hard-codes the core's dimensions.
+   * The volumes placement must respect, by the scene component that draws
+   * them. The scene owns what is drawn; this is how it tells the store, so
+   * nothing here hard-codes the core's or a room's dimensions. Keyed by
+   * source so the core and the rooms can report independently, without one
+   * call silently clearing the other's volumes.
    */
-  public setHazards(hazards: CosmosHazard[]): void {
-    this.hazards = hazards
-      .filter((hazard) => hazard && isVec3(hazard.center) && Number.isFinite(hazard.radius) && hazard.radius > 0)
-      .map((hazard) => ({ id: hazard.id, center: [...hazard.center] as Vec3, radius: hazard.radius }));
+  public setHazards(source: string, hazards: CosmosHazard[]): void {
+    this.hazardSources.set(
+      source,
+      hazards
+        .filter((hazard) => hazard && isVec3(hazard.center) && Number.isFinite(hazard.radius) && hazard.radius > 0)
+        .map((hazard) => ({ id: hazard.id, center: [...hazard.center] as Vec3, radius: hazard.radius })),
+    );
   }
 
   public hazards_(): CosmosHazard[] {
-    return this.hazards.map((hazard) => ({ ...hazard, center: [...hazard.center] as Vec3 }));
+    return [...this.hazardSources.values()].flat().map((hazard) => ({ ...hazard, center: [...hazard.center] as Vec3 }));
   }
 
   /**
@@ -790,19 +820,28 @@ export default class CosmosObjectStore {
       .filter((other) => !exclude.includes(other.id) && other.visible)
       .map((other) => boundsOfList([other]))
       .filter((other): other is Bounds3 => Boolean(other));
-    const radii = [RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 3, RING_RADIUS * 4];
-    for (const radius of radii) {
+    /*
+     * Rings are tried near-to-far, six slots each, and the search keeps
+     * widening until it finds a clear slot instead of giving up on a fixed
+     * radius: a large hazard (or a Cosmos full of big objects) used to fall
+     * through to `ringSlot(...)` unchecked and could land INSIDE the very
+     * volume it was meant to avoid. MAX_RINGS bounds the walk; the last
+     * resort is still a slot on a ring, never an unchecked one.
+     */
+    for (let ring = 1; ring <= MAX_RINGS; ring += 1) {
+      const radius = RING_RADIUS * ring;
       for (let index = 0; index < RING_SLOTS; index += 1) {
         const slot = ringSlot(index, radius);
         if (!this.blocked(slot, half, taken)) return slot;
       }
     }
-    return ringSlot(others.length, RING_RADIUS * 4);
+    // Every slot on every ring up to MAX_RINGS is occupied: take the farthest.
+    return ringSlot(others.length, RING_RADIUS * MAX_RINGS);
   }
 
   private blocked(center: Vec3, half: Vec3, taken: Bounds3[]): boolean {
     const reach = Math.hypot(half[0], half[1], half[2]);
-    for (const hazard of this.hazards) {
+    for (const hazard of this.hazards_()) {
       const distance = Math.hypot(center[0] - hazard.center[0], center[1] - hazard.center[1], center[2] - hazard.center[2]);
       if (distance < hazard.radius + reach) return true;
     }
@@ -830,14 +869,18 @@ export default class CosmosObjectStore {
     for (const object of legacy) {
       const others = [...this.objects.values()].filter((other) => other.id !== object.id);
       const before = [...object.frame.position] as Vec3;
+      const signature = legacyRingSignature(before);
       const slot = this.openSlot(objectBounds(object), [object.id], others);
       object.frame.position = slot;
+      const from = object.placementVersion ?? savedVersion ?? 1;
       object.placementVersion = PLACEMENT_VERSION;
       object.updatedAt = now();
       object.provenance.push({
         at: object.updatedAt,
-        action: "relocated",
-        detail: `placement v1 → v${PLACEMENT_VERSION}: out of the core's room cluster to [${slot.map((n) => n.toFixed(1)).join(", ")}] (was [${before.map((n) => n.toFixed(1)).join(", ")}])`,
+        action: AUTO_PLACED,
+        detail: `placement v${from} → v${PLACEMENT_VERSION}: ${
+          signature === "behind-camera" ? "from behind the camera into view" : "out of the core's room cluster"
+        } at [${slot.map((n) => n.toFixed(1)).join(", ")}] (was [${before.map((n) => n.toFixed(1)).join(", ")}])`,
       });
     }
     if (legacy.length && this.persist) this.save();

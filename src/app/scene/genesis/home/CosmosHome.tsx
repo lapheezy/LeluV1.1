@@ -28,7 +28,7 @@ import {
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { useLeluActivity, ACTIVITY_ACCENT, type LeluActivity } from "../avatar/leluActivity";
 import { APPS, GROUPS, PRIMARY, appFor, type AppGroup } from "./homeCatalog";
-import HomeStore from "./homeStore";
+import { cosmosViewBus } from "../../../../core/cosmos/objects/CosmosObjectCamera";
 import { useCloud, useExecutive, useHomeStore, useNotifications, useProjects, useWeather } from "./useHomeLive";
 import { describeWeather } from "./homeWeather";
 import { launch, restoreLayout } from "./homeActions";
@@ -179,7 +179,20 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
             <HomeIcon name="Bell" />
             {notes.unread ? <span className="lch-badge">{notes.unread > 9 ? "9+" : notes.unread}</span> : null}
           </button>
-          <button type="button" className="lch-round lch-cosmos" aria-label="Look at the Cosmos" title="Look at the Cosmos" onClick={() => HomeStore.setImmersive(true)}>
+          <button
+            type="button"
+            className="lch-round lch-cosmos"
+            aria-label="Look at the Cosmos"
+            title="Look at the Cosmos"
+            /*
+             * The same door the dock and the tool use. Setting immersive mode
+             * alone opened the Cosmos WITHOUT framing the objects, so the
+             * camera stayed wherever the spatial runtime last sampled — and an
+             * object parked at the ring was simply not on screen. One entry,
+             * one behaviour: open, and frame what is there.
+             */
+            onClick={() => cosmosViewBus.request({ mode: "open", frame: true })}
+          >
             <span className="lch-cosmos-core" />
           </button>
         </div>

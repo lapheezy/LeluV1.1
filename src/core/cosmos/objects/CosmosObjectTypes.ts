@@ -122,27 +122,38 @@ function vec(v: unknown, fallback: Vec3): Vec3 {
 /**
  * WHERE AN OBJECT IS BORN.
  *
- * The ring sits in front of the LÉLU core and its room cluster, between the
- * default camera (z ≈ 6.8) and the cluster itself, never inside it: an object
- * parked in the cluster is drawn behind room markers and planet glow.
+ * The ring sits BETWEEN the viewer and the LÉLU core: in front of the core's
+ * room cluster (drawn at z = -25) and in front of the camera that looks at it.
  *
- * The depth used to be packed inside the rounding factor —
+ * Both of those bounds are real numbers from the scene, and the depth has to
+ * satisfy both. The default camera rests at z = 6.8 looking at the origin
+ * (see the OrbitControls reset in GenesisCameraController), so a ring at
+ * z = +7.2 is *behind the viewer*: every object on it projects far outside the
+ * frame, at any aspect ratio, which is why a wide window looked empty even
+ * though the canvas, the camera and the store all agreed.
+ *
+ * The depth was also once packed inside the rounding factor —
  *
  *     Math.round((z + sin(angle) * radius * 100) / 100) / 100
  *
  * — which divides z by 100 as well: every "ring" in every version collapsed
  * onto z ≈ 0 (z = 7.2 → 0, z = 4 → 0.04, z = -18 → -0.18). That is why a
  * chair always appeared inside the core's rooms however far in front the ring
- * was meant to be. The maths below is the corrected form; the values the
- * broken one produced are what `isLegacyRingPosition` recognises.
+ * was meant to be. The maths below is the corrected form; the values those two
+ * earlier schemes produced are what `legacyRingSignature` recognises.
  */
 export const RING_RADIUS = 3.2;
-export const RING_DEPTH = 7.2;
+/** Negative z is toward the core and away from the viewer: in view, clear of it. */
+export const RING_DEPTH = -7.2;
+/** Where v2 put the ring: 32 m past the core and behind the resting camera. */
+export const LEGACY_RING_DEPTH = 7.2;
 export const RING_HEIGHT = 0.9;
 export const RING_SLOTS = 6;
+/** The resting camera's depth. A slot must be in FRONT of this to be seen. */
+export const VIEWER_DEPTH = 6.8;
 
 /** Bumped when stored positions need a one-time normalisation. */
-export const PLACEMENT_VERSION = 2;
+export const PLACEMENT_VERSION = 3;
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -155,18 +166,34 @@ export function ringSlot(index: number, radius = RING_RADIUS, z = RING_DEPTH, y 
 }
 
 /**
- * A position the broken ring maths produced: the ring's height, and a depth
- * squashed into ±one radius of the origin, so every slot sat inside the core's
- * room cluster.
+ * Which earlier placement scheme, if any, wrote this position.
+ *
+ *  - "cluster": the broken maths' output — the ring's height and a depth
+ *    squashed into ±one radius of the origin, i.e. inside the core's rooms.
+ *  - "behind-camera": v2's ring, correctly round but at +7.2, on the far side
+ *    of the resting camera, where nothing it holds can be seen.
+ *
+ * Only a signal: whether the object may be moved is decided by its provenance
+ * and `placementVersion` (see `needsPlacementNormalization`).
  */
-export function isLegacyRingPosition(position: Vec3): boolean {
+export function legacyRingSignature(position: Vec3): "cluster" | "behind-camera" | null {
   const [x, y, z] = position;
-  if (![x, y, z].every((n) => typeof n === "number" && Number.isFinite(n))) return false;
-  if (Math.abs(y - RING_HEIGHT) > 0.05) return false;
-  if (Math.abs(z) > RING_RADIUS + 0.05) return false;
-  if (Math.abs(x) > RING_RADIUS + 0.05) return false;
+  if (![x, y, z].every((n) => typeof n === "number" && Number.isFinite(n))) return null;
+  if (Math.abs(y - RING_HEIGHT) > 0.05) return null;
+  // v2's ring: on the same circle, centred on the depth that sits behind the viewer.
+  const fromV2Centre = Math.hypot(x, z - LEGACY_RING_DEPTH);
+  if (fromV2Centre >= RING_RADIUS - 0.35 && fromV2Centre <= RING_RADIUS + 0.35) return "behind-camera";
+  // v1's ring: squashed to the origin's depth, inside the cluster.
+  if (Math.abs(z) > RING_RADIUS + 0.05) return null;
+  if (Math.abs(x) > RING_RADIUS + 0.05) return null;
   const radius = Math.hypot(x, z);
-  return radius > 0.5 && radius <= RING_RADIUS + 0.35;
+  if (radius > 0.5 && radius <= RING_RADIUS + 0.35) return "cluster";
+  return null;
+}
+
+/** Whether a stored position came from an earlier placement scheme. */
+export function isLegacyRingPosition(position: Vec3): boolean {
+  return legacyRingSignature(position) !== null;
 }
 
 /** A short, human line about one object — used by the tools and the panel. */
