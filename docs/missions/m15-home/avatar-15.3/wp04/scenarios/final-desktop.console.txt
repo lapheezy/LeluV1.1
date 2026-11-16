@@ -1,0 +1,9 @@
+PASS A world entered normally: answer arrived (confirmed) at 10069 ms; final arrived 0.052 m; chat-obstacle true; route [[2.13,2.66],[1.68,0.68],[0.08,-0.12],[-3.99,0.26]]; 
+PASS B world entered from the Chat Universe: answer arrived (confirmed) at 3581 ms; final arrived 0.093 m; chat-obstacle true; route [[-2.06,2.53],[-3.99,0.26]]; 
+FAIL C walk asked before world loading begins: answer declined/progress at 19601 ms; final arrived 0.059 m; chat-obstacle false; route [[0.45,3.96],[-1.12,3.88],[-3.99,0.26]]; askedBeforeWorld true
+PASS D walk asked during world initialisation: answer arrived (confirmed) at 10585 ms; final arrived 0.052 m; chat-obstacle true; route [[-0.45,5.25],[-1.52,4.88],[-3.99,0.26]]; worldDataAfterCommandMs 1780; waitedForWorld true; movedBeforeReady false
+PASS F world initialisation delayed: answer arrived (confirmed) at 15812 ms; final arrived 0.051 m; chat-obstacle true; route [[-0.45,5.25],[-1.52,4.88],[-3.99,0.26]]; worldDataAfterCommandMs 5921; waitedForWorld true; movedBeforeReady false
+PASS E walk asked immediately after world readiness: answer arrived (confirmed) at 10243 ms; final arrived 0.05 m; chat-obstacle true; route [[2.13,2.66],[1.68,0.68],[0.08,-0.12],[-3.99,0.26]]; 
+PASS G main thread blocked 3 s mid-walk: answer arrived (confirmed) at 10510 ms; final arrived 0.052 m; chat-obstacle true; route [[2.13,2.66],[1.68,0.68],[0.08,-0.12],[-3.99,0.26]]; falseBlocked false
+PASS O repeated world/Home transitions: answer arrived (confirmed) at 4601 ms; final arrived 0.053 m; chat-obstacle true; route [[-2.06,2.53],[-3.99,0.26]]; counts [{"cycle":1,"spatial":1,"worlds":1,"canvases":2,"ctx":7,"environment":"home","obstacles":4},{"cycle":2,"spatial":1,"worlds":1,"canvases":2,"ctx":11,"environment":"home","obstacles":4},{"cycle":3,"spatial":1,"worlds":1,"canvases":2,"ctx":15,"environment":null,"obstacles":4}]; oneWorldOnePresence true
+7/8 scenarios
