@@ -84,19 +84,35 @@ export default class DirectResolver {
     const { dispatchToolCall, toolNameForModel } = await import("../tools/ToolDispatcher");
     const taskId = String(context.request.timestamp ?? Date.now());
     const lines: string[] = [];
-    const ran: Array<{ tool: string; ok: boolean }> = [];
+    const ran: Array<{ tool: string; ok: boolean; skipped?: boolean; reason?: string }> = [];
+    /*
+     * A later step on the same object depends on the earlier one having landed:
+     * rotating a chair that would not move and then rescaling it produces a
+     * half-finished arrangement that reads as done. Dependent steps are skipped
+     * and named as skipped; steps on other objects are independent and still run.
+     */
+    const broken = new Set<string>();
     for (const [i, step] of plan.steps.entries()) {
+      const target = typeof step.args?.object === "string" ? step.args.object : "";
+      if (target && broken.has(target)) {
+        ran.push({ tool: step.tool, ok: false, skipped: true, reason: "an earlier step on this object failed" });
+        lines.push(`↷ ${step.label} (${step.tool}) — not attempted: an earlier step on ${target} failed`);
+        continue;
+      }
       const result = await dispatchToolCall(
         { id: `direct-${taskId}-${i}`, name: toolNameForModel(step.tool), arguments: step.args },
         taskId,
         context,
         { path: "direct" },
       );
+      if (!result.ok && target) broken.add(target);
       ran.push({ tool: step.tool, ok: result.ok });
       const detail = step.tool === "browser.read" ? pageLine(step.args, result) : readingOf(result.content);
       lines.push(`${result.ok ? "✓" : "✗"} ${step.label} (${step.tool})\n${detail.split("\n").map((l) => `  ${l}`).join("\n")}`);
     }
-    const okCount = ran.filter((r) => r.ok).length;
+    const attempted = ran.filter((r) => !r.skipped);
+    const okCount = attempted.filter((r) => r.ok).length;
+    const skippedCount = ran.length - attempted.length;
     const onScene = plan.steps.every((step) => step.tool.startsWith("cosmos.object."));
     const preface = onScene
       ? `Done locally on the Cosmos scene${reason === "no-provider" ? " (no model provider is reachable, and none was needed)" : " — no model involved"}: ${plan.summary}.`
@@ -106,7 +122,17 @@ export default class DirectResolver {
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
         : `Done directly with my own tools (no model involved): ${plan.summary}.`;
     const response: AIResponse = {
-      text: [preface, "", ...lines, "", okCount === ran.length ? "Everything above ran and was verified." : `${okCount} of ${ran.length} steps succeeded; the failures are shown with their reasons.`].join("\n"),
+      text: [
+        preface,
+        "",
+        ...lines,
+        "",
+        skippedCount > 0
+          ? `${okCount} of ${attempted.length} attempted steps succeeded; ${skippedCount} not attempted because an earlier step on the same object failed.`
+          : okCount === ran.length
+            ? "Everything above ran and was verified."
+            : `${okCount} of ${ran.length} steps succeeded; the failures are shown with their reasons.`,
+      ].join("\n"),
       provider: "lelu-direct",
       model: "tools",
       processingTime: Date.now() - context.started,
