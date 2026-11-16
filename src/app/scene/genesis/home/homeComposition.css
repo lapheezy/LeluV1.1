@@ -1,0 +1,315 @@
+/* LÉLU HOME — compositions (Mission 15). Sizing follows the Home's own box
+   (data-device), not the window, so a Design Studio frame renders exactly
+   what that device would. */
+
+.hc {
+  --row: 30px;
+  --gap: 10px;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  pointer-events: auto;
+  container-type: inline-size;
+}
+.hc[data-device="tablet"] { --row: 30px; --gap: 12px; }
+.hc[data-device="desktop"] { --row: 30px; --gap: 14px; }
+
+.hc-stage {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-auto-rows: var(--row);
+  grid-auto-flow: dense;
+  gap: var(--gap);
+  position: relative;
+}
+
+.hc-module { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; border-radius: var(--radius, 22px); }
+.hc-module > .lch-glass, .hc-module > .lch-lelu, .hc-module > .hc-group { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.hc-module > nav.lch-apps { align-content: center; }
+.hc-module:focus-visible { outline: 2px solid var(--magenta, #e879f9); outline-offset: 3px; }
+.hc-module[data-dragging="true"] { opacity: 0.92; box-shadow: 0 24px 60px rgba(10, 0, 30, 0.6); cursor: grabbing; }
+.hc-module[data-pinned="true"] > .lch-glass { border-color: rgba(250, 204, 255, 0.55); }
+
+/* the modules inside a composition fill their cell */
+.hc .lch-weather, .hc .lch-now { height: 100%; box-sizing: border-box; }
+.hc .lch-apps { height: 100%; box-sizing: border-box; }
+.hc .lch-cards { min-height: 0; }
+.hc .lch-notes ul { overflow: auto; max-height: calc(100% - 46px); }
+.hc .lch-workspaces { display: flex; flex-direction: column; }
+.hc .lch-activity { height: 100%; box-sizing: border-box; }
+.hc .lch-groups { overflow: auto; }
+
+/* Narrow cells: the app row wraps instead of squeezing six icons. */
+.hc-module[data-size="s"] .lch-apps, .hc-module[data-size="m"] .lch-apps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hc[data-device="phone"] .hc-module[data-size="xl"] .lch-apps { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+/* LÉLU herself: a CSS presence (no WebGL) — the companion's 3D face
+   paints over the hero host when she is enabled. */
+.lch-lelu {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  border-radius: var(--radius, 22px);
+  isolation: isolate;
+}
+.lch-lelu-aura {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--accent, #c084fc) 55%, transparent), transparent 72%),
+    radial-gradient(60% 40% at 30% 70%, rgba(59, 130, 246, 0.35), transparent 70%),
+    radial-gradient(50% 40% at 72% 30%, rgba(236, 72, 153, 0.35), transparent 70%);
+  filter: blur(6px);
+  animation: hc-breathe 6s ease-in-out infinite;
+}
+.lch-lelu-orb {
+  width: min(46%, 120px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #fff 0 6%, #f5d0fe 14%, #c084fc 36%, #6d28d9 64%, #1e0b3d 100%);
+  box-shadow: 0 0 34px color-mix(in srgb, var(--accent, #c084fc) 70%, transparent), inset -8px -10px 24px rgba(30, 0, 60, 0.6);
+}
+.lch-lelu .lch-hero-lelu { position: absolute; inset: 0; margin: 0; min-height: 0; }
+.lch-lelu-name { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 13px; letter-spacing: 0.14em; color: var(--ink, #fbf3ff); text-shadow: 0 0 12px rgba(232, 121, 249, 0.6); }
+.lch-lelu-name small { display: block; letter-spacing: 0.02em; font-size: 11px; color: var(--ink-2, rgba(240, 226, 255, 0.72)); }
+@keyframes hc-breathe { 50% { transform: scale(1.06); opacity: 0.85; } }
+
+/* ---------------- absolute families: orbit · spatial · freeform ---------------- */
+.hc[data-kind="orbit"] .hc-stage,
+.hc[data-kind="spatial"] .hc-stage,
+.hc[data-kind="freeform"] .hc-stage {
+  display: block;
+  height: var(--canvas-h, min(72vh, 760px));
+  min-height: 520px;
+}
+.hc-abs { position: absolute !important; box-sizing: border-box; }
+.hc[data-kind="orbit"] .hc-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12% 10%;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 210, 255, 0.22);
+  box-shadow: 0 0 60px rgba(168, 85, 247, 0.18) inset;
+  pointer-events: none;
+}
+.hc[data-kind="spatial"] .hc-stage { perspective: 1400px; perspective-origin: 50% 20%; }
+.hc[data-kind="spatial"] .hc-module[data-depth="1"] { transform: translateZ(-160px) rotateX(8deg); filter: saturate(0.9) brightness(0.92); }
+.hc[data-kind="spatial"] .hc-module[data-depth="0"] { transform: rotateX(2deg); }
+.hc[data-kind="layered"] .hc-module[data-depth="1"] { transform: scale(0.97); opacity: 0.94; }
+
+/* floating surfaces live above the composition, inside the Home's box */
+.hc-float { z-index: 30; }
+.hc-float > .lch-glass, .hc[data-kind="freeform"] .hc-abs > .lch-glass { box-shadow: 0 22px 50px rgba(10, 0, 30, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+
+/* ---------------- deck ---------------- */
+.hc[data-kind="deck"] .hc-stage {
+  display: flex;
+  gap: var(--gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 6px;
+}
+.hc[data-kind="deck"] .hc-stage::-webkit-scrollbar { display: none; }
+.hc[data-kind="deck"] .hc-module { flex: 0 0 86%; height: var(--deck-h, min(46vh, 420px)); scroll-snap-align: center; }
+.hc[data-kind="deck"][data-device="tablet"] .hc-module { flex-basis: 46%; }
+.hc[data-kind="deck"][data-device="desktop"] .hc-module { flex-basis: 31%; }
+
+/* ---------------- focus ---------------- */
+.hc[data-kind="focus"] .hc-stage { max-width: 760px; margin: 0 auto; }
+
+/* ---------------- groups (tabs) ---------------- */
+.hc-group { display: flex; flex-direction: column; gap: 6px; }
+.hc-tabs { display: flex; gap: 4px; padding: 2px; border-radius: 999px; background: rgba(20, 6, 40, 0.5); border: 1px solid rgba(255, 210, 255, 0.16); align-self: flex-start; }
+.hc-tabs button { border: 0; background: none; color: var(--ink-2, #e9d5ff); font-size: 11.5px; padding: 4px 10px; border-radius: 999px; min-height: 28px; }
+.hc-tabs button[aria-selected="true"] { background: rgba(192, 132, 252, 0.4); color: #fff; }
+.hc-tabpanel { flex: 1 1 auto; min-height: 0; display: flex; }
+.hc-tabpanel > * { flex: 1 1 auto; min-height: 0; }
+
+.hc-collapsed { display: flex; align-items: center; padding: 0 14px; font-size: 13.5px; font-weight: 500; height: 100%; box-sizing: border-box; }
+
+/* ---------------- dock ---------------- */
+.hc-dock { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--gap); }
+.hc-dock-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 34px; padding: 0 12px; border-radius: 999px; font-size: 12px;
+  border: 1px solid rgba(255, 210, 255, 0.25); background: rgba(46, 18, 82, 0.6); color: var(--ink, #fbf3ff);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.hc-dock-chip[data-hidden="true"] { opacity: 0.65; border-style: dashed; }
+
+/* ---------------- edit chrome ---------------- */
+.hc[data-editing="true"] .hc-module { outline: 1px dashed rgba(255, 210, 255, 0.35); outline-offset: 2px; }
+.hc[data-editing="true"] .hc-module > :not(.hc-chrome):not(.hc-resize) { pointer-events: none; }
+.hc-chrome {
+  position: absolute; top: -12px; left: 8px; right: 8px; z-index: 5;
+  display: flex; align-items: center; gap: 4px; pointer-events: auto;
+}
+.hc-handle {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 9px 0 5px;
+  border-radius: 999px; border: 1px solid rgba(255, 220, 255, 0.45);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(219, 39, 119, 0.85)); color: #fff;
+  font-size: 11px; font-weight: 600; cursor: grab;
+  touch-action: none; /* only the handle captures touch: the Home still scrolls on iPhone */
+  max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.hc-handle:disabled { cursor: not-allowed; opacity: 0.7; }
+.hc-tools { margin-left: auto; display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; background: rgba(20, 6, 40, 0.82); border: 1px solid rgba(255, 210, 255, 0.25); }
+.hc-tools button { width: 28px; height: 28px; border-radius: 999px; border: 0; background: none; color: #f5e8ff; display: grid; place-items: center; }
+.hc-tools button[aria-pressed="true"] { background: rgba(192, 132, 252, 0.45); }
+.hc-tools button:disabled { opacity: 0.35; }
+.hc-menu {
+  position: absolute; top: 32px; right: 0; z-index: 60; min-width: 210px;
+  display: flex; flex-direction: column; padding: 6px; border-radius: 16px;
+  background: rgba(28, 10, 54, 0.96); border: 1px solid rgba(255, 210, 255, 0.28);
+  box-shadow: 0 20px 50px rgba(5, 0, 20, 0.6);
+}
+.hc-menu button { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: #f5e8ff; font-size: 13px; text-align: left; }
+.hc-menu button:hover, .hc-menu button:focus-visible { background: rgba(192, 132, 252, 0.22); }
+.hc-menu button:disabled { opacity: 0.4; }
+.hc-menu hr { border: 0; border-top: 1px solid rgba(255, 210, 255, 0.14); margin: 4px 2px; width: auto; }
+.hc-resize {
+  position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; z-index: 6; cursor: nwse-resize; touch-action: none;
+  border-radius: 6px; background: linear-gradient(135deg, transparent 50%, rgba(232, 121, 249, 0.9) 50%);
+}
+
+/* ---------------- Expanded Home ---------------- */
+.hc-expanded {
+  position: fixed; inset: max(12px, env(safe-area-inset-top, 0px)) 12px calc(env(safe-area-inset-bottom, 0px) + 96px); z-index: 70;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 12px; border-radius: 26px;
+  background: rgba(24, 8, 48, 0.82); border: 1px solid rgba(255, 210, 255, 0.28);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  animation: hc-expand 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  max-width: 1100px; margin: 0 auto;
+}
+.hc-expanded-bar { display: flex; align-items: center; gap: 8px; color: #fbf3ff; }
+.hc-expanded-bar strong { font-size: 16px; font-weight: 600; margin-right: auto; }
+.hc-expanded-bar button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255, 210, 255, 0.3); background: rgba(255, 255, 255, 0.06); color: inherit; font-size: 12.5px; }
+.hc-expanded-body { flex: 1 1 auto; min-height: 0; display: flex; overflow: auto; }
+.hc-expanded-body > * { flex: 1 1 auto; }
+@keyframes hc-expand { from { opacity: 0; transform: scale(0.97); } }
+
+.hc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* Phones: absolute families never reach a phone profile by default; if a
+   person picks one anyway, it stays readable (scrollable, taller). */
+.hc[data-device="phone"][data-kind="orbit"] .hc-stage,
+.hc[data-device="phone"][data-kind="spatial"] .hc-stage,
+.hc[data-device="phone"][data-kind="freeform"] .hc-stage { min-height: 760px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lch-lelu-aura, .hc-expanded { animation: none !important; }
+  .hc[data-kind="spatial"] .hc-module { transform: none !important; }
+}
+/* No backdrop-filter (old WebViews, low-power): solid glass, same layout. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hc-dock-chip, .hc-expanded { background: rgba(30, 10, 60, 0.96); }
+}
+/* edit chrome sits on a reserved band, never over a module's own title */
+.hc[data-editing="true"] .hc-module { padding-top: 18px; }
+.hc[data-editing="true"] .hc-chrome { top: -6px; }
+/* an open module menu clears floating surfaces and later modules */
+.hc-module[data-menu-open="true"] { z-index: 90 !important; }
+/* Narrow modules (phone tiles): the tool pill folds into "More". */
+.hc[data-editing="true"] .hc-module { container-type: inline-size; }
+.hc-menu-tools { display: none; flex-direction: column; }
+@container (max-width: 300px) {
+  .hc-tools button:not(:last-child) { display: none; }
+  .hc-menu-tools { display: flex; }
+  .hc-handle { max-width: 62%; }
+  .hc-menu { left: auto; right: 0; min-width: 190px; }
+}
+
+/* ================================================================
+   Mission 15.1 — the families the sixty concepts needed, and the
+   look (theme vars come from homeStyle.resolveStyle on .hc).
+   ================================================================ */
+.hc { font-family: var(--hc-font, inherit); color: var(--ink, inherit); }
+.hc[data-density] { --gap: calc(4px + var(--hc-density, 0.5) * 16px); --row: calc(26px + var(--hc-density, 0.5) * 8px); }
+.hc :is(strong, h2, h3, .lch-now-title, .lch-lelu-name) { font-family: var(--hc-heading, var(--hc-font, inherit)); }
+.hc-body { position: relative; min-width: 0; }
+.hc-fx-defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+
+/* column / focus: a readable measure */
+.hc[data-kind="column"] .hc-stage, .hc[data-kind="focus"] .hc-stage { max-width: var(--hc-maxw, none); margin-inline: auto; }
+
+/* timeline rail */
+.hc[data-rail="true"] .hc-stage { padding-left: 26px; }
+.hc[data-rail="true"] .hc-stage::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: linear-gradient(var(--accent, #e879f9), var(--hc-accent2, #a78bfa), transparent); opacity: 0.7; }
+.hc[data-rail="true"] .hc-module::before { content: ""; position: absolute; left: -22px; top: 14px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent, #e879f9); box-shadow: 0 0 10px var(--accent, #e879f9); }
+
+/* story rings: collapsed small modules become rings */
+.hc[data-rings="true"] .hc-module[data-collapsed="true"] { border-radius: 999px; }
+.hc[data-rings="true"] .hc-module[data-collapsed="true"] > .hc-collapsed { border-radius: 999px; display: grid; place-items: center; text-align: center; font-size: 12px; outline: 2px solid var(--accent, #e879f9); outline-offset: 2px; box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #e879f9) 50%, transparent); }
+
+/* lanes (board) and row headers */
+.hc-lane-head { margin: 0; align-self: end; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2, rgba(240, 226, 255, 0.72)); padding: 0 4px; }
+.hc[data-kind="lanes"] .hc-stage { column-gap: calc(var(--gap) * 1.6); }
+
+/* carousel rows */
+.hc-rows { display: flex; flex-direction: column; gap: calc(var(--gap) * 1.4); }
+.hc-row { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.hc-row-track { display: flex; gap: var(--gap); overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 4px; }
+.hc-row-track::-webkit-scrollbar { display: none; }
+.hc-row-track > .hc-module { flex: 0 0 auto; scroll-snap-align: start; height: 170px; width: 44%; }
+.hc-row-track > .hc-module[data-size="s"] { width: 34%; }
+.hc-row-track > .hc-module[data-size="l"] { width: 64%; }
+.hc-row-track > .hc-module[data-size="xl"] { width: 86%; }
+.hc[data-device="tablet"] .hc-row-track > .hc-module { width: 32%; height: 190px; }
+.hc[data-device="tablet"] .hc-row-track > .hc-module[data-size="s"] { width: 24%; }
+.hc[data-device="tablet"] .hc-row-track > .hc-module[data-size="l"] { width: 44%; }
+.hc[data-device="tablet"] .hc-row-track > .hc-module[data-size="xl"] { width: 62%; }
+.hc[data-device="desktop"] .hc-row-track > .hc-module { width: 24%; height: 200px; }
+.hc[data-device="desktop"] .hc-row-track > .hc-module[data-size="s"] { width: 18%; }
+.hc[data-device="desktop"] .hc-row-track > .hc-module[data-size="l"] { width: 34%; }
+.hc[data-device="desktop"] .hc-row-track > .hc-module[data-size="xl"] { width: 48%; }
+.hc-row-track > .hc-module[data-collapsed="true"] { height: 60px; }
+
+/* absolute families added in 15.1 share the canvas */
+.hc[data-kind="radial"] .hc-stage,
+.hc[data-kind="constellation"] .hc-stage,
+.hc[data-kind="scatter"] .hc-stage,
+.hc[data-kind="twozone"] .hc-stage { display: block; height: var(--canvas-h, min(72vh, 760px)); min-height: 520px; }
+.hc[data-device="phone"]:is([data-kind="radial"], [data-kind="constellation"], [data-kind="scatter"], [data-kind="twozone"]) .hc-stage { min-height: 760px; }
+.hc[data-kind="radial"] .hc-stage::before { content: ""; position: absolute; left: 12%; right: 12%; bottom: 4%; height: 76%; border-radius: 50% 50% 0 0 / 100% 100% 0 0; border: 1px dashed color-mix(in srgb, var(--accent, #e879f9) 35%, transparent); border-bottom: 0; pointer-events: none; }
+.hc[data-kind="twozone"] .hc-stage::before { content: ""; position: absolute; inset: 0 2% 60% 2%; border-radius: 50%; border: 1px dashed color-mix(in srgb, var(--accent, #e879f9) 30%, transparent); pointer-events: none; }
+.hc-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.hc-links line { stroke: color-mix(in srgb, var(--accent, #e879f9) 55%, transparent); stroke-width: 0.25; stroke-dasharray: 0.8 0.8; vector-effect: non-scaling-stroke; }
+.hc[data-kind="constellation"] .hc-links line { stroke-width: 1.2px; }
+.hc[data-kind="scatter"] .hc-module { transition: transform 260ms ease; box-shadow: 0 18px 40px rgba(10, 0, 30, 0.45); }
+.hc[data-kind="scatter"] .hc-module:hover, .hc[data-kind="scatter"] .hc-module:focus-within { transform: none !important; z-index: 20; }
+
+/* spatial depth follows the parameter */
+.hc[data-kind="spatial"] .hc-module[data-depth="1"] { transform: translateZ(calc(var(--hc-depth, 1) * -160px)) rotateX(calc(var(--hc-depth, 1) * 8deg)); }
+.hc[data-kind="layered"] .hc-module[data-depth="1"] { transform: scale(calc(1 - var(--hc-depth, 1) * 0.04)); opacity: calc(1 - var(--hc-depth, 1) * 0.08); }
+
+/* swipe card stack: deck cards overlap like a hand of cards */
+.hc[data-kind="deck"][data-stacked="true"] .hc-stage { gap: 0; padding-inline: 4%; }
+.hc[data-kind="deck"][data-stacked="true"] .hc-module { margin-right: -22%; box-shadow: -14px 0 34px rgba(10, 0, 30, 0.45); transition: transform 200ms ease; }
+.hc[data-kind="deck"][data-stacked="true"] .hc-module:hover, .hc[data-kind="deck"][data-stacked="true"] .hc-module:focus-within { transform: translateY(-10px); z-index: 10; }
+
+/* grouped modules shown together (deck of bentos) */
+.hc-group-stack { display: grid; grid-template-rows: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; height: 100%; }
+.hc-stack-cell { min-height: 0; display: flex; }
+.hc-stack-cell > * { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+
+/* Split Reality: a clear window onto the live Cosmos */
+.hc[data-window="true"] .hc-body { display: grid; grid-template-columns: minmax(0, 1fr) var(--hc-window, 40%); gap: var(--gap); align-items: stretch; }
+.hc-window { position: relative; min-height: 420px; border-radius: var(--radius, 22px); border: 1px solid var(--edge, rgba(255, 206, 255, 0.2)); box-shadow: inset 0 0 60px color-mix(in srgb, var(--accent, #e879f9) 25%, transparent); background: transparent; pointer-events: none; }
+.hc-window span { position: absolute; left: 14px; bottom: 12px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2, rgba(240, 226, 255, 0.72)); }
+
+/* the Ask LÉLU module */
+.lch-ask { display: flex; align-items: center; gap: 10px; padding: 0 8px 0 16px; min-height: 52px; height: 100%; box-sizing: border-box; color: var(--ink, #fbf3ff); }
+.lch-ask input { flex: 1 1 auto; min-width: 0; height: 44px; border: 0; outline: none; background: transparent; color: inherit; font: inherit; font-size: 16px; }
+.lch-ask input::placeholder { color: var(--ink-3, rgba(232, 214, 255, 0.5)); }
+.lch-ask button { width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--edge, rgba(255, 206, 255, 0.2)); background: color-mix(in srgb, var(--accent, #e879f9) 30%, transparent); display: grid; place-items: center; }
+.hc-module[data-size="xl"] .lch-ask, .hc-module[data-size="l"] .lch-ask { padding-inline: 22px; }
+.hc-module[data-size="xl"] .lch-ask input { font-size: 19px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hc[data-kind="scatter"] .hc-module, .hc[data-kind="deck"][data-stacked="true"] .hc-module { transition: none; }
+}

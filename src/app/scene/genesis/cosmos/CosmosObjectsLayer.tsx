@@ -24,6 +24,7 @@
  * ==========================================================
  */
 
+import { NeuralView } from "../neural/neuralView";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
@@ -267,6 +268,7 @@ function ObjectControls({ object }: { object: CosmosObject }) {
         {b("Take out", () => store.extract(object.id))}
         {object.partCount > 1 ? b("Take a part…", () => setPartsOpen(!partsOpen)) : null}
         {b("Remove", () => store.remove(object.id))}
+        {b("Neural", () => NeuralView.inspect(`cosmos.object:${object.id}`))}
         {b("Done", () => store.select(null))}
       </div>
       {partsOpen ? (

@@ -1,0 +1,385 @@
+{
+  "at": "2026-11-16T12:28:30.892Z",
+  "results": [
+    {
+      "name": "Infinite Library lists Cosmos, Legacy UIs and Compositions",
+      "status": "VERIFIED",
+      "detail": "Cosmos, Neural Map, Legacy UIs, Compositions"
+    },
+    {
+      "name": "Legacy UIs holds LÉLU System UI and the original LÉLU",
+      "status": "VERIFIED",
+      "detail": "lelu-system, og-inner-sky, og-core"
+    },
+    {
+      "name": "LÉLU System UI launches from Legacy UIs (the real component)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "System UI mode Heartbeat",
+      "status": "VERIFIED",
+      "detail": "transitions heartbeat · now heartbeat"
+    },
+    {
+      "name": "System UI mode Matrix",
+      "status": "VERIFIED",
+      "detail": "transitions matrix · now matrix"
+    },
+    {
+      "name": "System UI mode Nerve",
+      "status": "VERIFIED",
+      "detail": "transitions nerve · now nerve"
+    },
+    {
+      "name": "System UI mode Neuron",
+      "status": "VERIFIED",
+      "detail": "transitions core→neuron · now neuron"
+    },
+    {
+      "name": "System UI mode Core",
+      "status": "VERIFIED",
+      "detail": "transitions core · now core"
+    },
+    {
+      "name": "System UI: modes moved by LÉLU's own live activity during the run",
+      "status": "NONE",
+      "detail": "no automatic change in this run",
+      "informational": true
+    },
+    {
+      "name": "System UI exits back to the Cosmos",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O02 1440×900: every nav button is the pointer's hit target",
+      "status": "VERIFIED",
+      "detail": "Home:ok Infinite Library:ok Open windows:ok Search (⌘K):ok Worlds:ok Settings:ok"
+    },
+    {
+      "name": "O02 1440×900: the Spatial tab is reachable",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O02 1440×900: with the Spatial bar open, it is reachable AND every nav button still is",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Worlds names Genesis V2 as LÉLU's Room; System is no longer a world",
+      "status": "VERIFIED",
+      "detail": "Cosmos, LÉLU's Room, Earth"
+    },
+    {
+      "name": "LÉLU's Room opens on its own (Genesis V2)",
+      "status": "VERIFIED",
+      "detail": "avatar elements: 0"
+    },
+    {
+      "name": "O01 standalone Room: companion steps into the world (one LÉLU)",
+      "status": "VERIFIED",
+      "detail": "{\"presence\":\"world\",\"visibility\":\"hidden\"}"
+    },
+    {
+      "name": "Standalone deep link ?interface=lelu-system",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Original LÉLU (Inner Sky) launches on its own",
+      "status": "VERIFIED",
+      "detail": "first load"
+    },
+    {
+      "name": "Composition holds Original LÉLU then LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": "og-inner-sky,lelu-room"
+    },
+    {
+      "name": "Original LÉLU is live inside the region",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Original LÉLU navigates inside its region; the app URL does not change",
+      "status": "VERIFIED",
+      "detail": "/og/app/chats · http://127.0.0.1:5173/"
+    },
+    {
+      "name": "Wheel-scrolling moves continuously from Original LÉLU into LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": "[{\"id\":\"og-inner-sky\",\"live\":false,\"current\":false},{\"id\":\"lelu-room\",\"live\":true,\"current\":true}]"
+    },
+    {
+      "name": "The Room is mounted live (Genesis V2 inside the region)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "One LÉLU → lelu-room is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 2, world 0"
+    },
+    {
+      "name": "World not mounted behind lelu-room",
+      "status": "VERIFIED",
+      "detail": "{\"total\":2,\"world\":0}"
+    },
+    {
+      "name": "O01 composed Room: companion steps into her Room (hidden + paused), her body is in the room",
+      "status": "VERIFIED",
+      "detail": "{\"presence\":\"world\",\"visibility\":\"hidden\"} · in-room bodies 1"
+    },
+    {
+      "name": "O07 lelu-room: ≤ 1 live WebGL region",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "One LÉLU → cosmos is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 3, world 2"
+    },
+    {
+      "name": "Cosmos region shows the ONE world through it (world mounted, room unmounted)",
+      "status": "VERIFIED",
+      "detail": "{\"total\":3,\"world\":2}"
+    },
+    {
+      "name": "O01 cosmos: companion is back beside you (not in a world)",
+      "status": "VERIFIED",
+      "detail": "{\"presence\":\"planned\",\"visibility\":\"visible\"}"
+    },
+    {
+      "name": "O07 cosmos: ≤ 1 live WebGL region",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "One LÉLU → lelu-system is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 1, world 0"
+    },
+    {
+      "name": "World not mounted behind lelu-system",
+      "status": "VERIFIED",
+      "detail": "{\"total\":1,\"world\":0}"
+    },
+    {
+      "name": "O01 lelu-system: companion is back beside you (not in a world)",
+      "status": "VERIFIED",
+      "detail": "{\"presence\":\"planned\",\"visibility\":\"visible\"}"
+    },
+    {
+      "name": "O07 lelu-system: ≤ 1 live WebGL region",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "One LÉLU → og-core is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 2, world 0"
+    },
+    {
+      "name": "World not mounted behind og-core",
+      "status": "VERIFIED",
+      "detail": "{\"total\":2,\"world\":0}"
+    },
+    {
+      "name": "O01 og-core: companion is back beside you (not in a world)",
+      "status": "VERIFIED",
+      "detail": "{\"presence\":\"planned\",\"visibility\":\"visible\"}"
+    },
+    {
+      "name": "O07 og-core: ≤ 1 live WebGL region",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O01 return to the composed Room: she is in it again, one body",
+      "status": "VERIFIED",
+      "detail": "{\"presence\":\"world\",\"visibility\":\"hidden\"} · in-room bodies 1"
+    },
+    {
+      "name": "O01 her 3D body is loaded and on camera in the composed Room",
+      "status": "VERIFIED",
+      "detail": "{\"chest\":{\"x\":756,\"y\":614,\"visible\":true},\"unavailable\":0}"
+    },
+    {
+      "name": "Editing a built-in forks a copy; One LÉLU is unchanged",
+      "status": "VERIFIED",
+      "detail": "comp-mwj8js6e-9-deds"
+    },
+    {
+      "name": "Clone makes an independent copy with lineage",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O03 rename through the drawer",
+      "status": "VERIFIED",
+      "detail": "Lifecycle test"
+    },
+    {
+      "name": "O03 Undo restores the previous name",
+      "status": "VERIFIED",
+      "detail": "My One LÉLU (copy)"
+    },
+    {
+      "name": "O03 Redo re-applies it",
+      "status": "VERIFIED",
+      "detail": "Lifecycle test"
+    },
+    {
+      "name": "O03 Merge opens a NEW composition holding both, with both in its lineage",
+      "status": "VERIFIED",
+      "detail": "og-inner-sky,lelu-room,cosmos,lelu-system,og-inner-sky,lelu-room"
+    },
+    {
+      "name": "O03 Merge leaves both sources unchanged",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O03 Split makes two parts (3 + 3), opens part 1, keeps the source",
+      "status": "VERIFIED",
+      "detail": "[{\"id\":\"comp-mwj8kh21-x-b347\",\"n\":3},{\"id\":\"comp-mwj8kh20-q-d3tn\",\"n\":3}]"
+    },
+    {
+      "name": "O03 Trash removes it and closes the view",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O03 Restore from the Infinite Library brings it back",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O03 Built-in compositions unchanged by the whole lifecycle",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Alternatives: four arrangements of the same interfaces",
+      "status": "VERIFIED",
+      "detail": "4"
+    },
+    {
+      "name": "A cinematic (horizontal) alternative opens",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Talk opens the shared chat over the composition (no new chat store)",
+      "status": "VERIFIED",
+      "detail": "conversations 2 → 2"
+    },
+    {
+      "name": "O04 /interfaces → interface.list ran through the dispatcher (activity record), 0 model calls; reply lists all six",
+      "status": "VERIFIED",
+      "detail": "provider=lelu-direct tools=interface.list:done"
+    },
+    {
+      "name": "O04 /open lélu system ui → the System UI is visibly on screen",
+      "status": "VERIFIED",
+      "detail": "Open lélu system ui — done on this device. 0 model calls, nothing sent anywhere.\n\n✓ Open lélu system ui (interface.open)"
+    },
+    {
+      "name": "O04 malformed /open is refused with the valid choices and the reply says it could not be done",
+      "status": "VERIFIED",
+      "detail": "Open a toaster — could not be done; the reason is below. 0 model calls, nothing sent anywhere.\n\n✗ Open a toaster (interf"
+    },
+    {
+      "name": "O04 unknown composition id is refused",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O04 /compose → interface.compose (WRITE) created AND opened the composition",
+      "status": "VERIFIED",
+      "detail": "og-inner-sky,lelu-room,cosmos · Compose original lélu + lélu's room + cosmos into one interface — done on this device. 0 model calls, nothing sent anywhere.\n\n✓ Compose orig"
+    },
+    {
+      "name": "O04 the dispatcher's activity records show every interface tool it ran, with its outcome",
+      "status": "VERIFIED",
+      "detail": "interface.list:done, interface.open:done, interface.open:failed, interface.compose:done · provider broker: no broker (got text/html — vite's page fallback)"
+    },
+    {
+      "name": "O04 provider-mediated (natural language → model → interface tools)",
+      "status": "NOT VERIFIED",
+      "detail": "no model provider reachable in this container (available: no broker (got text/html — vite's page fallback)); only the deterministic slash path was exercised",
+      "informational": true
+    },
+    {
+      "name": "O05 one chat store, AIService, agent store and memory orchestrator across Original LÉLU → Room → Cosmos → System → Core → Chat Universe",
+      "status": "VERIFIED",
+      "detail": "{\"sameInstances\":true,\"activeSame\":true,\"messageKept\":true,\"agents\":11,\"recalled\":[\"local\"]}"
+    },
+    {
+      "name": "O05 the active conversation and a written message survive the tour",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O05 agent registry unchanged by the tour",
+      "status": "VERIFIED",
+      "detail": "11 → 11"
+    },
+    {
+      "name": "O05 a memory written before the tour is recalled after it (same memory authority)",
+      "status": "VERIFIED",
+      "detail": "persist: {\"accepted\":[\"personality\",\"local\"],\"failed\":[]} · providers local:true supabase:false og-archive:true personality:true"
+    },
+    {
+      "name": "O05 Original LÉLU conversation history shares the Genesis conversation store",
+      "status": "PARTIAL",
+      "detail": "OG chat turns call the shared AIService (og/compat/chat.ts), but OG's conversation list/history is read from Supabase via og/lib/conversations.functions — a separate, pre-existing persistence. Unconfigured here, so OG lists none.",
+      "informational": true
+    },
+    {
+      "name": "O03 reload: every composition keeps its id, name, region keys and lineage",
+      "status": "VERIFIED",
+      "detail": "14 compositions"
+    },
+    {
+      "name": "O03 reload: no region references an interface that does not exist",
+      "status": "VERIFIED",
+      "detail": "0"
+    },
+    {
+      "name": "Compositions persist across a reload (listed in the Infinite Library)",
+      "status": "VERIFIED",
+      "detail": "14"
+    },
+    {
+      "name": "O06 iPhone (emulated): every nav button is on screen and the pointer's hit target",
+      "status": "VERIFIED",
+      "detail": "Home:ok Infinite Library:ok Open windows:ok Search (⌘K):ok Worlds:ok Settings:ok"
+    },
+    {
+      "name": "iPhone: scrolling moves from Original LÉLU into LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": "[{\"id\":\"og-inner-sky\",\"live\":false,\"current\":false},{\"id\":\"lelu-room\",\"live\":true,\"current\":true}]"
+    },
+    {
+      "name": "iPhone: one canvas at most (the Room's), world unmounted",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "No new page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "O07 external hosts contacted during the whole run",
+      "status": "OBSERVED",
+      "detail": "cdn.jsdelivr.net×8, nrehsldbfxthspikaxvr.supabase.co×5, export.arxiv.org×4",
+      "informational": true
+    }
+  ],
+  "errors": []
+}

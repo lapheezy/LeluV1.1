@@ -52,7 +52,7 @@ export const APPS: HomeApp[] = [
   { id: "history", label: "History", hint: "Past conversations", icon: "History", group: "system" },
   { id: "identity", label: "Identity", hint: "Who she is", icon: "Fingerprint", group: "system" },
   { id: "device", label: "Device", hint: "This device", icon: "Smartphone", group: "system" },
-  { id: "genesisv2", label: "Genesis V2", hint: "Her 3D world", icon: "Layers", group: "system" },
+  { id: "genesisv2", label: "LÉLU's Room", hint: "Her room in the Cosmos (Genesis V2)", icon: "Layers", group: "system" },
   { id: "settings", label: "Settings", hint: "Preferences", icon: "Settings", group: "system" },
 ];
 

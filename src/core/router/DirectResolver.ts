@@ -22,6 +22,53 @@ import type { AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import { compileDirect, DIRECT_COMMANDS, type DirectPlan } from "../creative/kit/DirectCompiler";
+import { parseWorkspaceCommand } from "../interface/WorkspaceSteward";
+import CosmosObjectStore from "../cosmos/objects/CosmosObjectStore";
+
+/**
+ * "Tile my windows", "put the browser beside the chat", "make this
+ * cinematic", "turn this into a research board": organising LÉLU's own
+ * environment is deterministic, so it is always executed here, through the
+ * real workspace.* tools, and never sent to a model. Explicit by design.
+ */
+export function workspacePlan(prompt: string): DirectPlan | null {
+  const command = parseWorkspaceCommand(prompt);
+  if (!command) return null;
+  const steps: DirectPlan["steps"] = [];
+  if (command.mode || command.open?.length) {
+    steps.push({ tool: "workspace.arrange", args: { layout: command.mode ?? "auto", modules: command.open ?? [] }, label: command.summary });
+  }
+  if (command.transform) steps.push({ tool: "workspace.transform", args: { to: command.transform }, label: command.summary });
+  if (command.stage) steps.push({ tool: "workspace.stage", args: { stage: command.stage }, label: command.transform ? `Showed it in the ${command.stage} workspace` : command.summary });
+  return steps.length ? { steps, summary: command.summary, explicit: true } : null;
+}
+
+/**
+ * LÉLU's interfaces (M17.1), as explicit commands — deterministic, so they
+ * never need a model and run through the real dispatcher like any tool:
+ *   /interfaces                 interface.list
+ *   /open <interface>           interface.open   ("/open genesis v2")
+ *   /open composition <id>      interface.open   (a saved composition)
+ *   /close composition          interface.open   { close: true }
+ *   /compose <a> + <b> [+ …]    interface.compose { action: create, open: true }
+ * Only the slash form is claimed here. "Open her room" in words is a
+ * request for the model, which may call the same tools.
+ */
+export function interfacePlan(prompt: string): DirectPlan | null {
+  const p = prompt.trim();
+  if (/^\/interfaces\s*$/i.test(p)) return { steps: [{ tool: "interface.list", args: {}, label: "List every interface and composition" }], summary: "List LÉLU's interfaces", explicit: true };
+  if (/^\/close\s+composition\s*$/i.test(p)) return { steps: [{ tool: "interface.open", args: { close: true }, label: "Close the composition" }], summary: "Close the composition", explicit: true };
+  const comp = /^\/open\s+composition\s+(\S+)\s*$/i.exec(p);
+  if (comp) return { steps: [{ tool: "interface.open", args: { composition: comp[1] }, label: `Open composition ${comp[1]}` }], summary: `Open composition ${comp[1]}`, explicit: true };
+  const open = /^\/open\s+(.+)$/i.exec(p);
+  if (open) return { steps: [{ tool: "interface.open", args: { interface: open[1].trim() }, label: `Open ${open[1].trim()}` }], summary: `Open ${open[1].trim()}`, explicit: true };
+  const compose = /^\/compose\s+(.+)$/i.exec(p);
+  if (compose) {
+    const parts = compose[1].split(/\s*(?:\+|→|->|,|\bthen\b)\s*/i).map((x) => x.trim()).filter(Boolean);
+    return { steps: [{ tool: "interface.compose", args: { action: "create", interfaces: parts, open: true }, label: `Compose ${parts.join(" + ")}` }], summary: `Compose ${parts.join(" + ")} into one interface`, explicit: true };
+  }
+  return null;
+}
 
 /**
  * How much of a step's output belongs in the reply.
@@ -64,10 +111,59 @@ function readingOf(content: string, max = 420): string {
   return `${cut > max * 0.6 ? head.slice(0, cut) : head}… (the page is open in the conversation above)`;
 }
 
+/**
+ * One plan per request, when both direct planners recognise it.
+ *
+ * The Workspace Steward reads "diagram", "movie" and "3D" as STAGE words
+ * ("turn this into a board", "make it cinematic", "go 3D"); the creative kit
+ * reads them as things to MAKE ("make an architecture diagram of LÉLU",
+ * "make a movie about tides", "make me a 3D forest"). Measured on the merged
+ * tree: the stage parser claimed all three and no artifact was made. A stage
+ * change wins only when the request points at the conversation itself;
+ * window organisation (tile, split, focus…) is never a creative request.
+ */
+export function directPlanFor(prompt: string): DirectPlan | null {
+  const iface = interfacePlan(prompt);
+  if (iface) return iface;
+  const workspace = workspacePlan(prompt);
+  const creative = compileDirect(prompt);
+  if (!workspace) return creative;
+  if (!creative) return workspace;
+  // M17.3: "move the gear next to the cabin" read as a window split was the
+  // M17.2 finding O09. The words alone cannot tell an object from a window;
+  // what the names RESOLVE to can. When every name the object plan uses is a
+  // real Cosmos object, it is an object operation; otherwise the windows keep it.
+  if (namesCosmosObjects(creative)) return creative;
+  // A sentence that names no window but does name a Cosmos object ("move the
+  // spaceship next to the cabin") is about objects: the object tool refuses
+  // the unknown name instead of the windows being split.
+  const windowsNamed = workspace.steps.some((step) => Array.isArray(step.args.modules) && step.args.modules.length > 0);
+  if (!windowsNamed && namesCosmosObjects(creative, "any")) return creative;
+  const stageOnly = workspace.steps.every((step) => step.tool === "workspace.stage");
+  const aboutTheConversation = /\b(this|it|the (chat|conversation|thread|workspace|view|screen)|our (chat|conversation)|my (chat|conversation|workspace))\b/i.test(prompt);
+  return stageOnly && !aboutTheConversation ? creative : workspace;
+}
+
+/**
+ * True when the plan is Cosmos object operations and every object it names
+ * (object / near / into) resolves to at least one live Cosmos object. "it"
+ * needs another named object to count, so "put it next to the chat" stays a
+ * window command. Ambiguous names still count as objects: the tool then asks
+ * which one, instead of the windows being rearranged.
+ */
+export function namesCosmosObjects(plan: DirectPlan, mode: "all" | "any" = "all"): boolean {
+  if (!plan.steps.length || !plan.steps.every((step) => step.tool.startsWith("cosmos.object."))) return false;
+  const store = CosmosObjectStore.getInstance();
+  const names = plan.steps.flatMap((step) => ["object", "near", "into"].map((k) => step.args[k]).filter((v): v is string => typeof v === "string" && v.trim() !== ""));
+  const named = names.filter((v) => !/^(it|that|this|them)$/i.test(v.trim()));
+  const hit = (v: string) => store.match(v).candidates.length > 0;
+  return named.length > 0 && (mode === "all" ? named.every(hit) : named.some(hit));
+}
+
 export default class DirectResolver {
   /** The plan for this turn, if it has one. Pure. */
   public plan(context: RouterContext): DirectPlan | null {
-    return compileDirect(context.request.prompt ?? "");
+    return directPlanFor(context.request.prompt ?? "");
   }
 
   /** Is any model provider able to take the turn right now? */
@@ -93,13 +189,31 @@ export default class DirectResolver {
         { path: "direct" },
       );
       ran.push({ tool: step.tool, ok: result.ok });
-      const detail = step.tool === "browser.read" ? pageLine(step.args, result) : readingOf(result.content);
+      // interface.* results are short, structured lists written for the
+      // reply; the page-extract trimmer (readingOf) cut their header and
+      // claimed "the page is open above". (M17.1)
+      const detail = step.tool === "browser.read" ? pageLine(step.args, result) : step.tool.startsWith("interface.") ? result.content : readingOf(result.content);
       lines.push(`${result.ok ? "✓" : "✗"} ${step.label} (${step.tool})\n${detail.split("\n").map((l) => `  ${l}`).join("\n")}`);
     }
     const okCount = ran.filter((r) => r.ok).length;
     const onScene = plan.steps.every((step) => step.tool.startsWith("cosmos.object."));
-    const preface = onScene
+    const workspace = plan.steps.every((step) => step.tool.startsWith("workspace."));
+    // interface.* summaries are written as the REQUEST ("Open LÉLU's Room"),
+    // so the preface can say truthfully whether it happened. (M17.1: a
+    // refused "/open a toaster" used to begin "Opened a toaster. Done…".)
+    const interfaces = plan.steps.every((step) => step.tool.startsWith("interface."));
+    const preface = interfaces
+      ? okCount === ran.length
+        ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`
+        : `${plan.summary} — could not be done; the reason is below. 0 model calls, nothing sent anywhere.`
+      : onScene && okCount < ran.length
+      ? // M17.3: a refused or ambiguous object operation is not "done" — it was
+        // reported as "Done locally…" above a ✗ and a question.
+        `Not done — nothing in the Cosmos changed; the reason${ran.length > 1 ? "s are" : " is"} below (${plan.summary}). 0 model calls.`
+      : onScene
       ? `Done locally on the Cosmos scene${reason === "no-provider" ? " (no model provider is reachable, and none was needed)" : " — no model involved"}: ${plan.summary}.`
+      : workspace
+      ? `${plan.summary}. Done on this device — 0 model calls, nothing sent anywhere.`
       : reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"

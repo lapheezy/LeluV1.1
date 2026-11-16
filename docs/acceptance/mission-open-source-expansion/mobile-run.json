@@ -1,0 +1,41 @@
+{
+  "device": "iPhone 13 (Chromium emulation)",
+  "at": "2026-11-14T21:28:22.969Z",
+  "heapMB": 528,
+  "windows": [
+    {
+      "w": 360,
+      "h": 558,
+      "fits": true
+    }
+  ],
+  "modelCalls": 0,
+  "errors": [],
+  "results": [
+    {
+      "name": "m1-art: “/art orbits neon” executed on a phone viewport without a model",
+      "ok": true,
+      "detail": "6548 ms · horizontal overflow 0px · Done directly with my own tools (no model involved): generative orbits artwork (neon)."
+    },
+    {
+      "name": "m2-scene: “/scene ocean” executed on a phone viewport without a model",
+      "ok": true,
+      "detail": "6801 ms · horizontal overflow 0px · Done directly with my own tools (no model involved): 3D ocean environment → GLB."
+    },
+    {
+      "name": "m3-diagram: “/diagram phone -> chat -> tools -> files” executed on a phone viewport without a model",
+      "ok": true,
+      "detail": "6162 ms · horizontal overflow 0px · Done directly with my own tools (no model involved): diagram (from arrows)."
+    },
+    {
+      "name": "artifact windows fit the phone width",
+      "ok": true,
+      "detail": "[{\"w\":360,\"h\":558,\"fits\":true}]"
+    },
+    {
+      "name": "no model calls, no page errors",
+      "ok": true,
+      "detail": "0 model calls · heap 528 MB · "
+    }
+  ]
+}

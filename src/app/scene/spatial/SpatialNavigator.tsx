@@ -33,6 +33,7 @@ import { layer } from "../../../core/ui/Layers";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
 import { DOCK_GLYPHS, orderedGroups } from "./capabilityGroups";
 import SavedWorlds from "./SavedWorlds";
+import { requestSpatialNav, useSpatialNavShown } from "./spatialNavVisibility";
 
 function useSpatialState(): SpatialState {
   const runtime = SpatialRuntime.getInstance();
@@ -98,6 +99,9 @@ export default function SpatialNavigator() {
   const surface = useSurface();
   const workspace = useWorkspace();
   const compact = chatFillsScreen(workspace);
+  /* The bar is put away by default: only a small tab on the left edge shows
+     until she opens it (the tab, the menu, or by asking LÉLU). */
+  const shown = useSpatialNavShown();
   /* Collapsed until the person opens it. Opened by default it covered the
      home's Notifications and App Library cards on desktop right after guest
      entry; the rail itself stays visible, one tap away. */
@@ -182,26 +186,35 @@ export default function SpatialNavigator() {
      covered the textarea and the typed turn could not be entered. */
   const navRef = useRef<HTMLDivElement | null>(null);
   const [lift, setLift] = useState(0);
+  /* M17.1: and never over the Home's navigation bar. On a desktop the rail
+     and the bar shared the bottom centre, and the rail — at the root, above
+     the interface's own stacking context — took the pointer: the bar's
+     Worlds button could not be clicked at 1440 px. The rail now clears the
+     bar the same way it clears the composer: measured, not hard-coded. */
   useEffect(() => {
-    if (!chatOpen || hidden) {
+    if (hidden) {
       setLift(0);
       return;
     }
     let frame = 0;
+    const box = (el: Element | null) => {
+      const r = el?.getBoundingClientRect();
+      return r && r.width > 0 && r.height > 0 ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right } : null;
+    };
     const measure = () => {
       frame = 0;
       const nav = navRef.current;
-      const composer = document.querySelector("[data-lelu-composer]");
-      if (!nav || !composer) {
-        setLift((value) => (value === 0 ? value : 0));
-        return;
-      }
+      if (!nav) return;
       const r = nav.getBoundingClientRect();
       // The rect at the natural (un-lifted) position.
       const current = Number(nav.dataset.spatialComposerClearance ?? 0) || 0;
       const natural = { top: r.top + current, bottom: r.bottom + current, left: r.left, right: r.right };
-      const c = composer.getBoundingClientRect();
-      const next = composerLift(natural, { top: c.top, bottom: c.bottom, left: c.left, right: c.right });
+      const obstacles = [
+        chatOpen ? box(document.querySelector("[data-lelu-composer]")) : null,
+        box(document.querySelector('nav.lsn[data-hidden="false"] .lsn-bar')),
+        box(document.querySelector('nav.lsn[data-hidden="false"] .lsn-orb')),
+      ];
+      const next = Math.max(0, ...obstacles.map((o) => composerLift(natural, o)));
       if (next > 0 && liftOverflowsTop(natural, next, 8) && open) {
         setOpen(false);
         return;
@@ -212,8 +225,9 @@ export default function SpatialNavigator() {
       if (!frame) frame = requestAnimationFrame(measure);
     };
     schedule();
-    // The chat window can be dragged or resized, and the composer grows
-    // with its text: re-measure on resize, and on a slow interval.
+    // The chat window can be dragged or resized, the composer grows with its
+    // text, and the bar mounts/hides with the surface: re-measure on resize
+    // and on a slow interval.
     const timer = window.setInterval(schedule, 400);
     window.addEventListener("resize", schedule);
     return () => {
@@ -234,7 +248,60 @@ export default function SpatialNavigator() {
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
   }, [open]);
 
+  /* Escape puts the bar away again. */
+  /* Only while the bar is on screen: Escape that closes a chat or a window
+     must not also put the bar away behind it. */
+  useEffect(() => {
+    if (!shown || hidden) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") requestSpatialNav(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shown, hidden]);
+
   if (hidden) return null;
+
+  if (!shown) {
+    return (
+      <button
+        type="button"
+        data-spatial-nav-tab
+        aria-label={travelling ? `Show spatial navigation — travelling, ${progress}%` : "Show spatial navigation"}
+        title="Spatial navigation"
+        onClick={() => requestSpatialNav(true)}
+        style={{
+          position: "fixed",
+          left: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: layer("navigation"),
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 6,
+          width: 24,
+          padding: "10px 0",
+          borderRadius: "0 12px 12px 0",
+          border: "1px solid rgba(125,211,252,0.22)",
+          borderLeft: "none",
+          background: "rgba(4,10,26,0.62)",
+          color: travelling ? active.accent : "rgba(165,243,252,0.85)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          cursor: "pointer",
+          pointerEvents: "auto",
+          font: "700 9px system-ui, sans-serif",
+          letterSpacing: "0.14em",
+        }}
+      >
+        <span aria-hidden style={{ fontSize: 12 }}>◎</span>
+        <span aria-hidden style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", textTransform: "uppercase" }}>
+          {travelling ? `${progress}%` : "Spatial"}
+        </span>
+      </button>
+    );
+  }
 
   const button = (scene: SpatialSceneId) => {
     const destination = destinationFor(scene);
@@ -328,7 +395,8 @@ export default function SpatialNavigator() {
         position: "fixed",
         left: compact ? 8 : 92,
         right: 12,
-        bottom: compact ? "calc(84px + env(safe-area-inset-bottom, 0px))" : 20,
+        /* Above the Home's own bottom navigation, never on top of it. */
+        bottom: compact ? "calc(84px + env(safe-area-inset-bottom, 0px))" : 100,
         zIndex: layer("navigation"),
         display: "flex",
         flexDirection: "column",
@@ -467,6 +535,11 @@ export default function SpatialNavigator() {
         {compact
           ? null
           : control("Minimise the interface", "—", () => minimize(), { testId: "minimise" })}
+
+        {control("Hide the spatial bar", "✕", () => {
+          setOpen(false);
+          requestSpatialNav(false);
+        }, { testId: "hide", title: "Put the spatial bar away (it stays on the left edge)" })}
       </div>
 
       {/* Grouped capabilities, not a row of unrelated chips: the group the

@@ -253,7 +253,7 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
           ? extractReadable(page.body)
           : { title: "", text: page.body.replace(/\s+/g, " ").trim() };
         if (text.length < THIN_PAGE_CHARS && !renderFirst && (await tryRendered("thin page"))) return;
-        sendJson(res, { ok: true, url: page.url, title, text, truncated: page.truncated, redirects: page.redirects.length, via: "direct" });
+        sendJson(res, { ok: true, url: page.url, title, text, truncated: page.truncated, redirects: page.redirects.length, via: "direct", embeddable: page.embeddable });
       } catch (error) {
         if (error instanceof SafeFetchError) {
           // An internal address or a bad URL is final; a site that refused

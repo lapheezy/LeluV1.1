@@ -1,0 +1,74 @@
+{
+  "at": "2026-11-14T21:12:56.396Z",
+  "flags": "--no-sandbox (default GPU handling)",
+  "renderMs": 115060,
+  "info": "WebCodecs · vp9 · 960×540 · 17.5 s · 525 frames · 2566 KB · encoded in 101.2 s · soundtrack",
+  "probe": {
+    "video": {
+      "codec": "vp9",
+      "width": 960,
+      "height": 540,
+      "frames": 525
+    },
+    "audio": {
+      "codec": "opus",
+      "frames": 876
+    },
+    "duration": 17.52
+  },
+  "mediaRecorder": {
+    "raf": 4,
+    "path": "mediarecorder",
+    "codec": "video/webm;codecs=vp9,opus",
+    "seconds": 6,
+    "size": "640x360",
+    "encodeMs": 8587,
+    "probe": {
+      "video": {
+        "codec": "vp9",
+        "width": 640,
+        "height": 360,
+        "frames": 12
+      },
+      "audio": {
+        "codec": "opus",
+        "frames": 100
+      },
+      "duration": null
+    }
+  },
+  "modelCalls": 0,
+  "errors": [],
+  "results": [
+    {
+      "name": "chat “/film ocean tides” opened a film window (no model)",
+      "ok": true,
+      "detail": "0 model calls"
+    },
+    {
+      "name": "film window: Render button produced a playable video",
+      "ok": true,
+      "detail": "WebCodecs · vp9 · 960×540 · 17.5 s · 525 frames · 2566 KB · encoded in 101.2 s · soundtrack · wall 115 s"
+    },
+    {
+      "name": "film window (ffprobe): 525 frames, VP9/VP8 + Opus, 17.5 s",
+      "ok": true,
+      "detail": "{\"video\":{\"codec\":\"vp9\",\"width\":960,\"height\":540,\"frames\":525},\"audio\":{\"codec\":\"opus\",\"frames\":876},\"duration\":17.52}"
+    },
+    {
+      "name": "film window: the <video> plays",
+      "ok": true,
+      "detail": "{\"t\":2.345625,\"w\":960,\"h\":540,\"d\":17.52}"
+    },
+    {
+      "name": "MediaRecorder fallback (ffprobe): a valid WebM with video and audio",
+      "ok": true,
+      "detail": "12 frames / 6s at 640x360; page paints 4/s → ceiling 24 · video/webm;codecs=vp9,opus · 8587 ms · {\"video\":{\"codec\":\"vp9\",\"width\":640,\"height\":360,\"frames\":12},\"audio\":{\"codec\":\"opus\",\"frames\":100},\"duration\":null}"
+    },
+    {
+      "name": "no model calls and no page errors",
+      "ok": true,
+      "detail": "0 model calls · "
+    }
+  ]
+}

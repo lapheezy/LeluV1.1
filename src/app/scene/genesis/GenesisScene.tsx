@@ -96,6 +96,9 @@ import { useLeluRuntime }
 import { IS_DEV }
   from "../../../core/env/buildEnv";
 
+import { useCompositionCoversWorld, useCompositionOpen }
+  from "./interfaces/useInterfaceCompositions";
+
 
 
 /**
@@ -157,6 +160,10 @@ const VisualBridge = lazy(() => import("./VisualBridge"));
 const GenesisSurfaceController = lazy(() => import("./GenesisSurfaceController"));
 const GenesisNotificationCenter = lazy(() => import("./GenesisNotificationCenter"));
 const EngineTick = lazy(() => import("./EngineTick"));
+/* Mission 17: the interface launcher, standalone deep links and the
+   continuous composition view. Its own chunk; the composition view inside
+   it is a further chunk fetched only when a composition opens. */
+const InterfaceShell = lazy(() => import("./interfaces/InterfaceShell"));
 
 /*
  * The readiness dashboard is an INTERNAL surface: it exists so "the app is
@@ -623,6 +630,14 @@ function GenesisWorkspaceRouter() {
 
   const v2Active = state.activeScene === "genesisv2";
   const systemActive = !v2Active && visualState.interfaceFocus === "visual";
+  /* An open interface composition (Mission 17) draws its own regions over
+     the world. While the region in view is not the Cosmos, the world is
+     behind an opaque region: it is not mounted at all (the Core, cognition
+     and the engine tick carry on — exactly as when chat owns a phone).
+     When the Cosmos region is in view, this same world is what shows
+     through it. */
+  const compositionCoversWorld = useCompositionCoversWorld();
+  const compositionOpen = useCompositionOpen();
 
   return (
     <>
@@ -664,6 +679,8 @@ function GenesisWorkspaceRouter() {
             <LivingSystemUI key="lelu-system" />
           </GenesisErrorBoundary>
         </Suspense>
+      ) : compositionCoversWorld ? (
+        null
       ) : (
         /* PAGE 1 — the Genesis v1 cosmic world. */
         <GenesisErrorBoundary>
@@ -722,12 +739,17 @@ function GenesisWorkspaceRouter() {
         <EngineTick />
       </Suspense>
 
+      {/* Interfaces (Mission 17): launcher, deep links, compositions. */}
+      <Suspense fallback={null}>
+        <InterfaceShell />
+      </Suspense>
+
       {/*
         * COSMOS UI — floating navigation and overview.
         * These are HTML/CSS layers above the canvas, only visible
         * in the v1 workspace (not v2 or system).
         */}
-      {surface.cosmosRendered && !v2Active && !systemActive && (
+      {surface.cosmosRendered && !v2Active && !systemActive && !compositionOpen && (
         <Suspense fallback={null}>
           <CosmosOverview />
         </Suspense>

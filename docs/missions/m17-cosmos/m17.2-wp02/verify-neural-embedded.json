@@ -1,0 +1,880 @@
+{
+  "at": "2026-11-16T07:59:53.133Z",
+  "results": [
+    {
+      "objective": "O01",
+      "name": "Every interface's authority is connected to the ONE map (cosmos, rooms, room, tools, interfaces + chats, studio, projects, sandbox, home)",
+      "status": "VERIFIED",
+      "detail": "{\"cosmos.objects\":{\"entities\":0,\"relations\":0},\"cosmos.navigation\":{\"entities\":1,\"relations\":0},\"cosmos.placements\":{\"entities\":0,\"relations\":0},\"room.scene\":{\"entities\":0,\"relations\":0},\"interfaces\":{\"entities\":9,\"relations\":11},\"tools\":{\"entities\":42,\"relations\":0},\"home\":{\"entities\":32,\"relations\":44},\"chats\":{\"entities\":2,\"relations\":0},\"studio\":{\"entities\":0,\"relations\":0},\"projects\":{\"entities\":2,\"relations\":0},\"sandbox\":{\"entities\":0,\"relations\":0}}"
+    },
+    {
+      "objective": "O02",
+      "name": "Home: its own ◈ Neural toggle opens the card inside the Home on the Home itself (app:home)",
+      "status": "VERIFIED",
+      "detail": "app:home"
+    },
+    {
+      "objective": "O05",
+      "name": "Home: the card shows the Home's apps and its destinations (the interfaces it leads to)",
+      "status": "VERIFIED",
+      "detail": "37 presents"
+    },
+    {
+      "objective": "O02",
+      "name": "Home: follow a relationship inside the card → the Code app, which is operated by sandbox.read / sandbox.write",
+      "status": "VERIFIED",
+      "detail": "presents:in>app:home, operated-by:out>capability:sandbox.read, operated-by:out>capability:sandbox.write"
+    },
+    {
+      "objective": "O02",
+      "name": "Home: ← walks back to the Home",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O06",
+      "name": "Home: Open map → the standalone Neural Map opens OVER Home on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "app:home → app:home · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "Home: Return → back in Home, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "app:home"
+    },
+    {
+      "objective": "O04",
+      "name": "Create (chat): a built cabin is put into the Cosmos — lelu-direct, 0 model calls",
+      "status": "VERIFIED",
+      "detail": [
+        "cosmos.object.spawn:done"
+      ]
+    },
+    {
+      "objective": "O02",
+      "name": "Chat Universe: its ◈ Neural toggle opens the card in the Universe on the current chat (record:conversation:…, owned by chats)",
+      "status": "VERIFIED",
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+    },
+    {
+      "objective": "O05",
+      "name": "Chat Universe: the chat shows what it created — the cabin's artifact (created-from, read from the Studio's own record)",
+      "status": "VERIFIED",
+      "detail": "created-from:in>record:artifact:art_e6b29e9de556"
+    },
+    {
+      "objective": "O02",
+      "name": "Chat Universe: the interface's own action is offered (Open chat)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O04",
+      "name": "Create (live): with the card open, the new gearbox artifact appears on the chat without reopening it",
+      "status": "VERIFIED",
+      "detail": "created-from:in>record:artifact:art_6e6217422665, created-from:in>record:artifact:art_e6b29e9de556"
+    },
+    {
+      "objective": "O07",
+      "name": "Create updated only partitions whose authority really changed, each touching only the changed entities — no full rebuild",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1],[\"cosmos.objects\",3],[\"chats\",1],[\"projects\",1]]"
+    },
+    {
+      "objective": "O03",
+      "name": "Chat Universe: follow → the artifact is ONE entity, owned by the Studio (not a copy, not a placeholder)",
+      "status": "VERIFIED",
+      "detail": "record:artifact:art_6e6217422665 · studio"
+    },
+    {
+      "objective": "O03",
+      "name": "Chat Universe: follow → the Cosmos object made from it — the same canonical id the Cosmos uses",
+      "status": "VERIFIED",
+      "detail": "located-in:out>cosmos.place:cosmos-core, created-from:out>record:artifact:art_6e6217422665"
+    },
+    {
+      "objective": "O06",
+      "name": "Chat Universe: Open map → the standalone Neural Map opens OVER Chat Universe on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "cosmos.object:obj_2 → cosmos.object:obj_2 · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "Chat Universe: Return → back in Chat Universe, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "cosmos.object:obj_2"
+    },
+    {
+      "objective": "O04",
+      "name": "Attach (chat: attach the gear into the cabin) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "active · attached-to:out,created-from:out · cosmos.object.integrate:done"
+    },
+    {
+      "objective": "O04",
+      "name": "Extract (chat: take the gear out) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "active · located-in:out,extracted-from:out,created-from:out · cosmos.object.extract:done"
+    },
+    {
+      "objective": "O04",
+      "name": "Move (cosmos.object.transform through the dispatcher) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "active · located-in:out,extracted-from:out,created-from:out "
+    },
+    {
+      "objective": "O04",
+      "name": "Move changes the card's position only; its relationships are unchanged",
+      "status": "VERIFIED",
+      "detail": "3,0,-12.8 → 7,1,-12"
+    },
+    {
+      "objective": "O04",
+      "name": "Modify (cosmos.object.animate: spin) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "active · located-in:out,extracted-from:out,created-from:out "
+    },
+    {
+      "objective": "O04",
+      "name": "Duplicate (chat: duplicate the gear) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "active · located-in:out,derived-from:in,extracted-from:out,created-from:out · cosmos.object.duplicate:done"
+    },
+    {
+      "objective": "O04",
+      "name": "Remove (the card's own Remove button → cosmos.object.remove) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "trashed · derived-from:in,extracted-from:out,created-from:out "
+    },
+    {
+      "objective": "O04",
+      "name": "Restore (the card's own Restore button → cosmos.object.restore) → the open card updates live",
+      "status": "VERIFIED",
+      "detail": "active · located-in:out,derived-from:in,extracted-from:out,created-from:out "
+    },
+    {
+      "objective": "O07",
+      "name": "Every live operation updated only the partitions of the authorities it changed (no full-graph rebuild)",
+      "status": "VERIFIED",
+      "detail": "[true,true,true,true,true,true,true]"
+    },
+    {
+      "objective": "O02",
+      "name": "Creation Studio: an artifact card's ◈ Neural opens the card inside the Studio on that artifact",
+      "status": "VERIFIED",
+      "detail": "record:artifact:art_6e6217422665"
+    },
+    {
+      "objective": "O03",
+      "name": "Creation Studio: the SAME id Chat Universe showed, with the same relations (the chat it came from; the Cosmos object made from it)",
+      "status": "VERIFIED",
+      "detail": "created-from:out>record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2, created-from:in>cosmos.object:obj_2, created-from:in>cosmos.object:obj_3"
+    },
+    {
+      "objective": "O05",
+      "name": "Creation Studio: revisions and exports are the artifact's history; its operations are the Studio's tools",
+      "status": "VERIFIED",
+      "detail": "studio.open,studio.read"
+    },
+    {
+      "objective": "O02",
+      "name": "Creation Studio: Read revisions runs studio.read through the dispatcher and reports back in the card",
+      "status": "VERIFIED",
+      "detail": "true"
+    },
+    {
+      "objective": "O03",
+      "name": "Creation Studio → follow → the chat: the same record:conversation id Chat Universe uses",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O06",
+      "name": "Creation Studio: Open map → the standalone Neural Map opens OVER Creation Studio on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2 → record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2 · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "Creation Studio: Return → back in Creation Studio, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+    },
+    {
+      "objective": "O02",
+      "name": "Projects: its ◈ Neural toggle opens the card on the selected project (record:project:…, owned by projects)",
+      "status": "VERIFIED",
+      "detail": "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
+    },
+    {
+      "objective": "O05",
+      "name": "Projects: status, items and agents read from the project; the interface's own action is offered",
+      "status": "VERIFIED",
+      "detail": "Identityrecord:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cfOwned byprojects · ca920f97-4a27-4d39-b0b6-ad502e08c2cfstatus"
+    },
+    {
+      "objective": "O06",
+      "name": "Projects: Open map → the standalone Neural Map opens OVER Projects on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf → record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "Projects: Return → back in Projects, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
+    },
+    {
+      "objective": "O02",
+      "name": "Code: its ◈ Neural toggle opens the card on the file open in the editor (sandbox:…)",
+      "status": "VERIFIED",
+      "detail": "sandbox:projects/neural-shop/index.html"
+    },
+    {
+      "objective": "O05",
+      "name": "Code: a file is part of its folder (read from its path); its operations are sandbox.read / sandbox.write",
+      "status": "VERIFIED",
+      "detail": "part-of:out>sandbox:projects/neural-shop"
+    },
+    {
+      "objective": "O02",
+      "name": "Code: Read file runs sandbox.read through the dispatcher",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O04",
+      "name": "Code: a file written through sandbox.write appears in the open folder card live (SandboxFS now notifies; only the sandbox partition updates)",
+      "status": "VERIFIED",
+      "detail": "[\"sandbox\"]"
+    },
+    {
+      "objective": "O06",
+      "name": "Code: Open map → the standalone Neural Map opens OVER Code on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "sandbox:projects/neural-shop → sandbox:projects/neural-shop · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "Code: Return → back in Code, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "sandbox:projects/neural-shop"
+    },
+    {
+      "objective": "O02",
+      "name": "Engineering Studio: its ◈ Neural toggle opens the card in the Studio on the Studio itself",
+      "status": "VERIFIED",
+      "detail": "app:eng-studio"
+    },
+    {
+      "objective": "O05",
+      "name": "Engineering Studio: operated by engineering.remote; server-only data is named as NOT indexed instead of invented",
+      "status": "VERIFIED",
+      "detail": "Not in the map: engineering tasks, workspace locks and engines — they come from the server's /api/integration/engineering payload, which no client authority holds, so they are shown here but not indexed"
+    },
+    {
+      "objective": "O06",
+      "name": "Engineering Studio: Open map → the standalone Neural Map opens OVER Engineering Studio on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "app:eng-studio → app:eng-studio · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "Engineering Studio: Return → back in Engineering Studio, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "app:eng-studio"
+    },
+    {
+      "objective": "O02",
+      "name": "System UI: its ◈ Neural toggle (in its own nav) opens the card in the System UI on interface:lelu-system",
+      "status": "VERIFIED",
+      "detail": "interface:lelu-system"
+    },
+    {
+      "objective": "O05",
+      "name": "System UI: it is presented by the Home and offered to open; its live modes are named as not indexed",
+      "status": "VERIFIED",
+      "detail": "presents:in>composition:one-lelu, presents:in>composition:room-and-cosmos, presents:in>app:home"
+    },
+    {
+      "objective": "O06",
+      "name": "System UI: Open map → the standalone Neural Map opens OVER System UI on the same canonical id",
+      "status": "VERIFIED",
+      "detail": "interface:lelu-system → interface:lelu-system · layer over · on top true"
+    },
+    {
+      "objective": "O06",
+      "name": "System UI: Return → back in System UI, its card still on the same entity",
+      "status": "VERIFIED",
+      "detail": "interface:lelu-system"
+    },
+    {
+      "objective": "O06",
+      "name": "Deep link ?interface=neural-map&entity=<chat> still opens the standalone map on that chat (no card involved)",
+      "status": "VERIFIED",
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+    },
+    {
+      "objective": "O06",
+      "name": "The standalone map needs no card, and no card needs the standalone map (0 cards mounted here)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O06",
+      "name": "The Infinite Library still lists the Neural Map as its own interface",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O07",
+      "name": "A card subscribes while open and releases every subscription when closed: 6 open/close cycles in two interfaces leave the count where it was",
+      "status": "VERIFIED",
+      "detail": "0 → peak 10 while open → 0 after"
+    },
+    {
+      "objective": "O09",
+      "name": "FINDING (open): chat 'move the gear next to the cabin' runs the workspace tools, not cosmos.object.position",
+      "status": "OBSERVED",
+      "informational": true,
+      "detail": "{\"provider\":\"lelu-direct\",\"tools\":[\"workspace.arrange:done\"],\"gearPositionBefore\":[7,1,-12],\"gearPositionAfter\":[7,1,-12],\"reply\":\"Split the workspace side by side. Done on this device — 0 model calls, nothing sent anywhere.\\n\\n✓ Split the workspace side by side (workspace.arrange)\\n  Workspac\"}"
+    },
+    {
+      "objective": "O08",
+      "name": "Reload: every chat, artifact, project, file, app and object keeps its canonical id and relations (re-derived, nothing duplicated)",
+      "status": "VERIFIED",
+      "detail": "50 entities · 60 relations"
+    },
+    {
+      "objective": "O08",
+      "name": "After the whole run and a reload: 0 dangling relations, 0 duplicate identities",
+      "status": "VERIFIED",
+      "detail": "{\"dangling\":[],\"duplicates\":[]}"
+    },
+    {
+      "objective": "O08",
+      "name": "iPhone (EMULATED): the Home card opens, fits the screen and is on top",
+      "status": "VERIFIED",
+      "detail": "{\"x\":41,\"y\":74,\"w\":340,\"h\":388.09375}"
+    },
+    {
+      "objective": "O08",
+      "name": "iPhone (EMULATED): tap a relationship → LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O08",
+      "name": "iPhone (EMULATED): the Chat Universe card opens on the current chat and fits",
+      "status": "VERIFIED",
+      "detail": "{\"x\":37,\"y\":96,\"w\":340,\"h\":457.65625}"
+    },
+    {
+      "objective": "O08",
+      "name": "No new page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    }
+  ],
+  "ops": [
+    {
+      "via": "chat",
+      "text": "/build cabin",
+      "ms": 981,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "put it into the cosmos",
+      "ms": 7373,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "/build gearbox",
+      "ms": 5672,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0.2,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "put it into the cosmos",
+      "ms": 832,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.2,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "attach obj_2 into the cabin",
+      "ms": 711,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.integrate:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Attach (chat: attach the gear into the cabin)",
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+          ]
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3,
+          "ids": [
+            "cosmos.object:obj_1",
+            "cosmos.object:obj_2",
+            "cosmos.place:cosmos-core"
+          ]
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+          ]
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1,
+          "ids": [
+            "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "take the gear out",
+      "ms": 2945,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.extract:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Extract (chat: take the gear out)",
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+          ]
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 3,
+          "ids": [
+            "cosmos.object:obj_2",
+            "cosmos.place:cosmos-core",
+            "cosmos.object:obj_1"
+          ]
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+          ]
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1,
+          "ids": [
+            "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Move (cosmos.object.transform through the dispatcher)",
+      "mapUpdates": [
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 1,
+          "ids": [
+            "cosmos.object:obj_2"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Modify (cosmos.object.animate: spin)",
+      "mapUpdates": [
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "cosmos.object:obj_2"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "duplicate the gear",
+      "ms": 781,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.duplicate:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.2,
+          "changed": 4
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Duplicate (chat: duplicate the gear)",
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+          ]
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.2,
+          "changed": 4,
+          "ids": [
+            "cosmos.object:obj_3",
+            "cosmos.place:cosmos-core",
+            "cosmos.object:obj_2",
+            "record:artifact:art_6e6217422665"
+          ]
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
+          ]
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1,
+          "ids": [
+            "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Remove (the card's own Remove button → cosmos.object.remove)",
+      "mapUpdates": [
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 2,
+          "ids": [
+            "cosmos.object:obj_2",
+            "cosmos.place:cosmos-core"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "live",
+      "text": "Restore (the card's own Restore button → cosmos.object.restore)",
+      "mapUpdates": [
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.2,
+          "changed": 2,
+          "ids": [
+            "cosmos.object:obj_2",
+            "cosmos.place:cosmos-core"
+          ]
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "move the gear next to the cabin",
+      "ms": 8973,
+      "provider": "lelu-direct",
+      "tools": [
+        "workspace.arrange:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    }
+  ],
+  "perf": {
+    "listeners": [
+      {
+        "at": "start",
+        "n": 0
+      },
+      {
+        "at": "before open/close cycles",
+        "n": 0
+      },
+      {
+        "at": "peak while a card was open",
+        "n": 10
+      },
+      {
+        "at": "after 6 open/close cycles in 2 interfaces",
+        "n": 0
+      }
+    ],
+    "byAuthority": {
+      "cosmos.objects": {
+        "entities": 5,
+        "relations": 8
+      },
+      "cosmos.navigation": {
+        "entities": 1,
+        "relations": 0
+      },
+      "cosmos.placements": {
+        "entities": 0,
+        "relations": 0
+      },
+      "room.scene": {
+        "entities": 0,
+        "relations": 0
+      },
+      "interfaces": {
+        "entities": 9,
+        "relations": 11
+      },
+      "tools": {
+        "entities": 42,
+        "relations": 0
+      },
+      "home": {
+        "entities": 32,
+        "relations": 44
+      },
+      "chats": {
+        "entities": 2,
+        "relations": 0
+      },
+      "studio": {
+        "entities": 3,
+        "relations": 2
+      },
+      "projects": {
+        "entities": 4,
+        "relations": 0
+      },
+      "sandbox": {
+        "entities": 7,
+        "relations": 6
+      }
+    },
+    "entities": 102,
+    "relations": 71
+  },
+  "errors": []
+}

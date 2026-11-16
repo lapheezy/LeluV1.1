@@ -1,0 +1,930 @@
+{
+  "at": "2026-11-16T08:54:29.966Z",
+  "results": [
+    {
+      "objective": "A.1",
+      "name": "Two real Cosmos objects exist (built and placed by chat): a cabin and a gearbox",
+      "status": "VERIFIED",
+      "detail": "obj_1 3-bay cabin — 6 × 4.5 m · obj_2 Gear train — 14:28 with idler"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear next to the cabin\" → cosmos.object.position ran (lelu-direct, 0 model calls), no workspace tool",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear next to the cabin\" → the gear is where the convention says (beside: cabin + 1.4×scale on +x)",
+      "status": "VERIFIED",
+      "detail": "[3,0,-12.8] → [11.6,0,-18] · cabin [6,0,-18]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear next to the cabin\" → nothing else changed: same parent, group, lineage, object count; windows untouched",
+      "status": "VERIFIED",
+      "detail": "parent null · objects 2 · windows 1"
+    },
+    {
+      "objective": "A.5",
+      "name": "\"Move the gear next to the cabin\" → the Neural Map has the new position and the same relations (no attached-to from proximity)",
+      "status": "VERIFIED",
+      "detail": "[11.6,0,-18]"
+    },
+    {
+      "objective": "WP05",
+      "name": "\"Move the gear next to the cabin\" → the map updated only the objects partition, only the gear",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1,0],[\"cosmos.objects\",1,0],[\"chats\",1,0],[\"projects\",1,0]]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear to the left of the cabin\" → cosmos.object.position ran (lelu-direct, 0 model calls), no workspace tool",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear to the left of the cabin\" → the gear is where the convention says (left of: cabin − reach on x)",
+      "status": "VERIFIED",
+      "detail": "[11.6,0,-18] → [0.4,0,-18] · cabin [6,0,-18]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear to the left of the cabin\" → nothing else changed: same parent, group, lineage, object count; windows untouched",
+      "status": "VERIFIED",
+      "detail": "parent null · objects 2 · windows 1"
+    },
+    {
+      "objective": "A.5",
+      "name": "\"Move the gear to the left of the cabin\" → the Neural Map has the new position and the same relations (no attached-to from proximity)",
+      "status": "VERIFIED",
+      "detail": "[0.4,0,-18]"
+    },
+    {
+      "objective": "WP05",
+      "name": "\"Move the gear to the left of the cabin\" → the map updated only the objects partition, only the gear",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1,0],[\"cosmos.objects\",1,0.1],[\"chats\",1,0],[\"projects\",1,0.1]]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Put the gear behind the cabin\" → cosmos.object.position ran (lelu-direct, 0 model calls), no workspace tool",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Put the gear behind the cabin\" → the gear is where the convention says (behind: cabin − reach on z)",
+      "status": "VERIFIED",
+      "detail": "[0.4,0,-18] → [6,0,-23.6] · cabin [6,0,-18]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Put the gear behind the cabin\" → nothing else changed: same parent, group, lineage, object count; windows untouched",
+      "status": "VERIFIED",
+      "detail": "parent null · objects 2 · windows 1"
+    },
+    {
+      "objective": "A.5",
+      "name": "\"Put the gear behind the cabin\" → the Neural Map has the new position and the same relations (no attached-to from proximity)",
+      "status": "VERIFIED",
+      "detail": "[6,0,-23.6]"
+    },
+    {
+      "objective": "WP05",
+      "name": "\"Put the gear behind the cabin\" → the map updated only the objects partition, only the gear",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1,0.1],[\"cosmos.objects\",1,0],[\"chats\",1,0],[\"projects\",1,0]]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear closer to the cabin\" → cosmos.object.position ran (lelu-direct, 0 model calls), no workspace tool",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear closer to the cabin\" → the gear is where the convention says (closer: the gap shrinks, never into the cabin)",
+      "status": "VERIFIED",
+      "detail": "[6,0,-23.6] → [6,0,-22.48] · cabin [6,0,-18]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear closer to the cabin\" → nothing else changed: same parent, group, lineage, object count; windows untouched",
+      "status": "VERIFIED",
+      "detail": "parent null · objects 2 · windows 1"
+    },
+    {
+      "objective": "A.5",
+      "name": "\"Move the gear closer to the cabin\" → the Neural Map has the new position and the same relations (no attached-to from proximity)",
+      "status": "VERIFIED",
+      "detail": "[6,0,-22.48]"
+    },
+    {
+      "objective": "WP05",
+      "name": "\"Move the gear closer to the cabin\" → the map updated only the objects partition, only the gear",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1,0],[\"cosmos.objects\",1,0],[\"chats\",1,0.1],[\"projects\",1,0]]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear farther away\" → cosmos.object.position ran (lelu-direct, 0 model calls), no workspace tool",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear farther away\" → the gear is where the convention says (farther: from the cabin it was last placed against)",
+      "status": "VERIFIED",
+      "detail": "[6,0,-22.48] → [6,0,-25.28] · cabin [6,0,-18]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear farther away\" → nothing else changed: same parent, group, lineage, object count; windows untouched",
+      "status": "VERIFIED",
+      "detail": "parent null · objects 2 · windows 1"
+    },
+    {
+      "objective": "A.5",
+      "name": "\"Move the gear farther away\" → the Neural Map has the new position and the same relations (no attached-to from proximity)",
+      "status": "VERIFIED",
+      "detail": "[6,0,-25.28]"
+    },
+    {
+      "objective": "WP05",
+      "name": "\"Move the gear farther away\" → the map updated only the objects partition, only the gear",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1,0.2],[\"cosmos.objects\",1,0.2],[\"chats\",1,0],[\"projects\",1,0]]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear to the right of the cabin\" → cosmos.object.position ran (lelu-direct, 0 model calls), no workspace tool",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear to the right of the cabin\" → the gear is where the convention says (right of: cabin + reach on x)",
+      "status": "VERIFIED",
+      "detail": "[6,0,-25.28] → [11.6,0,-18] · cabin [6,0,-18]"
+    },
+    {
+      "objective": "A.4",
+      "name": "\"Move the gear to the right of the cabin\" → nothing else changed: same parent, group, lineage, object count; windows untouched",
+      "status": "VERIFIED",
+      "detail": "parent null · objects 2 · windows 1"
+    },
+    {
+      "objective": "A.5",
+      "name": "\"Move the gear to the right of the cabin\" → the Neural Map has the new position and the same relations (no attached-to from proximity)",
+      "status": "VERIFIED",
+      "detail": "[11.6,0,-18]"
+    },
+    {
+      "objective": "WP05",
+      "name": "\"Move the gear to the right of the cabin\" → the map updated only the objects partition, only the gear",
+      "status": "VERIFIED",
+      "detail": "[[\"chats\",1,0.1],[\"cosmos.objects\",1,0.1],[\"chats\",1,0],[\"projects\",1,0.1]]"
+    },
+    {
+      "objective": "A.5",
+      "name": "The standalone Neural Map shows the gear at its new position",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "A.3",
+      "name": "After a duplicate, 'the gear' is ambiguous: nothing moves, the reply says 'Not done', names both and asks which one",
+      "status": "VERIFIED",
+      "detail": "Not done — nothing in the Cosmos changed; the reason is below (move the gear beside the cabin). 0 model calls.\n\n✗ move (cosmos.object.position)\n  Nothing moved: 2 objects answer to “gear” — “Gear train — 14:28 with idler"
+    },
+    {
+      "objective": "A.3",
+      "name": "…and the windows were not rearranged instead",
+      "status": "VERIFIED",
+      "detail": "[\"cosmos.object.position:failed\"]"
+    },
+    {
+      "objective": "A.3",
+      "name": "The ambiguity reply, verbatim",
+      "status": "OBSERVED",
+      "informational": true,
+      "detail": "Not done — nothing in the Cosmos changed; the reason is below (move the gear beside the cabin). 0 model calls.\n\n✗ move (cosmos.object.position)\n  Nothing moved: 2 objects answer to “gear” — “Gear train — 14:28 with idler” (obj_2), “Gear train — 14:28 with idler copy” (obj_3). Which one do you mean as the object to move?\n\n0 of 1 steps succeeded; the failures are shown with their reasons."
+    },
+    {
+      "objective": "A.3",
+      "name": "Naming the one meant (by id) moves exactly that object",
+      "status": "VERIFIED",
+      "detail": "[0.4,0,-18]"
+    },
+    {
+      "objective": "A.3",
+      "name": "A name nothing answers to is not invented: no object moves, the windows are not split, and the reply says so",
+      "status": "VERIFIED",
+      "detail": "lelu-direct [\"cosmos.object.position:failed\"] · Not done — nothing in the Cosmos changed; the reason is below (move the spaceship beside the cabin). 0 model calls.\n\n✗ m"
+    },
+    {
+      "objective": "A.3",
+      "name": "A category name ('the gearbox' — what it was built as) resolves; still ambiguous with two gearboxes, so it asks",
+      "status": "VERIFIED",
+      "detail": "Not done — nothing in the Cosmos changed; the reason is below (move the gearbox left). 0 model calls.\n\n✗ move (cosmos.object.position)\n  Nothing moved: 2 object"
+    },
+    {
+      "objective": "A.1",
+      "name": "'put the browser next to the chat' (windows, not objects) is still a window command",
+      "status": "VERIFIED",
+      "detail": "[\"workspace.arrange:done\"]"
+    },
+    {
+      "objective": "A.1",
+      "name": "'tile my windows' is still a window command",
+      "status": "VERIFIED",
+      "detail": "[\"workspace.arrange:done\"]"
+    },
+    {
+      "objective": "A.4",
+      "name": "Reload: every object keeps its position, parent and lineage (the store's own persistence)",
+      "status": "VERIFIED",
+      "detail": "3 objects"
+    },
+    {
+      "objective": "A.5",
+      "name": "Reload: the Neural Map re-derives the same position",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "WP05",
+      "name": "Timings (per call, in the page)",
+      "status": "MEASURED",
+      "informational": true,
+      "detail": "{\"resolveMs\":0.0525,\"lookupMs\":0.003,\"calcMs\":0.002,\"dispatchMs\":1.4,\"ok\":true,\"mapUpdateMaxMs\":0.2,\"chatRoundTripMs\":[5301,641,440,463,375,366,438,4407,830,358]}"
+    },
+    {
+      "objective": "WP05",
+      "name": "Resolution, lookup and calculation each take well under a millisecond; dispatch is local; the map update ≤ 1 ms",
+      "status": "VERIFIED",
+      "detail": "{\"resolveMs\":0.0525,\"lookupMs\":0.003,\"calcMs\":0.002,\"dispatchMs\":1.4,\"ok\":true,\"mapUpdateMaxMs\":0.2}"
+    },
+    {
+      "objective": "WP04",
+      "name": "iPhone (EMULATED): 'Move the gear to the left of the cabin' moves the gear there by the same path",
+      "status": "VERIFIED",
+      "detail": "[0.4,0,-18]"
+    },
+    {
+      "objective": "WP03",
+      "name": "No new page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    }
+  ],
+  "ops": [
+    {
+      "text": "/build cabin",
+      "roundTripMs": 3185,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "put it into the cosmos",
+      "roundTripMs": 4789,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "/build gearbox",
+      "roundTripMs": 5301,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0.1,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "put it into the cosmos",
+      "roundTripMs": 351,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear next to the cabin",
+      "roundTripMs": 641,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear to the left of the cabin",
+      "roundTripMs": 440,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Put the gear behind the cabin",
+      "roundTripMs": 463,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear closer to the cabin",
+      "roundTripMs": 375,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear farther away",
+      "roundTripMs": 366,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.2,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.2,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear to the right of the cabin",
+      "roundTripMs": 438,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "duplicate the gear",
+      "roundTripMs": 4407,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.duplicate:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.4,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 4
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear next to the cabin",
+      "roundTripMs": 830,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:failed"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "move obj_3 to the left of the cabin",
+      "roundTripMs": 359,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "move the spaceship next to the cabin",
+      "roundTripMs": 4123,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:failed"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "move the gearbox left",
+      "roundTripMs": 358,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:failed"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "put the browser next to the chat",
+      "roundTripMs": 874,
+      "provider": "lelu-direct",
+      "tools": [
+        "workspace.arrange:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "tile my windows",
+      "roundTripMs": 415,
+      "provider": "lelu-direct",
+      "tools": [
+        "workspace.arrange:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "/build cabin",
+      "roundTripMs": 565,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0.1,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "put it into the cosmos",
+      "roundTripMs": 802,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "/build gearbox",
+      "roundTripMs": 950,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0.1,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "put it into the cosmos",
+      "roundTripMs": 377,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "text": "Move the gear to the left of the cabin",
+      "roundTripMs": 362,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.position:done"
+      ],
+      "map": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

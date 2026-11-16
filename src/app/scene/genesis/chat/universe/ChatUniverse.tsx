@@ -32,13 +32,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { chatWindowId, conversationIdOf, floatsAboveChat, useGenesis } from "../../GenesisCore";
+import { CHAT_WINDOW_Z, chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
 import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
 import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import VoiceEngine from "../../../../../core/voice/VoiceEngine";
-import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
@@ -57,13 +56,16 @@ import {
   type ChatPreview,
   type TimelineRange,
 } from "./universeModel";
+import { openEvolutionTrail } from "./evolutionTrail";
+import { NeuralEmbedSlot, NeuralToggle } from "../../neural/NeuralEmbedSlot";
 import "./chatUniverse.css";
 
 export const OPEN_UNIVERSE_EVENT = "lelu-open-universe";
 export const UNIVERSE_SEND_EVENT = "lelu-universe-send";
 
-export function openChatUniverse(): void {
-  window.dispatchEvent(new CustomEvent(OPEN_UNIVERSE_EVENT));
+/** Open the Universe; `draft` (optional) is put in its composer for the person to send. */
+export function openChatUniverse(draft?: string): void {
+  window.dispatchEvent(new CustomEvent(OPEN_UNIVERSE_EVENT, draft ? { detail: { draft } } : undefined));
 }
 
 const ART_BASE = `${import.meta.env?.BASE_URL ?? "/"}universe/`.replace(/\/\/+/g, "/");
@@ -137,6 +139,8 @@ export default function ChatUniverse() {
   const open = useUniverseOpen();
   const setOpen = setUniverseOpen;
   const [range, setRange] = useState<TimelineRange>("24h");
+  // M17.2-WP02: the Neural Map card inside the Universe.
+  const [neural, setNeural] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [view, setView] = useState<"grid" | "carousel">("grid");
   const [railOpen, setRailOpen] = useState(false);
@@ -148,7 +152,14 @@ export default function ChatUniverse() {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const show = () => setOpen(true);
+    const show = (event: Event) => {
+      setOpen(true);
+      const draft = (event as CustomEvent<{ draft?: string } | null>).detail?.draft;
+      if (typeof draft === "string" && draft.trim()) {
+        setDraft(draft.slice(0, 2000));
+        requestAnimationFrame(() => inputRef.current?.focus());
+      }
+    };
     window.addEventListener(OPEN_UNIVERSE_EVENT, show);
     return () => window.removeEventListener(OPEN_UNIVERSE_EVENT, show);
   }, []);
@@ -181,10 +192,9 @@ export default function ChatUniverse() {
 
   // On a phone an open conversation window fills the screen and has its own
   // composer; the Universe's composer leaves the tree so there is exactly one.
-  const surface = useSurface();
-  const sheetOpen = surface.workspaceOwnsScreen && Object.entries(modules).some(
-    ([id, m]) => floatsAboveChat(id) && (m.presentation === "inline" || m.presentation === "expanded"),
-  );
+  // Any window on screen owns the workspace (the Workspace Steward lays them
+  // out over the Universe); each chat window brings its own composer.
+  const sheetOpen = Object.values(modules).some((m) => m.presentation === "inline" || m.presentation === "expanded");
   const geometryKey = useMemo(
     () =>
       Object.entries(modules)
@@ -473,10 +483,39 @@ export default function ChatUniverse() {
               <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><Icons.LayoutGrid size={17} /></button>
               <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel view"><Icons.GalleryHorizontal size={17} /></button>
             </div>
+            <button
+              type="button"
+              className="lcu-icon"
+              data-lelu-evolution-trail
+              title="Evolution trail — how this interface was rebuilt, with screenshots"
+              aria-label="Open the evolution trail"
+              onClick={() => { void openEvolutionTrail().then((id) => id && openChat(id)); }}
+            >
+              <Icons.Sparkles size={18} />
+            </button>
+            <NeuralToggle host="chat-universe" open={neural} onToggle={() => setNeural(!neural)} style={{ alignSelf: "center" }} />
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
         </header>
+        <NeuralEmbedSlot
+          open={neural}
+          host="chat-universe"
+          hostLabel="Chat Universe"
+          focus={target ? `record:conversation:${target.id}` : null}
+          context={[
+            ...(target ? [{ id: `record:conversation:${target.id}`, label: `This chat · ${target.title || "Untitled"}` }] : []),
+            ...[...openIds, ...recent.map((p) => p.id)]
+              .filter((id, i, all) => id !== target?.id && all.indexOf(id) === i)
+              .slice(0, 6)
+              .map((id) => ({ id: `record:conversation:${id}`, label: byId.get(id)?.title || "Untitled" })),
+          ]}
+          hostActions={[{ id: "open-chat", label: "Open chat", when: (e) => e.type === "conversation" && byId.has(e.sourceId), run: (e) => openChat(e.sourceId) }]}
+          unindexed="message text and attachments (a chat is indexed as a whole, with its links, merges, project and the artifacts made in it)"
+          onClose={() => setNeural(false)}
+          layer={CHAT_WINDOW_Z + 40}
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 96px)", right: 16 }}
+        />
 
         <div className="lcu-timeline" aria-label="Chat activity timeline">
           <span className="lcu-tl-label"><Icons.Clock size={15} /> Chat Activity</span>

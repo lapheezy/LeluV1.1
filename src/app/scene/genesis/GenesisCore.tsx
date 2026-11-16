@@ -2164,9 +2164,13 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                   : typeof window !== "undefined" && window.innerWidth < 768
                     ? "expanded"
                     : "inline";
+            // Opening brings it to the front: the Workspace Steward orders
+            // windows by this, so what was just opened is what you see.
+            const floor = floatsAboveChat(id) ? CHAT_WINDOW_Z : APP_WINDOW_Z;
+            const top = Math.max(floor, ...Object.values(current.modules).map(m => m.zIndex ?? floor)) + 1;
             const modules = {
               ...current.modules,
-              [id]: { ...current.modules[id], presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now(), zIndex: top },
             };
             // A chat window is not an application panel: opening it must not
             // take the panel slot from the app behind it (that slot drives
@@ -2179,7 +2183,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now(),
+                zIndex: Math.max(floatsAboveChat(id) ? CHAT_WINDOW_Z : APP_WINDOW_Z, ...Object.values(current.modules).map(m => m.zIndex ?? 0)) + 1 },
             };
             return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
@@ -2208,7 +2213,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now(),
+                zIndex: Math.max(floatsAboveChat(id) ? CHAT_WINDOW_Z : APP_WINDOW_Z, ...Object.values(current.modules).map(m => m.zIndex ?? 0)) + 1 },
             };
             return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });

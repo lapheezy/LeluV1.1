@@ -213,6 +213,47 @@ export default class CosmosObjectStore {
     return trashed[trashed.length - 1];
   }
 
+  /**
+   * M17.3 — resolve a reference WITHOUT guessing. `resolve()` above returns
+   * the newest partial match, which is right for "it" and for a follow-up
+   * on what was just made, but wrong when a person names something that
+   * several objects answer to ("the gear" after a duplicate). This returns
+   * every live object in the strongest tier that matches, so a caller can
+   * act on one and ask about several:
+   *
+   *   1. its id
+   *   2. its whole name
+   *   3. a word of its name (word boundary, plural tolerated)
+   *   4. what it was built as (builder, domain): "the gearbox", "the cabin"
+   *   5. part of its name
+   *
+   * An empty reference means the selected object (or none).
+   */
+  public match(reference?: string): { object?: CosmosObject; candidates: CosmosObject[]; tier: string } {
+    const ref = (reference ?? "").trim().toLowerCase().replace(/^(?:the|my|that|this)\s+/, "").replace(/[.?!]+$/, "");
+    if (!ref || ref === "it") {
+      const selected = this.selected ? this.objects.get(this.selected) : undefined;
+      return selected ? { object: selected, candidates: [selected], tier: "selected" } : { candidates: [], tier: "none" };
+    }
+    const live = this.list();
+    const byId = this.objects.get(reference!.trim());
+    if (byId) return { object: byId, candidates: [byId], tier: "id" };
+    const escaped = ref.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const word = new RegExp(`(^|[^a-z0-9])${escaped}(e?s)?($|[^a-z0-9])`, "i");
+    const tiers: Array<[string, (o: CosmosObject) => boolean]> = [
+      ["name", (o) => o.name.trim().toLowerCase() === ref],
+      ["word", (o) => word.test(o.name)],
+      ["kind", (o) => [o.builder, o.domain].some((k) => (k ?? "").toLowerCase() === ref || (k ?? "").toLowerCase().startsWith(ref))],
+      ["partial", (o) => o.name.toLowerCase().includes(ref)],
+    ];
+    for (const [tier, test] of tiers) {
+      const hits = live.filter(test);
+      if (hits.length === 1) return { object: hits[0], candidates: hits, tier };
+      if (hits.length > 1) return { candidates: hits, tier };
+    }
+    return { candidates: [], tier: "none" };
+  }
+
   public get groups_(): CosmosGroups {
     return this.groups;
   }
@@ -315,7 +356,7 @@ export default class CosmosObjectStore {
 
   public transform(
     id: string,
-    change: { position?: Vec3; rotation?: Vec3; scale?: number; absolute?: boolean },
+    change: { position?: Vec3; rotation?: Vec3; scale?: number; absolute?: boolean; note?: string; ref?: string },
     opts?: { history?: boolean },
   ): StoreResult<CosmosObject> {
     const object = this.objects.get(id);
@@ -334,7 +375,16 @@ export default class CosmosObjectStore {
     }
     if (typeof change.scale === "number") object.frame.scale = clampScale(change.scale);
     object.updatedAt = now();
-    object.provenance.push({ at: object.updatedAt, action: "transformed", detail: `${change.position ? "moved" : ""}${change.rotation ? " rotated" : ""}${typeof change.scale === "number" ? " rescaled" : ""}`.trim() });
+    // M17.3: a relative placement says what it was placed against (`ref`), so
+    // "farther away" can find its reference later. A position is not a
+    // relationship: the Neural Map draws lineage only from duplicated /
+    // extracted steps, never from a transform.
+    object.provenance.push({
+      at: object.updatedAt,
+      action: "transformed",
+      detail: change.note ?? `${change.position ? "moved" : ""}${change.rotation ? " rotated" : ""}${typeof change.scale === "number" ? " rescaled" : ""}`.trim(),
+      ...(change.ref ? { ref: change.ref } : {}),
+    });
     this.commit(`moved ${object.name}`, opts?.history !== false);
     return { ok: true, value: object };
   }
@@ -556,7 +606,7 @@ export default class CosmosObjectStore {
     if (!parent.children.includes(child.id)) parent.children.push(child.id);
     child.updatedAt = now();
     parent.updatedAt = child.updatedAt;
-    child.provenance.push({ at: child.updatedAt, action: "integrated", detail: `into ${parent.id} “${parent.name}”` });
+    child.provenance.push({ at: child.updatedAt, action: "integrated", detail: `into ${parent.id} “${parent.name}”`, ref: parent.id });
     this.commit(`integrated ${child.name} into ${parent.name}`);
     return { ok: true, value: { child, parent } };
   }
@@ -571,7 +621,7 @@ export default class CosmosObjectStore {
     // The extracted object keeps its world position: it does not jump when it
     // leaves its parent, so what the user saw is what they now hold.
     object.updatedAt = now();
-    object.provenance.push({ at: object.updatedAt, action: "extracted", detail: parent ? `out of ${parent.id} “${parent.name}”` : "detached from its children" });
+    object.provenance.push({ at: object.updatedAt, action: "extracted", detail: parent ? `out of ${parent.id} “${parent.name}”` : "detached from its children", ...(parent ? { ref: parent.id } : {}) });
     this.commit(`extracted ${object.name}`);
     return { ok: true, value: object };
   }
@@ -653,7 +703,7 @@ export default class CosmosObjectStore {
       selected: undefined,
       createdAt: at,
       updatedAt: at,
-      provenance: [{ at, action: "duplicated", detail: `from ${source.id} “${source.name}”` }],
+      provenance: [{ at, action: "duplicated", detail: `from ${source.id} “${source.name}”`, ref: source.id }],
     } as CosmosObject;
     this.objects.set(copy.id, copy);
     this.commit(`duplicated ${source.name}`);
@@ -667,8 +717,11 @@ export default class CosmosObjectStore {
     if (object.children.length && !confirm) {
       return { ok: false, reason: `“${object.name}” holds ${object.children.length} object(s) — extract them first, or confirm to remove them with it` };
     }
+    const formerParent = object.parent;
     this.detach(object);
     for (const childId of [...object.children]) this.remove(childId, true);
+    object.updatedAt = now();
+    object.provenance.push({ at: object.updatedAt, action: "removed", detail: "moved to the trash", ...(formerParent ? { ref: formerParent } : {}) });
     this.objects.delete(object.id);
     this.trash = [...this.trash.slice(-29), object];
     if (this.selected === object.id) this.selected = null;
@@ -684,6 +737,8 @@ export default class CosmosObjectStore {
     const [object] = this.trash.splice(index, 1);
     object.parent = null;
     object.children = [];
+    object.updatedAt = now();
+    object.provenance.push({ at: object.updatedAt, action: "restored", detail: "from the trash" });
     this.objects.set(object.id, object);
     if (object.group) this.addToGroup(object.group, object.id);
     this.commit(`restored ${object.name}`);

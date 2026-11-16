@@ -13,6 +13,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
+import { NeuralEmbedSlot, NeuralToggle } from "./neural/NeuralEmbedSlot";
 import ProjectStore, { PROJECT_ITEM_LABELS, type LeluProject } from "../../../core/projects/ProjectStore";
 import AgentStore from "../../../core/agents/AgentStore";
 import RenderStore, { type RenderOutput } from "../../../core/creative/RenderStore";
@@ -55,6 +56,8 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
   const [projects, setProjects] = useState<LeluProject[]>(() => store.list());
   const [projectId, setProjectId] = useState<string | null>(() => store.list()[0]?.id ?? null);
   const [newName, setNewName] = useState("");
+  // M17.2-WP02: the Neural Map card inside Projects.
+  const [neural, setNeural] = useState(false);
   const [newDesc, setNewDesc] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [noteText, setNoteText] = useState("");
@@ -148,7 +151,21 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
       maxHeight="min(92vh, 900px)"
       elevation="focus"
     >
-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <NeuralToggle host="projects" open={neural} onToggle={() => setNeural(!neural)} />
+      </div>
+      <NeuralEmbedSlot
+        open={neural}
+        host="projects"
+        hostLabel="Projects"
+        focus={projectId ? `record:project:${projectId}` : null}
+        context={projects.slice(0, 8).map((p) => ({ id: `record:project:${p.id}`, label: p.name }))}
+        hostActions={[{ id: "select-project", label: "Show here", when: (e) => e.type === "project" && projects.some((p) => p.id === e.sourceId), run: (e) => setProjectId(e.sourceId) }]}
+        unindexed="a project's items (notes, files, renders) are counted on the project, not indexed one by one; conversations join a project through the chat's own project link"
+        onClose={() => setNeural(false)}
+        style={{ width: "100%", maxWidth: 560, maxHeight: 420, marginBottom: 10 }}
+      />
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
         {/* ---------------------------------------------- project list */}
         <div
           style={{

@@ -1,0 +1,361 @@
+/* M17.2 — the Neural Map views. The inspector sits beside the Cosmos
+   (above the world, below panels and the nav: z 90 < LAYERS.panel). */
+.nm-inspector {
+  position: fixed;
+  top: 76px;
+  right: 14px;
+  width: min(340px, calc(100vw - 28px));
+  max-height: calc(100dvh - 200px);
+  overflow: auto;
+  z-index: 90;
+  border-radius: 16px;
+  background: rgba(8, 10, 28, 0.92);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  color: #e2e8f0;
+  font: 13px/1.45 Inter, system-ui, sans-serif;
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.nm-inspector-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+.nm-inspector-bar .nm-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c4b5fd;
+  margin-right: auto;
+}
+.nm-inspector button,
+.nm-standalone button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.nm-inspector-bar button,
+.nm-top-actions button,
+.nm-ops button {
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.7);
+  padding: 4px 9px;
+  font-size: 12px;
+}
+.nm-panel {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nm-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.nm-label {
+  font-size: 15px;
+}
+.nm-type,
+.nm-state {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: rgba(99, 102, 241, 0.2);
+  color: #c7d2fe;
+}
+.nm-state[data-state="trashed"] {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fecaca;
+}
+.nm-state[data-state="active"] {
+  background: rgba(52, 211, 153, 0.16);
+  color: #a7f3d0;
+}
+.nm-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+.nm-facts dt {
+  color: #94a3b8;
+}
+.nm-facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.nm-facts code {
+  font-size: 11px;
+  color: #c4b5fd;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.nm-relations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nm-rel-group {
+  display: grid;
+  gap: 4px;
+}
+.nm-rel-word {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.nm-rel-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.nm-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(76, 29, 149, 0.28);
+  padding: 2px 9px;
+  font-size: 12px;
+}
+.nm-chip[data-entity-type="capability"] {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(51, 65, 85, 0.4);
+}
+.nm-link {
+  border: 0;
+  background: none;
+  color: #a5b4fc;
+  padding: 0;
+  text-decoration: underline;
+}
+.nm-history ol {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+.nm-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.nm-ops button:disabled {
+  opacity: 0.5;
+}
+.nm-result {
+  margin: 0;
+  font-size: 12px;
+  color: #a7f3d0;
+}
+.nm-result[data-ok="false"] {
+  color: #fecaca;
+}
+.nm-muted {
+  color: #94a3b8;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Standalone: over the Cosmos like a composition (z 60), below panels. */
+.nm-standalone {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(120% 90% at 50% 10%, #0d1230 0%, #060818 60%, #03040c 100%);
+  color: #e2e8f0;
+  font: 13px/1.45 Inter, system-ui, sans-serif;
+  pointer-events: auto;
+}
+/* Opened from an interface above the Cosmos (Chat Universe 480, windows
+   520, the System UI): the map opens over it; Return lands back there. */
+.nm-standalone[data-layer="over"] {
+  z-index: 640;
+}
+.nm-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  flex-wrap: wrap;
+}
+.nm-top small {
+  color: #94a3b8;
+}
+.nm-top-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.nm-top-actions button:disabled {
+  opacity: 0.4;
+}
+.nm-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr minmax(280px, 360px);
+}
+.nm-find {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Clear of the Spatial bar's tab on the left edge. */
+  padding: 10px 10px 10px 32px;
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
+  min-height: 0;
+}
+.nm-find input,
+.nm-find select {
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.8);
+  color: inherit;
+  padding: 6px 9px;
+  font: inherit;
+}
+.nm-hits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+}
+.nm-hits button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 0 8px;
+  align-items: center;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 5px 6px;
+  border-radius: 8px;
+}
+.nm-hits button[data-on="true"] {
+  background: rgba(99, 102, 241, 0.22);
+}
+.nm-hits i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  grid-row: span 2;
+}
+.nm-hits small {
+  color: #94a3b8;
+  font-size: 11px;
+}
+.nm-centre {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
+.nm-graph {
+  width: min(100%, 640px);
+  height: auto;
+  max-height: 100%;
+}
+.nm-node-label {
+  fill: #e2e8f0;
+  font: 11px Inter, system-ui, sans-serif;
+}
+.nm-focus-label {
+  font-weight: 700;
+  font-size: 13px;
+}
+.nm-edge-label {
+  fill: #94a3b8;
+  font: 9.5px Inter, system-ui, sans-serif;
+}
+.nm-side {
+  border-left: 1px solid rgba(148, 163, 184, 0.12);
+  overflow: auto;
+  min-height: 0;
+}
+@media (max-width: 860px) {
+  .nm-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(260px, 40dvh) auto;
+    overflow: auto;
+  }
+  .nm-find {
+    border-right: 0;
+    max-height: 32dvh;
+  }
+  .nm-side {
+    border-left: 0;
+  }
+}
+
+/* WP02 — the card an interface places in its own layout. */
+.nm-embed {
+  /* In a host's flex column it keeps its own height (it must not be squeezed to a line). */
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(70dvh, 560px);
+  overflow: auto;
+  border-radius: 16px;
+  background: rgba(8, 10, 28, 0.94);
+  border: 1px solid rgba(167, 139, 250, 0.38);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  color: #e2e8f0;
+  font: 13px/1.45 Inter, system-ui, sans-serif;
+  text-align: left;
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.nm-embed button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.nm-embed .nm-inspector-bar button {
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.7);
+  padding: 4px 9px;
+  font-size: 12px;
+}
+.nm-embed .nm-inspector-bar button:disabled {
+  opacity: 0.4;
+}
+.nm-embed .nm-ops button {
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.7);
+  padding: 4px 9px;
+  font-size: 12px;
+}
+.nm-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px 0;
+}
+.nm-context .nm-chip[data-on="true"] {
+  background: rgba(124, 58, 237, 0.55);
+}
+.nm-context .nm-chip[data-indexed="false"] {
+  opacity: 0.55;
+}
+.nm-embed-empty,
+.nm-unindexed {
+  padding: 4px 12px 10px;
+}

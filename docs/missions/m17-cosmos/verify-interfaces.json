@@ -1,0 +1,187 @@
+{
+  "at": "2026-11-15T20:54:46.558Z",
+  "results": [
+    {
+      "name": "Infinite Library lists Cosmos, Legacy UIs and Compositions",
+      "status": "VERIFIED",
+      "detail": "Cosmos, Legacy UIs, Compositions"
+    },
+    {
+      "name": "Legacy UIs holds LÉLU System UI and the original LÉLU",
+      "status": "VERIFIED",
+      "detail": "lelu-system, og-inner-sky, og-core"
+    },
+    {
+      "name": "LÉLU System UI launches from Legacy UIs (the real component)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "System UI mode Heartbeat",
+      "status": "VERIFIED",
+      "detail": "heartbeat"
+    },
+    {
+      "name": "System UI mode Matrix",
+      "status": "VERIFIED",
+      "detail": "matrix"
+    },
+    {
+      "name": "System UI mode Nerve",
+      "status": "VERIFIED",
+      "detail": "nerve"
+    },
+    {
+      "name": "System UI mode Neuron",
+      "status": "VERIFIED",
+      "detail": "neuron"
+    },
+    {
+      "name": "System UI mode Core",
+      "status": "VERIFIED",
+      "detail": "core"
+    },
+    {
+      "name": "System UI exits back to the Cosmos",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Nav Worlds button reachable by pointer (pre-existing layout)",
+      "status": "FAILED",
+      "detail": "covered by the Spatial control strip — not introduced by Mission 17",
+      "preexisting": true
+    },
+    {
+      "name": "Worlds names Genesis V2 as LÉLU's Room; System is no longer a world",
+      "status": "VERIFIED",
+      "detail": "Cosmos, LÉLU's Room, Earth"
+    },
+    {
+      "name": "LÉLU's Room opens on its own (Genesis V2)",
+      "status": "VERIFIED",
+      "detail": "avatar elements: 0"
+    },
+    {
+      "name": "Standalone deep link ?interface=lelu-system",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Original LÉLU (Inner Sky) launches on its own",
+      "status": "VERIFIED",
+      "detail": "first load"
+    },
+    {
+      "name": "Composition holds Original LÉLU then LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": "og-inner-sky,lelu-room"
+    },
+    {
+      "name": "Original LÉLU is live inside the region",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Original LÉLU navigates inside its region; the app URL does not change",
+      "status": "VERIFIED",
+      "detail": "/og/app/chats · http://127.0.0.1:5173/"
+    },
+    {
+      "name": "Wheel-scrolling moves continuously from Original LÉLU into LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": "[{\"id\":\"og-inner-sky\",\"live\":false,\"current\":false},{\"id\":\"lelu-room\",\"live\":true,\"current\":true}]"
+    },
+    {
+      "name": "The Room is mounted live (Genesis V2 inside the region)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "One LÉLU → lelu-room is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 2, world 0"
+    },
+    {
+      "name": "World not mounted behind lelu-room",
+      "status": "VERIFIED",
+      "detail": "{\"total\":2,\"world\":0}"
+    },
+    {
+      "name": "One LÉLU → cosmos is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 3, world 2"
+    },
+    {
+      "name": "Cosmos region shows the ONE world through it (world mounted, room unmounted)",
+      "status": "VERIFIED",
+      "detail": "{\"total\":3,\"world\":2}"
+    },
+    {
+      "name": "One LÉLU → lelu-system is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 1, world 0"
+    },
+    {
+      "name": "World not mounted behind lelu-system",
+      "status": "VERIFIED",
+      "detail": "{\"total\":1,\"world\":0}"
+    },
+    {
+      "name": "One LÉLU → og-core is current and live",
+      "status": "VERIFIED",
+      "detail": "canvases 2, world 0"
+    },
+    {
+      "name": "World not mounted behind og-core",
+      "status": "VERIFIED",
+      "detail": "{\"total\":2,\"world\":0}"
+    },
+    {
+      "name": "Editing a built-in forks a copy; One LÉLU is unchanged",
+      "status": "VERIFIED",
+      "detail": "comp-mwibaelc-9-k5ay"
+    },
+    {
+      "name": "Clone makes an independent copy with lineage",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Alternatives: four arrangements of the same interfaces",
+      "status": "VERIFIED",
+      "detail": "4"
+    },
+    {
+      "name": "A cinematic (horizontal) alternative opens",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "Talk opens the shared chat over the composition (no new chat store)",
+      "status": "VERIFIED",
+      "detail": "conversations 2 → 2"
+    },
+    {
+      "name": "Compositions persist across a reload",
+      "status": "VERIFIED",
+      "detail": "10"
+    },
+    {
+      "name": "iPhone: scrolling moves from Original LÉLU into LÉLU's Room",
+      "status": "VERIFIED",
+      "detail": "[{\"id\":\"og-inner-sky\",\"live\":true,\"current\":false},{\"id\":\"lelu-room\",\"live\":true,\"current\":true}]"
+    },
+    {
+      "name": "iPhone: one canvas at most (the Room's), world unmounted",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "No new page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    }
+  ],
+  "errors": []
+}

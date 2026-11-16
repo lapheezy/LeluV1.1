@@ -28,6 +28,7 @@ import { PRESETS } from "./Scene3D";
 import { seedFrom } from "./Rng";
 import { connectorProfiles } from "../../data/PublicDataConnectors";
 import { findBuilder, describeRequest } from "./build";
+import { parseSpatialIntent, RELATION_WORDS as SPATIAL_WORDS } from "../../cosmos/objects/spatialIntent";
 import CosmosObjectStore from "../../cosmos/objects/CosmosObjectStore";
 
 export interface DirectStep { tool: string; args: Record<string, unknown>; label: string }
@@ -58,7 +59,7 @@ function pickStyle(t: string): GenerativeStyle { const named = GENERATIVE_STYLES
 function pickPalette(t: string): string { const named = Object.keys(PALETTES).find((p) => new RegExp(`\\b${p}\\b`, "i").test(t)); return named ?? PALETTE_WORDS.find(([re]) => re.test(t))?.[1] ?? "lelu"; }
 function pickPreset(t: string): string { const named = Object.keys(PRESETS).find((p) => t.toLowerCase().includes(p)); return named ?? PRESET_WORDS.find(([re]) => re.test(t))?.[1] ?? "crystal-cave"; }
 function subjectOf(t: string): string {
-  return t.replace(/^\/\w+\s*/, "").replace(/\b(please|can you|could you|make|create|build|generate|construct|render|draw|give me|show me|me|a|an|the|some|short|quick|new|detailed|interactive|of|about|for|on|with|in|style|colou?rs?)\b/gi, " ").replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "LÉLU";
+  return t.replace(/^\/\w+\s*/, "").replace(/\b(please|can you|could you|make|create|build|generate|construct|render|draw|give me|show me|me|a|an|the|some|short|quick|new|detailed|interactive|of|about|for|on|with|in|style|colou?rs?|film|movie|video|trailer|reel|montage|sketch|drawing|doodle|concept|fashion|collection|called|named|titled)\b/gi, " ").replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "LÉLU";
 }
 
 /** "a -> b -> c, b -> d" → a structured flowchart. */
@@ -306,6 +307,9 @@ function cosmosCommand(rest: string): DirectPlan | null {
   }
 }
 
+/** M17.3 relation → the canonical `side` word of cosmos.object.position. */
+const SIDE_OF: Partial<Record<string, string>> = { "left-of": "left", "right-of": "right", above: "up", below: "down", "in-front-of": "front", behind: "behind" };
+
 function cosmosPlan(t: string): DirectPlan | null {
   const lower = t.toLowerCase();
   // Operations on objects only make sense when there is a Cosmos to act on,
@@ -411,15 +415,30 @@ function cosmosPlan(t: string): DirectPlan | null {
     return one("cosmos.object.animate", "animate", { motion: kind, ...(slow ? { speed: 0.05 } : {}), ...(paused ? { paused: true } : {}) }, `make it ${kind}${slow ? " slowly" : ""}`);
   }
 
-  const side = /\b(?:move|put|place|shift)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:to\s+)?(?:the\s+)?(left of|right of|above|below|in front of|behind)\s+(?:the\s+)?([\w\s-]{2,25})$/i.exec(t.trim());
-  if (side) {
-    const where = side[2].toLowerCase();
-    const direction = where.startsWith("left") ? "left" : where.startsWith("right") ? "right" : where === "above" ? "up" : where === "below" ? "down" : where.startsWith("in front") ? "front" : "behind";
-    return one("cosmos.object.position", "move", { object: side[1].trim(), near: side[3].trim(), side: direction }, `move the ${side[1].trim()} to the ${direction} of the ${side[3].trim()}`);
-  }
-  const near = /\b(?:next to|beside|near|by|behind|above|in front of)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim());
-  if (near && /\b(move|put|place|shift)\b/i.test(t)) {
-    return one("cosmos.object.position", "move", { object: /\b(?:move|put|place|shift)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:next to|beside|near|by|behind|above|in front of)\b/i.exec(t)?.[1]?.trim() ?? "it", near: near[1].trim() }, `move it next to the ${near[1].trim()}`);
+  // M17.3: relative placement and directional moves, read by one parser
+  // (spatialIntent) and executed by the existing position tool, which
+  // resolves both names against the store and asks when one is ambiguous.
+  const spatial = parseSpatialIntent(t);
+  if (spatial) {
+    if (spatial.kind === "relative") {
+      // Canonical's `side` word (left/right/up/down/front/behind) is kept on
+      // the step for the six directional relations, so callers written
+      // against the canonical contract read the same plan.
+      const side = SIDE_OF[spatial.relation];
+      const ref = spatial.reference ? ` ${SPATIAL_WORDS[spatial.relation]} the ${spatial.reference}` : spatial.relation === "farther" ? " farther away" : " closer";
+      return one(
+        "cosmos.object.position",
+        "move",
+        { object: spatial.target, relation: spatial.relation, ...(spatial.reference ? { near: spatial.reference } : {}), ...(side ? { side } : {}), degree: spatial.degree },
+        `move ${/^(it|that|this)$/i.test(spatial.target) ? spatial.target : `the ${spatial.target}`}${ref}`,
+      );
+    }
+    return one(
+      "cosmos.object.position",
+      "move",
+      { object: spatial.target, direction: spatial.direction, degree: spatial.degree, ...(spatial.distance !== null ? { distance: spatial.distance } : {}) },
+      `move ${/^(it|that|this)$/i.test(spatial.target) ? spatial.target : `the ${spatial.target}`} ${spatial.direction}`,
+    );
   }
 
   const twice = /\b(?:make|scale)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(twice|two times|half)\s+(?:as\s+)?(?:large|big|small)\b/i.exec(t.trim());

@@ -1,0 +1,98 @@
+{
+  "wasm": {
+    "device": "wasm",
+    "steps": [
+      {
+        "label": "embeddings load",
+        "ms": 1841,
+        "heapMB": 29
+      },
+      {
+        "label": "embeddings 8 sentences (1st)",
+        "ms": 218,
+        "heapMB": 31
+      },
+      {
+        "label": "embeddings 8 sentences (warm)",
+        "ms": 97,
+        "heapMB": 33
+      },
+      {
+        "label": "whisper-tiny.en load",
+        "ms": 2439,
+        "heapMB": 104
+      },
+      {
+        "label": "whisper-tiny.en transcribe 11 s",
+        "ms": 3402,
+        "heapMB": 59
+      },
+      {
+        "label": "SmolLM2-135M load",
+        "ms": 1575,
+        "heapMB": 211
+      },
+      {
+        "label": "SmolLM2-135M 48 tokens",
+        "ms": 17180,
+        "heapMB": 229
+      }
+    ],
+    "webgpu": true,
+    "similar": {
+      "reef~restoration": "0.624",
+      "reef~bread": "0.062"
+    },
+    "transcript": " And so my fellow Americans ask not what your country can do for you, ask what you can do for your country.",
+    "generated": "1. \"The Ocean's Tides\" - A documentary about the impact of rising and falling tides on the ocean's surface and the ocean's water.\n2. \"The Ocean's Tides: A Journey Through the Waves\" -",
+    "externalRequests": 0
+  },
+  "webgpu": {
+    "device": "webgpu",
+    "steps": [
+      {
+        "label": "embeddings load",
+        "ms": 2010,
+        "heapMB": 29
+      },
+      {
+        "label": "embeddings 8 sentences (1st)",
+        "ms": 2702,
+        "heapMB": 32
+      },
+      {
+        "label": "embeddings 8 sentences (warm)",
+        "ms": 892,
+        "heapMB": 30
+      },
+      {
+        "label": "whisper-tiny.en load",
+        "ms": 1960,
+        "heapMB": 58
+      },
+      {
+        "label": "whisper-tiny.en transcribe 11 s",
+        "ms": 101753,
+        "heapMB": 35
+      },
+      {
+        "label": "SmolLM2-135M load",
+        "ms": 1945,
+        "heapMB": 212
+      },
+      {
+        "label": "SmolLM2-135M 48 tokens",
+        "ms": 378987,
+        "heapMB": 49
+      }
+    ],
+    "webgpu": true,
+    "similar": {
+      "reef~restoration": "0.624",
+      "reef~bread": "0.062"
+    },
+    "transcript": " And so my fellow Americans ask not what your country can do for you, ask what you can do for your country.",
+    "generated": "1. \"The Ocean's Tides\" - A documentary about the impact of rising and falling tides on the ocean's surface and the ocean's currents.\n2. \"The Ocean's Tides: A Journey Through the Waves\" -",
+    "externalRequests": 0
+  }
+}

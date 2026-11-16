@@ -117,6 +117,9 @@ body:has([data-lelu-signin-gate]) [data-spatial-nav] {
   position: fixed;
   inset: 0;
   z-index: 520;
+  /* The sheet is mounted inside a pointer-events:none layer; without this the
+     whole sheet let taps fall through to the Home cards behind it. */
+  pointer-events: auto;
   background: rgba(10, 2, 24, 0.32);
   display: flex;
   align-items: flex-end;
@@ -184,3 +187,14 @@ body:has([data-lelu-signin-gate]) [data-spatial-nav] {
 @media (prefers-reduced-motion: reduce) {
   .lsn-orb-core, .lsh, .lsh-backdrop { animation: none !important; }
 }
+
+/* Mission 17 — the Infinite Library's interface sections. */
+.lsh-section { margin-bottom: 12px; }
+.lsh-section h3, .lsh-heading { margin: 4px 2px 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(232, 214, 255, 0.62); }
+.lsh-list li[data-library-interface], .lsh-list li[data-library-composition] { gap: 6px; padding: 0; border: 0; background: none; }
+.lsh-list-name .lsh-sub { display: block; font-weight: 400; font-size: 11.5px; color: rgba(232, 214, 255, 0.6); margin-top: 2px; white-space: normal; }
+.lsh-pick { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255, 210, 255, 0.2); background: rgba(255, 255, 255, 0.05); display: grid; place-items: center; color: inherit; }
+.lsh-pick[data-on="true"] { background: linear-gradient(160deg, rgba(240, 171, 252, 0.55), rgba(147, 51, 234, 0.6)); border-color: rgba(255, 220, 255, 0.5); }
+.lsh-compose-bar { margin-bottom: 12px; }
+.lsh-strip-icon { display: flex; gap: 2px; padding: 9px 7px; box-sizing: border-box; }
+.lsh-strip-icon i { flex: 1; border-radius: 3px; }
