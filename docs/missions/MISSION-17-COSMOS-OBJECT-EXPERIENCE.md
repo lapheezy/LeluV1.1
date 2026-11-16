@@ -182,3 +182,151 @@ empty scene; that is the documented architecture, not a render bug.
   test (which raycasts at event time) are the authority.
 - History, performance, memory, WebGL-off and the seven workflows end to end
   are unchanged from Mission 17 and were not re-run here.
+
+---
+
+# WP02 — LEGACY PLACEMENT NORMALIZATION & CORE-AWARE PLACEMENT
+
+**Status: root cause found and fixed; legacy positions normalized once and idempotently; placement derived from the scene's own hazard volumes and real bounds. Portrait verified. Wide viewports NOT VERIFIED (see §7).**
+
+## 1. The root cause of legacy placement
+
+`ringSlot` in `src/core/cosmos/objects/CosmosObjectTypes.ts` packed the depth
+offset **inside** the rounding factor and then divided the whole expression by
+100:
+
+```ts
+// before
+[Math.round(Math.cos(angle) * radius * 100) / 100, y,
+ Math.round((z + Math.sin(angle) * radius * 100) / 100) / 100]
+```
+
+The x term is right. The z term divides `z` by 100 as well, so:
+
+| ring the caller asked for | slot 0 | slot 1 |
+| --- | --- | --- |
+| z = −18 (Mission 16) | `[3.2, 0.9, −0.18]` | `[1.6, 0.9, 2.59]` |
+| z = 4 (first Mission 17 ring) | `[3.2, 0.9, 0.04]` | `[1.6, 0.9, 2.81]` |
+| z = 7.2 (the "fix" in 17.1) | `[3.2, 0.9, 0.07]` | `[1.6, 0.9, 2.84]` |
+
+Every ring in every version therefore collapsed into `z ∈ [−3.2, 3.2]` — the
+core's room cluster — however far in front the ring was meant to be. That is
+why changing the ring depth in 17.1 changed nothing on screen, and why objects
+"appeared inside the core" no matter what.
+
+Affected: every object ever placed by `spawn` without an explicit position
+(`CosmosObjectStore.spawn` → `ringSlot`), `resetPositions()`, and every
+`cosmos.object.spawn` tool call that did not pass `position`. The record format
+is otherwise untouched — this is a coordinate defect, not a schema one.
+
+## 2. The corrected slot maths (placement authority: the store)
+
+`ringSlot` now rounds once, on the whole expression, and the ring constants are
+named: `RING_RADIUS 3.2`, `RING_DEPTH 7.2`, `RING_HEIGHT 0.9`, `RING_SLOTS 6`.
+`[3.2, 0.9, 7.2]`, `[1.6, 0.9, 9.97]`, `[−3.2, 0.9, 7.2]` … — in front of the
+cluster, in front of the default camera's target, on a real ring.
+
+## 3. Versioned, idempotent normalization
+
+- `PLACEMENT_VERSION = 2`; the persisted payload carries it at the top level and
+  on each normalized object (`placementVersion`).
+- `isLegacyRingPosition()` recognises the broken maths' signature: ring height
+  (±0.05), depth within one radius of the origin, radius in 0.5…3.55.
+- `needsPlacementNormalization()` (exported, pure) additionally requires that no
+  provenance entry records a person moving it — `moved`, `nudged`, `positioned`,
+  `placed`, `relocated`, `duplicated`, `extracted`, `transformed`.
+- `store.load()` normalizes such records **once**, through the same open-slot
+  search as new spawns, records the move in provenance (`relocated`,
+  `placement v1 → v2 …`), then persists. Migrated slots are far outside the
+  legacy signature, so a second load finds nothing to do — idempotent by
+  construction, not by a flag alone.
+- A failed or unreadable store still starts empty; the original record is never
+  rewritten in place before the migration succeeds.
+
+**Live proof (portrait, real app):** a seeded v1 fixture
+`obj_legacy @ [3.2, 0.9, 0]` (spawn-only provenance) became
+`[3.2, 0.9, 7.2]`, `placementVersion: 2`, provenance
+`placement v1 → v2: out of the core's room cluster to [3.2, 0.9, 7.2] (was [3.2, 0.9, 0.0])`.
+Identity unchanged (`obj_legacy`), geometry unchanged (8 parts, scene JSON
+fingerprint 2273 before and after), scale unchanged (4). A second reload left
+the position at `[3.2, 0.9, 7.2]` with exactly **one** `relocated` entry.
+Objects a user had moved (`transformed`) were left exactly where they were.
+
+## 4. Core- and room-aware placement
+
+- The scene reports hazard volumes; the store does not invent them.
+  `CosmosLayer` publishes the drawn core: `center = entity.position with the
+  scene's −25 depth`, `radius = 2.4 × scale` — the outermost additive torus of
+  `LeluCore` (radii 1.4 / 1.9 / 2.4). `setHazards()` sanitises them (finite
+  centre, positive radius).
+- `openSlot()` walks four rings (r = 3.2, 6.4, 9.6, 12.8), six slots each,
+  and returns the first whose **box** is clear of every hazard and of every
+  existing object's box, plus a 0.35 m gap. Bounds come from the object's own
+  parts × scale (`objectBounds`), so a 12 m-wide object is placed by its width,
+  not by a sphere at its centre.
+- Deterministic: same store → same slots, so the same Cosmos always lays out the
+  same way. Objects spawned together get distinct, non-overlapping slots.
+
+## 5. Recovery and user control
+
+- `store.relocate(id)` — first clear slot, one undo step, exact before/after,
+  identity and geometry untouched, refused when the object is locked.
+- Tool `cosmos.object.relocate` (“bring out”), typed form
+  `/cosmos relocate <object>`, spoken forms “bring it out”, “out of the core”,
+  and a **Bring out** button in the object's contextual strip.
+- Framing is unchanged from 17.1 (per-axis box fit), so a reframed object is
+  framed from the geometry that is actually drawn.
+
+## 6. Live demonstration (384 × 661 portrait, Chromium, real app)
+
+| Step | Result |
+| --- | --- |
+| legacy fixture loaded | `obj_legacy @ [3.2, 0.9, 0]`, inside the cluster |
+| migration on load | `[3.2, 0.9, 7.2]`, `placementVersion 2`, one provenance entry |
+| reload again | same position, still one entry (idempotent) |
+| new spawns | `[1.6, 0.9, 9.97]` and `[−1.6, 0.9, 9.97]` — 3.20 m apart, in front |
+| relocate (typed, local) | `obj_5 [3.7, 0.9, 0] → [−3.2, 0.9, 7.2]`, `obj_6 [4.08, 1.33, 0.40] → [−1.60, 0.90, 4.43]` |
+| undo | `obj_6` back to `[4.08, 1.33, 0.40]` exactly |
+| redo | `obj_6` to `[−1.60, 0.90, 4.43]` again |
+| render | five objects visible in front of the core, all in frustum |
+
+Screenshots: `artifacts/perf/m17-wp02-migrated-portrait.png`,
+`m17-wp02-five-out-portrait.png`, `m17-wp02-portrait-final.png`.
+
+## 7. Viewports, honestly
+
+| Viewport | Status |
+| --- | --- |
+| 384 × 661 portrait | VERIFIED — objects visible, camera aspect 0.581, framing correct |
+| 844 × 390 landscape | PARTIAL — camera aspect tracked (2.164 = 844/390, fov 48), objects in frustum at 33–55 px/m, but **no object appears in the captured frame** |
+| 1440 × 900 desktop | NOT VERIFIED — the world canvas stayed 384 × 661 (inline style) after the resize and after leaving/re-entering the Cosmos, so the scene was not drawn at that size |
+| physical iPhone Safari | NOT VERIFIED — none available here |
+
+The wide-viewport result is a real, open defect in the surface/canvas sizing
+path, not a placement one: the store, camera aspect and frustum are all correct
+while nothing is drawn. It is the next blocker for a desktop claim.
+
+## 8. Files changed
+
+- `src/core/cosmos/objects/CosmosObjectTypes.ts` — corrected `ringSlot`, ring
+  constants, `PLACEMENT_VERSION`, `isLegacyRingPosition`, `placementVersion`.
+- `src/core/cosmos/objects/CosmosObjectStore.ts` — hazard volumes,
+  `openSlot`/`blocked`, bounds-aware spawn placement, `relocate`,
+  `setHazards`, `needsPlacementNormalization`, load-time normalization,
+  `placementVersion` in the persisted payload.
+- `src/core/cosmos/objects/CosmosObjectTools.ts` — `cosmos.object.relocate`
+  executor and catalog entry.
+- `src/core/creative/kit/DirectCompiler.ts` — `/cosmos relocate|unhide|out` and
+  the spoken “bring it out” route.
+- `src/app/scene/genesis/cosmos/CosmosLayer.tsx` — publishes the drawn core as a
+  hazard volume.
+- `src/app/scene/genesis/cosmos/CosmosObjectsLayer.tsx` — **Bring out** button.
+- `tests/cosmos-object-placement.test.ts` — 14 new tests.
+
+## 9. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · tests: cosmos-object-placement 14,
+cosmos-objects 10, cosmos-object-experience 11, creative-build 18,
+creative-kit 17, creation-studio-tools 9, chat-surface 31, module-layout 11,
+security-containment 18 — **139 pass, 0 fail**. No lint script exists.
+Not run: the full suite, WebGL-off, memory profiling, physical devices.

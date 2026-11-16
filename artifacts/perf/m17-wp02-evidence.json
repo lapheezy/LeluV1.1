@@ -1,0 +1,206 @@
+{
+  "mission": 17,
+  "workPackage": "M17-COE-WP02",
+  "promptId": "M17-COE-WP02-P01",
+  "status": "PARTIAL \u2014 placement fixed and proven at portrait; wide viewports blocked on a canvas-sizing defect",
+  "baseCommit": "4ea29fc76790a18dab210e710e349f6bd449e09e",
+  "branch": "mission-17-cosmos-object-experience",
+  "integrationTarget": "integration/lelu-four-workforce-consolidation",
+  "rootCause": {
+    "summary": "ringSlot packed the depth inside the \u00d7100 rounding factor and then divided by 100, so z was scaled by 1/100 and every ring collapsed into the core's room cluster",
+    "file": "src/core/cosmos/objects/CosmosObjectTypes.ts",
+    "function": "ringSlot",
+    "before": "Math.round((z + Math.sin(angle) * radius * 100) / 100) / 100",
+    "after": "Math.round((z + Math.sin(angle) * radius) * 100) / 100",
+    "examples": [
+      {
+        "askedFor": "z = -18 (Mission 16)",
+        "slot0": [
+          3.2,
+          0.9,
+          -0.18
+        ],
+        "slot1": [
+          1.6,
+          0.9,
+          2.59
+        ]
+      },
+      {
+        "askedFor": "z = 4 (first Mission 17 ring)",
+        "slot0": [
+          3.2,
+          0.9,
+          0.04
+        ],
+        "slot1": [
+          1.6,
+          0.9,
+          2.81
+        ]
+      },
+      {
+        "askedFor": "z = 7.2 (the 17.1 'fix')",
+        "slot0": [
+          3.2,
+          0.9,
+          0.07
+        ],
+        "slot1": [
+          1.6,
+          0.9,
+          2.84
+        ]
+      }
+    ],
+    "affectedRecords": "every object placed by spawn/resetPositions/cosmos.object.spawn without an explicit position; the record format is unchanged"
+  },
+  "migration": {
+    "version": 2,
+    "predicate": "isLegacyRingPosition(position) && no provenance action records a person moving it && placementVersion < 2",
+    "userPlacementActionsPreserved": [
+      "moved",
+      "nudged",
+      "positioned",
+      "placed",
+      "relocated",
+      "duplicated",
+      "extracted",
+      "transformed"
+    ],
+    "idempotency": "migrated slots (z in 4.0\u202610.4) are outside the legacy signature; a second load finds nothing, and placementVersion is stored as the belt",
+    "liveFixture": {
+      "id": "obj_legacy",
+      "before": [
+        3.2,
+        0.9,
+        0
+      ],
+      "after": [
+        3.2,
+        0.9,
+        7.2
+      ],
+      "placementVersion": 2,
+      "partsBefore": 8,
+      "partsAfter": 8,
+      "sceneFingerprintBefore": 2273,
+      "sceneFingerprintAfter": 2273,
+      "scaleBefore": 4,
+      "scaleAfter": 4,
+      "provenanceAdded": "placement v1 \u2192 v2: out of the core's room cluster to [3.2, 0.9, 7.2] (was [3.2, 0.9, 0.0])",
+      "secondReload": {
+        "position": [
+          3.2,
+          0.9,
+          7.2
+        ],
+        "relocatedEntries": 1
+      }
+    }
+  },
+  "placement": {
+    "hazards": "reported by CosmosLayer from the drawn core: center = entity.position with the scene's -25 depth, radius = 2.4 \u00d7 scale (outermost additive torus of LeluCore)",
+    "search": "4 rings (3.2, 6.4, 9.6, 12.8) \u00d7 6 slots, first box clear of hazards and other object boxes, 0.35 m gap",
+    "bounds": "objectBounds(object): part extents \u00d7 frame.scale, so large objects are placed by width, not by a centre point",
+    "deterministic": true
+  },
+  "liveResults": {
+    "newSpawns": {
+      "obj_1": [
+        1.6,
+        0.9,
+        9.97
+      ],
+      "obj_2": [
+        -1.6,
+        0.9,
+        9.97
+      ],
+      "separationMetres": 3.2
+    },
+    "relocate": {
+      "obj_5": {
+        "from": [
+          3.7,
+          0.9,
+          0
+        ],
+        "to": [
+          -3.2,
+          0.9,
+          7.2
+        ]
+      },
+      "obj_6": {
+        "from": [
+          4.08,
+          1.3275,
+          0.4
+        ],
+        "to": [
+          -1.6,
+          0.9,
+          4.43
+        ]
+      }
+    },
+    "undo": {
+      "obj_6": [
+        4.08,
+        1.3275,
+        0.4
+      ]
+    },
+    "redo": {
+      "obj_6": [
+        -1.6,
+        0.9,
+        4.43
+      ]
+    },
+    "modelCalls": 0
+  },
+  "viewports": {
+    "384x661 portrait": "VERIFIED \u2014 objects visible, aspect 0.581",
+    "844x390 landscape": "PARTIAL \u2014 aspect tracked 2.164, fov 48, objects in frustum at 33\u201355 px/m, none captured in the frame",
+    "1440x900 desktop": "NOT VERIFIED \u2014 world canvas stayed 384\u00d7661 through resize and re-entry",
+    "physical device": "NOT VERIFIED"
+  },
+  "screenshots": [
+    "artifacts/perf/m17-wp02-migrated-portrait.png",
+    "artifacts/perf/m17-wp02-five-out-portrait.png",
+    "artifacts/perf/m17-wp02-portrait-final.png",
+    "artifacts/perf/m17-wp02-landscape.png",
+    "artifacts/perf/m17-wp02-desktop.png"
+  ],
+  "tests": {
+    "cosmos-object-placement": "14 pass / 0 fail (new)",
+    "cosmos-objects": "10 pass",
+    "cosmos-object-experience": "11 pass",
+    "creative-build": "18 pass",
+    "creative-kit": "17 pass",
+    "creation-studio-tools": "9 pass",
+    "chat-surface": "31 pass",
+    "module-layout": "11 pass",
+    "security-containment": "18 pass",
+    "total": "139 pass / 0 fail",
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "notRun": [
+      "full suite",
+      "lint (no script)",
+      "WebGL-off",
+      "memory profiling",
+      "physical devices"
+    ]
+  },
+  "blockers": [
+    "wide viewports: the world canvas does not resize (stays 384\u00d7661 at 1440\u00d7900) and no object is drawn at 844\u00d7390 despite correct aspect, frustum and distances \u2014 a surface/canvas sizing defect, not placement"
+  ],
+  "limitations": [
+    "Chromium viewport resizing only; no physical iPhone/iPad",
+    "the room markers (CosmosRooms3D) are not published as hazards yet \u2014 they sit at the same -25 depth as the core, far from the ring, but a future ring change must publish them too",
+    "landscape/desktop object rendering remains unverified"
+  ]
+}

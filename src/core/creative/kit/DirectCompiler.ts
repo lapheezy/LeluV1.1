@@ -232,6 +232,10 @@ function cosmosCommand(rest: string): DirectPlan | null {
       return one("cosmos.view.frame", "previous", { mode: "previous" }, "the previous view");
     case "undo":
       return one("cosmos.object.undo", "undo", {}, "take back the last change");
+    case "relocate":
+    case "unhide":
+    case "out":
+      return one("cosmos.object.relocate", "bring out", { object: arg.trim() || undefined }, "bring it out of the cluster");
     case "redo":
       return one("cosmos.object.redo", "redo", {}, "put the last change back");
     case "position":
@@ -325,6 +329,10 @@ function cosmosPlan(t: string): DirectPlan | null {
   }
   if (/\b(close (the )?cosmos|leave the cosmos|exit the cosmos)\b/i.test(t) || /^(?:back|return)\s+to\s+(?:my\s+)?(?:home|workspace)\b/i.test(t.trim())) {
     return one("cosmos.view.open", "close", { open: false }, "back to the workspace");
+  }
+  if (/\b(bring|move|pull)\s+(it|that|the \w+)\s+out\b|\bout of the (core|cluster|rooms?)\b/i.test(t)) {
+    const named = /\b(?:bring|move|pull)\s+the\s+([\w\s-]{2,30}?)\s+out\b/i.exec(t)?.[1]?.trim();
+    return one("cosmos.object.relocate", "bring out", { object: named }, `bring ${named ? `the ${named}` : "it"} out of the cluster`);
   }
   if (/\bundo (that|it|the last|my last)\b|^undo$/i.test(t.trim())) return one("cosmos.object.undo", "undo", {}, "take back the last change");
   if (/\bredo (that|it|the last)|^redo$/i.test(t.trim())) return one("cosmos.object.redo", "redo", {}, "put the last change back");

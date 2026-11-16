@@ -12,6 +12,7 @@
  */
 
 import { useRef, useEffect, useState, useMemo } from "react";
+import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { Group, Color, AdditiveBlending, BufferAttribute } from "three";
@@ -675,6 +676,27 @@ export default function CosmosLayer() {
   useEffect(() => {
     InfiniteCosmos.getInstance().preloadAround(0, 0, 0);
   }, []);
+
+  /*
+   * Placement hazards, taken from what this scene actually draws.
+   *
+   * The core is a sphere of radius 1.15 plus three additive rings whose
+   * outermost is 2.4 units (see `LeluCore` below), drawn at the entity's
+   * position with the scene's −25 depth — so an object placed there is behind
+   * glass rather than in the open. The store owns placement; this only tells it
+   * where it may not put things. Nothing here invents a size: both numbers are
+   * the drawn geometry's own.
+   */
+  useEffect(() => {
+    const hazards = state.entities
+      .filter((entity) => entity.level === "lelu-core" || entity.level === "shaman")
+      .map((entity) => ({
+        id: entity.id,
+        center: [entity.position.x, entity.position.y, entity.position.z - 25] as [number, number, number],
+        radius: 2.4 * Math.max(0.25, entity.scale ?? 1),
+      }));
+    CosmosObjectStore.getInstance().setHazards(hazards);
+  }, [state.entities]);
 
   return (
     <group position={[0, 0, 0]}>

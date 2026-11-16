@@ -70,6 +70,11 @@ export interface CosmosObject {
   createdAt: number;
   updatedAt: number;
   provenance: ObjectProvenance[];
+  /**
+   * Which placement scheme the stored frame was written for. Absent means the
+   * object predates the fix to the ring maths (see `isLegacyRingPosition`).
+   */
+  placementVersion?: number;
 }
 
 export interface CosmosGroups {
@@ -115,24 +120,53 @@ function vec(v: unknown, fallback: Vec3): Vec3 {
 }
 
 /**
- * Places objects on a ring, so "spawn it in the Cosmos" is never a pile at the
- * origin.
+ * WHERE AN OBJECT IS BORN.
  *
- * The ring sits in FRONT of the LÉLU core, between it and the default camera,
- * not behind it: the deep cosmos is a backdrop several dozen units away and
- * the core's own sphere is opaque, so an object parked back there is stored
- * correctly and invisible on screen. This is the difference the mission is
- * about — a position that renders.
+ * The ring sits in front of the LÉLU core and its room cluster, between the
+ * default camera (z ≈ 6.8) and the cluster itself, never inside it: an object
+ * parked in the cluster is drawn behind room markers and planet glow.
+ *
+ * The depth used to be packed inside the rounding factor —
+ *
+ *     Math.round((z + sin(angle) * radius * 100) / 100) / 100
+ *
+ * — which divides z by 100 as well: every "ring" in every version collapsed
+ * onto z ≈ 0 (z = 7.2 → 0, z = 4 → 0.04, z = -18 → -0.18). That is why a
+ * chair always appeared inside the core's rooms however far in front the ring
+ * was meant to be. The maths below is the corrected form; the values the
+ * broken one produced are what `isLegacyRingPosition` recognises.
  */
-/*
- * The ring objects are born on. It sits IN FRONT of the core and its rooms:
- * measured in the running scene, the default z = 4 dropped a chair inside the
- * Earth/room cluster at the origin — drawn, and hidden by decor. z = 7.2 clears
- * that cluster, so a new object is in open space the moment it exists.
+export const RING_RADIUS = 3.2;
+export const RING_DEPTH = 7.2;
+export const RING_HEIGHT = 0.9;
+export const RING_SLOTS = 6;
+
+/** Bumped when stored positions need a one-time normalisation. */
+export const PLACEMENT_VERSION = 2;
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+export function ringSlot(index: number, radius = RING_RADIUS, z = RING_DEPTH, y = RING_HEIGHT): Vec3 {
+  const slot = ((index % RING_SLOTS) + RING_SLOTS) % RING_SLOTS;
+  const angle = (slot * Math.PI * 2) / RING_SLOTS;
+  return [round2(Math.cos(angle) * radius), y, round2(z + Math.sin(angle) * radius)];
+}
+
+/**
+ * A position the broken ring maths produced: the ring's height, and a depth
+ * squashed into ±one radius of the origin, so every slot sat inside the core's
+ * room cluster.
  */
-export function ringSlot(index: number, radius = 3.2, z = 7.2, y = 0.9): Vec3 {
-  const angle = (index * Math.PI * 2) / 6;
-  return [Math.round(Math.cos(angle) * radius * 100) / 100, y, Math.round((z + Math.sin(angle) * radius * 100) / 100) / 100];
+export function isLegacyRingPosition(position: Vec3): boolean {
+  const [x, y, z] = position;
+  if (![x, y, z].every((n) => typeof n === "number" && Number.isFinite(n))) return false;
+  if (Math.abs(y - RING_HEIGHT) > 0.05) return false;
+  if (Math.abs(z) > RING_RADIUS + 0.05) return false;
+  if (Math.abs(x) > RING_RADIUS + 0.05) return false;
+  const radius = Math.hypot(x, z);
+  return radius > 0.5 && radius <= RING_RADIUS + 0.35;
 }
 
 /** A short, human line about one object — used by the tools and the panel. */

@@ -261,6 +261,7 @@ function ObjectControls({ object }: { object: CosmosObject }) {
             ? store.animate(object.id, { kind: "spin", speed: 0.12, paused: false })
             : store.animate(object.id, { paused: true }),
         )}
+        {b("Bring out", () => store.relocate(object.id), { title: "Move it to a clear spot in front of the core" })}
         {b("Only this", () => store.isolate(object.id))}
         {b("Duplicate", () => store.duplicate(object.id))}
         {b("Take out", () => store.extract(object.id))}

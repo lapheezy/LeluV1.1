@@ -456,6 +456,22 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
       return ok(`Framed ${what}. The camera move is bounded by the Cosmos' own navigation, and your next drag takes over.`, { mode, objectId: target?.id ?? null });
     },
   },
+  {
+    id: "cosmos.object.relocate",
+    parameters: OBJ({
+      object: { type: "string", description: "the object, by id or part of its name (defaults to the selected one)" },
+    }),
+    run: async (args) => {
+      const store = CosmosObjectStore.getInstance();
+      const object = store.resolve(s(args, "object"));
+      if (!object) return bad(`Nothing moved: no object matches “${s(args, "object") || "that"}”.`);
+      const before = object.frame.position.map((n) => n.toFixed(1)).join(", ");
+      const moved = store.relocate(object.id);
+      if (!moved.ok) return bad(`Nothing moved: ${moved.reason}.`);
+      const after = moved.value.frame.position.map((n) => n.toFixed(1)).join(", ");
+      return ok(`Brought “${moved.value.name}” out to [${after}] (was [${before}]) — clear of the core's cluster and of the other objects. Undo puts it back.`, { objectId: object.id });
+    },
+  },
 ];
 
 export const COSMOS_OBJECT_TOOLS: ToolDefinition[] = [
@@ -476,6 +492,7 @@ export const COSMOS_OBJECT_TOOLS: ToolDefinition[] = [
   def("cosmos.object.list", "Every Object in the Cosmos", "List the objects in the Cosmos — or the trash — with their ids, positions, groups and sources.", 0, ["READ"], { domain: "string", group: "string", query: "string", trash: "boolean" }),
   def("cosmos.object.split", "Take One Part Out as an Object", "Split one part of an object out as its own object — the crankshaft out of an engine, a seat out of a chair, a panel out of a garment — keeping its material and where it stood. Local and undoable.", 1, ["WRITE"], { object: "string", part: "string" }),
   def("cosmos.object.place", "Move an Object Between Workspaces", "Move an object between the Cosmos, the construction workspace and the gallery. It is the same object with the same id and history.", 1, ["WRITE"], { object: "string", place: "string" }),
+  def("cosmos.object.relocate", "Bring an Object Out", "Move an object to the first clear spot in front of the core's cluster — the recovery for one that a room marker or the core is standing in front of. One undo step; identity, geometry and attachments untouched. Local, no model involved.", 1, ["WRITE"], { object: "string" }),
   def("cosmos.object.undo", "Undo the Last Change", "Take back the last change to the Cosmos. Ids, geometry, relationships and provenance are restored rather than re-created.", 1, ["WRITE"], {}),
   def("cosmos.object.redo", "Redo the Change", "Put back the change that was taken back.", 1, ["WRITE"], {}),
   def("cosmos.view.open", "Open the Cosmos", "Enter the live Cosmos with the objects in view, closing the conversation over it without losing it; or go back to the workspace. Local navigation, no model involved.", 0, ["READ"], { open: "boolean", frame: "boolean" }),

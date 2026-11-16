@@ -18,8 +18,12 @@ import KvStore from "../../storage/KvStore";
 import type { Scene3DProgram } from "../../creative/kit/Scene3D";
 import {
   DEFAULT_MOTION,
+  PLACEMENT_VERSION,
+  RING_RADIUS,
+  RING_SLOTS,
   clampScale,
   frameOf,
+  isLegacyRingPosition,
   isVec3,
   ringSlot,
   type CosmosGroups,
@@ -30,6 +34,21 @@ import {
   type ObjectMotion,
   type Vec3,
 } from "./CosmosObjectTypes";
+import { boundsOfList, objectBounds, type Bounds3 } from "./CosmosObjectCamera";
+
+/**
+ * A volume in the Cosmos an object should not be born inside: the core's own
+ * cluster. The scene reports these (positions and radii from the same data it
+ * draws), so placement is derived from the world rather than invented here.
+ */
+export interface CosmosHazard {
+  id: string;
+  center: Vec3;
+  radius: number;
+}
+
+/** How much clear space to leave between two objects' boxes. */
+const PLACEMENT_GAP = 0.35;
 
 const STORE_KEY = "lelu.cosmos.objects.v1";
 const MAX_OBJECTS = 120;
@@ -37,6 +56,22 @@ const MAX_OBJECTS = 120;
 const HISTORY_MAX = 30;
 /** How much of that survives a reload — enough to take back the last few things. */
 const HISTORY_PERSISTED = 4;
+/**
+ * Provenance actions that mean a person chose where this object sits. A legacy
+ * position on such an object is left exactly as it is.
+ */
+const MOVED_ACTIONS = new Set(["moved", "nudged", "positioned", "placed", "relocated", "duplicated", "extracted", "transformed"]);
+
+/**
+ * Whether a stored object's position should be normalised on load: it carries
+ * the broken ring math's signature, no one has moved it, and it has not been
+ * normalised before. Pure, so the rule is testable without a browser.
+ */
+export function needsPlacementNormalization(object: Pick<CosmosObject, "frame" | "provenance" | "placementVersion">): boolean {
+  if ((object.placementVersion ?? 0) >= PLACEMENT_VERSION) return false;
+  if (!isLegacyRingPosition(object.frame.position)) return false;
+  return !object.provenance.some((entry) => MOVED_ACTIONS.has(entry.action));
+}
 
 export interface SpawnInput {
   name: string;
@@ -113,6 +148,8 @@ export default class CosmosObjectStore {
   private redoStack: CosmosSnapshot[] = [];
   /** the state as of the last commit — what the next operation started from */
   private last: CosmosSnapshot;
+  /** volumes objects must not be placed inside (the core's cluster) */
+  private hazards: CosmosHazard[] = [];
 
   static getInstance(): CosmosObjectStore {
     if (!CosmosObjectStore.instance) CosmosObjectStore.instance = new CosmosObjectStore();
@@ -203,8 +240,13 @@ export default class CosmosObjectStore {
     // property the user can change ("make it smaller").
     const wanted = { ...(input.frame ?? {}) };
     if (wanted.scale === undefined) wanted.scale = 4;
-    if (!wanted.position) wanted.position = ringSlot(siblings.length);
     const frame = frameOf(wanted);
+    if (!wanted.position) {
+      // Where it can be seen: out of the core's cluster, clear of the objects
+      // already there, and measured from its own bounds rather than a point.
+      const probe = { frame, scene: input.scene, visible: true } as unknown as CosmosObject;
+      frame.position = this.openSlot(objectBounds(probe), [id], siblings);
+    }
     const object: CosmosObject = {
       id,
       name: input.name.trim().slice(0, 80),
@@ -230,6 +272,44 @@ export default class CosmosObjectStore {
     this.objects.set(id, object);
     if (object.group) this.addToGroup(object.group, id);
     this.commit(`spawned ${object.name}`);
+    return { ok: true, value: object };
+  }
+
+  /**
+   * The volumes placement must respect. The scene owns what is drawn; this is
+   * how it tells the store, so nothing here hard-codes the core's dimensions.
+   */
+  public setHazards(hazards: CosmosHazard[]): void {
+    this.hazards = hazards
+      .filter((hazard) => hazard && isVec3(hazard.center) && Number.isFinite(hazard.radius) && hazard.radius > 0)
+      .map((hazard) => ({ id: hazard.id, center: [...hazard.center] as Vec3, radius: hazard.radius }));
+  }
+
+  public hazards_(): CosmosHazard[] {
+    return this.hazards.map((hazard) => ({ ...hazard, center: [...hazard.center] as Vec3 }));
+  }
+
+  /**
+   * Bring an object out to the first clear ring slot — the recovery for one
+   * that a room marker or the core's cluster is standing in front of. One undo
+   * step, exact before/after transforms, identity and geometry untouched.
+   */
+  public relocate(id: string): StoreResult<CosmosObject> {
+    const object = this.objects.get(id);
+    if (!object) return { ok: false, reason: `no object ${id}` };
+    if (object.locked) return { ok: false, reason: `“${object.name}” is locked — unlock it before moving it` };
+    const others = this.list().filter((other) => other.id !== object.id && other.visible);
+    const slot = this.openSlot(objectBounds(object), [object.id], others);
+    const before = [...object.frame.position] as Vec3;
+    object.frame.position = slot;
+    object.updatedAt = now();
+    object.placementVersion = PLACEMENT_VERSION;
+    object.provenance.push({
+      at: object.updatedAt,
+      action: "relocated",
+      detail: `out to a clear spot at [${slot.map((n) => n.toFixed(1)).join(", ")}] (was [${before.map((n) => n.toFixed(1)).join(", ")}])`,
+    });
+    this.commit(`brought ${object.name} out`);
     return { ok: true, value: object };
   }
 
@@ -694,6 +774,75 @@ export default class CosmosObjectStore {
     return out;
   }
 
+  /**
+   * The first ring slot whose box is clear of the reported hazards and of every
+   * object already placed. Deterministic: the same Cosmos always yields the
+   * same answer, so spawning the same things twice lands them in the same
+   * places. Rings are tried near-to-far, six slots each.
+   */
+  private openSlot(box: Bounds3, exclude: string[], others: CosmosObject[]): Vec3 {
+    const half: Vec3 = [
+      Math.max(0.05, (box.max[0] - box.min[0]) / 2),
+      Math.max(0.05, (box.max[1] - box.min[1]) / 2),
+      Math.max(0.05, (box.max[2] - box.min[2]) / 2),
+    ];
+    const taken = others
+      .filter((other) => !exclude.includes(other.id) && other.visible)
+      .map((other) => boundsOfList([other]))
+      .filter((other): other is Bounds3 => Boolean(other));
+    const radii = [RING_RADIUS, RING_RADIUS * 2, RING_RADIUS * 3, RING_RADIUS * 4];
+    for (const radius of radii) {
+      for (let index = 0; index < RING_SLOTS; index += 1) {
+        const slot = ringSlot(index, radius);
+        if (!this.blocked(slot, half, taken)) return slot;
+      }
+    }
+    return ringSlot(others.length, RING_RADIUS * 4);
+  }
+
+  private blocked(center: Vec3, half: Vec3, taken: Bounds3[]): boolean {
+    const reach = Math.hypot(half[0], half[1], half[2]);
+    for (const hazard of this.hazards) {
+      const distance = Math.hypot(center[0] - hazard.center[0], center[1] - hazard.center[1], center[2] - hazard.center[2]);
+      if (distance < hazard.radius + reach) return true;
+    }
+    for (const bounds of taken) {
+      const overlapX = Math.abs(center[0] - (bounds.min[0] + bounds.max[0]) / 2) < half[0] + (bounds.max[0] - bounds.min[0]) / 2 + PLACEMENT_GAP;
+      const overlapY = Math.abs(center[1] - (bounds.min[1] + bounds.max[1]) / 2) < half[1] + (bounds.max[1] - bounds.min[1]) / 2 + PLACEMENT_GAP;
+      const overlapZ = Math.abs(center[2] - (bounds.min[2] + bounds.max[2]) / 2) < half[2] + (bounds.max[2] - bounds.min[2]) / 2 + PLACEMENT_GAP;
+      if (overlapX && overlapY && overlapZ) return true;
+    }
+    return false;
+  }
+
+  /**
+   * One-time, idempotent repair of positions written by the broken ring maths.
+   *
+   * A stored position only counts as legacy when it carries the signature of
+   * that maths (ring height, depth within one radius of the origin) AND the
+   * object has never been moved by anyone: a user's own placement is theirs to
+   * keep, even inside the cluster. Migrated slots are far outside the legacy
+   * signature, so running this again on a migrated store finds nothing to do.
+   */
+  private normalizeLegacyPlacement(savedVersion?: number): void {
+    if ((savedVersion ?? 0) >= PLACEMENT_VERSION && this.objects.size === 0) return;
+    const legacy = [...this.objects.values()].filter((object) => needsPlacementNormalization(object));
+    for (const object of legacy) {
+      const others = [...this.objects.values()].filter((other) => other.id !== object.id);
+      const before = [...object.frame.position] as Vec3;
+      const slot = this.openSlot(objectBounds(object), [object.id], others);
+      object.frame.position = slot;
+      object.placementVersion = PLACEMENT_VERSION;
+      object.updatedAt = now();
+      object.provenance.push({
+        at: object.updatedAt,
+        action: "relocated",
+        detail: `placement v1 → v${PLACEMENT_VERSION}: out of the core's room cluster to [${slot.map((n) => n.toFixed(1)).join(", ")}] (was [${before.map((n) => n.toFixed(1)).join(", ")}])`,
+      });
+    }
+    if (legacy.length && this.persist) this.save();
+  }
+
   private detach(object: CosmosObject): void {
     if (object.parent) {
       const parent = this.objects.get(object.parent);
@@ -809,6 +958,7 @@ export default class CosmosObjectStore {
   private save(): void {
     try {
       KvStore.getInstance().set(STORE_KEY, {
+        placementVersion: PLACEMENT_VERSION,
         objects: this.list(),
         groups: this.groups,
         trash: this.trash,
@@ -825,13 +975,14 @@ export default class CosmosObjectStore {
 
   private load(): void {
     try {
-      const saved = KvStore.getInstance().get<{ objects?: CosmosObject[]; groups?: CosmosGroups; trash?: CosmosObject[]; ids?: number; history?: CosmosSnapshot[] }>(STORE_KEY);
+      const saved = KvStore.getInstance().get<{ placementVersion?: number; objects?: CosmosObject[]; groups?: CosmosGroups; trash?: CosmosObject[]; ids?: number; history?: CosmosSnapshot[] }>(STORE_KEY);
       if (!saved) return;
       this.undoStack = Array.isArray(saved.history) ? saved.history.map(cloneSnapshot) : [];
       for (const object of saved.objects ?? []) {
         if (!object?.id || !object.scene?.objects) continue;
         this.objects.set(object.id, { ...object, children: [...(object.children ?? [])], provenance: [...(object.provenance ?? [])] });
       }
+      this.normalizeLegacyPlacement(saved.placementVersion);
       this.groups = saved.groups ?? {};
       this.trash = saved.trash ?? [];
       this.ids = saved.ids ?? this.objects.size;
