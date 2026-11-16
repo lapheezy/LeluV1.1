@@ -1,0 +1,71 @@
+{
+  "evidence": "LIVE",
+  "turns": [
+    {
+      "said": "select the chair",
+      "selection": "obj-product-1"
+    },
+    {
+      "said": "rotate it 90 degrees",
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "said": "make it twice as large",
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "ok": false,
+  "before": [
+    {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "position": [
+        -900,
+        -5563.649211092314,
+        2641.3470771650714
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    }
+  ],
+  "after": [
+    {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "position": [
+        -900,
+        -5563.649211092314,
+        2641.3470771650714
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    }
+  ],
+  "errors": []
+}
