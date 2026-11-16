@@ -57,6 +57,8 @@ const BODY_HEIGHT = 2.42;
 const CLEARANCE = 0.38;
 const WALK_SPEED = 1.15;
 const PLACE_KEY = "lelu.avatar.spatial.v1";
+/** A progress report precedes the bus's deadline by this much. */
+const REPORT_MARGIN_MS = 400;
 
 /** Fixed parts of the world that are never walkable. */
 const SCENE_OBSTACLES: SpatialObstacle[] = [
@@ -428,6 +430,15 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
       // Under heavy load she may still be on her way at the bus deadline:
       // say so with what was measured, instead of a silent timeout.
       // (A timer, so it fires even if her world draws no frame at all.)
+      /*
+       * Just before the BUS's deadline, from the command's own issue time
+       * (M15.3 WP04). A fixed 17 s from here resolved the command 3 s early:
+       * twice she arrived at 17.1 s and 17.7 s, inside the 20 s requirement,
+       * after the walk had already been answered "still on my way". The
+       * margin keeps this timer ahead of the bus's (expired timers run in
+       * due-time order, even after a long block).
+       */
+      const reportIn = Math.max(0, command.issuedAt + command.timeoutMs - REPORT_MARGIN_MS - Date.now());
       window.setTimeout(() => {
         if (goal.current !== asked || asked.resolved) return;
         const fps = (framesSeen.current - asked.framesAtStart) / ((performance.now() - asked.issuedAt) / 1000);
@@ -444,7 +455,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         }
         // Keep walking: the goal stays, only the report was made.
         asked.reported = true;
-      }, 17_000);
+      }, reportIn);
       lastTargetPlan.current = 0;
     } else if (kind === "look" && command.target) {
       faceGoal.current = { id: command.id, label: command.label, point: placePoint(command.target.place), until: performance.now() + 20_000, confirmed: false };

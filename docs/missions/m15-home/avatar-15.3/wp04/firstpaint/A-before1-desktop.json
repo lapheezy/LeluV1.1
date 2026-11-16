@@ -1,0 +1,1525 @@
+{
+ "scenario": "A",
+ "label": "before1",
+ "dev": "desktop",
+ "viewport": {
+  "width": 1440,
+  "height": 900
+ },
+ "marks": [
+  {
+   "t": 22150,
+   "ev": "profile-start",
+   "rel": 0
+  },
+  {
+   "t": 23085,
+   "ev": "frame-gap",
+   "from": 22143,
+   "ms": 906,
+   "rel": 935
+  },
+  {
+   "t": 24219,
+   "ev": "frame-gap",
+   "from": 23216,
+   "ms": 983,
+   "rel": 2069
+  },
+  {
+   "t": 25516,
+   "ev": "frame-gap",
+   "from": 24382,
+   "ms": 1117,
+   "rel": 3366
+  },
+  {
+   "t": 26254,
+   "ev": "frame-gap",
+   "from": 25499,
+   "ms": 750,
+   "rel": 4104
+  },
+  {
+   "t": 26537,
+   "ev": "frame-gap",
+   "from": 26249,
+   "ms": 283,
+   "rel": 4387
+  },
+  {
+   "t": 27167,
+   "ev": "frame-gap",
+   "from": 26532,
+   "ms": 617,
+   "rel": 5017
+  },
+  {
+   "t": 27359,
+   "ev": "world-clicked",
+   "rel": 5209
+  },
+  {
+   "t": 28004,
+   "ev": "frame-gap",
+   "from": 27149,
+   "ms": 850,
+   "rel": 5854
+  },
+  {
+   "t": 29128,
+   "ev": "frame-gap",
+   "from": 27999,
+   "ms": 1117,
+   "rel": 6978
+  },
+  {
+   "t": 30379,
+   "ev": "frame-gap",
+   "from": 29115,
+   "ms": 717,
+   "rel": 8229
+  },
+  {
+   "t": 31676,
+   "ev": "frame-gap",
+   "from": 29832,
+   "ms": 700,
+   "rel": 9526
+  },
+  {
+   "t": 31881,
+   "ev": "frame-gap",
+   "from": 30532,
+   "ms": 1133,
+   "rel": 9731
+  },
+  {
+   "t": 31886,
+   "ev": "her-world-first-frame",
+   "rel": 9736
+  },
+  {
+   "t": 31886,
+   "ev": "spatial",
+   "position": [
+    0,
+    -2.55,
+    3.3
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 9736
+  },
+  {
+   "t": 34348,
+   "ev": "world-data-start",
+   "url": "/api/forge/world",
+   "rel": 12198
+  },
+  {
+   "t": 34350,
+   "ev": "world-data-start",
+   "url": "/api/forge/world/avatar/lelu_character",
+   "rel": 12200
+  },
+  {
+   "t": 34354,
+   "ev": "world-data-start",
+   "url": "/api/forge/world",
+   "rel": 12204
+  },
+  {
+   "t": 34505,
+   "ev": "frame-gap",
+   "from": 31665,
+   "ms": 2700,
+   "rel": 12355
+  },
+  {
+   "t": 34507,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.957
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 12357
+  },
+  {
+   "t": 34523,
+   "ev": "world-data-done",
+   "url": "/api/forge/world",
+   "rel": 12373
+  },
+  {
+   "t": 34523,
+   "ev": "world-data-done",
+   "url": "/api/forge/world/avatar/lelu_character",
+   "rel": 12373
+  },
+  {
+   "t": 34523,
+   "ev": "world-data-done",
+   "url": "/api/forge/world",
+   "rel": 12373
+  },
+  {
+   "t": 35729,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 13579
+  },
+  {
+   "t": 37036,
+   "ev": "frame-gap",
+   "from": 34699,
+   "ms": 2183,
+   "rel": 14886
+  },
+  {
+   "t": 37038,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 14888
+  },
+  {
+   "t": 37752,
+   "ev": "frame-gap",
+   "from": 36882,
+   "ms": 417,
+   "rel": 15602
+  },
+  {
+   "t": 37997,
+   "ev": "frame-gap",
+   "from": 37298,
+   "ms": 683,
+   "rel": 15847
+  },
+  {
+   "t": 42320,
+   "ev": "frame-gap",
+   "from": 37982,
+   "ms": 4300,
+   "rel": 20170
+  },
+  {
+   "t": 42323,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 20173
+  },
+  {
+   "t": 43858,
+   "ev": "frame-gap",
+   "from": 42615,
+   "ms": 1233,
+   "rel": 21708
+  },
+  {
+   "t": 43859,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 21709
+  },
+  {
+   "t": 46895,
+   "ev": "frame-gap",
+   "from": 43865,
+   "ms": 3017,
+   "rel": 24745
+  },
+  {
+   "t": 46899,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 24749
+  },
+  {
+   "t": 48344,
+   "ev": "frame-gap",
+   "from": 46881,
+   "ms": 1450,
+   "rel": 26194
+  },
+  {
+   "t": 48347,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 26197
+  },
+  {
+   "t": 49747,
+   "ev": "frame-gap",
+   "from": 48331,
+   "ms": 1400,
+   "rel": 27597
+  },
+  {
+   "t": 49749,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 27599
+  },
+  {
+   "t": 51064,
+   "ev": "frame-gap",
+   "from": 49731,
+   "ms": 1317,
+   "rel": 28914
+  },
+  {
+   "t": 51068,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 28918
+  },
+  {
+   "t": 52396,
+   "ev": "frame-gap",
+   "from": 51048,
+   "ms": 1333,
+   "rel": 30246
+  },
+  {
+   "t": 52397,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 30247
+  },
+  {
+   "t": 53727,
+   "ev": "frame-gap",
+   "from": 52381,
+   "ms": 1333,
+   "rel": 31577
+  },
+  {
+   "t": 53728,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 31578
+  },
+  {
+   "t": 55062,
+   "ev": "frame-gap",
+   "from": 53714,
+   "ms": 1333,
+   "rel": 32912
+  },
+  {
+   "t": 55064,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 32914
+  },
+  {
+   "t": 56369,
+   "ev": "frame-gap",
+   "from": 55048,
+   "ms": 1317,
+   "rel": 34219
+  },
+  {
+   "t": 56371,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 34221
+  },
+  {
+   "t": 59053,
+   "ev": "frame-gap",
+   "from": 56381,
+   "ms": 2667,
+   "rel": 36903
+  },
+  {
+   "t": 59055,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 36905
+  },
+  {
+   "t": 60422,
+   "ev": "frame-gap",
+   "from": 59048,
+   "ms": 1367,
+   "rel": 38272
+  },
+  {
+   "t": 60424,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 38274
+  },
+  {
+   "t": 61010,
+   "ev": "profile-stop",
+   "rel": 38860
+  },
+  {
+   "t": 61989,
+   "ev": "frame-gap",
+   "from": 60414,
+   "ms": 1567,
+   "rel": 39839
+  },
+  {
+   "t": 61990,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 39840
+  },
+  {
+   "t": 67270,
+   "ev": "frame-gap",
+   "from": 61997,
+   "ms": 2633,
+   "rel": 45120
+  },
+  {
+   "t": 67273,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 45123
+  },
+  {
+   "t": 68718,
+   "ev": "frame-gap",
+   "from": 64631,
+   "ms": 2683,
+   "rel": 46568
+  },
+  {
+   "t": 68719,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 46569
+  },
+  {
+   "t": 70151,
+   "ev": "frame-gap",
+   "from": 67314,
+   "ms": 1400,
+   "rel": 48001
+  },
+  {
+   "t": 70153,
+   "ev": "spatial",
+   "position": [
+    0.35,
+    -2.55,
+    3.958
+   ],
+   "outcome": null,
+   "remaining": null,
+   "rel": 48003
+  }
+ ],
+ "longTasks": [
+  {
+   "start": 22853,
+   "dur": 227,
+   "rel": 703
+  },
+  {
+   "start": 24224,
+   "dur": 103,
+   "rel": 2074
+  },
+  {
+   "start": 25519,
+   "dur": 72,
+   "rel": 3369
+  },
+  {
+   "start": 25627,
+   "dur": 84,
+   "rel": 3477
+  },
+  {
+   "start": 26263,
+   "dur": 71,
+   "rel": 4113
+  },
+  {
+   "start": 26540,
+   "dur": 99,
+   "rel": 4390
+  },
+  {
+   "start": 26642,
+   "dur": 81,
+   "rel": 4492
+  },
+  {
+   "start": 27173,
+   "dur": 86,
+   "rel": 5023
+  },
+  {
+   "start": 27627,
+   "dur": 161,
+   "rel": 5477
+  },
+  {
+   "start": 28626,
+   "dur": 119,
+   "rel": 6476
+  },
+  {
+   "start": 28786,
+   "dur": 102,
+   "rel": 6636
+  },
+  {
+   "start": 29132,
+   "dur": 78,
+   "rel": 6982
+  },
+  {
+   "start": 29221,
+   "dur": 94,
+   "rel": 7071
+  },
+  {
+   "start": 29763,
+   "dur": 613,
+   "rel": 7613
+  },
+  {
+   "start": 30439,
+   "dur": 1232,
+   "rel": 8289
+  },
+  {
+   "start": 31678,
+   "dur": 199,
+   "rel": 9528
+  },
+  {
+   "start": 31878,
+   "dur": 2453,
+   "rel": 9728
+  },
+  {
+   "start": 34333,
+   "dur": 165,
+   "rel": 12183
+  },
+  {
+   "start": 34574,
+   "dur": 52,
+   "rel": 12424
+  },
+  {
+   "start": 34660,
+   "dur": 1064,
+   "rel": 12510
+  },
+  {
+   "start": 35725,
+   "dur": 1163,
+   "rel": 13575
+  },
+  {
+   "start": 36929,
+   "dur": 55,
+   "rel": 14779
+  },
+  {
+   "start": 37280,
+   "dur": 468,
+   "rel": 15130
+  },
+  {
+   "start": 37995,
+   "dur": 4297,
+   "rel": 15845
+  },
+  {
+   "start": 62709,
+   "dur": 4559,
+   "rel": 40559
+  },
+  {
+   "start": 67307,
+   "dur": 1409,
+   "rel": 45157
+  },
+  {
+   "start": 68750,
+   "dur": 1398,
+   "rel": 46600
+  }
+ ],
+ "longTaskMs": 20504,
+ "worst": 4559,
+ "byOwner": [
+  "4293ms (no src) getShaderInfoLog",
+  "1228ms (no src) (program)",
+  "1140ms (no src) WebGLRenderer.setSize",
+  "1096ms (no src) getContext",
+  "900ms (no src) texSubImage2D",
+  "850ms (no src) getProgramInfoLog",
+  "613ms (no src) loseContext",
+  "542ms (no src) bufferData",
+  "362ms (no src) getProgramParameter",
+  "297ms (no src) (garbage collector)",
+  "282ms (anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:112",
+  "252ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+  "243ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:273",
+  "221ms (no src) exports.createElement",
+  "191ms (no src) texSubImage3D",
+  "186ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:183",
+  "174ms V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242",
+  "143ms (no src) setProgram",
+  "124ms (no src) commitUpdate",
+  "123ms (anon) src/app/scene/genesis/WorldScene.tsx:155",
+  "87ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+  "85ms (no src) run",
+  "85ms StreetCar src/app/scene/genesis/render/PlanetExplorer.tsx:213",
+  "77ms (no src) getExtension",
+  "75ms (anon) src/app/scene/genesis/render/PlanetVisual.tsx:213"
+ ],
+ "byLeaf": [
+  "4516ms getShaderInfoLog ",
+  "1861ms exports.jsxDEV react_jsx-dev-runtime.js",
+  "1228ms (program) ",
+  "1140ms WebGLRenderer.setSize three.js",
+  "1098ms getContext ",
+  "900ms getProgramInfoLog ",
+  "900ms texSubImage2D ",
+  "613ms loseContext ",
+  "542ms bufferData ",
+  "365ms getProgramParameter ",
+  "297ms (garbage collector) ",
+  "221ms exports.createElement react.js",
+  "191ms texSubImage3D ",
+  "185ms createImageBitmap ",
+  "182ms jsxDEVImpl react_jsx-dev-runtime.js",
+  "158ms applyBoneTransform three.core-DC1ULSR-.js",
+  "143ms setProgram three.js",
+  "109ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+  "84ms run ",
+  "79ms createTask ",
+  "77ms getExtension ",
+  "71ms ReactElement react_jsx-dev-runtime.js",
+  "55ms now ",
+  "53ms applyMatrix4 three.core-DC1ULSR-.js",
+  "47ms multiplyMatrices three.core-DC1ULSR-.js"
+ ],
+ "byPackage": [
+  "11296ms three",
+  "2206ms react_jsx-dev-runtime",
+  "1228ms (native) (program)",
+  "623ms react-three-fiber",
+  "383ms react-dom_client",
+  "297ms (native) (garbage collector)",
+  "266ms react",
+  "189ms src/app/scene/genesis/avatar/LeluBody.tsx",
+  "83ms scheduler-CpdqvMxI",
+  "80ms three_examples_jsm_loaders_GLTFLoader__js",
+  "39ms react_jsx-runtime",
+  "36ms framer-motion",
+  "29ms src/app/scene/genesis/GenesisV2Scene3D.tsx",
+  "21ms src/app/scene/genesis/avatar/spatialPresence.ts",
+  "19ms @react-three_drei"
+ ],
+ "stacks": [
+  "2841ms: getShaderInfoLog <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "726ms: WebGLRenderer.setSize <- (anon)@react-three-fiber.esm-DeNFsCiz.js:974 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:18 <- setState@react-three-fiber.esm-DeNFsCiz.js:13 <- setSize@react-three-fiber.esm-DeNFsCiz.js:904 <- configure@react-three-fiber.esm-DeNFsCiz.js:8908 <- run@react-three-fiber.esm-DeNFsCiz.js:9482 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9478 <- react_stack_bottom_frame@react-dom_client.js:12650 <- run@:-1 <- runWithFiberInDEV@react-dom_client.js:599 <- commitHookEffectListMount@react-dom_client.js:6361 <- commitHookLayoutEffects@react-dom_client.js:6355 <- commitLayoutEffectOnFiber@react-dom_client.js:6703 <- recursivelyTraverseLayoutEffects@react-dom_client.js:7229",
+  "704ms: getContext <- getContext@three.js:9624 <- WebGLRenderer@three.js:9426 <- configure@react-three-fiber.esm-DeNFsCiz.js:8908 <- run@react-three-fiber.esm-DeNFsCiz.js:9482 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9478 <- react_stack_bottom_frame@react-dom_client.js:12650 <- run@:-1 <- runWithFiberInDEV@react-dom_client.js:599 <- commitHookEffectListMount@react-dom_client.js:6361 <- commitHookLayoutEffects@react-dom_client.js:6355 <- commitLayoutEffectOnFiber@react-dom_client.js:6703 <- recursivelyTraverseLayoutEffects@react-dom_client.js:7229 <- commitLayoutEffectOnFiber@react-dom_client.js:6703 <- recursivelyTraverseLayoutEffects@react-dom_client.js:7229",
+  "576ms: texSubImage2D <- texSubImage2D@three.js:6360 <- uploadTexture@three.js:6976 <- setTexture2D@three.js:6815 <- setValueT1@three.js:3617 <- upload@three.js:3912 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "525ms: getProgramInfoLog <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "420ms: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1",
+  "143ms: getShaderInfoLog <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- advance@react-three-fiber.esm-DeNFsCiz.js:9267 <- advance@react-three-fiber.esm-DeNFsCiz.js:857 <- (anon)@LeluCharacter3D.tsx:112 <- (root)@:-1",
+  "51ms: exports.jsxDEV <- (anon)@CosmosVisuals.tsx:144 <- AuroraRibbon@CosmosVisuals.tsx:93 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- Ou@react-three-fiber.esm-DeNFsCiz.js:3547 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Ap@react-three-fiber.esm-DeNFsCiz.js:2770",
+  "46ms: exports.jsxDEV <- (anon)@CosmosVisuals.tsx:144 <- AuroraRibbon@CosmosVisuals.tsx:93 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Ap@react-three-fiber.esm-DeNFsCiz.js:2770 <- Wa@react-three-fiber.esm-DeNFsCiz.js:2704",
+  "45ms: exports.jsxDEV <- V2Satellite@GenesisV2Scene3D.tsx:1242 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13 <- (root)@:-1"
+ ],
+ "busy100ms": [
+  {
+   "s": "0.6",
+   "busy": 699,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "0.7",
+   "busy": 101,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "0.8",
+   "busy": 100,
+   "top": "FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386"
+  },
+  {
+   "s": "0.9",
+   "busy": 79,
+   "top": "(no src) shouldYieldToHost"
+  },
+  {
+   "s": "2.1",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "2.2",
+   "busy": 65,
+   "top": "(no src) exports.createElement"
+  },
+  {
+   "s": "3.4",
+   "busy": 81,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "3.5",
+   "busy": 69,
+   "top": "FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386"
+  },
+  {
+   "s": "4.1",
+   "busy": 99,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "4.4",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "4.5",
+   "busy": 93,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "5.0",
+   "busy": 93,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "5.5",
+   "busy": 100,
+   "top": "FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386"
+  },
+  {
+   "s": "5.6",
+   "busy": 74,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "6.5",
+   "busy": 100,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "6.6",
+   "busy": 66,
+   "top": "Portal src/app/scene/spatial/SpatialPortals.tsx:113"
+  },
+  {
+   "s": "6.7",
+   "busy": 84,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "7.0",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144"
+  },
+  {
+   "s": "7.1",
+   "busy": 65,
+   "top": "box src/app/scene/genesis/avatar/LeluSofa.tsx:45"
+  },
+  {
+   "s": "7.6",
+   "busy": 88,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "7.7",
+   "busy": 100,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "7.8",
+   "busy": 100,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "7.9",
+   "busy": 100,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "8.0",
+   "busy": 100,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "8.1",
+   "busy": 100,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "8.2",
+   "busy": 80,
+   "top": "(no src) loseContext"
+  },
+  {
+   "s": "8.3",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "8.4",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "8.5",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "8.6",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "8.7",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "8.8",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "8.9",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "9.0",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "9.1",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "9.2",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "9.3",
+   "busy": 100,
+   "top": "(no src) getContext"
+  },
+  {
+   "s": "9.4",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "9.5",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "9.6",
+   "busy": 99,
+   "top": "(no src) pushVertex"
+  },
+  {
+   "s": "9.7",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "9.8",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "9.9",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "10.0",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.3",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.4",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.5",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.6",
+   "busy": 101,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.7",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.0",
+   "busy": 98,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.1",
+   "busy": 102,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.3",
+   "busy": 97,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.4",
+   "busy": 103,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.5",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.6",
+   "busy": 102,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.7",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "11.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "12.0",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "12.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "12.2",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluBody.tsx:273"
+  },
+  {
+   "s": "12.3",
+   "busy": 98,
+   "top": "(no src) Blob"
+  },
+  {
+   "s": "12.4",
+   "busy": 100,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "12.5",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "12.6",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "12.7",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "12.8",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "12.9",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.0",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.1",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.2",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.3",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.4",
+   "busy": 99,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.5",
+   "busy": 100,
+   "top": "(no src) WebGLRenderer.setSize"
+  },
+  {
+   "s": "13.6",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "13.7",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "13.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "13.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "14.0",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "14.1",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "14.2",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "14.3",
+   "busy": 101,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "14.4",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:112"
+  },
+  {
+   "s": "14.5",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:112"
+  },
+  {
+   "s": "14.6",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:112"
+  },
+  {
+   "s": "14.7",
+   "busy": 100,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "14.8",
+   "busy": 100,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "14.9",
+   "busy": 74,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "15.1",
+   "busy": 71,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "15.2",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluBody.tsx:183"
+  },
+  {
+   "s": "15.3",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluBody.tsx:183"
+  },
+  {
+   "s": "15.4",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluBody.tsx:273"
+  },
+  {
+   "s": "15.5",
+   "busy": 100,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluBody.tsx:273"
+  },
+  {
+   "s": "15.6",
+   "busy": 74,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "15.9",
+   "busy": 101,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "16.0",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "16.1",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "16.2",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "16.3",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "16.4",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "16.5",
+   "busy": 99,
+   "top": "(no src) applyBoneTransform"
+  },
+  {
+   "s": "16.6",
+   "busy": 101,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "16.7",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "16.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "16.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "17.0",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "17.1",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "17.2",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "17.3",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "17.4",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "17.5",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "17.6",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "17.7",
+   "busy": 101,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "17.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "17.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "18.0",
+   "busy": 100,
+   "top": "(no src) setProgram"
+  },
+  {
+   "s": "18.1",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "18.2",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "18.3",
+   "busy": 95,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "18.4",
+   "busy": 105,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "18.5",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "18.6",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "18.7",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "18.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "18.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.0",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.3",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.4",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.5",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.6",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.7",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.8",
+   "busy": 101,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "19.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "20.0",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "20.1",
+   "busy": 100,
+   "top": "(no src) getProgramParameter"
+  },
+  {
+   "s": "21.7",
+   "busy": 70,
+   "top": "(anon) src/app/scene/genesis/avatar/LeluSofa.tsx:113"
+  },
+  {
+   "s": "24.8",
+   "busy": 64,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "27.6",
+   "busy": 90,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "31.6",
+   "busy": 65,
+   "top": "(anon) src/app/scene/genesis/WorldScene.tsx:155"
+  },
+  {
+   "s": "34.2",
+   "busy": 69,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "35.6",
+   "busy": 63,
+   "top": "Room src/app/scene/genesis/WorldScene.tsx:33"
+  },
+  {
+   "s": "38.3",
+   "busy": 72,
+   "top": "Room src/app/scene/genesis/WorldScene.tsx:33"
+  }
+ ],
+ "shots": [
+  {
+   "name": "home-ready",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-before1-desktop-01-home-ready.png",
+   "pageT": 20532
+  },
+  {
+   "name": "worlds-menu",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-before1-desktop-02-worlds-menu.png",
+   "pageT": 25020
+  },
+  {
+   "name": "world-+3s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-before1-desktop-03-world-+3s.png",
+   "pageT": 34522
+  },
+  {
+   "name": "world-+8s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-before1-desktop-04-world-+8s.png",
+   "pageT": 42773
+  },
+  {
+   "name": "world-+15s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-before1-desktop-05-world-+15s.png",
+   "pageT": 55664
+  },
+  {
+   "name": "end",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-before1-desktop-06-end.png",
+   "pageT": 61514
+  }
+ ]
+}

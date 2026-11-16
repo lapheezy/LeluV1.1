@@ -72,6 +72,12 @@ export interface AvatarCommand {
   durationMs: number;
   /** For "move" and "look": where to, or what to face. */
   target?: AvatarTarget;
+  /**
+   * The bus's own deadline for this command (ms after `issuedAt`, same
+   * Date.now clock). A presence that reports progress instead of an outcome
+   * does so just before THIS, not on a guess of its own (M15.3 WP04).
+   */
+  timeoutMs: number;
 }
 
 type CommandListener = (command: AvatarCommand) => void;
@@ -139,6 +145,7 @@ class AvatarCommandBusImpl {
       label,
       issuedAt: Date.now(),
       durationMs: kind === "dance" ? 3_200 : kind === "sit" || kind === "stand" ? 3_000 : kind === "move" && target ? 9_000 : 2_200,
+      timeoutMs,
       ...(target ? { target } : {}),
     };
 

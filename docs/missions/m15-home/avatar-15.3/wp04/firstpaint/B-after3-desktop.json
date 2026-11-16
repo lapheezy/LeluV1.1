@@ -1,0 +1,2133 @@
+{
+ "scenario": "B",
+ "label": "after3",
+ "dev": "desktop",
+ "viewport": {
+  "width": 1440,
+  "height": 900
+ },
+ "marks": [
+  {
+   "t": 25271,
+   "ev": "frame-gap",
+   "from": 24946,
+   "ms": 315,
+   "rel": -12536
+  },
+  {
+   "t": 26177,
+   "ev": "frame-gap",
+   "from": 25261,
+   "ms": 900,
+   "rel": -11630
+  },
+  {
+   "t": 26675,
+   "ev": "frame-gap",
+   "from": 26161,
+   "ms": 500,
+   "rel": -11132
+  },
+  {
+   "t": 26892,
+   "ev": "world-clicked",
+   "rel": -10915
+  },
+  {
+   "t": 27239,
+   "ev": "frame-gap",
+   "from": 26660,
+   "ms": 567,
+   "rel": -10568
+  },
+  {
+   "t": 27872,
+   "ev": "frame-gap",
+   "from": 27227,
+   "ms": 583,
+   "rel": -9935
+  },
+  {
+   "t": 28064,
+   "ev": "frame-gap",
+   "from": 27810,
+   "ms": 250,
+   "rel": -9743
+  },
+  {
+   "t": 28600,
+   "ev": "frame-gap",
+   "from": 28061,
+   "ms": 533,
+   "rel": -9207
+  },
+  {
+   "t": 28737,
+   "ev": "universe",
+   "open": true,
+   "rel": -9070
+  },
+  {
+   "t": 28747,
+   "ev": "render-budget",
+   "mode": "paused",
+   "rel": -9060
+  },
+  {
+   "t": 29305,
+   "ev": "frame-gap",
+   "from": 28594,
+   "ms": 700,
+   "rel": -8502
+  },
+  {
+   "t": 32237,
+   "ev": "frame-gap",
+   "from": 29294,
+   "ms": 883,
+   "rel": -5570
+  },
+  {
+   "t": 32436,
+   "ev": "frame-gap",
+   "from": 30177,
+   "ms": 2050,
+   "rel": -5371
+  },
+  {
+   "t": 32468,
+   "ev": "world-data-start",
+   "url": "/api/forge/world",
+   "rel": -5339
+  },
+  {
+   "t": 32469,
+   "ev": "world-data-start",
+   "url": "/api/forge/world/avatar/lelu_character",
+   "rel": -5338
+  },
+  {
+   "t": 32470,
+   "ev": "world-data-start",
+   "url": "/api/forge/world",
+   "rel": -5337
+  },
+  {
+   "t": 32668,
+   "ev": "world-data-done",
+   "url": "/api/forge/world",
+   "rel": -5139
+  },
+  {
+   "t": 32668,
+   "ev": "world-data-done",
+   "url": "/api/forge/world/avatar/lelu_character",
+   "rel": -5139
+  },
+  {
+   "t": 32668,
+   "ev": "world-data-done",
+   "url": "/api/forge/world",
+   "rel": -5139
+  },
+  {
+   "t": 33648,
+   "ev": "frame-gap",
+   "from": 32460,
+   "ms": 767,
+   "rel": -4159
+  },
+  {
+   "t": 34829,
+   "ev": "frame-gap",
+   "from": 33227,
+   "ms": 983,
+   "rel": -2978
+  },
+  {
+   "t": 34982,
+   "ev": "frame-gap",
+   "from": 34210,
+   "ms": 617,
+   "rel": -2825
+  },
+  {
+   "t": 35805,
+   "ev": "frame-gap",
+   "from": 35244,
+   "ms": 550,
+   "rel": -2002
+  },
+  {
+   "t": 36368,
+   "ev": "frame-gap",
+   "from": 36043,
+   "ms": 317,
+   "rel": -1439
+  },
+  {
+   "t": 37806,
+   "ev": "canvases-before-enter",
+   "canvases": [
+    {
+     "w": 1461,
+     "h": 913,
+     "spatial": false,
+     "prepared": "{\"programs\":14,\"objects\":220,\"uploads\":6,\"pending\":0}",
+     "parent": "genesis-v2"
+    },
+    {
+     "w": 120,
+     "h": 170,
+     "spatial": false,
+     "prepared": null,
+     "parent": "lelu-companion-character"
+    }
+   ],
+   "rel": -1
+  },
+  {
+   "t": 37807,
+   "ev": "profile-start",
+   "rel": 0
+  },
+  {
+   "t": 38581,
+   "ev": "frame-gap",
+   "from": 37877,
+   "ms": 550,
+   "rel": 774
+  },
+  {
+   "t": 38799,
+   "ev": "frame-gap",
+   "from": 38427,
+   "ms": 350,
+   "rel": 992
+  },
+  {
+   "t": 38812,
+   "ev": "enter-pressed",
+   "rel": 1005
+  },
+  {
+   "t": 38946,
+   "ev": "command-issued",
+   "label": "walk to the studio",
+   "rel": 1139
+  },
+  {
+   "t": 38946,
+   "ev": "universe",
+   "open": false,
+   "rel": 1139
+  },
+  {
+   "t": 38967,
+   "ev": "render-budget",
+   "mode": "full",
+   "rel": 1160
+  },
+  {
+   "t": 39076,
+   "ev": "her-world-first-frame",
+   "rel": 1269
+  },
+  {
+   "t": 39076,
+   "ev": "spatial",
+   "position": [
+    0,
+    -2.55,
+    3.3
+   ],
+   "outcome": "walking",
+   "remaining": 5.023,
+   "rel": 1269
+  },
+  {
+   "t": 47922,
+   "ev": "frame-gap",
+   "from": 39060,
+   "ms": 8816,
+   "rel": 10115
+  },
+  {
+   "t": 47925,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 10118
+  },
+  {
+   "t": 47935,
+   "ev": "command-resolved",
+   "o": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point",
+   "rel": 10128
+  },
+  {
+   "t": 49777,
+   "ev": "frame-gap",
+   "from": 48093,
+   "ms": 1667,
+   "rel": 11970
+  },
+  {
+   "t": 49778,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 11971
+  },
+  {
+   "t": 51366,
+   "ev": "frame-gap",
+   "from": 49760,
+   "ms": 1600,
+   "rel": 13559
+  },
+  {
+   "t": 51370,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 13563
+  },
+  {
+   "t": 52934,
+   "ev": "frame-gap",
+   "from": 51360,
+   "ms": 1567,
+   "rel": 15127
+  },
+  {
+   "t": 52937,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 15130
+  },
+  {
+   "t": 54378,
+   "ev": "frame-gap",
+   "from": 52926,
+   "ms": 1450,
+   "rel": 16571
+  },
+  {
+   "t": 54380,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 16573
+  },
+  {
+   "t": 55556,
+   "ev": "frame-gap",
+   "from": 54376,
+   "ms": 1167,
+   "rel": 17749
+  },
+  {
+   "t": 55558,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 17751
+  },
+  {
+   "t": 59522,
+   "ev": "frame-gap",
+   "from": 55543,
+   "ms": 1167,
+   "rel": 21715
+  },
+  {
+   "t": 59524,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 21717
+  },
+  {
+   "t": 59629,
+   "ev": "frame-gap",
+   "from": 56709,
+   "ms": 2883,
+   "rel": 21822
+  },
+  {
+   "t": 60720,
+   "ev": "frame-gap",
+   "from": 59592,
+   "ms": 1117,
+   "rel": 22913
+  },
+  {
+   "t": 60722,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 22915
+  },
+  {
+   "t": 62223,
+   "ev": "frame-gap",
+   "from": 60959,
+   "ms": 1250,
+   "rel": 24416
+  },
+  {
+   "t": 62224,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 24417
+  },
+  {
+   "t": 63354,
+   "ev": "frame-gap",
+   "from": 62209,
+   "ms": 1133,
+   "rel": 25547
+  },
+  {
+   "t": 63357,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 25550
+  },
+  {
+   "t": 64535,
+   "ev": "frame-gap",
+   "from": 63342,
+   "ms": 1183,
+   "rel": 26728
+  },
+  {
+   "t": 64536,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 26729
+  },
+  {
+   "t": 68151,
+   "ev": "frame-gap",
+   "from": 64526,
+   "ms": 1167,
+   "rel": 30344
+  },
+  {
+   "t": 68153,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 30346
+  },
+  {
+   "t": 69598,
+   "ev": "frame-gap",
+   "from": 65692,
+   "ms": 2533,
+   "rel": 31791
+  },
+  {
+   "t": 69602,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 31795
+  },
+  {
+   "t": 69640,
+   "ev": "frame-gap",
+   "from": 68226,
+   "ms": 1367,
+   "rel": 31833
+  },
+  {
+   "t": 73337,
+   "ev": "frame-gap",
+   "from": 69775,
+   "ms": 3550,
+   "rel": 35530
+  },
+  {
+   "t": 73338,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 35531
+  },
+  {
+   "t": 74583,
+   "ev": "frame-gap",
+   "from": 73325,
+   "ms": 1250,
+   "rel": 36776
+  },
+  {
+   "t": 74585,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 36778
+  },
+  {
+   "t": 75781,
+   "ev": "frame-gap",
+   "from": 74575,
+   "ms": 1200,
+   "rel": 37974
+  },
+  {
+   "t": 75782,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 37975
+  },
+  {
+   "t": 77032,
+   "ev": "frame-gap",
+   "from": 75775,
+   "ms": 1250,
+   "rel": 39225
+  },
+  {
+   "t": 77034,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 39227
+  },
+  {
+   "t": 78302,
+   "ev": "frame-gap",
+   "from": 77025,
+   "ms": 1267,
+   "rel": 40495
+  },
+  {
+   "t": 78304,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 40497
+  },
+  {
+   "t": 79517,
+   "ev": "frame-gap",
+   "from": 78292,
+   "ms": 1217,
+   "rel": 41710
+  },
+  {
+   "t": 79519,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 41712
+  },
+  {
+   "t": 80778,
+   "ev": "frame-gap",
+   "from": 79508,
+   "ms": 1267,
+   "rel": 42971
+  },
+  {
+   "t": 80782,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 42975
+  },
+  {
+   "t": 82917,
+   "ev": "frame-gap",
+   "from": 80775,
+   "ms": 2133,
+   "rel": 45110
+  },
+  {
+   "t": 82918,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 45111
+  },
+  {
+   "t": 84278,
+   "ev": "frame-gap",
+   "from": 82925,
+   "ms": 1350,
+   "rel": 46471
+  },
+  {
+   "t": 84280,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 46473
+  },
+  {
+   "t": 85481,
+   "ev": "frame-gap",
+   "from": 84275,
+   "ms": 1200,
+   "rel": 47674
+  },
+  {
+   "t": 85483,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 47676
+  },
+  {
+   "t": 85857,
+   "ev": "profile-stop",
+   "rel": 48050
+  },
+  {
+   "t": 86722,
+   "ev": "frame-gap",
+   "from": 85475,
+   "ms": 1233,
+   "rel": 48915
+  },
+  {
+   "t": 86724,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 48917
+  },
+  {
+   "t": 87836,
+   "ev": "frame-gap",
+   "from": 86725,
+   "ms": 1100,
+   "rel": 50029
+  },
+  {
+   "t": 87837,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 50030
+  },
+  {
+   "t": 90052,
+   "ev": "frame-gap",
+   "from": 87841,
+   "ms": 2200,
+   "rel": 52245
+  },
+  {
+   "t": 90054,
+   "ev": "spatial",
+   "position": [
+    -3.96,
+    -2.55,
+    0.295
+   ],
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "rel": 52247
+  }
+ ],
+ "longTasks": [
+  {
+   "start": 38430,
+   "dur": 147,
+   "rel": 623
+  },
+  {
+   "start": 38620,
+   "dur": 55,
+   "rel": 813
+  },
+  {
+   "start": 38675,
+   "dur": 122,
+   "rel": 868
+  },
+  {
+   "start": 38913,
+   "dur": 75,
+   "rel": 1106
+  },
+  {
+   "start": 39066,
+   "dur": 8822,
+   "rel": 1259
+  },
+  {
+   "start": 47920,
+   "dur": 83,
+   "rel": 10113
+  },
+  {
+   "start": 56050,
+   "dur": 3467,
+   "rel": 18243
+  },
+  {
+   "start": 64884,
+   "dur": 3265,
+   "rel": 27077
+  },
+  {
+   "start": 68182,
+   "dur": 1414,
+   "rel": 30375
+  }
+ ],
+ "longTaskMs": 17450,
+ "worst": 8822,
+ "byOwner": [
+  "8139ms probeGpu src/core/cognition/SystemEnvironment.ts:17",
+  "4093ms (no src) getShaderInfoLog",
+  "1199ms (no src) getProgramInfoLog",
+  "1190ms (no src) texSubImage2D",
+  "967ms (no src) bufferData",
+  "787ms (no src) (program)",
+  "497ms (no src) texSubImage3D",
+  "479ms (no src) getProgramParameter",
+  "316ms V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242",
+  "268ms (no src) exports.createElement",
+  "229ms (anon) src/app/scene/genesis/WorldScene.tsx:155",
+  "137ms (no src) (garbage collector)",
+  "128ms pass src/app/scene/genesis/SceneFrameGovernor.tsx:125",
+  "117ms (anon) src/app/scene/genesis/chat/stage/StageSwitcher.tsx:33",
+  "105ms (no src) update",
+  "97ms UniverseChatWindow src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx:91",
+  "94ms (no src) exports.jsx",
+  "89ms (no src) applyBoneTransform",
+  "88ms LeluV2Presence src/app/scene/genesis/LeluV2Presence.tsx:101",
+  "78ms (no src) run",
+  "74ms (no src) commitUpdate",
+  "72ms (no src) react_stack_bottom_frame",
+  "68ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+  "65ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+  "60ms V2CoreBody src/app/scene/genesis/GenesisV2Scene3D.tsx:899"
+ ],
+ "byLeaf": [
+  "7961ms getContext ",
+  "4093ms getShaderInfoLog ",
+  "1700ms exports.jsxDEV react_jsx-dev-runtime.js",
+  "1318ms texSubImage2D ",
+  "1199ms getProgramInfoLog ",
+  "967ms bufferData ",
+  "787ms (program) ",
+  "497ms texSubImage3D ",
+  "479ms getProgramParameter ",
+  "268ms exports.createElement react.js",
+  "190ms jsxDEVImpl react_jsx-dev-runtime.js",
+  "173ms loseContext ",
+  "137ms (garbage collector) ",
+  "100ms update three.js",
+  "94ms exports.jsx react_jsx-runtime.js",
+  "89ms applyBoneTransform three.core-DC1ULSR-.js",
+  "88ms getBoundingClientRect ",
+  "78ms createTask ",
+  "75ms run ",
+  "52ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+  "52ms react_stack_bottom_frame react-dom_client.js",
+  "50ms now ",
+  "40ms setValueForStyles react-dom_client.js",
+  "31ms setItem ",
+  "29ms ReactElement react.js"
+ ],
+ "byPackage": [
+  "9092ms three",
+  "8140ms src/core/cognition/SystemEnvironment.ts",
+  "1979ms react_jsx-dev-runtime",
+  "787ms (native) (program)",
+  "622ms react-dom_client",
+  "431ms react-three-fiber",
+  "327ms react",
+  "141ms framer-motion",
+  "139ms react_jsx-runtime",
+  "137ms (native) (garbage collector)",
+  "66ms scheduler-CpdqvMxI",
+  "42ms src/core/runtime/domProbes.ts",
+  "41ms src/app/scene/genesis/avatar/spatialPresence.ts",
+  "38ms src/core/selfdev/VisualInspection.ts",
+  "37ms src/core/storage/KvStore.ts"
+ ],
+ "stacks": [
+  "3210ms: getContext <- probeGpu@SystemEnvironment.ts:17 <- collect@SystemEnvironment.ts:66 <- refresh@SystemEnvironment.ts:111 <- run@SelfDiagnostics.ts:40 <- (root)@:-1",
+  "2780ms: getShaderInfoLog <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "2201ms: getContext <- probeGpu@SystemEnvironment.ts:17 <- collect@SystemEnvironment.ts:66 <- refresh@SystemEnvironment.ts:111 <- runOnce@CognitiveLoop.ts:151 <- (root)@:-1",
+  "791ms: getProgramInfoLog <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "789ms: texSubImage2D <- texSubImage2D@three.js:6360 <- uploadTexture@three.js:6976 <- setTexture2D@three.js:6815 <- setValueT1@three.js:3617 <- upload@three.js:3912 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "611ms: bufferData <- createBuffer@three.js:482 <- update@three.js:548 <- update@three.js:2888 <- update@three.js:3108 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- projectObject@three.js:10438 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207",
+  "333ms: texSubImage3D <- texSubImage3D@three.js:6367 <- uploadTexture@three.js:6976 <- setTexture2DArray@three.js:6829 <- setValueT2DArray1@three.js:3649 <- setValue@three.js:3904 <- update@three.js:3022 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228",
+  "85ms: texSubImage2D <- texSubImage2D@three.js:6360 <- uploadTexture@three.js:6976 <- setTexture2D@three.js:6815 <- WebGLRenderer.initTexture@three.js:11206 <- pass@SceneFrameGovernor.tsx:125 <- (root)@:-1",
+  "72ms: exports.jsxDEV <- V2Satellite@GenesisV2Scene3D.tsx:1242 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13 <- (root)@:-1",
+  "69ms: exports.jsxDEV <- V2Satellite@GenesisV2Scene3D.tsx:1242 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- Ou@react-three-fiber.esm-DeNFsCiz.js:3547 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13"
+ ],
+ "busy100ms": [
+  {
+   "s": "0.5",
+   "busy": 600,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "0.6",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:125"
+  },
+  {
+   "s": "0.7",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:125"
+  },
+  {
+   "s": "0.8",
+   "busy": 100,
+   "top": "(no src) exports.createElement"
+  },
+  {
+   "s": "0.9",
+   "busy": 97,
+   "top": "(no src) exports.createElement"
+  },
+  {
+   "s": "1.1",
+   "busy": 99,
+   "top": "rectOf src/core/selfdev/VisualInspection.ts:0"
+  },
+  {
+   "s": "1.2",
+   "busy": 64,
+   "top": "visibleBox src/core/runtime/domProbes.ts:43"
+  },
+  {
+   "s": "1.3",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "1.4",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "1.5",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "1.6",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "1.7",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "1.8",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "1.9",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "2.0",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "2.1",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "2.2",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "2.3",
+   "busy": 100,
+   "top": "(no src) applyBoneTransform"
+  },
+  {
+   "s": "2.4",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "2.5",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "2.6",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "2.7",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "2.8",
+   "busy": 101,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "2.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "3.0",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "3.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "3.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "3.3",
+   "busy": 100,
+   "top": "(no src) getProgramParameter"
+  },
+  {
+   "s": "3.4",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "3.5",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "3.6",
+   "busy": 100,
+   "top": "(no src) getProgramParameter"
+  },
+  {
+   "s": "3.7",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.8",
+   "busy": 99,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.9",
+   "busy": 101,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "4.0",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "4.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "4.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "4.3",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "4.4",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "4.5",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "4.6",
+   "busy": 101,
+   "top": "(no src) update"
+  },
+  {
+   "s": "4.7",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.8",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.9",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "5.0",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "5.1",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "5.2",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.3",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.4",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.5",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.6",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.7",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.8",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.9",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "6.0",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "6.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.3",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.4",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.5",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.6",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.7",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "6.9",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "7.0",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "7.1",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "7.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "7.3",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "7.4",
+   "busy": 100,
+   "top": "(no src) getProgramParameter"
+  },
+  {
+   "s": "7.5",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "7.6",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "7.7",
+   "busy": 100,
+   "top": "(no src) getProgramParameter"
+  },
+  {
+   "s": "7.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "7.9",
+   "busy": 99,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.0",
+   "busy": 101,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "8.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.3",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.4",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.5",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "8.6",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.7",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "8.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "8.9",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.0",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "9.1",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.2",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.3",
+   "busy": 100,
+   "top": "(no src) getProgramParameter"
+  },
+  {
+   "s": "9.4",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.5",
+   "busy": 99,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "9.6",
+   "busy": 101,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.7",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.8",
+   "busy": 100,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "9.9",
+   "busy": 100,
+   "top": "(no src) getProgramInfoLog"
+  },
+  {
+   "s": "10.0",
+   "busy": 94,
+   "top": "(no src) getShaderInfoLog"
+  },
+  {
+   "s": "10.1",
+   "busy": 100,
+   "top": "GenesisV2CameraHUD src/app/scene/genesis/GenesisV2CameraHUD.tsx:50"
+  },
+  {
+   "s": "10.2",
+   "busy": 67,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "12.0",
+   "busy": 101,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "13.2",
+   "busy": 64,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "15.0",
+   "busy": 93,
+   "top": "(no src) exports.createElement"
+  },
+  {
+   "s": "15.1",
+   "busy": 62,
+   "top": "(no src) createTask"
+  },
+  {
+   "s": "18.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.6",
+   "busy": 99,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.7",
+   "busy": 101,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "18.9",
+   "busy": 99,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.0",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.6",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.7",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "19.9",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.0",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.6",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.7",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "20.9",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.0",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.6",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "21.7",
+   "busy": 100,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "21.8",
+   "busy": 88,
+   "top": "(anon) src/app/scene/genesis/WorldScene.tsx:155"
+  },
+  {
+   "s": "22.0",
+   "busy": 92,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "22.9",
+   "busy": 79,
+   "top": "LeluV2Presence src/app/scene/genesis/LeluV2Presence.tsx:101"
+  },
+  {
+   "s": "23.0",
+   "busy": 61,
+   "top": "(no src) useContext"
+  },
+  {
+   "s": "27.0",
+   "busy": 76,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.6",
+   "busy": 98,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.7",
+   "busy": 101,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "27.9",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.0",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.6",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.7",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "28.9",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.0",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.6",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.7",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "29.9",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.0",
+   "busy": 98,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.1",
+   "busy": 101,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.6",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.7",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.8",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "30.9",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.0",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.1",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.2",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.3",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.4",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.5",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.6",
+   "busy": 99,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.7",
+   "busy": 100,
+   "top": "probeGpu src/core/cognition/SystemEnvironment.ts:17"
+  },
+  {
+   "s": "31.8",
+   "busy": 101,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "32.2",
+   "busy": 94,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "33.8",
+   "busy": 63,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "34.0",
+   "busy": 65,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "35.0",
+   "busy": 93,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "35.4",
+   "busy": 62,
+   "top": "isVisible src/core/selfdev/VisualInspection.ts:7"
+  },
+  {
+   "s": "35.5",
+   "busy": 70,
+   "top": "SpatialNavigator src/app/scene/spatial/SpatialNavigator.tsx:90"
+  },
+  {
+   "s": "40.2",
+   "busy": 89,
+   "top": "action src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx:271"
+  },
+  {
+   "s": "40.5",
+   "busy": 88,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "41.7",
+   "busy": 93,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "43.0",
+   "busy": 100,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "44.0",
+   "busy": 69,
+   "top": "useUniverseOpen src/app/scene/genesis/chat/universe/universeOpen.ts:26"
+  },
+  {
+   "s": "45.1",
+   "busy": 77,
+   "top": "(no src) B"
+  }
+ ],
+ "shots": [
+  {
+   "name": "home-ready",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-01-home-ready.png",
+   "pageT": 22388
+  },
+  {
+   "name": "chat-over-unpainted-world",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-02-chat-over-unpainted-world.png",
+   "pageT": 37191
+  },
+  {
+   "name": "after-enter-+1s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-03-after-enter-+1s.png",
+   "pageT": 47919
+  },
+  {
+   "name": "after-enter-+5s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-04-after-enter-+5s.png",
+   "pageT": 55598
+  },
+  {
+   "name": "after-enter-+12s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-05-after-enter-+12s.png",
+   "pageT": 69628
+  },
+  {
+   "name": "after-enter-+20s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-06-after-enter-+20s.png",
+   "pageT": 81540
+  },
+  {
+   "name": "end",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-after3-desktop-07-end.png",
+   "pageT": 86389
+  }
+ ],
+ "links": [
+  {
+   "t": 16566,
+   "name": "lelu_mouth",
+   "kind": "skin",
+   "w": 101,
+   "rel": -21241
+  },
+  {
+   "t": 16913,
+   "name": "Material_0",
+   "kind": "skin",
+   "w": 101,
+   "rel": -20894
+  },
+  {
+   "t": 17256,
+   "name": "Material_0.001",
+   "kind": "skin morph",
+   "w": 101,
+   "rel": -20551
+  },
+  {
+   "t": 18380,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 101,
+   "rel": -19427
+  },
+  {
+   "t": 18974,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 101,
+   "rel": -18833
+  },
+  {
+   "t": 33657,
+   "name": "?",
+   "kind": "",
+   "w": 120,
+   "rel": -4150
+  },
+  {
+   "t": 34090,
+   "name": "?",
+   "kind": "",
+   "w": 120,
+   "rel": -3717
+  },
+  {
+   "t": 34288,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3519
+  },
+  {
+   "t": 34288,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3519
+  },
+  {
+   "t": 34289,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3518
+  },
+  {
+   "t": 34289,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3518
+  },
+  {
+   "t": 34290,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3517
+  },
+  {
+   "t": 34290,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3517
+  },
+  {
+   "t": 34290,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3517
+  },
+  {
+   "t": 34295,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3512
+  },
+  {
+   "t": 34296,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3511
+  },
+  {
+   "t": 34296,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3511
+  },
+  {
+   "t": 34297,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3510
+  },
+  {
+   "t": 34304,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3503
+  },
+  {
+   "t": 34306,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3501
+  },
+  {
+   "t": 34312,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -3495
+  },
+  {
+   "t": 38440,
+   "name": "Material_0",
+   "kind": "skin",
+   "w": 1461,
+   "rel": 633
+  },
+  {
+   "t": 38442,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 1461,
+   "rel": 635
+  },
+  {
+   "t": 38444,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 1461,
+   "rel": 637
+  },
+  {
+   "t": 38447,
+   "name": "Material_0.001",
+   "kind": "skin morph",
+   "w": 1461,
+   "rel": 640
+  },
+  {
+   "t": 38449,
+   "name": "lelu_mouth",
+   "kind": "skin",
+   "w": 1461,
+   "rel": 642
+  }
+ ]
+}
