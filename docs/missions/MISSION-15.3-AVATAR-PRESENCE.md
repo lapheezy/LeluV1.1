@@ -195,3 +195,7 @@ Decision:
 6. **The Avatar panel's own "3D" preview is the old procedural figure, not her model** (pre-existing). The new Presence picker deliberately draws no second canvas.
 7. **Movement vocabulary is a named set of places**: in the world, the person, her spot, the Core, Studio, Lab, Vault and away; over the interface, left, right, middle and her spot. There is no free point-and-go yet. "Point at an object" and "present a created object" have no captured clip in her 31-slot library and were not invented.
 8. **In-world first command**: in this container the world can run below 1 fps right after loading, and a long first walk can then exceed the 45 s confirmation window. She reports that honestly rather than claiming success.
+
+---
+
+**Follow-up:** see [`MISSION-15.3-WP02-AVATAR-PERFORMANCE.md`](MISSION-15.3-WP02-AVATAR-PERFORMANCE.md) (2026-11-16) for the performance root cause and fixes, world-movement reliability, and the real Avatar-panel preview. It also corrects this report's §3 "phone page rate regression": in a settled A/B the figures were not reproducible.

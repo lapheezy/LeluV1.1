@@ -1,0 +1,50 @@
+{
+  "app": "Studio",
+  "label": "after1",
+  "longTasks": 4,
+  "longTaskMs": 486,
+  "worst": 182,
+  "byOwner": [
+    "822ms (no src) (program)",
+    "85ms (no src) (garbage collector)",
+    "70ms GenesisRenderPanel src/app/scene/genesis/GenesisRenderPanel.tsx:62",
+    "66ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "51ms (no src) exports.createElement",
+    "51ms (anon) src/app/scene/genesis/GenesisRenderPanel.tsx:411",
+    "45ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "43ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "36ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "35ms (no src) run",
+    "34ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "32ms (anon) src/app/scene/genesis/VisualInterface.tsx:579",
+    "32ms box src/app/scene/genesis/avatar/LeluSofa.tsx:45",
+    "31ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "30ms (no src) commitUpdate",
+    "29ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "29ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "29ms (no src) "
+  ],
+  "byLeaf": [
+    "822ms (program) ",
+    "779ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "85ms (garbage collector) ",
+    "66ms update EngineRegistry.ts",
+    "51ms exports.createElement react.js",
+    "45ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "42ms ReactElement react_jsx-dev-runtime.js",
+    "33ms createTask ",
+    "33ms run ",
+    "25ms now ",
+    "24ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "24ms react_stack_bottom_frame react-dom_client.js",
+    "21ms createWorkInProgress react-dom_client.js",
+    "21ms exports.jsx react_jsx-runtime.js",
+    "18ms measure ",
+    "18ms validateProperty react-dom_client.js",
+    "17ms setValueForStyles react-dom_client.js",
+    "17ms querySelectorAll "
+  ],
+  "stacks": [
+    "7 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

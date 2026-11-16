@@ -215,8 +215,19 @@ if (only === "all" || only === "actions") {
     await leaveChat(p);
     const after = await spatial();
     const moved = before && after ? Math.hypot(after.position[0] - before.position[0], after.position[2] - before.position[2]) : 0;
-    const done = /Done/.test(reply);
-    await step(p, `world-${words.replace(/\W+/g, "-")}`, done, `moved ${moved.toFixed(2)} m; reply “${reply.slice(-150)}”`);
+    // Valid outcomes (the brief): arrived / stopped near with a measured
+    // distance ("Done …"), or an honest decline with measured numbers
+    // ("I didn't … blocked … m short", "I didn't … still on my way … m to go").
+    // NOT valid: the generic "No renderer confirmed" timeout.
+    const outcome = /Done/.test(reply) ? "done" : /I didn't .*still on my way/.test(reply) ? "on-the-way" : /I didn't .*blocked/.test(reply) ? "declined-blocked" : "invalid";
+    let later = "";
+    if (outcome === "on-the-way") {
+      // She said she would keep walking: check that she really arrives.
+      for (let i = 0; i < 30; i++) { const s = await spatial(); if (s && !s.walking) break; await p.waitForTimeout(1000); }
+      const s = await spatial();
+      later = s?.goal ? `; afterwards: walking ${s.walking}, ${Math.hypot(s.goal.point[0] - s.position[0], s.goal.point[1] - s.position[2]).toFixed(2)} m from the goal` : "";
+    }
+    await step(p, `world-${words.replace(/\W+/g, "-")}`, outcome !== "invalid", `${outcome}; moved ${moved.toFixed(2)} m; reply “${reply.slice(-170)}”${later}`);
   }
   await ctx.close();
 }

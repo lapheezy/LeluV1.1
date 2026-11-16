@@ -205,5 +205,6 @@ The next steps, in order:
 | 2026-11-15 | [15.2 Spatial bar off the Home](MISSION-15.2-SPATIAL-BAR-AWAY.md) | `6bf290e` | Superseded by the closeout below |
 | 2026-11-16 | [15.2 WP03 closeout](MISSION-15.2-CLOSEOUT-WP03.md) | child of `6bf290e` | WP03 COMPLETE with limitations; full suite 2260/2266 pass, 0 fail, 6 skipped; iPhone NOT VERIFIED |
 | 2026-11-16 | [15.3 LÉLU's presence: adaptation, forms, actions, runtime](MISSION-15.3-AVATAR-PRESENCE.md) | child of `3722579` | PARTIAL: forms, interface adaptation, actions and App Library coexistence TEST-VERIFIED in Chromium; full suite 2268/2274 pass, 0 fail, 6 skipped; iPhone NOT VERIFIED; real-GPU phone frame rate not measurable here |
+| 2026-11-16 | [15.3 WP02: avatar performance, world movement, real panel preview](MISSION-15.3-WP02-AVATAR-PERFORMANCE.md) | child of `4adbbdc` | PARTIAL: screen switches 3–6× lighter (same conditions, before/after); panel shows her real model; world walks under load report measured progress honestly; iPhone and real GPU NOT VERIFIED |
 
 The open items in §7 above (real iPhone Safari, the `home.*` tool, #51, no-WebGL) are unchanged by these follow-ups. **Mission 15 is not complete.**

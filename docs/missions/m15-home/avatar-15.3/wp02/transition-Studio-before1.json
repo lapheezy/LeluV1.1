@@ -1,0 +1,53 @@
+{
+  "app": "Studio",
+  "label": "before1",
+  "longTasks": 6,
+  "longTaskMs": 2304,
+  "worst": 1458,
+  "byOwner": [
+    "1448ms (anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:115",
+    "1008ms (no src) (program)",
+    "329ms (no src) WebGLRenderer.setSize",
+    "106ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "99ms (no src) (garbage collector)",
+    "76ms (no src) loseContext",
+    "69ms GenesisRenderPanel src/app/scene/genesis/GenesisRenderPanel.tsx:62",
+    "52ms (no src) run",
+    "43ms (no src) exports.createElement",
+    "43ms (anon) src/app/scene/genesis/GenesisRenderPanel.tsx:411",
+    "42ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "40ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "37ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "36ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "34ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "31ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "31ms (no src) react_stack_bottom_frame",
+    "31ms (no src) commitUpdate"
+  ],
+  "byLeaf": [
+    "1447ms toDataURL ",
+    "1008ms (program) ",
+    "793ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "329ms WebGLRenderer.setSize three.js",
+    "106ms update EngineRegistry.ts",
+    "99ms (garbage collector) ",
+    "76ms loseContext ",
+    "60ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "52ms run ",
+    "49ms ReactElement react_jsx-dev-runtime.js",
+    "43ms exports.createElement react.js",
+    "35ms createTask ",
+    "31ms now ",
+    "24ms commitUpdate react-three-fiber.esm-Bd6DADW5.js",
+    "24ms react_stack_bottom_frame react-dom_client.js",
+    "22ms exports.jsx react_jsx-runtime.js",
+    "18ms setValueForStyles react-dom_client.js",
+    "16ms validateProperty react-dom_client.js"
+  ],
+  "stacks": [
+    "3977 samples: toDataURL <- (anon)@LeluCharacter3D.tsx:115 <- (root)@:-1",
+    "820 samples: WebGLRenderer.setSize <- (anon)@react-three-fiber.esm-Bd6DADW5.js:974 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:18 <- setState@react-three-fiber.esm-Bd6DADW5.js:13 <- setSize@react-three-fiber.esm-Bd6DADW5.js:904 <- configure@react-three-fiber.esm-Bd6DADW5.js:8908 <- run@react-three-fiber.esm-Bd6DADW5.js:9482 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9478 <- react_stack_bottom_frame@react-dom_client.js:12650 <- run@:-1",
+    "169 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9077 <- (root)@:-1",
+    "1 samples: WebGLRenderer.setSize <- WebGLRenderer.setPixelRatio@three.js:9806 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:974 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:18 <- setState@react-three-fiber.esm-Bd6DADW5.js:13 <- setSize@react-three-fiber.esm-Bd6DADW5.js:904 <- configure@react-three-fiber.esm-Bd6DADW5.js:8908 <- run@react-three-fiber.esm-Bd6DADW5.js:9482 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9478 <- react_stack_bottom_frame@react-dom_client.js:12650"
+  ]
+}

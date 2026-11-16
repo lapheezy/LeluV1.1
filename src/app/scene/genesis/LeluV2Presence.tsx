@@ -107,6 +107,8 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
   const lastTargetPlan = useRef(0);
   const lastTelemetry = useRef(0);
   const walkingRef = useRef(false);
+  /** Frames her world has drawn (for honest progress reports under load). */
+  const framesSeen = useRef(0);
   /*
    * Asked to go somewhere ("walk to the studio", "come closer", "step away",
    * "go back to your spot"): her goal outranks her own planning until she
@@ -114,7 +116,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
    * measured position reaches it. Asked to face something: the same for
    * her heading.
    */
-  const goal = useRef<{ id: string; label: string; point: [number, number]; from: [number, number]; until: number; confirmed: boolean; stillSince: number } | null>(null);
+  const goal = useRef<{ id: string; label: string; point: [number, number]; from: [number, number]; until: number; confirmed: boolean; stillSince: number; best: number; bestAt: number } | null>(null);
   const faceGoal = useRef<{ id: string; label: string; point: [number, number]; until: number; confirmed: boolean } | null>(null);
   const placeHome = useRef<[number, number] | null>(null);
   const ray = useMemo(() => new THREE.Raycaster(), []);
@@ -142,7 +144,15 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
           const local = readLocalPlace();
           const chosen = avatar?.position ?? local?.position;
           if (chosen) placeHome.current = [chosen[0], chosen[2]];
-          if (chosen && !positionProp) {
+          /*
+           * Her saved place is applied when the world loads — but NOT while she
+           * is walking somewhere she was asked to go. This load is
+           * asynchronous and can land seconds after she started walking; it
+           * used to teleport her back and reset her target mid-walk (found in
+           * M15.3 WP02: "3.75 m walked, 5.53 m to go" on a 5.7 m walk).
+           */
+          const walkingSomewhere = Boolean(goal.current && goal.current.until > performance.now());
+          if (chosen && !positionProp && !walkingSomewhere) {
             position.current.set(chosen[0], chosen[1], chosen[2]);
             plane.constant = -chosen[1];
           }
@@ -155,8 +165,10 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
               radius: o.attach ? 0 : Math.max(0.18, (o.height ?? 1) * 0.32),
             }))
             .filter((o) => o.radius > 0);
-          target.current.copy(position.current);
-          if (typeof yaw.current === "number" && avatar) yaw.current = avatar.facing;
+          if (!walkingSomewhere) {
+            target.current.copy(position.current);
+            if (typeof yaw.current === "number" && avatar) yaw.current = avatar.facing;
+          }
         })
         .catch((error) => console.info("[LÉLU spatial] world unavailable", error instanceof Error ? error.message : error));
     void load();
@@ -301,6 +313,25 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         faceGoal.current = null;
         if (kind === "move" || kind === "leave" || kind === "return") {
           const place: AvatarPlace = command.target?.place ?? (kind === "leave" ? "away" : kind === "return" ? "home" : "viewer");
+          const startedAt = performance.now();
+          const framesAtStart = framesSeen.current;
+          // Under heavy load she may still be on her way at the bus deadline:
+          // say so with what was measured, instead of a silent timeout.
+          // (A timer, so it fires even if her world draws no frame at all.)
+          window.setTimeout(() => {
+            const g = goal.current;
+            if (!g || g.id !== command.id || g.confirmed) return;
+            g.confirmed = true;
+            const walked = Math.hypot(position.current.x - g.from[0], position.current.z - g.from[1]);
+            const left = Math.hypot(g.point[0] - position.current.x, g.point[1] - position.current.z);
+            const fps = (framesSeen.current - framesAtStart) / ((performance.now() - startedAt) / 1000);
+            AvatarCommandBus.getInstance().decline(
+              command.id,
+              `I'm still on my way (${walked.toFixed(2)} m from where I started, ${left.toFixed(2)} m to go; I may be walking around something in my way): my world is rendering slowly right now (${fps.toFixed(1)} frames/s), and I'll keep walking there`,
+            );
+            // Keep walking: the goal stays, only the report was made.
+            goal.current = { ...g, confirmed: true };
+          }, 17_000);
           goal.current = {
             id: command.id,
             label: command.label,
@@ -309,6 +340,8 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
             until: performance.now() + 60_000,
             confirmed: false,
             stillSince: 0,
+            best: Number.POSITIVE_INFINITY,
+            bestAt: performance.now(),
           };
           lastTargetPlan.current = 0;
         } else if (kind === "look" && command.target) {
@@ -420,6 +453,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     const root = group.current;
     if (!root || !modelState || modelState.status !== "ready") return;
     const now = performance.now();
+    framesSeen.current += 1;
     /*
      * She walks in ELAPSED time, not per frame. Each frame integrates the real
      * time since the last one (up to 5 s, e.g. after a stall), split into
@@ -531,10 +565,17 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
       const remaining = Math.hypot(asked.point[0] - position.current.x, asked.point[1] - position.current.z);
       const walked = Math.hypot(position.current.x - asked.from[0], position.current.z - asked.from[1]);
       const where = `now at x ${position.current.x.toFixed(2)}, z ${position.current.z.toFixed(2)}`;
+      // Progress, not stillness: she can jitter against an obstacle without
+      // ever standing still. No 5 cm of progress in 1.5 s = she has stopped.
+      if (remaining < asked.best - 0.05) {
+        asked.best = remaining;
+        asked.bestAt = now;
+      }
+      const stalled = !walkingRef.current || now - asked.bestAt > 1500;
       if (remaining <= 0.1) {
         asked.confirmed = true;
         AvatarCommandBus.getInstance().confirm(asked.id, `walked ${walked.toFixed(2)} m (${asked.label}); ${where}`);
-      } else if (walkingRef.current) {
+      } else if (!stalled) {
         asked.stillSince = 0;
       } else {
         asked.stillSince ||= now;
@@ -543,11 +584,12 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
           if (remaining <= 0.8) {
             AvatarCommandBus.getInstance().confirm(asked.id, `walked ${walked.toFixed(2)} m (${asked.label}), stopping ${(remaining * 100).toFixed(0)} cm short where the room left space; ${where}`);
           } else {
-            AvatarCommandBus.getInstance().decline(asked.id, `the way is blocked (furniture, a window or your space): I got ${walked.toFixed(2)} m along and stopped ${remaining.toFixed(2)} m short`);
+            AvatarCommandBus.getInstance().decline(asked.id, `the way is blocked (furniture, a window or your space): I stopped ${remaining.toFixed(2)} m short, ${walked.toFixed(2)} m from where I started`);
           }
         }
       }
     }
+
     root.position.set(position.current.x, bounds.floorY, position.current.z);
     root.rotation.y = yaw.current;
 
