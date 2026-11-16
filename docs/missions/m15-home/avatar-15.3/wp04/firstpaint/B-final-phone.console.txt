@@ -1,0 +1,152 @@
+shot home-ready (page t 15877)
+shot chat-over-unpainted-world (page t 25672)
+shot after-enter-+1s (page t 27963)
+shot after-enter-+5s (page t 36721)
+shot after-enter-+12s (page t 47695)
+shot after-enter-+20s (page t 57675)
+shot end (page t 60604)
+world-canvas programs linked BEFORE profile start: 0; AFTER: 0
+  after:
+    
+  before:
+    
+blocking GL queries > 15 ms after profile start:
+  +1647 97ms getProgramInfoLog ? [] (canvas 398)
+  +3568 84ms getProgramInfoLog ? [] (canvas 398)
+  +3655 60ms getProgramInfoLog ? [] (canvas 398)
+  +5056 18ms getProgramInfoLog eye_patch_l_mat [skin morph] (canvas 398)
+  +5080 80ms getProgramInfoLog eye_patch_l_mat [skin morph] (canvas 398)
+long tasks 9, 3979 ms, worst 2254 ms
+  +748ms 62ms
+  +819ms 53ms
+  +927ms 393ms
+  +1325ms 204ms
+  +1529ms 258ms
+  +1788ms 227ms
+  +2296ms 60ms
+  +2402ms 468ms
+  +2920ms 2254ms
+marks:
+  +-7836 frame-gap {"from":17682,"ms":409}
+  +-7352 frame-gap {"from":18090,"ms":483}
+  +-6808 frame-gap {"from":18574,"ms":550}
+  +-6637 world-clicked {}
+  +-6327 frame-gap {"from":19124,"ms":483}
+  +-5516 frame-gap {"from":19607,"ms":800}
+  +-5206 frame-gap {"from":20407,"ms":317}
+  +-4471 frame-gap {"from":20724,"ms":700}
+  +-4327 universe {"open":true}
+  +-4316 render-budget {"mode":"paused"}
+  +-3870 frame-gap {"from":21424,"ms":633}
+  +-3021 frame-gap {"from":22057,"ms":833}
+  +-1862 frame-gap {"from":22890,"ms":1183}
+  +-1480 frame-gap {"from":24090,"ms":350}
+  +-953 frame-gap {"from":24540,"ms":433}
+  +-4 canvases-before-enter {"canvases":[{"w":101,"h":139,"spatial":false,"prepared":null,"parent":"lelu-companion-character"}]}
+  +0 profile-start {}
+  +736 frame-gap {"from":25940,"ms":683}
+  +843 command-issued {"label":"walk to the studio"}
+  +844 universe {"open":false}
+  +867 render-budget {"mode":"full"}
+  +878 enter-pressed {}
+  +1323 frame-gap {"from":26757,"ms":383}
+  +1536 her-world-first-frame {}
+  +1801 world-data-start {"url":"/api/forge/world"}
+  +1802 world-data-start {"url":"/api/forge/world/avatar/lelu_character"}
+  +1803 world-data-start {"url":"/api/forge/world"}
+  +2018 frame-gap {"from":27257,"ms":450}
+  +2024 world-data-done {"url":"/api/forge/world"}
+  +2025 world-data-done {"url":"/api/forge/world/avatar/lelu_character"}
+  +2025 world-data-done {"url":"/api/forge/world"}
+  +2923 frame-gap {"from":27707,"ms":1133}
+  +5185 frame-gap {"from":28840,"ms":2250}
+  +6674 frame-gap {"from":31140,"ms":1467}
+  +7910 frame-gap {"from":32606,"ms":1217}
+  +9076 frame-gap {"from":33823,"ms":1183}
+  +10153 frame-gap {"from":35006,"ms":1067}
+  +11304 frame-gap {"from":36073,"ms":1150}
+  +12428 frame-gap {"from":37223,"ms":1133}
+  +13621 frame-gap {"from":38356,"ms":1200}
+  +14670 frame-gap {"from":39556,"ms":1050}
+  +15780 frame-gap {"from":40606,"ms":1100}
+  +16960 frame-gap {"from":41706,"ms":1183}
+  +18114 frame-gap {"from":42889,"ms":1150}
+  +19205 frame-gap {"from":44039,"ms":1100}
+  +19680 frame-gap {"from":45139,"ms":467}
+  +20156 frame-gap {"from":45606,"ms":483}
+  +20163 command-resolved {"o":"walked 4.97 m (walk to the studio); now at x -3.96, z 0.31, 6 cm from the point"}
+  +20692 frame-gap {"from":46089,"ms":533}
+  +21175 frame-gap {"from":46623,"ms":483}
+  +21590 frame-gap {"from":47106,"ms":417}
+  +22100 frame-gap {"from":47523,"ms":500}
+  +22571 frame-gap {"from":48023,"ms":483}
+  +23157 frame-gap {"from":48506,"ms":583}
+  +23631 frame-gap {"from":49089,"ms":467}
+  +24154 frame-gap {"from":49556,"ms":533}
+  +24581 frame-gap {"from":50089,"ms":417}
+  +25026 frame-gap {"from":50506,"ms":450}
+  +25472 frame-gap {"from":50956,"ms":450}
+  +25937 frame-gap {"from":51406,"ms":467}
+  +26392 frame-gap {"from":51872,"ms":450}
+  +26908 frame-gap {"from":52322,"ms":500}
+  +27343 frame-gap {"from":52822,"ms":450}
+  +27810 frame-gap {"from":53272,"ms":467}
+  +28339 frame-gap {"from":53739,"ms":533}
+  +28921 frame-gap {"from":54272,"ms":583}
+  +29422 frame-gap {"from":54856,"ms":500}
+  +29929 frame-gap {"from":55356,"ms":500}
+  +30355 frame-gap {"from":55856,"ms":433}
+  +30786 frame-gap {"from":56289,"ms":433}
+  +31242 frame-gap {"from":56722,"ms":450}
+  +31720 frame-gap {"from":57172,"ms":483}
+  +32175 frame-gap {"from":57655,"ms":450}
+  +33080 frame-gap {"from":58122,"ms":883}
+  +33955 frame-gap {"from":59005,"ms":883}
+  +34162 profile-stop {}
+  +34479 frame-gap {"from":59922,"ms":483}
+  +34959 frame-gap {"from":60405,"ms":483}
+  +35754 frame-gap {"from":60905,"ms":783}
+  +36205 frame-gap {"from":61705,"ms":433}
+by owner:
+  1266ms (no src) (program)
+  1079ms (no src) texSubImage2D
+  473ms (no src) getProgramInfoLog
+  392ms (no src) bufferData
+  372ms (no src) getContext
+  353ms V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242
+  297ms (no src) exports.createElement
+  278ms (anon) src/app/scene/genesis/WorldScene.tsx:155
+  255ms (no src) (garbage collector)
+  248ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:273
+  205ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:183
+  102ms (no src) update
+  102ms (no src) texSubImage3D
+  89ms LeluV2Presence src/app/scene/genesis/LeluV2Presence.tsx:103
+  87ms (no src) run
+by leaf:
+  1493ms exports.jsxDEV react_jsx-dev-runtime.js
+  1266ms (program) 
+  1078ms texSubImage2D 
+  473ms getProgramInfoLog 
+  392ms bufferData 
+  373ms getContext 
+  297ms exports.createElement react.js
+  255ms (garbage collector) 
+  206ms createImageBitmap 
+  165ms applyBoneTransform three.core-DC1ULSR-.js
+  140ms ReactElement react_jsx-dev-runtime.js
+  102ms texSubImage3D 
+  99ms update three.js
+  82ms run 
+  60ms applyMatrix4 three.core-DC1ULSR-.js
+by package:
+  3528ms three
+  1737ms react_jsx-dev-runtime
+  1266ms (native) (program)
+  513ms react-three-fiber
+  404ms react-dom_client
+  347ms react
+  255ms (native) (garbage collector)
+  210ms src/app/scene/genesis/avatar/LeluBody.tsx
+  116ms three_examples_jsm_loaders_GLTFLoader__js
+  87ms react_jsx-runtime
