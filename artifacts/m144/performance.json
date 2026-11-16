@@ -1,0 +1,26 @@
+{
+  "mission": "M14.4",
+  "evidenceClass": [
+    "DETERMINISTIC",
+    "LOCAL"
+  ],
+  "realCloud": false,
+  "environment": "Node + in-memory localStorage shim, 2026-11-16",
+  "localReadMs": {
+    "count": 1000,
+    "median": 0.005,
+    "p95": 0.013,
+    "max": 0.639
+  },
+  "localWriteMs": {
+    "count": 40,
+    "median": 0.541,
+    "p95": 1.063,
+    "max": 1.102
+  },
+  "outboxInsert": "included in localWriteMs; signal + hash + durable outbox append",
+  "syncProcessingMs": 2.596,
+  "conflictDetectionMs": 3.894,
+  "pendingAfterWrites": 0,
+  "note": "The production browser cold boot measured separately: 1874 ms (M14.4 sidecar check) and 3038 ms (M14.3 harness with model turn)."
+}

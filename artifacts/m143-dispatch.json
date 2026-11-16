@@ -1,7 +1,7 @@
 {
   "mission": "M14.3",
   "base": "4582382",
-  "startedAt": "2026-11-16T09:06:58.701Z",
+  "startedAt": "2026-11-16T09:54:50.797Z",
   "evidenceClass": [
     "BROWSER",
     "DISPATCH",
@@ -20,8 +20,6 @@
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
     "Failed to load resource: net::ERR_FAILED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
@@ -29,17 +27,15 @@
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}"
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
   ],
   "trace": {
     "autonomyLevel": 3,
     "project": {
       "label": "project",
       "prompt": "Create a local project named M143 Scripted Dispatch and then report it.",
-      "durationMs": 469,
+      "durationMs": 27,
       "response": "The project was created through the dispatcher.",
       "handled": true,
       "requests": [
@@ -53,17 +49,17 @@
             "project_search",
             "repo_status",
             "spatial_portal_create",
+            "continuity_status",
             "repo_inspect",
             "atelier_project",
             "studio_create",
             "studio_build",
-            "studio_test",
-            "studio_write"
+            "studio_test"
           ],
           "toolResults": [
             {
               "name": "project_manage",
-              "content": "Created project \"M143 Scripted Dispatch\" (c63966dc-1968-4cee-b27c-2cb74571b5ba)."
+              "content": "Created project \"M143 Scripted Dispatch\" (6a37dfd5-437a-4a69-a8c7-5a7aecdcec5d)."
             }
           ]
         },
@@ -77,24 +73,24 @@
             "project_search",
             "repo_status",
             "spatial_portal_create",
+            "continuity_status",
             "repo_inspect",
             "atelier_project",
             "studio_create",
             "studio_build",
-            "studio_test",
-            "studio_write"
+            "studio_test"
           ],
           "toolResults": [
             {
               "name": "project_manage",
-              "content": "Created project \"M143 Scripted Dispatch\" (c63966dc-1968-4cee-b27c-2cb74571b5ba)."
+              "content": "Created project \"M143 Scripted Dispatch\" (6a37dfd5-437a-4a69-a8c7-5a7aecdcec5d)."
             }
           ]
         }
       ],
       "persisted": true,
-      "projectId": "c63966dc-1968-4cee-b27c-2cb74571b5ba",
-      "toolResult": "Created project \"M143 Scripted Dispatch\" (c63966dc-1968-4cee-b27c-2cb74571b5ba)."
+      "projectId": "6a37dfd5-437a-4a69-a8c7-5a7aecdcec5d",
+      "toolResult": "Created project \"M143 Scripted Dispatch\" (6a37dfd5-437a-4a69-a8c7-5a7aecdcec5d)."
     },
     "sandbox": {
       "label": "sandbox",
@@ -114,11 +110,11 @@
             "resources_sandbox",
             "studio_write",
             "creative_export",
+            "continuity_status",
             "studio_read",
             "project_search",
             "artifact_read",
-            "chats_read",
-            "browser_read"
+            "chats_read"
           ],
           "toolResults": [
             {
@@ -142,11 +138,11 @@
             "resources_sandbox",
             "studio_write",
             "creative_export",
+            "continuity_status",
             "studio_read",
             "project_search",
             "artifact_read",
-            "chats_read",
-            "browser_read"
+            "chats_read"
           ],
           "toolResults": [
             {
@@ -166,11 +162,11 @@
             "resources_sandbox",
             "studio_write",
             "creative_export",
+            "continuity_status",
             "studio_read",
             "project_search",
             "artifact_read",
-            "chats_read",
-            "browser_read"
+            "chats_read"
           ],
           "toolResults": [
             {
@@ -209,11 +205,11 @@
       ]
     },
     "cosmos": {
-      "approvalId": "approval-566cfa12-673b-4e6d-b837-ddb1aa4830a4",
-      "pendingResult": "NOT DONE YET — this is a yellow action: Waiting for approval: create room “M143 Scripted Room” Nothing in the workspace has changed. The user can approve or reject it from the approvals shown in the conversation (approval id approval-566cfa12-673b-4e6d-b837-ddb1aa4830a4). After they approve, call cosmos_workspace again with the same arguments plus that approvalId; after they reject it, do not retry.",
+      "approvalId": "approval-d0e1e445-0753-48bd-a539-6ddb1bc0a62f",
+      "pendingResult": "NOT DONE YET — this is a yellow action: Waiting for approval: create room “M143 Scripted Room” Nothing in the workspace has changed. The user can approve or reject it from the approvals shown in the conversation (approval id approval-d0e1e445-0753-48bd-a539-6ddb1bc0a62f). After they approve, call cosmos_workspace again with the same arguments plus that approvalId; after they reject it, do not retry.",
       "label": "cosmos-approved",
       "prompt": "Create a room in the cosmos called M143 Scripted Room.",
-      "durationMs": 5,
+      "durationMs": 6,
       "response": "The approved Cosmos room was created.",
       "handled": true,
       "requests": [
@@ -251,7 +247,7 @@
         }
       ],
       "roomCreated": true,
-      "roomId": "room-e1b164e9",
+      "roomId": "room-cb415140",
       "roomLabel": "M143 Scripted Room",
       "toolResult": "YELLOW: Created room \"M143 Scripted Room\""
     },

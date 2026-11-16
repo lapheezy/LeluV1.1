@@ -1,7 +1,7 @@
 {
   "mission": "M14.3",
   "base": "4582382",
-  "startedAt": "2026-11-16T09:08:33.241Z",
+  "startedAt": "2026-11-16T10:17:56.506Z",
   "evidenceClass": [
     "BROWSER",
     "NETWORK",
@@ -16,7 +16,8 @@
     "https://nominatim.openstreetmap.org/search?q=Map+the+offline+acceptance+path.&format=jsonv2&limit=10",
     "https://nominatim.openstreetmap.org/search?q=Map+the+offline+acceptance+path.&format=jsonv2&limit=10&addressdetails=1",
     "https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance",
-    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js"
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+    "https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance"
   ],
   "consoleErrors": [
     "Failed to load resource: net::ERR_FAILED",
@@ -29,7 +30,6 @@
     "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
     "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
     "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
     "Failed to load resource: net::ERR_FAILED",
@@ -40,35 +40,37 @@
     "Failed to load resource: net::ERR_FAILED",
     "Failed to load resource: net::ERR_FAILED",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: net::ERR_FAILED",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
-    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
     "Failed to load resource: net::ERR_FAILED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
-    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}"
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED"
   ],
   "phases": {
     "boot": {
       "title": "LÉLU",
-      "readyMs": 1878,
-      "ms": 10143,
+      "readyMs": 1711,
+      "ms": 10114,
       "controls": 37,
       "cloudLabel": "Cloud sync off"
     },
     "projectTurn": {
       "reply": "Project created: Map the Offline Acceptance Path\nObjective: Map the offline acceptance path.\nExecution:\n[Map the Offline Acceptance Path] No results returned after attempting: hackernews (Failed to fetch); wikipedia (Failed to fetch); youtube (YouTube 503); gdelt (Failed to fetch); openstreetmap (Failed to fetch); nominatim (Failed to fetch).\n(No AI provider was reachable, so this was organised by text parsing. Tell me the real title or what it refers to and I'll correct it.)",
       "projectFound": true,
-      "projectId": "588decce-0aee-458e-b885-7643a8f823c7",
+      "projectId": "8b550f75-20c3-49be-841c-294a86a6b62f",
       "projectName": "Map the Offline Acceptance Path",
       "knowledgeNodes": 1,
       "knowledgeEdges": 0,
@@ -76,8 +78,8 @@
       "knowledgeProvenance": "local"
     },
     "reload": {
-      "readyMs": 1488,
-      "ms": 9527,
+      "readyMs": 1912,
+      "ms": 9992,
       "projectStillPresent": true,
       "chatStillPresent": true,
       "knowledgeRevision": 1
@@ -95,7 +97,7 @@
       "chatCount": 2
     },
     "network": {
-      "blockedExternalCount": 9,
+      "blockedExternalCount": 10,
       "blockedExternalHosts": [
         "cdn.jsdelivr.net",
         "hn.algolia.com",
@@ -108,6 +110,6 @@
       "supabaseAttempts": []
     }
   },
-  "finishedAt": "2026-11-16T09:09:34.386Z",
+  "finishedAt": "2026-11-16T10:18:56.784Z",
   "status": "PASS"
 }

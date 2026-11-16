@@ -803,6 +803,8 @@ test("continuity tools register through the one dispatcher and refuse unknown mi
   const registration = registerContinuityTools();
   assert.deepEqual(registration.failed, []);
   assert.deepEqual(registration.registered.sort(), [
+    "continuity.resolve",
+    "continuity.status",
     "mission.brief",
     "mission.find",
     "mission.list",
