@@ -1,0 +1,73 @@
+{
+  "investigation": "why measurement demotes a real Intel Iris Xe to light",
+  "host": {
+    "kind": "Cloud VM, Chromium via Playwright, preview server on the same VM",
+    "rendererString": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "softwareRegexMatches": false,
+    "devicePixelRatio": 1,
+    "hardwareConcurrency": 8,
+    "documentHidden": false,
+    "prefersReducedMotion": false
+  },
+  "clockIsHealthy": {
+    "aboutBlank": { "rafFps": 60, "frames": 152, "windowMs": 2514 },
+    "genesisHome1024x768": {
+      "rafFps": 13,
+      "timerTps": 13,
+      "windowMs": 4204,
+      "note": "measured after the profile had already reached light: only the DOM sky (80 ms cadence, ~12.5/s) is animating; the 3D canvas is no longer painting"
+    },
+    "cosmosOpenAtLight": { "rafFps": 2, "timerTps": 1, "windowMs": 2564 },
+    "conclusion": "The tab's own frame clock reaches 60 Hz on an empty document, so a starved browser clock is NOT the explanation. The canvas itself is what stops the world."
+  },
+  "automaticMode1024x768": {
+    "search": "(none)",
+    "final": {
+      "profile": "light",
+      "reason": "measurement:slow",
+      "ceiling": "full",
+      "worldPainting": false,
+      "fps": 0,
+      "frames": 21,
+      "dpr": 1,
+      "calls": 223,
+      "triangles": 226402
+    },
+    "observedAtMsAfterNavigation": 25030,
+    "interpretation": "21 painted frames and a pixel ratio already at the desktop floor; the ladder stepped full -> balanced -> light with nothing else on the page to blame."
+  },
+  "overrideBalanced1024x768": {
+    "search": "?render=balanced",
+    "profile": "balanced",
+    "reason": "override",
+    "worldPainting": true,
+    "dpr": 1,
+    "samples": [
+      { "frames": 40, "calls": 384, "triangles": 263678, "demotionsHeld": 2 },
+      { "frames": 43, "calls": 415, "triangles": 263550, "demotionsHeld": 3 }
+    ],
+    "framesDelta": 3,
+    "elapsedS": 16.5,
+    "effectiveFps": 0.18,
+    "interpretation": "With demotion held by the override the world keeps painting at 0.18 fps, and demotionsHeld rises 2 -> 3: the automatic policy was still trying to demote. The cosmos view costs 384-415 draw calls / ~260k triangles at 1024x768, against 223 / 226k on the home surface."
+  },
+  "mechanism": {
+    "sampleSource": "AdaptiveQuality useFrame, one sample per >=1000 ms window, reported as reportFrameRate(fps, mode === 'full')",
+    "slowFps": 30,
+    "fastFps": 55,
+    "downgradeAfter": 3,
+    "upgradeAfter": 15,
+    "ladder": ["full", "balanced", "light"],
+    "destructiveStep": "balanced -> light is the only step that changes whether the world paints at all: GenesisScene computes paintWorld = (...) && profile !== 'light' and frameloop = paintWorld ? budgetedFrameloop : 'never'",
+    "absorbing": "At light the canvas frameloop is 'never', so AdaptiveQuality.useFrame stops running and no further sample can ever be taken. In automatic mode nothing can lift the profile for the life of the surface: recovery needs a surface change (resize/rotation re-derives capability), an explicit override, or a reload.",
+    "evidenceEquality": "the full -> balanced step and the balanced -> light step are both decided by 3 consecutive slow samples (DOWNGRADE_AFTER), so a transient dip and a hopeless machine reach the same verdict, and the hopeless verdict is the irreversible one",
+    "resolutionHeadroom": "AdaptiveQuality steps the pixel ratio down 0.25 after 2 slow seconds and DPR_MIN is 1 on desktop, so a 1024x768 desktop window has one step (1.5 -> 1.0) before the profile is the only lever left"
+  },
+  "rankedFindings": [
+    "The measurement is honest: the canvas really does paint ~0.2-2 fps at 1024x768 on this adapter while the tab itself runs 60 Hz. The demotion to light is proportionate here.",
+    "The last rung is destructive and irreversible: it is reached on the same 3-second evidence as the cheap rung, and once reached no sample can justify leaving it.",
+    "There is no rung between 'animate every frame' and 'show no world': a device that paints slowly is treated as a device that cannot paint, so the only slow-device outcome is a blank canvas.",
+    "The cosmos view costs 384-415 draw calls / ~260k triangles at 1024x768; no profile demotion fixes that, which is why the low rung is tempting in the first place."
+  ],
+  "proposalSummary": "Demote the cadence, not the world: a measured light verdict on a non-software ceiling keeps the canvas mounted at frameloop 'demand' (paint on interaction and invalidation) instead of 'never', and the destructive rung is only reachable after a longer, contiguous run of slow samples taken from balanced. Full details in docs/missions/M17-WP06-CAPABILITY-DEMOTION-INVESTIGATION.md."
+}
