@@ -95,6 +95,18 @@ export const DOWNGRADE_AFTER = 3;
  */
 export const UPGRADE_AFTER = 15;
 /**
+ * Consecutive slow samples before MEASUREMENT may take the last step — the one
+ * out of "balanced", where the world stops being animated and starts being
+ * thrown away.
+ *
+ * Deliberately far longer than DOWNGRADE_AFTER: `full → balanced` costs some
+ * motion, `balanced → light` costs the world, and it is the only step whose
+ * consequence (a canvas that no longer runs frames) also removes the evidence
+ * that could undo it. Three slow seconds is a shader compile; fifteen is a
+ * machine that cannot paint.
+ */
+export const DOWNGRADE_TO_LIGHT_AFTER = 15;
+/**
  * How long viewport/orientation events are collected before capability is
  * re-read. A window drag fires `resize` dozens of times; a capability
  * decision does not need recomputing per event, and a decision taken in the
@@ -279,7 +291,14 @@ export function nextProfile(
 
   if (sample.fps < SLOW_FPS) {
     const slow = state.slow + 1;
-    if (slow < DOWNGRADE_AFTER) return { profile: state.profile, slow, fast: 0 };
+    /*
+     * Leaving "balanced" removes the world instead of animating it less, so it
+     * needs a far longer run of evidence than the cheap step. The count is
+     * contiguous either way: any non-slow sample resets it, so a transient can
+     * delay the destructive step but never take it.
+     */
+    const need = state.profile === "balanced" ? DOWNGRADE_TO_LIGHT_AFTER : DOWNGRADE_AFTER;
+    if (slow < need) return { profile: state.profile, slow, fast: 0 };
     return { profile: PROFILE_ORDER[Math.max(0, at - 1)], slow: 0, fast: 0 };
   }
 
@@ -347,13 +366,16 @@ export interface RenderManagerSnapshot {
   /** When that evidence was last decided on (ms epoch), or 0 before mount. */
   assessedAt: number;
   /**
-   * Whether the world can and does paint right now: a capable profile, a
-   * visible page, no lost context, and a budget that is not paused. The
-   * single honest answer to "is the cosmos being rendered".
+   * Whether the world can be drawn at all right now: a device that can paint
+   * (either an animating profile, or a measured-slow one that the scene keeps
+   * painting ON DEMAND), a visible page, no lost context, and a budget that is
+   * not paused. The single honest answer to "is there a cosmos to be seen".
    */
   worldPainting: boolean;
   /** Demotions an override has held off — evidence it is doing something. */
   demotionsHeld: number;
+  /** When the profile last fell to "light" (ms epoch), or 0. */
+  lightSince: number;
 }
 
 /** Occluder ids this manager owns on the shared budget. */
@@ -374,6 +396,7 @@ export class SceneRenderManager {
   private override: RenderOverride | null = null;
   private overrideRefused: string | null = null;
   private demotionsHeld = 0;
+  private lightSince = 0;
   private sample: { fps: number; painting: boolean; at: number } | null = null;
   private hidden = false;
   private detachVisibility: (() => void) | null = null;
@@ -464,6 +487,19 @@ export class SceneRenderManager {
   }
 
   /**
+   * Consecutive slow samples behind the next demotion.
+   *
+   * Read on demand like `lastSample`, and for the same reason: the counters
+   * move every measured second, and a snapshot rebuilt for a number nobody is
+   * subscribed to would re-render every profile consumer once a second. It is
+   * the diagnostic that turns "0 fps" into "eleven of fifteen slow samples
+   * before the world would be taken away".
+   */
+  slowSamples(): number {
+    return this.adaptation.slow;
+  }
+
+  /**
    * An explicit request to keep the world painting, or null to resume the
    * automatic policy. Reversible in both directions and published either way,
    * including a refusal.
@@ -473,7 +509,7 @@ export class SceneRenderManager {
       const had = this.override;
       this.override = null;
       if (!had) return true;
-      this.adaptation = { profile: this.floor(), slow: 0, fast: 0 };
+      this.resetAdaptation();
       this.publish();
       return true;
     }
@@ -488,9 +524,21 @@ export class SceneRenderManager {
 
     this.override = override;
     this.overrideRefused = null;
-    this.adaptation = { profile: this.floor(), slow: 0, fast: 0 };
+    this.resetAdaptation();
     this.publish();
     return true;
+  }
+
+  /**
+   * Start a fresh adaptation ladder at the floor.
+   *
+   * One place, so a profile reset can never forget to record when the world
+   * was last taken away (`lightSince`) — the diagnostic that says how long a
+   * device has been showing the DOM sky instead of the cosmos.
+   */
+  private resetAdaptation(): void {
+    this.adaptation = { profile: this.floor(), slow: 0, fast: 0 };
+    this.lightSince = this.adaptation.profile === "light" ? this.now() : 0;
   }
 
   /** The profile measurement may not go below: the ceiling, or an override. */
@@ -506,7 +554,7 @@ export class SceneRenderManager {
     this.capability = { ...input };
     this.assessedAt = this.now();
     this.ceiling = profileFor(input);
-    this.adaptation = { profile: this.floor(), slow: 0, fast: 0 };
+    this.resetAdaptation();
   }
 
   /**
@@ -539,6 +587,9 @@ export class SceneRenderManager {
     // worth waking a subscriber for.
     const changed = state.profile !== this.adaptation.profile;
     this.adaptation = state;
+    // The one moment the world is taken away, recorded: the canvas stops
+    // running frames from here, so this is the last timestamp it will get.
+    if (changed) this.lightSince = state.profile === "light" ? this.now() : 0;
     if (changed || held) this.publish();
   }
 
@@ -589,8 +640,16 @@ export class SceneRenderManager {
         saveData: Boolean(this.capability.saveData),
       },
       assessedAt: this.assessedAt,
-      worldPainting: profile !== "light" && !this.hidden && !lost && mode !== "paused",
+      // A measured "light" keeps the canvas mounted, painting on demand, so
+      // there is still a world to draw; only a capability "light" (software,
+      // no WebGL, Save-Data) has nothing to paint with.
+      worldPainting:
+        (profile !== "light" || this.ceiling !== "light") &&
+        !this.hidden &&
+        !lost &&
+        mode !== "paused",
       demotionsHeld: this.demotionsHeld,
+      lightSince: this.lightSince,
     };
   }
 

@@ -83,7 +83,7 @@ import {
   getSceneRenderManager,
   readRenderOverride,
   SOFTWARE_GL_RENDERER,
-  useRenderProfile,
+  useRenderManager,
   type CapabilityTrigger,
 } from "./SceneRenderManager";
 
@@ -448,7 +448,17 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
    * device and about the frame rate actually measured — not a guess from
    * the user agent.
    */
-  const profile = useRenderProfile();
+  const renderState = useRenderManager();
+  const profile = renderState.profile;
+  /*
+   * A "light" arrived at by MEASUREMENT is a statement about SPEED, not about
+   * ability: the device did paint frames, there were simply too few of them.
+   * A "light" arrived at by CAPABILITY — a software rasteriser, no WebGL, the
+   * user's Save-Data — is a statement about ability, and it is the only one
+   * that may leave the canvas empty. The difference decides whether the world
+   * is animated, painted on demand, or not painted at all.
+   */
+  const measuredLight = profile === "light" && renderState.reason === "measurement:slow";
   /*
    * The Cosmos and her 3D body are two WebGL contexts drawing the same
    * device's worth of frames at once. When a conversation is open over the
@@ -601,17 +611,32 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   }, [worldCovered]);
 
   /*
-   * Two independent reasons not to paint the world, one expression:
-   * the DEVICE cannot (a software rasteriser, or the manager profiled it
-   * "light" from a renderer string, Save-Data or a measured frame rate),
-   * and the BUDGET says this frame is not worth drawing.
+   * Two independent reasons not to ANIMATE the world, one expression:
+   * the DEVICE cannot (a software rasteriser), or the BUDGET says this frame
+   * is not worth drawing.
    *
    * The budget stays the only authority on the second. The profile is
    * evidence about the device, which the budget cannot know — and it never
    * writes a frameloop of its own (see SceneRenderManager).
+   *
+   * A device that CAN paint but was measured slow keeps its world as a STILL
+   * frame: `demand` paints on interaction and invalidation and idles at zero
+   * cost between them, so the cosmos is present and answers the camera instead
+   * of being replaced by an empty canvas at the first three slow seconds. Only
+   * a capability verdict — which says this hardware cannot paint at all — is
+   * allowed to leave nothing behind.
    */
-  const paintWorld = (!softwareGL || Boolean(perfWorld)) && profile !== "light";
-  const frameloop: Frameloop = paintWorld ? budgetedFrameloop : "never";
+  const canPaintAtAll = !softwareGL || Boolean(perfWorld);
+  const paintWorld = canPaintAtAll && profile !== "light";
+  // `demand` only where the BUDGET would let it paint at all: a covered or
+  // hidden world stays "never", because the budget remains the one authority
+  // on suspending. This changes the cadence, never the right to draw.
+  const staticWorld = canPaintAtAll && measuredLight && budgetedFrameloop !== "never";
+  const frameloop: Frameloop = paintWorld
+    ? budgetedFrameloop
+    : staticWorld
+      ? "demand"
+      : "never";
   // Adaptive resolution: the ratio starts device-appropriate and follows
   // the MEASURED frame rate (Appearance follows measured fps, never the
   // display), publishing window.__leluRenderStats for the demo harness.

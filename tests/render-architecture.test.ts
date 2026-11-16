@@ -153,7 +153,12 @@ test("a covered world pauses through the budget, not through its own frameloop",
   assert.match(source, /budget\.setOccluded\("genesis-world-covered", worldCovered\)/);
   assert.match(
     source,
-    /const frameloop: Frameloop = paintWorld \? budgetedFrameloop : "never";/,
+    /const staticWorld = canPaintAtAll && measuredLight && budgetedFrameloop !== "never";/,
+    "a slow device paints on demand only where the budget would let it paint at all",
+  );
+  assert.match(
+    source,
+    /const frameloop: Frameloop = paintWorld\s*\?\s*budgetedFrameloop\s*:\s*staticWorld\s*\?\s*"demand"\s*:\s*"never";/,
     "the canvas frameloop must come from the budget (plus the device guard), never from a local override",
   );
   assert.match(source, /frameloop=\{frameloop\}/, "the canvas takes the budgeted prop");

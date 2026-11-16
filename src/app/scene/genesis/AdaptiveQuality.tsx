@@ -45,6 +45,10 @@ export interface RenderStats {
   contextLost: string | null;
   /** When capability was last assessed (ms epoch). */
   assessedAt: number;
+  /** Consecutive slow samples behind the next demotion (0 when healthy). */
+  slowSamples: number;
+  /** When the profile last fell to "light" (ms epoch), or 0. */
+  lightSince: number;
 }
 
 declare global {
@@ -137,6 +141,8 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
       viewport: [window.innerWidth, window.innerHeight],
       contextLost: snapshot.lostContexts[0] ?? null,
       assessedAt: snapshot.assessedAt,
+      slowSamples: manager.slowSamples(),
+      lightSince: snapshot.lightSince,
     };
   });
   return null;

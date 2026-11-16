@@ -25,6 +25,7 @@ import { join } from "node:path";
 import {
   CAPABILITY_RECHECK_MS,
   DOWNGRADE_AFTER,
+  DOWNGRADE_TO_LIGHT_AFTER,
   SceneRenderManager,
   capabilitySignature,
   overrideVerdict,
@@ -79,9 +80,14 @@ function setup(now: () => number = () => 0) {
   return { budget, doc, win, manager };
 }
 
-/** Feed slow seconds until the profile has stopped moving (two steps). */
+/**
+ * Feed slow seconds until the profile has stopped moving (both steps).
+ *
+ * The second step is deliberately much longer than the first: leaving balanced
+ * is what removes the world, so it needs a sustained run, not a transient.
+ */
 function demote(manager: SceneRenderManager): void {
-  for (let second = 0; second < DOWNGRADE_AFTER * 2; second += 1) {
+  for (let second = 0; second < DOWNGRADE_AFTER + DOWNGRADE_TO_LIGHT_AFTER; second += 1) {
     manager.reportFrameRate(1, true);
   }
 }
@@ -307,6 +313,12 @@ test("the snapshot answers \"is it painting, and if not why\" without extra work
 
   manager.setCapability({ renderer: "", webgl: false });
   assert.equal(manager.getSnapshot().worldPainting, false, "no WebGL means nothing is painted");
+
+  // A capability "light" is the only one with nothing to draw with.
+  manager.setCapability(SOFTWARE);
+  demote(manager);
+  assert.equal(manager.getSnapshot().profile, "light");
+  assert.equal(manager.getSnapshot().worldPainting, false, "a rasteriser has no world to paint on demand");
 });
 
 /* ----------------------------------------------------------- architecture */
@@ -321,12 +333,57 @@ test("the scene re-reads capability on viewport and orientation changes, coalesc
   assert.match(scene, /manager\.reassessCapability\(/, "through the one manager, not a second policy");
   assert.doesNotMatch(scene, /useFrame\([^)]*reassess/, "and never per rendered frame");
 
-  // WP05 changes WHEN capability is read, not WHO decides the frame loop.
-  assert.match(scene, /const paintWorld = \(!softwareGL \|\| Boolean\(perfWorld\)\) && profile !== "light";/);
-  assert.match(scene, /const frameloop: Frameloop = paintWorld \? budgetedFrameloop : "never";/);
+  // WP05 changes WHEN capability is read, not WHO decides the frame loop — and
+  // a measured "light" animates nothing without throwing the world away.
+  assert.match(scene, /const canPaintAtAll = !softwareGL \|\| Boolean\(perfWorld\);/);
+  assert.match(scene, /const paintWorld = canPaintAtAll && profile !== "light";/);
+  assert.match(
+    scene,
+    /const staticWorld = canPaintAtAll && measuredLight && budgetedFrameloop !== "never";/,
+  );
+  assert.match(
+    scene,
+    /const frameloop: Frameloop = paintWorld\s*\?\s*budgetedFrameloop\s*:\s*staticWorld\s*\?\s*"demand"\s*:\s*"never";/,
+  );
   assert.match(scene, /readRenderOverride\(window\.location\.search\)/, "the override is configuration");
   assert.ok(CAPABILITY_RECHECK_MS > 0);
   assert.equal(profileFor(GPU), "full");
+});
+
+test("the snapshot publishes why it is demoting, and how long the world has been gone", () => {
+  const { manager } = setup(() => 4000);
+  manager.setCapability(GPU);
+  assert.equal(manager.slowSamples(), 0);
+  assert.equal(manager.getSnapshot().lightSince, 0, "nothing has been taken away yet");
+
+  for (let second = 0; second < DOWNGRADE_AFTER - 1; second += 1) {
+    manager.reportFrameRate(10, true);
+  }
+  assert.equal(
+    manager.slowSamples(),
+    DOWNGRADE_AFTER - 1,
+    "the run toward a demotion is readable before it happens, without publishing",
+  );
+
+  demote(manager);
+  const gone = manager.getSnapshot();
+  assert.equal(gone.profile, "light");
+  assert.equal(gone.lightSince, 4000, "when the world was taken away, on the manager's own clock");
+  assert.equal(
+    gone.worldPainting,
+    true,
+    "a measured light keeps a world to draw: the canvas is mounted, painting on demand",
+  );
+  manager.reportFrameRate(1, true);
+  assert.equal(gone.profile, "light", "and further slow seconds cannot demote further");
+  assert.equal(
+    manager.getSnapshot().lightSince,
+    4000,
+    "when the world was taken away does not move while it stays away",
+  );
+
+  manager.reassessCapability({ ...GPU, narrow: true }, "orientation");
+  assert.equal(manager.getSnapshot().lightSince, 0, "re-derived on a new surface: light since is not stale");
 });
 
 test("the context guard reports what came back, and diagnostics publish the reason", () => {
