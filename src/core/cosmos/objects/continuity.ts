@@ -61,6 +61,29 @@ export function isImplicitReference(text: string): boolean {
 const MAX_CONVERSATIONS = 50;
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 const remembered = new Map<string, { objectId: string; at: number }>();
+/**
+ * Which conversation put an object into the visible selection.
+ *
+ * The store's selection is one shared value for the whole Cosmos, but a
+ * conversation must not inherit what another conversation selected: "rotate
+ * it" typed in a fresh chat has no referent, and saying so is honest. Only a
+ * selection this conversation made itself is allowed to stand in for a
+ * pronoun; a selection the app made outside any chat (a click in the scene)
+ * stays world-level and is usable from anywhere.
+ */
+const selectionOwner = new Map<string, string>();
+
+export function rememberCosmosSelection(conversationId: string | undefined, objectId: string | null): void {
+  if (!objectId) return;
+  if (conversationId) selectionOwner.set(objectId, conversationId);
+  else selectionOwner.delete(objectId);
+}
+
+function selectionBelongsTo(conversationId: string | undefined, objectId: string): boolean {
+  const owner = selectionOwner.get(objectId);
+  if (!owner) return true;
+  return Boolean(conversationId) && owner === conversationId;
+}
 
 function prune(now: number): void {
   for (const [key, entry] of remembered) if (now - entry.at > MAX_AGE_MS) remembered.delete(key);
@@ -86,6 +109,7 @@ export function forgetCosmosReferent(conversationId: string | undefined): void {
 /** Test hook: forget everything. */
 export function clearCosmosReferents(): void {
   remembered.clear();
+  selectionOwner.clear();
 }
 
 /** A live object: present in the store, not in the trash. */
@@ -136,7 +160,7 @@ export function resolveCosmosReferent(options: {
   if (fromRecord) return fromRecord;
   if (allowSelection) {
     const selected = store.selectedId();
-    if (selected) {
+    if (selected && selectionBelongsTo(options.conversationId, selected)) {
       const object = live(store, selected);
       if (object) return { object, source: "selection", raw: selected };
     }

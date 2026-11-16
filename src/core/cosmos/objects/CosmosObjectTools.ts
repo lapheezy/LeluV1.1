@@ -21,7 +21,7 @@ import StudioStore from "../../studio/StudioStore";
 import CosmosObjectStore from "./CosmosObjectStore";
 import { cosmosCameraBus, cosmosViewBus, type CosmosCameraMode } from "./CosmosObjectCamera";
 import { describeObject, type CosmosObject } from "./CosmosObjectTypes";
-import { conversationOf, messagesOf, rememberCosmosReferent, resolveCosmosTarget } from "./continuity";
+import { conversationOf, messagesOf, rememberCosmosReferent, rememberCosmosSelection, resolveCosmosTarget } from "./continuity";
 import { persistedObject, snapshotOf, verifyObjectOperation, type ObjectSnapshot, type OperationExpectation } from "./verification";
 import type { BuildProgram } from "../../creative/kit/build";
 import type { Scene3DProgram } from "../../creative/kit/Scene3D";
@@ -40,6 +40,19 @@ const s = (args: Record<string, unknown>, k: string) => (typeof args[k] === "str
 const n = (args: Record<string, unknown>, k: string) => (typeof args[k] === "number" && Number.isFinite(args[k]) ? (args[k] as number) : undefined);
 const vec = (v: unknown) => (Array.isArray(v) && v.length === 3 && v.every((x) => typeof x === "number") ? (v as [number, number, number]) : undefined);
 const ok = (content: string, data?: Record<string, unknown>): ToolExecutionResult => ({ ok: true, content, data });
+
+/** The label for a frame change: the operation the user actually asked for. */
+function whatChanged(
+  position: [number, number, number] | undefined,
+  rotation: [number, number, number] | undefined,
+  scale: number | undefined,
+): string {
+  const parts = [position ? "Moved" : "", rotation ? "Turned" : "", typeof scale === "number" ? "Resized" : ""].filter(Boolean);
+  if (parts.length === 0) return "Changed";
+  if (parts.length === 1) return parts[0];
+  const [first, ...rest] = parts;
+  return `${first} and ${rest.join(" and ").toLowerCase()}`;
+}
 const bad = (content: string): ToolExecutionResult => ({ ok: false, content });
 
 const def = (id: string, name: string, description: string, risk: number, permissions: string[], inputSchema: Record<string, unknown>): ToolDefinition => ({
@@ -92,7 +105,13 @@ function judged(input: VerdictInput): ToolExecutionResult {
 
   const failed = verification.status === "FAILED";
   const recovered = Boolean(correction) && verification.status === "VERIFIED";
-  if (!failed) rememberCosmosReferent(conversationOf(input.context), input.id);
+  if (!failed) {
+    rememberCosmosReferent(conversationOf(input.context), input.id);
+    /* The object the tool just worked on is now the visible selection; record
+       which conversation that selection belongs to, so another chat cannot
+       inherit it as a pronoun's referent. */
+    rememberCosmosSelection(conversationOf(input.context), input.id);
+  }
 
   return {
     ok: !failed,
@@ -278,7 +297,9 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
           preserve,
         },
         retry: apply,
-        content: `${near ? `Moved beside “${near}”` : "Moved"}: ${describeObject(back)}.`,
+        /* Report the change that was actually made: a rotation announced as
+           "Moved" reads as a different operation than the one performed. */
+        content: `${near ? `Moved beside “${near}”` : whatChanged(position, rotation, scale)}: ${describeObject(back)}.`,
       });
     },
   },

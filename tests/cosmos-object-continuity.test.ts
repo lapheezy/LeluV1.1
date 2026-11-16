@@ -33,6 +33,7 @@ import {
   isImplicitReference,
   referentFromConversation,
   rememberCosmosReferent,
+  rememberCosmosSelection,
   resolveCosmosReferent,
   resolveCosmosTarget,
 } from "../src/core/cosmos/objects/continuity";
@@ -163,4 +164,36 @@ test("a name that is two objects is refused, not resolved to one of them", () =>
   const lookup = resolveCosmosTarget(store, "oak chair");
   assert.ok("reason" in lookup);
   assert.match(lookup.reason, /matches 2 objects/);
+});
+
+test("a selection another conversation made is not this conversation's referent", () => {
+  const { store, gearbox } = seeded();
+  clearCosmosReferents();
+  store.select(gearbox);
+  rememberCosmosSelection("conversation-a", gearbox);
+
+  /* In conversation A, "it" is the object A selected. */
+  const mine = resolveCosmosTarget(store, "it", { conversationId: "conversation-a" });
+  assert.ok("object" in mine);
+  assert.equal(mine.object.id, gearbox);
+
+  /* In a fresh conversation B nothing was selected yet: refusing is honest,
+     and the alternative — acting on A's selection — would edit the wrong
+     object under a pronoun. */
+  const theirs = resolveCosmosTarget(store, "it", { conversationId: "conversation-b" });
+  assert.ok("reason" in theirs);
+  assert.match(theirs.reason, /could not tell which object/i);
+});
+
+test("a selection made outside any conversation stays usable in every conversation", () => {
+  const { store, cabin } = seeded();
+  clearCosmosReferents();
+  store.select(cabin);
+  rememberCosmosSelection(undefined, cabin);
+
+  for (const conversationId of ["conversation-a", "conversation-b"]) {
+    const lookup = resolveCosmosTarget(store, "it", { conversationId });
+    assert.ok("object" in lookup);
+    assert.equal(lookup.object.id, cabin);
+  }
 });

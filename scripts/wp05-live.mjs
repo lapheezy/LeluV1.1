@@ -63,7 +63,7 @@ async function say(text) {
   // text goes in by focus and keyboard rather than a pointer click.
   const box = composer();
   await box.focus();
-  await page.keyboard.type(text, { delay: 8 });
+  await page.keyboard.insertText(text);
   await page.keyboard.press("Enter");
   await page.waitForTimeout(1200);
 }

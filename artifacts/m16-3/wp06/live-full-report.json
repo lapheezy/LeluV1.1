@@ -1,0 +1,785 @@
+{
+  "origin": "http://127.0.0.1:3003",
+  "plan": "full",
+  "turns": [
+    {
+      "label": "build-chair",
+      "conversation": null,
+      "said": "build a chair",
+      "typed": "build a chair",
+      "submitToRenderMs": 622,
+      "modelRequests": 0,
+      "reply": "+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "\n    LÉLU unknown · unknown · development · built 2026-11-16 11:40Z\n        @keyframes cosmos-hurricane-spin {\n          from { transform: rotate(0deg); }\n          to { transform: rotate(360deg); }\n        }\n        @keyframes cosmos-rainbow-shimmer {\n          0%, 100% { filter: brightness(0.92); }\n          50% { filter: brightness(1.08); }\n        }\n      🏙 Nova Haven🏙 Skyreach🏙 Cloudspire🏙 Aetheria🏙 LuminaEARTHMOON♈Aries♉Taurus♊Gemini♋Cancer♌Leo♍Virgo♎Libra♏Scorpio♐Sagittarius♑Capricorn♒Aquarius♓Pisces☉ Sun☽ Moon☿ Mercury♀ Venus♂ Mars♃ Jupiter♄ Saturn⛢ Uranus♆ Neptune♇ Pluto✦ ZODIAC OBSERVATORY ✦LÉLUSHAMANLéluCaretakerEngineering & SystemsM.S. Ma'at SentinelArchitect ExecutiveAgent Forge ExecutiveDesignerArtistRendererVideo DirectorResearcherResource IntelligenceJewelry DesignerFashion DesignerMarketing StrategistBuilderEngineering AgentAtmosphereDeep Black SpaceLÉLU+Workspace1Weather Use my locationWorking onbuild a chairRunning creative.buildChatBrowserStudioWorkspacesAgentsFilesActive WorkspacesPlace in worldJewelry1 itemFashion0 itemsNotifications1LÉLU has a question“Fashion” is active but has no defined next outcome. What should I prioritize there?nowApp LibraryCreativity5Development6Research5Business7LÉLU — build a chairRunning creative.buildLÉLUCosmos Workspace Home Chat ∞ Browser Apps Studio Render Files Agents Memory Diary SettingsOpen windows build a chairChat Universe ∞2 Chats · 0 Active · ● Here with you Chat Activity24H7D30DAllNowAll (2)ActiveArchived (0)build a chairbuild a chairnowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “C3nowNew Chatbuild a chairbuild a chairnowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “Cnowbuild a chairQuick Chat Dockbuild a chairnowEngineeringnow3 1 window — minimize1◍build a chair📍—⤢✕build a chair⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose windowbuild a chair+Sendcore|idle|100\n    \n  \n\n",
+      "objects": []
+    },
+    {
+      "label": "spawn",
+      "conversation": "chat:84d23307-5dfb-4041-a861-4d8c6c7c0382",
+      "said": "spawn it into the cosmos",
+      "typed": "spawn it into the cosmos",
+      "submitToRenderMs": 311,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "ibraryCreativity5Development6Research5Business7LÉLU — SpeakingAsk her anythingLÉLUCosmos Workspace Home Chat ∞ Browser Apps Studio Render Files Agents Memory Diary SettingsOpen windows build a chairChat Universe ∞2 Chats · 0 Active · ● Here with you Chat Activity24H7D30DAllNowAll (2)ActiveArchived (0)build a chairDone locally on the Cosmos scene — no model involved: put it into the Cosmos. ✓ spawn (cosmos.object.spawn) In the Cosmos: obj_1 “chair — 46nowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “C3nowNew Chatbuild a chairDone locally on the Cosmos scene — no model involved: put it into the Cosmos. ✓ spawn (cosmos.object.spawn) In the Cosmos: obj_1 “chair — 46nowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “Cnowbuild a chairQuick Chat Dockbuild a chairnowEngineeringnow3 1 window — minimize✦ Cosmos · 11◍build a chair📍—⤢✕build a chair⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools1 tool usedDonebuild a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_4ca53406c569] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "select-by-name",
+      "conversation": "chat:84d23307-5dfb-4041-a861-4d8c6c7c0382",
+      "said": "select the chair",
+      "typed": "select the chair",
+      "submitToRenderMs": 347,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "0DAllNowAll (2)ActiveArchived (0)build a chairDone locally on the Cosmos scene — no model involved: select “chair”. ✓ select (cosmos.object.select) Selected obj_1 “chair — 46 × 48 × 86 cnowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “C3nowNew Chatbuild a chairDone locally on the Cosmos scene — no model involved: select “chair”. ✓ select (cosmos.object.select) Selected obj_1 “chair — 46 × 48 × 86 cnowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “Cnowbuild a chairQuick Chat Dockbuild a chairnowEngineeringnow3 1 window — minimize✦ Cosmos · 11◍build a chair📍—⤢✕build a chair⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools1 tool usedDonebuild a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_4ca53406c569] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "rotate-90",
+      "conversation": "chat:84d23307-5dfb-4041-a861-4d8c6c7c0382",
+      "said": "rotate it 90 degrees",
+      "typed": "rotate it 90 degrees",
+      "submitToRenderMs": 350,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": " — no animation or embodied avatar yet. Logged as a limitation: “C3nowNew Chatbuild a chairDone locally on the Cosmos scene — no model involved: turn the it 90°. ✓ turn (cosmos.object.transform) Turned: obj_1 “chair — 46 × 48 × 86 nowEngineeringI found something: Capability “Avatar identity” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “Cnowbuild a chairQuick Chat Dockbuild a chairnowEngineeringnow3 1 window — minimize✦ Cosmos · 11◍build a chair📍—⤢✕build a chair⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools1 tool usedDonebuild a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_4ca53406c569] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.rotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "double-size",
+      "conversation": "chat:84d23307-5dfb-4041-a861-4d8c6c7c0382",
+      "said": "make it twice as large",
+      "typed": "make it twice as large",
+      "submitToRenderMs": 735,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: make the it twice as large.\n✓ resize (cosmos.object.transform)\nResized: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "y” is partial: 2D config only — no animation or embodied avatar yet. Logged as a limitation: “Cnowbuild a chairQuick Chat Dockbuild a chairnowEngineeringnow3 1 window — minimize✦ Cosmos · 11◍build a chair📍—⤢✕build a chair⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools1 tool usedDonebuild a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_4ca53406c569] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.rotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.make it twice as largeDone locally on the Cosmos scene — no model involved: make the it twice as large.\n✓ resize (cosmos.object.transform)\nResized: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "move-left",
+      "conversation": "chat:84d23307-5dfb-4041-a861-4d8c6c7c0382",
+      "said": "move it to the left",
+      "typed": "move it to the left",
+      "submitToRenderMs": 261,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: move it left.\n✓ move (cosmos.object.position)\nMoved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": " settingsClose window⚙️Working with tools1 tool usedDonebuild a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_4ca53406c569] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.rotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.make it twice as largeDone locally on the Cosmos scene — no model involved: make the it twice as large.\n✓ resize (cosmos.object.transform)\nResized: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.move it to the leftDone locally on the Cosmos scene — no model involved: move it left.\n✓ move (cosmos.object.position)\nMoved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "select-again",
+      "conversation": "chat:84d23307-5dfb-4041-a861-4d8c6c7c0382",
+      "said": "select the chair",
+      "typed": "select the chair",
+      "submitToRenderMs": 529,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "meters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_4ca53406c569] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.rotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.make it twice as largeDone locally on the Cosmos scene — no model involved: make the it twice as large.\n✓ resize (cosmos.object.transform)\nResized: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.move it to the leftDone locally on the Cosmos scene — no model involved: move it left.\n✓ move (cosmos.object.position)\nMoved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "pronoun-only-new-conversation",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "rotate it 90 degrees",
+      "typed": "rotate it 90 degrees",
+      "submitToRenderMs": 259,
+      "modelRequests": 1,
+      "reply": "Done locally on the Cosmos scene — no model involved: turn the it 90°.\n✗ turn (cosmos.object.transform)\nNothing moved: I could not tell which object “it” means — the Cosmos has chair — 46 × 48 × 86 cm.\n0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "ted · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.rotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.make it twice as largeDone locally on the Cosmos scene — no model involved: make the it twice as large.\n✓ resize (cosmos.object.transform)\nResized: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.move it to the leftDone locally on the Cosmos scene — no model involved: move it left.\n✓ move (cosmos.object.position)\nMoved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Send◍rotate it 90 degrees📍—⤢✕rotate it 90 degrees⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools1 tool used1 issuerotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✗ turn (cosmos.object.transform)\nNothing moved: I could not tell which object “it” means — the Cosmos has chair — 46 × 48 × 86 cm.\n0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "ambiguity-build-1",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "build a chair",
+      "typed": "build a chair",
+      "submitToRenderMs": 345,
+      "modelRequests": 0,
+      "reply": "”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_3f7efba52c52] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KB+Sendcore|idle|100Stopped: Advance “Fashion”: spawn it into the cosmosStopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "rendered": "ne — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 4.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.make it twice as largeDone locally on the Cosmos scene — no model involved: make the it twice as large.\n✓ resize (cosmos.object.transform)\nResized: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3.2, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.move it to the leftDone locally on the Cosmos scene — no model involved: move it left.\n✓ move (cosmos.object.position)\nMoved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Send◍rotate it 90 degrees📍—⤢✕rotate it 90 degrees⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools2 tools used · 1 other chat usedDonerotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✗ turn (cosmos.object.transform)\nNothing moved: I could not tell which object “it” means — the Cosmos has chair — 46 × 48 × 86 cm.\n0 of 1 steps succeeded; the failures are shown with their reasons.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_3f7efba52c52] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KB+Sendcore|idle|100Stopped: Advance “Fashion”: spawn it into the cosmosStopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "ambiguity-spawn-1",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "spawn it into the cosmos",
+      "typed": "spawn it into the cosmos",
+      "submitToRenderMs": 312,
+      "modelRequests": 0,
+      "reply": "Stopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "rendered": "06c569@r1.\nEverything above ran and was verified.move it to the leftDone locally on the Cosmos scene — no model involved: move it left.\n✓ move (cosmos.object.position)\nMoved: obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [2.0, 0.9, 7.2] · scale 8.00 · from art_4ca53406c569@r1.\nEverything above ran and was verified.+Send◍rotate it 90 degrees📍—⤢✕rotate it 90 degrees⚙ ControlsPin conversationMinimizeMaximizeChat settingsClose window⚙️Working with tools1 tool usedDonerotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✗ turn (cosmos.object.transform)\nNothing moved: I could not tell which object “it” means — the Cosmos has chair — 46 × 48 × 86 cm.\n0 of 1 steps succeeded; the failures are shown with their reasons.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_3f7efba52c52] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_2 “chair — 46 × 48 × 86 cm” · 9 parts · at [-1.6, 0.9, 10.0] · scale 4.00 · from art_3f7efba52c52@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.+Sendcore|idle|100Stopped: Advance “Fashion”: spawn it into the cosmosStopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        },
+        {
+          "id": "obj_2",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -1.6,
+            0.9,
+            9.97
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "ambiguity-build-2",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "build a chair",
+      "typed": "build a chair",
+      "submitToRenderMs": 367,
+      "modelRequests": 0,
+      "reply": "”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_1547f8f29de4] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KB+Sendcore|idle|100Stopped: Advance “Fashion”: spawn it into the cosmosStopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "rendered": "rial oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_3f7efba52c52] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_2 “chair — 46 × 48 × 86 cm” · 9 parts · at [-1.6, 0.9, 10.0] · scale 4.00 · from art_3f7efba52c52@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_1547f8f29de4] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KB+Sendcore|idle|100Stopped: Advance “Fashion”: spawn it into the cosmosStopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        },
+        {
+          "id": "obj_2",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -1.6,
+            0.9,
+            9.97
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "ambiguity-spawn-2",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "spawn it into the cosmos",
+      "typed": "spawn it into the cosmos",
+      "submitToRenderMs": 391,
+      "modelRequests": 0,
+      "reply": "Stopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "rendered": "nt)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_2 “chair — 46 × 48 × 86 cm” · 9 parts · at [-1.6, 0.9, 10.0] · scale 4.00 · from art_3f7efba52c52@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_1547f8f29de4] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.+Sendcore|idle|100Stopped: Advance “Fashion”: spawn it into the cosmosStopped after 3 cycle(s): repeated-failure. The objective was NOT completed.\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        },
+        {
+          "id": "obj_2",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -1.6,
+            0.9,
+            9.97
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        },
+        {
+          "id": "obj_3",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "ambiguity-select",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "select the chair",
+      "typed": "select the chair",
+      "submitToRenderMs": 390,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: select “chair”.\n✗ select (cosmos.object.select)\nNothing selected: “chair” matches 3 objects (chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm) — say which one.\n0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "e45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_2 “chair — 46 × 48 × 86 cm” · 9 parts · at [-1.6, 0.9, 10.0] · scale 4.00 · from art_3f7efba52c52@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_1547f8f29de4] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✗ select (cosmos.object.select)\nNothing selected: “chair” matches 3 objects (chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm) — say which one.\n0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        },
+        {
+          "id": "obj_2",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -1.6,
+            0.9,
+            9.97
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        },
+        {
+          "id": "obj_3",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "invalid-operation",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "select the lamp",
+      "typed": "select the lamp",
+      "submitToRenderMs": 404,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: select “lamp”.\n✗ select (cosmos.object.select)\nNothing selected: no object matches “lamp”.\n0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "aterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_2 “chair — 46 × 48 × 86 cm” · 9 parts · at [-1.6, 0.9, 10.0] · scale 4.00 · from art_3f7efba52c52@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_1547f8f29de4] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✗ select (cosmos.object.select)\nNothing selected: “chair” matches 3 objects (chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm) — say which one.\n0 of 1 steps succeeded; the failures are shown with their reasons.select the lampDone locally on the Cosmos scene — no model involved: select “lamp”.\n✗ select (cosmos.object.select)\nNothing selected: no object matches “lamp”.\n0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        },
+        {
+          "id": "obj_2",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -1.6,
+            0.9,
+            9.97
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        },
+        {
+          "id": "obj_3",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    },
+    {
+      "label": "after-failed-prerequisite",
+      "conversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+      "said": "rotate it 90 degrees",
+      "typed": "rotate it 90 degrees",
+      "submitToRenderMs": 1062,
+      "modelRequests": 0,
+      "reply": "Done locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "rendered": "the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_2 “chair — 46 × 48 × 86 cm” · 9 parts · at [-1.6, 0.9, 10.0] · scale 4.00 · from art_3f7efba52c52@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.build a chairBuilt by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: construct Furniture — “build a chair”.\n✓ build (creative.build)\nParameters: kind chair · width 0.46 m · depth 0.48 m · height 0.86 m · seatHeight 0.45 m · material oak\nChange it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.\nCreated scene3d visual “chair — 46 × 48 × 86 cm” [art_1547f8f29de4] — 3D scene · 9 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nEverything above ran and was verified.chair — 46 × 48 × 86 cmCreated · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2onlyBearing surface 1onlyBack 1onlyLegs 4onlyUpholstery 1onlyStorage 0only1 · Legs4 legs2 · Bearing surface45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwalnutbirchsteelupholstered Save as a revision Reset Dimensions and relationships are computed from the parameters: changing the seat height moves the surface and shortens every leg. GLB GLTF JSONchair-46-48-86-cm.glb 19.4 KBspawn it into the cosmosDone locally on the Cosmos scene — no model involved: put it into the Cosmos.\n✓ spawn (cosmos.object.spawn)\nIn the Cosmos: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1. It is its own object now: it can be moved, grouped, opened or exported on its own.\nEverything above ran and was verified.select the chairDone locally on the Cosmos scene — no model involved: select “chair”.\n✗ select (cosmos.object.select)\nNothing selected: “chair” matches 3 objects (chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm, chair — 46 × 48 × 86 cm) — say which one.\n0 of 1 steps succeeded; the failures are shown with their reasons.select the lampDone locally on the Cosmos scene — no model involved: select “lamp”.\n✗ select (cosmos.object.select)\nNothing selected: no object matches “lamp”.\n0 of 1 steps succeeded; the failures are shown with their reasons.rotate it 90 degreesDone locally on the Cosmos scene — no model involved: turn the it 90°.\n✓ turn (cosmos.object.transform)\nTurned: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1.\nEverything above ran and was verified.+Sendcore|idle|100\n    \n  \n\n",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 8,
+          "parts": 9
+        },
+        {
+          "id": "obj_2",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -1.6,
+            0.9,
+            9.97
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        },
+        {
+          "id": "obj_3",
+          "name": "chair — 46 × 48 × 86 cm",
+          "position": [
+            -3.2,
+            0.9,
+            7.2
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 4,
+          "parts": 9
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "spawn created one Cosmos object",
+      "ok": true,
+      "detail": "{\"id\":\"obj_1\",\"name\":\"chair — 46 × 48 × 86 cm\",\"position\":[3.2,0.9,7.2],\"rotation\":[0,0,0],\"scale\":4,\"parts\":9}"
+    },
+    {
+      "name": "select by name resolves without an id",
+      "ok": true,
+      "detail": "Done locally on the Cosmos scene — no model involved: select “chair”.\n✓ select (cosmos.object.select)\nSelected obj_1 “chair — 46 × 48 × 86 cm” · 9 parts · at [3"
+    },
+    {
+      "name": "rotate 90 changed rotation to [0,90,0]",
+      "ok": true,
+      "detail": "before=[0,0,0] after=[0,90,0]"
+    },
+    {
+      "name": "rotate left position and scale untouched",
+      "ok": true,
+      "detail": "position=[3.2,0.9,7.2] scale=4"
+    },
+    {
+      "name": "double size multiplied scale by 2",
+      "ok": true,
+      "detail": "4 → 8"
+    },
+    {
+      "name": "double size kept rotation and position",
+      "ok": true,
+      "detail": "[0,90,0] [3.2,0.9,7.2]"
+    },
+    {
+      "name": "move left decreased x",
+      "ok": true,
+      "detail": "[3.2,0.9,7.2] → [2,0.9,7.2]"
+    },
+    {
+      "name": "move kept rotation and scale",
+      "ok": true,
+      "detail": "[0,90,0] scale=8"
+    },
+    {
+      "name": "same object id after re-select, transforms preserved",
+      "ok": true,
+      "detail": "{\"id\":\"obj_1\",\"name\":\"chair — 46 × 48 × 86 cm\",\"position\":[2,0.9,7.2],\"rotation\":[0,90,0],\"scale\":8,\"parts\":9}"
+    },
+    {
+      "name": "reload preserved the persisted transforms",
+      "ok": true,
+      "detail": "hydration=704ms {\"id\":\"obj_1\",\"name\":\"chair — 46 × 48 × 86 cm\",\"position\":[2,0.9,7.2],\"rotation\":[0,90,0],\"scale\":8,\"parts\":9}"
+    },
+    {
+      "name": "second conversation is a different conversation",
+      "ok": true,
+      "detail": "null vs chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca"
+    },
+    {
+      "name": "pronoun-only command in a fresh conversation refuses instead of inheriting",
+      "ok": true,
+      "detail": "unchanged=true reply=ted · Visual · revision 1 Expand Large viewfurniture · 9 parts · 6 layers Labels All layersExplode0%SeatLeg (left back)Leg (left front)Leg (right back)Leg (right front)BackCushionStretcher (back)Stretcher (front)Frame 2o"
+    },
+    {
+      "name": "two objects share a name (ambiguity set up)",
+      "ok": true,
+      "detail": "[\"chair — 46 × 48 × 86 cm\",\"chair — 46 × 48 × 86 cm\",\"chair — 46 × 48 × 86 cm\"]"
+    },
+    {
+      "name": "vague selection asks which one",
+      "ok": true,
+      "detail": "e45 cm3 · Back41 cm4 · FinishoakPiece: chairOverall: 46 × 48 × 86 cmSeat / top height: 45 cmLegs: 4Parts: 9Material: oak Parameters PiecechairtabledeskshelfbedsofacabinetWidth 0.46 mDepth 0.48 mHeight 0.86 mSeat height 0.45 mMaterialoakwaln"
+    },
+    {
+      "name": "invalid operation reports the real failure",
+      "ok": true,
+      "detail": " their reasons.select the lampDone locally on the Cosmos scene — no model involved: select “lamp”. ✗ select (cosmos.object.select) Nothing selected: no object matches “lamp”. 0 of 1 steps succeeded; the failures are shown with their reasons.+Sendcore|idle|100 "
+    },
+    {
+      "name": "after a failed prerequisite the pronoun acts only on this conversation's own object",
+      "ok": true,
+      "detail": "changed=[\"obj_3\"] expected=obj_3"
+    },
+    {
+      "name": "the reply names the object it acted on",
+      "ok": true,
+      "detail": "urn (cosmos.object.transform) Turned: obj_3 “chair — 46 × 48 × 86 cm” · 9 parts · at [-3.2, 0.9, 7.2] · scale 4.00 · from art_1547f8f29de4@r1. Everything above ran and was verified.+Sendcore|idle|100 "
+    }
+  ],
+  "errors": [],
+  "timelines": {
+    "bootToComposerMs": 12952,
+    "reloadHydrationMs": 704
+  },
+  "initialStore": {
+    "stored": false,
+    "objects": []
+  },
+  "objectId": "obj_1",
+  "beforeRotate": {
+    "id": "obj_1",
+    "name": "chair — 46 × 48 × 86 cm",
+    "position": [
+      3.2,
+      0.9,
+      7.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": 4,
+    "parts": 9
+  },
+  "afterRotate": {
+    "id": "obj_1",
+    "name": "chair — 46 × 48 × 86 cm",
+    "position": [
+      3.2,
+      0.9,
+      7.2
+    ],
+    "rotation": [
+      0,
+      90,
+      0
+    ],
+    "scale": 4,
+    "parts": 9
+  },
+  "afterScale": {
+    "id": "obj_1",
+    "name": "chair — 46 × 48 × 86 cm",
+    "position": [
+      3.2,
+      0.9,
+      7.2
+    ],
+    "rotation": [
+      0,
+      90,
+      0
+    ],
+    "scale": 8,
+    "parts": 9
+  },
+  "afterMove": {
+    "id": "obj_1",
+    "name": "chair — 46 × 48 × 86 cm",
+    "position": [
+      2,
+      0.9,
+      7.2
+    ],
+    "rotation": [
+      0,
+      90,
+      0
+    ],
+    "scale": 8,
+    "parts": 9
+  },
+  "secondConversation": "chat:107bdbd7-b851-4c4f-b1c4-25689d31f1ca",
+  "modelRequestsDuringTurns": 1,
+  "finalStore": {
+    "stored": true,
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "chair — 46 × 48 × 86 cm",
+        "position": [
+          2,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ],
+        "scale": 8,
+        "parts": 9
+      },
+      {
+        "id": "obj_2",
+        "name": "chair — 46 × 48 × 86 cm",
+        "position": [
+          -1.6,
+          0.9,
+          9.97
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 4,
+        "parts": 9
+      },
+      {
+        "id": "obj_3",
+        "name": "chair — 46 × 48 × 86 cm",
+        "position": [
+          -3.2,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ],
+        "scale": 4,
+        "parts": 9
+      }
+    ]
+  }
+}

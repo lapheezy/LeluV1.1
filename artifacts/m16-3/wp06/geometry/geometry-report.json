@@ -1,0 +1,189 @@
+{
+  "origin": "http://127.0.0.1:3003",
+  "steps": [
+    {
+      "label": "initial",
+      "path": "artifacts/m16-3/wp06/geometry/01-initial.png",
+      "id": "obj_1",
+      "frame": {
+        "position": [
+          3.2,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 4
+      },
+      "camera": {
+        "position": [
+          0.782,
+          1.634,
+          1.248
+        ],
+        "target": [
+          0,
+          0.387,
+          0
+        ],
+        "fov": 40
+      }
+    },
+    {
+      "label": "rotated-90",
+      "path": "artifacts/m16-3/wp06/geometry/02-rotated-90.png",
+      "id": "obj_1",
+      "frame": {
+        "position": [
+          3.2,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ],
+        "scale": 4
+      },
+      "camera": {
+        "position": [
+          0.782,
+          1.634,
+          1.248
+        ],
+        "target": [
+          0,
+          0.387,
+          0
+        ],
+        "fov": 40
+      }
+    },
+    {
+      "label": "doubled",
+      "path": "artifacts/m16-3/wp06/geometry/03-doubled.png",
+      "id": "obj_1",
+      "frame": {
+        "position": [
+          3.2,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ],
+        "scale": 8
+      },
+      "camera": {
+        "position": [
+          0.782,
+          1.634,
+          1.248
+        ],
+        "target": [
+          0,
+          0.387,
+          0
+        ],
+        "fov": 40
+      }
+    },
+    {
+      "label": "moved-left",
+      "path": "artifacts/m16-3/wp06/geometry/04-moved-left.png",
+      "id": "obj_1",
+      "frame": {
+        "position": [
+          2,
+          0.9,
+          7.2
+        ],
+        "rotation": [
+          0,
+          90,
+          0
+        ],
+        "scale": 8
+      },
+      "camera": {
+        "position": [
+          0.782,
+          1.634,
+          1.248
+        ],
+        "target": [
+          0,
+          0.387,
+          0
+        ],
+        "fov": 40
+      }
+    }
+  ],
+  "errors": [],
+  "pixelDiff": {
+    "initial→rotated-90": 64.972,
+    "rotated-90→doubled": 55.691,
+    "doubled→moved-left": 56.078
+  },
+  "transforms": {
+    "initial": {
+      "position": [
+        3.2,
+        0.9,
+        7.2
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": 4
+    },
+    "rotated": {
+      "position": [
+        3.2,
+        0.9,
+        7.2
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": 4
+    },
+    "doubled": {
+      "position": [
+        3.2,
+        0.9,
+        7.2
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": 8
+    },
+    "moved": {
+      "position": [
+        2,
+        0.9,
+        7.2
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": 8
+    }
+  }
+}
