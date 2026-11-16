@@ -1,0 +1,487 @@
+{
+  "at": "2026-11-16T07:25:44.461Z",
+  "results": [
+    {
+      "objective": "O07",
+      "name": "The Neural Map is listed in the Infinite Library as its own interface",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O04",
+      "name": "Chat: a built cabin is put into the Cosmos (cosmos.object.spawn, lelu-direct, 0 model calls)",
+      "status": "VERIFIED",
+      "detail": [
+        "cosmos.object.spawn:done"
+      ]
+    },
+    {
+      "objective": "O04",
+      "name": "Chat: a built gearbox is put into the Cosmos",
+      "status": "VERIFIED",
+      "detail": [
+        "cosmos.object.spawn:done"
+      ]
+    },
+    {
+      "objective": "O02",
+      "name": "Each object has its canonical identity in the map, located in the Cosmos core, created from its artifact",
+      "status": "VERIFIED",
+      "detail": "cosmos.object:obj_2: created-from>record:artifact:art_f29c2cf3beac, located-in>cosmos.place:cosmos-core"
+    },
+    {
+      "objective": "O03",
+      "name": "Chat: attach the gearbox into the cabin → attached-to the cabin, no longer loose in the core",
+      "status": "VERIFIED",
+      "detail": "attached-to>cosmos.object:obj_1, created-from>record:artifact:art_f29c2cf3beac"
+    },
+    {
+      "objective": "O03",
+      "name": "Chat: take it out → extracted-from the cabin, located in the core again, same identity",
+      "status": "VERIFIED",
+      "detail": "created-from>record:artifact:art_f29c2cf3beac, extracted-from>cosmos.object:obj_1, located-in>cosmos.place:cosmos-core"
+    },
+    {
+      "objective": "O03",
+      "name": "Chat: duplicate → a NEW identity derived-from the original (the original unchanged)",
+      "status": "VERIFIED",
+      "detail": "cosmos.object:obj_3: created-from>record:artifact:art_f29c2cf3beac, derived-from>cosmos.object:obj_2, located-in>cosmos.place:cosmos-core"
+    },
+    {
+      "objective": "O11",
+      "name": "FINDING: chat 'move the gear next to the cabin' is routed to LÉLU's World tools, not cosmos.object.*",
+      "status": "OBSERVED",
+      "detail": "[\"workspace.arrange:done\"]",
+      "informational": true
+    },
+    {
+      "objective": "O03",
+      "name": "Move (cosmos.object.transform via the dispatcher) → spatial position changes, semantic relations untouched",
+      "status": "VERIFIED",
+      "detail": "[3,0,-12.8] → [9,2,-14]"
+    },
+    {
+      "objective": "O10",
+      "name": "A move updates ONLY the objects partition and reports only the moved object as changed",
+      "status": "VERIFIED",
+      "detail": "[{\"a\":\"cosmos.objects\",\"ms\":0.1,\"changed\":[\"cosmos.object:obj_2\"]}]"
+    },
+    {
+      "objective": "O02",
+      "name": "No dangling relations and no duplicate identities after the chat lifecycle",
+      "status": "VERIFIED",
+      "detail": "{\"dangling\":[],\"duplicates\":[]}"
+    },
+    {
+      "objective": "O07",
+      "name": "Standalone map opened by deep link resolves the Cosmos object's canonical identity",
+      "status": "VERIFIED",
+      "detail": "cosmos.object:obj_2"
+    },
+    {
+      "objective": "O07",
+      "name": "…with the same typed relations the map holds (extracted-from, located-in, created-from, duplicated into)",
+      "status": "VERIFIED",
+      "detail": "located-in:out, derived-from:in, extracted-from:out, created-from:out"
+    },
+    {
+      "objective": "O06",
+      "name": "Follow a relationship in the map: gear → the cabin it was extracted from",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O08",
+      "name": "Map → Remove (cosmos.object.remove via the dispatcher): the object is in the store's trash and the map shows it trashed, lineage kept",
+      "status": "VERIFIED",
+      "detail": "trashed · trash obj_2"
+    },
+    {
+      "objective": "O08",
+      "name": "The copy's derived-from still resolves while its original is in the trash (no orphan)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O08",
+      "name": "Map → Restore: active again, same identity, located in the core",
+      "status": "VERIFIED",
+      "detail": "active"
+    },
+    {
+      "objective": "O08",
+      "name": "Map → Duplicate: the Cosmos store gains an object and the map focuses its new identity, derived from the gear",
+      "status": "VERIFIED",
+      "detail": "3 → 4, focus cosmos.object:obj_4"
+    },
+    {
+      "objective": "O08",
+      "name": "Chat → attach while the standalone map is open: the open map shows attached-to without reload or rebuild",
+      "status": "VERIFIED",
+      "detail": "attached-to:out, derived-from:in, created-from:out"
+    },
+    {
+      "objective": "O06",
+      "name": "Show in Cosmos → Return: back in the Cosmos with the object selected",
+      "status": "VERIFIED",
+      "detail": "obj_2"
+    },
+    {
+      "objective": "O06",
+      "name": "Cosmos object controls (in the 3D scene) → Neural: the embedded inspector shows the same canonical entity",
+      "status": "VERIFIED",
+      "detail": "button in Cosmos true · inspector cosmos.object:obj_2 · chat surfaces open 0"
+    },
+    {
+      "objective": "O07",
+      "name": "Embedded → Open map: the standalone map opens on the same identity",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O06",
+      "name": "A composition region's own bar opens its interface in the embedded Neural Map (interface:og-inner-sky, presented by One LÉLU)",
+      "status": "VERIFIED",
+      "detail": "interface:og-inner-sky"
+    },
+    {
+      "objective": "O05",
+      "name": "Reload: every Cosmos object keeps its identity, state and relations (re-derived from the store's own persistence)",
+      "status": "VERIFIED",
+      "detail": "4 objects · 10 relations"
+    },
+    {
+      "objective": "O02",
+      "name": "After reload: 0 dangling, 0 duplicate identities",
+      "status": "VERIFIED",
+      "detail": "{\"cosmos.objects\":{\"entities\":6,\"relations\":10},\"cosmos.navigation\":{\"entities\":1,\"relations\":0},\"cosmos.placements\":{\"entities\":0,\"relations\":0},\"room.scene\":{\"entities\":0,\"relations\":0},\"interfaces\":{\"entities\":9,\"relations\":11},\"tools\":{\"entities\":42,\"relations\":0},\"home\":{\"entities\":32,\"relations\":44},\"chats\":{\"entities\":2,\"relations\":0},\"studio\":{\"entities\":3,\"relations\":2},\"projects\":{\"entities\":4,\"relations\":0},\"sandbox\":{\"entities\":0,\"relations\":0}}"
+    },
+    {
+      "objective": "O09",
+      "name": "neural.inspect (registered tool, through the dispatcher) describes the same entity",
+      "status": "VERIFIED",
+      "detail": "Gear train — 14:28 with idler [cosmos.object:obj_2] — object, active, owned by cosmos.objects (obj_2) | Position 9, 2, -14 in 3-bay cabin — 6 × 4.5 m | Relationships:"
+    },
+    {
+      "objective": "O10",
+      "name": "Every object operation in the session updated the map in < 5 ms, touching only the objects partition",
+      "status": "FAILED",
+      "detail": "{\"n\":7,\"maxMs\":0.1,\"avgMs\":0.071} · other partitions rebuilt: 30"
+    },
+    {
+      "objective": "O10",
+      "name": "Per-operation timings (chat round trip incl. UI; map update per authority)",
+      "status": "MEASURED",
+      "detail": "[{\"text\":\"/build cabin\",\"ms\":923,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"studio\",\"ms\":0,\"changed\":2},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"put it into the cosmos\",\"ms\":5392,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"/build gearbox\",\"ms\":10820,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"studio\",\"ms\":0.1,\"changed\":2},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"put it into the cosmos\",\"ms\":476,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"attach the gear into the cabin\",\"ms\":3840,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"take the gear out\",\"ms\":3992,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.4,\"changed\":1}]},{\"text\":\"duplicate the gear\",\"ms\":2129,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":4},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"move the gear next to the cabin\",\"ms\":4587,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"cosmos.object.transform position\",\"ms\":3.4,\"map\":[{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"attach obj_2 into the cabin\",\"ms\":688,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]}]",
+      "informational": true
+    },
+    {
+      "objective": "O12",
+      "name": "iPhone (emulated): the standalone Neural Map opens and fits the screen",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "O11",
+      "name": "No new page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    }
+  ],
+  "ops": [
+    {
+      "via": "chat",
+      "text": "/build cabin",
+      "ms": 923,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "put it into the cosmos",
+      "ms": 5392,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "/build gearbox",
+      "ms": 10820,
+      "provider": "lelu-direct",
+      "tools": [
+        "engineering:done",
+        "creative.build:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "studio",
+          "ms": 0.1,
+          "changed": 2
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "put it into the cosmos",
+      "ms": 476,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.spawn:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "attach the gear into the cabin",
+      "ms": 3840,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.integrate:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "take the gear out",
+      "ms": 3992,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.extract:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.4,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "duplicate the gear",
+      "ms": 2129,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.duplicate:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 4
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "move the gear next to the cabin",
+      "ms": 4587,
+      "provider": "lelu-direct",
+      "tools": [
+        "workspace.arrange:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "dispatcher",
+      "text": "cosmos.object.transform position",
+      "ms": 3.4,
+      "mapUpdates": [
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 1
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "attach obj_2 into the cabin",
+      "ms": 688,
+      "provider": "lelu-direct",
+      "tools": [
+        "cosmos.object.integrate:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "cosmos.objects",
+          "ms": 0.1,
+          "changed": 3
+        },
+        {
+          "authority": "chats",
+          "ms": 0.1,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0,
+          "changed": 1
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
