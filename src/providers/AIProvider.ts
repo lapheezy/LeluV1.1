@@ -295,6 +295,16 @@ export interface AIRequest {
 
 
   /**
+   * What this request is for, recorded on the usage ledger so spend can be
+   * attributed (e.g. "self-study" vs an ordinary conversation turn).
+   * Defaults to "generate".
+   */
+  operation?:
+    string;
+
+
+
+  /**
    * Optional provider preference (agent delegation). The resolver
    * tries these providers first, in order, before falling back to
    * the normal priority chain — so an agent's preferred provider

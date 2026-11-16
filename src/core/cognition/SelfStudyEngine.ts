@@ -61,6 +61,19 @@ import SelfModel from "./SelfModel";
 import StudyAgentRouter, { type Investigation } from "./StudyAgentRouter";
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import { computePriority, type PriorityAdjustment } from "./Prioritization";
+import ImprovementQueue, { PENDING_APPROVAL_STATUSES } from "../selfdev/ImprovementQueue";
+import {
+  categoryFor,
+  deterministicConclusion,
+  evidenceFingerprint,
+  isGroundedChange,
+  isRelevantLead,
+  isSourcePath,
+  parseConclusion,
+  purposeFor,
+  synthesisPrompt,
+  type StudyConclusion,
+} from "./StudyConclusion";
 import StudyObjectives, {
   type StudyDomain,
   type StudyObjective,
@@ -136,6 +149,11 @@ export interface StudyCycleReport {
   /** Provider actually used to evaluate, or null when none was reachable. */
   provider: string | null;
   providerFallback: boolean;
+  /**
+   * The finished study, or null when the cycle had nothing to conclude.
+   * A verdict of "insufficient" means the question stays open.
+   */
+  conclusion: StudyConclusion | null;
   state: CognitiveState;
   bufferRemaining: number;
   note?: string;
@@ -168,6 +186,7 @@ interface PersistedCognitiveTrace {
   learned: boolean;
   memoryConsolidated: boolean;
   derived: string[];
+  conclusion?: StudyConclusion | null;
   state: CognitiveState;
   note?: string;
 }
@@ -232,6 +251,21 @@ export interface CognitiveStateView {
   nextIntended: { question: string; origin: string; domain: string; whySelected: string } | null;
   /** How many questions are carried in the buffer. */
   carried: number;
+  /** What finished studies concluded, newest first. Read from persisted objectives. */
+  conclusions: {
+    subject: string;
+    category: string;
+    verdict: string;
+    learned: string;
+    change?: string;
+    cycle: number;
+    synthesizedBy: string;
+    proposalId?: string;
+    proposalStatus?: string;
+    held?: string;
+  }[];
+  /** The self-study proposal awaiting the owner's decision, if any. */
+  pendingProposal: { id: string; title: string; status: string; subject: string } | null;
 }
 
 type Listener = (report: StudyCycleReport) => void;
@@ -261,6 +295,28 @@ const HIDDEN_INTERVAL_MS = 5 * 60_000;
 const LEADER_LOCK = "lelu-self-study-leader";
 /** An objective that keeps producing nothing is parked, not retried forever. */
 const MAX_ATTEMPTS = 3;
+/**
+ * The most model-synthesized conclusions self-study may spend per rolling
+ * hour. Everything past it concludes deterministically. Background study
+ * draws on the same provider quotas as conversation, so it is capped.
+ */
+export const SYNTHESIS_PER_HOUR = 12;
+/**
+ * Origins whose conclusions are worth a model's judgement. Follow-ups that
+ * only read a surfaced file ("discovery") and snapshot re-checks
+ * ("revalidation") are concluded from the structured evidence alone.
+ */
+const JUDGEMENT_ORIGINS = new Set<string>([
+  "knowledge-gap",
+  "contradiction",
+  "architecture",
+  "mission",
+  "self-model",
+  "unresolved",
+]);
+/** Why a "change" conclusion is waiting instead of being proposed. */
+export const HELD_FOR_DECISION = "Another self-study proposal is awaiting your decision; this one is held until then.";
+const CLOSED_PROPOSAL_STATUSES = ["Integrated", "Recorded", "Rejected", "Rolled Back", "Failed"];
 /**
  * Hard ceiling on any single external step (an investigation, a provider
  * evaluation, a memory write). Without it, one call that never settles
@@ -334,6 +390,8 @@ export default class SelfStudyEngine {
   private history: StudyCycleReport[] = [];
   /** Domains worked in recent cycles — feeds the attention-fatigue term. */
   private recentDomains: StudyDomain[] = [];
+  /** When model synthesis was spent, for the rolling SYNTHESIS_PER_HOUR cap. */
+  private synthesisTimes: number[] = [];
 
   private constructor() {}
 
@@ -616,6 +674,9 @@ export default class SelfStudyEngine {
       /* 2 — REEVALUATE EXISTING KNOWLEDGE GAPS ---------------------------- */
       const reconciled = this.reconcile();
 
+      /* 2b — A HELD CONCLUSION MAY GO TO GATE 1 ONCE THE LAST ONE IS DECIDED */
+      this.promoteHeld();
+
       /* 3 — SELECT OR GENERATE THE NEXT OBJECTIVE ------------------------- */
       const generatedBefore = this.objectives.open().length;
       const selection = await this.nextObjective(mission, state);
@@ -660,21 +721,36 @@ export default class SelfStudyEngine {
         error: "step-deadline-exceeded",
       });
 
-      /* 7 — EVALUATE THE EVIDENCE ----------------------------------------- */
-      const evaluation = await withDeadline(this.evaluate(objective, investigation, memory), {
-        text: this.deterministicEvaluation(objective, investigation),
+      /* 7 — CONCLUDE ------------------------------------------------------ *
+       * A study ends in a conclusion: what was learned, its evidence, how
+       * it applies to her, and whether anything should change. The
+       * evidence alone decides when the conclusion is deterministic; a
+       * model is consulted at most once per study, only where judgement
+       * adds something, and within SYNTHESIS_PER_HOUR. */
+      const fingerprint = evidenceFingerprint(investigation.evidence);
+      const subject = this.subjectOf(objective);
+      const fallbackConclusion = this.deterministic(objective, investigation, subject, fingerprint);
+      const evaluation = await withDeadline(this.conclude(objective, investigation, memory, subject, fingerprint), {
+        conclusion: fallbackConclusion,
+        text: this.renderConclusion(fallbackConclusion, investigation),
         provider: null,
         fallback: true,
       });
+      let conclusion: StudyConclusion = evaluation.conclusion;
+      const concluded = conclusion.verdict !== "insufficient";
 
       /* 8 — INCORPORATE INTO SHORT-TERM COGNITIVE STATE ------------------- */
-      const learned = this.incorporate(objective, investigation, evaluation.text);
+      const learned = this.incorporate(objective, investigation, evaluation.text, conclusion);
 
       /* 9 — CONSOLIDATE DURABLE LEARNING INTO LONG-TERM MEMORY ------------ */
-      const memoryConsolidated = await withDeadline(
-        this.consolidate(objective, investigation, evaluation.text),
-        false,
-      );
+      const memoryConsolidated = concluded
+        ? await withDeadline(this.consolidate(objective, investigation, evaluation.text), false)
+        : false;
+
+      /* 9b — A CONCLUSION THAT SAYS "CHANGE" GOES TO GATE 1 --------------- */
+      if (concluded && !evaluation.reused) {
+        conclusion = this.propose(objective, conclusion, investigation.tool);
+      }
 
       /* 10 — DERIVE THE NEW QUESTIONS THIS LEARNING CREATED ---------------- */
       const derivation = this.derive(
@@ -685,16 +761,26 @@ export default class SelfStudyEngine {
       );
       const derived = derivation.questions;
 
-      // Close out this objective honestly.
-      if (investigation.ok && investigation.evidence.length > 0) {
+      // Close out this objective honestly. It is answered only when it
+      // concluded; evidence that settled nothing leaves it open.
+      //
+      // The same evidence on a retry is not progress: an objective whose
+      // second attempt returns exactly what the first did is unresolved
+      // now, rather than spending a third identical attempt.
+      const repeatedEvidence = objective.lastFingerprint === fingerprint;
+      if (concluded) {
         this.objectives.update(objective.id, {
           status: "answered",
           lastEvidence: investigation.summary,
+          lastFingerprint: fingerprint,
+          conclusion,
         });
-      } else if (objective.attempts + 1 >= MAX_ATTEMPTS) {
+      } else if (objective.attempts + 1 >= MAX_ATTEMPTS || repeatedEvidence) {
         this.objectives.update(objective.id, {
           status: "unresolved",
           lastEvidence: investigation.error ?? investigation.summary,
+          lastFingerprint: fingerprint,
+          conclusion,
         });
         // An unresolved question is itself something to understand.
         //
@@ -731,6 +817,7 @@ export default class SelfStudyEngine {
         this.objectives.update(objective.id, {
           status: "open",
           lastEvidence: investigation.error ?? investigation.summary,
+          lastFingerprint: fingerprint,
         });
       }
 
@@ -762,6 +849,7 @@ export default class SelfStudyEngine {
         derivedFrom: derivation.causes,
         provider: evaluation.provider,
         providerFallback: evaluation.fallback,
+        conclusion,
         state: { ...state, openObjectives: this.objectives.open().length },
         bufferRemaining: this.objectives.open().length,
         note:
@@ -820,6 +908,7 @@ export default class SelfStudyEngine {
       learned: report.learned,
       memoryConsolidated: report.memoryConsolidated,
       derived: report.derived,
+      conclusion: report.conclusion,
       state: report.state,
       note: report.note,
     };
@@ -950,6 +1039,7 @@ export default class SelfStudyEngine {
           }
         : null,
       carried: open.length,
+      ...this.conclusionView(),
     };
   }
 
@@ -1223,7 +1313,11 @@ export default class SelfStudyEngine {
   }
 
   private enqueue(input: StudyObjectiveInput): StudyObjective | null {
-    return this.objectives.add(input);
+    // Every study states its purpose before it runs.
+    return this.objectives.add({
+      ...input,
+      purpose: input.purpose ?? purposeFor(input.origin, input.domain, input.target),
+    });
   }
 
   /**
@@ -1299,99 +1393,314 @@ export default class SelfStudyEngine {
    * deterministic evaluation below is used and the cycle carries on with
    * its state intact. Cognition is never the provider.
    */
-  private async evaluate(
+  /* ------------------------------- conclude ------------------------------- */
+
+  /** The real handle a study is about. */
+  private subjectOf(objective: StudyObjective): string {
+    const target = objective.target?.trim();
+    if (target && (isSourcePath(target) || /^[\w@./~-]{2,80}$/.test(target))) return target;
+    if (objective.knowledgeId) return `knowledge:${objective.knowledgeId}`;
+    if (target) return target.slice(0, 100);
+    return `question:${objective.question.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80)}`;
+  }
+
+  private deterministic(
+    objective: StudyObjective,
+    investigation: Investigation,
+    subject: string,
+    fingerprint: string,
+  ): StudyConclusion {
+    return {
+      ...deterministicConclusion({ subject, domain: objective.domain, question: objective.question }, investigation),
+      subject,
+      category: categoryFor(objective.domain, subject),
+      synthesizedBy: "deterministic",
+      evidenceFingerprint: fingerprint,
+      cycle: this.cycle,
+      concludedAt: Date.now(),
+    };
+  }
+
+  private synthesisBudgetLeft(now = Date.now()): boolean {
+    this.synthesisTimes = this.synthesisTimes.filter((at) => now - at < 60 * 60_000);
+    return this.synthesisTimes.length < SYNTHESIS_PER_HOUR;
+  }
+
+  /** Self-study model syntheses spent in the last hour (for reporting and tests). */
+  public synthesesThisHour(): number {
+    this.synthesisBudgetLeft();
+    return this.synthesisTimes.length;
+  }
+
+  /**
+   * Finish a study. Order of preference, cheapest first:
+   *   1. insufficient evidence → say so; no model call
+   *   2. same subject, same evidence as an earlier conclusion → reuse it
+   *   3. a follow-up read or a re-check, or the hourly budget spent →
+   *      conclude from the structured evidence
+   *   4. otherwise one bounded model synthesis, grounded or downgraded
+   */
+  private async conclude(
     objective: StudyObjective,
     investigation: Investigation,
     memory: { prompt: string; response: string; confidence: number }[],
-  ): Promise<{ text: string; provider: string | null; fallback: boolean }> {
-    const deterministic = this.deterministicEvaluation(objective, investigation);
+    subject: string,
+    fingerprint: string,
+  ): Promise<{ conclusion: StudyConclusion; text: string; provider: string | null; fallback: boolean; reused?: boolean }> {
+    const deterministic = this.deterministic(objective, investigation, subject, fingerprint);
+    const plain = (conclusion: StudyConclusion, fallback = false) => ({
+      conclusion,
+      text: this.renderConclusion(conclusion, investigation),
+      provider: null,
+      fallback,
+    });
 
-    if (investigation.evidence.length === 0) {
-      return { text: deterministic, provider: null, fallback: false };
+    if (deterministic.verdict === "insufficient") return plain(deterministic);
+
+    const previous = this.objectives.latestConclusionFor(subject);
+    if (previous && previous.verdict !== "insufficient" && previous.evidenceFingerprint === fingerprint) {
+      const reused: StudyConclusion = {
+        ...previous,
+        cycle: this.cycle,
+        concludedAt: Date.now(),
+        held: undefined,
+        note: `Same evidence as the study concluded in cycle ${previous.cycle}; nothing new to conclude.`,
+      };
+      return { ...plain(reused), reused: true };
     }
 
-    const prompt = [
-      `QUESTION I AM INVESTIGATING: ${objective.question}`,
-      `WHY IT MATTERS: ${objective.detail}`,
-      "",
-      `INVESTIGATION (${investigation.tool}, evidence from ${
-        investigation.origin === "development-runtime"
-          ? "the REAL DEVELOPMENT RUNTIME"
-          : investigation.origin === "static-snapshot"
-            ? "a BUILD-TIME STATIC SNAPSHOT"
-            : "internal state"
-      }):`,
-      ...investigation.evidence.map((line) => `- ${line}`),
-      "",
-      memory.length > 0
-        ? `WHAT I ALREADY REMEMBERED:\n${memory.slice(0, 4).map((item) => `- ${item.response.slice(0, 200)}`).join("\n")}`
-        : "I had no relevant memory of this before now.",
-      "",
-      "Answer in three short labelled parts, grounded ONLY in the evidence above:",
-      "ANSWER: what the evidence actually establishes.",
-      "CONFIDENCE: verified | tested | learned | inferred | unverified — and why.",
-      "NEXT: the single most important question this answer creates. One line.",
-    ].join("\n");
+    if (!JUDGEMENT_ORIGINS.has(objective.origin) || !this.synthesisBudgetLeft()) {
+      return plain(deterministic);
+    }
 
+    const purpose = objective.purpose ?? purposeFor(objective.origin, objective.domain, objective.target);
+    this.synthesisTimes.push(Date.now());
     try {
-      const response = await AIService.getInstance().reason(prompt, {
-        system:
-          "You are LÉLU reasoning about your own system. Use only the evidence given. Never invent files, APIs or results. If the evidence is insufficient, say so plainly and name what would settle it.",
-        temperature: 0.2,
-        maxTokens: 700,
-      });
-
+      const response = await AIService.getInstance().reason(
+        synthesisPrompt(objective.question, purpose, subject, investigation, memory.map((item) => item.response)),
+        {
+          system:
+            "You are LÉLU concluding a study of your own system. Use only the evidence given. Never invent files, APIs or results. Propose a change only when the evidence shows something incomplete or broken, and name exactly where.",
+          temperature: 0.2,
+          maxTokens: 600,
+          operation: "self-study",
+        },
+      );
       const succeeded =
-        response.metadata?.success !== false &&
-        response.provider !== "offline" &&
-        response.text.trim().length > 0;
-
-      if (succeeded) {
-        return { text: response.text.trim(), provider: response.provider, fallback: false };
+        response.metadata?.success !== false && response.provider !== "offline" && response.text.trim().length > 0;
+      if (!succeeded) {
+        return plain(
+          { ...deterministic, note: "No AI provider was reachable; concluded from the evidence alone." },
+          true,
+        );
       }
 
-      // Every authorized provider was tried and none answered. The
-      // cognitive operation continues on the evidence it already holds.
-      return {
-        text: `${deterministic}\n\n(No AI provider was reachable for this evaluation — the evidence above was evaluated deterministically. Cognitive state preserved; the provider chain will be retried next cycle.)`,
-        provider: null,
-        fallback: true,
+      const parsed = parseConclusion(response.text);
+      if (!parsed.verdict || !parsed.learned) {
+        return {
+          ...plain({ ...deterministic, note: "The model's reply had no usable conclusion; concluded from the evidence alone." }, true),
+          provider: response.provider,
+        };
+      }
+
+      let conclusion: StudyConclusion = {
+        ...deterministic,
+        verdict: parsed.verdict,
+        learned: parsed.learned,
+        relevance: parsed.relevance ?? deterministic.relevance,
+        change: undefined,
+        expectedBenefit: undefined,
+        risks: undefined,
+        verification: undefined,
+        synthesizedBy: `provider:${response.provider}`,
       };
+      if (parsed.verdict === "change") {
+        if (parsed.change && isGroundedChange(parsed.change, subject, investigation.evidence)) {
+          conclusion = {
+            ...conclusion,
+            change: parsed.change,
+            expectedBenefit: parsed.benefit ?? "Not stated.",
+            risks: parsed.risks ?? "Not stated.",
+            verification: parsed.verify ?? "Not stated.",
+          };
+        } else {
+          conclusion = {
+            ...conclusion,
+            verdict: "no-change",
+            note: `A change was suggested but it does not name anything the evidence touched, so it was not proposed: ${(parsed.change ?? "(none given)").slice(0, 200)}`,
+          };
+        }
+      }
+      const text = [
+        this.renderConclusion(conclusion, investigation),
+        ...(parsed.next ? [`NEXT: ${parsed.next}`] : []),
+      ].join("\n");
+      return { conclusion, text, provider: response.provider, fallback: false };
     } catch {
-      return {
-        text: `${deterministic}\n\n(The provider chain raised an error during evaluation; the evidence was evaluated deterministically and cognition continued.)`,
-        provider: null,
-        fallback: true,
-      };
+      return plain(
+        { ...deterministic, note: "The provider chain raised an error; concluded from the evidence alone." },
+        true,
+      );
     }
   }
 
-  /** Evidence-only evaluation — always available, no provider needed. */
-  private deterministicEvaluation(objective: StudyObjective, investigation: Investigation): string {
-    if (!investigation.ok || investigation.evidence.length === 0) {
-      return [
-        `ANSWER: ${investigation.summary}`,
-        `CONFIDENCE: unverified — ${investigation.error ?? "the investigation produced no usable evidence"}.`,
-        `NEXT: find a tool that can answer “${objective.question}”.`,
-      ].join("\n");
+  /** The conclusion as labelled lines. ANSWER stays first: readers of the trace parse it. */
+  private renderConclusion(conclusion: StudyConclusion, investigation: Investigation): string {
+    const confidence =
+      conclusion.verdict === "insufficient"
+        ? `unverified — ${investigation.error ?? "the evidence did not settle the question"}`
+        : investigation.origin === "development-runtime"
+          ? "tested — verified against the real development runtime"
+          : investigation.origin === "static-snapshot"
+            ? "learned — read from the build-time snapshot"
+            : "learned — read from internal runtime state";
+    return [
+      `ANSWER: ${conclusion.learned}`,
+      `CONFIDENCE: ${confidence}.`,
+      `VERDICT: ${conclusion.verdict}`,
+      `RELEVANCE: ${conclusion.relevance}`,
+      ...(conclusion.change ? [`CHANGE: ${conclusion.change}`] : []),
+      ...(conclusion.expectedBenefit ? [`BENEFIT: ${conclusion.expectedBenefit}`] : []),
+      ...(conclusion.risks ? [`RISKS: ${conclusion.risks}`] : []),
+      ...(conclusion.verification ? [`VERIFY: ${conclusion.verification}`] : []),
+      ...(conclusion.note ? [`NOTE: ${conclusion.note}`] : []),
+    ].join("\n");
+  }
+
+  /* --------------------------- Gate 1 hand-off --------------------------- */
+
+  private selfStudyProposals() {
+    return ImprovementQueue.getInstance()
+      .list()
+      .filter((proposal) => proposal.origin?.kind === "self-study");
+  }
+
+  /** The self-study proposal currently awaiting the owner's decision. */
+  public pendingProposal() {
+    return this.selfStudyProposals().find((proposal) => PENDING_APPROVAL_STATUSES.includes(proposal.status)) ?? null;
+  }
+
+  /**
+   * A "change" conclusion becomes ONE proposal in the existing improvement
+   * queue, at status Proposed. Only one self-study proposal waits for a
+   * decision at a time; later ones are held, and promoted in order once it
+   * is decided. Nothing here approves, develops or applies anything.
+   */
+  private propose(objective: StudyObjective, conclusion: StudyConclusion, tool: string): StudyConclusion {
+    if (conclusion.verdict !== "change" || !conclusion.change) return conclusion;
+    const own = this.selfStudyProposals().filter((proposal) => proposal.origin?.subject === conclusion.subject);
+
+    const open = own.find((proposal) => !CLOSED_PROPOSAL_STATUSES.includes(proposal.status));
+    if (open) return { ...conclusion, proposalId: open.id, held: undefined };
+
+    const rejected = own.find(
+      (proposal) => proposal.status === "Rejected" && proposal.origin?.fingerprint === conclusion.evidenceFingerprint,
+    );
+    if (rejected) {
+      return {
+        ...conclusion,
+        held: undefined,
+        note: `You rejected this proposal (${rejected.id}); it is not raised again until the evidence about ${conclusion.subject} changes.`,
+      };
     }
 
-    const sourceLabel =
-      investigation.origin === "development-runtime"
-        ? "verified against the real development runtime"
-        : investigation.origin === "static-snapshot"
-          ? "read from the build-time snapshot, so it reflects the last build rather than the working tree"
-          : "read from internal runtime state";
+    if (this.pendingProposal()) return { ...conclusion, held: HELD_FOR_DECISION };
 
-    return [
-      `ANSWER: ${investigation.summary} ${investigation.evidence.slice(0, 4).join(" ")}`,
-      `CONFIDENCE: ${investigation.origin === "development-runtime" ? "tested" : "learned"} — ${sourceLabel}.`,
-      `NEXT: ${
-        investigation.leads.length > 0
-          ? `follow up on ${investigation.leads[0]}.`
-          : `establish what “${objective.question}” still leaves open.`
+    const queue = ImprovementQueue.getInstance();
+    const title = `Self-study: ${conclusion.change.replace(/\s+/g, " ").slice(0, 90)}`;
+    const proposal = queue.add({
+      title,
+      problem: conclusion.learned,
+      observation: `Concluded by self-study in cycle ${this.cycle}, studying: ${objective.question}${
+        objective.purpose ? ` (gap: ${objective.purpose.gap})` : ""
       }`,
-    ].join("\n");
+      evidence: conclusion.evidence.join("\n"),
+      proposedSolution: conclusion.change,
+      expectedBenefit: conclusion.expectedBenefit ?? "Not stated.",
+      dependencies: [],
+      risk: conclusion.risks ?? "Not stated.",
+      requiredTools: [tool],
+      requiredAgents: [],
+      complexity: "low",
+      kind: /^(FAILING|ERROR)\s/m.test(conclusion.evidence.join("\n")) ? "Bug" : "Limitation",
+      ...(CapabilityRegistry.getInstance().get(conclusion.subject) ? { capabilityId: conclusion.subject } : {}),
+      version: "1.0",
+      testPlan: conclusion.verification ?? "Not stated.",
+      status: "Proposed",
+      origin: {
+        kind: "self-study",
+        objectiveId: objective.id,
+        subject: conclusion.subject,
+        cycle: this.cycle,
+        fingerprint: conclusion.evidenceFingerprint,
+      },
+    });
+    AgentEventBus.getInstance().emit({
+      type: "task_completed",
+      taskId: `self-study-proposal-${proposal.id.slice(0, 8)}`,
+      label: `Self-study proposed for your approval: ${title}`,
+    });
+    return { ...conclusion, proposalId: proposal.id, held: undefined };
+  }
+
+  /**
+   * Once no self-study proposal awaits a decision, the most important held
+   * conclusion is proposed: failures first, then the study's own priority,
+   * then the oldest.
+   */
+  private promoteHeld(): void {
+    if (this.pendingProposal()) return;
+    const held = this.objectives
+      .conclusions()
+      .filter((item) => item.conclusion?.held === HELD_FOR_DECISION && !item.conclusion.proposalId);
+    if (held.length === 0) return;
+    const failure = (item: StudyObjective): number =>
+      /^(FAILING|ERROR)\s/m.test(item.conclusion?.evidence.join("\n") ?? "") ? 1 : 0;
+    held.sort(
+      (a, b) =>
+        failure(b) - failure(a) ||
+        (b.basePriority ?? 0) - (a.basePriority ?? 0) ||
+        (a.conclusion?.concludedAt ?? 0) - (b.conclusion?.concludedAt ?? 0),
+    );
+    const next = held[0];
+    const conclusion = this.propose(next, { ...(next.conclusion as StudyConclusion), held: undefined }, "self-study");
+    this.objectives.update(next.id, { conclusion });
+    // Any other held conclusion about the same subject is now covered.
+    for (const other of held.slice(1)) {
+      if (other.conclusion?.subject === conclusion.subject && conclusion.proposalId) {
+        this.objectives.update(other.id, { conclusion: { ...other.conclusion, proposalId: conclusion.proposalId, held: undefined } });
+      }
+    }
+  }
+
+  /** Conclusions and the pending proposal, as the cognitive-state view shows them. */
+  private conclusionView(): Pick<CognitiveStateView, "conclusions" | "pendingProposal"> {
+    const queue = ImprovementQueue.getInstance();
+    const conclusions = this.objectives
+      .conclusions()
+      .map((item) => item.conclusion as StudyConclusion)
+      .filter((conclusion) => conclusion.verdict !== "insufficient")
+      .slice(0, 6)
+      .map((conclusion) => ({
+        subject: conclusion.subject,
+        category: conclusion.category,
+        verdict: conclusion.verdict,
+        learned: conclusion.learned.length > 300 ? `${conclusion.learned.slice(0, 299)}…` : conclusion.learned,
+        ...(conclusion.change ? { change: conclusion.change } : {}),
+        cycle: conclusion.cycle,
+        synthesizedBy: conclusion.synthesizedBy,
+        ...(conclusion.proposalId
+          ? { proposalId: conclusion.proposalId, proposalStatus: queue.get(conclusion.proposalId)?.status }
+          : {}),
+        ...(conclusion.held ? { held: conclusion.held } : {}),
+      }));
+    const pending = this.pendingProposal();
+    return {
+      conclusions,
+      pendingProposal: pending
+        ? { id: pending.id, title: pending.title, status: pending.status, subject: pending.origin?.subject ?? "" }
+        : null,
+    };
   }
 
   /* ------------------------ incorporate + consolidate ---------------------- */
@@ -1401,8 +1710,9 @@ export default class SelfStudyEngine {
     objective: StudyObjective,
     investigation: Investigation,
     evaluation: string,
+    conclusion: StudyConclusion,
   ): boolean {
-    if (!investigation.ok || investigation.evidence.length === 0) {
+    if (conclusion.verdict === "insufficient" || !investigation.ok || investigation.evidence.length === 0) {
       this.self.addUnfinished(`Unresolved: ${objective.question}`);
       return false;
     }
@@ -1422,13 +1732,19 @@ export default class SelfStudyEngine {
         status,
         detail: `${evaluation}\n\nEvidence (${investigation.tool}, ${investigation.origin}):\n${investigation.evidence.slice(0, 6).join("\n")}`,
         source: objective.target && investigation.tool === "source-read" ? `source:${objective.target}` : `self-study:${investigation.tool}`,
+        category: conclusion.category,
       });
     } else {
-      this.knowledge.add({
+      // Written by SUBJECT: a second study of the same file, subsystem or
+      // capability updates its entry instead of adding a parallel one.
+      this.knowledge.upsertBySubject(conclusion.subject, {
         domain: objective.domain === "research" ? "ai" : "selfdev",
-        title: objective.question.replace(/\?$/, ""),
+        title: isSourcePath(conclusion.subject) || !conclusion.subject.includes(":")
+          ? conclusion.subject
+          : objective.question.replace(/\?$/, ""),
         detail: `${evaluation}\n\nEvidence (${investigation.tool}, ${investigation.origin}):\n${investigation.evidence.slice(0, 6).join("\n")}`,
         status,
+        category: conclusion.category,
         source:
           objective.target && investigation.tool === "source-read"
             ? `source:${objective.target}`
@@ -1526,7 +1842,12 @@ export default class SelfStudyEngine {
     /* Concrete leads the tool itself surfaced — files, subsystems, findings.
        These are the reliable source of genuinely new questions: they name
        something real that the investigation touched. */
-    for (const lead of investigation.leads.slice(0, 2)) {
+    // Only leads that name something real in LÉLU become studies. Titles of
+    // papers and articles from research tools are not parts of her.
+    const knownId = (id: string): boolean =>
+      Boolean(ArchitectureMap.getInstance().get(id) ?? CapabilityRegistry.getInstance().get(id));
+    const relevantLeads = investigation.leads.filter((lead) => isRelevantLead(lead, investigation.tool, knownId));
+    for (const lead of relevantLeads.slice(0, 2)) {
       const isPath = lead.includes("/");
       push({
         question: isPath
@@ -1772,6 +2093,7 @@ export default class SelfStudyEngine {
       derivedFrom: [],
       provider: null,
       providerFallback: false,
+      conclusion: null,
       state,
       bufferRemaining: this.objectives.open().length,
     };

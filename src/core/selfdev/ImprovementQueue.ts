@@ -185,6 +185,12 @@ export interface ImprovementProposal {
   lastExecution?: ProposalExecution;
   /** Earlier runs, newest last (bounded). */
   executions?: ProposalExecution[];
+  /**
+   * Where the proposal came from, when it was not the opportunity detector
+   * or the user: a self-study conclusion carries the objective it concluded,
+   * so the chain study → conclusion → proposal can be followed back.
+   */
+  origin?: { kind: "self-study"; objectiveId: string; subject: string; cycle: number; fingerprint?: string };
 }
 
 const KEY = "lelu.improvements.v1";

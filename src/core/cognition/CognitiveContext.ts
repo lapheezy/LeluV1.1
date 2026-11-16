@@ -849,6 +849,33 @@ export function formatSelfStudyState(study: CognitiveStateView): string {
     );
   }
 
+  // What finished studies concluded, and what is waiting on the owner.
+  // Read from persisted objectives and the improvement queue: these are
+  // the outcomes of study, as opposed to the questions it is carrying.
+  const conclusions = study.conclusions ?? [];
+  if (conclusions.length > 0) {
+    lines.push(
+      "",
+      "### CONCLUSIONS FROM SELF-STUDY (newest first)",
+      ...conclusions.map((item) => {
+        const outcome =
+          item.verdict === "change"
+            ? item.proposalId
+              ? `proposed a change (proposal ${item.proposalId.slice(0, 8)}, status ${item.proposalStatus ?? "unknown"}): ${item.change ?? ""}`
+              : `a change is warranted but held: ${item.held ?? "not yet proposed"} — ${item.change ?? ""}`
+            : "no change needed";
+        return `- [${item.category}] ${item.subject} (cycle ${item.cycle}, ${item.synthesizedBy}): ${item.learned} → ${outcome}`;
+      }),
+    );
+  }
+  if (study.pendingProposal) {
+    lines.push(
+      "",
+      "### PROPOSAL AWAITING THE OWNER'S DECISION",
+      `${study.pendingProposal.title} (status ${study.pendingProposal.status}, about ${study.pendingProposal.subject}). It is in the Self-Development panel. Nothing changes until it is approved.`,
+    );
+  }
+
   if (study.discoveries.length > 0) {
     lines.push("", "### RECENT DISCOVERIES", ...study.discoveries.map((item) => `- ${item}`));
   }
