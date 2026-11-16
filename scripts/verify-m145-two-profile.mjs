@@ -21,18 +21,20 @@ import fs from "node:fs";
 import { chromium } from "playwright";
 import { validateM145Target } from "./m145-config.mjs";
 
-const ENV_FILE = ".lelu-runtime/m145-supabase.env";
+const ENV_FILES = [".env.local", ".lelu-runtime/m145-supabase.env"];
 const OUT = "artifacts/m145/two-profile-acceptance.json";
 const APP = process.env.LELU_M145_APP_URL ?? "http://127.0.0.1:5173/";
 
 function readEnv() {
-  if (!fs.existsSync(ENV_FILE)) return {};
   const values = {};
-  for (const line of fs.readFileSync(ENV_FILE, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const index = trimmed.indexOf("=");
-    if (index > 0) values[trimmed.slice(0, index).trim()] = trimmed.slice(index + 1).trim();
+  for (const file of ENV_FILES) {
+    if (!fs.existsSync(file)) continue;
+    for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const index = trimmed.indexOf("=");
+      if (index > 0) values[trimmed.slice(0, index).trim()] = trimmed.slice(index + 1).trim();
+    }
   }
   return values;
 }
@@ -43,10 +45,13 @@ function write(value) {
 }
 
 const env = { ...readEnv(), ...process.env };
+const url = env.LELU_M145_SUPABASE_URL ?? env.SUPABASE_URL ?? env.VITE_SUPABASE_URL;
+const key = env.LELU_M145_SUPABASE_PUBLISHABLE_KEY ?? env.SUPABASE_PUBLISHABLE_KEY ?? env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const projectRef = env.LELU_M145_PROJECT_REF ?? env.SUPABASE_PROJECT_REF ?? url?.match(/^https:\/\/([^.]+)\.supabase\.(?:co|in)/)?.[1];
 const guard = validateM145Target({
-  url: env.LELU_M145_SUPABASE_URL,
-  projectRef: env.LELU_M145_PROJECT_REF,
-  publishableKey: env.LELU_M145_SUPABASE_PUBLISHABLE_KEY,
+  url,
+  projectRef,
+  publishableKey: key,
   allowReal: env.LELU_M145_ALLOW_REAL,
 });
 const result = {

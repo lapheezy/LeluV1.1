@@ -8,7 +8,7 @@
   "realCloud": false,
   "realDevices": false,
   "status": "BLOCKED",
-  "startedAt": "2026-11-16T13:15:09.220Z",
+  "startedAt": "2026-11-16T14:28:20.843Z",
   "checks": [],
   "reason": "Missing LELU_M145_SUPABASE_PUBLISHABLE_KEY.",
   "missingNames": [

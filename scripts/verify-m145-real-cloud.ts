@@ -41,7 +41,7 @@ import {
 } from "../src/core/sync/ContinuityTypes";
 
 const OUT = "artifacts/m145/real-cloud.json";
-const ENV_FILE = ".lelu-runtime/m145-supabase.env";
+const ENV_FILES = [".env.local", ".lelu-runtime/m145-supabase.env"];
 
 type Check = { name: string; ok: boolean; detail?: string };
 type Client = { client: SupabaseClient; userId: string; email: string; storage: Map<string, string> };
@@ -53,14 +53,16 @@ const check = (name: string, ok: boolean, detail = ""): void => {
 };
 
 function readEnvFile(): Record<string, string> {
-  if (!fs.existsSync(ENV_FILE)) return {};
   const values: Record<string, string> = {};
-  for (const line of fs.readFileSync(ENV_FILE, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const index = trimmed.indexOf("=");
-    if (index <= 0) continue;
-    values[trimmed.slice(0, index).trim()] = trimmed.slice(index + 1).trim();
+  for (const file of ENV_FILES) {
+    if (!fs.existsSync(file)) continue;
+    for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const index = trimmed.indexOf("=");
+      if (index <= 0) continue;
+      values[trimmed.slice(0, index).trim()] = trimmed.slice(index + 1).trim();
+    }
   }
   return values;
 }
@@ -154,10 +156,13 @@ async function main(): Promise<void> {
   const startedAt = new Date().toISOString();
   const file = readEnvFile();
   const env = { ...file, ...process.env };
-  const url = env.LELU_M145_SUPABASE_URL;
-  const key = env.LELU_M145_SUPABASE_PUBLISHABLE_KEY;
+  // Accept the project's standard names as well as the mission-specific ones,
+  // so a normal "Supabase is configured" environment works without a second
+  // credential file. Never accept a secret key here.
+  const url = env.LELU_M145_SUPABASE_URL ?? env.SUPABASE_URL ?? env.VITE_SUPABASE_URL;
+  const key = env.LELU_M145_SUPABASE_PUBLISHABLE_KEY ?? env.SUPABASE_PUBLISHABLE_KEY ?? env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const email = env.LELU_M145_EMAIL;
-  const projectRef = env.LELU_M145_PROJECT_REF;
+  const projectRef = env.LELU_M145_PROJECT_REF ?? env.SUPABASE_PROJECT_REF ?? (url?.match(/^https:\/\/([^.]+)\.supabase\.(?:co|in)/)?.[1]);
   const appUrl = env.LELU_M145_APP_URL ?? "http://127.0.0.1:5173/";
   const guard = validateM145Target({
     url,
