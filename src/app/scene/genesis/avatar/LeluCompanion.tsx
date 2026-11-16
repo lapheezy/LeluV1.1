@@ -143,13 +143,13 @@ function usePresent(selector: string): boolean {
   return present;
 }
 
-/** The home's hero spot, when the home is showing (its rect, followed live). */
-function useHeroRect(): Rect | null {
+/** A reserved spot for her (its rect, followed live): the home's hero spot, the Avatar panel's preview. */
+function useHeroRect(selector = "[data-lelu-hero-host]"): Rect | null {
   const [hero, setHero] = useState<Rect | null>(null);
   useEffect(() => {
     const read = () => {
       if (document.hidden) return;
-      const el = document.querySelector("[data-lelu-hero-host]");
+      const el = document.querySelector(selector);
       const r = el ? rectOf(el) : null;
       setHero((current) => (JSON.stringify(current) === JSON.stringify(r) ? current : r));
     };
@@ -160,7 +160,7 @@ function useHeroRect(): Rect | null {
       clearInterval(timer);
       window.removeEventListener("resize", read);
     };
-  }, []);
+  }, [selector]);
   return hero;
 }
 
@@ -177,6 +177,8 @@ function Presence({ companion }: { companion: CompanionState }) {
   const activity = useLeluActivity();
   const space = useSpaceLayout();
   const hero = useHeroRect();
+  // The Avatar panel's preview spot: she stands in it herself.
+  const previewSpot = useHeroRect("[data-lelu-preview-host]");
   // A modal sheet (App Library, Windows, Worlds) is open over the interface.
   const sheetOpen = usePresent(".lsh-backdrop");
   const universeOpen = useUniverseOpen();
@@ -272,12 +274,33 @@ function Presence({ companion }: { companion: CompanionState }) {
   const [live, setLive] = useState<Box | null>(null);
   const gesture = useRef<{ x: number; y: number; start: Box; moved: boolean } | null>(null);
 
-  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan: crowded ? { ...plan, hidden: true } : plan, space, compact });
+  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan: crowded ? { ...plan, hidden: true } : plan, space, compact, preview: inWorld ? null : previewSpot });
   const box = live ?? target;
-  // Live everywhere she is shown: her canvas is the size she is drawn at.
-  const drawn = { width: box.width, height: box.height };
-  const scale = 1;
-  const context = contextOf({ onHome: onHome || (homeShown && state.activePanel === "none" && !workspaceInUse && !inWorld && !universeOpen), inWorld, chatOpen: chatOpen || universeOpen, focused });
+  /*
+   * Her canvas keeps its size when her place merely shrinks (Home portrait →
+   * an edge spot): it is scaled down instead. Resizing a WebGL canvas
+   * reallocates its (multisampled) drawing buffers — measured ~0.6 s on a
+   * phone-size screen switch (M15.3 WP02). It is resized when she grows, or
+   * would shrink below about half.
+   */
+  const [drawn, setDrawn] = useState<{ width: number; height: number }>(() => ({ width: box.width, height: box.height }));
+  const fitsDrawn = box.width <= drawn.width + 0.5 && box.height <= drawn.height + 0.5;
+  const shrink = Math.min(box.width / drawn.width, box.height / drawn.height);
+  // A screen switch passes through transient places (measured: a larger
+  // planned box for ~300 ms before her edge spot, which resized her canvas
+  // twice). She grows her canvas only for a place that lasts; a drag is live.
+  useEffect(() => {
+    if (fitsDrawn && shrink >= 0.4) return;
+    const grow = !fitsDrawn;
+    if (live || !grow) {
+      setDrawn((d) => (d.width === box.width && d.height === box.height ? d : { width: box.width, height: box.height }));
+      return;
+    }
+    const timer = window.setTimeout(() => setDrawn({ width: box.width, height: box.height }), 500);
+    return () => window.clearTimeout(timer);
+  }, [fitsDrawn, shrink, live, box.width, box.height]);
+  const scale = Math.min(1, box.width / drawn.width, box.height / drawn.height);
+  const context = place === "preview" ? "preview" : contextOf({ onHome: onHome || (homeShown && state.activePanel === "none" && !workspaceInUse && !inWorld && !universeOpen), inWorld, chatOpen: chatOpen || universeOpen, focused });
   const presentation = choosePresentation({
     context,
     boxHeight: box.height,
@@ -299,12 +322,12 @@ function Presence({ companion }: { companion: CompanionState }) {
    * element animating over that sheet — her canvas, or even a plain 2D canvas
    * changing 4×/s — the page fell from ~42 to 2–7 fps; it is the software
    * compositor, not her drawing (her canvas hidden but still drawing: 42 fps).
-   * There she rests on a captured frame of herself and resumes the moment the
-   * sheet closes. On a real GPU she stays live everywhere (before M15.3 she
+   * There she rests: her canvas keeps showing a frame of her (redrawn once
+   * when her form, framing or size changes; no readback) and she resumes the
+   * moment the sheet closes. On a real GPU she stays live everywhere (before M15.3 she
    * was frozen beside every phone sheet on every device).
    */
   const lowPowerRest = restsOnStill({ besidePhoneSheet: underSheet, renderProfile });
-  const [still, setStill] = useState<string | null>(null);
   const duration = space.reducedMotion ? 0 : live ? 0 : Math.max(plan.durationMs, 520);
 
   const begin = (event: ReactPointerEvent<HTMLElement>) => {
@@ -414,7 +437,7 @@ function Presence({ companion }: { companion: CompanionState }) {
     // controls — or she would be behind it, unreachable.
     // Behind an open modal sheet she stays in view (dimmed with the rest of
     // the interface) but under it: the sheet's own controls take touches.
-    zIndex: live ? layer("panelActive") : sheetOpen ? 1 : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
+    zIndex: place === "preview" ? layer("panelActive") + 1 : live ? layer("panelActive") : sheetOpen ? 1 : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
     visibility: inWorld ? "hidden" : "visible",
     opacity: inWorld ? 0 : place === "planned" ? plan.opacity : 1,
     pointerEvents: "none",
@@ -461,7 +484,7 @@ function Presence({ companion }: { companion: CompanionState }) {
         style={{
           position: "absolute",
           inset: 0,
-          pointerEvents: inWorld || sheetOpen ? "none" : "auto",
+          pointerEvents: inWorld || sheetOpen || place === "preview" ? "none" : "auto",
           touchAction: "none",
           cursor: live ? "grabbing" : "grab",
           outline: "none",
@@ -471,20 +494,11 @@ function Presence({ companion }: { companion: CompanionState }) {
         }}
       >
         {/* The one canvas: framing and size change, the surface never does. */}
-        {/* Under a phone sheet she stays visible and reachable, PAUSED on
-            her last frame: measured on iPhone 13 emulation, any drawing of
-            her canvas beside a full-screen sheet stalled the page (60 fps →
-            0 after ~15 s; 60 fps throughout with her paused or off). Her
-            canvas keeps its size and one captured frame of it is shown,
-            scaled to the edge spot; she animates again when it closes. */}
         {/* Paused only where she is not in view here (a world shows her in
             the scene), or in the measured low-power rest above. Beside a
             phone sheet she used to be paused on a captured still on EVERY
             device — frozen on every screen but Home. */}
-        <LeluCharacter framing={framing} form={form} fps={fps} testId="lelu-companion-character" paused={inWorld || lowPowerRest} onStill={lowPowerRest ? setStill : undefined} />
-        {lowPowerRest && still ? (
-          <img data-testid="lelu-companion-still" src={still} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }} />
-        ) : null}
+        <LeluCharacter framing={framing} form={form} fps={fps} testId="lelu-companion-character" paused={inWorld || lowPowerRest} />
       {saved ? (
         <button
           type="button"

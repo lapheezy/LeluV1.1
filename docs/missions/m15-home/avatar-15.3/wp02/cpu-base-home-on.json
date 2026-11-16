@@ -1,0 +1,52 @@
+{
+  "label": "base-home-on",
+  "frames": 9,
+  "avatarFps": 1.5,
+  "busyMs": 2962,
+  "busyPct": 43.5,
+  "msPerAvatarFrame": 45.09,
+  "group": {
+    "her": 7,
+    "three": 399,
+    "r3f": 0,
+    "react": 1279,
+    "idle": 3854,
+    "gc": 162,
+    "program": 860,
+    "other": 255
+  },
+  "top": [
+    "892ms exports.jsxDEV react_jsx-dev-runtime.js:190",
+    "165ms jsxDEVImpl react_jsx-dev-runtime.js:147",
+    "162ms (garbage collector) :-1",
+    "70ms commitUpdate react-three-fiber.esm-DeNFsCiz.js:8748",
+    "66ms exports.createElement react.js:590",
+    "55ms run :-1",
+    "45ms createTask :-1",
+    "34ms now :-1",
+    "29ms g react-three-fiber.esm-DeNFsCiz.js:3008",
+    "21ms oh react-three-fiber.esm-DeNFsCiz.js:5730",
+    "21ms equ react-three-fiber.esm-DeNFsCiz.js:269",
+    "18ms B react-three-fiber.esm-DeNFsCiz.js:2375",
+    "15ms Fe react-three-fiber.esm-DeNFsCiz.js:3092",
+    "11ms ReactElement react.js:131",
+    "10ms fillStaticNoise CosmosSkyBackdrop.tsx:107"
+  ],
+  "bySourceOwner": [
+    "848ms (no src frame)",
+    "440ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "93ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "66ms (anon) src/app/scene/genesis/render/PlanetVisual.tsx",
+    "53ms Portal src/app/scene/spatial/SpatialPortals.tsx",
+    "48ms (anon) src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "44ms StreetCar src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "27ms (anon) src/app/scene/genesis/cosmos/CosmosLayer.tsx",
+    "24ms (anon) src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "19ms CartoonCat src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "18ms CosmicStorm src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "18ms VegetationSurface src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "16ms FloatingPerson src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "13ms PlanetSurfaceLOD src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "13ms AtlantisWorld src/app/scene/genesis/render/PlanetExplorer.tsx"
+  ]
+}

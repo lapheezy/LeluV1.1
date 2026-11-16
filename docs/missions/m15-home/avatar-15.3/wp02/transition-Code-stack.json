@@ -1,0 +1,50 @@
+{
+  "app": "Code",
+  "label": "stack",
+  "longTasks": 5,
+  "longTaskMs": 1440,
+  "worst": 924,
+  "byOwner": [
+    "1035ms (no src) (program)",
+    "923ms (no src) loseContext",
+    "79ms GenesisEngineeringPanel src/app/scene/genesis/GenesisEngineeringPanel.tsx:51",
+    "77ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "65ms (no src) (garbage collector)",
+    "57ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "54ms (no src) exports.createElement",
+    "52ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "47ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "42ms (no src) run",
+    "39ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "37ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "36ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "36ms (no src) react_stack_bottom_frame",
+    "29ms LeluBody src/app/scene/genesis/avatar/LeluBody.tsx:221",
+    "28ms (no src) commitUpdate",
+    "27ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "27ms (no src) now"
+  ],
+  "byLeaf": [
+    "1035ms (program) ",
+    "923ms loseContext ",
+    "679ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "124ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "65ms (garbage collector) ",
+    "57ms update EngineRegistry.ts",
+    "54ms exports.createElement react.js",
+    "41ms run ",
+    "32ms createTask ",
+    "30ms react_stack_bottom_frame react-dom_client.js",
+    "27ms now ",
+    "21ms beginWork react-dom_client.js",
+    "21ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "18ms exports.jsx react_jsx-runtime.js",
+    "17ms getTaskName react_jsx-dev-runtime.js",
+    "17ms updateProperties react-dom_client.js",
+    "16ms querySelectorAll ",
+    "15ms setValueForStyles react-dom_client.js"
+  ],
+  "stacks": [
+    "2376 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

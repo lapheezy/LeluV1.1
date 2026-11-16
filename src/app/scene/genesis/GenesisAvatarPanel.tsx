@@ -24,13 +24,8 @@ import GenesisWindowFrame from "./GenesisWindowFrame";
 import AvatarStore, { type AvatarProfile } from "../../../core/avatar/AvatarProfile";
 import { LELU_IDENTITY_STATEMENT } from "../../../brain/LeluIdentity";
 import { useVoice } from "../../../core/voice/useVoice";
-import { useGenesisState } from "./GenesisCore";
-import ProceduralAvatarPreview from "./ProceduralAvatarPreview";
 import LeluCharacterStore, { type LeluFormChoice, type LeluFramingChoice } from "../../../core/avatar/LeluCharacterStore";
 import { useLeluCharacter } from "./avatar/useLeluCharacter";
-import type { AvatarPresenceMode } from "../../../core/creative/Procedural3DPipeline";
-import { renderAvatarToImage } from "../../../core/creative/Procedural3DPipeline";
-import RenderStore from "../../../core/creative/RenderStore";
 import Avatar3DReconstructor, { type ReconstructionStatus } from "../../../core/avatar/Avatar3DReconstructor";
 
 const fieldStyle: CSSProperties = {
@@ -83,14 +78,10 @@ type SaveStatus = "saved" | "unsaved" | "saving" | "failed";
 export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps) {
   const store = useMemo(() => AvatarStore.getInstance(), []);
   const voice = useVoice();
-  const { state } = useGenesisState();
-  const renderStore = useMemo(() => RenderStore.getInstance(), []);
   const [profile, setProfile] = useState<AvatarProfile>(() => store.get());
   const profileRef = useRef(profile);
   profileRef.current = profile;
   const [previewTab, setPreviewTab] = useState<"avatar" | "3d">("avatar");
-  const [snapshot, setSnapshot] = useState<string | null>(null);
-  const [rendering3d, setRendering3d] = useState(false);
   // True-3D reconstruction of the saved reference (external pipeline).
   const reconstructor = useMemo(() => Avatar3DReconstructor.getInstance(), []);
   const [reconStatus, setReconStatus] = useState<ReconstructionStatus>(() => reconstructor.getStatus());
@@ -132,39 +123,6 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
 
   const isDirty = JSON.stringify(working) !== JSON.stringify(profile);
 
-  // The 3D preview animates from the REAL presence state — the same
-  // dialogue/voice phases the portrait and AvatarWindow use.
-  const previewMode: AvatarPresenceMode =
-    voice.state.phase === "listening"
-      ? "listening"
-      : voice.state.phase === "speaking" || state.dialogue === "responding" || state.dialogue === "complete"
-        ? "speaking"
-        : state.dialogue === "processing" || state.thinking
-          ? "thinking"
-          : "idle";
-
-  async function handleRender3D() {
-    if (rendering3d) return;
-    setRendering3d(true);
-    try {
-      const image = await renderAvatarToImage(working, { mode: previewMode, time: 1.2 });
-      if (image) {
-        setSnapshot(image.dataUrl);
-        renderStore.save({
-          name: `${working.identity.name} — procedural 3D`,
-          engine: "3d-authoring",
-          kind: "generate",
-          prompt: "Procedural avatar authored from the saved profile",
-          output: image.dataUrl,
-        });
-      }
-    } catch (error) {
-      setSaveStatus("failed");
-      setSaveError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setRendering3d(false);
-    }
-  }
 
   function handleReference(file: File) {
     const reader = new FileReader();
@@ -267,64 +225,7 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
 
           {previewTab === "3d" ? (
             <>
-              {working.referenceImage ? (
-                /* When a reference image is saved, show it as the 3D presence
-                   (billboard in 3D space) — NOT a procedural humanoid. */
-                <div style={{ position: "relative", width: "100%" }}>
-                  <img
-                    src={working.referenceImage}
-                    alt="LÉLU — saved avatar in 3D space"
-                    style={{
-                      width: "100%",
-                      borderRadius: 12,
-                      border: "1px solid rgba(212, 169, 78, 0.4)",
-                      boxShadow: "0 8px 30px rgba(0,0,0,0.5), 0 0 40px rgba(212, 169, 78, 0.15)",
-                      animation: "avatar-live-breathe 5.5s ease-in-out infinite",
-                    }}
-                  />
-                  <div style={{
-                    position: "absolute",
-                    bottom: 8,
-                    left: 8,
-                    right: 8,
-                    padding: "6px 10px",
-                    borderRadius: 8,
-                    background: "rgba(4, 8, 24, 0.75)",
-                    backdropFilter: "blur(8px)",
-                    fontSize: 10,
-                    color: "rgba(228, 244, 255, 0.9)",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    textAlign: "center",
-                  }}>
-                    Saved Avatar · Canonical Reference
-                  </div>
-                </div>
-              ) : (
-                /* No reference saved — show the procedural model as fallback */
-                <>
-                  <ProceduralAvatarPreview profile={working} mode={previewMode} height={300} />
-                  <div style={{ fontSize: 10.5, lineHeight: 1.5, opacity: 0.65 }}>
-                    Procedural fallback — upload a reference portrait to use the exact saved avatar.
-                  </div>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => void handleRender3D()}
-                disabled={rendering3d}
-                style={{ ...chipButton, background: "rgba(34, 211, 238, 0.18)", border: "1px solid rgba(125, 211, 252, 0.45)", opacity: rendering3d ? 0.6 : 1 }}
-              >
-                {rendering3d ? "Rendering…" : "Render 3D snapshot"}
-              </button>
-              {snapshot ? (
-                <img
-                  src={snapshot}
-                  alt="Rendered avatar"
-                  style={{ width: "100%", borderRadius: 10, border: "1px solid rgba(34, 211, 238, 0.35)" }}
-                />
-              ) : null}
-
+              <LivePresencePreview />
               {/* ------------------ true 3D reconstruction ------------------ */}
               <div style={{ height: 1, background: "rgba(255,255,255,0.12)" }} />
               <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>
@@ -667,5 +568,40 @@ function PresenceChoice() {
       {row<LeluFramingChoice>("Framing", character.framing, [["auto", "Auto"], ["full", "Full body"], ["face", "Face"]] as const, (v) => store.setFraming(v), "lelu-framing-choice")}
       <span style={{ fontSize: 10, opacity: 0.55, lineHeight: 1.4 }}>Auto: each interface chooses. The same LÉLU in every form.</span>
     </div>
+  );
+}
+
+/**
+ * Her preview is HER: the Avatar panel reserves this spot and her one
+ * presence (LeluCompanion) stands in it — the approved v005 model, live, in
+ * the form and framing chosen above. No second canvas, model copy or
+ * controller (the panel used to show a procedural figure, a saved photo as a
+ * "billboard", and a procedural snapshot, none of which was her).
+ */
+function LivePresencePreview() {
+  const character = useLeluCharacter();
+  return (
+    <>
+      <div
+        data-lelu-preview-host
+        data-testid="lelu-avatar-preview"
+        style={{
+          position: "relative",
+          width: "100%",
+          height: 320,
+          borderRadius: 12,
+          border: "1px solid rgba(125, 211, 252, 0.28)",
+          background: "radial-gradient(ellipse at 50% 85%, rgba(34,211,238,0.12), rgba(8,12,30,0.6) 70%)",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ position: "absolute", bottom: 8, left: 8, right: 8, padding: "5px 10px", borderRadius: 8, background: "rgba(4, 8, 24, 0.7)", fontSize: 10, color: "rgba(228, 244, 255, 0.9)", letterSpacing: "0.08em", textTransform: "uppercase", textAlign: "center" }}>
+          LÉLU · live · form {character.form} · framing {character.framing}
+        </div>
+      </div>
+      <div style={{ fontSize: 10.5, lineHeight: 1.5, opacity: 0.65 }}>
+        This is LÉLU herself — her approved model, live, standing in the panel. Change her form and framing above.
+      </div>
+    </>
   );
 }

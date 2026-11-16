@@ -1041,7 +1041,7 @@ const CORE_EXECUTORS: ToolExecutor[] = [
       const face = args.face === true;
       try {
         // Resolves only when a live presence measured her arriving (or turning).
-        const observation = await AvatarCommandBus.getInstance().issue(face ? "look" : "move", face ? `face ${to}` : `walk to ${to}`, face ? 15_000 : 45_000, { place: to });
+        const observation = await AvatarCommandBus.getInstance().issue(face ? "look" : "move", face ? `face ${to}` : `walk to ${to}`, face ? 8_000 : 20_000, { place: to });
         return { ok: true, content: `Done: ${observation}.` };
       } catch (reason) {
         return { ok: false, content: `Not performed: ${reason instanceof Error ? reason.message : String(reason)}` };

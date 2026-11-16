@@ -23,6 +23,9 @@ import fs from "node:fs";
 
 const label = process.argv[2] ?? "run";
 const device = process.argv[3] ?? "desktop";
+// A/B control: "--hide-avatar" takes her companion out of the page (CSS
+// display:none) on the same build and route — what the screen costs without her.
+const hideAvatar = process.argv.includes("--hide-avatar");
 const OUT = "docs/missions/m15-home/avatar-15.3";
 fs.mkdirSync(OUT, { recursive: true });
 const URL = process.env.LELU_URL ?? "http://127.0.0.1:5173/";
@@ -64,9 +67,15 @@ await ctx.addInitScript(() => {
     }
   }
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) w.__m.longTasks.push({ at: Math.round(e.startTime), ms: Math.round(e.duration) }); }).observe({ type: "longtask", buffered: true }); } catch {}
-  const tick = () => { w.__m.rafTicks++; requestAnimationFrame(tick); };
+  // Frame times (ms between rAF callbacks), for percentiles and dropped frames.
+  w.__m.dts = [];
+  let last = 0;
+  const tick = (t) => { w.__m.rafTicks++; if (last) w.__m.dts.push(t - last); if (w.__m.dts.length > 4000) w.__m.dts.splice(0, 2000); last = t; requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
 });
+// A/B control: "--no-companion" turns her off through her own setting (unmounted).
+if (process.argv.includes("--no-companion")) await ctx.addInitScript(() => localStorage.setItem("lelu.lelu.companion.v1", JSON.stringify({ enabled: false, pinned: false, x: 0.1, y: 0.15, size: "medium", framing: "full", lastMovedBy: "lelu", updatedAt: 1, window: null })));
+if (hideAvatar) await ctx.addInitScript(() => { const st = document.createElement("style"); st.textContent = '[data-testid="lelu-companion"]{display:none!important}'; (document.head || document.documentElement).appendChild(st); });
 const p = await ctx.newPage();
 const consoleErrors = [];
 p.on("console", (m) => { if (m.type() === "error" && /lelu|avatar|three|webgl|context/i.test(m.text())) consoleErrors.push(m.text().slice(0, 200)); });
@@ -101,9 +110,16 @@ async function sample(ms = 3000) {
       worldSpatial: world?.dataset.leluSpatial ? JSON.parse(world.dataset.leluSpatial) : null,
     };
   });
+  await p.evaluate(() => { window.__m.dts = []; });
   const a = await read();
   await p.waitForTimeout(ms);
   const z = await read();
+  const dts = await p.evaluate(() => window.__m.dts.slice());
+  const sorted = dts.slice().sort((x, y) => x - y);
+  const pct = (q) => (sorted.length ? +sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))].toFixed(1) : null);
+  z.p50 = pct(0.5); z.p95 = pct(0.95); z.p99 = pct(0.99);
+  // A frame longer than two 60 Hz intervals is a dropped frame.
+  z.dropped = dts.filter((d) => d > 33.4).length; z.frames60 = dts.length;
   const s = (z.t - a.t) / 1000;
   return { ...z, pageFps: +((z.raf - a.raf) / s).toFixed(1), avatarFps: +((z.frames - a.frames) / s).toFixed(1) };
 }
@@ -115,14 +131,22 @@ async function screen(name, action, ready) {
   await action();
   let latency = null;
   for (let i = 0; i < 100; i++) { if (await ready().catch(() => false)) { latency = Date.now() - t0; break; } await p.waitForTimeout(100); }
-  await p.waitForTimeout(2500);
+  // Settle: sample the screen, not the tail of the transition. Wait until no
+  // long task has started for 1.5 s (at most 15 s), then sample.
+  const settleStart = Date.now();
+  for (;;) {
+    const quiet = await p.evaluate(() => { const l = window.__m.longTasks; const lastEnd = l.length ? l[l.length - 1].at + l[l.length - 1].ms : 0; return performance.now() - lastEnd; });
+    if (quiet > 1500 || Date.now() - settleStart > 15000) break;
+    await p.waitForTimeout(250);
+  }
+  const settleMs = Date.now() - settleStart;
   const lts = await p.evaluate((n) => window.__m.longTasks.slice(n), lt0);
-  const s = await sample();
-  const row = { screen: name, latencyMs: latency, longTasks: lts.length, longTaskMs: lts.reduce((x, y) => x + y.ms, 0), worstLongTaskMs: Math.max(0, ...lts.map((x) => x.ms)), ...s };
+  const s = await sample(5000);
+  const row = { screen: name, settleMs, latencyMs: latency, longTasks: lts.length, longTaskMs: lts.reduce((x, y) => x + y.ms, 0), worstLongTaskMs: Math.max(0, ...lts.map((x) => x.ms)), ...s };
   delete row.t; delete row.raf;
   results.push(row);
   await p.screenshot({ path: `${OUT}/${label}-${device}-${String(results.length).padStart(2, "0")}-${name}.png` });
-  console.log(`${name.padEnd(14)} lat ${String(latency).padStart(5)}ms  page ${String(row.pageFps).padStart(5)}fps  avatar ${String(row.avatarFps).padStart(5)}fps  ${row.renderer}/${row.context || "-"}/${row.framing}/${row.form || "-"} vis=${row.visible} still=${row.still} ctx=${row.contexts} live=${row.liveCanvases} tex=${Math.round(row.texBytes / 1048576)}MB lt=${row.longTasks}/${row.longTaskMs}ms heap=${row.heap}MB`);
+  console.log(`${name.padEnd(14)} lat ${String(latency).padStart(5)}ms  page ${String(row.pageFps).padStart(5)}fps  avatar ${String(row.avatarFps).padStart(5)}fps  ${row.renderer}/${row.context || "-"}/${row.framing}/${row.form || "-"} vis=${row.visible} still=${row.still} ctx=${row.contexts} live=${row.liveCanvases} tex=${Math.round(row.texBytes / 1048576)}MB lt=${row.longTasks}/${row.longTaskMs}ms heap=${row.heap}MB ft p50/p95/p99 ${row.p50}/${row.p95}/${row.p99}ms dropped ${row.dropped}/${row.frames60}`);
 }
 
 const tap = async (sel) => { const l = p.locator(sel).first(); if (device === "phone") await l.tap(); else await l.click(); };
@@ -157,7 +181,7 @@ await p.goto(URL, { waitUntil: "domcontentloaded" });
 for (let i = 0; i < 60; i++) {
   const c = p.getByRole("button", { name: "Continue without an account" });
   if ((await c.count()) && (await c.first().isVisible())) await c.first().click({ force: true });
-  if (await p.evaluate(() => document.querySelector('[data-testid="lelu-companion-character"]')?.dataset.ready === "true").catch(() => false)) break;
+  if (await p.evaluate(() => document.querySelector('[data-testid="lelu-companion-character"]')?.dataset.ready === "true" || (Boolean(document.querySelector("[data-lelu-home]")) && !document.querySelector('[data-testid="lelu-companion"]') && performance.now() > 15000)).catch(() => false)) break;
   await p.waitForTimeout(500);
 }
 const firstReadyMs = Date.now() - t0;

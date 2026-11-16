@@ -149,3 +149,81 @@ test("the bus carries a target, and a presence can decline honestly", async () =
   off();
   assert.deepEqual(seen, [{ kind: "move", place: "left" }, { kind: "move", place: "studio" }]);
 });
+
+// ---------------------------------------------------------------- WP02
+
+test("WP02: a form switch never changes her materials' program state (no shader compile mid-switch)", async () => {
+  const THREE = await import("three");
+  const { holoUniformsFor, setHolo } = await import("../src/app/scene/genesis/avatar/holoMaterial");
+  const scene = new THREE.Group();
+  const opaque = new THREE.MeshStandardMaterial();
+  const hair = new THREE.MeshStandardMaterial({ transparent: true });
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(), opaque), new THREE.Mesh(new THREE.BoxGeometry(), hair));
+  const u = holoUniformsFor(scene);
+  // Patched once, at load: opaque-as-authored gets a fixed alpha blend so its
+  // program key never depends on her form; authored transparency is untouched.
+  assert.equal(opaque.transparent, false);
+  assert.equal(opaque.blending, THREE.CustomBlending);
+  assert.equal(opaque.blendSrc, THREE.SrcAlphaFactor);
+  assert.equal(opaque.blendDst, THREE.OneMinusSrcAlphaFactor);
+  assert.equal(hair.transparent, true);
+  assert.equal(hair.blending, THREE.NormalBlending);
+  const versions = [opaque.version, hair.version];
+  const keys = [opaque.customProgramCacheKey(), hair.customProgramCacheKey()];
+  for (const amount of [1, 0.5, 0, 1, 0]) setHolo(scene, u, amount, 1);
+  assert.deepEqual([opaque.version, hair.version], versions, "no needsUpdate on a form change");
+  assert.deepEqual([opaque.customProgramCacheKey(), hair.customProgramCacheKey()], keys);
+  assert.equal(opaque.transparent, false, "transparent (three's OPAQUE define) never toggles");
+  assert.equal(u.uHolo.value, 0);
+  // Patching twice is a no-op (the same uniforms).
+  assert.equal(holoUniformsFor(scene), u);
+});
+
+test("WP02: embodied, an originally opaque material is exactly opaque (alpha forced to 1 before the hologram stage)", async () => {
+  const THREE = await import("three");
+  const { holoUniformsFor } = await import("../src/app/scene/genesis/avatar/holoMaterial");
+  const scene = new THREE.Group();
+  const opaque = new THREE.MeshStandardMaterial();
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(), opaque));
+  holoUniformsFor(scene);
+  const shader = { uniforms: {} as Record<string, unknown>, vertexShader: "#include <project_vertex>", fragmentShader: "#include <dithering_fragment>" };
+  opaque.onBeforeCompile(shader as never, {} as never);
+  assert.match(shader.fragmentShader, /^#define LELU_OPAQUE_BASE/);
+  assert.match(shader.fragmentShader, /#ifdef LELU_OPAQUE_BASE\s*\/\/[^\n]*\n\s*gl_FragColor\.a = 1\.0;/);
+  assert.ok(shader.fragmentShader.indexOf("gl_FragColor.a = 1.0") < shader.fragmentShader.indexOf("if (uHolo > 0.0)"));
+});
+
+test("WP02: the Avatar panel's preview spot is where her one presence stands (no second renderer)", async () => {
+  const { choosePlace } = await import("../src/app/scene/genesis/avatar/presencePlacement");
+  const space = { viewport: { width: 1440, height: 900 }, safe: { top: 0, right: 0, bottom: 0, left: 0 }, controls: [], panels: [], chat: null, composer: null, reducedMotion: false } as never;
+  const plan = { hidden: false, rect: { left: 10, top: 10, width: 100, height: 140 } };
+  const preview = { left: 500, top: 200, width: 220, height: 320 };
+  assert.deepEqual(choosePlace({ inWorld: false, placed: null, onHome: true, hero: { left: 1, top: 1, width: 90, height: 120 }, plan, space, compact: false, preview }), { place: "preview", target: preview });
+  // A world still wins (she stands in it); no preview spot ⇒ the usual order.
+  assert.equal(choosePlace({ inWorld: true, placed: null, onHome: false, hero: null, plan, space, compact: false, preview }).place, "world");
+  assert.equal(choosePlace({ inWorld: false, placed: null, onHome: false, hero: null, plan, space, compact: false, preview: null }).place, "planned");
+  // In the preview, her chosen form and framing are what is shown.
+  const shown = choosePresentation({ context: "preview", boxHeight: 320, hero: false, userForm: "hologram", userFraming: "face" });
+  assert.deepEqual([shown.form, shown.framing], ["hologram", "face"]);
+  const auto = choosePresentation({ context: "preview", boxHeight: 320, hero: false, userForm: "auto", userFraming: "auto" });
+  assert.deepEqual([auto.form, auto.framing], ["embodied", "full"]);
+});
+
+test("WP02: the Avatar panel shows her live presence, not a procedural figure, photo billboard or procedural snapshot", async () => {
+  const { readFileSync } = await import("node:fs");
+  const panel = readFileSync("src/app/scene/genesis/GenesisAvatarPanel.tsx", "utf8");
+  assert.match(panel, /data-lelu-preview-host/);
+  assert.doesNotMatch(panel, /ProceduralAvatarPreview|renderAvatarToImage|Render 3D snapshot|Canonical Reference/);
+  assert.doesNotMatch(panel, /<Canvas|LeluCharacter3D|<LeluBody/, "no second canvas or body in the panel");
+});
+
+test("WP02: her world walk integrates elapsed time in collision-checked sub-steps (not one capped step per frame)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const presence = readFileSync("src/app/scene/genesis/LeluV2Presence.tsx", "utf8");
+  assert.match(presence, /const elapsed = Math\.min\(5, delta\);/);
+  assert.match(presence, /const substeps = Math\.max\(1, Math\.ceil\(elapsed \/ 0\.1\)\);/);
+  assert.match(presence, /for \(let i = 0; i < substeps; i \+= 1\)/);
+  assert.match(presence, /AvatarCommandBus\.getInstance\(\)\.decline\(walkingTo\.id, "you moved me yourself before I got there"\)/, "a drag ends a walk honestly");
+  const resolver = readFileSync("src/core/router/AvatarResolver.ts", "utf8");
+  assert.match(resolver, /motion\.kind === "move" \? 20_000/, "the walk deadline is back to 20 s, not raised to hide slowness");
+});

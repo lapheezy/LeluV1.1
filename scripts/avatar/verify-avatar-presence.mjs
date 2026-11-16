@@ -271,6 +271,55 @@ if (only === "all" || only === "library") {
   }
 }
 
+// ------------------------------------------ F. the Avatar panel (WP02)
+if (only === "all" || only === "panel") {
+  for (const [dev, vp] of [["desktop", { width: 1440, height: 900 }], ["phone", { width: 393, height: 852 }]]) {
+    const { ctx, p, mobile } = await open(vp);
+    const ctx0 = (await her(p)).ctx;
+    const openPanel = async () => {
+      await openApp(p, mobile, "Avatar");
+      await p.getByRole("button", { name: "3D", exact: true }).first().click();
+      for (let i = 0; i < 20 && (await her(p)).presence !== "preview"; i++) await p.waitForTimeout(250);
+      await p.waitForTimeout(1200);
+    };
+    const inSpot = () => p.evaluate(() => {
+      const host = document.querySelector("[data-lelu-preview-host]")?.getBoundingClientRect();
+      const c = document.querySelector('[data-testid="lelu-companion"]')?.getBoundingClientRect();
+      if (!host || !c) return false;
+      return Math.abs(host.left - c.left) < 3 && Math.abs(host.top - c.top) < 3;
+    });
+    const shot = async (name) => {
+      const r = await p.evaluate(() => { const e = document.querySelector("[data-lelu-preview-host]")?.getBoundingClientRect(); return e ? [e.left, e.top, e.width, e.height] : null; });
+      if (r) await p.screenshot({ path: `${OUT}/panel-${dev}-${name}.png`, clip: { x: Math.max(0, r[0] - 8), y: Math.max(0, r[1] - 8), width: r[2] + 16, height: r[3] + 16 } }).catch(() => {});
+    };
+    await openPanel();
+    let h = await her(p);
+    await shot("open");
+    await step(p, `${dev}-panel-preview-is-her`, h.presence === "preview" && h.sameCanvas && h.renderer === "3d" && (await inSpot()), `presence ${h.presence}; ${h.framing}/${h.form}; her own canvas ${h.sameCanvas}; model ${String(h.model).split("|")[0].split("/").slice(-2).join("/")}; in the panel's spot ${await inSpot()}`);
+    const drew = await framesOver(p, 3000);
+    await step(p, `${dev}-panel-preview-animates`, drew > 0 || h.lowPower === "rest", `drew ${drew} frames in 3 s${h.lowPower === "rest" ? " (measured low-power rest)" : ""}`);
+    for (const [group, choice] of [["lelu-form-choice", "hologram"], ["lelu-framing-choice", "face"], ["lelu-framing-choice", "full"], ["lelu-form-choice", "embodied"], ["lelu-form-choice", "auto"], ["lelu-framing-choice", "auto"]]) {
+      await p.locator(`[data-testid="${group}"] [data-choice="${choice}"]`).click();
+      await p.waitForTimeout(1500);
+      h = await her(p);
+      await shot(`${group.replace("lelu-", "").replace("-choice", "")}-${choice}`);
+      const ok = choice === "auto" ? true : group.includes("form") ? h.form === choice && h.innerForm === choice : h.framing === choice && h.innerFraming === choice;
+      await step(p, `${dev}-panel-${group.replace("lelu-", "")}-${choice}`, ok && h.sameCanvas && h.presence === "preview", `→ ${h.framing}/${h.form}; same canvas ${h.sameCanvas}`);
+    }
+    // Close and reopen: she leaves the spot, comes back; nothing new is created.
+    const close = p.locator('.lws-icon[aria-label^="Close "]:visible, [data-lelu-module-window] button[aria-label^="Close "]:not([aria-label^="Close tab"]):visible, button[aria-label="Close window"]:visible').first();
+    for (let cycle = 0; cycle < 2; cycle++) {
+      if (await close.count()) await close.click({ force: true }); else await goHome(p);
+      await p.waitForTimeout(2000);
+      const away = await her(p);
+      await openPanel();
+      const back = await her(p);
+      await step(p, `${dev}-panel-close-reopen-${cycle + 1}`, away.presence !== "preview" && back.presence === "preview" && back.sameCanvas, `closed: ${away.presence}; reopened: ${back.presence}; same canvas ${back.sameCanvas}; page WebGL contexts +${back.ctx - ctx0} since start`);
+    }
+    await ctx.close();
+  }
+}
+
 // ---------------------------------------------- E. real activity + stress
 if (only === "all" || only === "activity") {
   const { ctx, p, mobile } = await open({ width: 1440, height: 900 });

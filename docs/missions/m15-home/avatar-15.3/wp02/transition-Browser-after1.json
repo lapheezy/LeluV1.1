@@ -1,0 +1,50 @@
+{
+  "app": "Browser",
+  "label": "after1",
+  "longTasks": 5,
+  "longTaskMs": 822,
+  "worst": 429,
+  "byOwner": [
+    "977ms (no src) (program)",
+    "429ms (no src) loseContext",
+    "96ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "81ms (no src) (garbage collector)",
+    "57ms (no src) exports.createElement",
+    "54ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "43ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "40ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "36ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "35ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "35ms (no src) run",
+    "34ms (no src) commitUpdate",
+    "31ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "31ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "30ms (no src) react_stack_bottom_frame",
+    "29ms (anon) src/app/scene/genesis/VisualInterface.tsx:579",
+    "24ms (no src) ",
+    "24ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148"
+  ],
+  "byLeaf": [
+    "977ms (program) ",
+    "598ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "429ms loseContext ",
+    "97ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "96ms update EngineRegistry.ts",
+    "81ms (garbage collector) ",
+    "57ms exports.createElement react.js",
+    "33ms run ",
+    "26ms react_stack_bottom_frame react-dom_client.js",
+    "24ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "23ms createTask ",
+    "22ms now ",
+    "21ms measureScroll framer-motion.js",
+    "17ms exports.jsx react_jsx-runtime.js",
+    "15ms getBoundingClientRect ",
+    "14ms updateProperties react-dom_client.js",
+    "13ms validateProperty react-dom_client.js",
+    "12ms updateViewport GenesisModuleHost.tsx"
+  ],
+  "stacks": [
+    "1166 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

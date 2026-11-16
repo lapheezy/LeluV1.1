@@ -1,0 +1,50 @@
+{
+  "app": "Code",
+  "label": "offstack1",
+  "longTasks": 3,
+  "longTaskMs": 478,
+  "worst": 292,
+  "byOwner": [
+    "1370ms (no src) (program)",
+    "192ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "74ms (no src) loseContext",
+    "70ms GenesisEngineeringPanel src/app/scene/genesis/GenesisEngineeringPanel.tsx:51",
+    "54ms (no src) (garbage collector)",
+    "42ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "41ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "39ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "38ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "33ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "29ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "28ms (anon) src/app/scene/genesis/VisualInterface.tsx:579",
+    "27ms (anon) src/app/scene/genesis/VisualInterface.tsx:412",
+    "27ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148",
+    "26ms (no src) run",
+    "25ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "24ms update src/app/scene/genesis/engines/EngineRuntime.ts:45",
+    "23ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386"
+  ],
+  "byLeaf": [
+    "1370ms (program) ",
+    "577ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "192ms update EngineRegistry.ts",
+    "74ms loseContext ",
+    "64ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "54ms (garbage collector) ",
+    "31ms createTask ",
+    "26ms run ",
+    "24ms update EngineRuntime.ts",
+    "19ms react_stack_bottom_frame react-dom_client.js",
+    "19ms exports.createElement react.js",
+    "17ms update EngineActivationController.ts",
+    "16ms now ",
+    "15ms setValueForStyles react-dom_client.js",
+    "15ms updateProperties react-dom_client.js",
+    "15ms validateProperty react-dom_client.js",
+    "13ms updateViewport GenesisModuleHost.tsx",
+    "12ms now EngineRegistry.ts"
+  ],
+  "stacks": [
+    "187 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

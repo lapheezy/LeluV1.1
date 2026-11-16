@@ -18,9 +18,16 @@
  * (LeluRig: luminance ramp, edge glow, band offsets), which only the
  * never-mounted 2D renderer could draw. The 3D path (LeluBody) now uses it.
  *
- * Patched once per material (onBeforeCompile, one extra program per
- * material, cached by key). At uHolo = 0 every added term is multiplied
- * away, and her materials go back to opaque.
+ * Patched once per material (onBeforeCompile, one program per material,
+ * cached by key), and NEVER re-keyed afterwards. Switching form is a uniform
+ * change only. (M15.3 WP02: toggling `transparent` flipped three.js's OPAQUE
+ * define, compiling a new program for each of her materials during the
+ * screen switch that changed her form — ~2.5 s measured on a phone-size
+ * screen. three.js also deletes a program once nothing uses it, so the other
+ * variant cannot be kept warm.) Her originally opaque materials instead get a
+ * fixed alpha-blend mode at patch time and write alpha = 1 while embodied,
+ * so she looks exactly as before; as a hologram their alpha falls and blends.
+ * Depth writes stay on: a projection shows one translucent layer of her.
  * ==========================================================
  */
 
@@ -45,6 +52,10 @@ if (uHolo > 0.0) {
 
 const FRAGMENT = /* glsl */ `
 #include <dithering_fragment>
+#ifdef LELU_OPAQUE_BASE
+// Embodied, an originally opaque material is exactly opaque.
+gl_FragColor.a = 1.0;
+#endif
 if (uHolo > 0.0) {
   vec3 base = gl_FragColor.rgb;
   float lum = clamp(dot(base, vec3(0.299, 0.587, 0.114)), 0.0, 1.0);
@@ -82,17 +93,26 @@ export function holoUniformsFor(scene: THREE.Object3D): HoloUniforms {
   for (const material of materialsOf(scene)) {
     // Only lit/standard-family materials have the chunks we extend.
     if (!(material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshPhongMaterial || material instanceof THREE.MeshLambertMaterial)) continue;
+    // Opaque as authored: give it a fixed alpha blend (the same factors as
+    // NormalBlending) so its program never changes with her form.
+    const opaqueBase = material.transparent === false && material.blending === THREE.NormalBlending;
+    if (opaqueBase) {
+      material.blending = THREE.CustomBlending;
+      material.blendEquation = THREE.AddEquation;
+      material.blendSrc = THREE.SrcAlphaFactor;
+      material.blendDst = THREE.OneMinusSrcAlphaFactor;
+    }
     const previous = material.onBeforeCompile;
     material.onBeforeCompile = (shader, renderer) => {
       previous?.call(material, shader, renderer);
       shader.uniforms.uHolo = uniforms.uHolo;
       shader.uniforms.uHoloTime = uniforms.uHoloTime;
       shader.vertexShader = `uniform float uHolo;\nuniform float uHoloTime;\n${shader.vertexShader.replace("#include <project_vertex>", VERTEX)}`;
-      shader.fragmentShader = `uniform float uHolo;\nuniform float uHoloTime;\n${shader.fragmentShader.replace("#include <dithering_fragment>", FRAGMENT)}`;
+      shader.fragmentShader = `${opaqueBase ? "#define LELU_OPAQUE_BASE\n" : ""}uniform float uHolo;\nuniform float uHoloTime;\n${shader.fragmentShader.replace("#include <dithering_fragment>", FRAGMENT)}`;
     };
     const previousKey = material.customProgramCacheKey.bind(material);
     material.customProgramCacheKey = () => `${previousKey()}|lelu-holo-1`;
-    material.userData.holoOriginal = { transparent: material.transparent, depthWrite: material.depthWrite };
+    material.userData.holoOriginal = { transparent: material.transparent, opaqueBase };
     material.needsUpdate = true;
   }
   scene.userData[PATCHED] = uniforms;
@@ -100,20 +120,10 @@ export function holoUniformsFor(scene: THREE.Object3D): HoloUniforms {
 }
 
 /**
- * Sets how projected she is (0..1). Translucency is switched on only while
- * she is (partly) a hologram; as she is, her materials are exactly as
- * authored.
+ * Sets how projected she is (0..1) — uniforms only; no material state changes,
+ * so no shader program is ever compiled or swapped by a form change.
  */
-export function setHolo(scene: THREE.Object3D, uniforms: HoloUniforms, amount: number, time: number): void {
+export function setHolo(_scene: THREE.Object3D, uniforms: HoloUniforms, amount: number, time: number): void {
   uniforms.uHolo.value = amount;
   uniforms.uHoloTime.value = time;
-  const projected = amount > 0.01;
-  if (scene.userData.holoProjected === projected) return;
-  scene.userData.holoProjected = projected;
-  for (const material of materialsOf(scene)) {
-    const original = material.userData.holoOriginal as { transparent: boolean; depthWrite: boolean } | undefined;
-    if (!original) continue;
-    material.transparent = projected ? true : original.transparent;
-    material.needsUpdate = true;
-  }
 }

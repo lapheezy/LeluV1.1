@@ -99,33 +99,25 @@ function FrameCap({ fps, paused = false }: { fps: number; paused?: boolean }) {
 }
 
 /**
- * When she pauses (a phone sheet), one frame is rendered and captured as
- * an image, in the same task (no preserveDrawingBuffer needed), so her
- * presence can keep showing her while her canvas draws nothing.
+ * When she rests (paused), her canvas keeps showing its last frame; one new
+ * frame is drawn on the canvas itself when she starts resting and whenever
+ * her presentation or her canvas size changes while she rests. No readback:
+ * the previous version captured the canvas with toDataURL into an <img>,
+ * a synchronous GPU readback plus PNG encode measured at ~1.6 s per screen
+ * switch on a phone size (M15.3 WP02).
  */
-function StillCapture({ paused, onStill, look }: { paused: boolean; onStill?: (dataUrl: string) => void; look: string }) {
-  const { gl, advance } = useThree();
+function RestFrame({ paused, look }: { paused: boolean; look: string }) {
+  const { advance, size } = useThree();
   useEffect(() => {
-    if (!paused || !onStill) return;
-    /*
-     * One REAL frame, not a bare gl.render: advance() runs the frame callbacks
-     * (the framer's camera for her current framing, her body's pose and form)
-     * and renders, then the canvas is read in the same task. Taken a frame
-     * later, after every effect of this render (her form, her framing) has
-     * applied, and again whenever her presentation changes while she rests.
-     */
+    if (!paused) return;
+    // A frame later: after this render's effects (form, framing, size) apply.
     const frame = requestAnimationFrame(() => {
-      try {
-        const now = performance.now();
-        advance(now);
-        advance(now + 16);
-        onStill(gl.domElement.toDataURL("image/png"));
-      } catch {
-        /* no still: she keeps her place, just not her picture */
-      }
+      const now = performance.now();
+      advance(now);
+      advance(now + 16);
     });
     return () => cancelAnimationFrame(frame);
-  }, [paused, onStill, gl, advance, look]);
+  }, [paused, advance, look, size.width, size.height]);
   return null;
 }
 
@@ -138,7 +130,6 @@ export default function LeluCharacter3D({
   testId,
   fps = 24,
   paused = false,
-  onStill,
 }: {
   model: LeluModel;
   /** Frame cap: 24 is plenty for an overlay, and half the cost of 30 on a
@@ -146,8 +137,6 @@ export default function LeluCharacter3D({
   fps?: number;
   /** Draw nothing, keep everything (canvas, model, state). */
   paused?: boolean;
-  /** Receives one captured frame when she pauses. */
-  onStill?: (dataUrl: string) => void;
   framing: LeluFraming;
   /** Her form: as she is, or projected. The same model either way. */
   form?: LeluForm;
@@ -202,7 +191,7 @@ export default function LeluCharacter3D({
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
         <RenderContextGuard id="lelu-avatar" kind="avatar" />
         <FrameCap fps={fps} paused={paused} />
-        <StillCapture paused={paused} onStill={onStill} look={`${framing}:${form}`} />
+        <RestFrame paused={paused} look={`${framing}:${form}`} />
         <Framer framing={framing} info={info} />
         <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} life={framing === "full"} faceOnly={framing === "face"} holo={form === "hologram" ? 1 : 0} listening={!paused} holoInstant={paused} />
       </Canvas>

@@ -278,7 +278,7 @@ export default class AvatarResolver {
       const observation = await AvatarCommandBus.getInstance().issue(
         motion.kind,
         motion.label,
-        motion.place && motion.kind === "move" ? 45_000 : motion.place && motion.kind === "look" ? 15_000 : undefined,
+        motion.place && motion.kind === "move" ? 20_000 : motion.place && motion.kind === "look" ? 8_000 : undefined,
         motion.place ? { place: motion.place } : undefined,
       );
       executive.recordVerifiedAction({

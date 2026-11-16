@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "after2",
+  "longTasks": 4,
+  "longTaskMs": 962,
+  "worst": 701,
+  "byOwner": [
+    "865ms (no src) (program)",
+    "701ms (no src) loseContext",
+    "174ms (no src) exports.createElement",
+    "162ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "101ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "56ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "56ms (no src) (garbage collector)",
+    "48ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "42ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "33ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "31ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "30ms visibleBox src/core/runtime/domProbes.ts:43",
+    "27ms (no src) run",
+    "25ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "25ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "22ms (no src) ReactElement",
+    "19ms (no src) ",
+    "17ms Ico src/app/scene/genesis/chat/universe/ChatUniverse.tsx:66"
+  ],
+  "byLeaf": [
+    "865ms (program) ",
+    "701ms loseContext ",
+    "541ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "174ms exports.createElement react.js",
+    "101ms update EngineRegistry.ts",
+    "69ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "56ms (garbage collector) ",
+    "31ms getBoundingClientRect ",
+    "27ms run ",
+    "23ms createTask ",
+    "19ms ReactElement react.js",
+    "18ms now ",
+    "15ms validateProperty react-dom_client.js",
+    "13ms requestAnimationFrame ",
+    "13ms tt react-three-fiber.esm-DeNFsCiz.js",
+    "12ms updateProperties react-dom_client.js",
+    "12ms buildLucideIconNode lucide-react.js",
+    "11ms react_stack_bottom_frame react-dom_client.js"
+  ],
+  "stacks": [
+    "1904 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

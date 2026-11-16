@@ -348,6 +348,13 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     if (event.button !== 0 && event.pointerType !== "touch") return;
     event.stopPropagation();
     drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+    // You took her by the hand: a walk she was asked to make ends here, honestly.
+    const walkingTo = goal.current;
+    if (walkingTo && !walkingTo.confirmed) {
+      walkingTo.confirmed = true;
+      AvatarCommandBus.getInstance().decline(walkingTo.id, "you moved me yourself before I got there");
+    }
+    goal.current = null;
     gl.domElement.setPointerCapture?.(event.pointerId);
     document.body.dataset.leluAvatarHover = "true";
     document.body.dataset.leluAvatarDragging = "true";
@@ -414,13 +421,16 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     if (!root || !modelState || modelState.status !== "ready") return;
     const now = performance.now();
     /*
-     * 0.25 s, not 0.05: the cap keeps a long stall from teleporting her, but at
-     * 0.05 a slow device (measured: this world at ~0.4–2 fps on a software
-     * renderer) made her walk in slow motion — a few centimetres per frame, a
-     * 3 m walk taking minutes. At 60 fps nothing changes; each step is still
-     * collision-checked by stepTowards.
+     * She walks in ELAPSED time, not per frame. Each frame integrates the real
+     * time since the last one (up to 5 s, e.g. after a stall), split into
+     * collision-checked sub-steps of at most 0.1 s. Before (M15.3 WP02 root
+     * cause), one capped step per frame made her walk in slow motion whenever
+     * the world rendered slowly — measured here at 0.2–1 fps, a few cm per
+     * frame — so long walks outlasted any confirmation deadline.
      */
-    const dt = Math.min(0.25, delta);
+    const elapsed = Math.min(5, delta);
+    const substeps = Math.max(1, Math.ceil(elapsed / 0.1));
+    const dt = elapsed / substeps;
     scanWindows(now);
 
     const isDragging = Boolean(drag.current);
@@ -453,18 +463,23 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
       const to = target.current;
       const d = Math.hypot(to.x - position.current.x, to.z - position.current.z);
       if (d > 0.06) {
-        // Smooth acceleration/deceleration, no teleporting.
-        const speed = Math.min(WALK_SPEED, d * 1.8);
-        const step = stepTowards(
-          [position.current.x, position.current.z],
-          [to.x, to.z],
-          speed * dt,
-          bounds,
-          obstacles(),
-          CLEARANCE,
-          viewerPoint(),
-        );
-        if (step.moving) {
+        let moved = false;
+        for (let i = 0; i < substeps; i += 1) {
+          const left = Math.hypot(to.x - position.current.x, to.z - position.current.z);
+          if (left <= 0.06) break;
+          // Smooth acceleration/deceleration, no teleporting.
+          const speed = Math.min(WALK_SPEED, left * 1.8);
+          const step = stepTowards(
+            [position.current.x, position.current.z],
+            [to.x, to.z],
+            speed * dt,
+            bounds,
+            obstacles(),
+            CLEARANCE,
+            viewerPoint(),
+          );
+          if (!step.moving) break;
+          moved = true;
           const fromX = position.current.x;
           const fromZ = position.current.z;
           position.current.set(step.position[0], bounds.floorY, step.position[1]);
@@ -478,7 +493,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
             yaw.current += diff * Math.min(1, dt * 7);
           }
         }
-        walkingRef.current = step.moving;
+        walkingRef.current = moved;
       } else {
         walkingRef.current = false;
         // Idle: turn to the person, gently, from wherever she is — or to
@@ -492,7 +507,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
             let diff = wantedYaw - yaw.current;
             while (diff > Math.PI) diff -= Math.PI * 2;
             while (diff < -Math.PI) diff += Math.PI * 2;
-            yaw.current += diff * Math.min(1, dt * (facing ? 3.2 : 1.6));
+            yaw.current += diff * Math.min(1, elapsed * (facing ? 3.2 : 1.6));
             if (facing && !facing.confirmed && Math.abs(diff) < 0.06) {
               facing.confirmed = true;
               AvatarCommandBus.getInstance().confirm(facing.id, `turned to ${facing.label.replace(/^face /, "")} (heading ${(yaw.current * 57.3).toFixed(0)}°, within ${(Math.abs(diff) * 57.3).toFixed(1)}°)`);

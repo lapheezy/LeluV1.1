@@ -1,0 +1,52 @@
+{
+  "label": "base-home-off",
+  "frames": 0,
+  "avatarFps": 0,
+  "busyMs": 3387,
+  "busyPct": 49.8,
+  "msPerAvatarFrame": null,
+  "group": {
+    "her": 0,
+    "three": 564,
+    "r3f": 0,
+    "react": 1305,
+    "idle": 3418,
+    "gc": 170,
+    "program": 930,
+    "other": 418
+  },
+  "top": [
+    "706ms exports.jsxDEV react_jsx-dev-runtime.js:190",
+    "182ms jsxDEVImpl react_jsx-dev-runtime.js:147",
+    "170ms (garbage collector) :-1",
+    "120ms exports.createElement react.js:590",
+    "107ms commitUpdate react-three-fiber.esm-DeNFsCiz.js:8748",
+    "84ms run :-1",
+    "53ms diffProps react-three-fiber.esm-DeNFsCiz.js:423",
+    "50ms now :-1",
+    "42ms fillStaticNoise CosmosSkyBackdrop.tsx:107",
+    "42ms g react-three-fiber.esm-DeNFsCiz.js:3008",
+    "39ms updateProperties react-dom_client.js:9677",
+    "35ms createTask :-1",
+    "34ms getBoundingClientRect :-1",
+    "32ms tt react-three-fiber.esm-DeNFsCiz.js:4833",
+    "31ms oh react-three-fiber.esm-DeNFsCiz.js:5730"
+  ],
+  "bySourceOwner": [
+    "1266ms (no src frame)",
+    "332ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "92ms Portal src/app/scene/spatial/SpatialPortals.tsx",
+    "59ms (anon) src/app/scene/genesis/render/PlanetVisual.tsx",
+    "52ms (anon) src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "42ms fillStaticNoise src/app/scene/genesis/CosmosSkyBackdrop.tsx",
+    "39ms StreetCar src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "36ms visibleBox src/core/runtime/domProbes.ts",
+    "34ms VegetationSurface src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "32ms (anon) src/app/scene/genesis/home/HomeModules.tsx",
+    "27ms update src/app/scene/genesis/engines/EngineRegistry.ts",
+    "22ms check src/core/runtime/domProbes.ts",
+    "20ms (anon) src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "20ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "19ms AtlantisWorld src/app/scene/genesis/render/PlanetExplorer.tsx"
+  ]
+}

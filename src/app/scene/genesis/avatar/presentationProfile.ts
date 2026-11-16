@@ -23,7 +23,7 @@ import type { LeluForm, LeluFraming } from "../../../../core/avatar/LeluRig";
 import type { LeluFormChoice, LeluFramingChoice } from "../../../../core/avatar/LeluCharacterStore";
 
 /** The kind of interface she is in. */
-export type PresenceContext = "home" | "chat" | "creative" | "engineering" | "browser" | "world" | "workspace" | "other";
+export type PresenceContext = "home" | "chat" | "creative" | "engineering" | "browser" | "world" | "workspace" | "preview" | "other";
 
 const CREATIVE = new Set(["visualstudio", "creation", "sketch", "render", "video", "avatar", "creativity", "projects"]);
 const ENGINEERING = new Set(["engineering", "command", "evolution", "diagnostics", "logs", "development", "system", "device", "executive", "cognition", "reasoning"]);
@@ -108,6 +108,11 @@ export function choosePresentation(input: {
       framing = "full";
       form = "embodied";
       why = "world: she stands in it";
+      break;
+    case "preview":
+      framing = roomy ? "full" : "face";
+      form = "embodied";
+      why = "Avatar panel: she is her own preview";
       break;
     default:
       framing = roomy ? "full" : "face";
