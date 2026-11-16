@@ -23,6 +23,8 @@
  * ==========================================================
  */
 
+import { compileCreativeObjectPlan } from "../../couture/intents";
+import { getCreativeSelection } from "../../couture/selection";
 import { GENERATIVE_STYLES, PALETTES, type GenerativeStyle } from "./GenerativeArt";
 import { PRESETS } from "./Scene3D";
 import { seedFrom } from "./Rng";
@@ -143,6 +145,16 @@ export function compileDirect(prompt: string): DirectPlan | null {
   const t = prompt.trim();
   const slash = /^\/(\w+)\b\s*([\s\S]*)$/.exec(t);
   if (slash) return compileCommand(slash[1].toLowerCase(), slash[2].trim());
+  /*
+   * Instructions about the creations in the Cosmos ("select the chair",
+   * "make the pendant twice as large", "move it beside the table") compile to
+   * the SAME couture.objects calls a model would emit, so the dispatcher, the
+   * gate and the events are unchanged and no model is needed to run them.
+   * Checked before the build/create rules: "make the pendant twice as large"
+   * contains "make" and must transform the object, not build a new one.
+   */
+  const creativeObjects = compileCreativeObjectPlan(t, { selectedId: getCreativeSelection()?.objectId ?? null });
+  if (creativeObjects) return creativeObjects;
   const nl = (cmd: string, rest: string): DirectPlan | null => { const plan = compileCommand(cmd, rest); return plan ? { ...plan, explicit: false } : null; };
   const verb = /\b(make|create|build|generate|construct|render|draw|design|produce|compose|assemble|give me|show me|i want|i'd like)\b/i;
   // Exporting what she built in her world (Job 3/4: world.export, world.gltf).

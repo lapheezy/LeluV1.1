@@ -252,6 +252,16 @@ export default function CreativeObjects3D() {
       sceneChildren: scene.children.map((child) => child.name || child.type),
       objectCount: objects.length,
       positions: objects.map((object) => object.transform.position),
+      // The full canonical transform of each drawn creation, so evidence can
+      // check what the person sees against what the store holds.
+      transforms: objects.map((object) => ({
+        id: object.id,
+        name: object.name,
+        position: [...object.transform.position],
+        rotation: [...object.transform.rotation],
+        scale: [...object.transform.scale],
+        visible: object.visible,
+      })),
     };
   }, [objects, gl, camera, scene, frameloop]);
 

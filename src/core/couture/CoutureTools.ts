@@ -25,16 +25,20 @@ import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import { registerExecutor } from "../tools/ToolDispatcher";
 import type { ToolExecutionResult, ToolExecutor } from "../tools/ToolDispatcher";
 import CreativeObjectBridge from "../cosmos/CreativeObjectBridge";
-import CreativeObjects from "./objects";
+import CreativeObjects, { type CreativeObject } from "./objects";
 import { garmentAssembly, patternAssembly } from "./components";
 import { buildGarment } from "./garment";
 import { draftPattern, BASE_SIZE, type GarmentStyle, type SizeLabel } from "./pattern";
 import { buildProduct, PRODUCT_TEMPLATES } from "./product";
+import { objectWorldBox, SPATIAL_RELATIONS, positionedRelativeTo, type SpatialRelation } from "./layout";
+import { getCreativeSelection, hasCreativeFocusListener, requestCreativeFocus, selectCreativeObject } from "./selection";
 import { findMaterial, searchMaterials } from "./textiles";
 
 export const OBJECT_ACTIONS = [
   "list",
   "inspect",
+  "select",
+  "focus",
   "place-in-cosmos",
   "remove-from-cosmos",
   "restore",
@@ -73,6 +77,10 @@ export interface ParsedObjectCall {
   rotation?: [number, number, number];
   scale?: number;
   visible?: boolean;
+  /** Reference object for a relative placement ("beside the chair"). */
+  relativeTo?: string;
+  relation?: SpatialRelation;
+  gap?: number;
 }
 
 type ParseResult = { ok: true; call: ParsedObjectCall } | { ok: false; error: string };
@@ -98,6 +106,17 @@ export function parseObjectCall(args: Record<string, unknown>): ParseResult {
   const call: ParsedObjectCall = { action };
   const reference = str(args, "object") || str(args, "objectId") || str(args, "reference");
   if (reference) call.reference = reference;
+  const relativeTo = str(args, "relativeTo") || str(args, "nextTo") || str(args, "beside");
+  if (relativeTo) call.relativeTo = relativeTo;
+  const relation = str(args, "relation") || str(args, "where");
+  if (relation) {
+    const normalized = relation.toLowerCase().replace(/[\s_]+/g, "-").replace(/^in-front-of$/, "in-front");
+    if (!SPATIAL_RELATIONS.includes(normalized as SpatialRelation)) {
+      return { ok: false, error: `"${relation}" is not a placement. One of: ${SPATIAL_RELATIONS.join(", ")}.` };
+    }
+    call.relation = normalized as SpatialRelation;
+  }
+  if (typeof args.gap === "number" && Number.isFinite(args.gap)) call.gap = Number(args.gap);
   const component = str(args, "component");
   if (component) call.component = component;
   const parent = str(args, "parent") || str(args, "parentId");
@@ -124,7 +143,10 @@ export function parseObjectCall(args: Record<string, unknown>): ParseResult {
   if (action === "detach" && !call.component) return { ok: false, error: "detach needs the component to take off (e.g. component: \"right sleeve\")." };
   if (action === "attach" && !call.parent) return { ok: false, error: "attach needs the parent object to reattach into (parent: \"Aurelia gown\")." };
   if (action === "reuse" && !call.target) return { ok: false, error: "reuse needs the target object (target: \"Aurelia mikado second look\")." };
-  if (action === "move" && !call.position && !vec3(args.delta)) return { ok: false, error: "move needs position [x,y,z] in millimetres, or delta." };
+  if (action === "move" && !call.position && !vec3(args.delta) && !call.relativeTo) {
+    return { ok: false, error: "move needs position [x,y,z] in millimetres, delta, or relativeTo (an object) with relation (e.g. beside)." };
+  }
+  if (call.relativeTo && !call.relation) return { ok: false, error: `relativeTo needs a relation. One of: ${SPATIAL_RELATIONS.join(", ")}.` };
   if (action === "rotate" && !call.rotation && !vec3(args.delta)) return { ok: false, error: "rotate needs rotation [x,y,z] in degrees, or delta." };
   if (action === "scale" && call.scale === undefined) return { ok: false, error: "scale needs scale (a factor, e.g. 1.25)." };
   if (action === "set-material" && !call.material) return { ok: false, error: "set-material needs material (a textile or metal id)." };
@@ -173,6 +195,9 @@ export const COUTURE_TOOLS: ToolDefinition[] = [
       properties: {
         action: { type: "string", enum: OBJECT_ACTIONS as unknown as string[] },
         object: { type: "string", description: "The object, by name or id." },
+        relativeTo: { type: "string", description: "Reference object for a relative placement, e.g. \"the chair\"." },
+        relation: { type: "string", enum: SPATIAL_RELATIONS, description: "Where to put it relative to relativeTo: left, right, above, below, in-front, behind, beside, centre." },
+        gap: { type: "number", description: "Clear space to leave between the two objects, in millimetres." },
         component: { type: "string", description: "Component name, for detach (e.g. \"right sleeve\", \"stone\")." },
         parent: { type: "string", description: "Parent object, for attach." },
         target: { type: "string", description: "Target object, for reuse." },
@@ -206,6 +231,27 @@ export function registerCoutureTools(): void {
 
 function store(): CreativeObjects {
   return CreativeObjects.getInstance();
+}
+
+/**
+ * A plain snapshot of the authoritative state.
+ *
+ * Store operations mutate the object in place, so "before" has to be captured
+ * as data, not as a reference — otherwise the comparison after the call would
+ * compare an object with itself and always report "unchanged".
+ */
+function stateOf(object: CreativeObject): Record<string, unknown> {
+  return {
+    id: object.id,
+    name: object.name,
+    location: object.location,
+    revision: object.revision,
+    visible: object.visible,
+    archived: object.archived,
+    position: [...object.transform.position],
+    rotation: [...object.transform.rotation],
+    scale: [...object.transform.scale],
+  };
 }
 
 function resolveOrFail(reference: string): { ok: true; id: string; name: string } | { ok: false; content: string } {
@@ -366,7 +412,73 @@ const objectsExecutor: ToolExecutor = {
     const id = resolved.id;
     const object = s.get(id)!;
 
+    /**
+     * Attach the outcome evidence to a result.
+     *
+     * A tool response saying "moved" is a CLAIM. This is the check behind it:
+     * the authoritative state before and after, whether the store actually
+     * changed, and the revision the change was persisted at. The executor never
+     * reports an operation as done without it.
+     */
+    const before = stateOf(object);
+    const verified = (
+      result: ToolExecutionResult,
+      action: string,
+      extra: Record<string, unknown> = {},
+    ): ToolExecutionResult => {
+      const after = s.get(id);
+      const afterState = after ? stateOf(after) : null;
+      const storeChanged = Boolean(afterState) && JSON.stringify(before) !== JSON.stringify(afterState);
+      return {
+        ...result,
+        data: {
+          ...(result.data && typeof result.data === "object" ? (result.data as Record<string, unknown>) : {}),
+          verification: {
+            action,
+            objectId: id,
+            before,
+            after: afterState,
+            storeChanged,
+            persisted: Boolean(after && after.revision >= object.revision),
+            ...extra,
+          },
+        },
+      };
+    };
+
     switch (call.action) {
+      case "select": {
+        // Selection is a pointer, not a mutation: it must never bump a revision
+        // or move the object. The revision check below proves that.
+        selectCreativeObject({ objectId: id, ...(call.component ? { componentId: call.component } : {}) });
+        const selection = getCreativeSelection();
+        return verified(
+          {
+            ok: selection?.objectId === id,
+            content: selection?.objectId === id
+              ? `Selected ${object.name} (${object.id})${call.component ? `, component ${call.component}` : ""}. The object itself is unchanged (revision ${object.revision}).`
+              : `could not select ${object.name}`,
+            data: { selection },
+          },
+          "select",
+          { selection },
+        );
+      }
+      case "focus": {
+        const listening = hasCreativeFocusListener();
+        requestCreativeFocus(id);
+        return verified(
+          {
+            ok: true,
+            content: listening
+              ? `Framing ${object.name} (${object.id}) on its own geometry.`
+              : `Selection set for ${object.name}, but no scene is open to frame it in.`,
+            data: { framed: listening },
+          },
+          "focus",
+          { framed: listening },
+        );
+      }
       case "inspect": {
         const composition = s.compose(id, 0);
         return {
@@ -388,16 +500,49 @@ const objectsExecutor: ToolExecutor = {
         return { ok: placed.ok, content: placed.message, data: placed };
       }
       case "move": {
+        if (call.relativeTo) {
+          const target = resolveOrFail(call.relativeTo);
+          if (!target.ok) return { ok: false, content: target.content };
+          if (target.id === id) return { ok: false, content: `cannot place ${object.name} relative to itself.` };
+          const anchor = s.get(target.id);
+          if (!anchor) return { ok: false, content: `no object ${target.id}` };
+          if (!objectWorldBox(object) || !objectWorldBox(anchor)) {
+            return { ok: false, content: `cannot measure ${object.name} or ${anchor.name}: no geometry.` };
+          }
+          const next = positionedRelativeTo(object, anchor, call.relation ?? "beside", (call.gap ?? 250) / 1000);
+          if (!next) return { ok: false, content: `could not work out where to put ${object.name}.` };
+          const result = s.setTransform(id, { position: next });
+          return verified(
+            {
+              ok: Boolean(result),
+              content: result
+                ? `${result.name} placed ${call.relation ?? "beside"} ${anchor.name}, at ${result.transform.position.map((n) => Math.round(n)).join(", ")} mm`
+                : "could not move it",
+              data: { relativeTo: anchor.id, relation: call.relation ?? "beside" },
+            },
+            "move",
+            { relativeTo: anchor.id, relation: call.relation ?? "beside" },
+          );
+        }
         const result = call.position ? s.setTransform(id, { position: call.position }) : s.moveBy(id, vec3(args.delta) ?? [0, 0, 0]);
-        return { ok: Boolean(result), content: result ? `${result.name} moved to ${result.transform.position.map((n) => Math.round(n)).join(", ")} mm` : "could not move it" };
+        return verified(
+          { ok: Boolean(result), content: result ? `${result.name} moved to ${result.transform.position.map((n) => Math.round(n)).join(", ")} mm` : "could not move it" },
+          "move",
+        );
       }
       case "rotate": {
         const result = call.rotation ? s.setTransform(id, { rotation: call.rotation }) : s.rotateBy(id, vec3(args.delta) ?? [0, 0, 0]);
-        return { ok: Boolean(result), content: result ? `${result.name} rotated to ${result.transform.rotation.map((n) => Math.round(n)).join(", ")}°` : "could not rotate it" };
+        return verified(
+          { ok: Boolean(result), content: result ? `${result.name} rotated to ${result.transform.rotation.map((n) => Math.round(n)).join(", ")}°` : "could not rotate it" },
+          "rotate",
+        );
       }
       case "scale": {
         const result = s.scaleTo(id, call.scale ?? 1);
-        return { ok: Boolean(result), content: result ? `${result.name} scale ${result.transform.scale[0]}` : "could not scale it" };
+        return verified(
+          { ok: Boolean(result), content: result ? `${result.name} scale ${result.transform.scale[0]}` : "could not scale it" },
+          "scale",
+        );
       }
       case "float": {
         const result = s.setMotion(id, { kind: "spin", paused: false });

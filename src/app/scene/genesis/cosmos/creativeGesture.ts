@@ -38,32 +38,17 @@ export function subscribeCreativeGesture(listener: (active: boolean) => void): (
   };
 }
 
-/* ---------------- selection ---------------- */
+/* ---------------- selection and focus (owned by core) ---------------- */
 
-export interface CreativeSelection {
-  objectId: string;
-  componentId?: string;
-}
-
-let selection: CreativeSelection | null = null;
-const selectionListeners = new Set<(selection: CreativeSelection | null) => void>();
-
-export function getCreativeSelection(): CreativeSelection | null {
-  return selection;
-}
-
-export function selectCreativeObject(next: CreativeSelection | null): void {
-  if (selection?.objectId === next?.objectId && selection?.componentId === next?.componentId) return;
-  selection = next;
-  for (const listener of selectionListeners) listener(next);
-}
-
-export function subscribeCreativeSelection(listener: (selection: CreativeSelection | null) => void): () => void {
-  selectionListeners.add(listener);
-  return () => {
-    selectionListeners.delete(listener);
-  };
-}
+export {
+  getCreativeSelection,
+  selectCreativeObject,
+  subscribeCreativeSelection,
+  requestCreativeFocus,
+  subscribeCreativeFocus,
+  hasCreativeFocusListener,
+  type CreativeSelection,
+} from "../../../../core/couture/selection";
 
 /** Editing mode for the on-canvas manipulation. */
 export type CreativeTool = "select" | "move" | "rotate" | "scale";
@@ -102,28 +87,6 @@ export function creativePlacementInFront(metres = 2.2, side = 0): [number, numbe
   const z = liveCamera.position.z + fz * metres + (rightZ / rightLength) * side;
   return [x * 1000, -z * 1000, y * 1000];
 }
-/**
- * A request to frame an object on screen.
- *
- * The dock knows WHICH object; only the 3D layer knows where its geometry
- * actually is. So the dock asks, and the layer — which owns the camera and the
- * meshes — works out the framing and drives the existing camera bus. That
- * keeps one camera authority and makes "Focus" geometry-aware: aiming at an
- * object's origin framed the chair's floor point, not the chair.
- */
-const focusListeners = new Set<(objectId: string) => void>();
-
-export function requestCreativeFocus(objectId: string): void {
-  for (const listener of focusListeners) listener(objectId);
-}
-
-export function subscribeCreativeFocus(listener: (objectId: string) => void): () => void {
-  focusListeners.add(listener);
-  return () => {
-    focusListeners.delete(listener);
-  };
-}
-
 let tool: CreativeTool = "select";
 const toolListeners = new Set<(tool: CreativeTool) => void>();
 

@@ -280,7 +280,12 @@ test("the measured frame rate reaches the manager with its painting flag", () =>
 
 test("the world paints only when the device can AND the budget allows", () => {
   const scene = source("src/app/scene/genesis/GenesisScene.tsx");
-  assert.match(scene, /const paintWorld = \(!softwareGL \|\| Boolean\(perfWorld\)\) && profile !== "light";/);
+  assert.match(scene, /const forceWorld = Boolean\(perfWorld\);/);
+  assert.match(
+    scene,
+    /const paintWorld = \(forceWorld \|\| !softwareGL\) && \(forceWorld \|\| profile !== "light"\);/,
+    "a software renderer refuses to paint unless the dev flag forces the world on",
+  );
   assert.match(
     scene,
     /const frameloop: Frameloop = paintWorld \? budgetedFrameloop : "never";/,
