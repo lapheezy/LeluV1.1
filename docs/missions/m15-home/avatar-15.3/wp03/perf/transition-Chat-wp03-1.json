@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "wp03-1",
+  "longTasks": 3,
+  "longTaskMs": 517,
+  "worst": 308,
+  "byOwner": [
+    "859ms (no src) (program)",
+    "308ms (no src) loseContext",
+    "179ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "178ms (no src) exports.createElement",
+    "108ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "67ms (no src) (garbage collector)",
+    "60ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "54ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "42ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "41ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "27ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "23ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "22ms (no src) commitUpdate",
+    "19ms Ico src/app/scene/genesis/chat/universe/ChatUniverse.tsx:66",
+    "19ms GenesisCore src/app/scene/genesis/GenesisCore.tsx:119",
+    "19ms tick src/app/scene/genesis/EngineTick.tsx:89",
+    "18ms (no src) run",
+    "18ms visibleBox src/core/runtime/domProbes.ts:43"
+  ],
+  "byLeaf": [
+    "859ms (program) ",
+    "532ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "308ms loseContext ",
+    "178ms exports.createElement react.js",
+    "108ms update EngineRegistry.ts",
+    "67ms (garbage collector) ",
+    "53ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "32ms createTask ",
+    "19ms getBoundingClientRect ",
+    "18ms now ",
+    "17ms run ",
+    "16ms ReactElement react.js",
+    "16ms validateProperty react-dom_client.js",
+    "14ms buildLucideIconNode lucide-react.js",
+    "12ms commitUpdate react-dom_client.js",
+    "12ms update EngineRuntime.ts",
+    "11ms updateProperties react-dom_client.js",
+    "11ms react_stack_bottom_frame react-dom_client.js"
+  ],
+  "stacks": [
+    "843 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

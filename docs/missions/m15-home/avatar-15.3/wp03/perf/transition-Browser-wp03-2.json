@@ -1,0 +1,50 @@
+{
+  "app": "Browser",
+  "label": "wp03-2",
+  "longTasks": 4,
+  "longTaskMs": 2031,
+  "worst": 1702,
+  "byOwner": [
+    "1702ms (no src) loseContext",
+    "960ms (no src) (program)",
+    "93ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "56ms (no src) (garbage collector)",
+    "48ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "36ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "35ms (no src) run",
+    "35ms (no src) exports.createElement",
+    "34ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "33ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "32ms (no src) ",
+    "32ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "29ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "29ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "24ms (no src) react_stack_bottom_frame",
+    "24ms (no src) measureScroll",
+    "23ms (no src) exports.jsx",
+    "22ms (anon) src/app/scene/genesis/VisualInterface.tsx:493"
+  ],
+  "byLeaf": [
+    "1702ms loseContext ",
+    "960ms (program) ",
+    "484ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "95ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "93ms update EngineRegistry.ts",
+    "56ms (garbage collector) ",
+    "35ms run ",
+    "35ms exports.createElement react.js",
+    "26ms createTask ",
+    "24ms measureScroll framer-motion.js",
+    "23ms now ",
+    "23ms exports.jsx react_jsx-runtime.js",
+    "22ms react_stack_bottom_frame react-dom_client.js",
+    "15ms updateViewport GenesisModuleHost.tsx",
+    "14ms updateProperties react-dom_client.js",
+    "12ms removeChild react-three-fiber.esm-DeNFsCiz.js",
+    "11ms validateProperty react-dom_client.js",
+    "11ms setValueForStyles react-dom_client.js"
+  ],
+  "stacks": [
+    "4712 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

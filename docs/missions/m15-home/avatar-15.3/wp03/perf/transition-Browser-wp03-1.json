@@ -1,0 +1,50 @@
+{
+  "app": "Browser",
+  "label": "wp03-1",
+  "longTasks": 4,
+  "longTaskMs": 665,
+  "worst": 299,
+  "byOwner": [
+    "858ms (no src) (program)",
+    "299ms (no src) loseContext",
+    "66ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "61ms (no src) (garbage collector)",
+    "51ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "46ms (no src) exports.createElement",
+    "46ms (no src) run",
+    "39ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "37ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "37ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "37ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "36ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "34ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "30ms (no src) react_stack_bottom_frame",
+    "26ms (no src) exports.jsx",
+    "25ms (anon) src/app/scene/genesis/VisualInterface.tsx:412",
+    "24ms (no src) commitUpdate",
+    "24ms (no src) "
+  ],
+  "byLeaf": [
+    "858ms (program) ",
+    "613ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "299ms loseContext ",
+    "92ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "66ms update EngineRegistry.ts",
+    "61ms (garbage collector) ",
+    "46ms exports.createElement react.js",
+    "45ms run ",
+    "26ms react_stack_bottom_frame react-dom_client.js",
+    "26ms exports.jsx react_jsx-runtime.js",
+    "24ms now ",
+    "21ms measureScroll framer-motion.js",
+    "19ms createTask ",
+    "17ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "15ms removeChild react-three-fiber.esm-DeNFsCiz.js",
+    "13ms createWorkInProgress react-dom_client.js",
+    "13ms updateProperties react-dom_client.js",
+    "13ms updateViewport GenesisModuleHost.tsx"
+  ],
+  "stacks": [
+    "820 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

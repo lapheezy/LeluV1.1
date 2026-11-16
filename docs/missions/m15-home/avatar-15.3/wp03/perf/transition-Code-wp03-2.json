@@ -1,0 +1,50 @@
+{
+  "app": "Code",
+  "label": "wp03-2",
+  "longTasks": 5,
+  "longTaskMs": 1130,
+  "worst": 615,
+  "byOwner": [
+    "862ms (no src) (program)",
+    "615ms (no src) loseContext",
+    "82ms (no src) (garbage collector)",
+    "73ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "63ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "56ms GenesisEngineeringPanel src/app/scene/genesis/GenesisEngineeringPanel.tsx:51",
+    "55ms (no src) exports.createElement",
+    "42ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "41ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "34ms (no src) run",
+    "33ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "32ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "31ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "28ms (no src) react_stack_bottom_frame",
+    "25ms (no src) now",
+    "25ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "23ms (no src) ",
+    "23ms HeartbeatMode src/app/scene/genesis/VisualInterface.tsx:65"
+  ],
+  "byLeaf": [
+    "862ms (program) ",
+    "652ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "615ms loseContext ",
+    "92ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "82ms (garbage collector) ",
+    "73ms update EngineRegistry.ts",
+    "55ms exports.createElement react.js",
+    "33ms run ",
+    "26ms now ",
+    "26ms createTask ",
+    "22ms react_stack_bottom_frame react-dom_client.js",
+    "22ms validateProperty react-dom_client.js",
+    "20ms updateProperties react-dom_client.js",
+    "19ms updateViewport GenesisModuleHost.tsx",
+    "18ms setValueForStyles react-dom_client.js",
+    "16ms measure ",
+    "16ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "15ms getTaskName react_jsx-dev-runtime.js"
+  ],
+  "stacks": [
+    "1704 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}
