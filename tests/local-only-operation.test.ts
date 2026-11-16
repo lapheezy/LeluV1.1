@@ -198,6 +198,36 @@ test("knowledge nodes, relationships and revisions survive a new graph", () => {
   }
 });
 
+test("a blocked local write is reported as a failure, never as success", () => {
+  const blocked = {
+    getItem: () => null,
+    setItem: () => {
+      throw new Error("quota exceeded");
+    },
+    removeItem: () => undefined,
+  };
+  const originalWindow = (globalThis as { window?: unknown }).window;
+  (globalThis as { window?: unknown }).window = { localStorage: blocked, sessionStorage: blocked };
+  try {
+    assert.equal(
+      KvStore.getInstance().set("m143.blocked.write", { value: true }),
+      false,
+      "a write that no backend accepted was reported as saved",
+    );
+  } finally {
+    (globalThis as { window?: unknown }).window = originalWindow;
+  }
+});
+
+test("corrupt local data is treated as absent, not as a crash", () => {
+  localStorage.setItem("lelu.m143.corrupt", "{not json");
+  try {
+    assert.equal(KvStore.getInstance().get("m143.corrupt"), null);
+  } finally {
+    localStorage.removeItem("lelu.m143.corrupt");
+  }
+});
+
 test("a configured Supabase adapter still initializes separately and makes no write", async () => {
   const restore = clearSupabaseEnv();
   process.env.SUPABASE_URL = "https://local-test.invalid";
