@@ -47,7 +47,7 @@
     "n": 5,
     "name": "chat-just-your-face",
     "ok": true,
-    "note": "→ face/hologram; same model & same canvas (no rebuild) true; drew 3 frames; reply “Just my face now, everywhere I appear.”",
+    "note": "→ face/hologram; same model & same canvas (no rebuild) true; drew 4 frames; reply “Just my face now, everywhere I appear.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-05-ok-chat-just-your-face.png",
     "viewport": {
       "width": 1440,
@@ -69,7 +69,7 @@
     "n": 7,
     "name": "chat-choose-your-own-form",
     "ok": true,
-    "note": "→ full/embodied; same model & same canvas (no rebuild) true; drew 4 frames; reply “I'll choose how I appear in each interface again.”",
+    "note": "→ full/embodied; same model & same canvas (no rebuild) true; drew 3 frames; reply “I'll choose how I appear in each interface again.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-07-ok-chat-choose-your-own-form.png",
     "viewport": {
       "width": 1440,
@@ -80,7 +80,7 @@
     "n": 8,
     "name": "desktop-home",
     "ok": true,
-    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +0",
+    "note": "home → face/embodied; drew 5 frames in 3 s; same canvas true; page WebGL contexts +0",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-08-ok-desktop-home.png",
     "viewport": {
       "width": 1440,
@@ -91,7 +91,7 @@
     "n": 9,
     "name": "desktop-chat",
     "ok": true,
-    "note": "chat → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +1",
+    "note": "chat → face/embodied; drew 5 frames in 3 s; same canvas true; page WebGL contexts +1",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-09-ok-desktop-chat.png",
     "viewport": {
       "width": 1440,
@@ -113,7 +113,7 @@
     "n": 11,
     "name": "desktop-browser",
     "ok": true,
-    "note": "browser → face/hologram; drew 3 frames in 3 s; same canvas true; page WebGL contexts +1",
+    "note": "browser → face/hologram; drew 4 frames in 3 s; same canvas true; page WebGL contexts +1",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-11-ok-desktop-browser.png",
     "viewport": {
       "width": 1440,
@@ -124,7 +124,7 @@
     "n": 12,
     "name": "desktop-home-after-browser",
     "ok": true,
-    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +2",
+    "note": "home → face/embodied; drew 4 frames in 3 s; same canvas true; page WebGL contexts +2",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-12-ok-desktop-home-after-browser.png",
     "viewport": {
       "width": 1440,
@@ -135,7 +135,7 @@
     "n": 13,
     "name": "desktop-studio",
     "ok": true,
-    "note": "creative → full/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +4",
+    "note": "creative → full/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +4",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-13-ok-desktop-studio.png",
     "viewport": {
       "width": 1440,
@@ -146,7 +146,7 @@
     "n": 14,
     "name": "desktop-home-after-studio",
     "ok": true,
-    "note": "home → face/embodied; drew 5 frames in 3 s; same canvas true; page WebGL contexts +5",
+    "note": "home → face/embodied; drew 5 frames in 3 s; same canvas true; page WebGL contexts +4",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-14-ok-desktop-home-after-studio.png",
     "viewport": {
       "width": 1440,
@@ -157,7 +157,7 @@
     "n": 15,
     "name": "desktop-code",
     "ok": true,
-    "note": "engineering → face/hologram; drew 5 frames in 3 s; same canvas true; page WebGL contexts +5",
+    "note": "engineering → face/hologram; drew 5 frames in 3 s; same canvas true; page WebGL contexts +4",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-15-ok-desktop-code.png",
     "viewport": {
       "width": 1440,
@@ -168,7 +168,7 @@
     "n": 16,
     "name": "desktop-home-after-code",
     "ok": true,
-    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +5",
+    "note": "home → face/embodied; drew 3 frames in 3 s; same canvas true; page WebGL contexts +4",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-16-ok-desktop-home-after-code.png",
     "viewport": {
       "width": 1440,
@@ -179,7 +179,7 @@
     "n": 17,
     "name": "phone-home",
     "ok": true,
-    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +0",
+    "note": "home → face/embodied; drew 8 frames in 3 s; same canvas true; page WebGL contexts +0",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-17-ok-phone-home.png",
     "viewport": {
       "width": 393,
@@ -190,7 +190,7 @@
     "n": 18,
     "name": "phone-chat",
     "ok": true,
-    "note": "chat → face/embodied; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +1",
+    "note": "chat → face/embodied; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +0",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-18-ok-phone-chat.png",
     "viewport": {
       "width": 393,
@@ -201,7 +201,7 @@
     "n": 19,
     "name": "phone-home-after-chat",
     "ok": true,
-    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +4",
+    "note": "home → face/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +3",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-19-ok-phone-home-after-chat.png",
     "viewport": {
       "width": 393,
@@ -212,7 +212,7 @@
     "n": 20,
     "name": "phone-browser",
     "ok": true,
-    "note": "browser → face/hologram; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +4",
+    "note": "browser → face/hologram; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +3",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-20-ok-phone-browser.png",
     "viewport": {
       "width": 393,
@@ -223,7 +223,7 @@
     "n": 21,
     "name": "phone-home-after-browser",
     "ok": true,
-    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +8",
+    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +6",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-21-ok-phone-home-after-browser.png",
     "viewport": {
       "width": 393,
@@ -234,7 +234,7 @@
     "n": 22,
     "name": "phone-studio",
     "ok": true,
-    "note": "creative → full/embodied; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +9",
+    "note": "creative → full/embodied; drew 0 frames in 3 s (measured low-power rest: software renderer beside a phone sheet); same canvas true; page WebGL contexts +7",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-22-ok-phone-studio.png",
     "viewport": {
       "width": 393,
@@ -245,7 +245,7 @@
     "n": 23,
     "name": "phone-home-after-studio",
     "ok": true,
-    "note": "home → face/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +13",
+    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +12",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-23-ok-phone-home-after-studio.png",
     "viewport": {
       "width": 393,
@@ -267,7 +267,7 @@
     "n": 25,
     "name": "phone-home-after-code",
     "ok": true,
-    "note": "home → face/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +16",
+    "note": "home → face/embodied; drew 6 frames in 3 s; same canvas true; page WebGL contexts +16",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-25-ok-phone-home-after-code.png",
     "viewport": {
       "width": 393,
@@ -278,7 +278,7 @@
     "n": 26,
     "name": "overlay-wave",
     "ok": true,
-    "note": "reply “Done — watch my environment. played her “wave” animation (hand moved 49 cm). My telemetry verified the movement myself.”",
+    "note": "reply “Done — watch my environment. played her “wave_big” animation (hand moved 120 cm). My telemetry verified the movement myself.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-26-ok-overlay-wave.png",
     "viewport": {
       "width": 1440,
@@ -289,7 +289,7 @@
     "n": 27,
     "name": "overlay-dance",
     "ok": true,
-    "note": "reply “Done — watch my environment. played her “dance_cherish” animation (hand moved 11 cm). My telemetry verified the movement myself.”",
+    "note": "reply “Done — watch my environment. played her “dance_cherish” animation (hand moved 45 cm). My telemetry verified the movement myself.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-27-ok-overlay-dance.png",
     "viewport": {
       "width": 1440,
@@ -322,7 +322,7 @@
     "n": 30,
     "name": "world-presence",
     "ok": true,
-    "note": "in her world at [0.134,-2.55,3.972]",
+    "note": "in her world at [0.27,-2.55,3.99]",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-30-ok-world-presence.png",
     "viewport": {
       "width": 1440,
@@ -332,9 +332,9 @@
   {
     "n": 31,
     "name": "world-walk-to-the-studio",
-    "ok": false,
-    "note": "moved 3.78 m; reply “ my renderer — No renderer confirmed the “walk to the studio” command within 45s. I'm diagnosing the animation binding rather than pretending I moved.”",
-    "file": "docs/missions/m15-home/avatar-15.3/verify/step-31-FAIL-world-walk-to-the-studio.png",
+    "ok": true,
+    "note": "on-the-way; moved 3.76 m; reply “74 m from where I started, 5.44 m to go; I may be walking around something in my way): my world is rendering slowly right now (0.9 frames/s), and I'll keep walking there.”; afterwards: walking true, 5.02 m from the goal",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-31-ok-world-walk-to-the-studio.png",
     "viewport": {
       "width": 1440,
       "height": 900
@@ -344,7 +344,7 @@
     "n": 32,
     "name": "world-face-me",
     "ok": true,
-    "note": "moved 0.58 m; reply “Done — watch my environment. turned to you (heading 362°, within 0.7°). My telemetry verified the movement myself.”",
+    "note": "done; moved 0.10 m; reply “Done — watch my environment. turned to you (heading 355°, within 0.0°). My telemetry verified the movement myself.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-32-ok-world-face-me.png",
     "viewport": {
       "width": 1440,
@@ -354,9 +354,9 @@
   {
     "n": 33,
     "name": "world-come-closer",
-    "ok": false,
-    "note": "moved 8.21 m; reply “rmed by my renderer — No renderer confirmed the “come closer” command within 45s. I'm diagnosing the animation binding rather than pretending I moved.”",
-    "file": "docs/missions/m15-home/avatar-15.3/verify/step-33-FAIL-world-come-closer.png",
+    "ok": true,
+    "note": "done; moved 8.06 m; reply “Done — watch my environment. walked 8.06 m (come closer); now at x 0.09, z 8.27. My telemetry verified the movement myself.”",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-33-ok-world-come-closer.png",
     "viewport": {
       "width": 1440,
       "height": 900
@@ -366,7 +366,7 @@
     "n": 34,
     "name": "world-dance",
     "ok": true,
-    "note": "moved 0.58 m; reply “Done — watch my environment. played her “dance_love” animation (hand moved 126 cm). My telemetry verified the movement myself.”",
+    "note": "done; moved 1.81 m; reply “Done — watch my environment. played her “dance_love” animation (hand moved 47 cm). My telemetry verified the movement myself.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-34-ok-world-dance.png",
     "viewport": {
       "width": 1440,
@@ -377,7 +377,7 @@
     "n": 35,
     "name": "world-go-back-to-your-spot",
     "ok": true,
-    "note": "moved 1.50 m; reply “Done — watch my environment. walked 1.15 m (walk to her spot); now at x -0.40, z 5.29. My telemetry verified the movement myself.”",
+    "note": "done; moved 1.03 m; reply “Done — watch my environment. walked 1.01 m (walk to her spot); now at x -0.37, z 5.28. My telemetry verified the movement myself.”",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-35-ok-world-go-back-to-your-spot.png",
     "viewport": {
       "width": 1440,
@@ -388,7 +388,7 @@
     "n": 36,
     "name": "desktop-library-open",
     "ok": true,
-    "note": "20 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 5 frames",
+    "note": "20 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 4 frames",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-36-ok-desktop-library-open.png",
     "viewport": {
       "width": 1440,
@@ -420,9 +420,9 @@
   {
     "n": 39,
     "name": "tablet-library-closed",
-    "ok": false,
-    "note": "she is back in front (sheet under); her body takes touches false (pointer-events none)",
-    "file": "docs/missions/m15-home/avatar-15.3/verify/step-39-FAIL-tablet-library-closed.png",
+    "ok": true,
+    "note": "she is back in front (sheet none); her body takes touches true (pointer-events auto)",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-39-ok-tablet-library-closed.png",
     "viewport": {
       "width": 820,
       "height": 1180
@@ -454,7 +454,7 @@
     "n": 42,
     "name": "phone-landscape-library-open",
     "ok": true,
-    "note": "5 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 6 frames",
+    "note": "5 on-screen tiles, blocked: []; Render tile receives its touch; she is under the sheet, visible, drew 5 frames",
     "file": "docs/missions/m15-home/avatar-15.3/verify/step-42-ok-phone-landscape-library-open.png",
     "viewport": {
       "width": 852,
@@ -474,10 +474,10 @@
   },
   {
     "n": 44,
-    "name": "reacts-to-real-turn",
+    "name": "desktop-panel-preview-is-her",
     "ok": true,
-    "note": "activities observed during a real chat turn: IDLE → THINKING → SPEAKING → COMPLETED → LISTENING",
-    "file": "docs/missions/m15-home/avatar-15.3/verify/step-44-ok-reacts-to-real-turn.png",
+    "note": "presence preview; full/embodied; her own canvas true; model v005_faceshapes_mvwaqbim/lelu.glb; in the panel's spot true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-44-ok-desktop-panel-preview-is-her.png",
     "viewport": {
       "width": 1440,
       "height": 900
@@ -485,10 +485,230 @@
   },
   {
     "n": 45,
-    "name": "transition-stress",
+    "name": "desktop-panel-preview-animates",
+    "ok": true,
+    "note": "drew 4 frames in 3 s",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-45-ok-desktop-panel-preview-animates.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 46,
+    "name": "desktop-panel-form-choice-hologram",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-46-ok-desktop-panel-form-choice-hologram.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 47,
+    "name": "desktop-panel-framing-choice-face",
+    "ok": true,
+    "note": "→ face/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-47-ok-desktop-panel-framing-choice-face.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 48,
+    "name": "desktop-panel-framing-choice-full",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-48-ok-desktop-panel-framing-choice-full.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 49,
+    "name": "desktop-panel-form-choice-embodied",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-49-ok-desktop-panel-form-choice-embodied.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 50,
+    "name": "desktop-panel-form-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-50-ok-desktop-panel-form-choice-auto.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 51,
+    "name": "desktop-panel-framing-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-51-ok-desktop-panel-framing-choice-auto.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 52,
+    "name": "desktop-panel-close-reopen-1",
+    "ok": true,
+    "note": "closed: planned; reopened: preview; same canvas true; page WebGL contexts +5 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-52-ok-desktop-panel-close-reopen-1.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 53,
+    "name": "desktop-panel-close-reopen-2",
+    "ok": true,
+    "note": "closed: planned; reopened: preview; same canvas true; page WebGL contexts +7 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-53-ok-desktop-panel-close-reopen-2.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 54,
+    "name": "phone-panel-preview-is-her",
+    "ok": true,
+    "note": "presence preview; full/embodied; her own canvas true; model v005_faceshapes_mvwaqbim/lelu.glb; in the panel's spot true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-54-ok-phone-panel-preview-is-her.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 55,
+    "name": "phone-panel-preview-animates",
+    "ok": true,
+    "note": "drew 0 frames in 3 s (measured low-power rest)",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-55-ok-phone-panel-preview-animates.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 56,
+    "name": "phone-panel-form-choice-hologram",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-56-ok-phone-panel-form-choice-hologram.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 57,
+    "name": "phone-panel-framing-choice-face",
+    "ok": true,
+    "note": "→ face/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-57-ok-phone-panel-framing-choice-face.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 58,
+    "name": "phone-panel-framing-choice-full",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-58-ok-phone-panel-framing-choice-full.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 59,
+    "name": "phone-panel-form-choice-embodied",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-59-ok-phone-panel-form-choice-embodied.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 60,
+    "name": "phone-panel-form-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-60-ok-phone-panel-form-choice-auto.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 61,
+    "name": "phone-panel-framing-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-61-ok-phone-panel-framing-choice-auto.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 62,
+    "name": "phone-panel-close-reopen-1",
     "ok": false,
-    "note": "12 transitions (Chat, Home, Browser, Home ×3): frozen on 1; her canvas the same element throughout true; page WebGL contexts created during the loop (Cosmos included): 3",
-    "file": "docs/missions/m15-home/avatar-15.3/verify/step-45-FAIL-transition-stress.png",
+    "note": "closed: preview; reopened: preview; same canvas true; page WebGL contexts +3 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-62-FAIL-phone-panel-close-reopen-1.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 63,
+    "name": "phone-panel-close-reopen-2",
+    "ok": false,
+    "note": "closed: preview; reopened: preview; same canvas true; page WebGL contexts +9 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-63-FAIL-phone-panel-close-reopen-2.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 64,
+    "name": "reacts-to-real-turn",
+    "ok": true,
+    "note": "activities observed during a real chat turn: IDLE → COMPLETED → SPEAKING → LISTENING",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-64-ok-reacts-to-real-turn.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 65,
+    "name": "transition-stress",
+    "ok": true,
+    "note": "12 transitions (Chat, Home, Browser, Home ×3): frozen on 0; her canvas the same element throughout true; page WebGL contexts created during the loop (Cosmos included): 3",
+    "file": "docs/missions/m15-home/avatar-15.3/verify/step-65-ok-transition-stress.png",
     "viewport": {
       "width": 1440,
       "height": 900

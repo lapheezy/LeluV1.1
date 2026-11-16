@@ -140,7 +140,9 @@ Pictures: `m15-home/avatar-15.3/verify/panel-*.png`.
 | Production build (`npm run build`) | exit 0 |
 | Full suite (`npm test`) | **2279 tests, 2273 pass, 0 fail, 6 skipped**: the WP01 baseline of 2274 plus the 5 new tests; no test was rewritten |
 | Focused avatar tests | `avatar-forms-actions` 13/13, `avatar-presence` 5/5, `chat-surface` 31/31, `lelu-character` 8/8 |
-| Full browser acceptance on the final code | FINAL_ALL |
+| Full browser acceptance on the final code | **63/65** (`verify-avatar-presence.mjs all`):
+- **Passing areas:** forms, context adaptation on desktop and phone, actions (all world commands valid outcomes), App Library at four viewports, Avatar panel, activity, transition stress.
+- **The two failures** are the phone panel's close/reopen steps. In this run the test's tap on the window's close control did not close the panel ("closed: preview": the panel was still open and she correctly stayed in its spot). The dedicated panel run on the same code passed close/reopen twice on both desktop and phone (20/20). Recorded as a test-interaction flake, not fixed in code. |
 
 ## 6. Device and hardware matrix
 
