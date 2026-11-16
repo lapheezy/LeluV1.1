@@ -65,7 +65,7 @@ import { FULL_BODY_COMMANDS } from "./LeluBody";
 import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
 import { useLeluCharacter } from "./useLeluCharacter";
 import { choosePresentation, contextOf, restsOnStill } from "./presentationProfile";
-import { useUniverseOpen } from "../chat/universe/universeOpen";
+import { isUniverseOpen, setUniverseOpen, useUniverseOpen } from "../chat/universe/universeOpen";
 import { useRenderProfile } from "../SceneRenderManager";
 
 /** Her tools at work: she steps forward to be seen working. */
@@ -186,7 +186,7 @@ export default function LeluCompanion() {
 }
 
 function Presence({ companion }: { companion: CompanionState }) {
-  const { state, openPanel } = useGenesis();
+  const { state, openPanel, minimizeModule } = useGenesis();
   const surface = useSurface();
   const activity = useLeluActivity();
   const space = useSpaceLayout();
@@ -401,13 +401,30 @@ function Presence({ companion }: { companion: CompanionState }) {
    * only when her element has measurably moved there. In a world, the world
    * presence takes movement instead.
    */
-  const latest = useRef({ box, viewport, inWorld });
-  latest.current = { box, viewport, inWorld };
+  const latest = useRef({ box, viewport, inWorld, workspaceOwnsScreen: surface.workspaceOwnsScreen, modules: state.modules });
+  latest.current = { box, viewport, inWorld, workspaceOwnsScreen: surface.workspaceOwnsScreen, modules: state.modules };
   const rootRef = useRef<HTMLDivElement | null>(null);
   useEffect(
     () =>
       AvatarCommandBus.getInstance().subscribe((command) => {
         const where = command.target?.place;
+        /*
+         * Asked to walk or turn in her world while, on a phone, the chat
+         * window owns the screen: her world is not mounted under it, so she
+         * could never act "where you can watch" (M15.3 WP04: every phone walk
+         * timed out). She steps out of the chat the way the workspace bar's
+         * "windows keep running" does: the chat window is minimized, not
+         * closed, and her reply waits in it. Only chat windows; never other
+         * work. Her world presence then takes the command from the bus.
+         */
+        if (latest.current.inWorld && where && (command.kind === "move" || command.kind === "look") && latest.current.workspaceOwnsScreen) {
+          for (const [id, m] of Object.entries(latest.current.modules)) {
+            if (id.startsWith("chat") && (m.presentation === "inline" || m.presentation === "expanded")) minimizeModule(id);
+          }
+        }
+        // And the Universe itself, as her world presence does once mounted
+        // (on a phone it is not mounted until the chat stops covering it).
+        if (latest.current.inWorld && where && (command.kind === "move" || command.kind === "look") && isUniverseOpen()) setUniverseOpen(false);
         if (latest.current.inWorld || command.kind !== "move" || !where) return;
         if (where !== "left" && where !== "right" && where !== "center" && where !== "home") return;
         const before = rootRef.current?.getBoundingClientRect();

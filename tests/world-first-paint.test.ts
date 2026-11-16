@@ -57,3 +57,11 @@ test("WP04: on a phone, her world's own panel entry does not 'own the screen' an
   const hook = readFileSync("src/app/scene/genesis/surface/useSurface.ts", "utf8");
   assert.match(hook, /\.filter\(\(\[id\]\) => id !== state\.activeScene\)/);
 });
+
+test("WP04: on a phone, a world walk steps her out of the chat (minimized, not closed) so her world can mount", () => {
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.match(companion, /latest\.current\.inWorld && where && \(command\.kind === "move" \|\| command\.kind === "look"\) && latest\.current\.workspaceOwnsScreen/);
+  assert.match(companion, /id\.startsWith\("chat"\) && \(m\.presentation === "inline" \|\| m\.presentation === "expanded"\)\) minimizeModule\(id\)/, "only chat windows, minimized");
+  assert.doesNotMatch(companion, /closeModule\(id\)/, "the conversation is never closed for her");
+  assert.match(companion, /isUniverseOpen\(\)\) setUniverseOpen\(false\)/);
+});

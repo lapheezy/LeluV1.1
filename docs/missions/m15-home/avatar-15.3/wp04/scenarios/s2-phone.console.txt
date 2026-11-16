@@ -1,0 +1,55 @@
+FAIL A world entered normally: answer declined/progress at 20010 ms; final undefined undefined m; chat-obstacle false; route null; 
+FAIL B world entered from the Chat Universe: answer declined/progress at 20002 ms; final undefined undefined m; chat-obstacle false; route null; 
+FAIL C walk asked before world loading begins: answer declined/progress at 19603 ms; final arrived 0.057 m; chat-obstacle false; route [[0.45,3.96],[-1.12,3.88],[-3.99,0.26]]; askedBeforeWorld true
+FAIL D walk asked during world initialisation: answer declined/progress at 20000 ms; final undefined undefined m; chat-obstacle false; route null; worldDataAfterCommandMs null; waitedForWorld false; movedBeforeReady false
+FAIL F world initialisation delayed: answer declined/progress at 20000 ms; final undefined undefined m; chat-obstacle false; route null; worldDataAfterCommandMs null; waitedForWorld false; movedBeforeReady false
+FAIL E walk asked immediately after world readiness: answer declined/progress at 20001 ms; final undefined undefined m; chat-obstacle false; route null; 
+FAIL G main thread blocked 3 s mid-walk: answer declined/progress at 20000 ms; final undefined undefined m; chat-obstacle false; route null; falseBlocked false
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.lsn-item[aria-label="Worlds"]')[22m
+[2m    - locator resolved to <button type="button" title="Worlds" class="lsn-item" data-active="true" aria-label="Worlds">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    9 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m      - waiting 500ms[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+
+    at enterWorld (/home/user/LeluV1.1/scripts/avatar/verify-world-first-paint.mjs:91:53)
+    at /home/user/LeluV1.1/scripts/avatar/verify-world-first-paint.mjs:271:11 {
+  log: [
+    `  - waiting for locator('.lsn-item[aria-label="Worlds"]')`,
+    '    - locator resolved to <button type="button" title="Worlds" class="lsn-item" data-active="true" aria-label="Worlds">…</button>',
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '      - waiting 100ms',
+    '    9 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '      - waiting 500ms',
+    '    - waiting for element to be visible, enabled and stable'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.4
+EXIT 1

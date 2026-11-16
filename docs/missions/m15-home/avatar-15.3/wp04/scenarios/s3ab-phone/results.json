@@ -1,0 +1,34 @@
+[
+ {
+  "scenario": "A world entered normally",
+  "issuedAtPageMs": 31661,
+  "answer": {
+   "kind": "declined/progress",
+   "ms": 20001,
+   "text": "No renderer confirmed the “walk to the studio” command within 20s."
+  },
+  "final": null,
+  "arrivedMsAfterIssue": null,
+  "H_chatWindowObstacle": false,
+  "I_route": null,
+  "J_arrived": false,
+  "L_within20s": false,
+  "ok": false
+ },
+ {
+  "scenario": "B world entered from the Chat Universe",
+  "issuedAtPageMs": 20320,
+  "answer": {
+   "kind": "declined/progress",
+   "ms": 20000,
+   "text": "No renderer confirmed the “walk to the studio” command within 20s."
+  },
+  "final": null,
+  "arrivedMsAfterIssue": null,
+  "H_chatWindowObstacle": false,
+  "I_route": null,
+  "J_arrived": false,
+  "L_within20s": false,
+  "ok": false
+ }
+]

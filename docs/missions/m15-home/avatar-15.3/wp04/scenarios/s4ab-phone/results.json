@@ -1,0 +1,84 @@
+[
+ {
+  "scenario": "A world entered normally",
+  "issuedAtPageMs": 28278,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 12920,
+   "text": "walked 4.96 m (walk to the studio); now at x -3.96, z 0.32, 7 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.058,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.965,
+    -2.55,
+    0.306
+   ]
+  },
+  "arrivedMsAfterIssue": 13758,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.45,
+    3.96
+   ],
+   [
+    -1.12,
+    3.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "ok": true
+ },
+ {
+  "scenario": "B world entered from the Chat Universe",
+  "issuedAtPageMs": 17810,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 14990,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.31, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.059,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.964,
+    -2.55,
+    0.306
+   ]
+  },
+  "arrivedMsAfterIssue": 15413,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.45,
+    3.96
+   ],
+   [
+    -1.12,
+    3.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "ok": true
+ }
+]
