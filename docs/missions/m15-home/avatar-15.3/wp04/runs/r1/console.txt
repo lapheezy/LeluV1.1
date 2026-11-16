@@ -1,0 +1,2 @@
+PASS  1 approved-model-3d model characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.…; 32 clips
+PASS  2 home-presentation home → face/embodied (home)
