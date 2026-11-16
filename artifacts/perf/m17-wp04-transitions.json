@@ -1,0 +1,242 @@
+[
+  {
+    "i": 0,
+    "enter": {
+      "cam": [
+        0.01,
+        5.99,
+        0.51
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        6,
+        0.5
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": false
+  },
+  {
+    "i": 1,
+    "enter": {
+      "cam": [
+        0,
+        6,
+        0.5
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        3.5,
+        8
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": false
+  },
+  {
+    "i": 2,
+    "enter": {
+      "cam": [
+        0,
+        3.5,
+        8
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        3.5,
+        8
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  },
+  {
+    "i": 3,
+    "enter": {
+      "cam": [
+        0,
+        1.5,
+        5
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        1.5,
+        5
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  },
+  {
+    "i": 4,
+    "enter": {
+      "cam": [
+        0,
+        1.08,
+        3.74
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        0.9,
+        3.2
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": false
+  },
+  {
+    "i": 5,
+    "enter": {
+      "cam": [
+        0,
+        0.9,
+        3.2
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        0.9,
+        3.2
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  },
+  {
+    "i": 6,
+    "enter": {
+      "cam": [
+        6,
+        2.5,
+        4
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        6,
+        2.5,
+        4
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  },
+  {
+    "i": 7,
+    "enter": {
+      "cam": [
+        0,
+        6,
+        0.5
+      ],
+      "inFrame": 2,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        6,
+        0.5
+      ],
+      "inFrame": 2,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  },
+  {
+    "i": 8,
+    "enter": {
+      "cam": [
+        0,
+        6,
+        0.5
+      ],
+      "inFrame": 2,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        0,
+        6,
+        0.5
+      ],
+      "inFrame": 0,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  },
+  {
+    "i": 9,
+    "enter": {
+      "cam": [
+        -3,
+        1.5,
+        7
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "later": {
+      "cam": [
+        -3,
+        1.5,
+        7
+      ],
+      "inFrame": 3,
+      "profile": "light",
+      "dock": false
+    },
+    "stable": true
+  }
+]

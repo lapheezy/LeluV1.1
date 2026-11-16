@@ -48,9 +48,12 @@ import {
 } from "./cameraPoseMemory";
 
 import {
+  cameraOwner,
   noteUserCameraEnd,
   noteUserCameraStart,
 } from "./cameraOwnership";
+
+import { driftHasWork, driftMayMove } from "./cameraAuthority";
 
 import {
   PLANET_CENTER,
@@ -342,13 +345,26 @@ export default function GenesisCameraController({
     const toCam = camera.position.clone().sub(PLANET_CENTER);
     const dist = toCam.length();
 
-    if (!cameraHeld.current) {
+    /*
+     * The drift is a LOCAL correction, asked of the shared authority rather
+     * than decided here. It used to run whenever nobody was holding the
+     * camera, from anywhere in the Cosmos, so a reveal that framed the
+     * objects was eased back toward the origin the moment the cinematic claim
+     * was released — the objects slid out of frame with nobody touching
+     * anything. Now it only runs near the planet it exists to serve, only when
+     * no reveal or hand owns the camera, and only while it still has work.
+     */
+    if (
+      !cameraHeld.current &&
+      driftMayMove(cameraOwner(), dist, PLANET_RADIUS + 5) &&
+      driftHasWork([controls.target.x, controls.target.y, controls.target.z])
+    ) {
       if (dist < PLANET_RADIUS + 2.5 && dist > 0.001) {
         // Entering the planet: focus the controls on the surface under us.
         const dir = toCam.clone().normalize();
         const surface = PLANET_CENTER.clone().addScaledVector(dir, PLANET_RADIUS);
         controls.target.lerp(surface, 0.06);
-      } else if (controls.target.distanceTo(PLANET_CENTER) < 4) {
+      } else {
         // Leaving the planet: gently drift the target back to the origin.
         controls.target.lerp(ORIGIN, 0.04);
       }

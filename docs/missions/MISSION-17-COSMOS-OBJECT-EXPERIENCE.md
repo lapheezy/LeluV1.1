@@ -462,3 +462,124 @@ Pointer selection was verified only up to the point the pose moved.
 Viewport screenshots: `m17-wp03-vp-844x390.png`, `m17-wp03-vp-1440x900.png`,
 `m17-wp03-portrait-framed.png`, `m17-wp03-desktop-framed.png`; measurements in
 `m17-wp03-viewports.json`.
+
+---
+
+# WP04 — CAMERA AUTHORITY, FRAMING PERSISTENCE (2026-11-16)
+
+**Status: the competing camera writes are fixed at their source and pinned by
+tests. The six-viewport visual acceptance could NOT be completed on this
+machine: its WebGL renders at 0–1 fps, so the app's own render manager drops to
+`light` and deliberately stops painting the 3D world. That is reported as a
+blocked gate, not as a pass.**
+
+## 1. Preflight
+
+Branch `freebuff/m17-coe-wp03-responsive-canvas`, HEAD `fd7971c`, whose parent is
+WP03's `d8fb056`; worktree clean. Nothing was reset or rewritten, and no object
+position was touched: the WP03 migration, provenance and hazard publication are
+untouched by this work package.
+
+## 2. Camera-write inventory
+
+| Writer | Trigger | Intended authority | What it actually did |
+| --- | --- | --- | --- |
+| `useSpatialCamera` | any `SpatialRuntime` notification while `state.transition` exists | a spatial flight owns the camera until it ends | treated an **interrupted** transition as still flying: re-applied the frozen pose on every notification (hover included) and left `controls.enabled = false`, so the view could not be changed and taps landed where the object used to be |
+| `GenesisCameraController` (drift) | every frame, whenever nobody held the camera | keep a planet descent coherent | ran **anywhere in the Cosmos**: eased the controls target to the origin from a framed view, dragging the camera with it, and kept nudging a target already at the origin |
+| `GenesisCameraController` (`flyCameraTo`, navigate events, intent bus) | a real navigation | user intent | correct, and the only writer that was |
+| `ObjectCameraBridge` (`cosmosCameraBus`) | framing / focus / home request | newest request wins | dispatched the fly but never cancelled an in-flight entry transition, so the transition's next frame or its arrival overwrote the pose |
+| `cameraOwnership` | reveal claim, pointer start/end | one claim everyone reads | was read by the drift only through an event flag, and by nobody else |
+
+## 3. Root cause
+
+Two writers each believed they owned the camera. A **framed view was undone by
+the planet drift** (which ran from anywhere) and by **an interrupted transition
+that kept publishing its frozen pose**. That is the "camera moves on its own",
+"framing does not stick" and "my tap landed where the object was" report, in one
+sentence.
+
+## 4. The contract (implemented, one module, no new manager)
+
+`src/app/scene/genesis/cameraAuthority.ts` answers, for every writer:
+
+- `spatialMayPose(transition, owner)` — only while a transition is genuinely in
+  flight, never while interrupted, never while a reveal owns the view.
+- `driftMayMove(owner, distance, nearPlanet)` — only when the camera is actually
+  near the planet the drift exists to serve, and only while nobody holds the
+  camera.
+- `driftHasWork(target)` — stop nudging a target that is already home.
+
+Order of precedence: **user > reveal (cinematic) > travelling transition >
+autonomous drift**. An older flight yields to a newer reveal; the reveal lasts
+until a user gesture or an explicit release. `useSpatialCamera` now hands
+`controls.enabled` back the moment a flight stops being a flight.
+
+`ObjectCameraBridge` interrupts any in-flight transition before it flies, so a
+reveal supercedes an entry transition instead of racing it.
+
+## 5. Files changed
+
+- `src/app/scene/genesis/cameraAuthority.ts` — **new**, the contract (pure).
+- `src/app/scene/spatial/useSpatialCamera.ts` — asks the contract; restores
+  OrbitControls; interrupted flights never pose.
+- `src/app/scene/genesis/GenesisCameraController.tsx` — the drift is local,
+  claim-aware and idempotent.
+- `src/app/scene/genesis/cosmos/CosmosObjectsLayer.tsx` — a reveal supersedes an
+  older flight.
+- `tests/camera-authority.test.ts` — **new**, 9 tests.
+
+## 6. Evidence
+
+**Framing now holds (1440×900, live):** after "Look at the Cosmos" the camera
+flew to a framed pose and stayed at exactly `(-0.8, 3.47, 1.54)` across six
+samples over 2.4 s, `cameraOwner = "cinematic"`, three of three objects
+`inFrustum`, no transition active. Before the change the same flow produced a
+different position on nearly every sample and the owner had already fallen back
+to `"autonomous"`.
+
+**Transition stress (10 enter/leave cycles = 20 transitions):** camera stable
+within each settled cycle in 7/10 cycles; 8 distinct poses across cycles; no
+transition ran on after being interrupted. The three unstable cycles show the
+fly still in progress when the second sample was taken — the dwell was
+shortened by the 1 fps frame rate below, not by a second writer (owner stayed
+`cinematic`, no transition active).
+
+## 7. Blocked gate — the machine cannot paint the world
+
+| evidence | value |
+| --- | --- |
+| GL renderer | `ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)` |
+| measured fps | 0–1 (`window.__leluRenderStats`) |
+| render profile | `light` at every viewport |
+| consequence | `paintWorld` is false → `frameloop="never"` → the 3D world is not painted |
+
+`light` is the render manager's own documented policy for a device that cannot
+hold 30 fps, and it is chosen from measured frame rate, not from a user agent.
+On this VM the measurement is 0–1 fps, so the app is behaving as designed and
+the 3D objects cannot be photographed here. Captures for all six viewports were
+taken and are stored, but they show the DOM cosmos, not the objects:
+`m17-wp04-vp-384x661.png`, `-844x390.png`, `-1440x900.png`, with
+`m17-wp04-viewports.json` recording `profile: "light"` and fps 0–1 for each.
+
+**Therefore:** O03/O04/O05/O06 visual and pointer gates are NOT VERIFIED on this
+machine, and pointer selection was not re-tested at a frame rate where "the
+object where it is drawn" means anything.
+
+## 8. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · **153 tests pass, 0 fail**
+(camera-authority 9 new, placement 19, cosmos-objects 10,
+cosmos-object-experience 11, creative-build 18, creative-kit 17,
+creation-studio-tools 9, chat-surface 31, module-layout 11,
+security-containment 18). No lint script exists. The lockfile is out of sync
+with `package.json` (paused LiveKit dependencies), so dependencies were
+reinstalled with `npm install --no-package-lock`; `package-lock.json` is
+unchanged.
+
+## 9. Remaining limitations
+
+- Visual acceptance needs a machine that renders above the 30 fps gate.
+- The interrupted-transition latch is fixed, but `resume()` still restores an
+  older flight on purpose — that is the feature, not a regression.
+- `setCapability` is evaluated once per mount from the viewport at that moment;
+  it is not re-evaluated on resize. Not changed here, and worth its own look.

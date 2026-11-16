@@ -33,6 +33,7 @@ import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore
 import type { CosmosObject, CosmosObjectState } from "../../../../core/cosmos/objects/CosmosObjectTypes";
 import { cosmosCameraBus, poseFor, objectBounds, type CameraPose } from "../../../../core/cosmos/objects/CosmosObjectCamera";
 import { claimCinematicCamera, releaseCinematicCamera } from "../cameraOwnership";
+import SpatialRuntime from "../../spatial/SpatialRuntime";
 
 /** Enough of a draw-call budget per object, and no more. */
 const MAX_MESHES_PER_OBJECT = 160;
@@ -331,6 +332,15 @@ function ObjectCameraBridge() {
       // pulls the controls target back to the origin every frame, and the
       // user takes it back the moment they drag.
       claimCinematicCamera();
+      /*
+       * A reveal supersedes an older flight. If the Cosmos is still travelling
+       * (an entry transition, say), it keeps its transition for `resume()` but
+       * stops posing the camera — otherwise its next frame, or its arrival,
+       * overwrites the pose that was just requested and the objects leave the
+       * frame. Newest request wins; the interrupted one is still resumable.
+       */
+      const spatial = SpatialRuntime.getInstance();
+      if (spatial.getState().transition) spatial.interrupt();
       window.dispatchEvent(new CustomEvent("cosmos-navigate", { detail: { pos: { x: pose.position[0], y: pose.position[1], z: pose.position[2] }, lookAt: { x: pose.lookAt[0], y: pose.lookAt[1], z: pose.lookAt[2] } } }));
       /*
        * The Cosmos navigator animates the fly. When something else is holding
