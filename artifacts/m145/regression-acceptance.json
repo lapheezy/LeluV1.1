@@ -37,7 +37,8 @@
   },
   "build": {
     "status": "PASS",
-    "seconds": 7.83
+    "secondsFirstRun": 7.83,
+    "secondsFinalRerun": 12.98
   },
   "gitDiffCheck": "PASS",
   "m143Offline": "PASS",
