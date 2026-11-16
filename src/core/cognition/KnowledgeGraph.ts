@@ -12,10 +12,11 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { noteContinuityChange } from "../sync/ContinuitySignals";
 
 export const KNOWLEDGE_GRAPH_STORAGE_KEY = "lelu.cognition.knowledge.v1";
 
-interface PersistedKnowledgeGraph {
+export interface PersistedKnowledgeGraphEnvelope {
   version: 1;
   provenance: "local";
   revision: number;
@@ -64,6 +65,8 @@ export interface KnowledgeEdge {
 
 export default class KnowledgeGraph {
 
+  /** Live graphs follow a reconciled envelope without a second store. */
+  private static readonly liveInstances = new Set<KnowledgeGraph>();
 
   private readonly nodes =
     new Map<string, KnowledgeNode>();
@@ -83,6 +86,7 @@ export default class KnowledgeGraph {
 
   constructor() {
     this.hydrate();
+    KnowledgeGraph.liveInstances.add(this);
   }
 
 
@@ -90,9 +94,15 @@ export default class KnowledgeGraph {
   private hydrate():
     void {
 
-    const stored = this.storage.get<Partial<PersistedKnowledgeGraph>>(KNOWLEDGE_GRAPH_STORAGE_KEY);
-    if (!stored || !Array.isArray(stored.nodes) || !Array.isArray(stored.edges)) return;
+    const stored = this.storage.get<Partial<PersistedKnowledgeGraphEnvelope>>(KNOWLEDGE_GRAPH_STORAGE_KEY);
+    if (!stored) return;
+    this.hydrateEnvelope(stored);
+  }
 
+  private hydrateEnvelope(stored: Partial<PersistedKnowledgeGraphEnvelope>): void {
+    if (!Array.isArray(stored.nodes) || !Array.isArray(stored.edges)) return;
+    this.nodes.clear();
+    this.edges.clear();
     for (const node of stored.nodes) {
       if (typeof node?.id === "string") this.nodes.set(node.id, node);
     }
@@ -109,18 +119,73 @@ export default class KnowledgeGraph {
     void {
 
     this.revision += 1;
+    const envelope = {
+      version: 1,
+      provenance: "local",
+      revision: this.revision,
+      updatedAt: Date.now(),
+      nodes: [...this.nodes.values()],
+      edges: [...this.edges.values()],
+    } satisfies PersistedKnowledgeGraphEnvelope;
     try {
-      this.storage.set(KNOWLEDGE_GRAPH_STORAGE_KEY, {
-        version: 1,
-        provenance: "local",
-        revision: this.revision,
-        updatedAt: Date.now(),
-        nodes: [...this.nodes.values()],
-        edges: [...this.edges.values()],
-      } satisfies PersistedKnowledgeGraph);
+      this.storage.set(KNOWLEDGE_GRAPH_STORAGE_KEY, envelope);
     } catch {
       // A local write failure must not take cognition down. The in-memory
       // graph remains authoritative for this session.
+    }
+    noteContinuityChange("knowledgeGraph", "local", [{
+      id: "graph",
+      updatedAt: envelope.updatedAt,
+      data: envelope,
+    }]);
+  }
+
+  /** Read the persisted graph without creating a second live instance. */
+  public static readPersistedEnvelope(): PersistedKnowledgeGraphEnvelope | null {
+    try {
+      const stored = KvStore.getInstance().get<Partial<PersistedKnowledgeGraphEnvelope>>(KNOWLEDGE_GRAPH_STORAGE_KEY);
+      if (!stored || !Array.isArray(stored.nodes) || !Array.isArray(stored.edges)) return null;
+      return {
+        version: 1,
+        provenance: "local",
+        revision: typeof stored.revision === "number" ? stored.revision : 0,
+        updatedAt: typeof stored.updatedAt === "number" ? stored.updatedAt : 0,
+        nodes: stored.nodes,
+        edges: stored.edges,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Apply a reconciled envelope. Existing instances keep their in-memory
+   * graph for the current session; the next instance hydrates this value.
+   * No node or edge is duplicated because both are keyed by identity.
+   */
+  public static applyPersistedEnvelope(envelope: PersistedKnowledgeGraphEnvelope): void {
+    if (!envelope || !Array.isArray(envelope.nodes) || !Array.isArray(envelope.edges)) return;
+    try {
+      KvStore.getInstance().set(KNOWLEDGE_GRAPH_STORAGE_KEY, {
+        version: 1,
+        provenance: "local",
+        revision: Math.max(0, envelope.revision),
+        updatedAt: envelope.updatedAt,
+        nodes: envelope.nodes,
+        edges: envelope.edges,
+      } satisfies PersistedKnowledgeGraphEnvelope);
+      // Existing CognitiveCore instances must see the reconciled graph in
+      // this session, not only after a reload.
+      for (const instance of KnowledgeGraph.liveInstances) {
+        instance.hydrateEnvelope(envelope);
+      }
+      noteContinuityChange("knowledgeGraph", "remote", [{
+        id: "graph",
+        updatedAt: envelope.updatedAt,
+        data: envelope,
+      }]);
+    } catch {
+      // best-effort, as with the authority's own local write
     }
   }
 

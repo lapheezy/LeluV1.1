@@ -18,6 +18,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { noteContinuityChange } from "../sync/ContinuitySignals";
 import type { ChatActivity } from "./TurnActivity";
 
 export interface ChatMessage {
@@ -206,12 +207,26 @@ export default class MultiChatStore {
    * the serialisation is deferred, and only by COALESCE_MS, so a burst
    * of streamed deltas costs one write instead of one per token.
    */
-  private persist(conversations: ChatConversation[], activeId?: string): void {
+  private persist(
+    conversations: ChatConversation[],
+    activeId?: string,
+    origin: "local" | "remote" = "local",
+    applied: ChatConversation[] = conversations,
+  ): void {
     this.cache = conversations;
     if (activeId !== undefined) this.activeId = activeId;
     this.dirty = true;
     this.scheduleWrite();
     this.notify();
+    noteContinuityChange(
+      "conversations",
+      origin,
+      applied.map((conversation) => ({
+        id: conversation.id,
+        updatedAt: conversation.updatedAt,
+        data: conversation,
+      })),
+    );
   }
 
   /**
@@ -327,15 +342,29 @@ export default class MultiChatStore {
 
   /** Merge remote conversations and retain the local active chat. */
   public mergeRemote(conversations: ChatConversation[]): void {
-    const local = this.list();
+    const local = this.listAll();
     const byId = new Map(local.map((conversation) => [conversation.id, conversation]));
+    const applied: ChatConversation[] = [];
     for (const remote of conversations) {
       const current = byId.get(remote.id);
       if (!current || remote.updatedAt > current.updatedAt) {
         byId.set(remote.id, remote);
+        applied.push(remote);
       }
     }
-    this.persist([...byId.values()]);
+    this.persist([...byId.values()], undefined, "remote", applied);
+  }
+
+  /** Apply one reconciled conversation, including an explicitly forced choice. */
+  public applyRemote(conversation: ChatConversation, options: { force?: boolean } = {}): void {
+    const local = this.listAll();
+    const current = local.find((item) => item.id === conversation.id);
+    if (!current || options.force || conversation.updatedAt > current.updatedAt) {
+      const next = current
+        ? local.map((item) => item.id === conversation.id ? conversation : item)
+        : [conversation, ...local];
+      this.persist(next, undefined, "remote", [conversation]);
+    }
   }
 
   public get(id: string): ChatConversation | undefined {
@@ -473,7 +502,7 @@ export default class MultiChatStore {
     if (id !== this.activeId) {
       conversation.unread += 1;
     }
-    this.persist(conversations);
+    this.persist(conversations, undefined, "local", [conversation]);
   }
 
   /**
@@ -503,7 +532,7 @@ export default class MultiChatStore {
       conversation.topic = this.detectTopic(message.text);
       conversation.title = this.deriveTitle(conversation, message.text);
     }
-    this.persist(conversations);
+    this.persist(conversations, undefined, "local", [conversation]);
   }
 
   public clear(id: string): void {
@@ -515,7 +544,7 @@ export default class MultiChatStore {
     conversation.messages = [];
     conversation.topic = "";
     conversation.updatedAt = Date.now();
-    this.persist(conversations);
+    this.persist(conversations, undefined, "local", [conversation]);
   }
 
   public rename(id: string, title: string): void {
@@ -526,7 +555,7 @@ export default class MultiChatStore {
     }
     conversation.title = title.trim() || DEFAULT_TITLE;
     conversation.updatedAt = Date.now();
-    this.persist(conversations);
+    this.persist(conversations, undefined, "local", [conversation]);
   }
 
   public remove(id: string): string {

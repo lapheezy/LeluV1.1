@@ -13,6 +13,7 @@
 
 import KvStore from "../storage/KvStore";
 import AgentEventBus from "../agent/AgentEvents";
+import { noteContinuityChange } from "../sync/ContinuitySignals";
 
 export type ProjectItemKind =
   | "conversation"
@@ -139,13 +140,30 @@ export default class ProjectStore {
   public mergeRemote(projects: LeluProject[]): void {
     const local = this.list();
     const byId = new Map(local.map((project) => [project.id, project]));
+    const applied: LeluProject[] = [];
     for (const remote of projects) {
       const current = byId.get(remote.id);
       if (!current || remote.updatedAt > current.updatedAt) {
         byId.set(remote.id, remote);
+        applied.push(remote);
       }
     }
-    this.persist([...byId.values()]);
+    this.persist([...byId.values()], "remote", applied);
+  }
+
+  /**
+   * Apply one reconciled record. `force` is used only after an explicit
+   * conflict resolution; it still goes through this store's write path.
+   */
+  public applyRemote(project: LeluProject, options: { force?: boolean } = {}): void {
+    const local = this.list();
+    const current = local.find((item) => item.id === project.id);
+    if (!current || options.force || project.updatedAt > current.updatedAt) {
+      const next = current
+        ? local.map((item) => item.id === project.id ? project : item)
+        : [project, ...local];
+      this.persist(next, "remote", [project]);
+    }
   }
 
   public subscribe(listener: ProjectListener): () => void {
@@ -165,9 +183,18 @@ export default class ProjectStore {
     }
   }
 
-  private persist(projects: LeluProject[]): void {
+  private persist(
+    projects: LeluProject[],
+    origin: "local" | "remote" = "local",
+    applied: LeluProject[] = projects,
+  ): void {
     this.kv.set(ProjectStore.KEY, projects);
     this.notify();
+    noteContinuityChange(
+      "projects",
+      origin,
+      applied.map((project) => ({ id: project.id, updatedAt: project.updatedAt, data: project })),
+    );
   }
 
   private mutate(mutator: (projects: LeluProject[]) => LeluProject[]): void {

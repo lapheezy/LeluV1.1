@@ -35,6 +35,7 @@ import MissionLedgerStore, {
   type MissionSyncSummary,
 } from "../projects/MissionLedger";
 import MissionSyncGate from "../projects/MissionSyncGate";
+import ContinuityEngine from "../sync/ContinuityEngine";
 
 export type PersistenceMode =
   | "local"
@@ -335,7 +336,24 @@ export default class PersistenceStateStore {
       // Keep the status surface alive; the ledger remains the owner of its
       // own recovery and write-failure reporting.
     }
-    return describe(status, online(), missions, MissionSyncGate.getInstance().available());
+    const snapshot = describe(status, online(), missions, MissionSyncGate.getInstance().available());
+    try {
+      const continuity = ContinuityEngine.getInstance().status();
+      const detail = continuity.pending > 0 || continuity.conflicts > 0
+        ? `${snapshot.detail} Continuity: ${continuity.pending} pending, ${continuity.conflicts} conflict(s).`
+        : snapshot.detail;
+      if (continuity.conflicts > 0) {
+        return {
+          ...snapshot,
+          mode: "degraded",
+          label: "Conflict",
+          detail: `${detail} Resolve the conflict before this record is considered synchronized.`,
+        };
+      }
+      return { ...snapshot, detail };
+    } catch {
+      return snapshot;
+    }
   }
 
   /**

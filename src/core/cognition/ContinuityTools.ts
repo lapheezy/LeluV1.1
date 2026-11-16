@@ -31,6 +31,8 @@ import MissionLedgerStore, {
 } from "../projects/MissionLedger.ts";
 import { BrokerHealthStore } from "../model/ProviderHealth.ts";
 import type { MissionEvidence } from "../operational-intelligence/evidence.ts";
+import ContinuityEngine from "../sync/ContinuityEngine.ts";
+import type { ContinuityConflictResolution } from "../sync/ContinuityTypes.ts";
 
 const EVIDENCE_STATES: MissionEvidence[] = [
   "VERIFIED",
@@ -137,6 +139,27 @@ export const CONTINUITY_TOOLS: ToolDefinition[] = [
         evidence: { type: "string", enum: EVIDENCE_STATES },
       },
       required: ["id", "action"],
+    },
+  ),
+  definition(
+    "continuity.status",
+    "Read Synchronization Status",
+    "Read the real local-first continuity state: pending outbox operations, confirmed cloud revisions, authentication/retry state and every unresolved conflict. A local-only result is normal; a `synced` result means a transport acknowledged that exact local revision.",
+    0,
+    { type: "object", properties: {} },
+  ),
+  definition(
+    "continuity.resolve",
+    "Resolve a Sync Conflict",
+    "Resolve one visible continuity conflict. keep_local uploads the preserved local revision conditionally; keep_cloud restores the cloud revision; merge is accepted only where the authority has a safe merge (append-only messages and additive Cosmos rooms). The original versions remain in the conflict record.",
+    1,
+    {
+      type: "object",
+      properties: {
+        conflictId: { type: "string", description: "Exact conflict id from continuity.status." },
+        resolution: { type: "string", enum: ["keep_local", "keep_cloud", "merge"] },
+      },
+      required: ["conflictId", "resolution"],
     },
   ),
   definition(
@@ -450,6 +473,54 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
           sync: mission.sync ?? "local",
         },
       };
+    },
+  },
+
+  {
+    id: "continuity.status",
+    parameters: { type: "object", properties: {} },
+    run: async (): Promise<ToolExecutionResult> => {
+      const engine = ContinuityEngine.getInstance();
+      const status = engine.status();
+      const conflicts = engine.conflicts();
+      const lines = [
+        `Continuity: ${status.pending} pending, ${status.conflicts} conflict(s), ${status.failed} failed.`,
+        status.lastError ? `Last error: ${status.lastError}` : "No continuity error recorded.",
+        ...status.authorities.map((authority) =>
+          `${authority.authority}: ${authority.state}; local=${authority.local}, pending=${authority.pending}, synced=${authority.synced}, conflicts=${authority.conflicts}`),
+        ...conflicts.map((conflict) =>
+          `CONFLICT ${conflict.id} (${conflict.authority}/${conflict.recordId}, local r${conflict.localRevision}, cloud ${conflict.cloudRevision ?? "none"}): ${conflict.reason}`),
+      ];
+      return {
+        ok: true,
+        content: lines.join("\n"),
+        data: { status, conflicts },
+      };
+    },
+  },
+
+  {
+    id: "continuity.resolve",
+    parameters: {
+      type: "object",
+      properties: {
+        conflictId: { type: "string" },
+        resolution: { type: "string", enum: ["keep_local", "keep_cloud", "merge"] },
+      },
+      required: ["conflictId", "resolution"],
+    },
+    run: async (args): Promise<ToolExecutionResult> => {
+      const engine = ContinuityEngine.getInstance();
+      const id = str(args, "conflictId");
+      const resolution = str(args, "resolution") as ContinuityConflictResolution;
+      if (!id) return { ok: false, content: "continuity_resolve needs the exact conflict id." };
+      if (!["keep_local", "keep_cloud", "merge"].includes(resolution)) {
+        return { ok: false, content: "resolution must be keep_local, keep_cloud or merge." };
+      }
+      const result = engine.resolveConflict(engine.conflicts(true), id, resolution);
+      if (!result.ok) return { ok: false, content: result.detail };
+      if (resolution !== "keep_cloud") void engine.processOutbox();
+      return { ok: true, content: result.detail, data: result.conflict };
     },
   },
 

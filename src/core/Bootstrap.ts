@@ -45,6 +45,8 @@ import { registerAtelierTools } from "./atelier/AtelierTools";
 import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
 import { registerContinuityTools } from "./cognition/ContinuityTools";
+import ContinuityEngine from "./sync/ContinuityEngine";
+import SupabaseContinuityTransport from "./sync/SupabaseContinuityTransport";
 import CognitivePulseStore from "./cognition/CognitivePulse";
 import { BrokerHealthStore } from "./model/ProviderHealth";
 import TaskExecutor from "./agentic/TaskExecutor";
@@ -229,6 +231,15 @@ export default class Bootstrap {
       const continuity = registerContinuityTools();
       if (continuity.failed.length > 0) {
         console.warn("[Bootstrap] Continuity tools not registered:", continuity.failed);
+      }
+      // Local-first continuity: observe the existing authorities, keep a
+      // durable outbox and only upload when an authenticated cloud session
+      // exists. Starting here is safe with Supabase disabled — local writes
+      // remain immediate and the outbox simply waits.
+      const syncEngine = ContinuityEngine.getInstance();
+      syncEngine.start({ transport: new SupabaseContinuityTransport(), autoProcess: false });
+      if (SupabasePersistence.getInstance().isConnected()) {
+        void syncEngine.synchronize();
       }
       // Event-driven awareness. Subscribes once to the existing AgentEventBus;
       // no timer, no polling, no second bus. Idempotent across re-bootstrap.

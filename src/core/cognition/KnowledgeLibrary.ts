@@ -16,6 +16,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { noteContinuityChange } from "../sync/ContinuitySignals";
 
 export type KnowledgeStatus =
   | "known"
@@ -134,7 +135,10 @@ export default class KnowledgeLibrary {
     return KnowledgeLibrary.instance;
   }
 
-  private persist(): void {
+  private persist(
+    origin: "local" | "remote" = "local",
+    applied: KnowledgeEntry[] = this.entries,
+  ): void {
     try {
       KvStore.getInstance().set(KEY, this.entries);
     } catch {
@@ -143,6 +147,11 @@ export default class KnowledgeLibrary {
     for (const listener of this.listeners) {
       try { listener(this.list()); } catch { /* contained */ }
     }
+    noteContinuityChange(
+      "knowledge",
+      origin,
+      applied.map((entry) => ({ id: entry.id, updatedAt: entry.updatedAt, data: entry })),
+    );
   }
 
   public subscribe(listener: (entries: KnowledgeEntry[]) => void): () => void {
@@ -165,18 +174,30 @@ export default class KnowledgeLibrary {
 
   /** Merge cloud knowledge without replacing newer local entries. */
   public mergeRemote(entries: KnowledgeEntry[]): void {
-    let changed = false;
     const byId = new Map(this.entries.map((entry) => [entry.id, entry]));
+    const applied: KnowledgeEntry[] = [];
     for (const remote of entries) {
       const current = byId.get(remote.id);
       if (!current || remote.updatedAt > current.updatedAt) {
         byId.set(remote.id, remote);
-        changed = true;
+        applied.push(remote);
       }
     }
-    if (changed) {
+    if (applied.length > 0) {
       this.entries = [...byId.values()];
-      this.persist();
+      this.persist("remote", applied);
+    }
+  }
+
+  /** Apply one reconciled entry, including an explicitly forced choice. */
+  public applyRemote(entry: KnowledgeEntry, options: { force?: boolean } = {}): void {
+    const current = this.entries.find((item) => item.id === entry.id);
+    if (!current || options.force || entry.updatedAt > current.updatedAt) {
+      const next = current
+        ? this.entries.map((item) => item.id === entry.id ? entry : item)
+        : [entry, ...this.entries];
+      this.entries = next;
+      this.persist("remote", [entry]);
     }
   }
 
