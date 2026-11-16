@@ -65,3 +65,10 @@ test("WP04: on a phone, a world walk steps her out of the chat (minimized, not c
   assert.doesNotMatch(companion, /closeModule\(id\)/, "the conversation is never closed for her");
   assert.match(companion, /isUniverseOpen\(\)\) setUniverseOpen\(false\)/);
 });
+
+test("WP04: on a phone the way out of her world is not under the GENESIS V2 pill", () => {
+  const lab = readFileSync("src/app/scene/genesis/GenesisLab.tsx", "utf8");
+  // The pill sits at +78px bottom-right; the mobile bar must clear it.
+  assert.match(lab, /bottom: mobile \? "calc\(env\(safe-area-inset-bottom, 0px\) \+ 78px\)" : 14/);
+  assert.match(lab, /bottom: "calc\(env\(safe-area-inset-bottom, 0px\) \+ 130px\)"/);
+});
