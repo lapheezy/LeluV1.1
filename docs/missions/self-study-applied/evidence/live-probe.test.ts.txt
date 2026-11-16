@@ -1,0 +1,40 @@
+import test from "node:test";
+if (typeof globalThis.window === "undefined") (globalThis as any).window = globalThis;
+if (typeof (globalThis as any).location === "undefined") (globalThis as any).location = new URL("http://localhost:5173/");
+if (typeof localStorage === "undefined") {
+  const s: Record<string,string> = {};
+  (globalThis as any).localStorage = { getItem:(k:string)=>s[k]??null, setItem:(k:string,v:string)=>{s[k]=v}, removeItem:(k:string)=>{delete s[k]}, clear:()=>{for(const k of Object.keys(s)) delete s[k]}, get length(){return Object.keys(s).length}, key:(i:number)=>Object.keys(s)[i]??null };
+}
+import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
+import StudyObjectives from "../src/core/cognition/StudyObjectives";
+import ImprovementQueue from "../src/core/selfdev/ImprovementQueue";
+import AIService from "../src/core/AIService";
+import UsageLedger from "../src/core/observability/UsageLedger";
+import { formatSelfStudyState } from "../src/core/cognition/CognitiveContext";
+import { stopBackgroundCognition } from "./support/isolation";
+import { writeFileSync } from "node:fs";
+
+test("live probe", { timeout: 900_000 }, async () => {
+  await stopBackgroundCognition();
+  const ai = AIService.getInstance() as any;
+  const real = ai.reason.bind(ai);
+  const calls: any[] = [];
+  ai.reason = async (prompt: string, options: any) => { const r = await real(prompt, options); calls.push({ operation: options?.operation, provider: r.provider, ok: r.metadata?.success !== false && r.provider !== "offline", text: r.text?.slice(0, 1200) }); return r; };
+  const engine = SelfStudyEngine.getInstance();
+  const rows: any[] = [];
+  for (let i = 0; i < 40; i++) {
+    const r = await engine.runCycle();
+    rows.push({ c: r.cycle, q: r.objective?.question, origin: r.objective?.origin, tool: r.tool, verdict: r.conclusion?.verdict, by: r.conclusion?.synthesizedBy, proposalId: r.conclusion?.proposalId, held: !!r.conclusion?.held, note: r.conclusion?.note });
+  }
+  const out = {
+    cycles: 40,
+    modelCalls: calls.length,
+    calls,
+    ledgerSelfStudy: UsageLedger.getInstance().allEvents().filter((e) => e.operation === "self-study").map((e) => ({ source: e.source, ok: e.ok, model: e.model, inputTokens: e.inputTokens, outputTokens: e.outputTokens, error: e.error?.slice(0, 160) })),
+    conclusions: StudyObjectives.getInstance().conclusions().map((o) => o.conclusion),
+    selfStudyProposals: ImprovementQueue.getInstance().list().filter((p) => p.origin?.kind === "self-study"),
+    chatContext: formatSelfStudyState(engine.getCognitiveState()),
+    rows,
+  };
+  writeFileSync(process.env.OUT!, JSON.stringify(out, null, 2));
+});

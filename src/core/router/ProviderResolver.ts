@@ -712,7 +712,7 @@ export default class ProviderResolver {
       return gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
         messages: fitted.messages,
-      });
+      }, context.request.operation);
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -736,7 +736,7 @@ export default class ProviderResolver {
       ...this.withRungSignal(context.request, rungSignal),
       messages,
       tools,
-    });
+    }, context.request.operation);
     // A round that came back is proof the rung is alive.
     onProgress?.();
     let promptMaterialized = false;
@@ -924,7 +924,7 @@ export default class ProviderResolver {
         context: continuationContext(context.request.context),
         messages: refitted.messages,
         ...(refitted.tools.length ? { tools: refitted.tools } : {}),
-      });
+      }, context.request.operation, { continuation: true });
       onProgress?.();
 
       if (stopReason) break;

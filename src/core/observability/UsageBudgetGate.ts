@@ -30,7 +30,56 @@
  * ==========================================================
  */
 
-import UsageLedger, { ALL_SOURCES, type PendingUsage, type UsageEvent, type UsageKind } from "./UsageLedger";
+import UsageLedger, {
+  ALL_SOURCES,
+  BACKGROUND_BUDGET_SOURCE,
+  BACKGROUND_PRIORITY,
+  purposeOf,
+  isBackgroundPurpose,
+  nextUtcMidnight,
+  type PendingUsage,
+  type UsageEvent,
+  type UsageKind,
+} from "./UsageLedger";
+
+/**
+ * A provider refusal that means "spent for the day", not "slow down": a 429
+ * naming a per-day / daily / TPD / RPD limit.
+ */
+export function isDailyLimitRefusal(message: string): boolean {
+  return /\b429\b|rate.?limit|too many requests/i.test(message) &&
+    /per[\s-]?day|daily|\bTPD\b|\bRPD\b|tokens per day|requests per day|-per-day/i.test(message);
+}
+
+/** Where background model use stands right now — the gate's own view, for the UI and tests. */
+export interface BackgroundAllowance {
+  cap: number;
+  ownerSet: boolean;
+  usedToday: number;
+  inFlight: number;
+  remaining: number;
+  paused: { until: number; reason: string } | null;
+  /** Earliest time the next background call may be sent (now when it may go now). */
+  nextAllowedAt: number;
+  /** Why it may not go now, when it may not. */
+  blockedBy: "paused" | "cap" | "pacing" | null;
+  /** When the current call became available (pacing passed). */
+  slotOpenedAt: number;
+  /** True while the allowance is scarce enough to be paced and rationed by priority. */
+  rationed: boolean;
+}
+
+/**
+ * A purpose that asked for a background call within this window still has a
+ * claim: lower-priority work may not take an available call ahead of it.
+ */
+const DEMAND_WINDOW_MS = 30 * 60_000;
+/**
+ * Rationing (pacing and priority) is for a SCARCE allowance. When the owner
+ * has granted enough that calls would be spaced less than this apart, only
+ * the cap itself applies.
+ */
+const RATION_MIN_SPACING_MS = 60_000;
 
 export interface RemoteReserveResult {
   allowed: boolean;
@@ -68,6 +117,9 @@ export interface Reservation {
   tokens: number;
   accountChecked: boolean;
   warnings: string[];
+  /** The purpose label; background reservations count against the background cap. */
+  operation?: string;
+  reservedAt?: number;
 }
 
 type Settlement = Omit<UsageEvent, "id" | "userId" | "at" | "kind" | "source" | "inputTokens" | "outputTokens" | "cachedInputTokens" | "reasoningTokens" | "costUsd" | "costKind"> & { usage?: unknown };
@@ -123,8 +175,120 @@ export default class UsageBudgetGate {
     return this.inFlight.size;
   }
 
-  async reserve(kind: UsageKind, source: string, options: { reserveTokens?: number } = {}): Promise<Reservation> {
+  private now: () => number = () => Date.now();
+  /** When each background purpose last wanted a model call (sent or not). */
+  private readonly demand = new Map<string, number>();
+
+  /**
+   * Record that a background purpose wanted a model call. Callers that check
+   * the allowance and step back on their own call this, so their need still
+   * counts when the next call becomes available.
+   */
+  noteDemand(operation: string): void {
+    if (isBackgroundPurpose(operation)) this.demand.set(purposeOf(operation), this.now());
+  }
+
+  /** Tests only: a controllable clock for pacing and day boundaries. */
+  setClock(now: () => number): void {
+    this.now = now;
+  }
+
+  /**
+   * Background model use: the owner's daily cap, a pause after any provider
+   * reports its daily quota spent, and PACING — the remaining calls are spread
+   * over what is left of the UTC day, so a small allowance is not spent in the
+   * first minutes. Conversation is never subject to any of this.
+   */
+  backgroundAllowance(): BackgroundAllowance {
+    const now = this.now();
+    const cap = this.ledger.backgroundDailyCap();
+    const usedToday = this.ledger.backgroundCallsToday();
+    const background = [...this.inFlight.values()].filter((r) => r.kind === "ai" && isBackgroundPurpose(r.operation));
+    const inFlight = background.length;
+    const remaining = Math.max(0, cap - usedToday - inFlight);
+    const paused = this.ledger.backgroundPaused();
+    const midnight = nextUtcMidnight(now);
+
+    if (paused) {
+      return { cap, ownerSet: this.ledger.backgroundCapIsOwnerSet(), usedToday, inFlight, remaining, paused, nextAllowedAt: paused.until, blockedBy: "paused", slotOpenedAt: paused.until, rationed: true };
+    }
+    if (remaining <= 0) {
+      return { cap, ownerSet: this.ledger.backgroundCapIsOwnerSet(), usedToday, inFlight, remaining, paused: null, nextAllowedAt: midnight, blockedBy: "cap", slotOpenedAt: midnight, rationed: true };
+    }
+    // Pace from the last background call made TODAY: the remaining calls,
+    // plus the gap after the last of them, share what is left of the day,
+    // so every one of them fits before midnight. A new day starts unpaced.
+    const dayStart = midnight - 86_400_000;
+    const last = Math.max(this.ledger.lastBackgroundCall() ?? 0, ...background.map((r) => r.reservedAt ?? 0));
+    const spacing = last >= dayStart ? (midnight - last) / (remaining + 1) : 0;
+    const rationed = (midnight - Math.max(last, dayStart)) / (remaining + 1) >= RATION_MIN_SPACING_MS;
+    const nextAllowedAt = rationed && last >= dayStart ? last + spacing : now;
+    const slotOpenedAt = last >= dayStart ? nextAllowedAt : dayStart;
+    return {
+      slotOpenedAt,
+      rationed,
+      cap,
+      ownerSet: this.ledger.backgroundCapIsOwnerSet(),
+      usedToday,
+      inFlight,
+      remaining,
+      paused: null,
+      nextAllowedAt: Math.max(now, nextAllowedAt),
+      blockedBy: nextAllowedAt > now ? "pacing" : null,
+    };
+  }
+
+  private checkBackground(operation: string | undefined, continuation: boolean): void {
+    this.noteDemand(operation ?? "");
+    const allowance = this.backgroundAllowance();
+    const at = new Date(allowance.nextAllowedAt).toISOString();
+    if (allowance.blockedBy === "paused") {
+      throw new BudgetExhaustedError("ai", BACKGROUND_BUDGET_SOURCE, `Background model use is paused until ${at}: ${allowance.paused?.reason}. Conversation is not affected.`, "device");
+    }
+    if (allowance.blockedBy === "cap") {
+      throw new BudgetExhaustedError(
+        "ai",
+        BACKGROUND_BUDGET_SOURCE,
+        `Background budget used: ${allowance.usedToday + allowance.inFlight}/${allowance.cap} calls today. It resets at ${at}; only the owner can raise it (Settings → Usage & budgets).`,
+        "device",
+      );
+    }
+    // A later round of a tool loop that already started is not re-paced:
+    // stopping it half-way would discard work its first round did.
+    if (allowance.blockedBy === "pacing" && !continuation) {
+      throw new BudgetExhaustedError(
+        "ai",
+        BACKGROUND_BUDGET_SOURCE,
+        `Pacing the background budget (${allowance.remaining} of ${allowance.cap} left today): the next background call may go at ${at}.`,
+        "device",
+      );
+    }
+    // PRIORITY. An available call goes to the most important work that still
+    // wants one (asked within DEMAND_WINDOW_MS). Lower-priority work gets a
+    // call only when nothing more important is waiting for it.
+    if (!continuation && allowance.rationed) {
+      const now = this.now();
+      const mine = BACKGROUND_PRIORITY[purposeOf(operation)] ?? 0;
+      const waiting = [...this.demand.entries()]
+        .filter(([purpose, at]) => (BACKGROUND_PRIORITY[purpose] ?? 0) > mine && now - at <= DEMAND_WINDOW_MS)
+        .sort((a, b) => (BACKGROUND_PRIORITY[b[0]] ?? 0) - (BACKGROUND_PRIORITY[a[0]] ?? 0));
+      if (waiting.length > 0) {
+        const releasedAt = waiting[0][1] + DEMAND_WINDOW_MS;
+        throw new BudgetExhaustedError(
+          "ai",
+          BACKGROUND_BUDGET_SOURCE,
+          `This background call is held for ${waiting[0][0]}, which has higher priority and still wants one; ${purposeOf(operation)} may use it if ${waiting[0][0]} has not asked again by ${new Date(releasedAt).toISOString()}.`,
+          "device",
+        );
+      }
+    }
+  }
+
+  async reserve(kind: UsageKind, source: string, options: { reserveTokens?: number; operation?: string; continuation?: boolean } = {}): Promise<Reservation> {
     const tokens = Math.max(0, Math.floor(options.reserveTokens ?? 0));
+    // Background work is checked against its own allowance FIRST, before any
+    // provider or account budget: it must never take what conversation needs.
+    if (kind === "ai" && isBackgroundPurpose(options.operation)) this.checkBackground(options.operation, Boolean(options.continuation));
     if (this.remoteFactory() && !(await this.accountReady())) {
       throw new BudgetExhaustedError(
         kind,
@@ -144,6 +308,7 @@ export default class UsageBudgetGate {
     // device already counts it.
     const reservation: Reservation = {
       id: newId(), kind, source, tokens, accountChecked: false, userId: this.ledger.getUser(),
+      ...(options.operation ? { operation: options.operation } : {}), reservedAt: this.now(),
       warnings: [own.warning, all.warning].filter((w): w is string => Boolean(w)),
     };
     this.inFlight.set(reservation.id, reservation);
@@ -188,6 +353,12 @@ export default class UsageBudgetGate {
   async settle(reservation: Reservation, outcome: Settlement): Promise<UsageEvent> {
     const event = this.ledger.record({ ...outcome, id: reservation.id, kind: reservation.kind, source: reservation.source, userId: reservation.userId });
     this.inFlight.delete(reservation.id);
+    // A provider saying its quota is spent FOR THE DAY — on any call, chat
+    // included — stops background model use until the next UTC day, so what
+    // remains on the other providers is kept for conversation.
+    if (reservation.kind === "ai" && !event.ok && event.error && isDailyLimitRefusal(event.error)) {
+      this.ledger.pauseBackground(nextUtcMidnight(this.now()), `${reservation.source} reported its daily limit`);
+    }
     const remote = reservation.accountChecked ? this.remoteFactory() : null;
     if (remote) {
       try {
@@ -244,12 +415,17 @@ export async function gatedGenerate<R extends { model?: string; metadata?: { usa
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   request: any,
   operation = "generate",
+  options: { continuation?: boolean } = {},
 ): Promise<R> {
   const gate = UsageBudgetGate.getInstance();
   const declared = Number((request as { maxTokens?: unknown })?.maxTokens);
   // Reserve the output ceiling the request itself declares, when it declares
   // one; otherwise nothing is guessed — the token cap applies to reported use.
-  const reservation = await gate.reserve("ai", provider.name, { reserveTokens: Number.isFinite(declared) && declared > 0 ? declared : 0 });
+  const reservation = await gate.reserve("ai", provider.name, {
+    reserveTokens: Number.isFinite(declared) && declared > 0 ? declared : 0,
+    operation,
+    continuation: options.continuation,
+  });
   // Stopped before sending: nothing reaches the provider, so the
   // reservation is given back rather than counted.
   const signal = (request as { signal?: AbortSignal })?.signal;

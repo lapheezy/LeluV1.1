@@ -185,7 +185,10 @@ function strings(value: unknown): string[] {
 
 export default class ProposalEngineer {
   constructor(
-    private readonly reason: Reason = (prompt, options) => AIService.getInstance().reason(prompt, options),
+    // Code generation only runs after the owner approved a proposal, so it is
+    // labelled as its own purpose rather than as background work.
+    private readonly reason: Reason = (prompt, options) =>
+      AIService.getInstance().reason(prompt, { ...options, operation: "self-development" }),
   ) {}
 
   public async generate(

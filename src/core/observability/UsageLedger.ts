@@ -90,6 +90,55 @@ export interface PendingUsage {
 /** Budgets keyed "kind:*" apply to every source of that kind. */
 export const ALL_SOURCES = "*";
 
+/* ------------------------------------------------------------------ */
+/* Purpose — what a call was FOR                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Work LÉLU starts on her own. Everything else, including any call with no
+ * label, counts as conversation, so a missing label can never cap a chat.
+ */
+export const BACKGROUND_PURPOSES = ["owner-objective", "self-study", "autonomous-objective", "curiosity"] as const;
+
+/**
+ * Who has first claim on a scarce background call. Work the owner asked for
+ * comes first; then self-study, which turns evidence into proposals for the
+ * owner; then objectives LÉLU set herself; then open-ended curiosity.
+ */
+export const BACKGROUND_PRIORITY: Record<string, number> = {
+  "owner-objective": 4,
+  "self-study": 3,
+  "autonomous-objective": 2,
+  curiosity: 1,
+};
+
+/** The budget "source" that holds the owner's background cap. */
+export const BACKGROUND_BUDGET_SOURCE = "@background";
+
+/**
+ * Background AI calls allowed per UTC day on this device when the owner has
+ * not set a cap. Set by the owner: start minimal, so LÉLU learns to spend
+ * what she has well before she is given more. Only the owner raises it, in
+ * Settings → Usage & budgets.
+ */
+export const DEFAULT_BACKGROUND_DAILY_CALLS = 10;
+
+/** The purpose an operation label belongs to. */
+export function purposeOf(operation: string | undefined): string {
+  if (!operation || operation === "generate") return "conversation";
+  return operation;
+}
+
+export function isBackgroundPurpose(operation: string | undefined): boolean {
+  return (BACKGROUND_PURPOSES as readonly string[]).includes(purposeOf(operation));
+}
+
+/** Background model use is paused until this time, and why. */
+export interface BackgroundPause {
+  until: number;
+  reason: string;
+}
+
 function newId(): string {
   const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
   if (c?.randomUUID) return c.randomUUID();
@@ -169,6 +218,13 @@ function add(totals: UsageTotals, e: UsageEvent): void {
 }
 
 type Daily = Record<string, Record<string, UsageTotals>>; // day → "kind:source" → totals
+type PurposeDaily = Record<string, Record<string, UsageTotals>>; // day → "kind:purpose" → totals
+
+/** The start of the next UTC day. */
+export function nextUtcMidnight(t: number): number {
+  const d = new Date(t);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+}
 
 interface Storage { getItem(k: string): string | null; setItem(k: string, v: string): void }
 
@@ -181,7 +237,10 @@ export default class UsageLedger {
 
   private events: UsageEvent[] = [];
   private daily: Daily = {};
+  private purposeDaily: PurposeDaily = {};
   private budgets: Record<string, UsageBudget> = {};
+  private backgroundPause: BackgroundPause | null = null;
+  private lastBackgroundCallAt: number | null = null;
   private readonly sessionStart: number;
   private listeners = new Set<() => void>();
   private currentUser: string | null = null;
@@ -215,6 +274,9 @@ export default class UsageLedger {
     if (this.events.length > MAX_EVENTS) this.events.splice(0, this.events.length - MAX_EVENTS);
     const day = (this.daily[dayKey(full.at)] ??= {});
     add((day[`${full.kind}:${full.source}`] ??= emptyTotals()), full);
+    const byPurpose = (this.purposeDaily[dayKey(full.at)] ??= {});
+    add((byPurpose[`${full.kind}:${purposeOf(full.operation)}`] ??= emptyTotals()), full);
+    if (full.kind === "ai" && isBackgroundPurpose(full.operation)) this.lastBackgroundCallAt = full.at;
     this.save();
     for (const listener of this.listeners) {
       try { listener(); } catch { /* a listener never breaks accounting */ }
@@ -277,6 +339,80 @@ export default class UsageLedger {
       for (const field of Object.keys(out) as Array<keyof UsageTotals>) out[field] += row.totals[field];
     }
     return out;
+  }
+
+  /** Per-purpose totals (conversation, self-study, curiosity, …) for a period. */
+  summaryByPurpose(period: "session" | "day" | "week" | "month" = "day", kind: UsageKind = "ai"): Array<{ purpose: string; background: boolean; totals: UsageTotals }> {
+    const merged = new Map<string, UsageTotals>();
+    const merge = (purpose: string, t: UsageTotals) => {
+      const into = merged.get(purpose) ?? emptyTotals();
+      for (const field of Object.keys(t) as Array<keyof UsageTotals>) into[field] += t[field];
+      merged.set(purpose, into);
+    };
+    if (period === "session") {
+      for (const e of this.events) {
+        if (e.at < this.sessionStart || e.kind !== kind) continue;
+        const t = emptyTotals(); add(t, e); merge(purposeOf(e.operation), t);
+      }
+    } else {
+      const t = this.now();
+      const days = new Set<string>();
+      if (period === "day") days.add(dayKey(t));
+      if (period === "week") for (let i = 0; i < 7; i += 1) days.add(dayKey(t - i * 86_400_000));
+      for (const [day, perPurpose] of Object.entries(this.purposeDaily)) {
+        if (!(period === "month" ? day.startsWith(monthKey(t)) : days.has(day))) continue;
+        for (const [key, totals] of Object.entries(perPurpose)) {
+          const [k, ...purpose] = key.split(":");
+          if (k === kind) merge(purpose.join(":"), totals);
+        }
+      }
+    }
+    return [...merged.entries()]
+      .map(([purpose, totals]) => ({ purpose, background: isBackgroundPurpose(purpose), totals }))
+      .sort((a, b) => b.totals.calls - a.totals.calls);
+  }
+
+  /* ---------- background allowance ---------- */
+
+  /** Background AI calls settled today (UTC). */
+  backgroundCallsToday(): number {
+    const today = this.purposeDaily[dayKey(this.now())] ?? {};
+    let calls = 0;
+    for (const purpose of BACKGROUND_PURPOSES) calls += today[`ai:${purpose}`]?.calls ?? 0;
+    return calls;
+  }
+
+  /** The owner's background cap, or the minimal default when none is set. */
+  backgroundDailyCap(): number {
+    const cap = this.budgets[`ai:${BACKGROUND_BUDGET_SOURCE}`]?.dailyCalls;
+    return cap !== undefined && Number.isFinite(cap) && cap >= 0 ? cap : DEFAULT_BACKGROUND_DAILY_CALLS;
+  }
+
+  /** Whether the cap in force was set by the owner. */
+  backgroundCapIsOwnerSet(): boolean {
+    return this.budgets[`ai:${BACKGROUND_BUDGET_SOURCE}`]?.dailyCalls !== undefined;
+  }
+
+  lastBackgroundCall(): number | null {
+    return this.lastBackgroundCallAt;
+  }
+
+  /** The active pause on background model use, if any (expired pauses are dropped). */
+  backgroundPaused(): BackgroundPause | null {
+    if (this.backgroundPause && this.backgroundPause.until <= this.now()) {
+      this.backgroundPause = null;
+      this.save();
+    }
+    return this.backgroundPause;
+  }
+
+  pauseBackground(until: number, reason: string): void {
+    if (this.backgroundPause && this.backgroundPause.until >= until) return;
+    this.backgroundPause = { until, reason: reason.slice(0, 200) };
+    this.save();
+    for (const listener of this.listeners) {
+      try { listener(); } catch { /* a listener never breaks accounting */ }
+    }
   }
 
   /* ---------- budgets ---------- */
@@ -354,8 +490,11 @@ export default class UsageLedger {
     try {
       const raw = this.storage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as { daily?: Daily; budgets?: Record<string, UsageBudget>; events?: UsageEvent[] };
+      const parsed = JSON.parse(raw) as { daily?: Daily; purposeDaily?: PurposeDaily; budgets?: Record<string, UsageBudget>; events?: UsageEvent[]; backgroundPause?: BackgroundPause | null; lastBackgroundCallAt?: number | null };
       this.daily = parsed.daily && typeof parsed.daily === "object" ? parsed.daily : {};
+      this.purposeDaily = parsed.purposeDaily && typeof parsed.purposeDaily === "object" ? parsed.purposeDaily : {};
+      this.backgroundPause = parsed.backgroundPause && typeof parsed.backgroundPause.until === "number" ? parsed.backgroundPause : null;
+      this.lastBackgroundCallAt = typeof parsed.lastBackgroundCallAt === "number" ? parsed.lastBackgroundCallAt : null;
       this.budgets = parsed.budgets && typeof parsed.budgets === "object" ? parsed.budgets : {};
       this.events = Array.isArray(parsed.events)
         ? parsed.events.slice(-PERSISTED_EVENTS).map((e) => ({ ...e, id: e.id ?? legacyEventId(e), userId: e.userId ?? null }))
@@ -369,8 +508,16 @@ export default class UsageLedger {
     if (!this.storage) return;
     const cutoff = dayKey(this.now() - KEEP_DAYS * 86_400_000);
     for (const day of Object.keys(this.daily)) if (day < cutoff) delete this.daily[day];
+    for (const day of Object.keys(this.purposeDaily)) if (day < cutoff) delete this.purposeDaily[day];
     try {
-      this.storage.setItem(STORAGE_KEY, JSON.stringify({ daily: this.daily, budgets: this.budgets, events: this.events.slice(-PERSISTED_EVENTS) }));
+      this.storage.setItem(STORAGE_KEY, JSON.stringify({
+        daily: this.daily,
+        purposeDaily: this.purposeDaily,
+        budgets: this.budgets,
+        events: this.events.slice(-PERSISTED_EVENTS),
+        backgroundPause: this.backgroundPause,
+        lastBackgroundCallAt: this.lastBackgroundCallAt,
+      }));
     } catch {
       /* storage full or blocked: accounting continues in memory */
     }

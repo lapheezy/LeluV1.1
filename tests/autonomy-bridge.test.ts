@@ -61,9 +61,12 @@ import AIService from "../src/core/AIService";
 import SandboxFS from "../src/core/engineering/SandboxFS";
 import { dispatchToolCall } from "../src/core/tools/ToolDispatcher";
 import { toolSchemasForModel } from "../src/core/tools/ToolSchemas";
-import { stopBackgroundCognition } from "./support/isolation";
+import { grantBackgroundAllowance, stopBackgroundCognition } from "./support/isolation";
 
 await stopBackgroundCognition();
+// These tests exercise autonomous behaviour, not the budget: the owner grants
+// a large background allowance, as only the owner can.
+await grantBackgroundAllowance();
 
 const objectives = AgentObjectives.getInstance();
 const projects = ProjectStore.getInstance();

@@ -16,6 +16,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import type { StudyConclusion, StudyPurpose } from "./StudyConclusion";
 
 /** Where an objective came from — the provenance of a question. */
 export type StudyOrigin =
@@ -78,6 +79,16 @@ export interface StudyObjective {
   updatedAt: number;
   /** Short record of what the last attempt actually found. */
   lastEvidence?: string;
+  /**
+   * Why this study exists: the gap, why it matters, what evidence would
+   * settle it, what it could improve. Optional so objectives stored before
+   * this field existed stay valid.
+   */
+  purpose?: StudyPurpose;
+  /** Fingerprint of the last attempt's evidence: the same evidence twice is not progress. */
+  lastFingerprint?: string;
+  /** The finished study. An objective is only "answered" when this exists. */
+  conclusion?: StudyConclusion;
 }
 
 export type StudyObjectiveInput = Omit<
@@ -114,11 +125,16 @@ export default class StudyObjectives {
   private persist(): void {
     // Keep every open objective; cap only the resolved history.
     const open = this.objectives.filter((item) => item.status === "open" || item.status === "investigating");
-    const resolved = this.objectives
-      .filter((item) => item.status === "answered" || item.status === "unresolved")
+    // A "change" conclusion still waiting for its turn at Gate 1 is never
+    // evicted by the history cap: it is pending work, not history.
+    const waiting = (item: StudyObjective): boolean =>
+      item.conclusion?.verdict === "change" && !item.conclusion.proposalId;
+    const resolved = this.objectives.filter((item) => item.status === "answered" || item.status === "unresolved");
+    const history = resolved
+      .filter((item) => !waiting(item))
       .sort((a, b) => b.updatedAt - a.updatedAt)
       .slice(0, HISTORY_CAP);
-    this.objectives = [...open, ...resolved];
+    this.objectives = [...open, ...resolved.filter(waiting), ...history];
 
     try {
       KvStore.getInstance().set(KEY, this.objectives);
@@ -244,6 +260,18 @@ export default class StudyObjectives {
   /** How many objectives a given cycle created — the continuity proof. */
   public createdInCycle(cycle: number): StudyObjective[] {
     return this.objectives.filter((item) => item.createdInCycle === cycle);
+  }
+
+  /** Every finished study, newest first. */
+  public conclusions(): StudyObjective[] {
+    return this.objectives
+      .filter((item) => item.conclusion !== undefined)
+      .sort((a, b) => (b.conclusion?.concludedAt ?? 0) - (a.conclusion?.concludedAt ?? 0));
+  }
+
+  /** The most recent conclusion about a subject, if any. */
+  public latestConclusionFor(subject: string): StudyConclusion | null {
+    return this.conclusions().find((item) => item.conclusion?.subject === subject)?.conclusion ?? null;
   }
 
   /** Test/maintenance helper: drop everything and start clean. */

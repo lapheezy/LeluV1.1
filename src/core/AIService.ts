@@ -1325,7 +1325,7 @@ export default class AIService {
    */
   public async deliberate(
     prompt: string,
-    options: { system?: string; maxTokens?: number } = {},
+    options: { system?: string; maxTokens?: number; operation?: string } = {},
   ): Promise<AIResponse> {
     if (!this.initialized) {
       await this.initialize();
@@ -1345,6 +1345,7 @@ export default class AIService {
         // allowed to act, not only to conclude.
         allowTools: true,
         maxTokens: options.maxTokens ?? 2048,
+        ...(options.operation ? { operation: options.operation } : {}),
         timestamp: Date.now(),
       });
     } catch (error) {
@@ -1363,7 +1364,7 @@ export default class AIService {
 
   public async reason(
     prompt: string,
-    options: { system?: string; model?: string; temperature?: number; maxTokens?: number } = {},
+    options: { system?: string; model?: string; temperature?: number; maxTokens?: number; operation?: string } = {},
   ): Promise<AIResponse> {
     if (!this.initialized) {
       await this.initialize();
@@ -1388,6 +1389,7 @@ export default class AIService {
         model: options.model,
         temperature: options.temperature,
         maxTokens: options.maxTokens,
+        ...(options.operation ? { operation: options.operation } : {}),
         timestamp: Date.now(),
       });
     } catch (error) {

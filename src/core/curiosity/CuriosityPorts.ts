@@ -340,7 +340,7 @@ export function createDefaultPorts(): CuriosityPorts {
 
     async reason(prompt, system) {
       if (!loaded) return null;
-      const response = await loaded.ai.getInstance().reason(prompt, { system, temperature: 0.1, maxTokens: 400 });
+      const response = await loaded.ai.getInstance().reason(prompt, { system, temperature: 0.1, maxTokens: 400, operation: "curiosity" });
       const ok = response.metadata?.success !== false && response.provider !== "offline" && response.text.trim().length > 0;
       return ok ? response.text : null;
     },

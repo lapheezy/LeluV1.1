@@ -185,6 +185,38 @@ export interface ImprovementProposal {
   lastExecution?: ProposalExecution;
   /** Earlier runs, newest last (bounded). */
   executions?: ProposalExecution[];
+  /**
+   * Where the proposal came from, when it was not the opportunity detector
+   * or the user: a self-study conclusion carries the objective it concluded,
+   * so the chain study → conclusion → proposal can be followed back.
+   */
+  origin?: { kind: "self-study"; objectiveId: string; subject: string; cycle: number; fingerprint?: string };
+  /**
+   * Gate 2: the owner's decision after seeing the implemented change.
+   * "returned" means: address the feedback before anything else advances.
+   */
+  ownerDecision?: OwnerDecision;
+}
+
+export interface OwnerDecision {
+  decision: "accepted" | "returned";
+  at: number;
+  note?: string;
+}
+
+/** Statuses where an implementation exists for the owner to accept or return. */
+export const AWAITING_ACCEPTANCE_STATUSES: ImprovementStatus[] = ["Ready", "Integrated", "Recorded"];
+
+/**
+ * Is this proposal finished from the owner's point of view? Only a rejection,
+ * a rollback, or the owner's acceptance ends one. Anything else — awaiting
+ * approval, in development, failed or blocked (both need a decision),
+ * implemented but not yet accepted, or returned with feedback — is still open
+ * and holds the next self-study proposal back.
+ */
+export function isSettledByOwner(proposal: ImprovementProposal): boolean {
+  if (proposal.status === "Rejected" || proposal.status === "Rolled Back") return true;
+  return proposal.ownerDecision?.decision === "accepted";
 }
 
 const KEY = "lelu.improvements.v1";
@@ -380,6 +412,17 @@ export default class ImprovementQueue {
       proposal.id === id ? { ...proposal, ...patch, updated: Date.now() } : proposal,
     );
     this.persist();
+  }
+
+  /**
+   * Record the owner's Gate 2 decision. Only an implemented proposal can be
+   * accepted or returned; anything else is refused (returns false).
+   */
+  public recordOwnerDecision(id: string, decision: OwnerDecision["decision"], note?: string): boolean {
+    const proposal = this.get(id);
+    if (!proposal || !AWAITING_ACCEPTANCE_STATUSES.includes(proposal.status)) return false;
+    this.update(id, { ownerDecision: { decision, at: Date.now(), ...(note?.trim() ? { note: note.trim().slice(0, 1000) } : {}) } });
+    return true;
   }
 
   public setStatus(id: string, status: ImprovementStatus): void {

@@ -69,6 +69,9 @@ function freshPersonality(): void {
   KvStore.getInstance().remove("daily.v1");
   LeluIdentity.reset();
   DailyRecord.reset();
+  // Personality changes are staged for the owner by default. These tests
+  // exercise the apply-directly path, which the owner has to choose.
+  LeluIdentity.getInstance().setSandboxMode(false);
 }
 
 function record(overrides: Partial<LeluDailyRecord> = {}): LeluDailyRecord {
