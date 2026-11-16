@@ -307,7 +307,7 @@ interface CameraStatus {
 }
 
 function ObjectCameraBridge() {
-  const { camera, size, scene, gl } = useThree();
+  const { camera, size, scene, gl, invalidate } = useThree();
   // The scene's own default OrbitControls (makeDefault), so a framed pose is
   // the pose the user can then orbit around — not a second camera.
   const controls = useThree((state) => state.controls) as unknown as { target?: Vector3; update?: () => void } | null;
@@ -645,7 +645,184 @@ function ObjectCameraBridge() {
         missing: storeIds.filter((id) => !sceneIds.includes(id)),
       };
     };
-  }, [camera, size.width, size.height]);
+
+    /*
+     * A MEASUREMENT HOOK, NOT A FEATURE.
+     *
+     * "Which pixels are this object" is a question only the renderer can
+     * answer truthfully. It answers by not drawing the object for one frame:
+     * the pixels that change between the two captures are exactly the ones the
+     * object was covering. That is an identity mask — no colour rule, no
+     * material or lighting assumption, and a yaw-rotated silhouette comes out
+     * as the silhouette itself rather than as its axis-aligned box.
+     *
+     * It touches nothing that persists: no store write, no canonical id, no
+     * placement, no selection, no renderer. The flag lives on the scene node
+     * and the caller restores it; a React re-render would restore it anyway,
+     * which is why the mask is only valid for the frame it was asked for.
+     */
+    const setObjectVisible = (id: string, on: boolean) => {
+      let found = false;
+      scene.traverse((node: import("three").Object3D) => {
+        if (found) return;
+        if ((node.userData as { cosmosObjectId?: unknown } | undefined)?.cosmosObjectId === id) {
+          node.visible = on;
+          found = true;
+        }
+      });
+      if (found) invalidate();
+      return found;
+    };
+
+    (window as unknown as { __cosmosObjectIdentity?: unknown }).__cosmosObjectIdentity = {
+      setVisible: setObjectVisible,
+      /*
+       * Read the identity mask straight out of the renderer's own frame buffer.
+       *
+       * A compositor screenshot costs seconds on this host and lets the
+       * animation move between the two frames, so the diff would contain every
+       * object that turned. Two direct renders in the same task cannot drift:
+       * nothing in the scene advances between them, and the pixels come from
+       * the renderer that drew the frame a person is looking at. No second
+       * renderer, no render target, no state kept. Rows come back bottom-up
+       * and are flipped here so the mask is in the same top-left space as a
+       * screenshot.
+       */
+      identityMask: (id: string) => {
+        const width = gl.domElement.width;
+        const height = gl.domElement.height;
+        const ctx = gl.getContext() as WebGLRenderingContext | WebGL2RenderingContext;
+        const grab = () => {
+          gl.render(scene, camera);
+          const buffer = new Uint8Array(width * height * 4);
+          ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+          return buffer;
+        };
+        const before = grab();
+        const found = setObjectVisible(id, false);
+        const after = grab();
+        setObjectVisible(id, true);
+        gl.render(scene, camera);
+        if (!found) return null;
+
+        const luminance = (buffer: Uint8Array, index: number) =>
+          0.2126 * buffer[index] + 0.7152 * buffer[index + 1] + 0.0722 * buffer[index + 2];
+        const mask = new Uint8Array(width * height);
+        let changed = 0;
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const topDown = y * width + x;
+            const bottomUp = (height - 1 - y) * width + x;
+            /* The two renders are consecutive in one task, so nothing in the
+               scene advanced between them: any difference at all is the
+               object. A generous threshold here is what dropped a chair's
+               thin legs from its own silhouette. */
+            if (Math.abs(luminance(before, bottomUp * 4) - luminance(after, bottomUp * 4)) > 2) {
+              mask[topDown] = 1;
+              changed += 1;
+            }
+          }
+        }
+        const seen = new Uint8Array(width * height);
+        const components: Array<{ area: number; box: [number, number, number, number]; centre: [number, number] }> = [];
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const start = y * width + x;
+            if (seen[start] || !mask[start]) continue;
+            const stack = [start];
+            seen[start] = 1;
+            let area = 0, left = x, right = x, top = y, bottom = y, sumX = 0, sumY = 0;
+            while (stack.length) {
+              const at = stack.pop() as number;
+              const ax = at % width;
+              const ay = (at / width) | 0;
+              area += 1;
+              sumX += ax;
+              sumY += ay;
+              if (ax < left) left = ax;
+              if (ax > right) right = ax;
+              if (ay < top) top = ay;
+              if (ay > bottom) bottom = ay;
+              const neighbours = [at - 1, at + 1, at - width, at + width];
+              for (let n = 0; n < neighbours.length; n += 1) {
+                const next = neighbours[n];
+                if (next < 0 || next >= mask.length) continue;
+                if (Math.abs((next % width) - ax) > 1) continue;
+                if (seen[next] || !mask[next]) continue;
+                seen[next] = 1;
+                stack.push(next);
+              }
+            }
+            if (area >= 20) components.push({ area, box: [left, top, right, bottom], centre: [Math.round(sumX / area), Math.round(sumY / area)] });
+          }
+        }
+        components.sort((a, b) => b.area - a.area);
+        const union = components.length
+          ? [
+              Math.min(...components.map((c) => c.box[0])),
+              Math.min(...components.map((c) => c.box[1])),
+              Math.max(...components.map((c) => c.box[2])),
+              Math.max(...components.map((c) => c.box[3])),
+            ] as [number, number, number, number]
+          : null;
+        const totalArea = components.reduce((sum, c) => sum + c.area, 0);
+        const centroid = totalArea
+          ? ([Math.round(components.reduce((sum, c) => sum + c.centre[0] * c.area, 0) / totalArea), Math.round(components.reduce((sum, c) => sum + c.centre[1] * c.area, 0) / totalArea)] as [number, number])
+          : null;
+        return {
+          buffer: [width, height] as [number, number],
+          dpr: gl.getPixelRatio(),
+          changedPixels: changed,
+          area: totalArea,
+          bbox: union,
+          centroid,
+          components: components.length,
+          largest: components.slice(0, 3),
+        };
+      },
+      /*
+       * The frame the mask was measured against, straight from the same
+       * buffer: a capture without a compositor round-trip, at the same instant
+       * as the numbers. Returned as a PNG data URL so it can be written beside
+       * the measurements.
+       */
+      capture: (scale = 1) => {
+        const width = gl.domElement.width;
+        const height = gl.domElement.height;
+        const ctx = gl.getContext() as WebGLRenderingContext | WebGL2RenderingContext;
+        gl.render(scene, camera);
+        const buffer = new Uint8Array(width * height * 4);
+        ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const target = canvas.getContext("2d");
+        if (!target) return null;
+        const image = target.createImageData(width, height);
+        for (let y = 0; y < height; y += 1) {
+          const source = (height - 1 - y) * width * 4;
+          image.data.set(buffer.subarray(source, source + width * 4), y * width * 4);
+        }
+        target.putImageData(image, 0, 0);
+        if (scale === 1) return canvas.toDataURL("image/png");
+        const small = document.createElement("canvas");
+        small.width = Math.max(1, Math.round(width * scale));
+        small.height = Math.max(1, Math.round(height * scale));
+        const sctx = small.getContext("2d");
+        if (!sctx) return null;
+        sctx.drawImage(canvas, 0, 0, small.width, small.height);
+        return small.toDataURL("image/png");
+      },
+      visibility: () => {
+        const out: Record<string, boolean> = {};
+        scene.traverse((node: import("three").Object3D) => {
+          const id = (node.userData as { cosmosObjectId?: unknown } | undefined)?.cosmosObjectId;
+          if (typeof id === "string") out[id] = node.visible;
+        });
+        return out;
+      },
+    };
+  }, [camera, size.width, size.height, invalidate]);
 
   return null;
 }
