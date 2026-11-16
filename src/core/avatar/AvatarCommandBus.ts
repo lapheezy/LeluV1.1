@@ -96,6 +96,8 @@ class AvatarCommandBusImpl {
   private listeners = new Set<CommandListener>();
   private pending = new Map<string, PendingRequest>();
   private active: AvatarCommand | null = null;
+  /** Commands a presence has taken on (it will answer them itself). */
+  private accepted = new Set<string>();
   private seq = 0;
 
   private constructor() {}
@@ -152,6 +154,7 @@ class AvatarCommandBusImpl {
     return new Promise<string>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
+        this.accepted.delete(id);
         if (this.active?.id === id) this.active = null;
         reject(
           `No renderer confirmed the “${label}” command within ${Math.round(timeoutMs / 1000)}s.`,
@@ -179,7 +182,21 @@ class AvatarCommandBusImpl {
    * reason (e.g. every spot on that side covers a control). The request
    * fails at once and honestly, instead of timing out as if she froze.
    */
+  /**
+   * A presence has taken this command on and will answer it (M15.3 WP05).
+   * Lets another surface tell "nobody could act on it" (her world was never
+   * opened) apart from "she is doing it".
+   */
+  public accept(id: string): void {
+    if (this.pending.has(id)) this.accepted.add(id);
+  }
+
+  public isAccepted(id: string): boolean {
+    return this.accepted.has(id);
+  }
+
   public decline(id: string, reason: string): void {
+    this.accepted.delete(id);
     const pending = this.pending.get(id);
     if (this.active?.id === id) this.active = null;
     if (!pending) return;
@@ -189,6 +206,7 @@ class AvatarCommandBusImpl {
   }
 
   public confirm(id: string, observation: string): void {
+    this.accepted.delete(id);
     const pending = this.pending.get(id);
     if (this.active?.id === id) this.active = null;
     if (!pending) return;

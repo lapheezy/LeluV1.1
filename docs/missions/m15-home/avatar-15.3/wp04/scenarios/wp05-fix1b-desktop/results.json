@@ -1,0 +1,191 @@
+[
+ {
+  "scenario": "C walk asked before world loading begins",
+  "issuedAtPageMs": 38360,
+  "answer": {
+   "kind": "declined/progress",
+   "ms": 22560,
+   "text": "I'm still on my way (2.70 m from where I started, 2.67 m to go on my route): my world is rendering slowly right now (0.7 frames/s), and I'll keep walking there"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.965,
+    -2.55,
+    0.302
+   ]
+  },
+  "arrivedMsAfterIssue": 22572,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.69,
+    3.91
+   ],
+   [
+    -0.44,
+    4.16
+   ],
+   [
+    -2.44,
+    2.76
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": false,
+  "askedBeforeWorld": true,
+  "timeline": {
+   "worldClicked": 5407,
+   "worldDataRequested": 12894,
+   "worldData": 13303,
+   "herFirstWorldFrame": 10525,
+   "waitingForWorld": 13295,
+   "aimed": 15814,
+   "firstMovement": 15814,
+   "arrived": 22572,
+   "answer": 22560,
+   "longTasksOver500ms": [
+    [
+     867,
+     569
+    ],
+    [
+     2981,
+     2409
+    ],
+    [
+     7698,
+     2596
+    ],
+    [
+     10516,
+     2356
+    ],
+    [
+     13457,
+     2016
+    ],
+    [
+     16223,
+     721
+    ],
+    [
+     17308,
+     5224
+    ]
+   ],
+   "spatialSamples": [
+    [
+     10525,
+     null,
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     13295,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     15814,
+     "walking",
+     true,
+     [
+      -1.25,
+      -2.55,
+      3.58
+     ]
+    ],
+    [
+     16949,
+     "walking",
+     true,
+     [
+      -2.33,
+      -2.55,
+      2.84
+     ]
+    ],
+    [
+     22572,
+     "arrived",
+     true,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     24004,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     25163,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     26448,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     27780,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     30627,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  },
+  "ok": false
+ }
+]

@@ -20,7 +20,7 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -180,7 +180,13 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     });
   }, []);
 
-  useEffect(() => {
+  /*
+   * A LAYOUT effect, so her world's data is requested in the commit that
+   * mounts her, before the first frame's compile runs. As a passive effect
+   * it waited behind that frame: measured 2.4 s after her first world frame
+   * on a walk asked before her world existed (M15.3 WP05, scenario C).
+   */
+  useLayoutEffect(() => {
     let alive = true;
     const load = () =>
       Promise.all([ForgeClient.world(), ForgeClient.avatar().catch(() => null)])
@@ -427,6 +433,8 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         framesAtStart: framesSeen.current,
       };
       goal.current = asked;
+      // Taken on: this presence answers it (and a surface without her world does not).
+      AvatarCommandBus.getInstance().accept(command.id);
       // Under heavy load she may still be on her way at the bus deadline:
       // say so with what was measured, instead of a silent timeout.
       // (A timer, so it fires even if her world draws no frame at all.)
@@ -447,10 +455,13 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         } else {
           const walked = Math.hypot(position.current.x - asked.from[0], position.current.z - asked.from[1]);
           const left = asked.walk ? remainingOnPath([position.current.x, position.current.z], asked.walk) : Math.hypot(asked.point[0] - position.current.x, asked.point[1] - position.current.z);
+          // Only "on my way" if she has really set off (M15.3 WP05).
           resolve(
             asked,
             false,
-            `I'm still on my way (${walked.toFixed(2)} m from where I started, ${left.toFixed(2)} m to go on my route): my world is rendering slowly right now (${fps.toFixed(1)} frames/s), and I'll keep walking there`,
+            walked < 0.05
+              ? `my world has only just become ready (${fps.toFixed(1)} frames/s), so I haven't set off yet (${left.toFixed(2)} m to go on my route); I'm starting now and will keep walking there`
+              : `I'm still on my way (${walked.toFixed(2)} m from where I started, ${left.toFixed(2)} m to go on my route): my world is rendering slowly right now (${fps.toFixed(1)} frames/s), and I'll keep walking there`,
           );
         }
         // Keep walking: the goal stays, only the report was made.

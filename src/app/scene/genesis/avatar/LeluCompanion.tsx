@@ -425,6 +425,23 @@ function Presence({ companion }: { companion: CompanionState }) {
         // And the Universe itself, as her world presence does once mounted
         // (on a phone it is not mounted until the chat stops covering it).
         if (latest.current.inWorld && where && (command.kind === "move" || command.kind === "look") && isUniverseOpen()) setUniverseOpen(false);
+        /*
+         * Asked to walk or turn somewhere in her world while you are not in it
+         * (M15.3 WP05). The command waits on the bus: open her world in time
+         * and her world presence takes it. If nobody has taken it just before
+         * the bus's deadline, she says so plainly, not "on my way" and not the
+         * renderer timeout ("never confirmed by my renderer").
+         */
+        const worldPlace = where && !["left", "right", "center", "home"].includes(where);
+        if (!latest.current.inWorld && worldPlace && (command.kind === "move" || command.kind === "look")) {
+          const bus = AvatarCommandBus.getInstance();
+          const due = Math.max(0, command.issuedAt + command.timeoutMs - 600 - Date.now());
+          window.setTimeout(() => {
+            if (bus.isAccepted(command.id) || bus.current?.id !== command.id) return;
+            bus.decline(command.id, `I'm not in my world right now, so I haven't started ${command.kind === "look" ? "turning" : "walking"} (${command.label}). Open my world (Worlds → Her world) and ask me again, and I'll do it there`);
+          }, due);
+          return;
+        }
         if (latest.current.inWorld || command.kind !== "move" || !where) return;
         if (where !== "left" && where !== "right" && where !== "center" && where !== "home") return;
         const before = rootRef.current?.getBoundingClientRect();

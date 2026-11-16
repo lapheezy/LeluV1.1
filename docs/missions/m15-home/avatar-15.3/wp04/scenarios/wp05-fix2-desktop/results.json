@@ -1,0 +1,177 @@
+[
+ {
+  "scenario": "C walk asked before world loading begins",
+  "issuedAtPageMs": 33507,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 18688,
+   "text": "walked 4.93 m (walk to the studio); now at x -3.94, z 0.33, 9 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.964,
+    -2.55,
+    0.298
+   ]
+  },
+  "arrivedMsAfterIssue": 20183,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    -0.44,
+    3.98
+   ],
+   [
+    -1.64,
+    3.56
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "askedBeforeWorld": true,
+  "timeline": {
+   "worldClicked": 4908,
+   "worldDataRequested": 9633,
+   "worldData": 12113,
+   "herFirstWorldFrame": 9643,
+   "waitingForWorld": 12107,
+   "aimed": 14292,
+   "firstMovement": 14292,
+   "arrived": 20183,
+   "answer": 18688,
+   "longTasksOver500ms": [
+    [
+     2380,
+     1318
+    ],
+    [
+     6228,
+     859
+    ],
+    [
+     7140,
+     2190
+    ],
+    [
+     9636,
+     2092
+    ],
+    [
+     12545,
+     542
+    ],
+    [
+     13088,
+     1144
+    ],
+    [
+     14287,
+     4344
+    ]
+   ],
+   "spatialSamples": [
+    [
+     9643,
+     null,
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     12107,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     14292,
+     "walking",
+     true,
+     [
+      -1.14,
+      -2.55,
+      3.72
+     ]
+    ],
+    [
+     18641,
+     "walking",
+     true,
+     [
+      -3.94,
+      -2.55,
+      0.34
+     ]
+    ],
+    [
+     20183,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     21333,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     22476,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     23619,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     24745,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  },
+  "ok": true
+ }
+]

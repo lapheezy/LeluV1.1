@@ -329,17 +329,81 @@ export function planPath(
   viewer: GroundPoint | null = null,
   cell = 0.2,
 ): GroundPoint[] | null {
+  /*
+   * Legs are planned PLAN_MARGIN wider than she walks (M15.3 WP05). A
+   * pulled-tight leg used to graze a footprint by a centimetre; the
+   * stepper's next increment then dipped inside, was deflected back by
+   * `nearestFree`'s 0.2 m ring, and she oscillated in place (measured:
+   * 8 s stuck beside the Core on a walk asked before her world existed).
+   * The requested point and her start keep the normal clearance; if no
+   * route exists with the margin, the exact WP03 plan is used.
+   */
+  return (
+    planPathWith(from, to, bounds, obstacles, clearance + PLAN_MARGIN, clearance, viewer, cell) ??
+    planPathWith(from, to, bounds, obstacles, clearance, clearance, viewer, cell)
+  );
+}
+
+/** The free point on the nearest free ring around `from` that is closest to `toward`. */
+function stepOutToward(
+  from: GroundPoint,
+  toward: GroundPoint,
+  bounds: SpatialBounds,
+  obstacles: readonly SpatialObstacle[],
+  clearance: number,
+  viewer: GroundPoint | null,
+): GroundPoint | null {
+  const step = Math.max(0.1, Math.max(0, clearance) * 0.25);
+  for (let ring = 1; ring <= 48; ring += 1) {
+    const radius = ring * step;
+    const samples = Math.max(16, Math.ceil((Math.PI * 2 * radius) / (step * 0.5)));
+    let best: GroundPoint | null = null;
+    let bestD = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < samples; i += 1) {
+      const a = (i / samples) * Math.PI * 2;
+      const c = clampToRoom([from[0] + Math.cos(a) * radius, from[1] + Math.sin(a) * radius], bounds, clearance);
+      const p: GroundPoint = [c[0], c[2]];
+      if (isOccupied(p, obstacles, clearance, viewer) || !insideRoom(p, bounds, clearance)) continue;
+      const d = distance(p, toward);
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    if (best) return best;
+  }
+  return null;
+}
+
+/** Extra width a planned leg keeps from every footprint. */
+export const PLAN_MARGIN = 0.08;
+
+function planPathWith(
+  from: GroundPoint,
+  to: GroundPoint,
+  bounds: SpatialBounds,
+  obstacles: readonly SpatialObstacle[],
+  clearance: number,
+  endClearance: number,
+  viewer: GroundPoint | null,
+  cell: number,
+): GroundPoint[] | null {
   const free = (p: GroundPoint) => insideRoom(p, bounds, clearance) && !isOccupied(p, obstacles, clearance, viewer);
-  if (!free(to)) return null;
+  if (!(insideRoom(to, bounds, endClearance) && !isOccupied(to, obstacles, endClearance, viewer))) return null;
+  // A leg is clear with the margin, or (only for the leg that ends at the
+  // requested point) with her normal clearance.
+  const clear = (a: GroundPoint, b: GroundPoint) =>
+    segmentClear(a, b, bounds, obstacles, clearance, viewer) ||
+    (b === to && endClearance !== clearance && segmentClear(a, b, bounds, obstacles, endClearance, viewer));
   const route: GroundPoint[] = [];
   let start = from;
   if (!free(from)) {
-    const out = nearestFree(from, bounds, obstacles, clearance, viewer);
-    start = [out[0], out[2]];
+    // Out by the smallest real distance, on the side toward the goal (the
+    // plain nearestFree takes the first free sample from due east, which
+    // sent her the wrong way round the Core first: M15.3 WP05).
+    const out = stepOutToward(from, to, bounds, obstacles, clearance, viewer) ?? (() => { const o = nearestFree(from, bounds, obstacles, clearance, viewer); return [o[0], o[2]] as GroundPoint; })();
+    start = out;
     if (!free(start)) return null;
     route.push(start);
   }
-  if (segmentClear(start, to, bounds, obstacles, clearance, viewer)) return [...route, to];
+  if (clear(start, to)) return [...route, to];
 
   // Grid over the disc's bounding square.
   const limit = Math.max(0, bounds.radius - Math.max(0, clearance));
@@ -362,7 +426,7 @@ export function planPath(
           if (i < 0 || j < 0 || i >= n || j >= n || !open[j * n + i]) continue;
           const c = at(i, j);
           const d = distance(p, c);
-          if (d < bestD && segmentClear(p, c, bounds, obstacles, clearance, viewer)) {
+          if (d < bestD && (p === to ? clear(c, to) : segmentClear(p, c, bounds, obstacles, clearance, viewer))) {
             best = j * n + i;
             bestD = d;
           }
@@ -455,7 +519,7 @@ export function planPath(
   let i = 0;
   while (i < raw.length - 1) {
     let j = raw.length - 1;
-    while (j > i + 1 && !segmentClear(raw[i], raw[j], bounds, obstacles, clearance, viewer)) j -= 1;
+    while (j > i + 1 && !clear(raw[i], raw[j])) j -= 1;
     route.push(raw[j]);
     i = j;
   }

@@ -10,6 +10,11 @@
  *   F  world initialisation delayed (world data held until 6 s after the walk is asked)
  *   G  the main thread is blocked for 3 s in the middle of the walk
  *   O  repeated world/Home transitions: one world, one presence, fresh geometry
+ *   R  (WP05) reload: her chosen form, her world and one presence survive a
+ *      reload, and a walk after it still arrives
+ *   N  (WP05) walk asked on Home and her world never opened: an honest
+ *      "not in my world" answer before the deadline, not "on my way" and not
+ *      the renderer timeout; nothing moves
  * Every walk is checked for (H) the chat window registered as an obstacle
  * when open, (I) a route round it and the Core, (J) arrival at the requested
  * point (≤ 10 cm, measured), (K) progress/stall honesty, (L) the bus
@@ -20,10 +25,10 @@
 import { chromium } from "playwright";
 import fs from "node:fs";
 
-const only = (process.argv[2] ?? "A,B,C,D,E,F,G,O").split(",");
+const only = (process.argv[2] ?? "A,B,C,D,E,F,G,O,N,R").split(",");
 const tag = process.argv[3] ?? "run";
 const dev = process.argv[4] ?? "desktop";
-const OUT = `docs/missions/m15-home/avatar-15.3/wp04/scenarios/${tag}-${dev}`;
+const OUT = `${process.env.LELU_SCEN_OUT ?? "docs/missions/m15-home/avatar-15.3/wp04/scenarios"}/${tag}-${dev}`;
 fs.mkdirSync(OUT, { recursive: true });
 const URL = process.env.LELU_URL ?? "http://127.0.0.1:5173/";
 const vp = dev === "phone" ? { width: 393, height: 852 } : { width: 1440, height: 900 };
@@ -78,6 +83,7 @@ async function open() {
     window.fetch = async (...a) => {
       const url = String(a[0]?.url ?? a[0]);
       if (!/\/api\/forge\/world/.test(url)) return f(...a);
+      T("world-data-start", { url });
       const r = await f(...a);
       T("world-data-done", { url });
       return r;
@@ -123,6 +129,9 @@ async function outcome(p, sinceT, pics = []) {
   let s = null;
   for (let i = 0; i < 40; i++) { s = await spatial(p); if (s?.goal && !["walking", "waiting-for-world"].includes(s.goal.outcome)) break; await p.waitForTimeout(500); }
   const tr = await p.evaluate(() => window.__trace);
+  const lt = await p.evaluate(() => window.__lt ?? []);
+  for (const x of lt) tr.push({ t: x.start, ev: "long-task", dur: x.dur });
+  tr.sort((a, b) => a.t - b.t);
   return { answer, s, tr };
 }
 function judge(name, tr, answer, s, extra = {}) {
@@ -144,6 +153,26 @@ function judge(name, tr, answer, s, extra = {}) {
     L_within20s: Boolean(answer && answer.ev === "command-resolved" && ms <= 20_000),
     ...extra,
   };
+  // WP05: where the time went, stage by stage (page clock, ms after the command).
+  if (issued) {
+    const at = (pred) => { const e = tr.find((x) => x.t >= issued.t && pred(x)); return e ? e.t - issued.t : null; };
+    const rel = (pred) => { const e = tr.find(pred); return e ? e.t - issued.t : null; };
+    const lts = tr.longTasks ?? [];
+    r.timeline = {
+      worldClicked: rel((e) => e.ev === "world-clicked"),
+      worldDataRequested: at((e) => e.ev === "world-data-start"),
+      worldData: at((e) => e.ev === "world-data-done"),
+      herFirstWorldFrame: at((e) => e.ev === "spatial"),
+      waitingForWorld: at((e) => e.ev === "spatial" && e.goal?.outcome === "waiting-for-world"),
+      aimed: at((e) => e.ev === "spatial" && e.goal?.ready),
+      firstMovement: at((e) => e.ev === "spatial" && e.walking),
+      arrived: at((e) => e.ev === "spatial" && e.goal?.outcome === "arrived"),
+      answer: answer ? answer.t - issued.t : null,
+      longTasksOver500ms: tr.filter((e) => e.ev === "long-task" && e.t >= issued.t && e.dur > 500).map((e) => [e.t - issued.t, e.dur]),
+      spatialSamples: tr.filter((e) => e.ev === "spatial" && e.t >= issued.t).map((e) => [e.t - issued.t, e.goal?.outcome ?? null, e.walking, e.position?.map((n) => +n.toFixed(2))]).slice(0, 60),
+    };
+    console.log(`   timeline ${name.split(" ")[0]}: ${JSON.stringify(Object.fromEntries(Object.entries(r.timeline).filter(([k]) => k !== "spatialSamples")))}`);
+  }
   r.ok = r.J_arrived && r.L_within20s && (extra.ok ?? true);
   results.push(r);
   console.log(`${r.ok ? "PASS" : "FAIL"} ${name}: answer ${r.answer?.kind ?? "none"} at ${ms ?? "-"} ms; final ${r.final?.outcome} ${r.final?.remaining} m; chat-obstacle ${chatObstacle}; route ${JSON.stringify(route)}; ${Object.entries(extra).filter(([k]) => k !== "ok").map(([k, v]) => `${k} ${JSON.stringify(v)}`).join("; ")}`);
@@ -296,6 +325,84 @@ if (only.includes("O")) {
   await shot(p, "O-end");
   const single = counts.every((c) => c.spatial === 1 && c.worlds <= 1);
   judge("O repeated world/Home transitions", tr, answer, s, { counts, oneWorldOnePresence: single, ok: single });
+  await ctx.close();
+}
+
+if (only.includes("R")) {
+  const { ctx, p } = await open();
+  // Her chosen form, through the chat.
+  const box0 = await typeInChat(p, "become a hologram");
+  await box0.press("Enter");
+  await p.waitForTimeout(4000);
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(400);
+  const x0 = p.getByRole("button", { name: "Close Chat Universe" });
+  if (await x0.isVisible().catch(() => false)) await x0.click();
+  await enterWorld(p);
+  // Sampled once her world's data has loaded (her first frames come before it).
+  for (let k = 0; k < 80 && !(await spatial(p))?.environment; k++) await p.waitForTimeout(500);
+  const before = { form: await p.evaluate(() => document.querySelector('[data-testid="lelu-companion"]')?.dataset.form), env: (await spatial(p))?.environment };
+  await shot(p, "R-before-reload");
+  // Reload: same browser profile (storage kept), the app starts again.
+  await p.reload({ waitUntil: "domcontentloaded" });
+  for (let i = 0; i < 80; i++) {
+    if (await p.evaluate(() => document.querySelector('[data-testid="lelu-companion-character"]')?.dataset.ready === "true").catch(() => false)) break;
+    await p.waitForTimeout(500);
+  }
+  await p.waitForTimeout(2000);
+  // Re-install the observation after the reload (a new page instance).
+  await p.evaluate(async () => {
+    const trace = (window.__trace = []);
+    const T = (ev, d = {}) => trace.push({ t: Math.round(performance.now()), ev, ...d });
+    const { default: Bus } = await import("/src/core/avatar/AvatarCommandBus.ts");
+    const bus = Bus.getInstance();
+    const issue = bus.issue.bind(bus);
+    bus.issue = (kind, label, timeout, target) => { T("command-issued", { kind, label, timeout }); const pr = issue(kind, label, timeout, target); pr.then((o) => T("command-resolved", { text: o }), (r) => T("command-rejected", { text: String(r) })); return pr; };
+    window.addEventListener("lelu:spatial-state", (e) => { const d = e.detail ?? {}; if (d.persisted) return; T("spatial", { position: d.position, walking: d.walking, goal: d.goal, windows: [] }); });
+  });
+  await shot(p, "R-after-reload");
+  const scene = await p.evaluate(() => document.querySelector("[data-workspace]")?.getAttribute("data-workspace"));
+  if (!(await spatial(p))) await enterWorld(p);
+  for (let k = 0; k < 80 && !(await spatial(p))?.environment; k++) await p.waitForTimeout(500);
+  const after = { form: await p.evaluate(() => document.querySelector('[data-testid="lelu-companion"]')?.dataset.form), env: (await spatial(p))?.environment, counts: await p.evaluate(() => ({ spatial: document.querySelectorAll("canvas[data-lelu-spatial]").length, worlds: document.querySelectorAll('[data-workspace="genesis-v2"] canvas').length })) };
+  await shot(p, "R-world-after-reload");
+  const box = await typeInChat(p, walk);
+  const t = await p.evaluate(() => performance.now());
+  await box.press("Enter");
+  const { answer, s, tr } = await outcome(p, t, []);
+  await shot(p, "R-end");
+  const kept = before.form === "hologram" && after.form === "hologram" && before.env === after.env && after.counts.spatial === 1 && after.counts.worlds <= 1;
+  judge("R reload: form, world and one presence survive; walk arrives", tr, answer, s, { before, after, sceneAfterReload: scene, ok: kept });
+  // Leave her as she was for later runs.
+  const box2 = await typeInChat(p, "become embodied");
+  await box2.press("Enter");
+  await p.waitForTimeout(3000);
+  await ctx.close();
+}
+
+if (only.includes("N")) {
+  const { ctx, p } = await open();
+  const box = await typeInChat(p, walk);
+  await shot(p, "N-asked-on-home");
+  const t = await p.evaluate(() => performance.now());
+  await box.press("Enter");
+  let answer = null;
+  for (let i = 0; i < 60 && !answer; i++) {
+    await p.waitForTimeout(500);
+    const tr = await p.evaluate(() => window.__trace);
+    answer = tr.find((e) => (e.ev === "command-resolved" || e.ev === "command-rejected") && e.t >= t);
+  }
+  await shot(p, "N-answer");
+  const tr = await p.evaluate(() => window.__trace);
+  const issued = tr.find((e) => e.ev === "command-issued");
+  const ms = answer && issued ? answer.t - issued.t : null;
+  const text = answer?.text ?? "";
+  const honest = /not in my world/.test(text) && !/on my way|never confirmed by my renderer/.test(text);
+  const noWorld = await p.evaluate(() => !document.querySelector("canvas[data-lelu-spatial]"));
+  const r = { scenario: "N walk asked, her world never opened", answer: answer ? { kind: answer.ev, ms, text: text.slice(0, 220) } : null, honest, beforeDeadline: ms !== null && ms <= 20_000, noWorldMounted: noWorld };
+  r.ok = honest && r.beforeDeadline && noWorld;
+  results.push(r);
+  console.log(`${r.ok ? "PASS" : "FAIL"} N: ${JSON.stringify(r.answer)}; honest ${honest}; before deadline ${r.beforeDeadline}; no world mounted ${noWorld}`);
   await ctx.close();
 }
 

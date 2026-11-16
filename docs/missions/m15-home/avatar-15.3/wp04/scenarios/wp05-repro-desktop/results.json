@@ -1,0 +1,176 @@
+[
+ {
+  "scenario": "C walk asked before world loading begins",
+  "issuedAtPageMs": 34309,
+  "answer": {
+   "kind": "declined/progress",
+   "ms": 20671,
+   "text": "I'm still on my way (0.80 m from where I started, 6.30 m to go on my route): my world is rendering slowly right now (0.8 frames/s), and I'll keep walking there"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.059,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.959,
+    -2.55,
+    0.303
+   ]
+  },
+  "arrivedMsAfterIssue": 31483,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.45,
+    3.96
+   ],
+   [
+    -1.12,
+    3.88
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": false,
+  "askedBeforeWorld": true,
+  "timeline": {
+   "worldClicked": 5256,
+   "worldData": 14836,
+   "herFirstWorldFrame": 12670,
+   "waitingForWorld": 14826,
+   "aimed": 16845,
+   "firstMovement": 16845,
+   "arrived": 31483,
+   "answer": 20671,
+   "spatialSamples": [
+    [
+     12670,
+     null,
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     14826,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     16845,
+     "walking",
+     true,
+     [
+      0.54,
+      -2.55,
+      3.89
+     ]
+    ],
+    [
+     20658,
+     "walking",
+     true,
+     [
+      0.56,
+      -2.55,
+      3.88
+     ]
+    ],
+    [
+     22197,
+     "walking",
+     true,
+     [
+      0.58,
+      -2.55,
+      3.88
+     ]
+    ],
+    [
+     23438,
+     "walking",
+     true,
+     [
+      0.56,
+      -2.55,
+      3.88
+     ]
+    ],
+    [
+     24761,
+     "walking",
+     true,
+     [
+      0.44,
+      -2.55,
+      3.88
+     ]
+    ],
+    [
+     26014,
+     "walking",
+     true,
+     [
+      -0.73,
+      -2.55,
+      3.8
+     ]
+    ],
+    [
+     27333,
+     "walking",
+     true,
+     [
+      -1.86,
+      -2.55,
+      3.12
+     ]
+    ],
+    [
+     28752,
+     "walking",
+     true,
+     [
+      -2.84,
+      -2.55,
+      1.81
+     ]
+    ],
+    [
+     30184,
+     "walking",
+     true,
+     [
+      -3.78,
+      -2.55,
+      0.54
+     ]
+    ],
+    [
+     31483,
+     "arrived",
+     true,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  },
+  "ok": false
+ }
+]

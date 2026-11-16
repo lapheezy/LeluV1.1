@@ -133,7 +133,33 @@ await cdp.send("Profiler.setSamplingInterval", { interval: 250 });
 const mark = (ev, d = {}) => p.evaluate(([e, x]) => window.__marks.push({ t: Math.round(performance.now()), ev: e, ...x }), [ev, d]).catch(() => {});
 
 let profileStart; // eslint-disable-line no-unused-vars
-if (scenario === "A") {
+if (scenario === "C") {
+  // WP05: the walk asked on Home, the chat closed, then her world entered;
+  // profiled from Enter through her arrival.
+  const box = p.locator("textarea[placeholder^='Message LÉLU']:visible, .lcu-input textarea:visible").first();
+  await p.evaluate(() => window.dispatchEvent(new CustomEvent("lelu-open-universe")));
+  await p.waitForTimeout(1200);
+  if (!(await box.count())) { await p.locator("button.lcu-card:visible").first().click().catch(() => {}); await p.waitForTimeout(1200); }
+  await box.click();
+  await box.fill("walk to the studio");
+  await shot("asked-on-home");
+  await mark("profile-start");
+  await cdp.send("Profiler.start");
+  profileStart = Date.now();
+  await box.press("Enter");
+  await mark("enter-pressed");
+  await p.waitForTimeout(800);
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(300);
+  const x = p.getByRole("button", { name: "Close Chat Universe" });
+  if (await x.isVisible().catch(() => false)) await x.click();
+  await p.waitForTimeout(500);
+  await p.locator('.lsn-item[aria-label="Worlds"]').click();
+  await p.waitForTimeout(500);
+  await mark("world-clicked");
+  await p.locator('[data-world="genesisv2"]').click();
+  for (const s of [5, 12, 20, 25]) { await p.waitForTimeout(s === 5 ? 5000 : s === 12 ? 7000 : s === 20 ? 8000 : 5000); await shot(`after-enter-+${s}s`); }
+} else if (scenario === "A") {
   await mark("profile-start");
   await cdp.send("Profiler.start");
   profileStart = Date.now();
