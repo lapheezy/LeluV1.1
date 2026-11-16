@@ -79,9 +79,12 @@ import AdaptiveQuality
   from "./AdaptiveQuality";
 
 import {
+  CAPABILITY_RECHECK_MS,
   getSceneRenderManager,
+  readRenderOverride,
   SOFTWARE_GL_RENDERER,
   useRenderProfile,
+  type CapabilityTrigger,
 } from "./SceneRenderManager";
 
 import RenderContextGuard
@@ -393,6 +396,45 @@ function CosmosPhaseHUD() {
  * for itself. Blocking a prop-less re-render therefore removes work,
  * not updates.
  */
+/**
+ * The part of capability that CANNOT change while the page is open: which
+ * renderer exists, and whether WebGL does at all. Read from one throwaway
+ * context, which is then released — a second live context per resize would
+ * cost exactly the GPU memory this file is trying to conserve.
+ */
+function probeWebGL(): { renderer: string; webgl: boolean } {
+  try {
+    const probe = document.createElement("canvas");
+    const gl = (probe.getContext("webgl2") ?? probe.getContext("webgl")) as
+      | WebGLRenderingContext
+      | null;
+    if (!gl) return { renderer: "", webgl: false };
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return { renderer, webgl: true };
+  } catch {
+    return { renderer: "", webgl: false };
+  }
+}
+
+/**
+ * The part of capability a resize or a rotation CAN change.
+ *
+ * `narrow` is a measurement of the surface, `mobile` a hint, `saveData` the
+ * user's own request — and all three are re-read here rather than remembered
+ * from mount.
+ */
+function readCapabilityView(): { narrow: boolean; mobile: boolean; saveData: boolean } {
+  return {
+    narrow: window.innerWidth <= 720,
+    mobile,
+    saveData: Boolean(
+      (navigator as unknown as { connection?: { saveData?: boolean } }).connection?.saveData,
+    ),
+  };
+}
+
 const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   useSceneMountLog("GenesisV1Workspace");
   // The budget's own decision, before anything may override it. Kept in its
@@ -435,46 +477,10 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
    * Detected from the GL driver string, never guessed from the user agent:
    * a machine with a real GPU keeps the world exactly as it is.
    */
-  const [softwareGL, setSoftwareGL] = useState(false);
-  useEffect(() => {
-    /*
-     * The same probe now also tells the RENDER MANAGER what this device is,
-     * so the decision is made once, in one place, and every surface reads
-     * it. `narrow` is a viewport measurement and `mobile` a hint: a phone
-     * with a real GPU is "balanced", never "light".
-     */
-    const manager = getSceneRenderManager();
-    const narrow = window.innerWidth <= 720;
-    const saveData = Boolean(
-      (navigator as unknown as { connection?: { saveData?: boolean } }).connection?.saveData,
-    );
-    try {
-      const probe = document.createElement("canvas");
-      const gl = (probe.getContext("webgl2") ?? probe.getContext("webgl")) as
-        | WebGLRenderingContext
-        | null;
-      if (!gl) {
-        setSoftwareGL(true);
-        manager.setCapability({ webgl: false, narrow, saveData });
-        return;
-      }
-      const info = gl.getExtension("WEBGL_debug_renderer_info");
-      const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
-      if (SOFTWARE_GL_RENDERER.test(renderer)) {
-        setSoftwareGL(true);
-      }
-      manager.setCapability({ renderer, webgl: true, narrow, mobile, saveData });
-      // The probe holds a second context until it is told to let go.
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
-    } catch {
-      setSoftwareGL(true);
-      manager.setCapability({ webgl: false, narrow, saveData });
-    }
-  }, []);
   /*
    * A measurement affordance, development only.
    *
-   * The software-renderer guard above deliberately refuses to paint the
+   * The software-renderer guard below deliberately refuses to paint the
    * world, which is right for a person on llvmpipe and useless for an
    * instrument: in a container with no GPU every run would measure the
    * guard, not the scene, and would do so identically before and after any
@@ -482,6 +488,101 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
    * machine. It is stripped from production builds (IS_DEV is inlined to
    * false) and cannot be reached by a link.
    */
+  const perfWorld =
+    IS_DEV &&
+    typeof window !== "undefined" &&
+    window.location.search.includes("perf-world");
+
+  const [softwareGL, setSoftwareGL] = useState(false);
+
+  /*
+   * CAPABILITY IS EVIDENCE, AND EVIDENCE HAS A LIFETIME.
+   *
+   * This probe used to run once, on mount, and its answer was never
+   * revisited. `narrow` was whatever the window happened to be at that
+   * instant, so rotating a phone left the asset budget of the old
+   * orientation in place — and a profile demoted by MEASUREMENT could never
+   * come back, because a canvas that is not painting emits no frames, so the
+   * very act of giving up removed every future sample that could have
+   * justified trying again. On a machine with a real GPU whose frames are
+   * simply slow (a VM, a remote session, a thermally throttled laptop) that
+   * was permanent: the Cosmos stopped painting for the life of the tab, from
+   * one transient dip.
+   *
+   * So the probe is split in two:
+   *
+   *   EVIDENCE  the renderer string and whether WebGL exists. Neither can
+   *             change by resizing a window, so it is read ONCE, from one
+   *             throwaway context that is released immediately.
+   *   SURFACE   `narrow`, which IS a measurement of the viewport. It is
+   *             re-read when the viewport or the orientation changes, at most
+   *             once per CAPABILITY_RECHECK_MS: a drag fires resize dozens of
+   *             times and a capability decision does not need recomputing per
+   *             event.
+   *
+   * Both go through the ONE manager call, which ignores a reassessment whose
+   * evidence is unchanged — so holding a window still is a no-op and the
+   * profile cannot oscillate (see SceneRenderManager.reassessCapability).
+   */
+  useEffect(() => {
+    const manager = getSceneRenderManager();
+    const evidence = probeWebGL();
+    if (!evidence.webgl || SOFTWARE_GL_RENDERER.test(evidence.renderer)) {
+      setSoftwareGL(true);
+    }
+
+    const assess = (trigger: CapabilityTrigger) =>
+      manager.reassessCapability({ ...evidence, ...readCapabilityView() }, trigger);
+
+    assess("mount");
+
+    /*
+     * An EXPLICIT request to keep GPU rendering on, from configuration —
+     * never from a browser heuristic. `?perf-world` is the harness flag;
+     * `?render=gpu` is the operator's, for a machine whose GPU is real and
+     * whose frames are slow. Either way the manager refuses when there is no
+     * GPU to paint with, and a lost context still suspends through the
+     * budget, so an override cannot hide a broken canvas.
+     */
+    const requested =
+      readRenderOverride(window.location.search) ??
+      (perfWorld
+        ? {
+            profile: "full" as const,
+            reason: "development ?perf-world measurement flag",
+            source: "url:perf-world",
+          }
+        : null);
+    if (requested && !manager.setOverride(requested)) {
+      console.warn(
+        `[lélu] render override refused (${manager.getSnapshot().overrideRefused ?? "unknown"}): this device has no GPU to paint with`,
+      );
+    }
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const schedule = (trigger: CapabilityTrigger) => {
+      if (timer !== null) clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = null;
+        assess(trigger);
+      }, CAPABILITY_RECHECK_MS);
+    };
+    const onResize = () => schedule("resize");
+    const onOrientation = () => schedule("orientation");
+
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onOrientation);
+    window.screen?.orientation?.addEventListener?.("change", onOrientation);
+
+    return () => {
+      if (timer !== null) clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onOrientation);
+      window.screen?.orientation?.removeEventListener?.("change", onOrientation);
+    };
+  }, [perfWorld]);
   /*
    * A covered world goes through the RENDER BUDGET, not through a second
    * opinion on the frameloop.
@@ -499,10 +600,6 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
     return () => budget.setOccluded("genesis-world-covered", false);
   }, [worldCovered]);
 
-  const perfWorld =
-    IS_DEV &&
-    typeof window !== "undefined" &&
-    window.location.search.includes("perf-world");
   /*
    * Two independent reasons not to paint the world, one expression:
    * the DEVICE cannot (a software rasteriser, or the manager profiled it

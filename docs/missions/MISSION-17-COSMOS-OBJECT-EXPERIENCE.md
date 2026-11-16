@@ -583,3 +583,153 @@ unchanged.
   older flight on purpose — that is the feature, not a regression.
 - `setCapability` is evaluated once per mount from the viewport at that moment;
   it is not re-evaluated on resize. Not changed here, and worth its own look.
+
+---
+
+# WP05 — ADAPTIVE RENDERING CAPABILITY & GPU VALIDATION (P01)
+
+Base `268e659` (WP04). Branch `freebuff/m17-coe-wp03-responsive-canvas`.
+
+## 1. What this work package answers
+
+WP04 finished with a sentence it could not get past: the Cosmos was correctly
+framed and nobody could see it, because the render manager had classified a real
+GPU as a `light` device and stopped painting. The next question was not "is the
+profile right" but "why could nothing ever change it".
+
+## 2. Inventory — the capability path before this change
+
+| Where | What it did | Gap |
+| --- | --- | --- |
+| `GenesisScene.tsx` · `GenesisV1Workspace` | one `useEffect(…, [])` created a throwaway WebGL context, read the renderer string, `innerWidth <= 720` and Save-Data, then called `manager.setCapability()` | ran once per mount: resize, rotation, context restoration and a changed renderer could never reach it |
+| `SceneRenderManager.setCapability` | `ceiling = profileFor(input)`, profile = ceiling | kept no record of *which* evidence produced the ceiling |
+| `SceneRenderManager.reportFrameRate` ← `AdaptiveQuality` (1 Hz) | `nextProfile(adaptation, {fps, painting: mode === "full"}, ceiling)` | the only mechanism able to revise a measurement decision lived *inside the canvas*: at `light`, `paintWorld` is false → `frameloop="never"` → `useFrame` never runs → no further samples. Giving up destroyed the evidence that could justify trying again |
+| `AdaptiveQuality` | `painting` came from the budget's mode, not from whether the canvas painted | a profile-suspended canvas would have been reported as painting; stats said `mode: "full"` while nothing was drawn |
+| `GenesisScene.paintWorld` | `(!softwareGL \|\| perfWorld) && profile !== "light"` | `?perf-world` bypassed the local flag but not the profile, so the harness flag did nothing on this host |
+
+**Every path to `frameloop="never"`:** `profile === "light"`; the local
+`softwareGL` probe; and the budget's own `paused` state (hidden page, covered
+world, Chat Universe workspace, lost context).
+
+**Conflation.** Capability, measurement and viewport all collapsed into one
+`profile` string with no explanation, and a measurement could overwrite the
+capability answer permanently.
+
+## 3. Root cause
+
+The capability decision was taken once, at mount, from evidence that has a
+lifetime — and the only mechanism that could revise it was destroyed by the
+decision it made. One transient slow window therefore classified a real GPU as a
+light device for the life of the tab, with no observability into why, and no way
+for an operator to state that the *machine* is constrained rather than the GPU.
+
+## 4. The fix
+
+**One decision, three kinds of evidence, one record of which was used.**
+
+- `capabilitySignature()` compares evidence; a reassessment whose signature is
+  unchanged is not a new decision — it resets nothing and notifies nobody.
+- `reassessCapability(input, trigger)` re-derives the ceiling and the profile
+  only when the evidence changed. Capability (renderer, WebGL, narrow viewport)
+  sets a **ceiling**; measurement moves the profile inside it with the existing
+  hysteresis; a changed surface re-derives, because frames measured on the old
+  surface are not evidence about the new one.
+- `observeRenderer()` is called by the context guard after a restoration: a
+  context that returns on a *different* renderer (a GPU process falling back to
+  software) is new evidence, an identical string is free.
+- `setOverride()` takes an explicit request — `?render=gpu`, `?render=balanced`,
+  or the development `?perf-world` — and treats it as a **floor**, never a
+  ceiling: it cannot exceed what the hardware allows, it is refused outright
+  when there is no GPU to paint with (`refused:no-webgl`, `refused:software`),
+  it never bypasses a lost context (that suspends through the budget), it is
+  counted (`demotionsHeld`), and removing the parameter restores the automatic
+  policy.
+- The snapshot now explains itself: `reason` (`capability`,
+  `capability:narrow`, `capability:software`, `capability:no-webgl`,
+  `capability:save-data`, `measurement:slow`, `override`), `override`,
+  `overrideRefused`, `capability`, `assessedAt`, `worldPainting`,
+  `demotionsHeld`. `window.__leluRenderStats` publishes the same vocabulary once
+  per measured second — never per frame.
+
+**Lifecycle.** The evidence that cannot change (renderer, WebGL) is read once
+from one throwaway context; the viewport part is re-read on `resize`,
+`visualViewport.resize`, `orientationchange` and `screen.orientation change`,
+coalesced to one decision per `CAPABILITY_RECHECK_MS` (250 ms). Listeners are
+removed on unmount.
+
+**Unchanged on purpose.** `paintWorld` and the frameloop expression are
+byte-identical: the budget remains the only authority on the frame loop, and a
+lost context still suspends everything.
+
+## 5. Files changed
+
+- `src/app/scene/genesis/SceneRenderManager.ts` — the capability lifetime, the
+  override, the reasons, the snapshot.
+- `src/app/scene/genesis/GenesisScene.tsx` — split probe, debounced
+  reassessment, explicit override wiring.
+- `src/app/scene/genesis/render/RenderContextGuard.tsx` — reports the renderer a
+  restored context came back with.
+- `src/app/scene/genesis/AdaptiveQuality.tsx` — diagnostics.
+- `tests/render-capability.test.ts` — **new**, 17 tests.
+
+## 6. Live results (this VM, `ANGLE (Intel, Iris Xe)`, D3D11)
+
+| viewport | override | profile | reason | ceiling | painting |
+| --- | --- | --- | --- | --- | --- |
+| 384×661 | off | light | measurement:slow | balanced | false |
+| 384×661 | on | balanced | override | balanced | true — 3/3 chairs in frame, warm-pixel patches 0.089 / 0.185 / 0.088 |
+| 390×844 | on | balanced | override | balanced | true — three chairs plainly visible |
+| 768×1024 | on | full | override | full | true — 3/3 in frame |
+| 1024×768 | on | full | override | full | true — 3/3 in frame |
+| 844×390 | on | full | override | full | true — ceiling re-derived from portrait, 3/3 in frame after re-entry |
+| 1440×900 | off | light | measurement:slow | full | false |
+| 1440×900 | on | full | override | full | true — three chairs rendered large and correctly at desktop size |
+
+**Context loss/restoration, live, with the override active:** lost → `mode:
+paused`, `lostContexts: ["genesis-world"]`, `worldPainting: false`; restored →
+`mode: full`, `lostContexts: []`, `worldPainting: true`, frames advancing. The
+override does not bypass a dead context.
+
+**A burst of 25 identical `resize` events** left `profile`, `ceiling` and
+`assessedAt` unchanged: one decision, no oscillation.
+
+**Pixel method, and its limit.** Screenshots are decoded in the page; a chair
+pixel is warm (`r > 90 && r > b + 18 && g > 55`), sampled in 45×45 boxes around
+the probe's reported screen positions. The probe's `screen` coordinates do not
+map 1:1 onto screenshot pixels at every aspect (at 390×844 the patches read 0
+while three chairs are plainly visible), so where they disagree the screenshot is
+the authority and `inFrustum` alone is never treated as visual proof.
+
+## 7. Not verified, and why
+
+- **"Initial capable GPU paints without an override."** No machine here sustains
+  30 fps, so a genuinely capable device could not be observed starting at
+  `full`. What *is* verified is that when the evidence says capable and the
+  override is granted, the world paints at every viewport that could be
+  captured.
+- **Repeating the 1440×900 capture.** The first attempt at that size captured
+  three rendered chairs; a later attempt at the same size painted but stopped
+  servicing CDP, with screenshots and evaluations timing out. That is the
+  clearest statement that an override is not a free win on an incapable host —
+  which is why it is explicit, logged, counted and reversible.
+- **Object selection** was not re-clicked live this round (the object probe was
+  not registered before the timeout in two attempts). Geometry routing is
+  untouched by this work package and covered by `tests/cosmos-objects.test.ts`.
+
+## 8. Observation for the next work package
+
+Rotating while the Cosmos is open keeps the pose framed for the **old** aspect:
+at 844×390 the three objects sat at x = 849 / 891 / 1204 after a portrait →
+landscape change, until the Cosmos was re-entered. That is WP04's camera
+contract (a framed pose is owned and is not re-applied), and re-framing on an
+aspect change would be a camera write — it belongs in the camera work, not
+bolted onto capability.
+
+## 9. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · `tests/render-capability.test.ts`
+**17 pass** · full suite **2266 tests, 2256 pass, 2 fail**, both failures
+reproduced identically at base `268e659` in a separate worktree
+(`tests/sandbox-security.test.ts` network probe returns empty; 
+`tests/genesis-interface.test.tsx` cannot resolve `@excalidraw/excalidraw/index.css`).
+Lockfile unchanged.
