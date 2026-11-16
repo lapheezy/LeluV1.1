@@ -1,6 +1,6 @@
 # Improvement 1 — "A study must conclude": Gate 2 evidence
 
-Status: **IMPLEMENTED ON BRANCH, AWAITING YOUR ACCEPTANCE.** It is not deployed to production. The next improvement will not start until you accept or return this one.
+Status: **ACCEPTED by the owner at Gate 2 (2026-11-16).** Implemented on branch `claude/cool-mccarthy-dliwu9`; deployment to production is the owner's step.
 
 Approved at Gate 1: "Both do A". That covers (1) "A study must conclude" and (2), as a separate item, making personality changes staged for your review by default.
 
