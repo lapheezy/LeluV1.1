@@ -26,9 +26,11 @@ import {
   creativePositionToScene,
   creativeRotationToSceneQuat,
   creativeScaleToScene,
+  frameForBounds,
   scenePositionToCreative,
 } from "../../../../core/couture/sceneTransform";
 import { findMaterial } from "../../../../core/couture/textiles";
+import { dispatchV2CameraCommand } from "../GenesisCameraIntent";
 import {
   beginCreativeGesture,
   endCreativeGesture,
@@ -36,6 +38,7 @@ import {
   getCreativeTool,
   selectCreativeObject,
   setCreativeCamera,
+  subscribeCreativeFocus,
   subscribeCreativeSelection,
   subscribeCreativeTool,
 } from "./creativeGesture";
@@ -258,6 +261,8 @@ export default function CreativeObjects3D() {
   useEffect(() => {
     (window as unknown as { __leluCreativeScreen?: unknown }).__leluCreativeScreen = () => {
       const rect = gl.domElement.getBoundingClientRect();
+      camera.updateMatrixWorld();
+      root.current?.updateWorldMatrix(true, true);
       return objects.map((object) => {
         const [x, y, z] = creativePositionToScene(object.transform.position);
         // Aim at the geometry, not the origin: a chair's origin is the floor
@@ -271,14 +276,66 @@ export default function CreativeObjects3D() {
           name: object.name,
           x: rect.left + ((projected.x + 1) / 2) * rect.width,
           y: rect.top + ((1 - projected.y) / 2) * rect.height,
+          ndc: [Number(projected.x.toFixed(3)), Number(projected.y.toFixed(3)), Number(projected.z.toFixed(3))],
+          world: [Number(point.x.toFixed(3)), Number(point.y.toFixed(3)), Number(point.z.toFixed(3))],
           onScreen: projected.z > -1 && projected.z < 1 && Math.abs(projected.x) <= 1 && Math.abs(projected.y) <= 1,
         };
       });
     };
+    // The camera this layer actually rays from, for acceptance diagnostics.
+    (window as unknown as { __leluCreativeCamera?: unknown }).__leluCreativeCamera = () => ({
+      position: camera.position.toArray().map((n) => Number(n.toFixed(3))),
+      forward: (() => {
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+        return forward.toArray().map((n) => Number(n.toFixed(3)));
+      })(),
+      fov: (camera as THREE.PerspectiveCamera).fov ?? null,
+      canvas: [Math.round(gl.domElement.clientWidth), Math.round(gl.domElement.clientHeight)],
+    });
     return () => {
       delete (window as unknown as { __leluCreativeScreen?: unknown }).__leluCreativeScreen;
+      delete (window as unknown as { __leluCreativeCamera?: unknown }).__leluCreativeCamera;
     };
   }, [objects, camera, gl, root]);
+
+  /**
+   * Frame an object for the dock's Focus control.
+   *
+   * Frame the GEOMETRY, not the origin: the camera is placed along the current
+   * viewing direction at a distance derived from the object's own size, and
+   * aimed at its bounding-box centre. A 0.47 m chair aimed-at from 0.5 m with
+   * the origin as the target sat above the frustum; this cannot happen for any
+   * object, because distance and target both come from the mesh bounds.
+   */
+  useEffect(
+    () =>
+      subscribeCreativeFocus((objectId) => {
+        const node = root.current?.getObjectByName(`creative-object:${objectId}`);
+        if (!node) return;
+        node.updateWorldMatrix(true, false);
+        const box = new THREE.Box3().setFromObject(node);
+        if (box.isEmpty()) return;
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+        const framing = frameForBounds(
+          [center.x, center.y, center.z],
+          size.length() / 2,
+          [direction.x, direction.y, direction.z],
+        );
+        const eye = new THREE.Vector3(...framing.eye);
+        center.set(...framing.centre);
+        const cameraBridge = (window as unknown as {
+          __cosmosCamera?: { navigateTo?: (pos: { x: number; y: number; z: number }, at: { x: number; y: number; z: number }) => void };
+        }).__cosmosCamera;
+        cameraBridge?.navigateTo?.(eye, center);
+        dispatchV2CameraCommand({ intent: "fly", position: [eye.x, eye.y, eye.z], lookAt: [center.x, center.y, center.z] });
+        invalidate();
+      }),
+    [camera, invalidate],
+  );
 
   // The Cosmos paints on demand. A creative change is a reason to paint: the
   // store, the selection and a drag each ask the existing renderer for the
@@ -300,35 +357,76 @@ export default function CreativeObjects3D() {
     };
   }, [store]);
 
-  const pick = useCallback((clientX: number, clientY: number) => {
-    const rect = gl.domElement.getBoundingClientRect();
-    pointerNdc.current.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
-    raycaster.current.setFromCamera(pointerNdc.current, camera);
-    if (!root.current) return null;
-    const hits = raycaster.current.intersectObject(root.current, true);
-    for (const hit of hits) {
-      const data = hit.object.userData as { creativeId?: string; creativeComponentId?: string };
-      if (data?.creativeId) return { objectId: data.creativeId, componentId: data.creativeComponentId };
-    }
-    return null;
-  }, [camera, gl]);
+  /**
+   * Raycast the REAL part meshes, nearest first.
+   *
+   * Two things here are load-bearing and were both missing before:
+   *  - the camera's world matrix is refreshed first. The Cosmos paints on
+   *    demand, so between frames `camera.matrixWorld` can be a frame or more
+   *    stale; a ray built from a stale matrix lands behind the object and the
+   *    pick silently misses the mesh the person can see.
+   *  - a hit only counts if its object is eligible: visible, not archived.
+   *    The raycaster does not skip invisible subtrees on its own.
+   * The geometry tested is the actual part mesh, so an object whose origin sits
+   * outside its visible body (the chair's origin is the floor between its legs)
+   * is selectable exactly where it is drawn.
+   */
+  const pick = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!root.current) return null;
+      const rect = gl.domElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return null;
+      camera.updateMatrixWorld();
+      root.current.updateWorldMatrix(true, true);
+      pointerNdc.current.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+      raycaster.current.setFromCamera(pointerNdc.current, camera);
+      const hits = raycaster.current.intersectObject(root.current, true);
+      for (const hit of hits) {
+        const data = hit.object.userData as { creativeId?: string; creativeComponentId?: string };
+        if (!data?.creativeId) continue;
+        const object = store.get(data.creativeId);
+        if (!object || !object.visible || object.archived) continue;
+        return { objectId: data.creativeId, componentId: data.creativeComponentId, distance: hit.distance };
+      }
+      return null;
+    },
+    [camera, gl, store],
+  );
 
   /**
    * Capture-phase pointer down: the camera rig's own listener runs after this
    * one, so it sees the gesture lock and never starts an orbit.
    */
   useEffect(() => {
+    /*
+     * What counts as "the world" for a press.
+     *
+     * The press never arrives on our canvas: the scene's canvases are stacked
+     * and the Cosmos puts its own surface above them, so the event is delivered
+     * to some DOM node that is not ours (measured: a DIV, or a full-surface
+     * BUTTON). A canvas-target guard therefore rejected every real tap.
+     *
+     * The contract is deliberately narrow, in two parts:
+     *   1. the press must land inside this scene's own container — the element
+     *      that wraps the canvas and its overlays. Anything in the interface
+     *      tree (sheets, cards, chat, menus) is outside it and never reaches
+     *      here, so no unrelated UI is hijacked.
+     *   2. it must not land on a control: button, link, field, or the creative
+     *      dock. Those keep their native behaviour untouched.
+     * Everything else in the scene is a world tap and is raycast.
+     */
+    const sceneRoot = (() => {
+      let node: HTMLElement | null = gl.domElement;
+      while (node?.parentElement && node.parentElement !== document.body) node = node.parentElement;
+      return node;
+    })();
+    sceneRoot?.setAttribute("data-lelu-scene-root", "");
+
     const onDown = (event: PointerEvent) => {
       if (event.button !== 0 && event.pointerType === "mouse") return;
-      // A press on a creation does not arrive on this canvas: the scene's
-      // canvases are stacked and the Cosmos covers the world with its own
-      // navigation surface, so the press lands on a DOM element above us and
-      // our canvas never hears it. Listen at window capture and treat "not a
-      // control" as "the world": anything inside a button, link, field, panel
-      // or the dock itself is left alone, and everything else is raycast.
-      // Measured: with a canvas-only guard, selection never fired.
       const pressed = event.target as Element | null;
-      const control = pressed?.closest?.(
+      if (!sceneRoot || !pressed || !sceneRoot.contains(pressed)) return;
+      const control = pressed.closest?.(
         'button, a, input, textarea, select, [role="button"], [data-lelu-creative-dock], [data-lelu-no-creative-pick]',
       );
       if (control) return;
@@ -374,7 +472,10 @@ export default function CreativeObjects3D() {
       render((n) => n + 1);
     };
     window.addEventListener("pointerdown", onDown, { capture: true });
-    return () => window.removeEventListener("pointerdown", onDown, { capture: true });
+    return () => {
+      window.removeEventListener("pointerdown", onDown, { capture: true });
+      sceneRoot?.removeAttribute("data-lelu-scene-root");
+    };
   }, [camera, gl, pick, store]);
 
   /** The drag: window-level, so a finger leaving the mesh keeps control. */

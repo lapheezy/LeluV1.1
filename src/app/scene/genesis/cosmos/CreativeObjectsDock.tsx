@@ -17,12 +17,11 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import CreativeObjects, { type CreativeObject } from "../../../../core/couture/objects";
+import { requestCreativeFocus } from "./creativeGesture";
 import { garmentAssembly } from "../../../../core/couture/components";
 import { buildGarment } from "../../../../core/couture/garment";
 import { buildProduct } from "../../../../core/couture/product";
 import CreativeObjectBridge from "../../../../core/cosmos/CreativeObjectBridge";
-import { creativePositionToScene } from "../../../../core/couture/sceneTransform";
-import { dispatchV2CameraCommand } from "../GenesisCameraIntent";
 import {
   creativePlacementInFront,
   getCreativeSelection,
@@ -81,14 +80,17 @@ export default function CreativeObjectsDock() {
     };
   }, [store]);
 
-  /** Fly the live camera to the object through the existing camera bus. */
+  /**
+   * Ask the scene to frame the object.
+   *
+   * The dock used to fly the camera itself, to a point 0.5 m from the object's
+   * ORIGIN. For a chair the origin is the floor between its legs, so the seat
+   * ended up above the frustum and "Focus" aimed at the floor. The layer owns
+   * the meshes and the camera, so it computes the framing from the real
+   * bounding box and drives the same camera bus.
+   */
   const frame = useCallback((object: CreativeObject) => {
-    const [x, y, z] = creativePositionToScene(object.transform.position);
-    const lookAt = { x, y, z };
-    const eye = { x: x + 0.12, y: y + 0.1, z: z + 0.5 };
-    const cameraBridge = (window as unknown as { __cosmosCamera?: { navigateTo?: (pos: { x: number; y: number; z: number }, at: { x: number; y: number; z: number }) => void } }).__cosmosCamera;
-    cameraBridge?.navigateTo?.(eye, lookAt);
-    dispatchV2CameraCommand({ intent: "fly", position: [eye.x, eye.y, eye.z], lookAt: [x, y, z] });
+    requestCreativeFocus(object.id);
   }, []);
 
   const selected = selection ? store.get(selection.objectId) ?? null : null;

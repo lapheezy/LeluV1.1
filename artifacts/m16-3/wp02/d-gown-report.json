@@ -1,0 +1,88 @@
+{
+  "url": "http://localhost:3003/?perf-world",
+  "kind": "gown",
+  "mobile": false,
+  "steps": [
+    "loaded"
+  ],
+  "errors": [],
+  "ok": false,
+  "immersive": true,
+  "sceneRoot": "div.",
+  "build": {
+    "notice": "Cosmos gown is in cosmos-core as obj-b200b6ca; geometry, components and history unchanged"
+  },
+  "objectId": "obj-garment-1",
+  "objects": [
+    "Cosmos gown"
+  ],
+  "select": {
+    "selected": "obj-garment-1",
+    "gesture": {
+      "hit": "obj-garment-1",
+      "component": "c-l-01",
+      "mode": "select"
+    },
+    "point": {
+      "id": "obj-garment-1",
+      "name": "Cosmos gown",
+      "x": 640.0000000000001,
+      "y": 400,
+      "ndc": [
+        0,
+        0,
+        0.911
+      ],
+      "world": [
+        -0.9,
+        2.495,
+        5.923
+      ],
+      "onScreen": true
+    },
+    "attempts": 1,
+    "trail": [
+      {
+        "x": 640,
+        "y": 400,
+        "onScreen": true
+      }
+    ]
+  },
+  "controlPress": {
+    "before": "obj-garment-1",
+    "after": "obj-garment-1"
+  },
+  "orbit": {
+    "cameraBefore": [
+      -2.425,
+      3.056,
+      7.485
+    ],
+    "cameraAfter": [
+      -2.571,
+      2.949,
+      7.366
+    ],
+    "cameraMoved": true,
+    "objectMoved": false
+  },
+  "drag": {
+    "committed": null,
+    "positionBefore": [
+      [
+        -900,
+        -5923.138222470604,
+        2774.296784465281
+      ]
+    ],
+    "positionAfter": [
+      [
+        -900,
+        -5923.138222470604,
+        2774.296784465281
+      ]
+    ]
+  },
+  "error": "page.waitForTimeout: Target page, context or browser has been closed"
+}

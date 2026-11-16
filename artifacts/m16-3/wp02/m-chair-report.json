@@ -1,0 +1,104 @@
+{
+  "url": "http://localhost:3003/?perf-world",
+  "kind": "chair",
+  "mobile": true,
+  "steps": [
+    "loaded"
+  ],
+  "errors": [],
+  "ok": true,
+  "immersive": true,
+  "sceneRoot": "div.",
+  "build": {
+    "notice": "Oak side chair is in cosmos-core as obj-fdf0c638; geometry, components and history unchanged"
+  },
+  "objectId": "obj-product-1",
+  "objects": [
+    "Oak side chair"
+  ],
+  "select": {
+    "selected": "obj-product-1",
+    "gesture": {
+      "hit": "obj-product-1",
+      "component": "c-seat",
+      "mode": "select"
+    },
+    "point": {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "x": 97.8686613389883,
+      "y": 108.5016181670648,
+      "ndc": [
+        -0.498,
+        0.743,
+        0.964
+      ],
+      "world": [
+        -0.9,
+        4.107,
+        0.561
+      ],
+      "onScreen": true
+    },
+    "attempts": 1,
+    "trail": [
+      {
+        "x": 98,
+        "y": 109,
+        "onScreen": true
+      }
+    ]
+  },
+  "controlPress": {
+    "before": "obj-product-1",
+    "after": "obj-product-1"
+  },
+  "orbit": {
+    "cameraBefore": [
+      -3.804,
+      2.103,
+      6.196
+    ],
+    "cameraAfter": [
+      0,
+      3.5,
+      8
+    ],
+    "cameraMoved": true,
+    "objectMoved": false
+  },
+  "drag": {
+    "committed": {
+      "mode": "move",
+      "position": [
+        -1054.5026455315,
+        -291.6204354198722,
+        3743.2324171477976
+      ]
+    },
+    "positionBefore": [
+      [
+        -900,
+        -560.9336516770284,
+        3681.4025824618025
+      ]
+    ],
+    "positionAfter": [
+      [
+        -1054.5026455315,
+        -291.6204354198722,
+        3743.2324171477976
+      ]
+    ],
+    "attempts": 2
+  },
+  "afterReload": {
+    "positions": [
+      [
+        -1054.5026455315,
+        -291.6204354198722,
+        3743.2324171477976
+      ]
+    ]
+  }
+}

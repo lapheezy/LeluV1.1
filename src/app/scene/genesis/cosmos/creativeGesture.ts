@@ -102,6 +102,28 @@ export function creativePlacementInFront(metres = 2.2, side = 0): [number, numbe
   const z = liveCamera.position.z + fz * metres + (rightZ / rightLength) * side;
   return [x * 1000, -z * 1000, y * 1000];
 }
+/**
+ * A request to frame an object on screen.
+ *
+ * The dock knows WHICH object; only the 3D layer knows where its geometry
+ * actually is. So the dock asks, and the layer — which owns the camera and the
+ * meshes — works out the framing and drives the existing camera bus. That
+ * keeps one camera authority and makes "Focus" geometry-aware: aiming at an
+ * object's origin framed the chair's floor point, not the chair.
+ */
+const focusListeners = new Set<(objectId: string) => void>();
+
+export function requestCreativeFocus(objectId: string): void {
+  for (const listener of focusListeners) listener(objectId);
+}
+
+export function subscribeCreativeFocus(listener: (objectId: string) => void): () => void {
+  focusListeners.add(listener);
+  return () => {
+    focusListeners.delete(listener);
+  };
+}
+
 let tool: CreativeTool = "select";
 const toolListeners = new Set<(tool: CreativeTool) => void>();
 

@@ -33,6 +33,39 @@ export function scenePositionToCreative([x, y, z]: Vec3Tuple): Vec3Tuple {
   return [x * MM, -z * MM, y * MM];
 }
 
+/**
+ * Where a camera has to sit to show a box of `radius` whose centre is `centre`.
+ *
+ * This exists because the dock used to frame an object by aiming at its ORIGIN
+ * from 0.5 m: a chair's origin is the floor between its legs, so the seat ended
+ * up above the frustum and "Focus" framed the floor. Distance is derived from
+ * the object's own size, so any object — a 26 mm pendant, a gown, a chair — is
+ * framed whole rather than clipped.
+ *
+ * `direction` is the viewing direction to look from (usually the current
+ * camera forward), so the person keeps their sense of where they were.
+ */
+export function frameForBounds(
+  centre: Vec3Tuple,
+  radius: number,
+  direction: Vec3Tuple,
+  minimumDistance = 0.85,
+  radiusFactor = 2.6,
+): { eye: Vec3Tuple; centre: Vec3Tuple; distance: number } {
+  const [dx, dy, dz] = direction;
+  const length = Math.hypot(dx, dy, dz);
+  const unit = length > 1e-6 ? ([dx / length, dy / length, dz / length] as Vec3Tuple) : ([0, 0.2, -1] as Vec3Tuple);
+  const normalizedLength = Math.hypot(unit[0], unit[1], unit[2]) || 1;
+  const forward: Vec3Tuple = [unit[0] / normalizedLength, unit[1] / normalizedLength, unit[2] / normalizedLength];
+  const clampedRadius = Math.max(0, radius);
+  const distance = Math.max(minimumDistance, clampedRadius * radiusFactor);
+  return {
+    eye: [centre[0] - forward[0] * distance, centre[1] - forward[1] * distance, centre[2] - forward[2] * distance],
+    centre: [centre[0], centre[1], centre[2]],
+    distance,
+  };
+}
+
 function multiply(a: Quat, b: Quat): Quat {
   return {
     x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,

@@ -1,0 +1,109 @@
+{
+  "url": "http://localhost:3003/?perf-world",
+  "kind": "chair",
+  "mobile": false,
+  "steps": [
+    "loaded"
+  ],
+  "errors": [],
+  "ok": true,
+  "immersive": true,
+  "sceneRoot": "div.",
+  "build": {
+    "notice": "Oak side chair is in cosmos-core as obj-1f85506b; geometry, components and history unchanged"
+  },
+  "objectId": "obj-product-1",
+  "objects": [
+    "Oak side chair"
+  ],
+  "select": {
+    "selected": "obj-product-1",
+    "gesture": {
+      "hit": "obj-product-1",
+      "component": "c-seat",
+      "mode": "select"
+    },
+    "point": {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "x": 291.5076086277409,
+      "y": 285.73966649545355,
+      "ndc": [
+        -0.545,
+        0.286,
+        0.906
+      ],
+      "world": [
+        -2.966,
+        1.682,
+        4.636
+      ],
+      "onScreen": true
+    },
+    "attempts": 1,
+    "trail": [
+      {
+        "x": 292,
+        "y": 286,
+        "onScreen": true
+      }
+    ]
+  },
+  "controlPress": {
+    "before": "obj-product-1",
+    "after": "obj-product-1"
+  },
+  "orbit": {
+    "cameraBefore": [
+      -3.51,
+      1.754,
+      5.905
+    ],
+    "cameraAfter": [
+      -3.617,
+      1.686,
+      5.856
+    ],
+    "cameraMoved": true,
+    "objectMoved": false
+  },
+  "drag": {
+    "committed": {
+      "mode": "move",
+      "position": [
+        -4279.012491910739,
+        -3488.4654449573736,
+        1890.897103637621
+      ]
+    },
+    "pressGesture": {
+      "hit": "obj-product-1",
+      "component": "c-back",
+      "mode": "move"
+    },
+    "positionBefore": [
+      [
+        -2965.963675218375,
+        -4635.8499770837025,
+        1255.7947630778356
+      ]
+    ],
+    "positionAfter": [
+      [
+        -4279.012491910739,
+        -3488.4654449573736,
+        1890.897103637621
+      ]
+    ],
+    "attempts": 2
+  },
+  "afterReload": {
+    "positions": [
+      [
+        -4279.012491910739,
+        -3488.4654449573736,
+        1890.897103637621
+      ]
+    ]
+  }
+}
