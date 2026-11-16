@@ -186,6 +186,25 @@ export default function SpatialNavigator() {
      covered the textarea and the typed turn could not be entered. */
   const navRef = useRef<HTMLDivElement | null>(null);
   const [lift, setLift] = useState(0);
+  /* The Home's Cosmos orb rises above its bottom navigation (most on phones):
+     while the bar is open, sit above the orb's measured top, not on it. */
+  const [orbClearance, setOrbClearance] = useState(0);
+  useEffect(() => {
+    if (!shown || hidden) return;
+    const measure = () => {
+      const orb = document.querySelector(".lsn-orb");
+      const r = orb?.getBoundingClientRect();
+      const next = r && r.height > 0 ? Math.max(0, Math.round(window.innerHeight - r.top + 8)) : 0;
+      setOrbClearance((value) => (value === next ? value : next));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, [shown, hidden]);
   useEffect(() => {
     if (!chatOpen || hidden) {
       setLift(0);
@@ -386,7 +405,11 @@ export default function SpatialNavigator() {
         left: compact ? 8 : 92,
         right: 12,
         /* Above the Home's own bottom navigation, never on top of it. */
-        bottom: compact ? "calc(84px + env(safe-area-inset-bottom, 0px))" : 100,
+        bottom: orbClearance > 0
+          ? orbClearance
+          : compact
+            ? "calc(84px + env(safe-area-inset-bottom, 0px))"
+            : 100,
         zIndex: layer("navigation"),
         display: "flex",
         flexDirection: "column",

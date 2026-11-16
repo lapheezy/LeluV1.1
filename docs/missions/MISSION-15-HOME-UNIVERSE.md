@@ -196,3 +196,13 @@ The next steps, in order:
 2. Give LÉLU a consented `home.*` interface tool over `HomeStore.applyHomeOp`.
 3. Build the #51 orbit-hero + bento-body composition.
 4. Give the Cosmos renderer a graceful no-WebGL path.
+
+## Follow-ups on `claude/charming-hamilton-icbyrb`
+
+| Date | Report | Commit | Status |
+|---|---|---|---|
+| 2026-11-15 | [15.1 Home Studio](MISSION-15.1-HOME-STUDIO.md): all sixty concepts as layouts; research, blend, merge, create; themes, fonts, borders | `94e96cb` | Chromium-verified (26/26) |
+| 2026-11-15 | [15.2 Spatial bar off the Home](MISSION-15.2-SPATIAL-BAR-AWAY.md) | `6bf290e` | Superseded by the closeout below |
+| 2026-11-16 | [15.2 WP03 closeout](MISSION-15.2-CLOSEOUT-WP03.md) | child of `6bf290e` | WP03 COMPLETE with limitations; full suite 2260/2266 pass, 0 fail, 6 skipped; iPhone NOT VERIFIED |
+
+The open items in §7 above (real iPhone Safari, the `home.*` tool, #51, no-WebGL) are unchanged by these follow-ups. **Mission 15 is not complete.**

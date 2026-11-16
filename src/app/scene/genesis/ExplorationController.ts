@@ -22,6 +22,7 @@
 
 import KvStore from "../../../core/storage/KvStore";
 import EarthCore from "../../../core/earth/EarthCore";
+import { parseSpatialNavCommand } from "../../../core/router/spatialNavCommand";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import { dispatchBrowserGoto } from "./GenesisChatSurface";
 import {
@@ -166,6 +167,9 @@ export default class ExplorationController {
   parseCommand(text: string): boolean {
     // Normalize so "LÉLU" and "Lelu" match identically.
     const lower = text.trim().toLowerCase().replace(/[éèêë]/g, "e");
+
+    // "show me the spatial bar" is the router's Spatial bar command, not a place.
+    if (parseSpatialNavCommand(lower) !== null) return false;
 
     // Stop / focus commands
     if (

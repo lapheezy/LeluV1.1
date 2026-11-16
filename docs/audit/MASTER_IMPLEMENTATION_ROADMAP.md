@@ -202,3 +202,26 @@ renderer, camera, framing and screenshot layers with honest skips), plus chat an
 Measured: typecheck clean; 46 spatial tests pass; full suite 1392 tests, 1386 pass, 0 fail, 6 skipped; lint
 reports 1 pre-existing error in `GenesisChat.tsx` (byte-identical to master-integration) and 108 warnings.
 Evidence, gates and limitations: `docs/acceptance/master-capability-upgrade/phase-2-2/REPORT.md`.
+
+### Mission 15: Home universe (IN PROGRESS, not complete)
+
+The Mission 15 work on branch `claude/charming-hamilton-icbyrb` is recorded in `docs/missions/`.
+
+| Report | What it covers |
+|---|---|
+| `MISSION-15-HOME-UNIVERSE.md` | Mission report and open items |
+| `MISSION-15.1-HOME-STUDIO.md` | Sixty Home concepts as working layouts, plus the Design Studio (`94e96cb`) |
+| `MISSION-15.2-SPATIAL-BAR-AWAY.md` | Spatial bar hidden behind a side tab, menu entry and LÉLU command (`6bf290e`) |
+| `MISSION-15.2-CLOSEOUT-WP03.md` | Final verification (2026-11-16) |
+
+The closeout measured the following on the final code:
+- **Typecheck:** `tsc -b --force` clean.
+- **Full suite (`npm test`):** 2266 tests, 2260 pass, 0 fail, 6 skipped.
+- **Lint (`npm run lint`, oxlint):** 0 errors, 178 warnings.
+- **Browser regression:** 37/37 in Chromium across desktop, tablet and phone-sized portrait and landscape.
+
+Open items:
+- the physical iPhone / Safari run;
+- the avatar companion drawn over the menu sheets on phones;
+- `scripts/verify-navigator-composer.cjs`, which is out of date and also fails on `94e96cb`;
+- the Mission 15 report's own §7 items.

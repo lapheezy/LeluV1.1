@@ -1,0 +1,409 @@
+[
+  {
+    "n": 1,
+    "name": "desktop-closed",
+    "ok": true,
+    "note": "bar hidden; one tab, nothing on top of it",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-01-ok-desktop-closed.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 2,
+    "name": "desktop-open",
+    "ok": true,
+    "note": "3/3 tab→✕ cycles",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-02-ok-desktop-open.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 3,
+    "name": "desktop-open-clear-of-nav-and-orb",
+    "ok": true,
+    "note": "nav clear true, orb clear true, orb tappable true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-03-ok-desktop-open-clear-of-nav-and-orb.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 4,
+    "name": "desktop-escape-scoped",
+    "ok": true,
+    "note": "Escape closes the open bar; a second Escape changes nothing",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-04-ok-desktop-escape-scoped.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 5,
+    "name": "desktop-library-tile",
+    "ok": true,
+    "note": "tile on top true; sheet owns the pointer (Home cards never receive it) true; tab steps aside true; KNOWN pre-existing: avatar over tiles []",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-05-ok-desktop-library-tile.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 6,
+    "name": "desktop-library-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-06-ok-desktop-library-opens-bar.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 7,
+    "name": "desktop-reload-hidden-state-kept",
+    "ok": true,
+    "note": "Home presentations/layouts unchanged true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-07-ok-desktop-reload-hidden-state-kept.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 8,
+    "name": "tablet-closed",
+    "ok": true,
+    "note": "bar hidden; one tab, nothing on top of it",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-08-ok-tablet-closed.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 9,
+    "name": "tablet-open",
+    "ok": true,
+    "note": "3/3 tab→✕ cycles",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-09-ok-tablet-open.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 10,
+    "name": "tablet-open-clear-of-nav-and-orb",
+    "ok": true,
+    "note": "nav clear true, orb clear true, orb tappable true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-10-ok-tablet-open-clear-of-nav-and-orb.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 11,
+    "name": "tablet-escape-scoped",
+    "ok": true,
+    "note": "Escape closes the open bar; a second Escape changes nothing",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-11-ok-tablet-escape-scoped.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 12,
+    "name": "tablet-library-tile",
+    "ok": true,
+    "note": "tile on top true; sheet owns the pointer (Home cards never receive it) true; tab steps aside true; KNOWN pre-existing: avatar over tiles []",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-12-ok-tablet-library-tile.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 13,
+    "name": "tablet-library-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-13-ok-tablet-library-opens-bar.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 14,
+    "name": "tablet-reload-hidden-state-kept",
+    "ok": true,
+    "note": "Home presentations/layouts unchanged true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-14-ok-tablet-reload-hidden-state-kept.png",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    }
+  },
+  {
+    "n": 15,
+    "name": "phone-portrait-closed",
+    "ok": true,
+    "note": "bar hidden; one tab, nothing on top of it",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-15-ok-phone-portrait-closed.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 16,
+    "name": "phone-portrait-open",
+    "ok": true,
+    "note": "3/3 tab→✕ cycles",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-16-ok-phone-portrait-open.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 17,
+    "name": "phone-portrait-open-clear-of-nav-and-orb",
+    "ok": true,
+    "note": "nav clear true, orb clear true, orb tappable true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-17-ok-phone-portrait-open-clear-of-nav-and-orb.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 18,
+    "name": "phone-portrait-escape-scoped",
+    "ok": true,
+    "note": "Escape closes the open bar; a second Escape changes nothing",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-18-ok-phone-portrait-escape-scoped.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 19,
+    "name": "phone-portrait-library-tile",
+    "ok": true,
+    "note": "tile on top true; sheet owns the pointer (Home cards never receive it) true; tab steps aside true; KNOWN pre-existing: avatar over tiles [Render]",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-19-ok-phone-portrait-library-tile.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 20,
+    "name": "phone-portrait-library-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-20-ok-phone-portrait-library-opens-bar.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 21,
+    "name": "phone-portrait-reload-hidden-state-kept",
+    "ok": true,
+    "note": "Home presentations/layouts unchanged true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-21-ok-phone-portrait-reload-hidden-state-kept.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 22,
+    "name": "phone-landscape-closed",
+    "ok": true,
+    "note": "bar hidden; one tab, nothing on top of it",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-22-ok-phone-landscape-closed.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 23,
+    "name": "phone-landscape-open",
+    "ok": true,
+    "note": "3/3 tab→✕ cycles",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-23-ok-phone-landscape-open.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 24,
+    "name": "phone-landscape-open-clear-of-nav-and-orb",
+    "ok": true,
+    "note": "nav clear true, orb clear true, orb tappable true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-24-ok-phone-landscape-open-clear-of-nav-and-orb.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 25,
+    "name": "phone-landscape-escape-scoped",
+    "ok": true,
+    "note": "Escape closes the open bar; a second Escape changes nothing",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-25-ok-phone-landscape-escape-scoped.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 26,
+    "name": "phone-landscape-library-tile",
+    "ok": true,
+    "note": "tile on top true; sheet owns the pointer (Home cards never receive it) true; tab steps aside true; KNOWN pre-existing: avatar over tiles []",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-26-ok-phone-landscape-library-tile.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 27,
+    "name": "phone-landscape-library-opens-bar",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-27-ok-phone-landscape-library-opens-bar.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 28,
+    "name": "phone-landscape-reload-hidden-state-kept",
+    "ok": true,
+    "note": "Home presentations/layouts unchanged true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-28-ok-phone-landscape-reload-hidden-state-kept.png",
+    "viewport": {
+      "width": 852,
+      "height": 393
+    }
+  },
+  {
+    "n": 29,
+    "name": "lelu-1-asks-open",
+    "ok": true,
+    "note": "\"open the spatial menu\": reply true, no 3D stage true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-29-ok-lelu-1-asks-open.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 30,
+    "name": "lelu-1-bar-open-on-home",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-30-ok-lelu-1-bar-open-on-home.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 31,
+    "name": "lelu-1-asks-hide",
+    "ok": true,
+    "note": "\"hide the spatial bar\": reply true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-31-ok-lelu-1-asks-hide.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 32,
+    "name": "lelu-1-bar-away-on-home",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-32-ok-lelu-1-bar-away-on-home.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 33,
+    "name": "lelu-2-asks-open",
+    "ok": true,
+    "note": "\"show me the spatial bar\": reply true, no 3D stage true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-33-ok-lelu-2-asks-open.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 34,
+    "name": "lelu-2-bar-open-on-home",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-34-ok-lelu-2-bar-open-on-home.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 35,
+    "name": "lelu-2-asks-hide",
+    "ok": true,
+    "note": "\"hide the spatial bar\": reply true",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-35-ok-lelu-2-asks-hide.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 36,
+    "name": "lelu-2-bar-away-on-home",
+    "ok": true,
+    "note": "",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-36-ok-lelu-2-bar-away-on-home.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 37,
+    "name": "lelu-ordinary-talk-ignored",
+    "ok": true,
+    "note": "\"what is spatial computing?\" did not toggle the bar",
+    "file": "docs/missions/m15-home/shots-15.2-closeout/step-37-ok-lelu-ordinary-talk-ignored.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  }
+]
