@@ -12,6 +12,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 if (typeof globalThis.window === "undefined") {
@@ -46,6 +47,7 @@ import {
   toolPermitted,
 } from "../src/core/tools/ToolDispatcher";
 import KvStore from "../src/core/storage/KvStore";
+import MissionSyncGate from "../src/core/projects/MissionSyncGate";
 
 function memoryKv(): KvStore {
   const store = new Map<string, unknown>();
@@ -147,6 +149,64 @@ test("retrieved content cannot authorize a destructive tool or lift a risk bound
   );
   assert.equal(forged.ok, false);
   assert.match(forged.content, /not permitted|NOT run|requires/i);
+});
+
+test("the closed gate and the local-only ledger are the actual remote write boundary", async () => {
+  const ledgerSource = readFileSync("src/core/projects/MissionLedger.ts", "utf8");
+  assert.ok(!/\bfetch\s*\(/.test(ledgerSource), "the mission ledger gained a network write path");
+  assert.ok(!/supabase/i.test(ledgerSource), "the mission ledger reached into the cloud client");
+
+  const gate = MissionSyncGate.getInstance();
+  gate.reset();
+  assert.equal(gate.available(), false);
+
+  const ledger = new MissionLedger({ kv: memoryKv() });
+  MissionLedgerStore.setForTests(ledger);
+  const originalFetch = globalThis.fetch;
+  let remoteCalls = 0;
+  globalThis.fetch = (async () => {
+    remoteCalls += 1;
+    throw new Error("controlled test: no remote mission write is permitted");
+  }) as typeof globalThis.fetch;
+
+  try {
+    const canonical = ledger.create({
+      title: "Boundary mission",
+      owner: "user",
+      nextSafeAction: "stay local",
+    }).mission!;
+    const update = CONTINUITY_EXECUTORS.find((executor) => executor.id === "mission.update")!;
+    const result = await update.run({ id: canonical.id, action: "status", value: "completed" });
+
+    assert.equal(result.ok, true, result.content);
+    assert.equal(remoteCalls, 0, "a local mission update attempted a remote write");
+    assert.equal(ledger.get(canonical.id)?.status, "completed");
+    assert.equal(ledger.get(canonical.id)?.durability, "persisted");
+    assert.equal(ledger.get(canonical.id)?.sync, "local");
+    assert.deepEqual(ledger.syncSummary(), {
+      total: 1,
+      local: 1,
+      queued: 0,
+      synchronizing: 0,
+      synchronized: 0,
+      conflict: 0,
+      failed: 0,
+    });
+    assert.equal(gate.available(), false, "a local write opened the remote-sync gate");
+    assert.deepEqual(gate.evaluate().blockers, [
+      "no authenticated Supabase session",
+      "the authenticated identity is unknown",
+      "the account is not authorized for mission storage",
+      "the user has not authorized MissionLedger cloud persistence",
+      "the target mission schema is not verified",
+      "row-level security for the target operations is not verified",
+      "no mission sync adapter is registered",
+      "a remote write cannot be attributed to the authenticated owner",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    MissionLedgerStore.setForTests(null);
+  }
 });
 
 test("an unapproved or unknown tool is refused at dispatch time", async () => {

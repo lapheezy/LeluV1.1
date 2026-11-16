@@ -192,12 +192,27 @@ export const ACQUISITION_EXECUTORS: ToolExecutor[] = [
       type: "object",
       properties: {
         acquisitionId: { type: "string", description: "Acquisition to inspect. Defaults to the most recent one." },
+        path: { type: "string", description: "Optional file path inside the acquisition to read. Omit to inspect the tree." },
       },
     },
     run: async (args) => {
       const store = AcquisitionStore.getInstance();
       const id = str(args, "acquisitionId") || store.acquisitions().slice(-1)[0]?.id || "";
       if (!id) return { ok: false, content: "There is no acquisition to inspect yet." };
+
+      const filePath = str(args, "path");
+      if (filePath) {
+        const read = await AcquisitionRuntime.getInstance().read(id, filePath);
+        if (!read.ok) return { ok: false, content: `Reading ${filePath} from ${id} failed: ${read.error}` };
+        return {
+          ok: true,
+          content: [
+            `Acquisition ${id} file ${read.path} (${read.bytes} bytes${read.truncated ? ", truncated" : ""})`,
+            "",
+            read.content,
+          ].join("\n"),
+        };
+      }
 
       const result = (await RepoExecutor.getInstance().inspect(id)) as unknown as {
         ok: boolean;

@@ -49,6 +49,25 @@ test("missing explicit user authorization keeps the gate closed", () => {
   assert.ok(decision.blockers.some((reason) => /user has not authorized/.test(reason)));
 });
 
+test("each of the eight conditions independently keeps the gate closed", () => {
+  const conditions: Array<[keyof typeof OPEN, RegExp]> = [
+    ["authenticatedSession", /authenticated Supabase session/],
+    ["identityKnown", /identity is unknown/],
+    ["accountAuthorized", /account is not authorized/],
+    ["userAuthorizedMissionStorage", /user has not authorized/],
+    ["schemaVerified", /schema is not verified/],
+    ["rlsVerified", /row-level security/],
+    ["adapterRegistered", /no mission sync adapter/],
+    ["ownerAttributable", /attributed to the authenticated owner/],
+  ];
+  for (const [condition, expected] of conditions) {
+    const decision = evaluateMissionSync({ ...OPEN, [condition]: false });
+    assert.equal(decision.eligible, false, `${condition} alone must keep the gate closed`);
+    assert.equal(decision.blockers.length, 1, `${condition} must produce exactly one blocker`);
+    assert.match(decision.blockers[0]!, expected);
+  }
+});
+
 test("a registered adapter without a verified owner or RLS still cannot run", () => {
   const decision = evaluateMissionSync({
     ...OPEN,
