@@ -60,7 +60,7 @@ Before this change, the same situation meant 40 calls hitting already-exhausted 
 - `self-study-loop` 20/20, `usage-budget` 26/26, `personality-development` 24/24.
 - `curiosity-engine` 43/43 and `development-loop` 44/44. Their personality tests exercise the **apply-directly** path, so their setup now records the owner's explicit opt-out (`setSandboxMode(false)`). Without it, 3 tests failed against the new staged default, which is the intended behaviour change.
 - Typecheck (`tsc -b --force`): clean. Lint: no warnings in changed files. `vite build`: succeeds.
-- Full suite: see the commit message / chat report for the final count.
+- Full suite (`npm test`): **2305 tests, 2299 pass, 0 fail, 6 skipped** (the skips were already in the suite). The run started before the final marker/grounding refinement in `StudyConclusion.ts`; `self-study-conclusions.test.ts` was rerun afterwards and passes 12/12.
 
 ## Known limitations and possible regressions
 
