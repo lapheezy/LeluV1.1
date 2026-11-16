@@ -28,10 +28,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import type { Object3D as ThreeObject } from "three";
-import { Frustum, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from "three";
+import { Box3, Frustum, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, Plane, Raycaster, Sphere, Vector2, Vector3 } from "three";
 import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore";
 import type { CosmosObject, CosmosObjectState } from "../../../../core/cosmos/objects/CosmosObjectTypes";
-import { cosmosCameraBus, poseFor, objectBounds, type CameraPose } from "../../../../core/cosmos/objects/CosmosObjectCamera";
+import { cosmosCameraBus, poseFor, objectBounds, type Bounds3, type CameraPose } from "../../../../core/cosmos/objects/CosmosObjectCamera";
+import {
+  VIEWPORT_SPACE,
+  freshenCamera,
+  insideViewport,
+  ndcToViewport,
+  projectBounds,
+  viewportOf,
+  viewportToCanvasLocal,
+  type ProjectedObject,
+} from "../../../../core/cosmos/objects/CosmosProjection";
 import { claimCinematicCamera, releaseCinematicCamera } from "../cameraOwnership";
 import SpatialRuntime from "../../spatial/SpatialRuntime";
 
@@ -396,26 +406,122 @@ function ObjectCameraBridge() {
     const perspective = camera as PerspectiveCamera;
     (window as unknown as { __cosmosObjectsProbe?: () => unknown }).__cosmosObjectsProbe = () => {
       const store = CosmosObjectStore.getInstance();
-      const height = Math.max(1, size.height);
+
+      /*
+       * THE VIEWPORT IS THE CANVAS' OWN BOX.
+       *
+       * Not `window.innerWidth`: the canvas can be offset, letterboxed or
+       * smaller than the window, and a screenshot is of the window. The
+       * ratio comes from the buffer the renderer actually allocated, because
+       * an adaptive `dpr` makes it differ from window.devicePixelRatio.
+       */
+      const element = gl.domElement;
+      const view = viewportOf(
+        element.getBoundingClientRect(),
+        { width: element.width, height: element.height },
+        gl.getPixelRatio(),
+      );
+      /* The camera's matrices must describe where it is NOW: three updates
+         `matrixWorldInverse` inside its render pass, so at 1 fps a camera that
+         has flown since the last frame still carries the old one. */
+      const aspectMismatch = freshenCamera(perspective, view);
+      const height = view.height;
       const frustum = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
 
-      /* 1. what the store has */
+      /* The rendered group for each canonical id, so a box is transformed by
+         what the scene graph applies — a scaled ring group, a rotating parent —
+         rather than by the store's numbers alone. */
+      const groupById = new Map<string, Group>();
+      scene.traverse((node: import("three").Object3D) => {
+        const id = (node.userData as { cosmosObjectId?: unknown } | undefined)?.cosmosObjectId;
+        if (typeof id === "string" && !groupById.has(id)) groupById.set(id, node as unknown as Group);
+      });
+      /*
+       * THE BOX THAT GETS PROJECTED IS THE BOX THAT GETS DRAWN.
+       *
+       * `objectBounds()` is a MODEL: it exists so the camera can fit an object
+       * before it is mounted, and it multiplies the object's scale into part
+       * positions and extents. The pixels come from the group's geometry under
+       * the scene graph's real transforms. When the two disagree, the pixels
+       * are right — so the rendered world box is what this projects, and the
+       * model is reported beside it for comparison rather than trusted.
+       */
+      const renderedBounds = (object: CosmosObject): Bounds3 | null => {
+        const group = groupById.get(object.id);
+        if (!group) return null;
+        group.updateWorldMatrix(true, true);
+        const box = new Box3().setFromObject(group, true);
+        if (box.isEmpty()) return null;
+        const center = box.getCenter(new Vector3());
+        const radius = box.getBoundingSphere(new Sphere()).radius;
+        return {
+          min: [box.min.x, box.min.y, box.min.z],
+          max: [box.max.x, box.max.y, box.max.z],
+          center: [center.x, center.y, center.z],
+          radius,
+        };
+      };
+      const project = (object: CosmosObject): ProjectedObject =>
+        projectBounds(perspective, renderedBounds(object), view);
+      /* The same object measured the model's way, for the record. */
+      const projectModel = (object: CosmosObject): ProjectedObject =>
+        projectBounds(perspective, objectBounds(object), view, groupById.get(object.id)?.parent?.matrixWorld);
+      /*
+       * The group's own place in the world, and where its ORIGIN projects to.
+       * A box centre and an object origin are different claims, and telling
+       * them apart is how a "projection is wrong" report turns into "the
+       * bounds are not what you assumed".
+       */
+      const groupWorld = (object: CosmosObject) => {
+        const group = groupById.get(object.id);
+        if (!group) return null;
+        const origin = new Vector3();
+        group.getWorldPosition(origin);
+        const worldBox = renderedBounds(object);
+        const corner = origin.clone().project(perspective);
+        return {
+          world: [Number(origin.x.toFixed(3)), Number(origin.y.toFixed(3)), Number(origin.z.toFixed(3))],
+          worldMin: worldBox ? worldBox.min.map((n) => Number(n.toFixed(3))) : null,
+          worldMax: worldBox ? worldBox.max.map((n) => Number(n.toFixed(3))) : null,
+          originCenter: ndcToViewport([corner.x, corner.y, corner.z], view),
+          scale: [group.scale.x, group.scale.y, group.scale.z],
+          rotationY: Number((group.rotation.y % (Math.PI * 2)).toFixed(3)),
+          parent: group.parent?.type ?? null,
+          parentPosition: group.parent ? [Number(group.parent.position.x.toFixed(3)), Number(group.parent.position.y.toFixed(3)), Number(group.parent.position.z.toFixed(3))] : null,
+        };
+      };
+
+      /* 1. what the store has, measured in viewport CSS pixels */
       const fromStore = store.list().map((object) => {
-        const point = new Vector3(...object.frame.position).project(camera);
         const distance = camera.position.distanceTo(new Vector3(...object.frame.position));
         const fovRad = ((perspective.fov ?? 50) * Math.PI) / 180;
+        const projected = project(object);
         return {
           id: object.id,
           name: object.name,
           place: object.place,
           visible: object.visible,
+          /* Drawn only when visible AND placed where this layer draws it. */
+          drawable: object.visible && (object.place === "cosmos" || object.place === "gallery"),
           scale: object.frame.scale,
           sceneParts: object.scene.objects.length,
           distance: Number(distance.toFixed(2)),
-          screen: [Math.round(((point.x + 1) / 2) * size.width), Math.round(((1 - point.y) / 2) * height)],
-          inFront: point.z < 1,
+          /* The coordinate contract, spelled out with every reading. */
+          space: projected.space,
+          center: projected.center,
+          bounds: projected.bounds,
+          bufferCenter: projected.bufferCenter,
+          behindCamera: projected.behindCamera,
+          onScreen: insideViewport(projected.center, view),
+          failure: projected.failure,
+          aspectMismatch: projected.aspectMismatch,
+          inFrustum: projected.inFrustum,
+          sceneGraph: groupWorld(object),
+          modelView: (() => {
+            const model = projectModel(object);
+            return { center: model.center, bounds: model.bounds && model.bounds.map((n) => Number(n.toFixed(1))) };
+          })(),
           pixelsPerMetre: Math.round((height / 2) / Math.tan(fovRad / 2) / Math.max(0.001, distance)),
-          inFrustum: frustum.containsPoint(new Vector3(...object.frame.position)),
         };
       });
 
@@ -488,9 +594,20 @@ function ObjectCameraBridge() {
           sameScene: (parentScene as unknown) === (scene as unknown),
           canvases,
         },
+        viewport: {
+          space: VIEWPORT_SPACE,
+          left: Number(view.left.toFixed(2)),
+          top: Number(view.top.toFixed(2)),
+          width: Number(view.width.toFixed(2)),
+          height: Number(view.height.toFixed(2)),
+          buffer: [view.bufferWidth, view.bufferHeight],
+          dpr: view.dpr,
+          aspectMismatch,
+        },
         camera: {
           aspect: Number((perspective.aspect ?? 0).toFixed(3)),
-          viewport: [size.width, size.height],
+          surfaceAspect: Number((view.width / Math.max(1, view.height)).toFixed(3)),
+          viewport: [view.width, view.height],
           position: [Number(camera.position.x.toFixed(2)), Number(camera.position.y.toFixed(2)), Number(camera.position.z.toFixed(2))],
           layersMask: camera.layers.mask,
           near: perspective.near,
@@ -502,7 +619,9 @@ function ObjectCameraBridge() {
            pointer handler does. */
         hit: (x: number, y: number) => {
           const ray = new Raycaster();
-          ray.setFromCamera(new Vector2((x / Math.max(1, size.width)) * 2 - 1, -(y / Math.max(1, height)) * 2 + 1), camera);
+          /* (x, y) are VIEWPORT CSS pixels, the same space `center` is in. */
+          const local = viewportToCanvasLocal({ x, y }, view);
+          ray.setFromCamera(new Vector2((local.x / view.width) * 2 - 1, -(local.y / view.height) * 2 + 1), camera);
           return ray.intersectObjects(scene.children, true).slice(0, 4).map((h) => {
             let owner: string | null = null;
             let cursor: ThreeObject | null = h.object;
