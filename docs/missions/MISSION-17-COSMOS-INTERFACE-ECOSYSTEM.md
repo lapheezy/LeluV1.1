@@ -150,3 +150,7 @@ Not measured: frame rate on a real iPhone (no device in this container; SwiftSha
 
 New: `src/core/interface/{InterfaceCatalog,interfaceComposition,InterfaceCompositionStore,interfaceLaunch,InterfaceCompositionTools}.ts`, `src/app/scene/genesis/interfaces/{InterfaceShell,InterfaceJourney,InterfaceRegion,interfaceActions,useInterfaceCompositions}.ts(x)` + `interfaceJourney.css`, `src/app/scene/genesis/home/LibraryInterfaces.tsx`, `tests/interface-composition.test.ts`, `scripts/cosmos/verify-interfaces.mjs`.
 Changed: `GenesisScene.tsx` (shell mount, world gate, overview gate), `LivingSystemUI.tsx` (`embedded`), `og/OgRoutes.tsx` (route table + `OgEmbedded`), `og/compat/router.tsx` (embed context), `home/HomeSheets.tsx` (Infinite Library, Worlds), `home/SpatialNav.tsx`, `home/HomeModules.tsx`, `home/homeCatalog.ts`, `home/homeComposition.ts`, `home/spatialNav.css`, `core/Bootstrap.ts`, two test pins.
+
+---
+
+**Follow-up:** [M17.1-WP01 — Interface Ecosystem Acceptance Closure](M17.1-WP01-INTERFACE-ECOSYSTEM-ACCEPTANCE.md) closes this document's §7 PARTIAL items for the Room avatar, the lifecycle and the tools, fixes the §9 Worlds-button limitation, and records the Original LÉLU conversation-history gap. The sections above are kept as written.

@@ -55,6 +55,7 @@ const COMPOSE_SCHEMA = {
     other: { type: "string", description: "Second composition id for merge" },
     styles: { type: "array", items: { type: "string", enum: VARIANT_STYLES } },
     at: { type: "number", description: "For split: the region index the second part starts at" },
+    open: { type: "boolean", description: "Open the composition that was made, as one continuous interface" },
   },
   required: ["action"],
   additionalProperties: false,
@@ -118,8 +119,14 @@ export const INTERFACE_EXECUTORS: ToolExecutor[] = [
           ids.push(entry.id);
         }
         if (ids.length === 0) return { ok: false, content: "create needs at least one interface." };
-        const c = S.create(str(args.name) || "New composition", ids);
-        return { ok: true, content: `Created “${c.name}” [${c.id}]: ${c.regions.map(regionName).join(" → ")}.`, data: { id: c.id } };
+        const c = S.create(str(args.name) || ids.map((id) => INTERFACES.find((i) => i.id === id)!.name).join(" + "), ids);
+        const made = `Created “${c.name}” [${c.id}]: ${c.regions.map(regionName).join(" → ")}.`;
+        if (args.open === true) {
+          const r = requestLaunch({ kind: "composition", id: c.id });
+          // Created either way; whether it is on screen is reported as it is.
+          return { ok: r.ok, content: r.ok ? `${made} ${r.detail}` : `${made} It was saved but not opened: ${r.detail}`, data: { id: c.id } };
+        }
+        return { ok: true, content: made, data: { id: c.id } };
       }
       const source = str(args.source);
       if (!source || !S.get(source)) return { ok: false, content: `${action} needs an existing composition id in "source".` };

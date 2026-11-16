@@ -59,11 +59,14 @@ interface Persisted {
   user?: InterfaceComposition[];
   trash?: InterfaceComposition[];
   history?: Record<string, InterfaceComposition[]>;
+  future?: Record<string, InterfaceComposition[]>;
 }
 
 class Store {
   private state: InterfaceCompositionState = { user: [], trash: [], open: null, revision: 0 };
   private history: Record<string, InterfaceComposition[]> = {};
+  /** Versions undone and not yet redone; a new edit clears them. */
+  private future: Record<string, InterfaceComposition[]> = {};
   private listeners = new Set<Listener>();
   private readonly builtIns = builtInCompositions();
   private loaded = false;
@@ -79,11 +82,12 @@ class Store {
       trash: (saved.trash ?? []).map(sanitize).slice(0, 20),
     };
     this.history = saved.history ?? {};
+    this.future = saved.future ?? {};
   }
 
   private persist(): void {
     if (typeof window === "undefined") return;
-    KvStore.getInstance().set(KEY, { user: this.state.user, trash: this.state.trash, history: this.history });
+    KvStore.getInstance().set(KEY, { user: this.state.user, trash: this.state.trash, history: this.history, future: this.future });
   }
 
   private commit(patch: Partial<InterfaceCompositionState>, persist = true): void {
@@ -127,7 +131,10 @@ class Store {
 
   private replace(c: InterfaceComposition, keepHistory: boolean): void {
     const before = this.state.user.find((x) => x.id === c.id);
-    if (before && keepHistory) this.history[c.id] = [...(this.history[c.id] ?? []), before].slice(-HISTORY_DEPTH);
+    if (before && keepHistory) {
+      this.history[c.id] = [...(this.history[c.id] ?? []), before].slice(-HISTORY_DEPTH);
+      delete this.future[c.id];
+    }
     this.commit({ user: this.state.user.map((x) => (x.id === c.id ? c : x)) });
   }
 
@@ -174,9 +181,26 @@ class Store {
   undo(id: string): boolean {
     const stack = this.history[id];
     const previous = stack?.at(-1);
-    if (!previous) return false;
+    const now = this.state.user.find((x) => x.id === id);
+    if (!previous || !now) return false;
     this.history[id] = stack.slice(0, -1);
+    this.future[id] = [...(this.future[id] ?? []), now].slice(-HISTORY_DEPTH);
     this.replace(previous, false);
+    return true;
+  }
+
+  canRedo(id: string): boolean {
+    return (this.future[id]?.length ?? 0) > 0;
+  }
+
+  redo(id: string): boolean {
+    const stack = this.future[id];
+    const next = stack?.at(-1);
+    const now = this.state.user.find((x) => x.id === id);
+    if (!next || !now) return false;
+    this.future[id] = stack.slice(0, -1);
+    this.history[id] = [...(this.history[id] ?? []), now].slice(-HISTORY_DEPTH);
+    this.replace(next, false);
     return true;
   }
 
@@ -255,6 +279,7 @@ class Store {
   resetForTests(): void {
     this.state = { user: [], trash: [], open: null, revision: 0 };
     this.history = {};
+    this.future = {};
     this.loaded = false;
     this.listeners.clear();
   }

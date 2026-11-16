@@ -182,26 +182,35 @@ export default function SpatialNavigator() {
      covered the textarea and the typed turn could not be entered. */
   const navRef = useRef<HTMLDivElement | null>(null);
   const [lift, setLift] = useState(0);
+  /* M17.1: and never over the Home's navigation bar. On a desktop the rail
+     and the bar shared the bottom centre, and the rail — at the root, above
+     the interface's own stacking context — took the pointer: the bar's
+     Worlds button could not be clicked at 1440 px. The rail now clears the
+     bar the same way it clears the composer: measured, not hard-coded. */
   useEffect(() => {
-    if (!chatOpen || hidden) {
+    if (hidden) {
       setLift(0);
       return;
     }
     let frame = 0;
+    const box = (el: Element | null) => {
+      const r = el?.getBoundingClientRect();
+      return r && r.width > 0 && r.height > 0 ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right } : null;
+    };
     const measure = () => {
       frame = 0;
       const nav = navRef.current;
-      const composer = document.querySelector("[data-lelu-composer]");
-      if (!nav || !composer) {
-        setLift((value) => (value === 0 ? value : 0));
-        return;
-      }
+      if (!nav) return;
       const r = nav.getBoundingClientRect();
       // The rect at the natural (un-lifted) position.
       const current = Number(nav.dataset.spatialComposerClearance ?? 0) || 0;
       const natural = { top: r.top + current, bottom: r.bottom + current, left: r.left, right: r.right };
-      const c = composer.getBoundingClientRect();
-      const next = composerLift(natural, { top: c.top, bottom: c.bottom, left: c.left, right: c.right });
+      const obstacles = [
+        chatOpen ? box(document.querySelector("[data-lelu-composer]")) : null,
+        box(document.querySelector('nav.lsn[data-hidden="false"] .lsn-bar')),
+        box(document.querySelector('nav.lsn[data-hidden="false"] .lsn-orb')),
+      ];
+      const next = Math.max(0, ...obstacles.map((o) => composerLift(natural, o)));
       if (next > 0 && liftOverflowsTop(natural, next, 8) && open) {
         setOpen(false);
         return;
@@ -212,8 +221,9 @@ export default function SpatialNavigator() {
       if (!frame) frame = requestAnimationFrame(measure);
     };
     schedule();
-    // The chat window can be dragged or resized, and the composer grows
-    // with its text: re-measure on resize, and on a slow interval.
+    // The chat window can be dragged or resized, the composer grows with its
+    // text, and the bar mounts/hides with the surface: re-measure on resize
+    // and on a slow interval.
     const timer = window.setInterval(schedule, 400);
     window.addEventListener("resize", schedule);
     return () => {

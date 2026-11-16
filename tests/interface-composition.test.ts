@@ -181,3 +181,38 @@ test("standalone deep links", () => {
   assert.deepEqual(launchFromQuery("?composition=one-lelu&region=r1"), { kind: "composition", id: "one-lelu", regionKey: "r1" });
   assert.equal(launchFromQuery("?interface=evil"), null);
 });
+
+test("M17.1: redo restores what undo took back; a new edit clears redo", () => {
+  Store.resetForTests();
+  const c = Store.create("R", ["cosmos", "lelu-room"]);
+  Store.edit(c.id, { op: "rename", name: "One" });
+  Store.edit(c.id, { op: "rename", name: "Two" });
+  assert.ok(Store.undo(c.id));
+  assert.equal(Store.get(c.id)!.name, "One");
+  assert.ok(Store.canRedo(c.id));
+  assert.ok(Store.redo(c.id));
+  assert.equal(Store.get(c.id)!.name, "Two");
+  assert.ok(Store.undo(c.id));
+  Store.edit(c.id, { op: "rename", name: "Three" });
+  assert.equal(Store.canRedo(c.id), false, "a new edit starts a new future");
+  assert.equal(Store.redo(c.id), false);
+});
+
+test("M17.1: interface slash commands compile to the real interface.* tools", async () => {
+  const { interfacePlan, directPlanFor } = await import("../src/core/router/DirectResolver");
+  assert.deepEqual(interfacePlan("/interfaces")!.steps.map((s) => s.tool), ["interface.list"]);
+  assert.deepEqual(interfacePlan("/open genesis v2")!.steps[0].args, { interface: "genesis v2" });
+  assert.deepEqual(interfacePlan("/open composition one-lelu")!.steps[0].args, { composition: "one-lelu" });
+  assert.deepEqual(interfacePlan("/close composition")!.steps[0].args, { close: true });
+  assert.deepEqual(interfacePlan("/compose original lélu + LÉLU's Room")!.steps[0].args, { action: "create", interfaces: ["original lélu", "LÉLU's Room"], open: true });
+  assert.equal(interfacePlan("open her room please"), null, "words are the model's to interpret");
+  assert.ok(directPlanFor("/interfaces")!.explicit);
+});
+
+test("M17.1: compose with open:true reports a saved-but-not-opened composition honestly", async () => {
+  Store.resetForTests();
+  const r = await run("interface.compose", { action: "create", interfaces: ["cosmos"], open: true });
+  assert.equal(r.ok, false);
+  assert.match(r.content, /saved but not opened/);
+  assert.ok(Store.get((r.data as { id: string }).id), "it was still created");
+});

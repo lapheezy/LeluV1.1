@@ -43,6 +43,33 @@ export function workspacePlan(prompt: string): DirectPlan | null {
 }
 
 /**
+ * LÉLU's interfaces (M17.1), as explicit commands — deterministic, so they
+ * never need a model and run through the real dispatcher like any tool:
+ *   /interfaces                 interface.list
+ *   /open <interface>           interface.open   ("/open genesis v2")
+ *   /open composition <id>      interface.open   (a saved composition)
+ *   /close composition          interface.open   { close: true }
+ *   /compose <a> + <b> [+ …]    interface.compose { action: create, open: true }
+ * Only the slash form is claimed here. "Open her room" in words is a
+ * request for the model, which may call the same tools.
+ */
+export function interfacePlan(prompt: string): DirectPlan | null {
+  const p = prompt.trim();
+  if (/^\/interfaces\s*$/i.test(p)) return { steps: [{ tool: "interface.list", args: {}, label: "List every interface and composition" }], summary: "List LÉLU's interfaces", explicit: true };
+  if (/^\/close\s+composition\s*$/i.test(p)) return { steps: [{ tool: "interface.open", args: { close: true }, label: "Close the composition" }], summary: "Close the composition", explicit: true };
+  const comp = /^\/open\s+composition\s+(\S+)\s*$/i.exec(p);
+  if (comp) return { steps: [{ tool: "interface.open", args: { composition: comp[1] }, label: `Open composition ${comp[1]}` }], summary: `Open composition ${comp[1]}`, explicit: true };
+  const open = /^\/open\s+(.+)$/i.exec(p);
+  if (open) return { steps: [{ tool: "interface.open", args: { interface: open[1].trim() }, label: `Open ${open[1].trim()}` }], summary: `Open ${open[1].trim()}`, explicit: true };
+  const compose = /^\/compose\s+(.+)$/i.exec(p);
+  if (compose) {
+    const parts = compose[1].split(/\s*(?:\+|→|->|,|\bthen\b)\s*/i).map((x) => x.trim()).filter(Boolean);
+    return { steps: [{ tool: "interface.compose", args: { action: "create", interfaces: parts, open: true }, label: `Compose ${parts.join(" + ")}` }], summary: `Compose ${parts.join(" + ")} into one interface`, explicit: true };
+  }
+  return null;
+}
+
+/**
  * How much of a step's output belongs in the reply.
  *
  * A page reading returns the whole extracted article; echoing it filled the
@@ -95,6 +122,8 @@ function readingOf(content: string, max = 420): string {
  * window organisation (tile, split, focus…) is never a creative request.
  */
 export function directPlanFor(prompt: string): DirectPlan | null {
+  const iface = interfacePlan(prompt);
+  if (iface) return iface;
   const workspace = workspacePlan(prompt);
   const creative = compileDirect(prompt);
   if (!workspace) return creative;
@@ -133,13 +162,24 @@ export default class DirectResolver {
         { path: "direct" },
       );
       ran.push({ tool: step.tool, ok: result.ok });
-      const detail = step.tool === "browser.read" ? pageLine(step.args, result) : readingOf(result.content);
+      // interface.* results are short, structured lists written for the
+      // reply; the page-extract trimmer (readingOf) cut their header and
+      // claimed "the page is open above". (M17.1)
+      const detail = step.tool === "browser.read" ? pageLine(step.args, result) : step.tool.startsWith("interface.") ? result.content : readingOf(result.content);
       lines.push(`${result.ok ? "✓" : "✗"} ${step.label} (${step.tool})\n${detail.split("\n").map((l) => `  ${l}`).join("\n")}`);
     }
     const okCount = ran.filter((r) => r.ok).length;
     const onScene = plan.steps.every((step) => step.tool.startsWith("cosmos.object."));
     const workspace = plan.steps.every((step) => step.tool.startsWith("workspace."));
-    const preface = onScene
+    // interface.* summaries are written as the REQUEST ("Open LÉLU's Room"),
+    // so the preface can say truthfully whether it happened. (M17.1: a
+    // refused "/open a toaster" used to begin "Opened a toaster. Done…".)
+    const interfaces = plan.steps.every((step) => step.tool.startsWith("interface."));
+    const preface = interfaces
+      ? okCount === ran.length
+        ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`
+        : `${plan.summary} — could not be done; the reason is below. 0 model calls, nothing sent anywhere.`
+      : onScene
       ? `Done locally on the Cosmos scene${reason === "no-provider" ? " (no model provider is reachable, and none was needed)" : " — no model involved"}: ${plan.summary}.`
       : workspace
       ? `${plan.summary}. Done on this device — 0 model calls, nothing sent anywhere.`

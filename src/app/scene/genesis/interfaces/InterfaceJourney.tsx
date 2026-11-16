@@ -136,12 +136,16 @@ function EditDrawer({ composition, onClose, onEdit }: { composition: InterfaceCo
         </button>
       </div>
       <div className="ij-row">
-        <button type="button" disabled={!S.canUndo(composition.id)} onClick={() => S.undo(composition.id)}>
+        <button type="button" data-ij-undo disabled={!S.canUndo(composition.id)} onClick={() => S.undo(composition.id)}>
           <HomeIcon name="Undo2" size={14} /> Undo
+        </button>
+        <button type="button" data-ij-redo disabled={!S.canRedo(composition.id)} onClick={() => S.redo(composition.id)}>
+          <HomeIcon name="Redo2" size={14} /> Redo
         </button>
         {composition.regions.length > 1 ? (
           <button
             type="button"
+            data-ij-split
             onClick={() => {
               const parts = S.split(composition.id, Math.ceil(composition.regions.length / 2));
               if (parts) S.open(parts[0].id);
@@ -153,7 +157,7 @@ function EditDrawer({ composition, onClose, onEdit }: { composition: InterfaceCo
       </div>
       {all.length ? (
         <div className="ij-row">
-          <select aria-label="Composition to merge with" value={mergeWith} onChange={(e) => setMergeWith(e.target.value)}>
+          <select aria-label="Composition to merge with" data-ij-merge-with value={mergeWith} onChange={(e) => setMergeWith(e.target.value)}>
             {all.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -162,6 +166,7 @@ function EditDrawer({ composition, onClose, onEdit }: { composition: InterfaceCo
           </select>
           <button
             type="button"
+            data-ij-merge
             onClick={() => {
               const merged = S.merge(composition.id, mergeWith);
               if (merged) S.open(merged.id);
@@ -172,7 +177,7 @@ function EditDrawer({ composition, onClose, onEdit }: { composition: InterfaceCo
         </div>
       ) : null}
       {!composition.builtIn ? (
-        <button type="button" className="ij-danger" onClick={() => S.remove(composition.id)}>
+        <button type="button" className="ij-danger" data-ij-trash onClick={() => S.remove(composition.id)}>
           Move to trash (restorable)
         </button>
       ) : null}

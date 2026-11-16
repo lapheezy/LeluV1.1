@@ -42,6 +42,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { planPresence, presenceModeFor, sameSpace, type AvatarAnchor, type Rect, type SpaceLayout } from "./spatialPresence";
 import { choosePlace, clampBox, nearestFree, readSpace, rectOf } from "./presencePlacement";
+import { useComposedRoomPresented } from "../interfaces/useInterfaceCompositions";
 import AvatarStore from "../../../../core/avatar/AvatarProfile";
 import CompanionStore, { type CompanionState } from "../../../../core/avatar/CompanionStore";
 import { layer, within } from "../../../../core/ui/Layers";
@@ -178,7 +179,15 @@ function Presence({ companion }: { companion: CompanionState }) {
   );
   const chatOpen = Boolean(space.chat) || state.activePanel === "chat";
   const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
-  const inWorld = state.activeScene === "genesisv2";
+  /*
+   * In her Room she is the body standing in it (LeluV2Presence), so the
+   * companion steps out and stops drawing. The Room is presented either as
+   * the scene that owns the screen, or as the current region of an open
+   * interface composition (M17.1) — before, only the first was seen, and a
+   * composed Room showed two of her with two render loops.
+   */
+  const composedRoom = useComposedRoomPresented();
+  const inWorld = state.activeScene === "genesisv2" || composedRoom;
   /*
    * When the Workspace Steward has filled the screen with windows there is no
    * free spot left for her, and the planner's "best" spot is on top of
