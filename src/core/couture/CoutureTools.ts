@@ -32,6 +32,8 @@ import { draftPattern, BASE_SIZE, type GarmentStyle, type SizeLabel } from "./pa
 import { buildProduct, PRODUCT_TEMPLATES } from "./product";
 import { objectWorldBox, SPATIAL_RELATIONS, positionedRelativeTo, type SpatialRelation } from "./layout";
 import { getCreativeSelection, hasCreativeFocusListener, requestCreativeFocus, selectCreativeObject } from "./selection";
+import { verifyCreativeOperation, type OperationExpectation, type OperationSnapshot } from "./verification";
+import { rememberCreativeReferent } from "./continuity";
 import { findMaterial, searchMaterials } from "./textiles";
 
 export const OBJECT_ACTIONS = [
@@ -382,7 +384,7 @@ const designExecutor: ToolExecutor = {
 const objectsExecutor: ToolExecutor = {
   id: "couture.objects",
   parameters: COUTURE_TOOLS[1].inputSchema as Record<string, unknown>,
-  run: async (args): Promise<ToolExecutionResult> => {
+  run: async (args, context): Promise<ToolExecutionResult> => {
     const parsed = parseObjectCall(args);
     if (!parsed.ok) return { ok: false, content: parsed.error };
     const call = parsed.call;
@@ -425,21 +427,71 @@ const objectsExecutor: ToolExecutor = {
       result: ToolExecutionResult,
       action: string,
       extra: Record<string, unknown> = {},
+      expectation: Omit<OperationExpectation, "action" | "objectId"> = {},
+      /** A safe, idempotent re-application, for the one bounded correction. */
+      retry?: () => void,
     ): ToolExecutionResult => {
-      const after = s.get(id);
-      const afterState = after ? stateOf(after) : null;
-      const storeChanged = Boolean(afterState) && JSON.stringify(before) !== JSON.stringify(afterState);
+      const read = () => {
+        const current = s.get(id);
+        return current
+          ? {
+              snapshot: stateOf(current) as unknown as OperationSnapshot,
+              persisted: current.revision >= object.revision,
+            }
+          : { snapshot: null, persisted: false };
+      };
+
+      let { snapshot, persisted } = read();
+      let verification = verifyCreativeOperation({ action, objectId: id, ...expectation }, before as unknown as OperationSnapshot, snapshot, persisted);
+      let correction: Record<string, unknown> | undefined;
+
+      /*
+       * Bounded correction: ONE retry, only for an operation that is safe to
+       * repeat (an absolute transform), and only when the store did not record
+       * the change at all. A destructive or non-idempotent action is never
+       * retried, and a second failure is reported as a failure.
+       */
+      if (verification.status === "FAILED" && retry && expectation.expect && action !== "duplicate") {
+        retry();
+        ({ snapshot, persisted } = read());
+        const second = verifyCreativeOperation({ action, objectId: id, ...expectation }, before as unknown as OperationSnapshot, snapshot, persisted);
+        correction = { attempted: true, status: second.status, tries: 2 };
+        verification = second;
+      }
+
+      const storeChanged = Boolean(snapshot) && JSON.stringify(before) !== JSON.stringify(snapshot);
+      // A failed verification is a failed operation, whatever the store call
+      // returned. Saying "done" over an unchanged object is the exact
+      // dishonesty this payload exists to prevent.
+      const recovered = Boolean(correction) && verification.status === "VERIFIED";
+      const verified = (result.ok || recovered) && verification.status !== "FAILED";
+      const honestContent =
+        verification.status === "FAILED"
+          ? `${result.content} — verification failed: ${verification.note ?? "the requested state was not reached"}`
+          : recovered
+            ? `${result.content} — applied on retry after the first attempt did not reach the store`
+            : result.content;
+      /*
+       * The conversation now knows which creation it is working on, so the
+       * NEXT turn's "rotate it" has a canonical referent without the person
+       * repeating an id. Written only from a real, successful tool result.
+       */
+      if (result.ok) rememberCreativeReferent(context?.request?.conversationId, id);
       return {
         ...result,
+        ok: verified,
+        content: honestContent,
         data: {
           ...(result.data && typeof result.data === "object" ? (result.data as Record<string, unknown>) : {}),
           verification: {
             action,
             objectId: id,
             before,
-            after: afterState,
+            after: snapshot,
             storeChanged,
-            persisted: Boolean(after && after.revision >= object.revision),
+            persisted,
+            result: verification,
+            ...(correction ? { correction } : {}),
             ...extra,
           },
         },
@@ -522,26 +574,41 @@ const objectsExecutor: ToolExecutor = {
             },
             "move",
             { relativeTo: anchor.id, relation: call.relation ?? "beside" },
+            { expect: { position: next }, preserve: ["rotation", "scale"] },
+            () => s.setTransform(id, { position: next }),
           );
         }
-        const result = call.position ? s.setTransform(id, { position: call.position }) : s.moveBy(id, vec3(args.delta) ?? [0, 0, 0]);
+        const delta = vec3(args.delta);
+        const result = call.position ? s.setTransform(id, { position: call.position }) : s.moveBy(id, delta ?? [0, 0, 0]);
+        const wanted = call.position ?? (result ? result.transform.position : null);
         return verified(
           { ok: Boolean(result), content: result ? `${result.name} moved to ${result.transform.position.map((n) => Math.round(n)).join(", ")} mm` : "could not move it" },
           "move",
+          {},
+          { ...(wanted ? { expect: { position: [...wanted] as [number, number, number] } } : {}), preserve: ["rotation", "scale"] },
+          wanted ? () => s.setTransform(id, { position: [...wanted] as [number, number, number] }) : undefined,
         );
       }
       case "rotate": {
         const result = call.rotation ? s.setTransform(id, { rotation: call.rotation }) : s.rotateBy(id, vec3(args.delta) ?? [0, 0, 0]);
+        const wanted = call.rotation ?? (result ? result.transform.rotation : [0, 0, 0]);
         return verified(
           { ok: Boolean(result), content: result ? `${result.name} rotated to ${result.transform.rotation.map((n) => Math.round(n)).join(", ")}°` : "could not rotate it" },
           "rotate",
+          {},
+          { expect: { rotation: [...wanted] as [number, number, number] }, preserve: ["position", "scale"] },
+          () => s.setTransform(id, { rotation: [...wanted] as [number, number, number] }),
         );
       }
       case "scale": {
         const result = s.scaleTo(id, call.scale ?? 1);
+        const factor = call.scale ?? 1;
         return verified(
           { ok: Boolean(result), content: result ? `${result.name} scale ${result.transform.scale[0]}` : "could not scale it" },
           "scale",
+          {},
+          { expect: { scale: [factor, factor, factor] }, preserve: ["position", "rotation"], tolerance: 0.02 },
+          () => s.scaleTo(id, factor),
         );
       }
       case "float": {
