@@ -33,7 +33,7 @@ import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import SupabaseContinuityTransport from "../src/core/sync/SupabaseContinuityTransport";
 import { acquireEmailSession, closeEmailSession } from "./m145-browser-session.mjs";
-import { validateM145Target } from "./m145-config.mjs";
+import { unquoteEnvValue, validateM145Target } from "./m145-config.mjs";
 import {
   continuityContentHash,
   type ContinuityAuthority,
@@ -61,7 +61,7 @@ function readEnvFile(): Record<string, string> {
       if (!trimmed || trimmed.startsWith("#")) continue;
       const index = trimmed.indexOf("=");
       if (index <= 0) continue;
-      values[trimmed.slice(0, index).trim()] = trimmed.slice(index + 1).trim();
+      values[trimmed.slice(0, index).trim()] = unquoteEnvValue(trimmed.slice(index + 1));
     }
   }
   return values;

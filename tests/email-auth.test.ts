@@ -10,7 +10,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { validateM145Target } from "../scripts/m145-config.mjs";
+import { isBrowserSafeM145Key, unquoteEnvValue, validateM145Target } from "../scripts/m145-config.mjs";
 import {
   authCallbackError,
   explainEmailAuthError,
@@ -188,6 +188,56 @@ test("the real-cloud guard requires explicit opt-in and refuses production or a 
   assert.equal(production.ok, false);
   assert.equal(production.status, "FAIL");
   assert.ok(!(production.reason ?? "").includes("sb_publishable_test"));
+});
+
+test("the real-cloud guard refuses a secret/admin key and unwraps quoted env values", () => {
+  const secret = "sb_secret_example_value_not_real";
+  const rejected = validateM145Target({
+    allowReal: "1",
+    url: "https://ugshflwlyakipeduifkd.supabase.co",
+    projectRef: "ugshflwlyakipeduifkd",
+    publishableKey: secret,
+  });
+  assert.equal(rejected.ok, false);
+  assert.equal(rejected.status, "FAIL");
+  assert.ok(!(rejected.reason ?? "").includes(secret), "the reason must not echo the key");
+
+  // A secret key bypasses RLS, so it cannot stand in for authenticated acceptance.
+  assert.equal(isBrowserSafeM145Key(secret), false);
+  assert.equal(isBrowserSafeM145Key("sbp_personal_access_token"), false);
+  assert.equal(isBrowserSafeM145Key("sb_publishable_ok"), true);
+
+  // The platform writes .env.local values quoted; Vite strips the quotes, and
+  // the harness must do the same or every value arrives invalid.
+  assert.equal(unquoteEnvValue('"sb_publishable_ok"'), "sb_publishable_ok");
+  assert.equal(
+    validateM145Target({
+      allowReal: "1",
+      url: "https://ugshflwlyakipeduifkd.supabase.co",
+      projectRef: "ugshflwlyakipeduifkd",
+      publishableKey: '"sb_publishable_ok"',
+    }).ok,
+    true,
+  );
+
+  // A production ref cannot pass even when the URL looks like the test project,
+  // and the test ref cannot vouch for a production URL.
+  const productionRef = validateM145Target({
+    allowReal: "1",
+    url: "https://ugshflwlyakipeduifkd.supabase.co",
+    projectRef: "nrehsldbfxthspikaxvr",
+    publishableKey: "sb_publishable_ok",
+  });
+  assert.equal(productionRef.ok, false);
+  assert.equal(productionRef.status, "FAIL");
+  const productionUrl = validateM145Target({
+    allowReal: "1",
+    url: "https://nrehsldbfxthspikaxvr.supabase.co",
+    projectRef: "ugshflwlyakipeduifkd",
+    publishableKey: "sb_publishable_ok",
+  });
+  assert.equal(productionUrl.ok, false);
+  assert.equal(productionUrl.status, "FAIL");
 });
 
 test("both acceptance harnesses are passwordless and point at the test guard", () => {

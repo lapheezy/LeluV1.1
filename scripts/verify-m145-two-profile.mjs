@@ -19,7 +19,7 @@
  */
 import fs from "node:fs";
 import { chromium } from "playwright";
-import { validateM145Target } from "./m145-config.mjs";
+import { unquoteEnvValue, validateM145Target } from "./m145-config.mjs";
 
 const ENV_FILES = [".env.local", ".lelu-runtime/m145-supabase.env"];
 const OUT = "artifacts/m145/two-profile-acceptance.json";
@@ -33,7 +33,7 @@ function readEnv() {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
       const index = trimmed.indexOf("=");
-      if (index > 0) values[trimmed.slice(0, index).trim()] = trimmed.slice(index + 1).trim();
+      if (index > 0) values[trimmed.slice(0, index).trim()] = unquoteEnvValue(trimmed.slice(index + 1));
     }
   }
   return values;
@@ -223,7 +223,7 @@ try {
 
   result.status = result.checks.every((item) => item.ok) ? "PASS" : "FAIL";
   result.realCloud = true;
-  result.projectRef = env.LELU_M145_PROJECT_REF;
+  result.projectRef = projectRef;
   result.projectId = created.id;
   result.finishedAt = new Date().toISOString();
   result.note = "Two independent Chromium contexts with separate localStorage; profile A completed passwordless email sign-in and profile B was seeded once from that real session. Same account, no password. This is a two-profile browser test, not physical-device testing.";
