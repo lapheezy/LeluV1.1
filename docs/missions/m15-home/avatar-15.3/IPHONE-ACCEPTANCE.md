@@ -1,4 +1,4 @@
-# LÉLU's presence: physical iPhone Safari and real-GPU acceptance procedure (M15.3 WP02, updated WP03)
+# LÉLU's presence: physical iPhone Safari and real-GPU acceptance procedure (M15.3 WP02, updated WP03 and WP04)
 
 **Status: NOT VERIFIED.** No physical iPhone, Safari or WebKit runner was available to the sessions that built M15.3. Every result in the M15.3 reports comes from Chromium on a software GPU (SwiftShader), mostly at phone-sized viewports.
 - Viewport emulation is **not** an iPhone.
@@ -12,6 +12,7 @@ This procedure is for whoever has the device. It needs no paid service and no ne
 - The build stamp is in the bottom-right corner (e.g. `LÉLU d9f0320 · claude/charming-hamilton-icbyrb · development · built …`). A `+dirty` suffix means uncommitted changes: do not record acceptance against a dirty build.
 - Web Inspector console: `window.__LELU_BUILD__` gives the full commit SHA, branch and build time. Record the full SHA.
 - The WP03 movement fixes are present only from commit `d9f0320` on; an older build will still show the WP02 behaviour (first walk "still on my way" and stuck).
+- **WP04 phone fixes are present only from `bfa3801` on.** On an older build, entering her world on a phone shows a **black screen** (no scene is mounted), and every walk there times out. That is a known, fixed defect, not a device failure: record the SHA.
 
 ## Record first
 
@@ -68,6 +69,12 @@ For each step: what to do, then what must be true.
     - The reply is "Done — … walked N m (walk to the studio); now at x …, z …, N cm from the point" (arrival is within 10 cm), or, if loading took most of 20 s, "I'm still on my way (… m to go on my route) … I'll keep walking there", after which she must really arrive.
     - With Web Inspector: `JSON.parse(document.querySelector('canvas[data-lelu-spatial]').dataset.leluSpatial).goal` shows `outcome` (`waiting-for-world` → `walking` → `arrived`), `remaining` (metres to the point) and the `route` she planned. `outcome` must never read `arrived` while `remaining` is over 0.1.
     - Leave the chat window open over the room for the *first* `walk to the studio`: an open window is an obstacle she must walk round (this was the WP02 failure).
+10c. **World entered from the chat, phone (WP04).** On Home, open Chat (full screen). Open Worlds → Her world. Without waiting, type `walk to the studio` in the chat.
+    - The chat steps aside: the window is minimized (it is still in the window list, and the reply waits in it) and her world is shown.
+    - Her world must **not** be black. If it is, record the SHA (pre-`bfa3801`).
+    - She walks to the Creation Studio. Time from Send to the "Done — … N cm from the point" reply (open the chat again to read it): the requirement is **≤ 20 s**. Record the time.
+    - With Web Inspector: `canvas[data-lelu-prepared]` shows how much of her world was prepared while the chat covered it (`resolved`/`programs`, `uploads`).
+10d. **Rotate mid-walk.** Repeat 10c and rotate the phone while she walks. She still arrives (≤ 10 cm from the point), and nothing is stale: one world, her in it once, not on top of furniture.
 10b. **Avatar panel close and reopen (WP03).** ☰ → Avatar → 3D. She stands in the panel. Tap the panel's ✕ (top-right). Then reopen it. Repeat 3 times, in portrait and once in landscape.
     - Each ✕ tap closes the panel at once (one tap, no second tap needed) and she returns to her place within about a second.
     - Each reopen shows the same live her (same form and framing), not a picture or a different figure.
@@ -85,6 +92,14 @@ For each step: what to do, then what must be true.
     - Safari did not reload the page ("A problem repeatedly occurred" means a memory failure; record it).
 
 ## Real-GPU desktop (no phone needed)
+
+**First-paint trace (WP04).** Run `node scripts/avatar/profile-world-first-paint.mjs B gpu desktop` with the SwiftShader launch flags removed (record that you did). It writes `wp04/firstpaint/B-gpu-desktop.json`. Report:
+- the first long task after Enter (`longTasks`);
+- the GL query waits (`waits`);
+- `her-world-first-frame`, and the command → `command-resolved` time.
+
+Also check whether `KHR_parallel_shader_compile` exists there (`node scripts/avatar/probe-gl-caps.mjs`). On SwiftShader it does not. The GPU's own work shows in Chrome's Performance panel, in the GPU track, not as main-thread time.
+
 
 Steps 1–11 and 10a/10b on a desktop browser with a hardware GPU (Chrome or Safari, `chrome://gpu` must show hardware acceleration, not SwiftShader). Also run the automated acceptance against that machine's browser if Playwright can drive it there:
 `LELU_URL=http://127.0.0.1:5173/ node scripts/avatar/verify-avatar-presence.mjs all` — remove the `--use-angle=swiftshader` launch flags first, and record that you did. Expected: every step passes, and walks arrive in a few seconds rather than the 10–15 s measured on SwiftShader.
