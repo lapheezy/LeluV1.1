@@ -23,6 +23,7 @@ import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import { compileDirect, DIRECT_COMMANDS, type DirectPlan } from "../creative/kit/DirectCompiler";
 import { parseWorkspaceCommand } from "../interface/WorkspaceSteward";
+import CosmosObjectStore from "../cosmos/objects/CosmosObjectStore";
 
 /**
  * "Tile my windows", "put the browser beside the chat", "make this
@@ -128,9 +129,35 @@ export function directPlanFor(prompt: string): DirectPlan | null {
   const creative = compileDirect(prompt);
   if (!workspace) return creative;
   if (!creative) return workspace;
+  // M17.3: "move the gear next to the cabin" read as a window split was the
+  // M17.2 finding O09. The words alone cannot tell an object from a window;
+  // what the names RESOLVE to can. When every name the object plan uses is a
+  // real Cosmos object, it is an object operation; otherwise the windows keep it.
+  if (namesCosmosObjects(creative)) return creative;
+  // A sentence that names no window but does name a Cosmos object ("move the
+  // spaceship next to the cabin") is about objects: the object tool refuses
+  // the unknown name instead of the windows being split.
+  const windowsNamed = workspace.steps.some((step) => Array.isArray(step.args.modules) && step.args.modules.length > 0);
+  if (!windowsNamed && namesCosmosObjects(creative, "any")) return creative;
   const stageOnly = workspace.steps.every((step) => step.tool === "workspace.stage");
   const aboutTheConversation = /\b(this|it|the (chat|conversation|thread|workspace|view|screen)|our (chat|conversation)|my (chat|conversation|workspace))\b/i.test(prompt);
   return stageOnly && !aboutTheConversation ? creative : workspace;
+}
+
+/**
+ * True when the plan is Cosmos object operations and every object it names
+ * (object / near / into) resolves to at least one live Cosmos object. "it"
+ * needs another named object to count, so "put it next to the chat" stays a
+ * window command. Ambiguous names still count as objects: the tool then asks
+ * which one, instead of the windows being rearranged.
+ */
+export function namesCosmosObjects(plan: DirectPlan, mode: "all" | "any" = "all"): boolean {
+  if (!plan.steps.length || !plan.steps.every((step) => step.tool.startsWith("cosmos.object."))) return false;
+  const store = CosmosObjectStore.getInstance();
+  const names = plan.steps.flatMap((step) => ["object", "near", "into"].map((k) => step.args[k]).filter((v): v is string => typeof v === "string" && v.trim() !== ""));
+  const named = names.filter((v) => !/^(it|that|this|them)$/i.test(v.trim()));
+  const hit = (v: string) => store.match(v).candidates.length > 0;
+  return named.length > 0 && (mode === "all" ? named.every(hit) : named.some(hit));
 }
 
 export default class DirectResolver {
@@ -179,6 +206,10 @@ export default class DirectResolver {
       ? okCount === ran.length
         ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`
         : `${plan.summary} — could not be done; the reason is below. 0 model calls, nothing sent anywhere.`
+      : onScene && okCount < ran.length
+      ? // M17.3: a refused or ambiguous object operation is not "done" — it was
+        // reported as "Done locally…" above a ✗ and a question.
+        `Not done — nothing in the Cosmos changed; the reason${ran.length > 1 ? "s are" : " is"} below (${plan.summary}). 0 model calls.`
       : onScene
       ? `Done locally on the Cosmos scene${reason === "no-provider" ? " (no model provider is reachable, and none was needed)" : " — no model involved"}: ${plan.summary}.`
       : workspace

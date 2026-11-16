@@ -28,6 +28,7 @@ import { PRESETS } from "./Scene3D";
 import { seedFrom } from "./Rng";
 import { connectorProfiles } from "../../data/PublicDataConnectors";
 import { findBuilder, describeRequest } from "./build";
+import { parseSpatialIntent, RELATION_WORDS as SPATIAL_WORDS } from "../../cosmos/objects/spatialIntent";
 import CosmosObjectStore from "../../cosmos/objects/CosmosObjectStore";
 
 export interface DirectStep { tool: string; args: Record<string, unknown>; label: string }
@@ -272,9 +273,26 @@ function cosmosPlan(t: string): DirectPlan | null {
     return one("cosmos.object.animate", "animate", { motion: kind, ...(slow ? { speed: 0.05 } : {}), ...(paused ? { paused: true } : {}) }, `make it ${kind}${slow ? " slowly" : ""}`);
   }
 
-  const near = /\b(?:next to|beside|near|by|behind|above|in front of)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim());
-  if (near && /\b(move|put|place|shift)\b/i.test(t)) {
-    return one("cosmos.object.position", "move", { object: /\b(?:move|put|place|shift)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:next to|beside|near|by|behind|above|in front of)\b/i.exec(t)?.[1]?.trim() ?? "it", near: near[1].trim() }, `move it next to the ${near[1].trim()}`);
+  // M17.3: relative placement and directional moves, read by one parser
+  // (spatialIntent) and executed by the existing position tool, which
+  // resolves both names against the store and asks when one is ambiguous.
+  const spatial = parseSpatialIntent(t);
+  if (spatial) {
+    if (spatial.kind === "relative") {
+      const ref = spatial.reference ? ` ${SPATIAL_WORDS[spatial.relation]} the ${spatial.reference}` : spatial.relation === "farther" ? " farther away" : " closer";
+      return one(
+        "cosmos.object.position",
+        "move",
+        { object: spatial.target, relation: spatial.relation, ...(spatial.reference ? { near: spatial.reference } : {}), degree: spatial.degree },
+        `move ${/^(it|that|this)$/i.test(spatial.target) ? spatial.target : `the ${spatial.target}`}${ref}`,
+      );
+    }
+    return one(
+      "cosmos.object.position",
+      "move",
+      { object: spatial.target, direction: spatial.direction, degree: spatial.degree, ...(spatial.distance !== null ? { distance: spatial.distance } : {}) },
+      `move ${/^(it|that|this)$/i.test(spatial.target) ? spatial.target : `the ${spatial.target}`} ${spatial.direction}`,
+    );
   }
 
   const transform = /\b(make (?:it|the \w+) (?:bigger|smaller)|scale (?:it|them) (?:up|down)|rotate (?:it|them)\s+(\d{1,3})|turn (?:it|them)\s+(\d{1,3}))\b/i.exec(t);

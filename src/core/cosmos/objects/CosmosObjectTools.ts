@@ -20,6 +20,7 @@ import type { ToolExecutionResult } from "../../tools/ToolDispatcher";
 import StudioStore from "../../studio/StudioStore";
 import CosmosObjectStore from "./CosmosObjectStore";
 import { describeObject, type CosmosObject } from "./CosmosObjectTypes";
+import { placeDirection, placeRelative, RELATION_WORDS, type Degree, type SpatialDirection, type SpatialRelation, type Vec3 as SpatialVec3 } from "./spatialIntent";
 import type { BuildProgram } from "../../creative/kit/build";
 import type { Scene3DProgram } from "../../creative/kit/Scene3D";
 
@@ -133,29 +134,83 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
       rotation: { type: "array", items: { type: "number" }, description: "degrees [x, y, z]" },
       relative: { type: "boolean", description: "add to the current position instead of replacing it" },
       near: { type: "string", description: "an object to sit beside — its position is read, never guessed" },
+      relation: { type: "string", enum: ["beside", "near", "left-of", "right-of", "in-front-of", "behind", "above", "below", "closer", "farther"], description: "where to put it relative to `near` (default beside)" },
+      direction: { type: "string", enum: ["left", "right", "forward", "backward", "up", "down"], description: "move it one step this way" },
+      degree: { type: "string", enum: ["little", "normal", "lot"] },
+      distance: { type: "number", description: "for a direction: how far, in the Cosmos's units" },
     }),
     run: async (args) => {
       const store = CosmosObjectStore.getInstance();
-      const object = store.resolve(s(args, "object"));
-      if (!object) return bad(`No object matches “${s(args, "object") || "that"}” — nothing moved.`);
+      /*
+       * M17.3: a NAME is resolved without guessing. When several objects answer
+       * to it ("the gear" after a duplicate), nothing moves and the reply asks
+       * which one — moving the newest copy silently was the WP01 finding F2.
+       */
+      const pick = (ref: string, role: string): { object?: CosmosObject; error?: ToolExecutionResult } => {
+        // "it" / nothing: the selected object, else the newest — the existing rule for a follow-up.
+        if (!ref || /^(it|that|this)$/i.test(ref)) {
+          const it = store.resolve("");
+          return it ? { object: it } : { error: bad("There is no object in the Cosmos to move.") };
+        }
+        const m = store.match(ref);
+        if (m.object) return { object: m.object };
+        if (m.candidates.length > 1) {
+          const list = m.candidates.slice(0, 6).map((o) => `“${o.name}” (${o.id})`).join(", ");
+          return { error: { ok: false, content: `Nothing moved: ${m.candidates.length} objects answer to “${ref}” — ${list}. Which one do you mean as the ${role}?`, data: { ambiguous: true, role, candidates: m.candidates.map((o) => o.id) } } };
+        }
+        return { error: bad(ref ? `No object matches “${ref}” — nothing moved.` : "No object is selected — say which one to move.") };
+      };
+      const target = pick(s(args, "object"), "object to move");
+      if (target.error) return target.error;
+      const object = target.object!;
+      const from = [...object.frame.position] as SpatialVec3;
       let position = vec(args.position);
-      const near = s(args, "near");
+      let note: string | undefined;
+      let ref: string | undefined;
+      let said = "Moved";
+      const direction = s(args, "direction") as SpatialDirection;
+      const degree = (s(args, "degree") || "normal") as Degree;
+      let relation = s(args, "relation") as SpatialRelation;
+      let near = s(args, "near");
+      if (!near && relation === "farther") {
+        // "farther away" names no reference: the one it was last placed against, else the only other object.
+        const last = [...object.provenance].reverse().find((p) => p.action === "transformed" && p.ref && store.get(p.ref));
+        const others = store.list().filter((o) => o.id !== object.id);
+        near = last?.ref ?? (others.length === 1 ? others[0].id : "");
+        if (!near) return { ok: false, content: `Nothing moved: farther from what? Name the object to move “${object.name}” away from.`, data: { ambiguous: true, role: "reference", candidates: others.map((o) => o.id) } };
+      }
       if (near) {
-        const anchor = store.resolve(near);
-        if (!anchor) return bad(`Nothing moved: there is no “${near}” in the Cosmos to sit beside.`);
-        if (anchor.id === object.id) return bad("Nothing moved: an object cannot sit beside itself.");
-        const reach = Math.max(anchor.frame.scale * 1.4, object.frame.scale * 1.4);
-        position = [anchor.frame.position[0] + reach, anchor.frame.position[1], anchor.frame.position[2]];
+        const anchor = pick(near, "reference");
+        if (anchor.error) return anchor.error;
+        if (anchor.object!.id === object.id) return bad("Nothing moved: an object cannot be placed relative to itself.");
+        relation ||= "beside";
+        position = placeRelative({ position: from, scale: object.frame.scale }, { position: [...anchor.object!.frame.position] as SpatialVec3, scale: anchor.object!.frame.scale }, relation, degree);
+        ref = anchor.object!.id;
+        note = `placed ${RELATION_WORDS[relation]} ${anchor.object!.name}`;
+        said = `Moved ${RELATION_WORDS[relation]} “${anchor.object!.name}”`;
+      } else if (direction) {
+        position = placeDirection({ position: from, scale: object.frame.scale }, direction, degree, n(args, "distance") ?? null);
+        note = `moved ${direction}`;
+        said = `Moved ${direction}`;
+      }
+      // Already there ("closer" when it already sits right beside it): say so; do not claim a move.
+      if (position && (near || direction) && !vec(args.rotation) && n(args, "scale") === undefined && position.every((v, i) => Math.abs(v - from[i]) < 1e-6)) {
+        return ok(
+          relation === "closer" ? `“${object.name}” is already as close to “${store.get(ref!)?.name}” as it can sit without going inside it — nothing moved.` : `“${object.name}” is already there — nothing moved.`,
+          { objectId: object.id, from, to: from, unchanged: true, ...(ref ? { relation, referenceId: ref } : {}) },
+        );
       }
       const result = store.transform(object.id, {
         position,
         rotation: vec(args.rotation),
         scale: n(args, "scale"),
-        absolute: args.relative !== true,
+        absolute: near || direction ? true : args.relative !== true,
+        note,
+        ref,
       });
       if (!result.ok) return bad(`Nothing moved: ${result.reason}.`);
       const back = store.get(object.id)!;
-      return ok(`${near ? `Moved beside “${near}”` : "Moved"}: ${describeObject(back)}.`, { objectId: back.id });
+      return ok(`${said}: ${describeObject(back)}.`, { objectId: back.id, from, to: [...back.frame.position], ...(relation && near ? { relation, referenceId: ref } : {}), ...(direction && !near ? { direction } : {}) });
     },
   },
   {
@@ -353,7 +408,7 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
 
 export const COSMOS_OBJECT_TOOLS: ToolDefinition[] = [
   def("cosmos.object.spawn", "Put an Object in the Cosmos", "Take a constructed artifact and make it a real, independent object in the Cosmos: its own id, position, scale, motion and parent. Runs locally; no model, no server.", 1, ["WRITE"], { artifact: "string", name: "string", position: "number[3]", scale: "number", group: "string", place: "string", motion: "string" }),
-  def("cosmos.object.position", "Move an Object", "Move, rotate or rescale an object in the Cosmos. Relative or absolute, in metres and degrees. Local and immediate.", 1, ["WRITE"], { object: "string", position: "number[3]", rotation: "number[3]", scale: "number", relative: "boolean" }),
+  def("cosmos.object.position", "Move an Object", "Move, rotate or rescale an object in the Cosmos: to a position, next to / left of / right of / in front of / behind / above / below / closer to / farther from another object (`near` + `relation`), or one step left/right/forward/backward/up/down (`direction`). Moving never attaches, detaches or regroups. A name several objects answer to is refused with the candidates, not guessed. Local and immediate.", 1, ["WRITE"], { object: "string", position: "number[3]", rotation: "number[3]", scale: "number", relative: "boolean", near: "string", relation: "string", direction: "string", degree: "string", distance: "number" }),
   def("cosmos.object.transform", "Rotate or Resize an Object", "The same operation as cosmos.object.position, for rotation and scale.", 1, ["WRITE"], { object: "string", rotation: "number[3]", scale: "number", position: "number[3]", relative: "boolean" }),
   def("cosmos.object.animate", "Float, Spin or Pause Objects", "Give an object a motion (spin, orbit, bob, drift) or stop it, and pause or resume every floating object at once.", 1, ["WRITE"], { object: "string", motion: "string", speed: "number", axis: "string", paused: "boolean", all: "boolean" }),
   def("cosmos.object.reset", "Reset the Arrangement", "Return every object to the ring slot it was first placed in, unrotated and at scale 1. Local, reversible by moving things again.", 1, ["WRITE"], {}),
