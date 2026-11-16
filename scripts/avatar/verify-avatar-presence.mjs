@@ -440,12 +440,30 @@ if (only === "all" || only === "panel") {
     // Close and reopen: she leaves the spot, comes back; nothing new is created.
     const close = p.locator('.lws-icon[aria-label^="Close "]:visible, [data-lelu-module-window] button[aria-label^="Close "]:not([aria-label^="Close tab"]):visible, button[aria-label="Close window"]:visible').first();
     for (let cycle = 0; cycle < 2; cycle++) {
-      if (await close.count()) await close.click({ force: true }); else await goHome(p);
-      await p.waitForTimeout(2000);
-      const away = await her(p);
+      /*
+       * WP03: the visible ✕ with a real touch on the phone (actionability
+       * checked: visible, stable, receives events), a mouse click on desktop.
+       * Within the same 2 s as before, BOTH must hold: the panel is really
+       * closed (its window and preview spot are gone) and she has left it.
+       * (WP02 sampled her attribute once at 2 s; the probe in wp03/panel/
+       * showed the tap always landed and her attribute lagged up to 4.2 s.)
+       */
+      const label = (await close.count()) ? await close.getAttribute("aria-label") : null;
+      const t0 = Date.now();
+      if (label) { if (mobile) await close.tap(); else await close.click(); } else await goHome(p);
+      let away = null;
+      let panelGone = false;
+      while (Date.now() - t0 <= 2000) {
+        away = await her(p);
+        panelGone = await p.evaluate(() => !document.querySelector("[data-lelu-preview-host]"));
+        if (panelGone && away.presence !== "preview") break;
+        await p.waitForTimeout(100);
+      }
+      const latency = Date.now() - t0;
+      await p.waitForTimeout(Math.max(0, 2000 - latency));
       await openPanel();
       const back = await her(p);
-      await step(p, `${dev}-panel-close-reopen-${cycle + 1}`, away.presence !== "preview" && back.presence === "preview" && back.sameCanvas, `closed: ${away.presence}; reopened: ${back.presence}; same canvas ${back.sameCanvas}; page WebGL contexts +${back.ctx - ctx0} since start`);
+      await step(p, `${dev}-panel-close-reopen-${cycle + 1}`, panelGone && away.presence !== "preview" && back.presence === "preview" && back.sameCanvas && back.model === h.model, `${mobile ? "tapped" : "clicked"} “${label}”; panel closed ${panelGone}, she left it (${away.presence}) within ${latency} ms; reopened: ${back.presence}; same canvas ${back.sameCanvas}; same model ${back.model === h.model}; page WebGL contexts +${back.ctx - ctx0} since start`);
     }
     await ctx.close();
   }

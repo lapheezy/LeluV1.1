@@ -112,3 +112,14 @@ test("WP03: the presence waits for her world before aiming, keeps the goal acros
   // Time spent paused before the command existed is not credited to the walk.
   assert.match(presence, /walkSeconds = Math\.min\(elapsed, \(now - asked\.startedAt\) \/ 1000\)/);
 });
+
+test("WP03: her preview ends in the same commit as the Avatar module closes (not a timer later)", () => {
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.match(companion, /const avatarModule = state\.modules\.avatar;/);
+  assert.match(companion, /const previewSpot = avatarModuleClosed \? null : previewRect;/);
+  // The spot itself is also followed through DOM mutations, not only the 400 ms timer.
+  assert.match(companion, /useHeroRect[\s\S]*new MutationObserver[\s\S]*setInterval\(read, 400\)/);
+  // Still one presence: the panel hosts her, it does not draw her.
+  const panel = readFileSync("src/app/scene/genesis/GenesisAvatarPanel.tsx", "utf8");
+  assert.doesNotMatch(panel, /<Canvas|LeluCharacter3D|<LeluBody/);
+});

@@ -154,9 +154,23 @@ function useHeroRect(selector = "[data-lelu-hero-host]"): Rect | null {
       setHero((current) => (JSON.stringify(current) === JSON.stringify(r) ? current : r));
     };
     read();
+    /*
+     * The spot appearing or disappearing (the Avatar panel opening/closing)
+     * is followed within one 40 ms burst, like usePresent. M15.3 WP03
+     * measured the 400 ms timer alone, starved by the long tasks after a
+     * window closes, leaving her in a closed panel's spot for up to 4.2 s.
+     * The timer stays for moves of a spot that do not change the DOM.
+     */
+    let burst = 0;
+    const observer = new MutationObserver(() => {
+      if (!burst) burst = window.setTimeout(() => { burst = 0; read(); }, 40);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
     const timer = setInterval(read, 400);
     window.addEventListener("resize", read);
     return () => {
+      observer.disconnect();
+      if (burst) window.clearTimeout(burst);
       clearInterval(timer);
       window.removeEventListener("resize", read);
     };
@@ -178,7 +192,20 @@ function Presence({ companion }: { companion: CompanionState }) {
   const space = useSpaceLayout();
   const hero = useHeroRect();
   // The Avatar panel's preview spot: she stands in it herself.
-  const previewSpot = useHeroRect("[data-lelu-preview-host]");
+  const previewRect = useHeroRect("[data-lelu-preview-host]");
+  /*
+   * The panel closing is known in the SAME commit that removes it (its module
+   * leaves `state.modules`); the DOM spot is only seen by the hook a task
+   * later, which long tasks after a close delayed by 1–3 s (M15.3 WP03). Once
+   * the Avatar module has been seen open, its closing ends the preview at
+   * once. (Hosts that show the panel without that module rely on the spot.)
+   */
+  const avatarModule = state.modules.avatar;
+  const sawAvatarModule = useRef(false);
+  if (avatarModule) sawAvatarModule.current = true;
+  const avatarModuleClosed = sawAvatarModule.current && (!avatarModule || avatarModule.presentation === "closed" || avatarModule.presentation === "minimized");
+  if (!avatarModule && !previewRect) sawAvatarModule.current = false;
+  const previewSpot = avatarModuleClosed ? null : previewRect;
   // A modal sheet (App Library, Windows, Worlds) is open over the interface.
   const sheetOpen = usePresent(".lsh-backdrop");
   const universeOpen = useUniverseOpen();
