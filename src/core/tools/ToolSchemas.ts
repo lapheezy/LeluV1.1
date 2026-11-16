@@ -169,7 +169,7 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(website|web ?app|app|game|build|scaffold|studio|deploy|publish)\b/i, ["studio_engine", "studio_create", "studio_build", "studio_preview", "creator_build", "studio_deploy"]],
   [/\b(workflow|automation|pipeline|steps?)\b/i, ["workflow_list", "workflow_run", "workflow_author", "workflow_status"]],
   [/\b(project|repository|repo|codebase|function|module|import)\b/i, ["project_search", "project_preview", "repo_inspect", "repo_status", "project_manage"]],
-  [/\b(avatar|body|gesture|wave|dance|companion)\b/i, ["avatar_gesture", "avatar_companion"]],
+  [/\b(avatar|body|gesture|wave|dance|companion|hologram|holographic|walk|move|face me|come here|closer)\b/i, ["avatar_gesture", "avatar_companion", "avatar_move"]],
   [/\b(artifact|diagram|table|chart|note|document)\b/i, ["artifact_create", "artifact_edit", "artifact_read", "environment_present_artifact"]],
   [/\b(agent|delegate|workforce|task force)\b/i, ["agent_delegate", "agent_status", "agent_resume"]],
   // Measured: "Draw me a quick sketch of a cat…" matched no family, so the

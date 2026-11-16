@@ -72,6 +72,10 @@ function probeGpu(): { webgl: boolean; webgpu: boolean; renderer: string | null 
       if (debugInfo) {
         renderer = String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) ?? null);
       }
+      // A probe holds a WebGL context until garbage collection, and this runs
+      // on every refresh; Chromium keeps 16 and then drops the OLDEST live
+      // context (which can be LÉLU's). Let it go now.
+      (gl as WebGLRenderingContext).getExtension("WEBGL_lose_context")?.loseContext();
     }
   } catch {
     // WebGL unavailable — record as false

@@ -23,11 +23,61 @@ import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import type { AIResponse } from "../../providers/AIProvider";
 import AvatarStore from "../avatar/AvatarProfile";
-import AvatarCommandBus, { type AvatarCommandKind } from "../avatar/AvatarCommandBus";
+import AvatarCommandBus, { type AvatarCommandKind, type AvatarPlace } from "../avatar/AvatarCommandBus";
+import LeluCharacterStore from "../avatar/LeluCharacterStore";
+import { parseAvatarPresenceCommand } from "./avatarPresenceCommand";
 import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import AgentEventBus, { type AgentEventListener } from "../agent/AgentEvents";
 
 export default class AvatarResolver {
+  /**
+   * Her presence commands in plain words ("become a hologram", "walk to the
+   * studio", "dance"), deterministic and model-free. Run early by AIRouter,
+   * before any stage could read "hologram" or "studio" as something else.
+   */
+  public async executeDirect(context: RouterContext): Promise<BrainResult> {
+    const parsed = parseAvatarPresenceCommand(context.request.prompt ?? "");
+    if (!parsed) return { handled: false };
+    const events = AgentEventBus.getInstance();
+    const taskId = String(context.request.timestamp ?? Date.now());
+    if (parsed.type === "motion") {
+      return this.executeMotion(context, events, taskId, { kind: parsed.kind, label: parsed.label, place: parsed.place });
+    }
+    const character = LeluCharacterStore.getInstance();
+    if (parsed.type === "form") character.setForm(parsed.form);
+    else if (parsed.type === "framing") character.setFraming(parsed.framing);
+    else {
+      character.setForm("auto");
+      character.setFraming("auto");
+    }
+    const now = character.get();
+    events.emit({ type: "tool_result", taskId, tool: "avatar-presence", result: `form ${now.form}, framing ${now.framing}` });
+    const text =
+      parsed.type === "presentation-auto"
+        ? "I'll choose how I appear in each interface again."
+        : parsed.type === "form"
+          ? parsed.form === "hologram"
+            ? "Projected. I'm a hologram everywhere now; say “become embodied” to bring me back."
+            : parsed.form === "embodied"
+              ? "Back as myself, everywhere."
+              : "Each interface chooses my form again."
+          : parsed.framing === "full"
+            ? "All of me, everywhere I appear."
+            : parsed.framing === "face"
+              ? "Just my face now, everywhere I appear."
+              : "Each interface chooses my framing again.";
+    return {
+      handled: true,
+      response: {
+        text,
+        provider: "brain",
+        model: "avatar-runtime",
+        processingTime: Date.now() - context.started,
+        metadata: { source: "AvatarResolver", avatar: true, offline: true, form: now.form, framing: now.framing },
+      },
+    };
+  }
+
   public async execute(context: RouterContext): Promise<BrainResult> {
     if (context.intent !== "avatar") {
       return { handled: false };
@@ -218,13 +268,19 @@ export default class AvatarResolver {
     context: RouterContext,
     events: { emit: (event: Parameters<AgentEventListener>[0]) => void },
     taskId: string,
-    motion: { kind: AvatarCommandKind; label: string },
+    motion: { kind: AvatarCommandKind; label: string; place?: AvatarPlace },
   ): Promise<BrainResult> {
     const executive = ExecutiveRuntime.getInstance();
     events.emit({ type: "tool_started", taskId, tool: "avatar-motion", label: `motion:${motion.kind}` });
 
     try {
-      const observation = await AvatarCommandBus.getInstance().issue(motion.kind, motion.label);
+      // A walk somewhere takes longer than a gesture: the presence confirms on arrival.
+      const observation = await AvatarCommandBus.getInstance().issue(
+        motion.kind,
+        motion.label,
+        motion.place && motion.kind === "move" ? 45_000 : motion.place && motion.kind === "look" ? 15_000 : undefined,
+        motion.place ? { place: motion.place } : undefined,
+      );
       executive.recordVerifiedAction({
         intent: `${motion.label} on command`,
         execution: `3D presence performed “${motion.kind}”`,
@@ -258,7 +314,9 @@ export default class AvatarResolver {
       return {
         handled: true,
         response: {
-          text: `I have to be honest: I issued the “${motion.label}” command, but my telemetry shows it was never confirmed by my renderer — ${message} I'm diagnosing the animation binding rather than pretending I moved.`,
+          text: /^No renderer confirmed|^Superseded/.test(message)
+            ? `I have to be honest: I issued the “${motion.label}” command, but my telemetry shows it was never confirmed by my renderer — ${message} I'm diagnosing the animation binding rather than pretending I moved.`
+            : `I didn't ${motion.label}: ${message}.`,
           provider: "brain",
           model: "avatar-runtime",
           processingTime: Date.now() - context.started,

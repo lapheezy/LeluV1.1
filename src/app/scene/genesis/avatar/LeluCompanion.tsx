@@ -34,6 +34,18 @@
  *                  so this presence hides and stops drawing, keeping her
  *                  canvas for when you come back.
  *
+ *   HOW (M15.3)  — this presence is also the authority for HOW she shows:
+ *                  the interface she is in asks for a framing and a form
+ *                  (presentationProfile.choosePresentation): her portrait
+ *                  on Home, all of her in creative work and roomy chat, a
+ *                  compact projection beside engineering and browser work.
+ *                  A form or framing chosen by the person or by her
+ *                  (LeluCharacterStore) wins. She is never hidden because
+ *                  windows fill the screen: she rests compact at the least
+ *                  obstructive edge instead, still live. Behind a modal
+ *                  sheet (the App Library) she stays visible and live but
+ *                  under it, so the sheet's controls take their own touches.
+ *
  *   Cognition, memory, voice and personality are untouched: what she is
  *   doing is read from useLeluActivity, the same signal as before.
  * ==========================================================
@@ -41,7 +53,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { planPresence, presenceModeFor, sameSpace, type AvatarAnchor, type Rect, type SpaceLayout } from "./spatialPresence";
-import { choosePlace, clampBox, nearestFree, readSpace, rectOf } from "./presencePlacement";
+import { blocksSomething, choosePlace, clampBox, nearestFree, readSpace, rectOf } from "./presencePlacement";
 import AvatarStore from "../../../../core/avatar/AvatarProfile";
 import CompanionStore, { type CompanionState } from "../../../../core/avatar/CompanionStore";
 import { layer, within } from "../../../../core/ui/Layers";
@@ -51,6 +63,10 @@ import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActiv
 import LeluCharacter from "./LeluCharacter";
 import { FULL_BODY_COMMANDS } from "./LeluBody";
 import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
+import { useLeluCharacter } from "./useLeluCharacter";
+import { choosePresentation, contextOf, restsOnStill } from "./presentationProfile";
+import { useUniverseOpen } from "../chat/universe/universeOpen";
+import { useRenderProfile } from "../SceneRenderManager";
 
 /** Her tools at work: she steps forward to be seen working. */
 const TOOL_ACTIVITIES = new Set<LeluActivity>(["SEARCHING", "BROWSING", "WORKING", "BUILDING", "RENDERING", "EXPLORING", "PRESENTING"]);
@@ -99,6 +115,34 @@ function useSpaceLayout(): SpaceLayout {
   return space;
 }
 
+/** Whether a part of the interface is in the page: a modal sheet, the Home. */
+function usePresent(selector: string): boolean {
+  const [present, setPresent] = useState(false);
+  useEffect(() => {
+    /*
+     * One lookup per 40 ms burst, however many nodes a streaming reply adds.
+     * A timer, not requestAnimationFrame: frames can be far apart on a slow
+     * device (measured ~0.5 s here), and her touches must come back as soon
+     * as a sheet closes.
+     */
+    let timer = 0;
+    const read = () => {
+      timer = 0;
+      setPresent(Boolean(document.querySelector(selector)));
+    };
+    read();
+    const observer = new MutationObserver(() => {
+      if (!timer) timer = window.setTimeout(read, 40);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [selector]);
+  return present;
+}
+
 /** The home's hero spot, when the home is showing (its rect, followed live). */
 function useHeroRect(): Rect | null {
   const [hero, setHero] = useState<Rect | null>(null);
@@ -133,6 +177,12 @@ function Presence({ companion }: { companion: CompanionState }) {
   const activity = useLeluActivity();
   const space = useSpaceLayout();
   const hero = useHeroRect();
+  // A modal sheet (App Library, Windows, Worlds) is open over the interface.
+  const sheetOpen = usePresent(".lsh-backdrop");
+  const universeOpen = useUniverseOpen();
+  const homeShown = usePresent("[data-lelu-home]");
+  const character = useLeluCharacter();
+  const renderProfile = useRenderProfile();
   const store = CompanionStore.getInstance();
   const viewport = space.viewport.width > 0 ? space.viewport : viewportSize();
   const compact = viewport.width < 600;
@@ -182,14 +232,22 @@ function Presence({ companion }: { companion: CompanionState }) {
   /*
    * When the Workspace Steward has filled the screen with windows there is no
    * free spot left for her, and the planner's "best" spot is on top of
-   * someone's work. She yields instead (the Universe portrait and the chat
-   * orb still show her state) and comes back the moment there is room.
+   * someone's work.
    */
   const windowCover = space.panels.reduce((sum, r) => sum + r.width * r.height, 0) / Math.max(1, viewport.width * viewport.height);
-  const yielded = modulesOpen && windowCover > 0.5;
+  /*
+   * Windows fill the screen: she used to be HIDDEN here (yet her canvas kept
+   * drawing). She now takes the least obstructive edge, compact — present,
+   * reachable, never on someone's work.
+   */
+  const crowded = modulesOpen && windowCover > 0.5;
   const underSheet = compact && !surface.cosmosRendered;
-  // Her last frame, captured as she paused beside a phone sheet.
-  const [still, setStill] = useState<string | null>(null);
+  // The window she is beside: the top-most open one, else the active panel.
+  const focused =
+    Object.entries(state.modules)
+      .filter(([id, m]) => id !== "chat" && (m.presentation === "inline" || m.presentation === "expanded"))
+      .sort((a, b) => (b[1].zIndex ?? 0) - (a[1].zIndex ?? 0) || b[1].updatedAt - a[1].updatedAt)[0]?.[0] ??
+    (state.activePanel !== "none" ? state.activePanel : null);
   const onHome = Boolean(hero) && state.activePanel === "none" && !workspaceInUse && !bodyWanted && !inWorld;
 
   const mode = presenceModeFor({ chatOpen, workspaceOpen: workspaceInUse, turnActive, dialogue: state.dialogue });
@@ -214,15 +272,39 @@ function Presence({ companion }: { companion: CompanionState }) {
   const [live, setLive] = useState<Box | null>(null);
   const gesture = useRef<{ x: number; y: number; start: Box; moved: boolean } | null>(null);
 
-  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan, space, compact });
+  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan: crowded ? { ...plan, hidden: true } : plan, space, compact });
   const box = live ?? target;
-  // Her canvas size before a sheet took the screen: kept under the sheet,
-  // where she is scaled rather than resized (a resize clears the canvas).
-  const sizeBeforeSheet = useRef<{ width: number; height: number } | null>(null);
-  if (!underSheet) sizeBeforeSheet.current = { width: box.width, height: box.height };
-  const drawn = underSheet && sizeBeforeSheet.current ? sizeBeforeSheet.current : { width: box.width, height: box.height };
-  const scale = Math.min(1, box.width / drawn.width, box.height / drawn.height);
-  const framing = place === "hero" || box.height < 150 ? "face" : "full";
+  // Live everywhere she is shown: her canvas is the size she is drawn at.
+  const drawn = { width: box.width, height: box.height };
+  const scale = 1;
+  const context = contextOf({ onHome: onHome || (homeShown && state.activePanel === "none" && !workspaceInUse && !inWorld && !universeOpen), inWorld, chatOpen: chatOpen || universeOpen, focused });
+  const presentation = choosePresentation({
+    context,
+    boxHeight: box.height,
+    hero: place === "hero",
+    userForm: character.form,
+    userFraming: character.framing,
+  });
+  const { framing, form } = presentation;
+  /*
+   * Her rate: 24 fps; ~12 beside a phone's full-screen sheet, with reduced
+   * motion, or on a device the render manager measured as light. Never 0
+   * while she is in view (that was the freeze).
+   */
+  const fps = underSheet || space.reducedMotion || renderProfile === "light" ? 12 : 24;
+  /*
+   * Low-power rest: ONLY on a device the render manager measured as "light"
+   * (a software renderer, no WebGL, or data saver) and only beside a phone's
+   * full-screen sheet. Measured in M15.3 (393×852, SwiftShader): with any
+   * element animating over that sheet — her canvas, or even a plain 2D canvas
+   * changing 4×/s — the page fell from ~42 to 2–7 fps; it is the software
+   * compositor, not her drawing (her canvas hidden but still drawing: 42 fps).
+   * There she rests on a captured frame of herself and resumes the moment the
+   * sheet closes. On a real GPU she stays live everywhere (before M15.3 she
+   * was frozen beside every phone sheet on every device).
+   */
+  const lowPowerRest = restsOnStill({ besidePhoneSheet: underSheet, renderProfile });
+  const [still, setStill] = useState<string | null>(null);
   const duration = space.reducedMotion ? 0 : live ? 0 : Math.max(plan.durationMs, 520);
 
   const begin = (event: ReactPointerEvent<HTMLElement>) => {
@@ -263,6 +345,58 @@ function Presence({ companion }: { companion: CompanionState }) {
     if (event.key === "Escape" || event.key === "Home") { event.preventDefault(); store.dockWindow(); }
   };
 
+  /*
+   * Asked to move across the interface ("move to the left", "go back to your
+   * spot"): over the interface her places are sides of the screen. Confirmed
+   * only when her element has measurably moved there. In a world, the world
+   * presence takes movement instead.
+   */
+  const latest = useRef({ box, viewport, inWorld });
+  latest.current = { box, viewport, inWorld };
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  useEffect(
+    () =>
+      AvatarCommandBus.getInstance().subscribe((command) => {
+        const where = command.target?.place;
+        if (latest.current.inWorld || command.kind !== "move" || !where) return;
+        if (where !== "left" && where !== "right" && where !== "center" && where !== "home") return;
+        const before = rootRef.current?.getBoundingClientRect();
+        if (where === "home") {
+          store.dockWindow();
+        } else {
+          const { box: b, viewport: vp } = latest.current;
+          const left = where === "left" ? 8 : where === "right" ? vp.width - b.width - 8 : (vp.width - b.width) / 2;
+          const room = readSpace();
+          // Anywhere along that side that covers nothing you need, then the
+          // nearest free spot to it; never on a control.
+          const heights = [b.top, 0.5, 0.33, 0.66, 0.2, 0.8].map((f, i) => (i === 0 ? f : (vp.height - b.height) * f));
+          const along = heights.map((top) => clampBox({ left, top, width: b.width, height: b.height }, vp));
+          const spot = along.find((c) => !blocksSomething(c, room)) ?? nearestFree(along[0], room);
+          if (!spot) {
+            AvatarCommandBus.getInstance().decline(command.id, `every spot on the ${where} of the screen would cover a control you are using, so I stayed where I am`);
+            return;
+          }
+          store.setWindow({ left: spot.left / vp.width, top: spot.top / vp.height, width: spot.width / vp.width, height: spot.height / vp.height });
+        }
+        // Confirmed from her measured position as her move eases in (it can
+        // take over a second); "home" is her own place by definition.
+        const startedAt = Date.now();
+        const timer = window.setInterval(() => {
+          const after = rootRef.current?.getBoundingClientRect();
+          const moved = before && after ? Math.hypot(after.left - before.left, after.top - before.top) : 0;
+          if (where === "home" || moved > 4) {
+            window.clearInterval(timer);
+            AvatarCommandBus.getInstance().confirm(command.id, where === "home" ? "back in her own place on the interface" : `moved ${Math.round(moved)} px to the ${where} of the screen (now at x ${Math.round(after?.left ?? 0)})`);
+          } else if (Date.now() - startedAt > 4000) {
+            window.clearInterval(timer);
+          }
+        }, 150);
+      }),
+    // store and space flags are stable for this purpose; positions come from `latest`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const accent = ACTIVITY_ACCENT[activity];
   const ease = "cubic-bezier(.2,.8,.2,1)";
   const style: CSSProperties = {
@@ -278,9 +412,11 @@ function Presence({ companion }: { companion: CompanionState }) {
     // composer, notifications and dialogs. Over a phone's full-screen
     // sheet she rests just above it, at the edge spot that avoids its
     // controls — or she would be behind it, unreachable.
-    zIndex: live ? layer("panelActive") : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
-    visibility: inWorld || (yielded && !live) ? "hidden" : "visible",
-    opacity: inWorld || (yielded && !live) ? 0 : place === "planned" ? plan.opacity : 1,
+    // Behind an open modal sheet she stays in view (dimmed with the rest of
+    // the interface) but under it: the sheet's own controls take touches.
+    zIndex: live ? layer("panelActive") : sheetOpen ? 1 : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
+    visibility: inWorld ? "hidden" : "visible",
+    opacity: inWorld ? 0 : place === "planned" ? plan.opacity : 1,
     pointerEvents: "none",
     userSelect: "none",
     // No frame, no title bar: only her, with a soft light of what she is doing.
@@ -289,10 +425,17 @@ function Presence({ companion }: { companion: CompanionState }) {
 
   return (
     <div
+      ref={rootRef}
       data-testid="lelu-companion"
-      data-presence={yielded && !live ? "yielded" : place}
+      data-presence={place}
+      data-crowded={crowded ? "true" : "false"}
       data-activity={activity}
       data-framing={framing}
+      data-form={form}
+      data-context={context}
+      data-presentation-reason={presentation.reason}
+      data-sheet={sheetOpen ? "under" : "none"}
+      data-low-power={lowPowerRest ? "rest" : "none"}
       data-spatial-state={place === "planned" ? plan.state : place}
       data-presence-mode={plan.mode}
       data-posture={place === "planned" ? plan.posture : "stand"}
@@ -318,7 +461,7 @@ function Presence({ companion }: { companion: CompanionState }) {
         style={{
           position: "absolute",
           inset: 0,
-          pointerEvents: inWorld ? "none" : "auto",
+          pointerEvents: inWorld || sheetOpen ? "none" : "auto",
           touchAction: "none",
           cursor: live ? "grabbing" : "grab",
           outline: "none",
@@ -334,8 +477,12 @@ function Presence({ companion }: { companion: CompanionState }) {
             0 after ~15 s; 60 fps throughout with her paused or off). Her
             canvas keeps its size and one captured frame of it is shown,
             scaled to the edge spot; she animates again when it closes. */}
-        <LeluCharacter framing={framing} testId="lelu-companion-character" paused={inWorld || underSheet} onStill={underSheet ? setStill : undefined} />
-        {underSheet && still ? (
+        {/* Paused only where she is not in view here (a world shows her in
+            the scene), or in the measured low-power rest above. Beside a
+            phone sheet she used to be paused on a captured still on EVERY
+            device — frozen on every screen but Home. */}
+        <LeluCharacter framing={framing} form={form} fps={fps} testId="lelu-companion-character" paused={inWorld || lowPowerRest} onStill={lowPowerRest ? setStill : undefined} />
+        {lowPowerRest && still ? (
           <img data-testid="lelu-companion-still" src={still} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }} />
         ) : null}
       {saved ? (

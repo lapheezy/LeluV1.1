@@ -26,6 +26,8 @@ import { LELU_IDENTITY_STATEMENT } from "../../../brain/LeluIdentity";
 import { useVoice } from "../../../core/voice/useVoice";
 import { useGenesisState } from "./GenesisCore";
 import ProceduralAvatarPreview from "./ProceduralAvatarPreview";
+import LeluCharacterStore, { type LeluFormChoice, type LeluFramingChoice } from "../../../core/avatar/LeluCharacterStore";
+import { useLeluCharacter } from "./avatar/useLeluCharacter";
 import type { AvatarPresenceMode } from "../../../core/creative/Procedural3DPipeline";
 import { renderAvatarToImage } from "../../../core/creative/Procedural3DPipeline";
 import RenderStore from "../../../core/creative/RenderStore";
@@ -234,6 +236,7 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
             alignSelf: "flex-start",
           }}
         >
+          <PresenceChoice />
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>
             Visual reference
           </div>
@@ -618,5 +621,51 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
         </div>
       </div>
     </GenesisWindowFrame>
+  );
+}
+
+/**
+ * How she presents herself, everywhere: her form and framing. "Auto" lets
+ * each interface choose (avatar/presentationProfile); a choice here wins.
+ * No preview canvas of its own: her one presence on screen IS the preview
+ * (a second canvas would be a second rendering of her).
+ */
+function PresenceChoice() {
+  const character = useLeluCharacter();
+  const store = LeluCharacterStore.getInstance();
+  const row = <T extends string>(label: string, value: T, options: ReadonlyArray<readonly [T, string]>, set: (v: T) => void, testId: string) => (
+    <div data-testid={testId} role="radiogroup" aria-label={label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <span style={{ fontSize: 10, opacity: 0.65 }}>{label}</span>
+      <div style={{ display: "flex", gap: 4 }}>
+        {options.map(([id, name]) => (
+          <button
+            key={id}
+            type="button"
+            role="radio"
+            aria-checked={value === id}
+            data-choice={id}
+            onClick={() => set(id)}
+            style={{
+              ...chipButton,
+              flex: 1,
+              padding: "5px 6px",
+              fontSize: 10.5,
+              background: value === id ? "rgba(34, 211, 238, 0.16)" : "rgba(255,255,255,0.04)",
+              border: value === id ? "1px solid rgba(125, 211, 252, 0.45)" : "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div data-testid="lelu-presence-choice" style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+      <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>Presence</div>
+      {row<LeluFormChoice>("Form", character.form, [["auto", "Auto"], ["embodied", "Embodied"], ["hologram", "Hologram"]] as const, (v) => store.setForm(v), "lelu-form-choice")}
+      {row<LeluFramingChoice>("Framing", character.framing, [["auto", "Auto"], ["full", "Full body"], ["face", "Face"]] as const, (v) => store.setFraming(v), "lelu-framing-choice")}
+      <span style={{ fontSize: 10, opacity: 0.55, lineHeight: 1.4 }}>Auto: each interface chooses. The same LÉLU in every form.</span>
+    </div>
   );
 }

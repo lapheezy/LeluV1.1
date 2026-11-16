@@ -23,6 +23,7 @@
 import KvStore from "../../../core/storage/KvStore";
 import EarthCore from "../../../core/earth/EarthCore";
 import { parseSpatialNavCommand } from "../../../core/router/spatialNavCommand";
+import { parseAvatarPresenceCommand } from "../../../core/router/avatarPresenceCommand";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import { dispatchBrowserGoto } from "./GenesisChatSurface";
 import {
@@ -170,6 +171,9 @@ export default class ExplorationController {
 
     // "show me the spatial bar" is the router's Spatial bar command, not a place.
     if (parseSpatialNavCommand(lower) !== null) return false;
+    // "show me all of you", "come here", "walk to the studio" are her presence
+    // commands (router → AvatarResolver), not places on Earth or camera moves.
+    if (parseAvatarPresenceCommand(lower) !== null) return false;
 
     // Stop / focus commands
     if (

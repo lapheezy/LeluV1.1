@@ -39,6 +39,30 @@ export type AvatarCommandKind =
   | "leave"
   | "return";
 
+/**
+ * Where a "move" goes, or what a "look" faces. Named places are resolved by
+ * whichever presence is in view: in a world, places in the room (the Core,
+ * the Studio, the Lab, the Vault, her own spot, the person); over the
+ * interface, sides of the screen.
+ */
+export type AvatarPlace =
+  | "viewer"
+  | "home"
+  | "core"
+  | "studio"
+  | "lab"
+  | "vault"
+  | "away"
+  | "left"
+  | "right"
+  | "center";
+
+export interface AvatarTarget {
+  place: AvatarPlace;
+}
+
+export const AVATAR_PLACES: readonly AvatarPlace[] = ["viewer", "home", "core", "studio", "lab", "vault", "away", "left", "right", "center"];
+
 export interface AvatarCommand {
   id: string;
   kind: AvatarCommandKind;
@@ -46,6 +70,8 @@ export interface AvatarCommand {
   issuedAt: number;
   /** How long the gesture runs before the presence confirms. */
   durationMs: number;
+  /** For "move" and "look": where to, or what to face. */
+  target?: AvatarTarget;
 }
 
 type CommandListener = (command: AvatarCommand) => void;
@@ -96,6 +122,7 @@ class AvatarCommandBusImpl {
     kind: AvatarCommandKind,
     label: string,
     timeoutMs: number = DEFAULT_TIMEOUT_MS,
+    target?: AvatarTarget,
   ): Promise<string> {
     // One command at a time — supersede any still-active one honestly.
     if (this.active) {
@@ -111,7 +138,8 @@ class AvatarCommandBusImpl {
       kind,
       label,
       issuedAt: Date.now(),
-      durationMs: kind === "dance" ? 3_200 : kind === "sit" || kind === "stand" ? 3_000 : 2_200,
+      durationMs: kind === "dance" ? 3_200 : kind === "sit" || kind === "stand" ? 3_000 : kind === "move" && target ? 9_000 : 2_200,
+      ...(target ? { target } : {}),
     };
 
     return new Promise<string>((resolve, reject) => {
@@ -139,6 +167,20 @@ class AvatarCommandBusImpl {
    * Called by the live 3D presence AFTER it measured that its own
    * transforms actually changed while performing the command.
    */
+  /**
+   * Called by a live presence that CANNOT do what was asked, with the real
+   * reason (e.g. every spot on that side covers a control). The request
+   * fails at once and honestly, instead of timing out as if she froze.
+   */
+  public decline(id: string, reason: string): void {
+    const pending = this.pending.get(id);
+    if (this.active?.id === id) this.active = null;
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    this.pending.delete(id);
+    pending.reject(reason);
+  }
+
   public confirm(id: string, observation: string): void {
     const pending = this.pending.get(id);
     if (this.active?.id === id) this.active = null;

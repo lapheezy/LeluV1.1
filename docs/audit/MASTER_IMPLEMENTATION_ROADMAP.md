@@ -213,6 +213,7 @@ The Mission 15 work on branch `claude/charming-hamilton-icbyrb` is recorded in `
 | `MISSION-15.1-HOME-STUDIO.md` | Sixty Home concepts as working layouts, plus the Design Studio (`94e96cb`) |
 | `MISSION-15.2-SPATIAL-BAR-AWAY.md` | Spatial bar hidden behind a side tab, menu entry and LÉLU command (`6bf290e`) |
 | `MISSION-15.2-CLOSEOUT-WP03.md` | Final verification (2026-11-16) |
+| `MISSION-15.3-AVATAR-PRESENCE.md` | LÉLU's presence (2026-11-16): her existing adaptation system completed. Embodied, hologram (on her real model), full body and face per interface; movement and gestures confirmed by measurement; no freezes from Cosmos occlusion; App Library coexistence. PARTIAL: iPhone not verified. |
 
 The closeout measured the following on the final code:
 - **Typecheck:** `tsc -b --force` clean.

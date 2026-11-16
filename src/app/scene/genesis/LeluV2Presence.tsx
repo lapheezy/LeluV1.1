@@ -26,6 +26,9 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 import AvatarStore from "../../../core/avatar/AvatarProfile";
+import AvatarCommandBus, { type AvatarPlace } from "../../../core/avatar/AvatarCommandBus";
+import { useLeluCharacter } from "./avatar/useLeluCharacter";
+import { isUniverseOpen, setUniverseOpen } from "./chat/universe/universeOpen";
 import ForgeClient, {
   FORGE_CHANGED_EVENT,
   type AvatarWorldState,
@@ -83,6 +86,8 @@ function writeLocalPlace(position: THREE.Vector3, facing: number): void {
 export default function LeluV2Presence({ position: positionProp }: { position?: THREE.Vector3 }) {
   const { camera, gl } = useThree();
   const activity = useLeluActivity();
+  // Her chosen form follows her into the world (auto: as she is).
+  const character = useLeluCharacter();
   const accent = ACTIVITY_ACCENT[activity];
   const [modelState, setModelState] = useState<LeluModelState>(() => LeluModelSource.get());
   const [world, setWorld] = useState<WorldState | null>(null);
@@ -102,6 +107,16 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
   const lastTargetPlan = useRef(0);
   const lastTelemetry = useRef(0);
   const walkingRef = useRef(false);
+  /*
+   * Asked to go somewhere ("walk to the studio", "come closer", "step away",
+   * "go back to your spot"): her goal outranks her own planning until she
+   * has arrived and a while after; the command is confirmed only when her
+   * measured position reaches it. Asked to face something: the same for
+   * her heading.
+   */
+  const goal = useRef<{ id: string; label: string; point: [number, number]; from: [number, number]; until: number; confirmed: boolean; stillSince: number } | null>(null);
+  const faceGoal = useRef<{ id: string; label: string; point: [number, number]; until: number; confirmed: boolean } | null>(null);
+  const placeHome = useRef<[number, number] | null>(null);
   const ray = useMemo(() => new THREE.Raycaster(), []);
   const hit = useMemo(() => new THREE.Vector3(), []);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -(position.current.y)), []);
@@ -126,6 +141,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
           setPlace(avatar);
           const local = readLocalPlace();
           const chosen = avatar?.position ?? local?.position;
+          if (chosen) placeHome.current = [chosen[0], chosen[2]];
           if (chosen && !positionProp) {
             position.current.set(chosen[0], chosen[1], chosen[2]);
             plane.constant = -chosen[1];
@@ -220,6 +236,90 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     return d < bounds.radius + 2.5 ? [camera.position.x, camera.position.z] : null;
   }
 
+  /** A named place in her room, as a free point she can stand on. */
+  function placePoint(where: AvatarPlace): [number, number] {
+    const here: [number, number] = [position.current.x, position.current.z];
+    const viewer = viewerPoint() ?? [camera.position.x, camera.position.z];
+    const toward = (from: [number, number], to: [number, number], distance: number): [number, number] => {
+      const dx = to[0] - from[0];
+      const dz = to[1] - from[1];
+      const d = Math.hypot(dx, dz) || 1;
+      return [from[0] + (dx / d) * distance, from[1] + (dz / d) * distance];
+    };
+    const forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+    const right = new THREE.Vector3(-forward.z, 0, forward.x);
+    const ahead: [number, number] = [camera.position.x + forward.x * 3.2, camera.position.z + forward.z * 3.2];
+    let point: [number, number];
+    switch (where) {
+      case "viewer":
+        point = toward(viewer, here, 1.5);
+        break;
+      case "away":
+        point = toward(here, viewer, -2.4);
+        break;
+      case "home":
+        point = placeHome.current ?? [V2_LELU_POS.x, V2_LELU_POS.z];
+        break;
+      case "left":
+        point = [ahead[0] - right.x * 2, ahead[1] - right.z * 2];
+        break;
+      case "right":
+        point = [ahead[0] + right.x * 2, ahead[1] + right.z * 2];
+        break;
+      case "center":
+        point = ahead;
+        break;
+      default: {
+        const o = SCENE_OBSTACLES.find((x) => x.id === where);
+        point = o ? toward([o.x, o.z], viewer, o.radius + 0.6) : here;
+      }
+    }
+    const free = isOccupied(point, obstacles(), CLEARANCE, viewerPoint())
+      ? nearestFree(point, bounds, obstacles(), CLEARANCE, viewerPoint())
+      : clampToRoom(point, bounds, CLEARANCE);
+    return [free[0], free[2]];
+  }
+
+  // Movement and facing commands from chat, her tools or the executive.
+  useEffect(
+    () =>
+      AvatarCommandBus.getInstance().subscribe((command) => {
+        const kind = command.kind;
+        /*
+         * Asked to act while the Chat Universe covers her world: the world is
+         * not painted (and her walking, which runs in its frames, cannot
+         * happen) under that opaque surface. She steps out of the chat to do
+         * it where you can watch; her reply is waiting in the chat.
+         */
+        if (isUniverseOpen()) setUniverseOpen(false);
+        // A newer command supersedes an older one here as it does on the bus:
+        // asked to face you mid-walk, she stops walking and turns.
+        goal.current = null;
+        faceGoal.current = null;
+        if (kind === "move" || kind === "leave" || kind === "return") {
+          const place: AvatarPlace = command.target?.place ?? (kind === "leave" ? "away" : kind === "return" ? "home" : "viewer");
+          goal.current = {
+            id: command.id,
+            label: command.label,
+            point: placePoint(place),
+            from: [position.current.x, position.current.z],
+            until: performance.now() + 60_000,
+            confirmed: false,
+            stillSince: 0,
+          };
+          lastTargetPlan.current = 0;
+        } else if (kind === "look" && command.target) {
+          faceGoal.current = { id: command.id, label: command.label, point: placePoint(command.target.place), until: performance.now() + 20_000, confirmed: false };
+        }
+      }),
+    // placePoint reads refs, the camera and the room bounds.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bounds, camera],
+  );
+
   function applyPosition(x: number, z: number): void {
     const free = isOccupied([x, z], obstacles(), CLEARANCE, viewerPoint())
       ? nearestFree([x, z], bounds, obstacles(), CLEARANCE, viewerPoint())
@@ -313,7 +413,14 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
     const root = group.current;
     if (!root || !modelState || modelState.status !== "ready") return;
     const now = performance.now();
-    const dt = Math.min(0.05, delta);
+    /*
+     * 0.25 s, not 0.05: the cap keeps a long stall from teleporting her, but at
+     * 0.05 a slow device (measured: this world at ~0.4–2 fps on a software
+     * renderer) made her walk in slow motion — a few centimetres per frame, a
+     * 3 m walk taking minutes. At 60 fps nothing changes; each step is still
+     * collision-checked by stepTowards.
+     */
+    const dt = Math.min(0.25, delta);
     scanWindows(now);
 
     const isDragging = Boolean(drag.current);
@@ -322,7 +429,14 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
       const focus: [number, number] | null = ["WORKING", "BUILDING", "RENDERING", "SEARCHING", "BROWSING", "EXPLORING", "PRESENTING"].includes(activity)
         ? [0, 0.4]
         : null;
-      const next = planSpatialTarget({
+      const asked = goal.current && goal.current.until > now ? goal.current : null;
+      // Asked to face something: she stands where she is and turns.
+      const facingNow = !asked && faceGoal.current && faceGoal.current.until > now;
+      const next = asked
+        ? ([asked.point[0], bounds.floorY, asked.point[1]] as [number, number, number])
+        : facingNow
+          ? ([position.current.x, bounds.floorY, position.current.z] as [number, number, number])
+          : planSpatialTarget({
         activity,
         current: [position.current.x, position.current.z],
         preferred: manual.current,
@@ -367,22 +481,58 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         walkingRef.current = step.moving;
       } else {
         walkingRef.current = false;
-        // Idle: turn to the person, gently, from wherever she is.
+        // Idle: turn to the person, gently, from wherever she is — or to
+        // what she was asked to face.
         if (!drag.current) {
-          const dx = camera.position.x - position.current.x;
-          const dz = camera.position.z - position.current.z;
+          const facing = faceGoal.current && faceGoal.current.until > now ? faceGoal.current : null;
+          const dx = (facing ? facing.point[0] : camera.position.x) - position.current.x;
+          const dz = (facing ? facing.point[1] : camera.position.z) - position.current.z;
           if (Math.hypot(dx, dz) > 0.2) {
             const wantedYaw = Math.atan2(dx, dz);
             let diff = wantedYaw - yaw.current;
             while (diff > Math.PI) diff -= Math.PI * 2;
             while (diff < -Math.PI) diff += Math.PI * 2;
-            yaw.current += diff * Math.min(1, dt * 1.6);
+            yaw.current += diff * Math.min(1, dt * (facing ? 3.2 : 1.6));
+            if (facing && !facing.confirmed && Math.abs(diff) < 0.06) {
+              facing.confirmed = true;
+              AvatarCommandBus.getInstance().confirm(facing.id, `turned to ${facing.label.replace(/^face /, "")} (heading ${(yaw.current * 57.3).toFixed(0)}°, within ${(Math.abs(diff) * 57.3).toFixed(1)}°)`);
+            }
+          } else if (facing && !facing.confirmed) {
+            facing.confirmed = true;
+            AvatarCommandBus.getInstance().confirm(facing.id, `already facing ${facing.label.replace(/^face /, "")}`);
           }
         }
       }
     }
 
     if (walkingRef.current !== walking) setWalking(walkingRef.current);
+
+    // Arrived where she was asked to go: confirmed by her measured position.
+    // Furniture, windows and the person's space can stop her short of the
+    // exact point: once she has stood still for a moment she reports how
+    // close she got, or — if the way is blocked — that she could not.
+    const asked = goal.current;
+    if (asked && !asked.confirmed && !isDragging) {
+      const remaining = Math.hypot(asked.point[0] - position.current.x, asked.point[1] - position.current.z);
+      const walked = Math.hypot(position.current.x - asked.from[0], position.current.z - asked.from[1]);
+      const where = `now at x ${position.current.x.toFixed(2)}, z ${position.current.z.toFixed(2)}`;
+      if (remaining <= 0.1) {
+        asked.confirmed = true;
+        AvatarCommandBus.getInstance().confirm(asked.id, `walked ${walked.toFixed(2)} m (${asked.label}); ${where}`);
+      } else if (walkingRef.current) {
+        asked.stillSince = 0;
+      } else {
+        asked.stillSince ||= now;
+        if (now - asked.stillSince > 1200) {
+          asked.confirmed = true;
+          if (remaining <= 0.8) {
+            AvatarCommandBus.getInstance().confirm(asked.id, `walked ${walked.toFixed(2)} m (${asked.label}), stopping ${(remaining * 100).toFixed(0)} cm short where the room left space; ${where}`);
+          } else {
+            AvatarCommandBus.getInstance().decline(asked.id, `the way is blocked (furniture, a window or your space): I got ${walked.toFixed(2)} m along and stopped ${remaining.toFixed(2)} m short`);
+          }
+        }
+      }
+    }
     root.position.set(position.current.x, bounds.floorY, position.current.z);
     root.rotation.y = yaw.current;
 
@@ -404,6 +554,8 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
         activity,
         walking: walkingRef.current,
         dragging: isDragging,
+        goal: goal.current && goal.current.until > now ? { label: goal.current.label, point: goal.current.point.map((n) => Number(n.toFixed(2))), arrived: goal.current.confirmed } : null,
+        facingGoal: faceGoal.current && faceGoal.current.until > now ? { label: faceGoal.current.label, done: faceGoal.current.confirmed } : null,
         obstacles: obstacles().length,
         windowObstacles: windowObstacles.current.length,
         windowObstacleDetail: windowObstacles.current,
@@ -461,6 +613,7 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
           height={BODY_HEIGHT}
           life={false}
           walking={walking}
+          holo={character.form === "hologram" ? 1 : 0}
         />
       ) : (
         <Html position={[0, 1.25, 0]} center zIndexRange={[4, 0]} style={{ pointerEvents: "none" }}>

@@ -10,6 +10,7 @@
  *
  *   framing "full" — all of her, hair to feet
  *   framing "face" — head and shoulders
+ *   form "embodied" | "hologram" — as she is, or projected (holoMaterial)
  *
  * Exposes what she is doing on the canvas element (data-ready,
  * data-frames, data-activity, data-face-controls) so tests and
@@ -22,7 +23,7 @@ import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { REDUCED_FRAME_MS, useSceneRenderMode } from "../SceneRenderBudget";
 import RenderContextGuard from "../render/RenderContextGuard";
 import * as THREE from "three";
-import type { LeluFraming } from "../../../../core/avatar/LeluRig";
+import type { LeluForm, LeluFraming } from "../../../../core/avatar/LeluRig";
 import type { LeluModel } from "../../../../core/avatar/LeluModelSource";
 import LeluBody, { type LeluBodyInfo } from "./LeluBody";
 import type { LeluActivity } from "./leluActivity";
@@ -74,18 +75,21 @@ function Framer({ framing, info }: { framing: LeluFraming; info: LeluBodyInfo | 
  */
 function FrameCap({ fps, paused = false }: { fps: number; paused?: boolean }) {
   const { invalidate } = useThree();
-  // The same budget the Cosmos scene follows: when the scene is paused
-  // (a full-screen surface covers it) the avatar stops drawing too, and
-  // a reduced budget lowers its rate. A skinned, morphing character
-  // re-uploads its bone/morph textures every frame — cheap on a GPU, and
-  // on a software renderer enough to freeze the page during a chat turn.
+  /*
+   * The scene budget pauses the COSMOS when a surface covers it (the Chat
+   * Universe in workspace mode, a phone sheet). She is not behind those
+   * surfaces — she is drawn above them, beside the work — so pausing her
+   * with the Cosmos froze her mid-pose on every such screen while she was
+   * still in view (M15.3: measured 0 frames/s on Chat, Browser, Studio and
+   * Code on a phone). A covered Cosmos now lowers her rate to the reduced
+   * budget (~12 fps) instead of stopping her; typing does the same. She
+   * stops only when her own presence pauses her (not in view: a world
+   * where she stands in the scene) or the page is hidden.
+   */
   const mode = useSceneRenderMode();
   useEffect(() => {
-    // Paused by the scene budget, or by her presence (hidden in a world
-    // view where she stands in the scene): she keeps her canvas and her
-    // state, and simply draws nothing until she is shown again.
-    if (mode === "paused" || paused) return;
-    const interval = mode === "reduced" ? Math.max(1000 / fps, REDUCED_FRAME_MS) : 1000 / fps;
+    if (paused) return;
+    const interval = mode === "full" ? 1000 / fps : Math.max(1000 / fps, REDUCED_FRAME_MS);
     const timer = setInterval(() => {
       if (!document.hidden) invalidate();
     }, interval);
@@ -99,23 +103,36 @@ function FrameCap({ fps, paused = false }: { fps: number; paused?: boolean }) {
  * an image, in the same task (no preserveDrawingBuffer needed), so her
  * presence can keep showing her while her canvas draws nothing.
  */
-function StillCapture({ paused, onStill }: { paused: boolean; onStill?: (dataUrl: string) => void }) {
-  const { gl, scene, camera } = useThree();
+function StillCapture({ paused, onStill, look }: { paused: boolean; onStill?: (dataUrl: string) => void; look: string }) {
+  const { gl, advance } = useThree();
   useEffect(() => {
     if (!paused || !onStill) return;
-    try {
-      gl.render(scene, camera);
-      onStill(gl.domElement.toDataURL("image/png"));
-    } catch {
-      /* no still: she keeps her place, just not her picture */
-    }
-  }, [paused, onStill, gl, scene, camera]);
+    /*
+     * One REAL frame, not a bare gl.render: advance() runs the frame callbacks
+     * (the framer's camera for her current framing, her body's pose and form)
+     * and renders, then the canvas is read in the same task. Taken a frame
+     * later, after every effect of this render (her form, her framing) has
+     * applied, and again whenever her presentation changes while she rests.
+     */
+    const frame = requestAnimationFrame(() => {
+      try {
+        const now = performance.now();
+        advance(now);
+        advance(now + 16);
+        onStill(gl.domElement.toDataURL("image/png"));
+      } catch {
+        /* no still: she keeps her place, just not her picture */
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [paused, onStill, gl, advance, look]);
   return null;
 }
 
 export default function LeluCharacter3D({
   model,
   framing,
+  form = "embodied",
   activity,
   style,
   testId,
@@ -132,6 +149,8 @@ export default function LeluCharacter3D({
   /** Receives one captured frame when she pauses. */
   onStill?: (dataUrl: string) => void;
   framing: LeluFraming;
+  /** Her form: as she is, or projected. The same model either way. */
+  form?: LeluForm;
   activity: LeluActivity;
   style?: CSSProperties;
   testId: string;
@@ -158,6 +177,7 @@ export default function LeluCharacter3D({
       data-renderer="3d"
       data-model={model.key}
       data-framing={framing}
+      data-form={form}
       data-activity={activity}
       data-ready={info ? "true" : "false"}
       data-face-controls={info ? info.capabilities.face.join(",") : ""}
@@ -182,9 +202,9 @@ export default function LeluCharacter3D({
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
         <RenderContextGuard id="lelu-avatar" kind="avatar" />
         <FrameCap fps={fps} paused={paused} />
-        <StillCapture paused={paused} onStill={onStill} />
+        <StillCapture paused={paused} onStill={onStill} look={`${framing}:${form}`} />
         <Framer framing={framing} info={info} />
-        <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} life={framing === "full"} />
+        <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} life={framing === "full"} faceOnly={framing === "face"} holo={form === "hologram" ? 1 : 0} listening={!paused} holoInstant={paused} />
       </Canvas>
     </div>
   );
