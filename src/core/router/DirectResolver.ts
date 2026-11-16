@@ -22,6 +22,8 @@ import type { AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import { compileDirect, DIRECT_COMMANDS, type DirectPlan } from "../creative/kit/DirectCompiler";
+import CreativeObjects from "../couture/objects";
+import { resolveCreativeReferent } from "../couture/continuity";
 
 /**
  * How much of a step's output belongs in the reply.
@@ -65,9 +67,36 @@ function readingOf(content: string, max = 420): string {
 }
 
 export default class DirectResolver {
-  /** The plan for this turn, if it has one. Pure. */
+  /**
+   * The plan for this turn, if it has one.
+   *
+   * The referent is resolved HERE, per turn, from this conversation: "rotate
+   * it" needs to know which chair "it" is, and the previous turn's tool result
+   * is in the conversation already. Resolution is read-only and validated
+   * against the canonical store (see `continuity.ts`), so a second
+   * conversation cannot inherit this one's object, and a deleted object is
+   * dropped rather than acted on.
+   */
   public plan(context: RouterContext): DirectPlan | null {
-    return compileDirect(context.request.prompt ?? "");
+    const prompt = context.request.prompt ?? "";
+    let referentId: string | null = null;
+    try {
+      const store = CreativeObjects.getInstance();
+      const referent = resolveCreativeReferent({
+        conversationId: context.request.conversationId,
+        messages: (context.request.messages ?? []).map((message) => ({
+          role: String(message.role ?? "user"),
+          content: typeof message.content === "string" ? message.content : JSON.stringify(message.content ?? ""),
+        })),
+        store,
+      });
+      referentId = referent?.object.id ?? null;
+    } catch {
+      // No store in this context (a headless test, say): compile with no
+      // referent rather than inventing one.
+      referentId = null;
+    }
+    return compileDirect(prompt, { referentId });
   }
 
   /** Is any model provider able to take the turn right now? */
@@ -80,30 +109,58 @@ export default class DirectResolver {
     }
   }
 
-  public async execute(context: RouterContext, plan: DirectPlan, reason: "command" | "construction" | "no-provider"): Promise<BrainResult> {
+  public async execute(context: RouterContext, plan: DirectPlan, reason: "command" | "construction" | "creative" | "no-provider"): Promise<BrainResult> {
     const { dispatchToolCall, toolNameForModel } = await import("../tools/ToolDispatcher");
     const taskId = String(context.request.timestamp ?? Date.now());
     const lines: string[] = [];
-    const ran: Array<{ tool: string; ok: boolean }> = [];
+    const ran: Array<{ tool: string; ok: boolean; skipped?: boolean; reason?: string }> = [];
+    /*
+     * A later step that works on the same object depends on the earlier one
+     * having landed: scaling a chair that would not rotate silently produces a
+     * half-finished composition that reads as done. Those steps are skipped and
+     * named as skipped. Steps on other objects are independent and still run.
+     */
+    const broken = new Set<string>();
     for (const [i, step] of plan.steps.entries()) {
+      const target = typeof step.args?.object === "string" ? step.args.object : "";
+      if (target && broken.has(target)) {
+        ran.push({ tool: step.tool, ok: false, skipped: true, reason: "an earlier step on this object failed" });
+        lines.push(`↷ ${step.label} (${step.tool}) — not attempted: an earlier step on ${target} failed`);
+        continue;
+      }
       const result = await dispatchToolCall(
         { id: `direct-${taskId}-${i}`, name: toolNameForModel(step.tool), arguments: step.args },
         taskId,
         context,
         { path: "direct" },
       );
+      if (!result.ok && target) broken.add(target);
       ran.push({ tool: step.tool, ok: result.ok });
       const detail = step.tool === "browser.read" ? pageLine(step.args, result) : readingOf(result.content);
       lines.push(`${result.ok ? "✓" : "✗"} ${step.label} (${step.tool})\n${detail.split("\n").map((l) => `  ${l}`).join("\n")}`);
     }
-    const okCount = ran.filter((r) => r.ok).length;
+    const attempted = ran.filter((r) => !r.skipped);
+    const okCount = attempted.filter((r) => r.ok).length;
+    const skippedCount = ran.length - attempted.length;
     const preface = reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
+        : reason === "creative"
+          ? `Done on the creation itself, not described: ${plan.summary}.`
         : `Done directly with my own tools (no model involved): ${plan.summary}.`;
     const response: AIResponse = {
-      text: [preface, "", ...lines, "", okCount === ran.length ? "Everything above ran and was verified." : `${okCount} of ${ran.length} steps succeeded; the failures are shown with their reasons.`].join("\n"),
+      text: [
+        preface,
+        "",
+        ...lines,
+        "",
+        skippedCount > 0
+          ? `${okCount} of ${attempted.length} attempted steps succeeded; ${skippedCount} not attempted because an earlier step on the same object failed.`
+          : okCount === ran.length
+            ? "Everything above ran and was verified."
+            : `${okCount} of ${ran.length} steps succeeded; the failures are shown with their reasons.`,
+      ].join("\n"),
       provider: "lelu-direct",
       model: "tools",
       processingTime: Date.now() - context.started,

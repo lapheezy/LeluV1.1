@@ -127,9 +127,17 @@ function directionDelta(clause: string): { delta: [number, number, number]; labe
 const CREATION_NOUNS =
   /\b(chair|stool|table|pendant|necklace|ring|brooch|earring|gown|dress|garment|sleeve|bodice|skirt|corset|stone|gem|jewel(?:ry|le)?|product|creation|object|piece|mannequin|vase|lamp|cabinet|shelf|outfit)\b/i;
 
+const CREATIVE_VERBS =
+  /\b(select|pick|choose|highlight|focus|frame|zoom|look at|find|locate|where is|inspect|describe|rotate|turn|move|shift|push|nudge|slide|scale|resize|enlarge|shrink|duplicate|copy|put|place|position)\b/i;
+
 function aboutCreations(clause: string, referent: string | null): boolean {
   if (CREATION_NOUNS.test(clause)) return true;
-  return Boolean(referent) && /\b(it|that one|this one|that|this)\b/i.test(clause);
+  const implicit = /\b(it|that one|this one|that|this)\b/i.test(clause);
+  if (!implicit) return false;
+  // A pronoun with a real referent is about that creation. A pronoun WITHOUT
+  // one is still compiled — down to a call the tool refuses with the object
+  // list — because silence would look like success.
+  return Boolean(referent) || CREATIVE_VERBS.test(clause);
 }
 
 function compileClause(raw: string, referent: string | null): Clause | { error: string } | null {
@@ -139,9 +147,16 @@ function compileClause(raw: string, referent: string | null): Clause | { error: 
 
   const subjectOf = (text: string): string => {
     const body = splitComponent(text).object;
-    if (/^(it|that one|this one)$/i.test(body) || !body) {
+    if (/^(it|that one|this one|that|this)$/i.test(body) || !body) {
       if (referent) return referent;
-      return "";
+      /*
+       * No referent. Emitting "it" is deliberate: the tool then refuses with
+       * the object list ("no object matches \"it\". Objects: …"), so the person
+       * is told what LÉLU could not resolve. Returning nothing here would let
+       * the turn fall through to a reply that silently does nothing — which
+       * reads as "done" and is the worse failure.
+       */
+      return "it";
     }
     return body;
   };
@@ -183,7 +198,7 @@ function compileClause(raw: string, referent: string | null): Clause | { error: 
     };
   }
 
-  if (/\b(?:rotate|turn)\b/i.test(clause)) {
+  if (/\b(?:rotate|turn)\b/i.test(clause) && /\b(quarter|half) turn\b/i.test(clause)) {
     const object = subjectOf(clause.replace(/^.*?\b(?:rotate|turn)\b\s*/i, "").replace(/\b(a (?:quarter|half) turn|around|it)\b/gi, ""));
     const degrees = /\bquarter turn\b/i.test(clause) ? 90 : /\bhalf turn\b/i.test(clause) ? 180 : 90;
     if (object) {
@@ -262,6 +277,9 @@ function compileClause(raw: string, referent: string | null): Clause | { error: 
  * other resolvers keep their turn.
  */
 export function compileCreativeObjectPlan(prompt: string, context: IntentContext = {}): DirectPlan | null {
+  // `selectedId` is the referent resolved for THIS turn — from the
+  // conversation, or from the live selection — by `continuity.ts`. A null here
+  // means "nothing in context", never "guess the newest object".
   const text = prompt.trim().replace(/^\/creative\s+/i, "");
   if (!text) return null;
 

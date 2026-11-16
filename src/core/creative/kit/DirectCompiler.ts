@@ -141,7 +141,7 @@ function filmScenes(subject: string, palette: string): Array<Record<string, unkn
 const CONNECTOR_IDS = () => connectorProfiles().map((p) => p.id);
 
 /** Compile a request. explicit: true for slash commands (run them whatever the providers' state). */
-export function compileDirect(prompt: string): DirectPlan | null {
+export function compileDirect(prompt: string, options: { referentId?: string | null } = {}): DirectPlan | null {
   const t = prompt.trim();
   const slash = /^\/(\w+)\b\s*([\s\S]*)$/.exec(t);
   if (slash) return compileCommand(slash[1].toLowerCase(), slash[2].trim());
@@ -153,7 +153,11 @@ export function compileDirect(prompt: string): DirectPlan | null {
    * Checked before the build/create rules: "make the pendant twice as large"
    * contains "make" and must transform the object, not build a new one.
    */
-  const creativeObjects = compileCreativeObjectPlan(t, { selectedId: getCreativeSelection()?.objectId ?? null });
+  const creativeObjects = compileCreativeObjectPlan(t, {
+    // The turn's referent (from the conversation) wins; the live selection is
+    // only a fallback for a turn that has no conversational context.
+    selectedId: options.referentId ?? getCreativeSelection()?.objectId ?? null,
+  });
   if (creativeObjects) return creativeObjects;
   const nl = (cmd: string, rest: string): DirectPlan | null => { const plan = compileCommand(cmd, rest); return plan ? { ...plan, explicit: false } : null; };
   const verb = /\b(make|create|build|generate|construct|render|draw|design|produce|compose|assemble|give me|show me|i want|i'd like)\b/i;
