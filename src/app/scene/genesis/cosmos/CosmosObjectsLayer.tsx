@@ -15,6 +15,7 @@
  * ==========================================================
  */
 
+import { NeuralView } from "../neural/neuralView";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
@@ -156,6 +157,7 @@ function ObjectControls({ object }: { object: CosmosObject }) {
         {button("Take out", () => store.extract(object.id))}
         {button("Duplicate", () => store.duplicate(object.id))}
         {button("Remove", () => store.remove(object.id))}
+        {button("Neural", () => NeuralView.inspect(`cosmos.object:${object.id}`))}
         {button("Done", () => store.select(null))}
       </div>
     </div>

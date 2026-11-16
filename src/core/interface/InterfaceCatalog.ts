@@ -21,20 +21,22 @@
  * ==========================================================
  */
 
-export type InterfaceFamily = "cosmos" | "legacy";
+export type InterfaceFamily = "cosmos" | "neural" | "legacy";
 
 /** How the interface is reached on its own. */
 export type StandaloneEntry =
   /** A scene inside the Genesis shell (same page, same runtime). */
   | { kind: "scene"; scene: "cosmos" | "room" | "system" }
   /** A route of the app (same SPA, same runtime singletons). */
-  | { kind: "route"; path: string };
+  | { kind: "route"; path: string }
+  /** A full-screen view over the shell (same page, same runtime). */
+  | { kind: "overlay"; view: "neural-map" };
 
 export interface InterfaceEntry {
   id: InterfaceId;
   name: string;
   /** The heading it is listed under in the Infinite Library. */
-  category: "Cosmos" | "Legacy UIs";
+  category: "Cosmos" | "Neural Map" | "Legacy UIs";
   family: InterfaceFamily;
   description: string;
   /** Lucide icon name, resolved in the view. */
@@ -54,7 +56,7 @@ export interface InterfaceEntry {
   keywords: string[];
 }
 
-export type InterfaceId = "cosmos" | "lelu-room" | "lelu-system" | "og-inner-sky" | "og-core";
+export type InterfaceId = "cosmos" | "lelu-room" | "neural-map" | "lelu-system" | "og-inner-sky" | "og-core";
 
 const SHARED = ["GenesisCore state", "conversations", "AIService / providers", "agents", "memory", "LÉLU's avatar"];
 
@@ -64,7 +66,7 @@ export const INTERFACES: readonly InterfaceEntry[] = [
     name: "Cosmos",
     category: "Cosmos",
     family: "cosmos",
-    description: "Her living universe — the Neural Map, galaxies, rooms and objects.",
+    description: "Her living universe — galaxies, rooms and objects, each one part of her Neural Map.",
     icon: "Orbit",
     identity: { accent: "#7dd3fc", background: "#020617" },
     webgl: true,
@@ -72,7 +74,7 @@ export const INTERFACES: readonly InterfaceEntry[] = [
     href: "?interface=cosmos",
     source: "src/app/scene/genesis/GenesisScene.tsx (GenesisV1Workspace)",
     shares: SHARED,
-    keywords: ["genesis v1", "universe", "neural map", "galaxies", "world", "space"],
+    keywords: ["genesis v1", "universe", "galaxies", "world", "space", "cosmos"],
   },
   {
     id: "lelu-room",
@@ -88,6 +90,21 @@ export const INTERFACES: readonly InterfaceEntry[] = [
     source: "src/app/scene/genesis/GenesisLab.tsx (Genesis V2)",
     shares: SHARED,
     keywords: ["genesis v2", "her room", "her world", "lab", "core evolution", "heartbeat"],
+  },
+  {
+    id: "neural-map",
+    name: "Neural Map",
+    category: "Neural Map",
+    family: "neural",
+    description: "LÉLU's Neural Map on its own: every Cosmos object, room, record, capability and interface, and how they connect.",
+    icon: "Workflow",
+    identity: { accent: "#a78bfa", background: "#060818" },
+    webgl: false,
+    standalone: { kind: "overlay", view: "neural-map" },
+    href: "?interface=neural-map",
+    source: "src/app/scene/genesis/neural/NeuralMapView.tsx over src/core/neural/NeuralMap.ts",
+    shares: SHARED,
+    keywords: ["neural map", "graph", "relationships", "structure", "connections", "map"],
   },
   {
     id: "lelu-system",
@@ -136,7 +153,7 @@ export const INTERFACES: readonly InterfaceEntry[] = [
   },
 ];
 
-export const INTERFACE_CATEGORIES = ["Cosmos", "Legacy UIs"] as const;
+export const INTERFACE_CATEGORIES = ["Cosmos", "Neural Map", "Legacy UIs"] as const;
 
 export function interfaceById(id: string): InterfaceEntry | undefined {
   return INTERFACES.find((entry) => entry.id === id);
@@ -171,10 +188,11 @@ export function resolveInterface(phrase: string): InterfaceEntry | null {
   if (exact) return exact;
   const byName = INTERFACES.find((entry) => entry.name.toLowerCase() === p);
   if (byName) return byName;
+  if (/neural|graph|relationship/.test(p)) return interfaceById("neural-map")!;
   if (/\bv2\b|genesis 2|room|her world|lab\b/.test(p)) return interfaceById("lelu-room")!;
   if (/system/.test(p)) return interfaceById("lelu-system")!;
   if (/inner sky|original|\bog\b|classic|old lelu|old lélu/.test(p)) return /core/.test(p) ? interfaceById("og-core")! : interfaceById("og-inner-sky")!;
-  if (/cosmos|v1\b|genesis 1|universe|neural map/.test(p)) return interfaceById("cosmos")!;
+  if (/cosmos|v1\b|genesis 1|universe/.test(p)) return interfaceById("cosmos")!;
   const hits = searchInterfaces(p);
   return hits.length === 1 ? hits[0] : null;
 }

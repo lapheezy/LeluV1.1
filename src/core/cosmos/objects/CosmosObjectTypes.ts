@@ -42,6 +42,13 @@ export interface ObjectProvenance {
   at: number;
   action: string;
   detail: string;
+  /**
+   * The other object this step involved (M17.2): the original a copy was
+   * duplicated from, the assembly it was integrated into or extracted out
+   * of. Structured so the Neural Map reads relationships from data, never
+   * from the wording of `detail`. Absent on entries saved before M17.2.
+   */
+  ref?: string;
 }
 
 export interface CosmosObject {

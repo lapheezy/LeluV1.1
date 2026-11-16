@@ -21,6 +21,7 @@ import InterfaceCompositionStore from "../../../../core/interface/InterfaceCompo
 import { interfaceById, type InterfaceId } from "../../../../core/interface/InterfaceCatalog";
 import { goHome } from "../home/homeActions";
 import HomeStore from "../home/homeStore";
+import { NeuralView } from "../neural/neuralView";
 
 type Genesis = Pick<GenesisContextValue, "state" | "openPanel" | "setModulePresentation" | "moveModule" | "resizeModule">;
 
@@ -31,10 +32,15 @@ export function toCosmos(genesis: Genesis): void {
   if (genesis.state.activeScene === "genesisv2") genesis.openPanel("none" as GenesisPanel);
 }
 
-export function openInterface(genesis: Genesis, id: InterfaceId, navigate: (to: string) => void): { ok: boolean; detail: string } {
+export function openInterface(genesis: Genesis, id: InterfaceId, navigate: (to: string) => void, opts: { entity?: string } = {}): { ok: boolean; detail: string } {
   const entry = interfaceById(id);
   if (!entry) return { ok: false, detail: `No interface "${id}".` };
   InterfaceCompositionStore.close();
+  if (entry.standalone.kind === "overlay") {
+    // Over whatever is on screen; closing it returns there, selection intact.
+    NeuralView.openStandalone(opts.entity ?? null);
+    return { ok: true, detail: `Opened ${entry.name}${opts.entity ? ` on ${opts.entity}` : ""}.` };
+  }
   if (entry.standalone.kind === "route") {
     navigate(entry.standalone.path);
     return { ok: true, detail: `Opened ${entry.name} on its own (${entry.standalone.path}).` };

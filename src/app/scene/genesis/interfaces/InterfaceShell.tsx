@@ -22,8 +22,12 @@ import { attachInterfaceLauncher, launchFromQuery, type LaunchRequest } from "..
 import { closeComposition, openComposition, openInterface } from "./interfaceActions";
 import { useCompositionOpen } from "./useInterfaceCompositions";
 import HomeStore from "../home/homeStore";
+import { useNeuralView } from "../neural/useNeuralViewLite";
 
 const InterfaceJourney = lazy(() => import("./InterfaceJourney"));
+/* M17.2: the embedded inspector and the standalone Neural Map, fetched only
+   when one is first opened. */
+const NeuralHost = lazy(() => import("../neural/NeuralHost"));
 
 export default function InterfaceShell() {
   const genesis = useGenesis();
@@ -37,7 +41,7 @@ export default function InterfaceShell() {
   useEffect(() => {
     const run = (request: LaunchRequest) => {
       const { genesis: g, navigate: nav } = ref.current;
-      if (request.kind === "interface") return openInterface(g, request.id, nav);
+      if (request.kind === "interface") return openInterface(g, request.id, nav, { entity: request.entity });
       if (request.kind === "composition") return openComposition(g, request.id, request.regionKey);
       return closeComposition();
     };
@@ -51,7 +55,7 @@ export default function InterfaceShell() {
     // Let the shell finish its first frame (sign-in gate, home) first.
     const t = window.setTimeout(() => {
       const { genesis: g, navigate: nav } = ref.current;
-      if (request.kind === "interface") openInterface(g, request.id, nav);
+      if (request.kind === "interface") openInterface(g, request.id, nav, { entity: request.entity });
       else if (request.kind === "composition") openComposition(g, request.id, request.regionKey);
     }, 300);
     return () => window.clearTimeout(t);
@@ -66,9 +70,20 @@ export default function InterfaceShell() {
     });
   }, [open]);
 
-  return open ? (
-    <Suspense fallback={null}>
-      <InterfaceJourney />
-    </Suspense>
-  ) : null;
+  const neural = useNeuralView();
+  const neuralWanted = neural.inspecting !== null || neural.standalone.open;
+  return (
+    <>
+      {open ? (
+        <Suspense fallback={null}>
+          <InterfaceJourney />
+        </Suspense>
+      ) : null}
+      {neuralWanted ? (
+        <Suspense fallback={null}>
+          <NeuralHost />
+        </Suspense>
+      ) : null}
+    </>
+  );
 }

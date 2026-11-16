@@ -46,6 +46,8 @@ import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
 import { registerCosmosObjectTools } from "./cosmos/objects/CosmosObjectTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
 import { registerInterfaceCompositionTools } from "./interface/InterfaceCompositionTools";
+import { registerNeuralMapTools } from "./neural/NeuralMapTools";
+import { connectNeuralMap } from "./neural/connectNeuralMap";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -228,6 +230,10 @@ export default class Bootstrap {
       // Interfaces (Mission 17): list, open and compose LÉLU's interfaces —
       // Cosmos, her Room, the System UI, the original LÉLU — as tools.
       registerInterfaceCompositionTools();
+      // The Neural Map (M17.2): one index over the Cosmos authorities, kept
+      // live by their own change notifications, readable as tools.
+      registerNeuralMapTools();
+      connectNeuralMap();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);

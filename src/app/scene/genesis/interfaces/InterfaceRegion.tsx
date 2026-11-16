@@ -28,6 +28,7 @@ import GenesisErrorBoundary from "../GenesisErrorBoundary";
 
 const GenesisLab = lazy(() => import("../GenesisLab"));
 const LivingSystemUI = lazy(() => import("../LivingSystemUI"));
+const NeuralMapView = lazy(() => import("../neural/NeuralMapView"));
 const OgEmbedded = lazy(() => import("../../../../og/OgRoutes").then((m) => ({ default: m.OgEmbedded })));
 
 export function RegionLoading({ name }: { name: string }) {
@@ -63,6 +64,7 @@ export default function InterfaceRegion({
     <GenesisErrorBoundary>
       <Suspense fallback={<RegionLoading name={entry.name} />}>
         {interfaceId === "lelu-room" ? <GenesisLab onClose={onLeave} /> : null}
+        {interfaceId === "neural-map" ? <NeuralMapView embedded /> : null}
         {interfaceId === "lelu-system" ? <LivingSystemUI embedded={{ onExit: onLeave, onOpenRoom: () => onGo("lelu-room") }} /> : null}
         {interfaceId === "og-inner-sky" ? <OgEmbedded entry="app" /> : null}
         {interfaceId === "og-core" ? <OgEmbedded entry="core" /> : null}

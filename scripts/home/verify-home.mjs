@@ -143,7 +143,7 @@ const errors = [];
 
   // New presentation from a composition: the old one is kept.
   await page.click("[data-home-customize]");
-  await page.selectOption('[data-home-editbar] select[aria-label="New presentation from a composition"]', "cosmos-orbit");
+  await page.selectOption('[data-home-editbar] select[aria-label^="New presentation from a composition"]', "cosmos-orbit");
   await page.waitForTimeout(500);
   const names = await page.$$eval('[data-home-editbar] select[aria-label="Switch presentation"] option', (o) => o.map((x) => x.textContent));
   check("desktop: a new presentation never overwrites the current one", names.length >= 2 && names.includes("My Home"), names.join(" | "));

@@ -27,8 +27,9 @@ import { attachInterfaceLauncher, launchFromQuery, type LaunchRequest } from "..
 
 const run = (id: string, args: Record<string, unknown>) => INTERFACE_EXECUTORS.find((e) => e.id === id)!.run(args, undefined);
 
-test("the catalog lists the five real interfaces, with Legacy UIs holding the System UI and the original LÉLU", () => {
-  assert.deepEqual(INTERFACES.map((i) => i.id), ["cosmos", "lelu-room", "lelu-system", "og-inner-sky", "og-core"]);
+test("the catalog lists the real interfaces, with Legacy UIs holding the System UI and the original LÉLU", () => {
+  assert.deepEqual(INTERFACES.map((i) => i.id), ["cosmos", "lelu-room", "neural-map", "lelu-system", "og-inner-sky", "og-core"]);
+  assert.equal(interfaceById("neural-map")!.category, "Neural Map");
   const legacy = INTERFACES.filter((i) => i.category === "Legacy UIs").map((i) => i.id);
   assert.deepEqual(legacy, ["lelu-system", "og-inner-sky", "og-core"]);
   assert.equal(interfaceById("lelu-room")!.name, "LÉLU's Room");
@@ -43,8 +44,9 @@ test("phrases resolve to one interface or are refused", () => {
   assert.equal(resolveInterface("the old system ui")!.id, "lelu-system");
   assert.equal(resolveInterface("original lélu")!.id, "og-inner-sky");
   assert.equal(resolveInterface("original core")!.id, "og-core");
-  assert.equal(resolveInterface("neural map")!.id, "cosmos");
+  assert.equal(resolveInterface("the cosmos")!.id, "cosmos");
   assert.equal(resolveInterface("a toaster"), null);
+  assert.equal(resolveInterface("the neural map")!.id, "neural-map");
   assert.ok(searchInterfaces("heartbeat").some((i) => i.id === "lelu-system"));
 });
 
@@ -180,6 +182,7 @@ test("standalone deep links", () => {
   assert.deepEqual(launchFromQuery("?interface=lelu-room"), { kind: "interface", id: "lelu-room" });
   assert.deepEqual(launchFromQuery("?composition=one-lelu&region=r1"), { kind: "composition", id: "one-lelu", regionKey: "r1" });
   assert.equal(launchFromQuery("?interface=evil"), null);
+  assert.deepEqual(launchFromQuery("?interface=neural-map&entity=cosmos.object:obj_1"), { kind: "interface", id: "neural-map", entity: "cosmos.object:obj_1" });
 });
 
 test("M17.1: redo restores what undo took back; a new edit clears redo", () => {

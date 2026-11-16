@@ -131,8 +131,18 @@ const watchNet = (page) => page.on("request", (r) => { try { const h = new URL(r
   // else would receive it). Every nav button must be the hit-test target.
   const navHits = await page.evaluate(() => [...document.querySelectorAll("nav.lsn .lsn-bar button")].map((b) => { const r = b.getBoundingClientRect(); return { label: b.getAttribute("aria-label"), ok: !!document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest("nav.lsn") }; }));
   check("O02 1440×900: every nav button is the pointer's hit target", navHits.every((h) => h.ok), navHits.map((h) => `${h.label}:${h.ok ? "ok" : "COVERED"}`).join(" "));
+  // Since 6bf290e the Spatial bar starts put away behind a tab on the left edge;
+  // the tab must be reachable, and the bar it opens must clear the nav.
+  const tab = page.locator("[data-spatial-nav-tab]");
+  const tabBox = await tab.boundingBox();
+  check("O02 1440×900: the Spatial tab is reachable", Boolean(tabBox) && (await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest("[data-spatial-nav-tab]"), [tabBox.x + tabBox.width / 2, tabBox.y + tabBox.height / 2])));
+  await tab.click();
+  await page.waitForTimeout(800);
   const railBtn = await page.locator("[data-spatial-nav] button").first().boundingBox();
-  check("O02 1440×900: the Spatial rail is still reachable", await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest("[data-spatial-nav]"), [railBtn.x + railBtn.width / 2, railBtn.y + railBtn.height / 2]));
+  const navStill = await page.evaluate(() => [...document.querySelectorAll("nav.lsn .lsn-bar button")].every((b) => { const r = b.getBoundingClientRect(); return !!document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest("nav.lsn"); }));
+  check("O02 1440×900: with the Spatial bar open, it is reachable AND every nav button still is", navStill && (await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest("[data-spatial-nav]"), [railBtn.x + railBtn.width / 2, railBtn.y + railBtn.height / 2])));
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(500);
   await page.locator('nav.lsn button[aria-label="Worlds"]').click({ timeout: 5000 });
   await page.waitForSelector("[data-lelu-worlds], [data-testid=lelu-worlds]");
   await page.waitForTimeout(2500); // let the sheet's fade finish before the picture
@@ -357,8 +367,8 @@ const watchNet = (page) => page.on("request", (r) => { try { const h = new URL(r
   const providersUp = await page.evaluate(async () => { try { const r = await fetch("/api/providers/status"); const type = r.headers.get("content-type") || ""; return /json/.test(type) ? `broker answered (${r.status})` : `no broker (got ${type.split(";")[0] || "nothing"} — vite's page fallback)`; } catch (e) { return `broker unreachable (${e.message})`; } });
 
   await say("/interfaces");
-  let reply = await waitReply(/Interfaces \(5\)/);
-  check("O04 /interfaces → interface.list ran through the dispatcher (activity record), 0 model calls; reply lists all five", /Interfaces \(5\)/.test(reply?.text ?? "") && /0 model calls/.test(reply?.text ?? "") && reply?.provider === "lelu-direct" && reply.tools.includes("interface.list:done"), `provider=${reply?.provider} tools=${reply?.tools}`);
+  let reply = await waitReply(/Interfaces \(6\)/);
+  check("O04 /interfaces → interface.list ran through the dispatcher (activity record), 0 model calls; reply lists all six", /Interfaces \(6\)/.test(reply?.text ?? "") && /0 model calls/.test(reply?.text ?? "") && reply?.provider === "lelu-direct" && reply.tools.includes("interface.list:done"), `provider=${reply?.provider} tools=${reply?.tools}`);
   const toolTrail = [...(reply?.tools ?? [])];
   await page.waitForTimeout(2500);
   await shot(page, "desktop-o04-chat-interfaces");

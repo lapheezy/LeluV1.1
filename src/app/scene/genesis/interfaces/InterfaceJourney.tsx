@@ -38,6 +38,7 @@ import { HomeIcon } from "../home/HomeModules";
 import { useInterfaceCompositions } from "./useInterfaceCompositions";
 import { closeComposition, openInterface } from "./interfaceActions";
 import InterfaceRegion from "./InterfaceRegion";
+import { NeuralView } from "../neural/neuralView";
 import "./interfaceJourney.css";
 
 function RegionPreview({ region }: { region: CompositionRegion }) {
@@ -413,6 +414,11 @@ export default function InterfaceJourney() {
                     >
                       <HomeIcon name="Pin" size={14} />
                     </button>
+                    {r.interfaceId === "neural-map" ? null : (
+                      <button type="button" data-neural-of={r.interfaceId} aria-label={`${regionName(r)} in the Neural Map`} title="In the Neural Map" onClick={() => NeuralView.inspect(`interface:${r.interfaceId}`)}>
+                        <HomeIcon name="Workflow" size={14} />
+                      </button>
+                    )}
                     <button type="button" data-open-alone={r.interfaceId} aria-label={`Open ${regionName(r)} on its own`} title="Open on its own" onClick={() => openInterface(genesis, r.interfaceId, navigate)}>
                       <HomeIcon name="Maximize2" size={14} />
                     </button>

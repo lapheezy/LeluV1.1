@@ -11,10 +11,10 @@
  * ==========================================================
  */
 
-import type { InterfaceId } from "./InterfaceCatalog";
+import { isInterfaceId, type InterfaceId } from "./InterfaceCatalog";
 
 export type LaunchRequest =
-  | { kind: "interface"; id: InterfaceId }
+  | { kind: "interface"; id: InterfaceId; entity?: string }
   | { kind: "composition"; id: string; regionKey?: string }
   | { kind: "close-composition" };
 
@@ -44,7 +44,7 @@ export function hasInterfaceLauncher(): boolean {
 
 /**
  * Read a launch request from a URL query — the standalone entry points:
- *   ?interface=lelu-room | lelu-system | cosmos
+ *   ?interface=lelu-room | lelu-system | cosmos | neural-map[&entity=<id>]
  *   ?composition=<id>[&region=<key>]
  */
 export function launchFromQuery(search: string): LaunchRequest | null {
@@ -52,6 +52,7 @@ export function launchFromQuery(search: string): LaunchRequest | null {
   const composition = params.get("composition");
   if (composition) return { kind: "composition", id: composition, ...(params.get("region") ? { regionKey: params.get("region")! } : {}) };
   const id = params.get("interface");
-  if (id === "cosmos" || id === "lelu-room" || id === "lelu-system" || id === "og-core" || id === "og-inner-sky") return { kind: "interface", id };
-  return null;
+  if (!isInterfaceId(id)) return null;
+  const entity = params.get("entity");
+  return entity ? { kind: "interface", id, entity } : { kind: "interface", id };
 }

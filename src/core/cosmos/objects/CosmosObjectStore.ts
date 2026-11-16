@@ -263,7 +263,7 @@ export default class CosmosObjectStore {
     if (!parent.children.includes(child.id)) parent.children.push(child.id);
     child.updatedAt = now();
     parent.updatedAt = child.updatedAt;
-    child.provenance.push({ at: child.updatedAt, action: "integrated", detail: `into ${parent.id} “${parent.name}”` });
+    child.provenance.push({ at: child.updatedAt, action: "integrated", detail: `into ${parent.id} “${parent.name}”`, ref: parent.id });
     this.commit(`integrated ${child.name} into ${parent.name}`);
     return { ok: true, value: { child, parent } };
   }
@@ -278,7 +278,7 @@ export default class CosmosObjectStore {
     // The extracted object keeps its world position: it does not jump when it
     // leaves its parent, so what the user saw is what they now hold.
     object.updatedAt = now();
-    object.provenance.push({ at: object.updatedAt, action: "extracted", detail: parent ? `out of ${parent.id} “${parent.name}”` : "detached from its children" });
+    object.provenance.push({ at: object.updatedAt, action: "extracted", detail: parent ? `out of ${parent.id} “${parent.name}”` : "detached from its children", ...(parent ? { ref: parent.id } : {}) });
     this.commit(`extracted ${object.name}`);
     return { ok: true, value: object };
   }
@@ -360,7 +360,7 @@ export default class CosmosObjectStore {
       selected: undefined,
       createdAt: at,
       updatedAt: at,
-      provenance: [{ at, action: "duplicated", detail: `from ${source.id} “${source.name}”` }],
+      provenance: [{ at, action: "duplicated", detail: `from ${source.id} “${source.name}”`, ref: source.id }],
     } as CosmosObject;
     this.objects.set(copy.id, copy);
     this.commit(`duplicated ${source.name}`);
@@ -374,8 +374,11 @@ export default class CosmosObjectStore {
     if (object.children.length && !confirm) {
       return { ok: false, reason: `“${object.name}” holds ${object.children.length} object(s) — extract them first, or confirm to remove them with it` };
     }
+    const formerParent = object.parent;
     this.detach(object);
     for (const childId of [...object.children]) this.remove(childId, true);
+    object.updatedAt = now();
+    object.provenance.push({ at: object.updatedAt, action: "removed", detail: "moved to the trash", ...(formerParent ? { ref: formerParent } : {}) });
     this.objects.delete(object.id);
     this.trash = [...this.trash.slice(-29), object];
     if (this.selected === object.id) this.selected = null;
@@ -391,6 +394,8 @@ export default class CosmosObjectStore {
     const [object] = this.trash.splice(index, 1);
     object.parent = null;
     object.children = [];
+    object.updatedAt = now();
+    object.provenance.push({ at: object.updatedAt, action: "restored", detail: "from the trash" });
     this.objects.set(object.id, object);
     if (object.group) this.addToGroup(object.group, object.id);
     this.commit(`restored ${object.name}`);
