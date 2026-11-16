@@ -276,13 +276,40 @@ export default function InterfaceJourney() {
     if (current) InterfaceCompositionStore.setCurrent(current);
   }, [current]);
 
+  /*
+   * M17.3-WP02: leaving a 3D region. A jump is a smooth scroll, and a smooth
+   * scroll advances one step per frame — while the region being left (the
+   * Room: Genesis V2) kept rendering every frame until the scroll had carried
+   * it out of view. Where frames are expensive (measured: up to 2.2 s per
+   * frame on a GPU-less machine) Room → Cosmos took 4–14 s against 1–2 s the
+   * other way. The region being left stops at the jump: it is going away
+   * anyway, and its own lifecycle (unmount) is the one it already has. It is
+   * live again the moment it is current again, or after 8 s if the scroll
+   * never happened.
+   */
+  const [leaving, setLeaving] = useState<string | null>(null);
+  const currentRef = useRef<string | null>(null);
+  currentRef.current = current;
+  useEffect(() => {
+    if (!leaving) return;
+    if (current !== leaving) {
+      setLeaving(null);
+      return;
+    }
+    const t = window.setTimeout(() => setLeaving(null), 8000);
+    return () => window.clearTimeout(t);
+  }, [current, leaving]);
+
   const scrollTo = useCallback(
     (key: string, smooth = true) => {
       const el = scroller.current?.querySelector<HTMLElement>(`[data-region-key="${key}"]`);
       if (!el || !scroller.current) return;
+      const from = currentRef.current;
+      const fromRegion = from ? composition?.regions.find((r) => r.key === from) : undefined;
+      if (smooth && from && from !== key && fromRegion && interfaceById(fromRegion.interfaceId)?.webgl) setLeaving(from);
       scroller.current.scrollTo({ [horizontal ? "left" : "top"]: horizontal ? el.offsetLeft : el.offsetTop, behavior: smooth ? "smooth" : "auto" });
     },
-    [horizontal],
+    [horizontal, composition],
   );
 
   // Arrive where the person left (or where they asked to go).
@@ -382,7 +409,7 @@ export default function InterfaceJourney() {
       <div className="ij-scroller" ref={scroller} data-ij-scroller>
         {composition.regions.map((r, i) => {
           const entry = interfaceById(r.interfaceId)!;
-          const isLive = live.has(r.key);
+          const isLive = live.has(r.key) && r.key !== leaving;
           const isCosmos = r.interfaceId === "cosmos";
           return (
             <div key={r.key} className="ij-slot">

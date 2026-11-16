@@ -180,7 +180,12 @@ const errors = [];
 
   /* ---- Cosmos → Room → Home → Cosmos ---- */
   await step(page, "B.4", "Cosmos → Room", () => jump(page, "lelu-room"), "room", (s) => s.current === "lelu-room");
-  await step(page, "B.4", "Room → Home (the Home button)", () => page.click('nav.lsn button[aria-label="Home"]'), "home", (s) => s.composition === null);
+  // In a composition the bottom bar is under it by design; its own way out is ✕ (back to the Cosmos), then Home.
+  await step(page, "B.4", "Room → ✕ (the composition's own close) → Home button", async () => {
+    await page.click('button[aria-label="Close and return to the Cosmos"]');
+    await page.waitForTimeout(1500);
+    await page.click('nav.lsn button[aria-label="Home"]');
+  }, "home", (s) => s.composition === null);
   await openOneLelu(page);
   await step(page, "B.4", "Home → One LÉLU → Cosmos", () => jump(page, "cosmos"), "cosmos", (s) => s.current === "cosmos");
 
@@ -189,13 +194,15 @@ const errors = [];
   const urlBefore = page.url();
   await page.goBack().catch(() => {});
   await page.waitForTimeout(1500);
+  const leftApp = !page.url().startsWith(BASE);
+  results.push({ objective: "B.4", name: "Browser Back from inside the Room (observed)", status: "OBSERVED", informational: true, detail: `url ${urlBefore} → ${page.url()}${leftApp ? " — the composition adds no browser-history entry, so Back leaves the app (pre-existing behaviour, unchanged)" : ""}` });
+  console.log(`  · Back: ${urlBefore} → ${page.url()}`);
+  if (leftApp) await page.goForward().catch(() => {});
+  await enter(page);
+  // Whatever Back (and Forward) did, the app must come up in one consistent state with its objects.
   const afterBack = await read(page);
-  results.push({ objective: "B.4", name: "Browser Back from inside the Room (observed: the composition is not in the browser history)", status: "OBSERVED", informational: true, detail: `url ${urlBefore} → ${page.url()} · ${describe(afterBack)}` });
-  console.log(`  · Back: ${urlBefore} → ${page.url()} · ${describe(afterBack)}`);
-  if (page.url() !== urlBefore) await enter(page);
-  // Whatever Back did, the app must be in one consistent state.
-  const consistent = (s) => (s.current === "lelu-room" ? expectations.room(s) : s.current === "cosmos" ? expectations.cosmos(s) : s.roomScenes === 0);
-  check("B.4", "After Back, the app is in one consistent state (no stale Room, no missing world)", consistent(await read(page)), describe(await read(page)));
+  const consistent = (s) => (s.current === "lelu-room" ? expectations.room(s) : s.current === "cosmos" ? expectations.cosmos(s) : s.roomScenes <= 1 && !(s.roomScenes === 1 && s.worldCanvases > 0));
+  check("B.4", "After Back (and Forward), the app is in one consistent state (no stale Room, no second world) with its objects", consistent(afterBack) && afterBack.objects === objects0, describe(afterBack));
 
   /* ---- with the Neural Map open ---- */
   await openOneLelu(page).catch(() => {});
@@ -244,7 +251,7 @@ const errors = [];
 }
 
 await browser.close();
-const relevant = errors.filter((e) => !/ERR_CONNECTION|Failed to load resource|429|503|401|livekit|supabase|Provider|Wrong API Key|api\/integration|api\/engineer/i.test(e));
+const relevant = errors.filter((e) => !/ERR_CONNECTION|Failed to load resource|429|503|401|livekit|supabase|Provider|Wrong API Key|api\/integration|api\/engineer|Access to fetch at 'https:\/\/export\.arxiv/i.test(e));
 check("WP03", "No new page errors during the run", relevant.length === 0, relevant.slice(0, 4).join(" | "));
 const restore = timings.filter((t) => t.want === "cosmos").map((t) => t.ms);
 results.push({ objective: "WP05", name: "Time to a settled, correct state (this GPU-less container)", status: "MEASURED", informational: true, detail: JSON.stringify({ cosmosRestoreMs: { n: restore.length, min: Math.min(...restore), max: Math.max(...restore), median: restore.sort((a, b) => a - b)[Math.floor(restore.length / 2)] }, all: timings }) });

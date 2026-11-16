@@ -1,0 +1,413 @@
+{
+  "at": "2026-11-16T12:20:06.854Z",
+  "results": [
+    {
+      "objective": "B.3",
+      "name": "Two Cosmos objects exist before the transitions",
+      "status": "VERIFIED",
+      "detail": "obj_1@6,0,-18|obj_2@3,0,-12.8"
+    },
+    {
+      "objective": "B.1",
+      "name": "Original LÉLU + Room → Room → settles correctly in 8.2 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.1",
+      "name": "Close the composition (back to the Cosmos) → settles correctly in 4.6 s",
+      "status": "VERIFIED",
+      "detail": "current null · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "One LÉLU → Cosmos → settles correctly in 3.3 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Cosmos → Room → settles correctly in 0.6 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.1",
+      "name": "Room → Cosmos (the M17.1 failing step) → settles correctly in 3.0 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.3",
+      "name": "…the world is restored with the same objects (ids and positions)",
+      "status": "VERIFIED",
+      "detail": "obj_1@6,0,-18|obj_2@3,0,-12.8"
+    },
+    {
+      "objective": "B.4",
+      "name": "Repeat 1: Cosmos → Room → settles correctly in 1.1 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Repeat 1: Room → Cosmos → settles correctly in 4.0 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Repeat 2: Cosmos → Room → settles correctly in 2.0 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Repeat 2: Room → Cosmos → settles correctly in 3.7 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Repeat 3: Cosmos → Room → settles correctly in 1.4 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Repeat 3: Room → Cosmos → settles correctly in 4.5 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "After 4 round trips: one world section, no Room left behind, objects unchanged",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Cosmos → Room → settles correctly in 1.7 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Room → System UI → settles correctly in 0.4 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-system · world 0/0 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "System UI → Cosmos → settles correctly in 8.2 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Rapid Room/Cosmos/Room/Cosmos presses settle on the LAST one (Cosmos) → settles correctly in 0.1 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "…with exactly one world and no Room scene left mounted",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Cosmos → Room → settles correctly in 1.9 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Room → ✕ (the composition's own close) → Home button → settles correctly in 0.1 s",
+      "status": "VERIFIED",
+      "detail": "current null · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Home → One LÉLU → Cosmos → settles correctly in 3.5 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Cosmos → Room → settles correctly in 1.5 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Browser Back from inside the Room (observed)",
+      "status": "OBSERVED",
+      "informational": true,
+      "detail": "url http://127.0.0.1:5173/ → about:blank — the composition adds no browser-history entry, so Back leaves the app (pre-existing behaviour, unchanged)"
+    },
+    {
+      "objective": "B.4",
+      "name": "After Back (and Forward), the app is in one consistent state (no stale Room, no second world) with its objects",
+      "status": "VERIFIED",
+      "detail": "current null · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Cosmos (with the Neural Map about to open) → settles correctly in 3.0 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Neural Map open: Cosmos → Room → settles correctly in 1.8 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Neural Map closed: Room → Cosmos → settles correctly in 5.0 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Cosmos → Room (before reload) → settles correctly in 0.4 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "B.4",
+      "name": "Reload inside the Room: one consistent state; objects intact",
+      "status": "VERIFIED",
+      "detail": "current null · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Where a reload inside the Room lands",
+      "status": "OBSERVED",
+      "informational": true,
+      "detail": "current null · world 1/2 · room 0 · companion planned/visible · composition null"
+    },
+    {
+      "objective": "B.4",
+      "name": "After that reload: → Cosmos → settles correctly in 3.3 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.4",
+      "name": "Reload inside the Cosmos: objects intact, no Room scene, at most one world",
+      "status": "VERIFIED",
+      "detail": "current null · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "B.1",
+      "name": "After both reloads: Room → Cosmos still restores → settles correctly in 2.5 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "WP04",
+      "name": "iPhone (EMULATED): → Room → settles correctly in 7.5 s",
+      "status": "VERIFIED",
+      "detail": "current lelu-room · world 0/0 · room 1 · companion world/hidden"
+    },
+    {
+      "objective": "WP04",
+      "name": "iPhone (EMULATED): Room → Cosmos → settles correctly in 1.3 s",
+      "status": "VERIFIED",
+      "detail": "current cosmos · world 1/2 · room 0 · companion planned/visible"
+    },
+    {
+      "objective": "WP03",
+      "name": "No new page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "objective": "WP05",
+      "name": "Time to a settled, correct state (this GPU-less container)",
+      "status": "MEASURED",
+      "informational": true,
+      "detail": "{\"cosmosRestoreMs\":{\"n\":13,\"min\":50,\"max\":8193,\"median\":3279},\"all\":[{\"label\":\"Original LÉLU + Room → Room\",\"want\":\"room\",\"ms\":8167,\"ok\":true},{\"label\":\"Close the composition (back to the Cosmos)\",\"want\":\"home\",\"ms\":4567,\"ok\":true},{\"label\":\"One LÉLU → Cosmos\",\"want\":\"cosmos\",\"ms\":3255,\"ok\":true},{\"label\":\"Cosmos → Room\",\"want\":\"room\",\"ms\":550,\"ok\":true},{\"label\":\"Room → Cosmos (the M17.1 failing step)\",\"want\":\"cosmos\",\"ms\":3028,\"ok\":true},{\"label\":\"Repeat 1: Cosmos → Room\",\"want\":\"room\",\"ms\":1110,\"ok\":true},{\"label\":\"Repeat 1: Room → Cosmos\",\"want\":\"cosmos\",\"ms\":4036,\"ok\":true},{\"label\":\"Repeat 2: Cosmos → Room\",\"want\":\"room\",\"ms\":2018,\"ok\":true},{\"label\":\"Repeat 2: Room → Cosmos\",\"want\":\"cosmos\",\"ms\":3748,\"ok\":true},{\"label\":\"Repeat 3: Cosmos → Room\",\"want\":\"room\",\"ms\":1400,\"ok\":true},{\"label\":\"Repeat 3: Room → Cosmos\",\"want\":\"cosmos\",\"ms\":4481,\"ok\":true},{\"label\":\"Cosmos → Room\",\"want\":\"room\",\"ms\":1718,\"ok\":true},{\"label\":\"Room → System UI\",\"want\":\"other\",\"ms\":406,\"ok\":true},{\"label\":\"System UI → Cosmos\",\"want\":\"cosmos\",\"ms\":8193,\"ok\":true},{\"label\":\"Rapid Room/Cosmos/Room/Cosmos presses settle on the LAST one (Cosmos)\",\"want\":\"cosmos\",\"ms\":50,\"ok\":true},{\"label\":\"Cosmos → Room\",\"want\":\"room\",\"ms\":1904,\"ok\":true},{\"label\":\"Room → ✕ (the composition's own close) → Home button\",\"want\":\"home\",\"ms\":73,\"ok\":true},{\"label\":\"Home → One LÉLU → Cosmos\",\"want\":\"cosmos\",\"ms\":3470,\"ok\":true},{\"label\":\"Cosmos → Room\",\"want\":\"room\",\"ms\":1452,\"ok\":true},{\"label\":\"Cosmos (with the Neural Map about to open)\",\"want\":\"cosmos\",\"ms\":2987,\"ok\":true},{\"label\":\"Neural Map open: Cosmos → Room\",\"want\":\"room\",\"ms\":1785,\"ok\":true},{\"label\":\"Neural Map closed: Room → Cosmos\",\"want\":\"cosmos\",\"ms\":5024,\"ok\":true},{\"label\":\"Cosmos → Room (before reload)\",\"want\":\"room\",\"ms\":435,\"ok\":true},{\"label\":\"reload inside the Room\",\"want\":\"home\",\"ms\":2729,\"ok\":true},{\"label\":\"After that reload: → Cosmos\",\"want\":\"cosmos\",\"ms\":3279,\"ok\":true},{\"label\":\"room\",\"want\":\"room\",\"ms\":1861,\"ok\":true},{\"label\":\"After both reloads: Room → Cosmos still restores\",\"want\":\"cosmos\",\"ms\":2451,\"ok\":true},{\"label\":\"iPhone (EMULATED): → Room\",\"want\":\"room\",\"ms\":7457,\"ok\":true},{\"label\":\"iPhone (EMULATED): Room → Cosmos\",\"want\":\"cosmos\",\"ms\":1258,\"ok\":true}]}"
+    }
+  ],
+  "timings": [
+    {
+      "label": "Original LÉLU + Room → Room",
+      "want": "room",
+      "ms": 8167,
+      "ok": true
+    },
+    {
+      "label": "Close the composition (back to the Cosmos)",
+      "want": "home",
+      "ms": 4567,
+      "ok": true
+    },
+    {
+      "label": "One LÉLU → Cosmos",
+      "want": "cosmos",
+      "ms": 3255,
+      "ok": true
+    },
+    {
+      "label": "Cosmos → Room",
+      "want": "room",
+      "ms": 550,
+      "ok": true
+    },
+    {
+      "label": "Room → Cosmos (the M17.1 failing step)",
+      "want": "cosmos",
+      "ms": 3028,
+      "ok": true
+    },
+    {
+      "label": "Repeat 1: Cosmos → Room",
+      "want": "room",
+      "ms": 1110,
+      "ok": true
+    },
+    {
+      "label": "Repeat 1: Room → Cosmos",
+      "want": "cosmos",
+      "ms": 4036,
+      "ok": true
+    },
+    {
+      "label": "Repeat 2: Cosmos → Room",
+      "want": "room",
+      "ms": 2018,
+      "ok": true
+    },
+    {
+      "label": "Repeat 2: Room → Cosmos",
+      "want": "cosmos",
+      "ms": 3748,
+      "ok": true
+    },
+    {
+      "label": "Repeat 3: Cosmos → Room",
+      "want": "room",
+      "ms": 1400,
+      "ok": true
+    },
+    {
+      "label": "Repeat 3: Room → Cosmos",
+      "want": "cosmos",
+      "ms": 4481,
+      "ok": true
+    },
+    {
+      "label": "Cosmos → Room",
+      "want": "room",
+      "ms": 1718,
+      "ok": true
+    },
+    {
+      "label": "Room → System UI",
+      "want": "other",
+      "ms": 406,
+      "ok": true
+    },
+    {
+      "label": "System UI → Cosmos",
+      "want": "cosmos",
+      "ms": 8193,
+      "ok": true
+    },
+    {
+      "label": "Rapid Room/Cosmos/Room/Cosmos presses settle on the LAST one (Cosmos)",
+      "want": "cosmos",
+      "ms": 50,
+      "ok": true
+    },
+    {
+      "label": "Cosmos → Room",
+      "want": "room",
+      "ms": 1904,
+      "ok": true
+    },
+    {
+      "label": "Room → ✕ (the composition's own close) → Home button",
+      "want": "home",
+      "ms": 73,
+      "ok": true
+    },
+    {
+      "label": "Home → One LÉLU → Cosmos",
+      "want": "cosmos",
+      "ms": 3470,
+      "ok": true
+    },
+    {
+      "label": "Cosmos → Room",
+      "want": "room",
+      "ms": 1452,
+      "ok": true
+    },
+    {
+      "label": "Cosmos (with the Neural Map about to open)",
+      "want": "cosmos",
+      "ms": 2987,
+      "ok": true
+    },
+    {
+      "label": "Neural Map open: Cosmos → Room",
+      "want": "room",
+      "ms": 1785,
+      "ok": true
+    },
+    {
+      "label": "Neural Map closed: Room → Cosmos",
+      "want": "cosmos",
+      "ms": 5024,
+      "ok": true
+    },
+    {
+      "label": "Cosmos → Room (before reload)",
+      "want": "room",
+      "ms": 435,
+      "ok": true
+    },
+    {
+      "label": "reload inside the Room",
+      "want": "home",
+      "ms": 2729,
+      "ok": true
+    },
+    {
+      "label": "After that reload: → Cosmos",
+      "want": "cosmos",
+      "ms": 3279,
+      "ok": true
+    },
+    {
+      "label": "room",
+      "want": "room",
+      "ms": 1861,
+      "ok": true
+    },
+    {
+      "label": "After both reloads: Room → Cosmos still restores",
+      "want": "cosmos",
+      "ms": 2451,
+      "ok": true
+    },
+    {
+      "label": "iPhone (EMULATED): → Room",
+      "want": "room",
+      "ms": 7457,
+      "ok": true
+    },
+    {
+      "label": "iPhone (EMULATED): Room → Cosmos",
+      "want": "cosmos",
+      "ms": 1258,
+      "ok": true
+    }
+  ],
+  "errors": []
+}
