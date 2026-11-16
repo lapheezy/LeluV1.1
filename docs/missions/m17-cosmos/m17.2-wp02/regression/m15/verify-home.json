@@ -1,0 +1,195 @@
+{
+  "at": "2026-11-16T07:38:24.838Z",
+  "results": [
+    {
+      "name": "desktop: Home renders through the composition engine",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: header icons are real icons, not the Circle fallback",
+      "status": "VERIFIED",
+      "detail": "lucide lucide-menu | lucide lucide-pencil | lucide lucide-cloud-off | lucide lucide-bell"
+    },
+    {
+      "name": "desktop: edit mode opens with the presentation bar",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: drag a module by its handle reorders the Home",
+      "status": "VERIFIED",
+      "detail": "weather,lelu,now,apps,workspaces,notifications,library,activity → activity,weather,lelu,now,apps,workspaces,notifications,library"
+    },
+    {
+      "name": "desktop: resize (+) grows a module",
+      "status": "VERIFIED",
+      "detail": "s → m"
+    },
+    {
+      "name": "desktop: undo restores the previous size",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: redo re-applies it",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: pin moves a module to the first slot",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: a locked module's drag handle is disabled",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: float a module and drag it (snapped)",
+      "status": "VERIFIED",
+      "detail": "x 745 → 494"
+    },
+    {
+      "name": "desktop: dock minimises a module to a chip",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: the chip restores it",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: group two modules into one tabbed surface",
+      "status": "VERIFIED",
+      "detail": "[[\"Infinite Library\",\"Notifications\"]]"
+    },
+    {
+      "name": "desktop: keyboard — ArrowRight moves the focused module later",
+      "status": "VERIFIED",
+      "detail": "4 → 5"
+    },
+    {
+      "name": "desktop: keyboard — focus stays on the moved module",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: the arrangement survives a reload",
+      "status": "VERIFIED",
+      "detail": "library,activity,weather,lelu,workspaces,apps"
+    },
+    {
+      "name": "desktop: a new presentation never overwrites the current one",
+      "status": "VERIFIED",
+      "detail": "My Home | Cosmos Orbit"
+    },
+    {
+      "name": "desktop: Cosmos Orbit is a real orbital layout",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "desktop: reset, then restore brings the arrangement back",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "transition: Home module → Workspace window (existing module host)",
+      "status": "VERIFIED",
+      "detail": "home hidden: true; panel: null"
+    },
+    {
+      "name": "transition: back to Home from the window keeps the arrangement",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "transition: Home → Chat Universe (its own open event)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "transition: Home → Cosmos (SpatialIntentBus placement + immersive view)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "studio: a prototype is saved as a new presentation",
+      "status": "VERIFIED",
+      "detail": "Saved as a new presentation, “Creative Gallery”, and switched to it. Your previous one is "
+    },
+    {
+      "name": "iPhone: Home solves the phone profile",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "iPhone: no horizontal overflow",
+      "status": "VERIFIED",
+      "detail": "0px"
+    },
+    {
+      "name": "iPhone: a swipe starting on the nav orb does not leave the Home",
+      "status": "VERIFIED",
+      "detail": "first move after 272 ms"
+    },
+    {
+      "name": "iPhone: touch scrolling the Home works while editing",
+      "status": "VERIFIED",
+      "detail": "scrollTop 0 → 265"
+    },
+    {
+      "name": "iPhone: only the drag handle captures touch (touch-action: none)",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "iPhone: edit fields are ≥16px so Safari does not zoom on focus",
+      "status": "VERIFIED",
+      "detail": "16px"
+    },
+    {
+      "name": "iPhone: touch-drag a module by its handle",
+      "status": "VERIFIED",
+      "detail": "weather,lelu,now,apps,workspaces,notifications,library,activity → now,weather,lelu,apps,workspaces,notifications,library,activity"
+    },
+    {
+      "name": "iPhone: phone and desktop profiles are saved separately",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "fallback: with WebGL unavailable the 2D Home still renders",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "fallback: reduced motion stops the Home's ambient animation",
+      "status": "VERIFIED",
+      "detail": "none"
+    },
+    {
+      "name": "no uncaught page errors during the run",
+      "status": "VERIFIED",
+      "detail": ""
+    },
+    {
+      "name": "fallback: no-WebGL run is free of uncaught errors",
+      "status": "PARTIAL",
+      "detail": "17 uncaught from the existing THREE.WebGLRenderer (\"THREE.WebGLRenderer: Error creating WebGL context.\"); the 2D Home stays usable"
+    }
+  ],
+  "consoleErrors": [
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20need",
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20need",
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rule",
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20need",
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}
