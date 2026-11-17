@@ -248,10 +248,16 @@ export function buildWholeObject(spec: CharacterSpec, lattice = DEFAULT_LATTICE)
   }
   const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const s of shapes) for (let a = 0; a < 3; a++) [lo[a], hi[a]] = [Math.min(lo[a], s.lo[a]), Math.max(hi[a], s.hi[a])];
+  // Bounding-box culling (a fair monolithic baseline): a component is only
+  // evaluated near its own box; elsewhere it cannot change the sign.
+  const m = 2 * h;
   const all: Shape = {
     f: (x, y, z) => {
-      let d = Infinity;
-      for (const s of shapes) d = Math.min(d, s.f(x, y, z));
+      let d = 1;
+      for (const s of shapes) {
+        if (x < s.lo[0] - m || y < s.lo[1] - m || z < s.lo[2] - m || x > s.hi[0] + m || y > s.hi[1] + m || z > s.hi[2] + m) continue;
+        d = Math.min(d, s.f(x, y, z));
+      }
       return d;
     },
     lo,

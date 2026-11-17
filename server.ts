@@ -51,6 +51,7 @@ import { createModelApi } from "./plugins/modelApi.ts";
 import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
+import { createAsreApi } from "./plugins/asreApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
 import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
@@ -512,6 +513,7 @@ createAcquisitionApi({
 }).attach(middlewares);
 // LÉLU 3D Forge — the only holder of the Meshy credential (see meshyForgeApi.ts).
 createMeshyForgeApi((key) => process.env[key]).attach(middlewares);
+createAsreApi((key) => process.env[key]).attach(middlewares);
 // The GitHub Models relay forwards with the SERVER's token, so it is for a
 // signed-in user only (it was reachable anonymously).
 const aiRelayGuard = createGuard();
