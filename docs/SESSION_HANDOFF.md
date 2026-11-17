@@ -1,5 +1,30 @@
 # Session handoff — LÉLU ASRE
 
+## Mission 5 (native integration) — in progress
+
+| | |
+| --- | --- |
+| Branch | `claude/mission5-lelu-asre-integration-mm6xau` (pushed to origin; the mission asked for `mission5/lelu-native-asre-integration`, this session may only push to the branch above) |
+| Started from | `ed5777e` (preserved branch `claude/blissful-cray-lqhs6g`, untouched) |
+| Audit | `docs/asre/05_MISSION5_AUDIT.md` |
+
+| WP | Status | Commit |
+| --- | --- | --- |
+| WP00 audit | VERIFIED | `68cb322` |
+| WP01 native service, jobs, hypotheses, multi-view | VERIFIED (TripoSR job verified 50 s CPU) | `c8f9f0f` |
+| WP02 Forge intake / edit / export | VERIFIED (real Blender round trip) | `6feaf3d` |
+| WP04 persistent identity | VERIFIED | `5b97aac` |
+| WP05 temporal | VERIFIED (timeline memory cost noted) | `489ccae` |
+| WP03 Spatial Studio UI | see `git log` (this commit) | |
+| WP06–WP09 | NOT STARTED at time of writing | |
+
+Order note: WP04/WP05 (server) were built before WP03 so the UI binds to real endpoints.
+
+Toolchain in a fresh container: `bash services/asre-reconstruct/setup.sh` (fixed in WP01), then the Depth-Anything download below. UI flow: run vite with `LELU_ASRE_ROOT`/`FORGE_ASSET_ROOT` pointing at scratch dirs, then `node scripts/asre/m5-ui-flow.cjs <dir>`.
+
+---
+
+
 Living document: update it and commit it at the end of every session. The next session must be able to continue from the repository and this file alone.
 
 ## Repository state (end of session 1 of the rebuild, 2026-11-17)

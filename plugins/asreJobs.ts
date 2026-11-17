@@ -30,6 +30,7 @@ import { deflateRawSync, deflateSync, inflateRawSync, inflateSync } from "node:z
 import {
   TERMINAL_JOB_STATES,
   describeEvidence,
+  evidenceClass,
   type AsreJobKind,
   type AsreJobStep,
   type AsreJobView,
@@ -55,6 +56,7 @@ import {
 import { HYPOTHESES, silhouetteOf, VIEWS, type ViewName } from "../src/core/asre/reconstruct/silhouette.ts";
 import { Flipbook } from "../src/core/asre/temporal/Flipbook.ts";
 import { analyzeMesh, voxelFaceMesh } from "../src/core/asre/volume/mesh.ts";
+import { isBoundary } from "../src/core/asre/volume/volumetric.ts";
 import { writeGlb } from "../src/core/asre/gltf/GlbWriter.ts";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
 
@@ -303,6 +305,31 @@ export class AsreJobManager {
       forgeJobId: j.result?.forgeJobId ?? null,
       finishedAt: j.finishedAt,
     }));
+  }
+
+  /**
+   * One plane of a reconstruction's voxel grid for inspection: every occupied
+   * cell with its evidence class, fused confidence and whether it is on the
+   * boundary. Read from the stored .lnre — the numerical record itself.
+   */
+  slice(id: string, axis: "x" | "y" | "z", index: number) {
+    const j = this.jobs.get(id);
+    if (!j?.result) throw new AsreJobError(`job ${id} has no reconstruction to inspect`, 404);
+    const grid = decodeGrid(new Uint8Array(readFileSync(path.join(this.root, j.result.files.lnre))), { codecs: [lnreCodec] }).grid;
+    const a = axis === "x" ? 0 : axis === "y" ? 1 : 2;
+    const [u, v] = a === 0 ? [2, 1] : a === 1 ? [0, 2] : [0, 1];
+    const dims = grid.spec.dims;
+    if (!Number.isInteger(index) || index < 0 || index >= dims[a]) throw new AsreJobError(`index must be 0…${dims[a] - 1}`);
+    const cells: Array<{ u: number; v: number; cls: string; confidence: number; boundary: boolean }> = [];
+    const counts = { OBSERVED: 0, INFERRED: 0, INTERPOLATED: 0, GENERATED: 0, UNKNOWN: 0 };
+    for (const c of grid.coords()) {
+      if (c[a] !== index) continue;
+      const cell = grid.get(c[0], c[1], c[2])!;
+      const cls = evidenceClass(cell.provenance);
+      counts[cls]++;
+      cells.push({ u: c[u], v: c[v], cls, confidence: +cell.confidence.toFixed(3), boundary: isBoundary(grid, c[0], c[1], c[2]) });
+    }
+    return { axis, index, size: [dims[u], dims[v]] as [number, number], depth: dims[a], cells, counts, frame: grid.spec.coordinateSystem };
   }
 
   cancel(id: string): AsreJobView {

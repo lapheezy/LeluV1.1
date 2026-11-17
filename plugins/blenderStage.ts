@@ -77,7 +77,10 @@ const ROLE_BY_FILE: Record<string, string> = {
 export function findBlender(readEnv: EnvReader): BlenderRunner | null {
   const python = readEnv("LELU_BLENDER_PYTHON");
   if (python && existsSync(python)) return { kind: "bpy", command: python, args: (script, json) => [script, "--", json] };
-  const candidates = [readEnv("LELU_BLENDER_BIN"), "blender"].filter((c): c is string => Boolean(c));
+  // Last: the offline toolchain services/asre-reconstruct/setup.sh installs, so the
+  // Forge and ASRE find the same Blender without extra configuration.
+  const toolchain = path.join(readEnv("LELU_TOOLS") || "/opt/lelu-tools", "blender-4.2.23-linux-x64", "blender");
+  const candidates = [readEnv("LELU_BLENDER_BIN"), "blender", existsSync(toolchain) ? toolchain : ""].filter((c): c is string => Boolean(c));
   for (const command of candidates) {
     const probe = spawnSync(command, ["--version"], { encoding: "utf8", timeout: 20_000 });
     if (probe.status === 0 && /Blender/i.test(probe.stdout)) {

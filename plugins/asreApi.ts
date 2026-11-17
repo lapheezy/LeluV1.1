@@ -32,6 +32,7 @@
  *   POST /api/asre/characters/<id>/export             { version } → Forge job (kind "asre")
  *   GET  /api/asre/characters/<id>/verify             immutability check of every version
  *   GET  /api/asre/characters/<id>/timeline           every version as a temporal snapshot (diffs, replay-verified)
+ *   GET  /api/asre/jobs/<id>/slice?axis=&index=      one voxel plane: evidence class, confidence, boundary per cell
  *   GET  /api/asre/jobs/<id>/lineage                  reconstruction history: evidence/confidence per view
  *   GET  /api/asre/assets/<path>       GLB / PNG / JSON produced above
  *
@@ -211,6 +212,12 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
           const job = manager.get(parts[1]);
           if (!job) return send(res, { ok: false, error: `no job ${parts[1]}` }, 404);
           return send(res, { ok: true, job });
+        }
+        if (method === "GET" && parts[2] === "slice") {
+          const q = new URLSearchParams((req.url ?? "").split("?")[1] ?? "");
+          const axis = (q.get("axis") ?? "y") as "x" | "y" | "z";
+          if (!["x", "y", "z"].includes(axis)) return send(res, { ok: false, error: "axis must be x, y or z" }, 400);
+          return send(res, { ok: true, ...manager.slice(parts[1], axis, Number(q.get("index") ?? 0)) });
         }
         if (method === "GET" && parts[2] === "lineage") return send(res, { ok: true, lineage: manager.lineage(parts[1]) });
         if (method === "POST" && parts[2] === "cancel") return send(res, { ok: true, job: manager.cancel(parts[1]) });

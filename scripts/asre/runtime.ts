@@ -24,8 +24,8 @@ export function env(name: string): string | undefined {
 }
 
 export function blenderRunner() {
-  const fallback = path.join(TOOLS, "blender-4.2.23-linux-x64/blender");
-  return findBlender((k) => env(k) ?? (k === "LELU_BLENDER_BIN" && existsSync(fallback) ? fallback : undefined));
+  // findBlender also falls back to the setup.sh toolchain: one discovery for the Forge and ASRE
+  return findBlender((k) => env(k));
 }
 
 export interface RenderJob {

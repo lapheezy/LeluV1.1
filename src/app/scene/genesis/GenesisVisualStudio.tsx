@@ -8,20 +8,26 @@
  *   Sketch  GenesisSketchPanel  real canvas, strokes, layers, export
  *   Render  GenesisRenderPanel  real offline render engines + saved outputs
  *   Avatar  GenesisAvatarPanel  real profile, procedural 3D and saved renders
+ *   Spatial GenesisSpatialStudio LÉLU's ASRE/NRE: reconstruct, inspect the
+ *                                numerical record, create characters, render
+ *                                and export through the 3D Forge (lazy-loaded)
  *
  * The three panels already share the window chrome through InModuleWindow,
  * so embedding them here does not create a window inside a window.
  * ==========================================================
  */
 
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import { useGenesis } from "./GenesisCore";
 import GenesisSketchPanel from "./GenesisSketchPanel";
 import GenesisRenderPanel from "./GenesisRenderPanel";
 import GenesisAvatarPanel from "./GenesisAvatarPanel";
 
-export type StudioMode = "sketch" | "render" | "avatar";
+// three.js and the spatial workspaces load only when the mode is opened.
+const GenesisSpatialStudio = lazy(() => import("./spatial/GenesisSpatialStudio"));
+
+export type StudioMode = "sketch" | "render" | "avatar" | "spatial";
 
 interface Props {
   onClose: () => void;
@@ -59,6 +65,7 @@ const MODES: Array<{ key: StudioMode; glyph: string; label: string; hint: string
   { key: "render", glyph: "◍", label: "Render", hint: "Finished visuals and 3D" },
   { key: "sketch", glyph: "✎", label: "Sketch", hint: "Draw, layer and export" },
   { key: "avatar", glyph: "◉", label: "Avatar", hint: "Identity and presence" },
+  { key: "spatial", glyph: "⬢", label: "Spatial", hint: "Reconstruct, inspect and create in 3D" },
 ];
 
 export default function GenesisVisualStudio({ onClose, initialMode = "render" }: Props) {
@@ -126,6 +133,11 @@ export default function GenesisVisualStudio({ onClose, initialMode = "render" }:
           {mode === "sketch" ? <GenesisSketchPanel onClose={onClose} /> : null}
           {mode === "render" ? <GenesisRenderPanel onClose={onClose} /> : null}
           {mode === "avatar" ? <GenesisAvatarPanel onClose={onClose} /> : null}
+          {mode === "spatial" ? (
+            <Suspense fallback={<p style={{ fontSize: 12, color: "rgba(203,228,255,0.55)" }}>Opening the spatial studio…</p>}>
+              <GenesisSpatialStudio />
+            </Suspense>
+          ) : null}
         </div>
       </div>
     </GenesisWindowFrame>
