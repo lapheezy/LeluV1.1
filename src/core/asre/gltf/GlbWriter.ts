@@ -17,8 +17,8 @@
  * ==========================================================
  */
 
-import type { Mesh } from "../volume/mesh";
-import type { CoordinateSystem } from "../nre/types";
+import type { Mesh } from "../volume/mesh.ts";
+import type { CoordinateSystem } from "../nre/types.ts";
 
 export interface GlbMaterial {
   name: string;

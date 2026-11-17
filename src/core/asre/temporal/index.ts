@@ -1,3 +1,3 @@
-export * from "./SnapshotStore";
-export * from "./compare";
-export * from "./Flipbook";
+export * from "./SnapshotStore.ts";
+export * from "./compare.ts";
+export * from "./Flipbook.ts";

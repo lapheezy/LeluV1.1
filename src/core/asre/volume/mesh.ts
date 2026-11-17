@@ -14,9 +14,9 @@
  * ==========================================================
  */
 
-import { mortonDecode } from "../nre/morton";
-import type { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import type { Vec3 } from "../nre/types";
+import { mortonDecode } from "../nre/morton.ts";
+import type { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import type { Vec3 } from "../nre/types.ts";
 
 export interface Mesh {
   positions: Float32Array;

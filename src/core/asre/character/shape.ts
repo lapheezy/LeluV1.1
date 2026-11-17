@@ -4,8 +4,8 @@
  * sub-shape so one component mesh can carry several materials as vertex
  * colours (eyes vs skin, brim vs crown…).
  */
-import * as S from "./sdf";
-import type { Sdf, V3 } from "./sdf";
+import * as S from "./sdf.ts";
+import type { Sdf, V3 } from "./sdf.ts";
 
 export type Rgb = [number, number, number];
 

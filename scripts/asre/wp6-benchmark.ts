@@ -16,11 +16,11 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { BASE_CHARACTER, withChanges, type CharacterSpec } from "../../src/core/asre/character/CharacterSpec";
-import { ComponentCache, buildComponent, buildWholeObject, codesIou, occupancyCodes, plan, type BuiltComponent, type CharacterBuild, type Lattice } from "../../src/core/asre/character/build";
-import { COMPONENTS, COMPONENT_ORDER, contextFor, type ComponentId } from "../../src/core/asre/character/components";
-import { Scheduler, expectedGain, type SchedTask } from "../../src/core/asre/scheduler/Scheduler";
-import { ComponentPool } from "./pool";
+import { BASE_CHARACTER, withChanges, type CharacterSpec } from "../../src/core/asre/character/CharacterSpec.ts";
+import { ComponentCache, buildComponent, buildWholeObject, codesIou, occupancyCodes, plan, type BuiltComponent, type CharacterBuild, type Lattice } from "../../src/core/asre/character/build.ts";
+import { COMPONENTS, COMPONENT_ORDER, contextFor, type ComponentId } from "../../src/core/asre/character/components.ts";
+import { Scheduler, expectedGain, type SchedTask } from "../../src/core/asre/scheduler/Scheduler.ts";
+import { ComponentPool } from "./pool.ts";
 
 const arg = (k: string, d: string) => {
   const i = process.argv.indexOf(k);

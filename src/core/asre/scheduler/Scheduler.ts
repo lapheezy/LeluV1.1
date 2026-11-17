@@ -40,7 +40,10 @@ export function expectedGain(p: { importance: number; confidence: number; missin
 
 export class CostModel {
   private readonly perUnit = new Map<string, number>();
-  constructor(private readonly alpha = 0.4) {}
+  private readonly alpha: number;
+  constructor(alpha = 0.4) {
+    this.alpha = alpha;
+  }
   predict(kind: string, size: number, priorMs?: number): number {
     const k = this.perUnit.get(kind);
     if (k !== undefined) return Math.max(0.01, k * Math.max(1, size));
@@ -90,7 +93,10 @@ export interface RunResult<R> {
 }
 
 export class Scheduler {
-  constructor(readonly costs = new CostModel()) {}
+  readonly costs: CostModel;
+  constructor(costs = new CostModel()) {
+    this.costs = costs;
+  }
 
   async run<R>(tasks: SchedTask<R>[], opts: RunOptions): Promise<RunResult<R>> {
     const now = opts.now ?? (() => performance.now());

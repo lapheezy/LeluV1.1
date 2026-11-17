@@ -172,7 +172,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string } = {
         if (!file || !mime || !existsSync(file)) return send(res, { ok: false, error: "not found" }, 404);
         res.statusCode = 200;
         res.setHeader("Content-Type", mime);
-        res.end(readFileSync(file));
+        res.end(readFileSync(file) as unknown as string);
         return;
       }
       next();

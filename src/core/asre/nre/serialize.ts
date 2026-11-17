@@ -31,9 +31,9 @@
  * ==========================================================
  */
 
-import { crc32, sha256 } from "./hash";
-import { SparseVoxelGrid } from "./SparseVoxelGrid";
-import { Provenance, primaryProvenance, type GridSpec, type Observation, type ProvenanceName } from "./types";
+import { crc32, sha256 } from "./hash.ts";
+import { SparseVoxelGrid } from "./SparseVoxelGrid.ts";
+import { Provenance, primaryProvenance, type GridSpec, type Observation, type ProvenanceName } from "./types.ts";
 
 export const NRE_MAGIC = "LNRE";
 export const NRE_CONTAINER_VERSION = 1;
@@ -47,11 +47,10 @@ export interface Codec {
 }
 
 export class NreFormatError extends Error {
-  constructor(
-    message: string,
-    readonly section: "magic" | "version" | "header" | "body" | "checksum" | "schema",
-  ) {
+  readonly section: "magic" | "version" | "header" | "body" | "checksum" | "schema";
+  constructor(message: string, section: NreFormatError["section"]) {
     super(message);
+    this.section = section;
     this.name = "NreFormatError";
   }
 }
@@ -110,7 +109,9 @@ class Writer {
 class Reader {
   pos = 0;
   private readonly view: DataView;
-  constructor(readonly buf: Uint8Array) {
+  readonly buf: Uint8Array;
+  constructor(buf: Uint8Array) {
+    this.buf = buf;
     this.view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   }
   need(n: number, section: NreFormatError["section"]): void {

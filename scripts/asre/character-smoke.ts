@@ -1,10 +1,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { BASE_CHARACTER } from "../../src/core/asre/character/CharacterSpec";
-import { ComponentCache, DEFAULT_LATTICE, buildCharacter, buildWholeObject, codesIou, glbParts, occupancyCodes } from "../../src/core/asre/character/build";
-import { writeGlb } from "../../src/core/asre/gltf/GlbWriter";
-import { inspectGlb } from "../../src/core/forge/GlbInspector";
-import { ROOT, renderGlb } from "./runtime";
+import { BASE_CHARACTER } from "../../src/core/asre/character/CharacterSpec.ts";
+import { ComponentCache, DEFAULT_LATTICE, buildCharacter, buildWholeObject, codesIou, glbParts, occupancyCodes } from "../../src/core/asre/character/build.ts";
+import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
+import { inspectGlb } from "../../src/core/forge/GlbInspector.ts";
+import { ROOT, renderGlb } from "./runtime.ts";
 const out = path.join(ROOT, "artifacts/asre/character/smoke");
 mkdirSync(out, { recursive: true });
 const cache = new ComponentCache();

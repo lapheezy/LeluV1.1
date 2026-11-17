@@ -1,6 +1,6 @@
 /** Minimal readers for the worker's .npy outputs and for GLBs this module wrote. */
 import { readFileSync } from "node:fs";
-import type { Mesh } from "../../src/core/asre/volume/mesh";
+import type { Mesh } from "../../src/core/asre/volume/mesh.ts";
 
 export interface Npy {
   dtype: string;
@@ -34,7 +34,7 @@ export function readGlbMesh(bytes: Uint8Array): Mesh {
   const view = (acc: { bufferView: number; byteOffset?: number; count: number }, comps: number, ctor: Float32ArrayConstructor | Uint32ArrayConstructor) => {
     const bv = json.bufferViews[acc.bufferView];
     const off = bytes.byteOffset + binStart + (bv.byteOffset ?? 0) + (acc.byteOffset ?? 0);
-    return new ctor(bytes.buffer.slice(off, off + acc.count * comps * 4));
+    return new ctor(bytes.buffer.slice(off, off + acc.count * comps * 4) as ArrayBuffer);
   };
   const pos: number[] = [], idx: number[] = [];
   for (const m of json.meshes)

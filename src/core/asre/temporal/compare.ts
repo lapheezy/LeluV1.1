@@ -15,9 +15,9 @@
  * ==========================================================
  */
 
-import { mortonDecode, mortonEncode } from "../nre/morton";
-import type { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import type { Vec3 } from "../nre/types";
+import { mortonDecode, mortonEncode } from "../nre/morton.ts";
+import type { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import type { Vec3 } from "../nre/types.ts";
 
 export type ChangeClass = "unchanged" | "rigid-translation" | "expansion" | "contraction" | "deformation";
 

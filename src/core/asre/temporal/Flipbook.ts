@@ -25,10 +25,10 @@
  * ==========================================================
  */
 
-import { mortonDecode, mortonEncode } from "../nre/morton";
-import { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import type { Observation, Vec3 } from "../nre/types";
-import { SnapshotStore, type Snapshot, type TransformRecord } from "./SnapshotStore";
+import { mortonDecode, mortonEncode } from "../nre/morton.ts";
+import { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import type { Observation, Vec3 } from "../nre/types.ts";
+import { SnapshotStore, type Snapshot, type TransformRecord } from "./SnapshotStore.ts";
 
 export interface Page {
   observation: Observation;

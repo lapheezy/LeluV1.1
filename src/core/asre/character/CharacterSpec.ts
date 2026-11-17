@@ -12,7 +12,7 @@
  * ==========================================================
  */
 
-import type { Rgb } from "./shape";
+import type { Rgb } from "./shape.ts";
 
 export interface CharacterIdentity {
   id: string;

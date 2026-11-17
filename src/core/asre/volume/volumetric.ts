@@ -19,10 +19,10 @@
  * ==========================================================
  */
 
-import { mortonDecode, mortonEncode } from "../nre/morton";
-import { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import type { Observation, Vec3 } from "../nre/types";
-import { compareGrids } from "../temporal/compare";
+import { mortonDecode, mortonEncode } from "../nre/morton.ts";
+import { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import type { Observation, Vec3 } from "../nre/types.ts";
+import { compareGrids } from "../temporal/compare.ts";
 
 const N6: Vec3[] = [
   [1, 0, 0],

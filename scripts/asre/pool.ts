@@ -4,9 +4,9 @@
  * workers). Workers load TypeScript through tsx.
  */
 import { Worker } from "node:worker_threads";
-import type { BuiltComponent, Lattice } from "../../src/core/asre/character/build";
-import type { CharacterSpec } from "../../src/core/asre/character/CharacterSpec";
-import type { ComponentId } from "../../src/core/asre/character/components";
+import type { BuiltComponent, Lattice } from "../../src/core/asre/character/build.ts";
+import type { CharacterSpec } from "../../src/core/asre/character/CharacterSpec.ts";
+import type { ComponentId } from "../../src/core/asre/character/components.ts";
 
 type Pending = { resolve: (v: { component: BuiltComponent; workerMs: number }) => void; reject: (e: unknown) => void };
 
@@ -18,7 +18,9 @@ export class ComponentPool {
   private next = 0;
   readonly startupMs: Promise<number>;
 
-  constructor(readonly size: number) {
+  readonly size: number;
+  constructor(size: number) {
+    this.size = size;
     const t0 = performance.now();
     const ready: Promise<void>[] = [];
     for (let i = 0; i < size; i++) {

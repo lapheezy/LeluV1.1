@@ -1,13 +1,13 @@
 /** Smoke render: an NRE sphere → GLB → Blender Cycles PNG. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { SparseVoxelGrid } from "../../src/core/asre/nre";
-import { ballCells } from "../../src/core/asre/volume/shapes";
-import { surfaceNets } from "../../src/core/asre/volume/mesh";
-import { signedDistance, unionBox } from "../../src/core/asre/volume/volumetric";
-import { writeGlb } from "../../src/core/asre/gltf/GlbWriter";
-import { inspectGlb } from "../../src/core/forge/GlbInspector";
-import { ROOT, renderGlb } from "./runtime";
+import { SparseVoxelGrid } from "../../src/core/asre/nre/index.ts";
+import { ballCells } from "../../src/core/asre/volume/shapes.ts";
+import { surfaceNets } from "../../src/core/asre/volume/mesh.ts";
+import { signedDistance, unionBox } from "../../src/core/asre/volume/volumetric.ts";
+import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
+import { inspectGlb } from "../../src/core/forge/GlbInspector.ts";
+import { ROOT, renderGlb } from "./runtime.ts";
 
 const out = path.join(ROOT, "artifacts/asre/smoke");
 mkdirSync(out, { recursive: true });

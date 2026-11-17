@@ -14,10 +14,10 @@
  * ==========================================================
  */
 
-import { mortonDecode } from "../nre/morton";
-import type { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import { Provenance, type Vec3 } from "../nre/types";
-import { expectedGain } from "../scheduler/Scheduler";
+import { mortonDecode } from "../nre/morton.ts";
+import type { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import { Provenance, type Vec3 } from "../nre/types.ts";
+import { expectedGain } from "../scheduler/Scheduler.ts";
 
 export type Side = "front" | "back" | "left" | "right" | "top" | "bottom";
 

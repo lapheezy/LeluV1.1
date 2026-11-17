@@ -2,7 +2,7 @@
  * Deterministic voxel shapes on an integer lattice. Used by experiments and
  * tests; every count they produce is measured, not asserted from memory.
  */
-import type { Vec3 } from "../nre/types";
+import type { Vec3 } from "../nre/types.ts";
 
 /**
  * Cells whose centre lies inside a sphere. `center` is in cell units; cell

@@ -1,8 +1,8 @@
 /** Worker thread: builds one character component and transfers its buffers back. */
 import { parentPort } from "node:worker_threads";
-import { buildComponent, plan, type Lattice } from "../../src/core/asre/character/build";
-import type { CharacterSpec } from "../../src/core/asre/character/CharacterSpec";
-import type { ComponentId } from "../../src/core/asre/character/components";
+import { buildComponent, plan, type Lattice } from "../../src/core/asre/character/build.ts";
+import type { CharacterSpec } from "../../src/core/asre/character/CharacterSpec.ts";
+import type { ComponentId } from "../../src/core/asre/character/components.ts";
 
 parentPort!.on("message", (msg: { jobId: number; spec: CharacterSpec; id: ComponentId; lattice: Lattice }) => {
   const t0 = performance.now();

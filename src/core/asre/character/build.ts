@@ -14,14 +14,14 @@
  * ==========================================================
  */
 
-import { mortonEncode } from "../nre/morton";
-import { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import type { Vec3 } from "../nre/types";
-import { surfaceNets, vertexNormals, type Mesh } from "../volume/mesh";
-import type { GlbPart } from "../gltf/GlbWriter";
-import type { CharacterSpec } from "./CharacterSpec";
-import { COMPONENTS, COMPONENT_ORDER, anchorCells, componentKeys, contextFor, skeleton, type ComponentId, type Skeleton } from "./components";
-import type { Shape } from "./shape";
+import { mortonEncode } from "../nre/morton.ts";
+import { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import type { Vec3 } from "../nre/types.ts";
+import { surfaceNets, vertexNormals, type Mesh } from "../volume/mesh.ts";
+import type { GlbPart } from "../gltf/GlbWriter.ts";
+import type { CharacterSpec } from "./CharacterSpec.ts";
+import { COMPONENTS, COMPONENT_ORDER, anchorCells, componentKeys, contextFor, skeleton, type ComponentId, type Skeleton } from "./components.ts";
+import type { Shape } from "./shape.ts";
 
 export interface Lattice {
   resolution: number;

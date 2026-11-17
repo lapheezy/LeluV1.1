@@ -17,10 +17,10 @@
  * ==========================================================
  */
 
-import { encodeGrid } from "../nre/serialize";
-import { sha256Hex } from "../nre/hash";
-import { SparseVoxelGrid } from "../nre/SparseVoxelGrid";
-import type { Aabb, Cell, Observation, Vec3 } from "../nre/types";
+import { encodeGrid } from "../nre/serialize.ts";
+import { sha256Hex } from "../nre/hash.ts";
+import { SparseVoxelGrid } from "../nre/SparseVoxelGrid.ts";
+import type { Aabb, Cell, Observation, Vec3 } from "../nre/types.ts";
 
 export type TransformRecord =
   | { kind: "fuse"; observationId: string; added: number; reinforced: number; duplicate: boolean }
@@ -89,7 +89,10 @@ export class SnapshotStore {
   private head: string | null = null;
   private counter = 0;
 
-  constructor(private readonly options: { cacheLimit?: number; now?: () => number } = {}) {}
+  private readonly options: { cacheLimit?: number; now?: () => number };
+  constructor(options: { cacheLimit?: number; now?: () => number } = {}) {
+    this.options = options;
+  }
 
   get headId(): string | null {
     return this.head;

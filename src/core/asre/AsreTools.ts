@@ -16,8 +16,8 @@
  * ==========================================================
  */
 
-import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
-import type { ToolExecutionResult } from "../tools/ToolDispatcher";
+import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry.ts";
+import type { ToolExecutionResult } from "../tools/ToolDispatcher.ts";
 
 const OBJECT = (properties: Record<string, unknown>, required: string[]) => ({ type: "object", properties, required });
 

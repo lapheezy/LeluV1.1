@@ -6,13 +6,13 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { SparseVoxelGrid, iou, type Observation, type Vec3 } from "../../src/core/asre/nre";
-import { uncertaintyReport } from "../../src/core/asre/volume/volumetric";
-import { vertexNormals } from "../../src/core/asre/volume/mesh";
-import { writeGlb, type GlbMaterial } from "../../src/core/asre/gltf/GlbWriter";
-import { inspectGlb } from "../../src/core/forge/GlbInspector";
-import { readNpy } from "./io";
-import { renderGlb } from "./runtime";
+import { SparseVoxelGrid, iou, type Observation, type Vec3 } from "../../src/core/asre/nre/index.ts";
+import { uncertaintyReport } from "../../src/core/asre/volume/volumetric.ts";
+import { vertexNormals } from "../../src/core/asre/volume/mesh.ts";
+import { writeGlb, type GlbMaterial } from "../../src/core/asre/gltf/GlbWriter.ts";
+import { inspectGlb } from "../../src/core/forge/GlbInspector.ts";
+import { readNpy } from "./io.ts";
+import { renderGlb } from "./runtime.ts";
 
 const [trDir, wpDir] = process.argv.slice(2).map((p) => path.resolve(p));
 const tr = JSON.parse(readFileSync(path.join(trDir, "result.json"), "utf8"));

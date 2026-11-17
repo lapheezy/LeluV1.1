@@ -15,12 +15,12 @@
  * ==========================================================
  */
 
-import { sha256Hex } from "../nre/hash";
-import { canonicalJson } from "../nre/serialize";
-import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec";
-import type { Sdf, V3 } from "./sdf";
-import * as P from "./sdf";
-import { capsule, clip, ellipsoid, inflate, roundBox, smooth, sphere, torus, union, type Rgb, type Shape } from "./shape";
+import { sha256Hex } from "../nre/hash.ts";
+import { canonicalJson } from "../nre/serialize.ts";
+import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec.ts";
+import type { Sdf, V3 } from "./sdf.ts";
+import * as P from "./sdf.ts";
+import { capsule, clip, ellipsoid, inflate, roundBox, smooth, sphere, torus, union, type Rgb, type Shape } from "./shape.ts";
 
 export type ComponentId =
   | "torso" | "pelvis" | "neck" | "head" | "face" | "hair" | "arms" | "hands" | "legs" | "feet"

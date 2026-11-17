@@ -7,13 +7,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { deflateRawSync, inflateRawSync } from "node:zlib";
-import { SparseVoxelGrid, decodeGrid, encodeGrid, iou, naiveByteSize, sha256Hex, type Vec3 } from "../../src/core/asre/nre";
-import { analyzeMesh, voxelizeMesh, vertexNormals, type Mesh } from "../../src/core/asre/volume/mesh";
-import { volumeStats } from "../../src/core/asre/volume/volumetric";
-import { writeGlb } from "../../src/core/asre/gltf/GlbWriter";
-import { inspectGlb } from "../../src/core/forge/GlbInspector";
-import { readGlbMesh, readNpy } from "./io";
-import { renderGlb } from "./runtime";
+import { SparseVoxelGrid, decodeGrid, encodeGrid, iou, naiveByteSize, sha256Hex, type Vec3 } from "../../src/core/asre/nre/index.ts";
+import { analyzeMesh, voxelizeMesh, vertexNormals, type Mesh } from "../../src/core/asre/volume/mesh.ts";
+import { volumeStats } from "../../src/core/asre/volume/volumetric.ts";
+import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
+import { inspectGlb } from "../../src/core/forge/GlbInspector.ts";
+import { readGlbMesh, readNpy } from "./io.ts";
+import { renderGlb } from "./runtime.ts";
 
 export const deflate = {
   name: "deflate-raw",

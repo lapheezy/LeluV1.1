@@ -9,13 +9,13 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { BASE_CHARACTER, BODY_VARIANTS, OUTFITS, hairVariations, withChanges, type CharacterSpec, type PoseId } from "../../src/core/asre/character/CharacterSpec";
-import { ComponentCache, DEFAULT_LATTICE, buildCharacter, componentCodes, glbParts, type CharacterBuild } from "../../src/core/asre/character/build";
-import type { ComponentId } from "../../src/core/asre/character/components";
-import { writeGlb } from "../../src/core/asre/gltf/GlbWriter";
-import { inspectGlb } from "../../src/core/forge/GlbInspector";
-import { sha256Hex } from "../../src/core/asre/nre";
-import { ROOT, renderGlb } from "./runtime";
+import { BASE_CHARACTER, BODY_VARIANTS, OUTFITS, hairVariations, withChanges, type CharacterSpec, type PoseId } from "../../src/core/asre/character/CharacterSpec.ts";
+import { ComponentCache, DEFAULT_LATTICE, buildCharacter, componentCodes, glbParts, type CharacterBuild } from "../../src/core/asre/character/build.ts";
+import type { ComponentId } from "../../src/core/asre/character/components.ts";
+import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
+import { inspectGlb } from "../../src/core/forge/GlbInspector.ts";
+import { sha256Hex } from "../../src/core/asre/nre/index.ts";
+import { ROOT, renderGlb } from "./runtime.ts";
 
 const arg = (k: string, d: string) => {
   const i = process.argv.indexOf(k);

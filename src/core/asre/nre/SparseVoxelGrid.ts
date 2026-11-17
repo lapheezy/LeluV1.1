@@ -17,8 +17,8 @@
  * ==========================================================
  */
 
-import { mortonDecode, mortonEncode } from "./morton";
-import { Provenance, type Aabb, type Cell, type GridSpec, type Observation, type Vec3 } from "./types";
+import { mortonDecode, mortonEncode } from "./morton.ts";
+import { Provenance, type Aabb, type Cell, type GridSpec, type Observation, type Vec3 } from "./types.ts";
 
 export function noisyOr(probabilities: Iterable<number>): number {
   let miss = 1;
