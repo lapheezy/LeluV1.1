@@ -113,3 +113,5 @@ __pycache__/
 artifacts/asre/**/*.npy
 artifacts/asre/**/*.lnre
 artifacts/asre/**/*.job.json
+artifacts/asre/**/*.glb
+!artifacts/asre/triposr/**/*.glb
