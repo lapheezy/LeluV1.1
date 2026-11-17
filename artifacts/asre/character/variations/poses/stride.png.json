@@ -1,0 +1,33 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/poses/stride.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "triangles": 315140,
+ "bounds_blender_zup": {
+  "min": [
+   -0.3931652903556824,
+   -0.44861310720443726,
+   -0.021371224895119667
+  ],
+  "max": [
+   0.3931652903556824,
+   0.27409008145332336,
+   1.7130552530288696
+  ]
+ },
+ "render_seconds": 0.88,
+ "blender": "4.2.23 LTS"
+}

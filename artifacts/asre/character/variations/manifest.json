@@ -1,0 +1,1897 @@
+{
+ "summary": {
+  "variations": 67,
+  "byGroup": {
+   "base": 1,
+   "hair": 40,
+   "outfits": 8,
+   "bodies": 4,
+   "poses": 5,
+   "accessories": 5,
+   "materials": 4
+  },
+  "identityHashes": {
+   "51f740ba8d1e69da": 67
+  },
+  "cache": {
+   "entries": 190,
+   "hits": 815,
+   "misses": 190
+  },
+  "componentBuildsIfNoReuse": 1005,
+  "componentBuildsActual": 190
+ },
+ "manifest": [
+  {
+   "group": "base",
+   "label": "base",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "reused": [],
+   "buildMs": 1893,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/base/base.png",
+   "renderSeconds": 0.79
+  },
+  {
+   "group": "hair",
+   "label": "buzz-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 23,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 104980,
+   "render": "artifacts/asre/character/variations/hair/buzz-a.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "pixie-a",
+   "regenerated": [
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 37,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 105688,
+   "render": "artifacts/asre/character/variations/hair/pixie-a.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "bob-a",
+   "regenerated": [
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 36,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106908,
+   "render": "artifacts/asre/character/variations/hair/bob-a.png",
+   "renderSeconds": 0.41
+  },
+  {
+   "group": "hair",
+   "label": "lob-a",
+   "regenerated": [
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 46,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 108740,
+   "render": "artifacts/asre/character/variations/hair/lob-a.png",
+   "renderSeconds": 0.45
+  },
+  {
+   "group": "hair",
+   "label": "long-straight-a",
+   "regenerated": [
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 128,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 118396,
+   "render": "artifacts/asre/character/variations/hair/long-straight-a.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "long-wavy-a",
+   "regenerated": [
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 127,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 119416,
+   "render": "artifacts/asre/character/variations/hair/long-wavy-a.png",
+   "renderSeconds": 0.46
+  },
+  {
+   "group": "hair",
+   "label": "ponytail-a",
+   "regenerated": [
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 75,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 107328,
+   "render": "artifacts/asre/character/variations/hair/ponytail-a.png",
+   "renderSeconds": 0.44
+  },
+  {
+   "group": "hair",
+   "label": "high-ponytail-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 31,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106556,
+   "render": "artifacts/asre/character/variations/hair/high-ponytail-a.png",
+   "renderSeconds": 0.41
+  },
+  {
+   "group": "hair",
+   "label": "bun-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 25,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106004,
+   "render": "artifacts/asre/character/variations/hair/bun-a.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "top-knot-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 26,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106012,
+   "render": "artifacts/asre/character/variations/hair/top-knot-a.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "double-buns-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 28,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 105996,
+   "render": "artifacts/asre/character/variations/hair/double-buns-a.png",
+   "renderSeconds": 0.45
+  },
+  {
+   "group": "hair",
+   "label": "pigtails-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 56,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 108628,
+   "render": "artifacts/asre/character/variations/hair/pigtails-a.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "afro-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 25,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 111180,
+   "render": "artifacts/asre/character/variations/hair/afro-a.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "mohawk-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 35,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 103916,
+   "render": "artifacts/asre/character/variations/hair/mohawk-a.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "curtain-bangs-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 125,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 115300,
+   "render": "artifacts/asre/character/variations/hair/curtain-bangs-a.png",
+   "renderSeconds": 0.46
+  },
+  {
+   "group": "hair",
+   "label": "side-swept-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 36,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 107424,
+   "render": "artifacts/asre/character/variations/hair/side-swept-a.png",
+   "renderSeconds": 0.44
+  },
+  {
+   "group": "hair",
+   "label": "braids-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 100,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106652,
+   "render": "artifacts/asre/character/variations/hair/braids-a.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "spiky-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 57,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106164,
+   "render": "artifacts/asre/character/variations/hair/spiky-a.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "undercut-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 35,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 104900,
+   "render": "artifacts/asre/character/variations/hair/undercut-a.png",
+   "renderSeconds": 0.45
+  },
+  {
+   "group": "hair",
+   "label": "mullet-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 33,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 108564,
+   "render": "artifacts/asre/character/variations/hair/mullet-a.png",
+   "renderSeconds": 0.47
+  },
+  {
+   "group": "hair",
+   "label": "dreadlocks-a",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 99,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 112628,
+   "render": "artifacts/asre/character/variations/hair/dreadlocks-a.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "buzz-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 21,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 104980,
+   "render": "artifacts/asre/character/variations/hair/buzz-b.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "pixie-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 28,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 105688,
+   "render": "artifacts/asre/character/variations/hair/pixie-b.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "bob-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 37,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 107696,
+   "render": "artifacts/asre/character/variations/hair/bob-b.png",
+   "renderSeconds": 0.44
+  },
+  {
+   "group": "hair",
+   "label": "lob-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 42,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 110272,
+   "render": "artifacts/asre/character/variations/hair/lob-b.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "long-straight-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 204,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 132584,
+   "render": "artifacts/asre/character/variations/hair/long-straight-b.png",
+   "renderSeconds": 0.47
+  },
+  {
+   "group": "hair",
+   "label": "long-wavy-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 208,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 135340,
+   "render": "artifacts/asre/character/variations/hair/long-wavy-b.png",
+   "renderSeconds": 0.48
+  },
+  {
+   "group": "hair",
+   "label": "ponytail-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 85,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 109372,
+   "render": "artifacts/asre/character/variations/hair/ponytail-b.png",
+   "renderSeconds": 0.41
+  },
+  {
+   "group": "hair",
+   "label": "high-ponytail-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 43,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 107508,
+   "render": "artifacts/asre/character/variations/hair/high-ponytail-b.png",
+   "renderSeconds": 0.41
+  },
+  {
+   "group": "hair",
+   "label": "bun-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 42,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106400,
+   "render": "artifacts/asre/character/variations/hair/bun-b.png",
+   "renderSeconds": 0.44
+  },
+  {
+   "group": "hair",
+   "label": "top-knot-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 32,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106416,
+   "render": "artifacts/asre/character/variations/hair/top-knot-b.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "double-buns-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 31,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 106428,
+   "render": "artifacts/asre/character/variations/hair/double-buns-b.png",
+   "renderSeconds": 0.44
+  },
+  {
+   "group": "hair",
+   "label": "pigtails-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 86,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 111564,
+   "render": "artifacts/asre/character/variations/hair/pigtails-b.png",
+   "renderSeconds": 0.46
+  },
+  {
+   "group": "hair",
+   "label": "afro-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 71,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 125436,
+   "render": "artifacts/asre/character/variations/hair/afro-b.png",
+   "renderSeconds": 0.47
+  },
+  {
+   "group": "hair",
+   "label": "mohawk-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 35,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 105008,
+   "render": "artifacts/asre/character/variations/hair/mohawk-b.png",
+   "renderSeconds": 0.44
+  },
+  {
+   "group": "hair",
+   "label": "curtain-bangs-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 188,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 125408,
+   "render": "artifacts/asre/character/variations/hair/curtain-bangs-b.png",
+   "renderSeconds": 0.51
+  },
+  {
+   "group": "hair",
+   "label": "side-swept-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 39,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 108456,
+   "render": "artifacts/asre/character/variations/hair/side-swept-b.png",
+   "renderSeconds": 0.43
+  },
+  {
+   "group": "hair",
+   "label": "braids-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 163,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 108388,
+   "render": "artifacts/asre/character/variations/hair/braids-b.png",
+   "renderSeconds": 0.42
+  },
+  {
+   "group": "hair",
+   "label": "spiky-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 74,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 108368,
+   "render": "artifacts/asre/character/variations/hair/spiky-b.png",
+   "renderSeconds": 0.41
+  },
+  {
+   "group": "hair",
+   "label": "undercut-b",
+   "regenerated": [
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 37,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 105848,
+   "render": "artifacts/asre/character/variations/hair/undercut-b.png",
+   "renderSeconds": 0.41
+  },
+  {
+   "group": "outfits",
+   "label": "tee-jeans",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1036,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/outfits/tee-jeans.png",
+   "renderSeconds": 0.81
+  },
+  {
+   "group": "outfits",
+   "label": "tank-shorts",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 573,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 277264,
+   "render": "artifacts/asre/character/variations/outfits/tank-shorts.png",
+   "renderSeconds": 0.73
+  },
+  {
+   "group": "outfits",
+   "label": "longsleeve-skirt",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1297,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 342304,
+   "render": "artifacts/asre/character/variations/outfits/longsleeve-skirt.png",
+   "renderSeconds": 0.87
+  },
+  {
+   "group": "outfits",
+   "label": "jacket-pants",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1656,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 331224,
+   "render": "artifacts/asre/character/variations/outfits/jacket-pants.png",
+   "renderSeconds": 0.88
+  },
+  {
+   "group": "outfits",
+   "label": "tee-skirt",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1018,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 324176,
+   "render": "artifacts/asre/character/variations/outfits/tee-skirt.png",
+   "renderSeconds": 0.93
+  },
+  {
+   "group": "outfits",
+   "label": "longsleeve-pants",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1322,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 325432,
+   "render": "artifacts/asre/character/variations/outfits/longsleeve-pants.png",
+   "renderSeconds": 0.85
+  },
+  {
+   "group": "outfits",
+   "label": "jacket-shorts",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1277,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 290712,
+   "render": "artifacts/asre/character/variations/outfits/jacket-shorts.png",
+   "renderSeconds": 0.78
+  },
+  {
+   "group": "outfits",
+   "label": "tank-skirt",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 983,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 305672,
+   "render": "artifacts/asre/character/variations/outfits/tank-skirt.png",
+   "renderSeconds": 0.84
+  },
+  {
+   "group": "bodies",
+   "label": "base",
+   "regenerated": [],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 0,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/bodies/base.png",
+   "renderSeconds": 0.95
+  },
+  {
+   "group": "bodies",
+   "label": "tall",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "reused": [
+    "head",
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "buildMs": 1661,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 321156,
+   "render": "artifacts/asre/character/variations/bodies/tall.png",
+   "renderSeconds": 0.96
+  },
+  {
+   "group": "bodies",
+   "label": "broad",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "reused": [
+    "head",
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "buildMs": 1972,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 356780,
+   "render": "artifacts/asre/character/variations/bodies/broad.png",
+   "renderSeconds": 1.13
+  },
+  {
+   "group": "bodies",
+   "label": "petite",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "reused": [
+    "head",
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "buildMs": 1318,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 266260,
+   "render": "artifacts/asre/character/variations/bodies/petite.png",
+   "renderSeconds": 0.92
+  },
+  {
+   "group": "poses",
+   "label": "relaxed",
+   "regenerated": [],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 0,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/poses/relaxed.png",
+   "renderSeconds": 0.97
+  },
+  {
+   "group": "poses",
+   "label": "a-pose",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1543,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 313680,
+   "render": "artifacts/asre/character/variations/poses/a-pose.png",
+   "renderSeconds": 0.87
+  },
+  {
+   "group": "poses",
+   "label": "t-pose",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1491,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307272,
+   "render": "artifacts/asre/character/variations/poses/t-pose.png",
+   "renderSeconds": 0.82
+  },
+  {
+   "group": "poses",
+   "label": "wave",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 2100,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 310212,
+   "render": "artifacts/asre/character/variations/poses/wave.png",
+   "renderSeconds": 0.84
+  },
+  {
+   "group": "poses",
+   "label": "stride",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1810,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 315140,
+   "render": "artifacts/asre/character/variations/poses/stride.png",
+   "renderSeconds": 0.88
+  },
+  {
+   "group": "accessories",
+   "label": "glasses",
+   "regenerated": [
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 12,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 308124,
+   "render": "artifacts/asre/character/variations/accessories/glasses.png",
+   "renderSeconds": 0.87
+  },
+  {
+   "group": "accessories",
+   "label": "hat",
+   "regenerated": [
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 61,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 329276,
+   "render": "artifacts/asre/character/variations/accessories/hat.png",
+   "renderSeconds": 0.94
+  },
+  {
+   "group": "accessories",
+   "label": "earrings-necklace",
+   "regenerated": [
+    "accessories.head",
+    "accessories.body"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "buildMs": 3,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 308844,
+   "render": "artifacts/asre/character/variations/accessories/earrings-necklace.png",
+   "renderSeconds": 1.01
+  },
+  {
+   "group": "accessories",
+   "label": "backpack",
+   "regenerated": [
+    "accessories.body"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head"
+   ],
+   "buildMs": 38,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 330840,
+   "render": "artifacts/asre/character/variations/accessories/backpack.png",
+   "renderSeconds": 0.96
+  },
+  {
+   "group": "accessories",
+   "label": "all",
+   "regenerated": [
+    "accessories.head",
+    "accessories.body"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "buildMs": 134,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 333200,
+   "render": "artifacts/asre/character/variations/accessories/all.png",
+   "renderSeconds": 0.87
+  },
+  {
+   "group": "materials",
+   "label": "skin-light",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "reused": [],
+   "buildMs": 1859,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/materials/skin-light.png",
+   "renderSeconds": 0.76
+  },
+  {
+   "group": "materials",
+   "label": "skin-deep",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "reused": [],
+   "buildMs": 1905,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/materials/skin-deep.png",
+   "renderSeconds": 0.78
+  },
+  {
+   "group": "materials",
+   "label": "monochrome",
+   "regenerated": [
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "buildMs": 1011,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/materials/monochrome.png",
+   "renderSeconds": 0.78
+  },
+  {
+   "group": "materials",
+   "label": "neon",
+   "regenerated": [
+    "face",
+    "hair",
+    "clothing.top",
+    "clothing.bottom",
+    "accessories.head"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "buildMs": 1185,
+   "identity": "51f740ba8d1e69da",
+   "triangles": 307304,
+   "render": "artifacts/asre/character/variations/materials/neon.png",
+   "renderSeconds": 0.81
+  }
+ ]
+}

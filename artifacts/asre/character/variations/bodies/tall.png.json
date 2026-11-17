@@ -1,0 +1,33 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/bodies/tall.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "triangles": 321156,
+ "bounds_blender_zup": {
+  "min": [
+   -0.3605848252773285,
+   -0.21969479322433472,
+   -0.03953048959374428
+  ],
+  "max": [
+   0.3605848252773285,
+   0.12595725059509277,
+   1.8510552644729614
+  ]
+ },
+ "render_seconds": 0.96,
+ "blender": "4.2.23 LTS"
+}

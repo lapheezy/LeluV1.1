@@ -1,0 +1,26 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/hair/bun-b.png",
+ "objects": [
+  "torso",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "clothing.top"
+ ],
+ "triangles": 106400,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2762562930583954,
+   -0.13102523982524872,
+   0.9255833029747009
+  ],
+  "max": [
+   0.2762562930583954,
+   0.12596073746681213,
+   1.710434913635254
+  ]
+ },
+ "render_seconds": 0.44,
+ "blender": "4.2.23 LTS"
+}

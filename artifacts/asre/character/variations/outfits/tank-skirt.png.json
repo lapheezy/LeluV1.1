@@ -1,0 +1,32 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/outfits/tank-skirt.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom"
+ ],
+ "triangles": 305672,
+ "bounds_blender_zup": {
+  "min": [
+   -0.35006508231163025,
+   -0.2747829556465149,
+   -0.03176751732826233
+  ],
+  "max": [
+   0.35006508231163025,
+   0.25310561060905457,
+   1.7130552530288696
+  ]
+ },
+ "render_seconds": 0.84,
+ "blender": "4.2.23 LTS"
+}
