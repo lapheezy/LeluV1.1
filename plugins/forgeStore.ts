@@ -46,8 +46,12 @@ export interface ForgeOutputFile {
 export interface ForgeJob {
   id: string;
   character: string;
-  /** A Meshy task kind, or "blender" for a local post-process (spends nothing; see plugins/blenderStage.ts). */
-  kind: ForgeJobKind | "blender";
+  /**
+   * A Meshy task kind, "blender" for a local post-process (spends nothing;
+   * see plugins/blenderStage.ts), or "asre" for an asset made or edited by
+   * LÉLU's local reconstruction engine (spends nothing; see plugins/asreForge.ts).
+   */
+  kind: ForgeJobKind | "blender" | "asre";
   purpose: string;
   /** The request as asked for, with `ref:` handles unresolved — what the key is computed from. */
   request: Record<string, unknown>;

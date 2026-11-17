@@ -63,7 +63,9 @@ log = lambda *a: print(*a, file=sys.stderr, flush=True)  # noqa: E731
 def model_dir():
     from huggingface_hub import snapshot_download
 
-    return snapshot_download("stabilityai/TripoSR", allow_patterns=["config.yaml", "model.ckpt"])
+    # Pinned: the revision setup.sh installs. Offline (HF_HUB_OFFLINE=1) a bare
+    # "main" only resolves if a refs/main entry happens to exist in the cache.
+    return snapshot_download("stabilityai/TripoSR", revision="5b521936b01fbe1890f6f9baed0254ab6351c04a", allow_patterns=["config.yaml", "model.ckpt"])
 
 
 # ------------------------------------------------------------------ preprocess

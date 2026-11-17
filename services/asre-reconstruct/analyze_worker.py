@@ -99,8 +99,9 @@ def depth(rgba):
     from transformers import AutoImageProcessor, AutoModelForDepthEstimation
 
     name = "depth-anything/Depth-Anything-V2-Small-hf"
-    proc = AutoImageProcessor.from_pretrained(name)
-    model = AutoModelForDepthEstimation.from_pretrained(name).eval()
+    rev = "5426e4f0f36572d16453bbda7a8389317b1bef99"  # pinned, as installed (offline-safe)
+    proc = AutoImageProcessor.from_pretrained(name, revision=rev)
+    model = AutoModelForDepthEstimation.from_pretrained(name, revision=rev).eval()
     rgb = Image.fromarray(((rgba[:, :, :3] * rgba[:, :, 3:] + (1 - rgba[:, :, 3:]) * 0.5) * 255).astype(np.uint8))
     with torch.no_grad():
         pred = model(**proc(images=rgb, return_tensors="pt")).predicted_depth

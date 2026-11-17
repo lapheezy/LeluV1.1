@@ -16,7 +16,7 @@ import type { GlbReport } from "./GlbInspector";
 export interface ForgeJobView {
   id: string;
   character: string;
-  kind: ForgeJobKind | "blender";
+  kind: ForgeJobKind | "blender" | "asre";
   purpose: string;
   status: string;
   progress: number;

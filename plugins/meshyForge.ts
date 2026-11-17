@@ -121,9 +121,10 @@ interface MeshyTask {
   result?: Record<string, unknown> | null;
 }
 
-/** The Meshy task kind of a job; local Blender jobs never reach Meshy. */
+/** The Meshy task kind of a job; local Blender and ASRE jobs never reach Meshy. */
 function meshyKind(job: ForgeJob): ForgeJobKind {
   if (job.kind === "blender") throw new ForgeError(`Job ${job.id} is a local Blender post-process, not a Meshy task.`, 409);
+  if (job.kind === "asre") throw new ForgeError(`Job ${job.id} is a local ASRE asset, not a Meshy task.`, 409);
   return job.kind;
 }
 
@@ -579,7 +580,7 @@ export class MeshyForge {
    */
   adoptView(jobId: string, index: number, classification: { id: string; view: string; outfitVariant?: string; intendedUse?: string; notes?: string }) {
     const job = this.store.job(jobId);
-    if (!job || job.kind === "blender" || !IMAGE_KINDS.has(job.kind) || job.status !== "SUCCEEDED" || !job.output) {
+    if (!job || job.kind === "blender" || job.kind === "asre" || !IMAGE_KINDS.has(job.kind) || job.status !== "SUCCEEDED" || !job.output) {
       throw new ForgeError(`Job ${jobId} is not a finished image job.`, 409);
     }
     if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(classification.id)) throw new ForgeError("id must be lowercase letters, digits, _ or -.");

@@ -18,6 +18,16 @@
  *                                      vs reused components
  *   GET  /api/asre/assets/<path>       GLB / PNG / JSON produced above
  *
+ * Forge intake (plugins/asreForge.ts) — finished geometry lives in the
+ * existing 3D Forge ledger as job kind "asre"; its files, placement and
+ * Blender export use the Forge's own routes (/api/forge/assets,
+ * /api/forge/placements, /api/forge/jobs/<id>/export):
+ *   GET  /api/asre/forge                  ASRE assets in the Forge, newest first
+ *   GET  /api/asre/forge/<jobId>/history  version chain, oldest first
+ *   POST /api/asre/forge/import           { name, glbBase64 } → inspected Forge job
+ *   POST /api/asre/forge/<jobId>/edit     { edit: { translate, scale, rotateY, tint, ground, center } }
+ *                                         → a NEW version; the source is never touched
+ *
  * Everything runs locally: no paid API, no account, no key. When a
  * local tool is missing the status says so and the job fails with
  * that reason — it never pretends a step ran.
@@ -28,6 +38,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from "./modelApi.ts";
 import { AsreJobError, AsreJobManager, type AsreRuntime, type ImageInput, type SucceededHook } from "./asreJobs.ts";
+import { AsreForge, AsreForgeError } from "./asreForge.ts";
+import { ForgeStore } from "./forgeStore.ts";
 import type { ViewName } from "../src/core/asre/reconstruct/silhouette.ts";
 
 type EnvReader = (name: string) => string | undefined;
@@ -71,10 +83,23 @@ export function localRuntime(): AsreRuntime {
   };
 }
 
-export function createAsreApi(readEnv: EnvReader, options: { root?: string; runtime?: AsreRuntime; onSucceeded?: SucceededHook | null } = {}) {
+export function createAsreApi(readEnv: EnvReader, options: { root?: string; runtime?: AsreRuntime; onSucceeded?: SucceededHook | null; forgeStore?: ForgeStore | null } = {}) {
   const root = path.resolve(options.root || readEnv("LELU_ASRE_ROOT") || path.join(process.cwd(), "leluverse", "assets", "asre"));
   const runtime = options.runtime ?? localRuntime();
-  const manager = new AsreJobManager({ root, runtime, onSucceeded: options.onSucceeded ?? null });
+  // The SAME Forge store the Forge API uses (passed in by vite.config/server.ts);
+  // ForgeStore is stateless over its disk ledger, so a store on the same root is equivalent.
+  const forgeStore = options.forgeStore === null ? null : (options.forgeStore ?? new ForgeStore(readEnv("FORGE_ASSET_ROOT") || path.join(process.cwd(), "leluverse", "assets")));
+  const forge = forgeStore ? new AsreForge(forgeStore) : null;
+  const intake: SucceededHook | null =
+    options.onSucceeded !== undefined
+      ? options.onSucceeded
+      : forge
+        ? (job) => {
+            const parentForge = job.parentJobId ? (manager.get(job.parentJobId)?.result?.forgeJobId ?? null) : null;
+            return forge.fileReconstruction(job, (rel) => new Uint8Array(readFileSync(path.join(root, rel))), parentForge).id;
+          }
+        : null;
+  const manager = new AsreJobManager({ root, runtime, onSucceeded: intake });
   let characterCache: unknown = null;
 
   const inside = (p: string) => {
@@ -176,6 +201,23 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
           return send(res, { ok: true, job: await manager.observe(parts[1], image) }, 202);
         }
       }
+      if (parts[0] === "forge") {
+        if (!forge) return send(res, { ok: false, error: "no Forge store is configured" }, 503);
+        const pub = (j: ReturnType<AsreForge["assets"]>[number]) => ({ ...j, request: j.request });
+        if (method === "GET" && !parts[1]) return send(res, { ok: true, assets: forge.assets().map(pub) });
+        if (method === "POST" && parts[1] === "import") {
+          const body = await json(req);
+          if (typeof body.glbBase64 !== "string" || !body.glbBase64) return send(res, { ok: false, error: "glbBase64 is required" }, 400);
+          const bytes = new Uint8Array(Buffer.from(body.glbBase64.replace(/^data:[^,]*,/, ""), "base64"));
+          const job = forge.importGlb(bytes, typeof body.name === "string" ? body.name : "import.glb");
+          return send(res, { ok: job.status === "SUCCEEDED", job, error: job.error ?? undefined }, job.status === "SUCCEEDED" ? 201 : 422);
+        }
+        if (method === "GET" && parts[1] && parts[2] === "history") return send(res, { ok: true, history: forge.history(parts[1]) });
+        if (method === "POST" && parts[1] && parts[2] === "edit") {
+          const body = await json(req);
+          return send(res, { ok: true, job: forge.edit(parts[1], (body.edit ?? {}) as never) }, 201);
+        }
+      }
       if (method === "POST" && parts[0] === "character") {
         const body = JSON.parse((await readBody(req)).toString("utf8") || "{}") as Record<string, unknown>;
         return send(res, { ok: true, ...(await character(body)) });
@@ -191,7 +233,9 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
       }
       next();
     } catch (e) {
-      if (e instanceof AsreJobError) return send(res, { ok: false, error: e.message }, e.status);
+      if (e instanceof AsreJobError || e instanceof AsreForgeError) return send(res, { ok: false, error: e.message }, e.status);
+      const status = (e as { status?: unknown })?.status;
+      if (typeof status === "number" && status >= 400 && status < 600) return send(res, { ok: false, error: e instanceof Error ? e.message : String(e) }, status);
       send(res, { ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
     }
   }
@@ -199,6 +243,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
   return {
     root,
     manager,
+    forge,
     handle,
     attach(middlewares: { use: (path: string, h: Handler) => void }) {
       middlewares.use(MOUNT, (req, res, next) => void handle(req, res, next));

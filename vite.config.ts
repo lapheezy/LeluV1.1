@@ -109,7 +109,8 @@ export default defineConfig(({ mode, command }) => {
   // Meshy key is read here, server-side, and nowhere else.
   const forgeApi = createMeshyForgeApi(envReader, { poll: command === "serve" });
   // ASRE: local zero-spend reconstruction (TripoSR CPU, Blender) and the component character.
-  const asreApi = createAsreApi(envReader);
+  // Its finished geometry is filed in the SAME Forge ledger (job kind "asre").
+  const asreApi = createAsreApi(envReader, { forgeStore: forgeApi.forge.store });
   function modelApiPlugin() {
     return {
       name: "model-api",
