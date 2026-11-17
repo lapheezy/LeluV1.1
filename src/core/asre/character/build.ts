@@ -45,8 +45,12 @@ export interface LocalComponent {
 export interface BuiltComponent {
   id: ComponentId;
   key: string;
+  /** Key of the geometry alone (materials neutralised). */
+  geometryKey: string;
   anchor: Vec3;
+  /** True only when the component was sampled and meshed again. */
   regenerated: boolean;
+  action: "regenerated" | "recolored" | "reused";
   ms: number;
   local: LocalComponent | null;
 }
@@ -105,30 +109,62 @@ export interface BuildPlan {
   spec: CharacterSpec;
   sk: Skeleton;
   keys: Record<ComponentId, string>;
+  geometryKeys: Record<ComponentId, string>;
+}
+
+const NEUTRAL: [number, number, number] = [0.5, 0.5, 0.5];
+function neutralMaterials(spec: CharacterSpec): CharacterSpec {
+  const m = Object.fromEntries(Object.keys(spec.materials).map((k) => [k, NEUTRAL])) as unknown as CharacterSpec["materials"];
+  return { ...spec, materials: m };
 }
 
 export function plan(spec: CharacterSpec, lattice = DEFAULT_LATTICE): BuildPlan {
   const sk = skeleton(spec, lattice.resolution);
-  return { spec, sk, keys: componentKeys(spec, sk) };
+  return { spec, sk, keys: componentKeys(spec, sk), geometryKeys: componentKeys(neutralMaterials(spec), sk) };
 }
 
-/** Build (or reuse) one component. Empty components (no hat, no top…) return local = null. */
+function recolor(shape: Shape, geometry: LocalComponent, key: string): LocalComponent {
+  const t0 = performance.now();
+  const m = geometry.mesh;
+  const colors = new Float32Array((m.positions.length / 3) * 4);
+  for (let v = 0; v < m.positions.length / 3; v++) {
+    const c = shape.color(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]);
+    colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), 1], 4 * v);
+  }
+  return { key, cells: geometry.cells, mesh: { ...m, colors }, samples: 0, buildMs: performance.now() - t0 };
+}
+
+/**
+ * Build (or reuse) one component. Same full key → reuse. Same geometry but
+ * different materials → recolour the cached mesh (no sampling). Otherwise
+ * sample and mesh. Empty components (no hat, no top…) have no cells.
+ */
 export function buildComponent(id: ComponentId, p: BuildPlan, cache: ComponentCache | null, lattice = DEFAULT_LATTICE): BuiltComponent {
   const def = COMPONENTS[id];
   const key = p.keys[id];
+  const geometryKey = p.geometryKeys[id];
   const anchor = anchorCells(def, p.sk, lattice.resolution);
   const t0 = performance.now();
   const hit = cache?.get(key);
-  if (hit) return { id, key, anchor, regenerated: false, ms: performance.now() - t0, local: hit };
+  if (hit) return { id, key, geometryKey, anchor, regenerated: false, action: "reused", ms: performance.now() - t0, local: hit };
   const shape = def.build(contextFor(p.spec, p.sk));
+  const geo = cache?.get(`geo:${geometryKey}`);
+  if (geo && !shape) return { id, key, geometryKey, anchor, regenerated: false, action: "reused", ms: performance.now() - t0, local: geo };
+  if (geo && shape) {
+    const local = recolor(shape, geo, key);
+    cache!.set(key, local);
+    return { id, key, geometryKey, anchor, regenerated: false, action: "recolored", ms: performance.now() - t0, local };
+  }
   const local = shape ? sampleShape(shape, lattice.resolution, key) : { key, cells: new Int32Array(0), mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, samples: 0, buildMs: 0 };
   cache?.set(key, local);
-  return { id, key, anchor, regenerated: true, ms: performance.now() - t0, local };
+  cache?.set(`geo:${geometryKey}`, local);
+  return { id, key, geometryKey, anchor, regenerated: true, action: "regenerated", ms: performance.now() - t0, local };
 }
 
 export interface CharacterBuild {
   components: BuiltComponent[];
   regenerated: ComponentId[];
+  recolored: ComponentId[];
   reused: ComponentId[];
   ms: number;
 }
@@ -140,7 +176,8 @@ export function buildCharacter(spec: CharacterSpec, cache: ComponentCache | null
   return {
     components,
     regenerated: components.filter((c) => c.regenerated).map((c) => c.id),
-    reused: components.filter((c) => !c.regenerated).map((c) => c.id),
+    recolored: components.filter((c) => c.action === "recolored").map((c) => c.id),
+    reused: components.filter((c) => c.action === "reused").map((c) => c.id),
     ms: performance.now() - t0,
   };
 }

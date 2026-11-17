@@ -87,3 +87,14 @@ test("GLB: one node per component, inspected valid, extras carry identity and ke
   assert.equal(json.nodes.length, b.components.filter((c) => c.local?.mesh.indices.length).length);
   assert.ok(json.nodes.every((n: { extras: { identity: string; key: string } }) => n.extras.identity === base.identity.id && n.extras.key.length === 16));
 });
+
+test("a material-only change recolours cached geometry instead of regenerating it", () => {
+  const cache = new ComponentCache();
+  const first = buildCharacter(base, cache, L);
+  const second = buildCharacter(withChanges(base, { materials: { skin: [0.9, 0.72, 0.6] } }), cache, L);
+  assert.deepEqual(second.regenerated, []);
+  assert.ok(second.recolored.includes("head") && second.recolored.includes("torso"));
+  const h1 = byId(first, "head").local!, h2 = byId(second, "head").local!;
+  assert.equal(h1.cells, h2.cells, "same geometry buffers");
+  assert.notDeepEqual(h1.mesh.colors, h2.mesh.colors);
+});
