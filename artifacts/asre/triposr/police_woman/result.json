@@ -1,0 +1,67 @@
+{
+ "image": "/opt/lelu-tools/TripoSR/examples/police_woman.png",
+ "input_mode": "RGBA",
+ "used_rembg": false,
+ "model_dir": "/opt/lelu-tools/hf-home/hub/models--stabilityai--TripoSR/snapshots/5b521936b01fbe1890f6f9baed0254ab6351c04a",
+ "triposr_src": "/opt/lelu-tools/TripoSR",
+ "torch": "2.15.0+cpu",
+ "numpy": "2.5.4",
+ "threads": 4,
+ "timings": {
+  "preprocess_s": 0.083,
+  "load_s": 6.56,
+  "inference_s": 6.398,
+  "mesh_s": 10.735,
+  "lattice_s": 1.839
+ },
+ "mc_resolution": 256,
+ "threshold": 25.0,
+ "radius": 0.87,
+ "vertices": 76785,
+ "triangles": 153582,
+ "signed_volume": 0.17350344359874725,
+ "bounds_zup": {
+  "min": [
+   -0.37633365392684937,
+   -0.42140474915504456,
+   -0.49122339487075806
+  ],
+  "max": [
+   0.3912813663482666,
+   0.44427192211151123,
+   0.49271905422210693
+  ]
+ },
+ "voxel_size": 0.00625,
+ "lattice_origin_cells": [
+  -63,
+  -70,
+  -81
+ ],
+ "lattice_dims": [
+  128,
+  144,
+  162
+ ],
+ "cells": 706026,
+ "front_visible_cells": 16632,
+ "camera_silhouette_iou": 0.8788014311270125,
+ "upstream": {
+  "vertices": 76949,
+  "triangles": 153572,
+  "bounds_zup": {
+   "min": [
+    -0.37633365392684937,
+    -0.42140474915504456,
+    -0.49122342467308044
+   ],
+   "max": [
+    0.3912813663482666,
+    0.44427192211151123,
+    0.49271905422210693
+   ]
+  },
+  "max_bounds_delta": 2.9802322387695312e-08,
+  "mesh_s": 11.279
+ }
+}

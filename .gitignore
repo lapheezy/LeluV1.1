@@ -108,3 +108,8 @@ __pycache__/
 
 # Runtime state (spend authorizations + audit: plugins/spendPolicy.ts)
 .lelu-state/
+
+# ASRE: reproducible bulk outputs (see services/asre-reconstruct/README.md)
+artifacts/asre/**/*.npy
+artifacts/asre/**/*.lnre
+artifacts/asre/**/*.job.json
