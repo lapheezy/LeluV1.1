@@ -275,6 +275,36 @@ export class AsreJobManager {
     return this.view(job);
   }
 
+  /**
+   * The reconstruction's history across jobs: the root reconstruction and
+   * every observe job built on it, with the evidence and confidence after
+   * each step — how the model learned from each new view.
+   */
+  lineage(id: string) {
+    const chain: AsreJobView[] = [];
+    let cur = this.get(id);
+    const seen = new Set<string>();
+    while (cur && !seen.has(cur.id)) {
+      seen.add(cur.id);
+      chain.unshift(cur);
+      cur = cur.parentJobId ? this.get(cur.parentJobId) : null;
+    }
+    return chain.map((j) => ({
+      id: j.id,
+      kind: j.kind,
+      state: j.state,
+      views: j.input.images.map((i) => i.view),
+      added: j.kind === "observe" ? j.input.images[j.input.images.length - 1].view : null,
+      evidence: j.result?.evidence ?? null,
+      meanConfidence: j.result?.grid.meanConfidence ?? null,
+      cells: j.result?.grid.cells ?? null,
+      observation: j.observation,
+      snapshots: j.result?.snapshots.length ?? 0,
+      forgeJobId: j.result?.forgeJobId ?? null,
+      finishedAt: j.finishedAt,
+    }));
+  }
+
   cancel(id: string): AsreJobView {
     const j = this.jobs.get(id);
     if (!j) throw new AsreJobError(`no job ${id}`, 404);

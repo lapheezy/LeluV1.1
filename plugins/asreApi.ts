@@ -31,6 +31,8 @@
  *   GET  /api/asre/characters/<id>/compare?a=&b=      spec, component and voxel differences
  *   POST /api/asre/characters/<id>/export             { version } → Forge job (kind "asre")
  *   GET  /api/asre/characters/<id>/verify             immutability check of every version
+ *   GET  /api/asre/characters/<id>/timeline           every version as a temporal snapshot (diffs, replay-verified)
+ *   GET  /api/asre/jobs/<id>/lineage                  reconstruction history: evidence/confidence per view
  *   GET  /api/asre/assets/<path>       GLB / PNG / JSON produced above
  *
  * Forge intake (plugins/asreForge.ts) — finished geometry lives in the
@@ -210,6 +212,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
           if (!job) return send(res, { ok: false, error: `no job ${parts[1]}` }, 404);
           return send(res, { ok: true, job });
         }
+        if (method === "GET" && parts[2] === "lineage") return send(res, { ok: true, lineage: manager.lineage(parts[1]) });
         if (method === "POST" && parts[2] === "cancel") return send(res, { ok: true, job: manager.cancel(parts[1]) });
         if (method === "POST" && parts[2] === "retry") return send(res, { ok: true, job: await manager.retry(parts[1]) }, 202);
         if (method === "POST" && parts[2] === "observe") {
@@ -258,6 +261,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
           const q = new URLSearchParams((req.url ?? "").split("?")[1] ?? "");
           return send(res, { ok: true, comparison: await characters.compare(id, q.get("a") ?? "", q.get("b") ?? "") });
         }
+        if (id && method === "GET" && parts[2] === "timeline") return send(res, { ok: true, timeline: await characters.timeline(id) });
         if (id && method === "GET" && parts[2] === "verify") {
           const problems = characters.verify(id);
           return send(res, { ok: problems.length === 0, problems });

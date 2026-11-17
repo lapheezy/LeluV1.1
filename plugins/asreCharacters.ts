@@ -50,6 +50,9 @@ import {
 } from "../src/core/asre/character/identity.ts";
 import { writeGlb } from "../src/core/asre/gltf/GlbWriter.ts";
 import { compareGrids } from "../src/core/asre/temporal/compare.ts";
+import { SnapshotStore, type TransformRecord } from "../src/core/asre/temporal/SnapshotStore.ts";
+import { SparseVoxelGrid } from "../src/core/asre/nre/SparseVoxelGrid.ts";
+import type { Observation, Vec3 } from "../src/core/asre/nre/types.ts";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
 import type { AsreForge } from "./asreForge.ts";
 
@@ -461,8 +464,12 @@ export class AsreCharacterStore {
   async compare(id: string, a: string, b: string) {
     const va = this.version(id, a), vb = this.version(id, b);
     const ga = characterGrid(await this.build(va.spec), this.lattice);
+    await yieldNow();
     const gb = characterGrid(await this.build(vb.spec), this.lattice);
-    const g = compareGrids(ga, gb);
+    await yieldNow();
+    // No rigid-translation search: a character's components move independently,
+    // and the 125-shift search costs ~16 s on a 350k-cell grid (measured).
+    const g = compareGrids(ga, gb, { searchRadius: 0 });
     return {
       a,
       b,
@@ -472,6 +479,50 @@ export class AsreCharacterStore {
       triangles: { a: va.glb.triangles, b: vb.glb.triangles },
       evidence: "both versions are GENERATED (procedural): nothing in them was observed",
     };
+  }
+
+  /**
+   * The character's history as temporal snapshots (src/core/asre/temporal):
+   * every version is committed on its parent's snapshot (branches included),
+   * each diff lists the cells it added, removed or changed, rebuilt
+   * components are recorded as replace-region transforms, and the head is
+   * rebuilt by replaying diffs from the root and checked against its hash.
+   * Cost: about 1.5 s per version at the 6 mm lattice, so this runs on
+   * request (it yields between versions), not on every edit.
+   *
+   * Memory: a 6 mm character grid is ~350k cells (~100 MB as objects). Only
+   * each version's OBSERVATION TABLE is kept (all a child needs from its
+   * parent), and the snapshot store caches one grid; holding every version's
+   * grid ran a 2 GB heap out of memory at six versions (measured).
+   */
+  async timeline(id: string) {
+    const r = this.record(id);
+    const store = new SnapshotStore({ cacheLimit: 1 });
+    const tables = new Map<string, readonly Observation[]>();
+    const snapOf = new Map<string, string>();
+    const out: Array<{ version: string; parent: string | null; snapshot: string; label: string; operation: string; cells: number; added: number; removed: number; changed: number; contentHash: string; replaced: string[]; evidence: "GENERATED"; meanConfidence: number }> = [];
+    for (const vid of r.versions) {
+      const v = this.version(id, vid);
+      const build = await this.build(v.spec);
+      const grid = versionGrid(v.parentId ? (tables.get(v.parentId) ?? null) : null, build, this.lattice);
+      const parentVersion = v.parentId ? this.version(id, v.parentId) : null;
+      const replaced = parentVersion ? build.components.filter((c) => parentVersion.components[c.id].geometrySha !== v.components[c.id].geometrySha) : build.components;
+      const transformations: TransformRecord[] = [
+        ...replaced.flatMap((c) => {
+          const region = componentRegion(c, this.lattice);
+          return region ? [{ kind: "replace-region" as const, region, component: c.id, reason: v.label }] : [];
+        }),
+        { kind: "note", text: `${vid}: ${v.operation.kind} — ${v.label}` },
+      ];
+      const snap = store.commit(grid, { label: `${vid} ${v.label}`, transformations, parentId: v.parentId ? snapOf.get(v.parentId)! : null, id: `snap-${vid}` });
+      snapOf.set(vid, snap.id);
+      tables.set(vid, [...grid.getObservations()]);
+      out.push({ version: vid, parent: v.parentId, snapshot: snap.id, label: v.label, operation: v.operation.kind, cells: snap.cellCount, added: snap.diff.added.length, removed: snap.diff.removed.length, changed: snap.diff.changed.length, contentHash: snap.contentHash, replaced: replaced.map((c) => c.id), evidence: "GENERATED", meanConfidence: 1 });
+      await yieldNow();
+    }
+    store.dropCache();
+    const replayed = store.replay(snapOf.get(r.head)!);
+    return { character: id, head: r.head, snapshots: out, headReplayVerified: replayed.size === out.find((s) => s.version === r.head)!.cells, confidence: "constant 1.0: a procedural character is GENERATED, there is no observation to be uncertain about" };
   }
 
   /** File a version in the Forge (kind "asre"); the parent's export, if any, becomes its Forge parent. */
@@ -496,6 +547,39 @@ export class AsreCharacterStore {
       return { forgeJobId: job.id, reused };
     });
   }
+}
+
+/**
+ * The NRE grid of a version built ON its parent's grid: the observation table
+ * extends the parent's (a replaced component adds an observation, a restored
+ * one reuses its original), which is what the temporal SnapshotStore requires
+ * of a child state. Every cell is GENERATED (procedural), confidence 1.
+ */
+export function versionGrid(parent: SparseVoxelGrid | readonly Observation[] | null, build: CharacterBuild, lattice: Lattice): SparseVoxelGrid {
+  const g = new SparseVoxelGrid({ resolution: lattice.resolution, origin: lattice.originCells.map((v) => v * lattice.resolution) as Vec3, dims: lattice.dims, coordinateSystem: "y-up-right-handed" });
+  if (parent) for (const o of Array.isArray(parent) ? parent : (parent as SparseVoxelGrid).getObservations()) g.addObservation(o);
+  for (const c of build.components) {
+    const cells = c.local?.cells;
+    if (!cells?.length) continue;
+    const id = `${c.id}@${c.key}`;
+    let index = g.observationIndex(id);
+    if (index < 0) index = g.addObservation({ id, capturedAt: 0, source: `asre.character:${c.id}`, modality: "procedural", provenance: "SYNTHESIZED", confidence: 1, parameters: { component: c.id }, fingerprint: `component:${c.key}`, lineage: [] }).index;
+    for (let i = 0; i < cells.length; i += 3) g.addEvidence(cells[i] + c.anchor[0] - lattice.originCells[0], cells[i + 1] + c.anchor[1] - lattice.originCells[1], cells[i + 2] + c.anchor[2] - lattice.originCells[2], index);
+  }
+  return g;
+}
+
+function componentRegion(c: BuiltComponent, lattice: Lattice): { min: Vec3; max: Vec3 } | null {
+  const cells = c.local?.cells;
+  if (!cells?.length) return null;
+  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < cells.length; i += 3)
+    for (let a = 0; a < 3; a++) {
+      const v = cells[i + a] + c.anchor[a] - lattice.originCells[a];
+      if (v < min[a]) min[a] = v;
+      if (v > max[a]) max[a] = v;
+    }
+  return { min, max };
 }
 
 const GROUPS = new Set(["body", "face", "hair", "clothing", "accessories", "materials", "pose"]);

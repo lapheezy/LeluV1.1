@@ -7,6 +7,8 @@
  * per component, the content key, the geometry key and two hashes:
  *
  *   geometrySha  positions + indices + cells, placed in the world
+ *   shapeSha     the same in the component's own frame (anchor-free):
+ *                equal shapeSha + different geometrySha = same shape, moved
  *   materialSha  vertex colours
  *
  * so "the face did not change" is a byte comparison, not a belief.
@@ -74,6 +76,7 @@ export interface ComponentRecord {
   key: string;
   geometryKey: string;
   geometrySha: string;
+  shapeSha: string;
   materialSha: string;
   cells: number;
   triangles: number;
@@ -87,7 +90,7 @@ const bytesOf = (a: ArrayBufferView) => new Uint8Array(a.buffer, a.byteOffset, a
 export function componentRecord(c: BuiltComponent, h: number): ComponentRecord {
   const local = c.local!;
   if (!local.mesh.indices.length) {
-    return { key: c.key, geometryKey: c.geometryKey, geometrySha: "empty", materialSha: "empty", cells: 0, triangles: 0, action: c.action };
+    return { key: c.key, geometryKey: c.geometryKey, geometrySha: "empty", shapeSha: "empty", materialSha: "empty", cells: 0, triangles: 0, action: c.action };
   }
   const m = placedMesh(c, h);
   const anchor = new Int32Array(c.anchor);
@@ -97,10 +100,17 @@ export function componentRecord(c: BuiltComponent, h: number): ComponentRecord {
     geo.set(part, o);
     o += part.length;
   }
+  const shape = new Uint8Array(local.mesh.positions.byteLength + local.mesh.indices.byteLength + local.cells.byteLength);
+  o = 0;
+  for (const part of [bytesOf(local.mesh.positions), bytesOf(local.mesh.indices), bytesOf(local.cells)]) {
+    shape.set(part, o);
+    o += part.length;
+  }
   return {
     key: c.key,
     geometryKey: c.geometryKey,
     geometrySha: sha256Hex(geo),
+    shapeSha: sha256Hex(shape),
     materialSha: m.colors ? sha256Hex(bytesOf(m.colors)) : "none",
     cells: local.cells.length / 3,
     triangles: m.indices.length / 3,
@@ -182,7 +192,8 @@ export function restoreGroups(into: CharacterSpec, from: CharacterSpec, groups: 
 
 export interface ComponentDiff {
   id: ComponentId;
-  change: "same" | "material-only" | "geometry" | "added" | "removed";
+  /** moved = same shape (shapeSha) placed elsewhere, e.g. hair on a taller body's head. */
+  change: "same" | "material-only" | "moved" | "geometry" | "added" | "removed";
   trianglesBefore: number;
   trianglesAfter: number;
 }
@@ -195,7 +206,7 @@ export function diffComponents(a: CharacterVersion, b: CharacterVersion): Compon
     let change: ComponentDiff["change"] = "same";
     if (empty(x) && !empty(y)) change = "added";
     else if (!empty(x) && empty(y)) change = "removed";
-    else if (x.geometrySha !== y.geometrySha) change = "geometry";
+    else if (x.geometrySha !== y.geometrySha) change = x.shapeSha === y.shapeSha ? "moved" : "geometry";
     else if (x.materialSha !== y.materialSha) change = "material-only";
     return { id, change, trianglesBefore: x.triangles, trianglesAfter: y.triangles };
   });
