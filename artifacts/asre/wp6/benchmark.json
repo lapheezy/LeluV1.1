@@ -1,0 +1,1614 @@
+{
+ "env": {
+  "cpus": 4,
+  "cpuModel": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "memGB": 15.7,
+  "node": "v22.23.5",
+  "lattice": {
+   "resolution": 0.008,
+   "originCells": [
+    -120,
+    -9,
+    -83
+   ],
+   "dims": [
+    240,
+    270,
+    165
+   ]
+  },
+  "trials": 5,
+  "edits": [
+   "hair: bob",
+   "sleeves: long",
+   "hair colour",
+   "glasses",
+   "pose: wave",
+   "body: tall",
+   "hair: ponytail",
+   "bottom: skirt",
+   "hat + glasses",
+   "pose: relaxed"
+  ]
+ },
+ "summary": {
+  "whole-object/cold": {
+   "wallMs": {
+    "median": 21852.2,
+    "q1": 20972.5,
+    "q3": 21882.5,
+    "min": 19590.2,
+    "max": 22253.7,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 22369,
+    "q1": 21618.7,
+    "q3": 22445.9,
+    "min": 20191.4,
+    "max": 22823.7,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 299.7,
+    "q1": 293.1,
+    "q3": 302.1,
+    "min": 292.5,
+    "max": 305.9,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 1401.8,
+    "q1": 1355.1,
+    "q3": 1542.2,
+    "min": 1233.6,
+    "max": 1877.7,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 1401.8,
+    "q1": 1355.1,
+    "q3": 1542.2,
+    "min": 1233.6,
+    "max": 1877.7,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 2061.3,
+    "q1": 1451.4,
+    "q3": 2424.7,
+    "min": 1066.2,
+    "max": 3129,
+    "n": 50
+   },
+   "regeneratedComponents": 150,
+   "recoloredComponents": 0,
+   "reusedComponents": 0,
+   "samplesEvaluated": 19289000,
+   "finalTriangles": 114188,
+   "finalIouVsWhole": 1
+  },
+  "whole-object/warm": {
+   "wallMs": {
+    "median": 21986.7,
+    "q1": 21528.3,
+    "q3": 22190.2,
+    "min": 21241.9,
+    "max": 22985,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 22036.2,
+    "q1": 21494,
+    "q3": 22220.3,
+    "min": 21272.6,
+    "max": 22902.4,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 355.8,
+    "q1": 353.8,
+    "q3": 361.6,
+    "min": 352.2,
+    "max": 368.7,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 1291.5,
+    "q1": 1274,
+    "q3": 1408.9,
+    "min": 1256.7,
+    "max": 1651.3,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 1291.5,
+    "q1": 1274,
+    "q3": 1408.9,
+    "min": 1256.7,
+    "max": 1651.3,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 2107.5,
+    "q1": 1369.3,
+    "q3": 2586.4,
+    "min": 1158.3,
+    "max": 3268.8,
+    "n": 50
+   },
+   "regeneratedComponents": 150,
+   "recoloredComponents": 0,
+   "reusedComponents": 0,
+   "samplesEvaluated": 19289000,
+   "finalTriangles": 114188,
+   "finalIouVsWhole": 1
+  },
+  "component/cold": {
+   "wallMs": {
+    "median": 18853,
+    "q1": 18306.5,
+    "q3": 19475.7,
+    "min": 16476.2,
+    "max": 20078,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 19193.9,
+    "q1": 18617.6,
+    "q3": 19752.8,
+    "min": 16867,
+    "max": 20478.6,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 326,
+    "q1": 324.7,
+    "q3": 326.2,
+    "min": 319.6,
+    "max": 332.1,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 1264.9,
+    "q1": 1242.3,
+    "q3": 1368.2,
+    "min": 1055.1,
+    "max": 1440.7,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 1290.8,
+    "q1": 1265.7,
+    "q3": 1391.6,
+    "min": 1074.7,
+    "max": 1454.7,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 1666.1,
+    "q1": 1265.7,
+    "q3": 2027.6,
+    "min": 907,
+    "max": 2882.5,
+    "n": 50
+   },
+   "regeneratedComponents": 150,
+   "recoloredComponents": 0,
+   "reusedComponents": 0,
+   "samplesEvaluated": 30308866,
+   "finalTriangles": 204536,
+   "finalIouVsWhole": 1
+  },
+  "component/warm": {
+   "wallMs": {
+    "median": 18213.6,
+    "q1": 17722.8,
+    "q3": 18402.6,
+    "min": 16922,
+    "max": 21028.7,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 18244.3,
+    "q1": 17740.6,
+    "q3": 18473.9,
+    "min": 17073.5,
+    "max": 21120.9,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 377.8,
+    "q1": 366,
+    "q3": 380.7,
+    "min": 365.4,
+    "max": 384.5,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 1024.2,
+    "q1": 979.3,
+    "q3": 1329,
+    "min": 965.3,
+    "max": 1420.3,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 1037,
+    "q1": 992.8,
+    "q3": 1351,
+    "min": 979,
+    "max": 1445.5,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 1688,
+    "q1": 1253.4,
+    "q3": 2053.9,
+    "min": 915.4,
+    "max": 2700.1,
+    "n": 50
+   },
+   "regeneratedComponents": 150,
+   "recoloredComponents": 0,
+   "reusedComponents": 0,
+   "samplesEvaluated": 30308866,
+   "finalTriangles": 204536,
+   "finalIouVsWhole": 1
+  },
+  "incremental/cold": {
+   "wallMs": {
+    "median": 7354.3,
+    "q1": 6810.2,
+    "q3": 7812,
+    "min": 6776.6,
+    "max": 8417.1,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 7698.9,
+    "q1": 7226.1,
+    "q3": 8124.9,
+    "min": 7123.3,
+    "max": 8808.3,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 293.8,
+    "q1": 293,
+    "q3": 293.9,
+    "min": 281.9,
+    "max": 306.8,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 1185.1,
+    "q1": 1169.1,
+    "q3": 1391.3,
+    "min": 1101.6,
+    "max": 1733.8,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 1199,
+    "q1": 1185.1,
+    "q3": 1407.1,
+    "min": 1115.1,
+    "max": 1755.9,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 209.8,
+    "q1": 27.1,
+    "q3": 640.5,
+    "min": 3.4,
+    "max": 2496.5,
+    "n": 50
+   },
+   "regeneratedComponents": 30,
+   "recoloredComponents": 2,
+   "reusedComponents": 118,
+   "samplesEvaluated": 10586070,
+   "finalTriangles": 204536,
+   "finalIouVsWhole": 1
+  },
+  "incremental/warm": {
+   "wallMs": {
+    "median": 6833.4,
+    "q1": 6572.5,
+    "q3": 7162.3,
+    "min": 6194.4,
+    "max": 7186.1,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 6883.7,
+    "q1": 6592.5,
+    "q3": 7200.1,
+    "min": 6244.6,
+    "max": 7236.6,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 362.2,
+    "q1": 347.6,
+    "q3": 373.8,
+    "min": 336.1,
+    "max": 401,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 1001.3,
+    "q1": 988.2,
+    "q3": 1035.3,
+    "min": 916.5,
+    "max": 1048.7,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 1014.7,
+    "q1": 1001.5,
+    "q3": 1049.2,
+    "min": 928.5,
+    "max": 1064.6,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 249.1,
+    "q1": 19.9,
+    "q3": 640.6,
+    "min": 2.9,
+    "max": 2265.1,
+    "n": 50
+   },
+   "regeneratedComponents": 30,
+   "recoloredComponents": 2,
+   "reusedComponents": 118,
+   "samplesEvaluated": 10586070,
+   "finalTriangles": 204536,
+   "finalIouVsWhole": 1
+  },
+  "adaptive-parallel/cold": {
+   "wallMs": {
+    "median": 4851.9,
+    "q1": 4674.3,
+    "q3": 5043.8,
+    "min": 4508.3,
+    "max": 5333.3,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 10363.6,
+    "q1": 9348.9,
+    "q3": 10534.7,
+    "min": 9155,
+    "max": 10673.7,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 505.5,
+    "q1": 498.6,
+    "q3": 505.9,
+    "min": 490.4,
+    "max": 551.9,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 928.4,
+    "q1": 846,
+    "q3": 1073.5,
+    "min": 812.7,
+    "max": 1081.1,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 928.7,
+    "q1": 846.3,
+    "q3": 1073.7,
+    "min": 813,
+    "max": 1081.4,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 241.4,
+    "q1": 46.7,
+    "q3": 494.9,
+    "min": 8.8,
+    "max": 1077.8,
+    "n": 50
+   },
+   "regeneratedComponents": 30,
+   "recoloredComponents": 2,
+   "reusedComponents": 118,
+   "samplesEvaluated": 10586070,
+   "finalTriangles": 204536,
+   "finalIouVsWhole": 1
+  },
+  "adaptive-parallel/warm": {
+   "wallMs": {
+    "median": 4862.1,
+    "q1": 4262.3,
+    "q3": 4910.1,
+    "min": 4220,
+    "max": 5148.5,
+    "n": 5
+   },
+   "cpuMs": {
+    "median": 8387,
+    "q1": 7619.9,
+    "q3": 8667.9,
+    "min": 7210.3,
+    "max": 8790.8,
+    "n": 5
+   },
+   "peakRssMB": {
+    "median": 626.4,
+    "q1": 567.1,
+    "q3": 715.4,
+    "min": 563.3,
+    "max": 734.1,
+    "n": 5
+   },
+   "firstUsableMs": {
+    "median": 598.3,
+    "q1": 562.1,
+    "q3": 619.9,
+    "min": 542.7,
+    "max": 683.2,
+    "n": 5
+   },
+   "initialFinalMs": {
+    "median": 598.3,
+    "q1": 562.2,
+    "q3": 619.9,
+    "min": 542.8,
+    "max": 683.2,
+    "n": 5
+   },
+   "editLatencyMs": {
+    "median": 247.2,
+    "q1": 26.9,
+    "q3": 546.4,
+    "min": 3,
+    "max": 1404.6,
+    "n": 50
+   },
+   "regeneratedComponents": 30,
+   "recoloredComponents": 2,
+   "reusedComponents": 118,
+   "samplesEvaluated": 10586070,
+   "finalTriangles": 204536,
+   "finalIouVsWhole": 1
+  }
+ },
+ "raw": {
+  "whole-object": [
+   [
+    {
+     "pass": "cold",
+     "wallMs": 21882.484334,
+     "cpuMs": 22445.899,
+     "peakRssMB": 302.1328125,
+     "firstUsableMs": 1355.09469,
+     "initialFinalMs": 1355.09469,
+     "editLatencyMs": [
+      1066.2168929999998,
+      1448.622997,
+      1456.2865689999999,
+      1449.8225469999998,
+      2156.250625999999,
+      2567.8713279999993,
+      3128.9549970000007,
+      2425.235138,
+      2492.692246999999,
+      2334.786457000002
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 21986.724658000003,
+     "cpuMs": 22036.158,
+     "peakRssMB": 361.63671875,
+     "firstUsableMs": 1651.2516780000005,
+     "initialFinalMs": 1651.2516780000005,
+     "editLatencyMs": [
+      1217.497281,
+      1302.5121820000022,
+      1282.4308139999994,
+      1349.7655240000022,
+      2106.3225829999974,
+      2650.472672,
+      3009.007555999997,
+      2923.9093030000004,
+      2757.518876000002,
+      1735.4697289999967
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 19590.209044000003,
+     "cpuMs": 20191.418,
+     "peakRssMB": 292.45703125,
+     "firstUsableMs": 1233.572447,
+     "initialFinalMs": 1233.572447,
+     "editLatencyMs": [
+      1155.4464730000002,
+      1291.8315740000003,
+      1332.8533390000002,
+      1468.5340510000005,
+      2118.979517999999,
+      2327.905471,
+      2155.928231,
+      2317.9180049999995,
+      2359.5207710000013,
+      1827.028918
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 22984.998475999997,
+     "cpuMs": 22902.416,
+     "peakRssMB": 353.75,
+     "firstUsableMs": 1273.9863019999975,
+     "initialFinalMs": 1273.9863019999975,
+     "editLatencyMs": [
+      1360.651647999999,
+      1540.2784759999995,
+      1345.0199719999982,
+      2108.7588160000014,
+      2885.3296040000023,
+      2475.3277299999972,
+      2982.921777000003,
+      2420.4444900000017,
+      2595.615082000004,
+      1996.111923999997
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 21852.193752,
+     "cpuMs": 22369.036,
+     "peakRssMB": 305.90625,
+     "firstUsableMs": 1401.792845,
+     "initialFinalMs": 1401.792845,
+     "editLatencyMs": [
+      1209.052182,
+      1677.4580050000004,
+      1409.6638140000005,
+      1497.6019940000006,
+      2613.9580239999996,
+      2398.5851920000005,
+      2475.7733369999987,
+      2924.5082600000023,
+      2570.632651,
+      1672.2434409999987
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 21528.338179000002,
+     "cpuMs": 21494.03,
+     "peakRssMB": 352.171875,
+     "firstUsableMs": 1256.7385300000024,
+     "initialFinalMs": 1256.7385300000024,
+     "editLatencyMs": [
+      1268.4061419999998,
+      1403.4412950000005,
+      1395.1337679999997,
+      1531.776635000002,
+      2743.059819000002,
+      2819.4963679999964,
+      2289.2571150000003,
+      2532.820233999999,
+      2518.972418999998,
+      1768.6743600000045
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 20972.505992,
+     "cpuMs": 21618.739,
+     "peakRssMB": 293.10546875,
+     "firstUsableMs": 1877.657154,
+     "initialFinalMs": 1877.657154,
+     "editLatencyMs": [
+      1135.059026,
+      1334.27956,
+      1316.7328939999998,
+      1369.8606069999996,
+      2055.791019000001,
+      2322.203969,
+      2480.6287680000005,
+      2589.5771589999986,
+      2422.970587,
+      2066.8304979999994
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 21241.871273999997,
+     "cpuMs": 21272.637,
+     "peakRssMB": 368.74609375,
+     "firstUsableMs": 1291.5360400000027,
+     "initialFinalMs": 1291.5360400000027,
+     "editLatencyMs": [
+      1215.9913449999985,
+      1459.650662,
+      1356.1177879999996,
+      1316.4602559999985,
+      1992.1973580000013,
+      2237.723267999998,
+      2253.8615709999976,
+      2367.9377479999966,
+      3072.40077,
+      2677.461271
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 22253.682168000003,
+     "cpuMs": 22823.689,
+     "peakRssMB": 299.6796875,
+     "firstUsableMs": 1542.152697,
+     "initialFinalMs": 1542.152697,
+     "editLatencyMs": [
+      1481.3460870000001,
+      1706.5280430000003,
+      1442.3599240000003,
+      1762.858475,
+      1984.4687639999993,
+      2229.1902629999986,
+      2583.8551100000004,
+      2754.428203999998,
+      2861.7438650000004,
+      1903.9665920000007
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 22190.167274999996,
+     "cpuMs": 22220.297,
+     "peakRssMB": 355.83984375,
+     "firstUsableMs": 1408.8509449999983,
+     "initialFinalMs": 1408.8509449999983,
+     "editLatencyMs": [
+      1158.2974240000003,
+      1319.2807519999988,
+      1260.9835100000018,
+      1688.414971000002,
+      2478.673554000001,
+      2558.617155,
+      2329.279711999996,
+      2614.5645250000016,
+      3268.813878000001,
+      2103.7207370000033
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 19289000,
+     "finalTriangles": 114188,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ]
+  ],
+  "component": [
+   [
+    {
+     "pass": "cold",
+     "wallMs": 18306.534372,
+     "cpuMs": 18617.598,
+     "peakRssMB": 332.07421875,
+     "firstUsableMs": 1264.948134,
+     "initialFinalMs": 1290.8470499999999,
+     "editLatencyMs": [
+      961.075016,
+      1417.874957,
+      1013.5233869999997,
+      1117.3924500000003,
+      1637.743098,
+      2024.8958649999995,
+      1999.503385,
+      2061.513945999999,
+      2882.482984,
+      1407.664123999999
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 18402.580775,
+     "cpuMs": 18473.914,
+     "peakRssMB": 365.9921875,
+     "firstUsableMs": 1328.984003999998,
+     "initialFinalMs": 1350.9777469999972,
+     "editLatencyMs": [
+      1032.7161589999996,
+      1299.680550000001,
+      1020.4214120000033,
+      1174.3429649999998,
+      2078.4656510000023,
+      2192.349623000002,
+      2585.9329179999986,
+      1913.1308599999975,
+      2154.612033999998,
+      1174.3034049999987
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 18852.992095,
+     "cpuMs": 19193.924,
+     "peakRssMB": 325.97265625,
+     "firstUsableMs": 1440.727846,
+     "initialFinalMs": 1454.650547,
+     "editLatencyMs": [
+      1246.92352,
+      1325.4184589999995,
+      1345.0451520000006,
+      1192.391356,
+      1694.5030659999993,
+      1937.5265689999997,
+      1994.4354729999995,
+      2286.0423329999994,
+      2280.4368320000012,
+      1636.0195950000016
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 16921.964724,
+     "cpuMs": 17073.519,
+     "peakRssMB": 380.69140625,
+     "firstUsableMs": 979.3334670000004,
+     "initialFinalMs": 992.7982980000015,
+     "editLatencyMs": [
+      915.4266180000013,
+      1371.7544650000018,
+      1150.4461640000009,
+      1259.4255029999986,
+      1916.5388669999993,
+      1880.7535099999986,
+      1875.8881230000006,
+      1853.4274340000047,
+      1970.3660400000008,
+      1343.8181530000002
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 16476.225049,
+     "cpuMs": 16867.002,
+     "peakRssMB": 319.6171875,
+     "firstUsableMs": 1055.115764,
+     "initialFinalMs": 1074.651523,
+     "editLatencyMs": [
+      906.9573340000002,
+      1167.5334230000003,
+      1104.1990840000003,
+      1066.7760940000007,
+      1705.8645130000004,
+      1834.942842999999,
+      1837.9260240000003,
+      2132.7377880000004,
+      2078.865185999999,
+      1151.5006970000013
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 17722.780652999998,
+     "cpuMs": 17740.567,
+     "peakRssMB": 365.36328125,
+     "firstUsableMs": 1024.1546640000015,
+     "initialFinalMs": 1037.034670000001,
+     "editLatencyMs": [
+      931.2115740000008,
+      1272.391474,
+      1024.5090380000001,
+      1033.4187409999977,
+      1620.4202880000012,
+      2127.0534359999983,
+      2580.883148000001,
+      1980.3055480000003,
+      2407.5762160000013,
+      1280.3878530000002
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 19475.714692,
+     "cpuMs": 19752.825,
+     "peakRssMB": 324.6953125,
+     "firstUsableMs": 1242.333629,
+     "initialFinalMs": 1265.709254,
+     "editLatencyMs": [
+      1082.8565889999998,
+      1151.996827,
+      1187.8281439999996,
+      1322.0835420000003,
+      1816.948679,
+      2028.4823959999994,
+      2375.0344239999995,
+      2493.305811,
+      2406.9725770000005,
+      1882.1727429999992
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 18213.641493000003,
+     "cpuMs": 18244.31,
+     "peakRssMB": 384.4921875,
+     "firstUsableMs": 965.2982770000017,
+     "initialFinalMs": 979.0437710000006,
+     "editLatencyMs": [
+      1143.8429739999992,
+      1121.3008919999993,
+      1251.371228,
+      1232.4785200000006,
+      1929.966805,
+      1925.7294220000003,
+      2342.7980019999995,
+      1963.0070880000058,
+      2289.408175999997,
+      1603.730454000004
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 20078.040861999998,
+     "cpuMs": 20478.64,
+     "peakRssMB": 326.15625,
+     "firstUsableMs": 1368.1555799999999,
+     "initialFinalMs": 1391.622689,
+     "editLatencyMs": [
+      1421.3152689999997,
+      1396.8743139999997,
+      1635.6569259999997,
+      1468.4005370000004,
+      2391.9037529999996,
+      1978.128987,
+      2000.014573999999,
+      2407.9692680000007,
+      2097.5264629999983,
+      1410.3691289999988
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 21028.665441999998,
+     "cpuMs": 21120.937,
+     "peakRssMB": 377.76953125,
+     "firstUsableMs": 1420.3497409999982,
+     "initialFinalMs": 1445.488831999999,
+     "editLatencyMs": [
+      1405.9591069999988,
+      1539.7510759999968,
+      1548.6325350000006,
+      1471.311937999999,
+      2700.1435109999984,
+      2162.1664160000037,
+      1941.6320059999998,
+      2152.260491000001,
+      2421.486423999995,
+      1755.4814509999997
+     ],
+     "regenerated": 150,
+     "recolored": 0,
+     "reused": 0,
+     "samplesEvaluated": 30308866,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ]
+  ],
+  "incremental": [
+   [
+    {
+     "pass": "cold",
+     "wallMs": 6810.210996,
+     "cpuMs": 7226.104,
+     "peakRssMB": 281.91015625,
+     "firstUsableMs": 1101.6197120000002,
+     "initialFinalMs": 1115.098705,
+     "editLatencyMs": [
+      28.518192,
+      538.3715770000001,
+      5.251551999999947,
+      17.69048399999997,
+      1894.6450260000001,
+      1677.2235009999995,
+      40.94634599999972,
+      314.38377000000037,
+      93.40779300000031,
+      654.6306110000005
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 6194.371629000001,
+     "cpuMs": 6244.592,
+     "peakRssMB": 400.95703125,
+     "firstUsableMs": 916.4873979999993,
+     "initialFinalMs": 928.4612120000002,
+     "editLatencyMs": [
+      17.975156000000425,
+      351.7987979999998,
+      4.523769999999786,
+      5.494019999998272,
+      1368.0427189999991,
+      2040.301759,
+      41.12917899999957,
+      400.91287900000134,
+      96.59738599999946,
+      556.3665679999995
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 6776.580370000001,
+     "cpuMs": 7123.257,
+     "peakRssMB": 293.85546875,
+     "firstUsableMs": 1185.090148,
+     "initialFinalMs": 1199.026977,
+     "editLatencyMs": [
+      21.381102000000055,
+      433.2264690000002,
+      4.115317999999888,
+      16.294583999999986,
+      1645.0481889999999,
+      1906.6702560000003,
+      44.48360500000035,
+      392.46713,
+      104.46363299999939,
+      558.3935769999998
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 6572.461529,
+     "cpuMs": 6592.546,
+     "peakRssMB": 362.24609375,
+     "firstUsableMs": 1035.3363639999989,
+     "initialFinalMs": 1049.1560809999992,
+     "editLatencyMs": [
+      19.653681000001598,
+      375.1659380000001,
+      2.897703000000547,
+      7.701257999999143,
+      1749.7908179999995,
+      1922.7990680000003,
+      44.15289800000028,
+      342.90464600000087,
+      99.85854300000028,
+      572.3590299999996
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 7812.020477,
+     "cpuMs": 8124.875,
+     "peakRssMB": 293.0390625,
+     "firstUsableMs": 1169.083372,
+     "initialFinalMs": 1185.094694,
+     "editLatencyMs": [
+      26.644866000000093,
+      550.5803700000001,
+      3.361315999999988,
+      20.35315199999991,
+      1958.0215239999998,
+      2496.461307,
+      44.1514130000005,
+      373.7673709999999,
+      100.16461999999956,
+      600.2691199999999
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 6833.350856999999,
+     "cpuMs": 6883.748,
+     "peakRssMB": 336.109375,
+     "firstUsableMs": 988.2387389999985,
+     "initialFinalMs": 1001.4866059999986,
+     "editLatencyMs": [
+      19.441201999999976,
+      485.30498400000033,
+      2.9483089999994263,
+      8.267949000000954,
+      1627.3674570000003,
+      2072.224402,
+      42.13043599999946,
+      336.2929260000001,
+      114.3619009999984,
+      724.1777699999984
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 7354.30353,
+     "cpuMs": 7698.91,
+     "peakRssMB": 293.83203125,
+     "firstUsableMs": 1391.2613299999998,
+     "initialFinalMs": 1407.0971049999998,
+     "editLatencyMs": [
+      21.30900799999995,
+      394.2980520000001,
+      4.191167999999834,
+      12.046338999999989,
+      1556.6763999999998,
+      2399.3788710000003,
+      43.98053699999946,
+      412.3962449999999,
+      105.21185100000002,
+      572.9068299999999
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 7186.066341,
+     "cpuMs": 7236.599,
+     "peakRssMB": 347.59375,
+     "firstUsableMs": 1001.2928279999996,
+     "initialFinalMs": 1014.7292829999988,
+     "editLatencyMs": [
+      21.026992999999493,
+      407.8663710000001,
+      4.976956999998947,
+      12.013777000000118,
+      1836.8899870000005,
+      2265.098984,
+      62.18919300000016,
+      388.0970379999999,
+      98.7821100000001,
+      663.3434109999998
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 8417.077248000001,
+     "cpuMs": 8808.268,
+     "peakRssMB": 306.79296875,
+     "firstUsableMs": 1733.833624,
+     "initialFinalMs": 1755.920076,
+     "editLatencyMs": [
+      35.2970150000001,
+      653.9315330000002,
+      7.899155999999948,
+      18.465590999999677,
+      1652.7830430000004,
+      2386.1189269999995,
+      63.62810999999965,
+      509.8279629999997,
+      102.63488599999982,
+      666.3621869999988
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 7162.263025,
+     "cpuMs": 7200.084,
+     "peakRssMB": 373.84765625,
+     "firstUsableMs": 1048.7289580000015,
+     "initialFinalMs": 1064.5624630000002,
+     "editLatencyMs": [
+      20.504573000000164,
+      386.811099999999,
+      3.187772999999652,
+      7.908250999998927,
+      1639.1085330000005,
+      2224.791862,
+      45.478939000002356,
+      433.0547639999968,
+      162.0047459999987,
+      725.991822
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ]
+  ],
+  "adaptive-parallel": [
+   [
+    {
+     "pass": "cold",
+     "wallMs": 4851.867413999999,
+     "cpuMs": 10673.678,
+     "peakRssMB": 551.8828125,
+     "firstUsableMs": 1081.145789,
+     "initialFinalMs": 1081.4038970000001,
+     "editLatencyMs": [
+      51.225095999999894,
+      380.69289500000014,
+      8.792036999999937,
+      19.67545300000006,
+      738.2359730000003,
+      891.1881619999999,
+      48.31816299999991,
+      459.06260099999963,
+      136.3852509999997,
+      500.8698770000001
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 4262.268348999999,
+     "cpuMs": 7619.92,
+     "peakRssMB": 626.3828125,
+     "firstUsableMs": 619.857602,
+     "initialFinalMs": 619.8978229999993,
+     "editLatencyMs": [
+      21.053477000000385,
+      351.2000029999999,
+      9.77605500000027,
+      14.243994000000384,
+      836.5108410000003,
+      930.9451470000004,
+      74.46544799999901,
+      324.6719699999994,
+      121.80871900000056,
+      452.5564880000002
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 4674.254521,
+     "cpuMs": 9348.945,
+     "peakRssMB": 490.39453125,
+     "firstUsableMs": 845.99869,
+     "initialFinalMs": 846.262209,
+     "editLatencyMs": [
+      56.90230799999995,
+      458.0484859999999,
+      12.65333499999997,
+      20.21595699999989,
+      780.7618520000001,
+      924.9463999999998,
+      46.20504099999971,
+      398.4803689999999,
+      100.87630600000011,
+      476.8111549999994
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 4219.985156999999,
+     "cpuMs": 7210.266,
+     "peakRssMB": 734.11328125,
+     "firstUsableMs": 542.7102880000002,
+     "initialFinalMs": 542.7536829999999,
+     "editLatencyMs": [
+      32.325565999999526,
+      364.4788930000004,
+      4.922582999999577,
+      19.565097000000605,
+      713.4926599999999,
+      878.6133460000001,
+      49.214460999999574,
+      427.591316,
+      100.90172399999938,
+      607.591257
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 4508.287262,
+     "cpuMs": 9154.985,
+     "peakRssMB": 498.640625,
+     "firstUsableMs": 812.667541,
+     "initialFinalMs": 813.00148,
+     "editLatencyMs": [
+      32.07883800000002,
+      420.2320289999998,
+      8.89680599999997,
+      13.667908000000125,
+      777.7612280000001,
+      931.346947,
+      45.08610799999997,
+      346.512573,
+      109.2545299999997,
+      466.96533999999974
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 5148.479336,
+     "cpuMs": 8387.048,
+     "peakRssMB": 715.40234375,
+     "firstUsableMs": 598.2581110000001,
+     "initialFinalMs": 598.3023890000004,
+     "editLatencyMs": [
+      23.114009999999325,
+      598.1397589999997,
+      3.0241109999997207,
+      19.6573070000004,
+      1082.206150000001,
+      1404.5841369999998,
+      43.1827059999996,
+      351.79889399999956,
+      109.16118000000097,
+      416.9543310000008
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 5043.787028,
+     "cpuMs": 10534.7,
+     "peakRssMB": 505.50390625,
+     "firstUsableMs": 1073.4536999999998,
+     "initialFinalMs": 1073.7110209999998,
+     "editLatencyMs": [
+      64.07125399999995,
+      382.049082,
+      13.251954000000069,
+      16.869265999999925,
+      803.0639259999998,
+      1077.8014130000001,
+      87.56147799999962,
+      406.7089009999995,
+      124.52154299999984,
+      456.87814699999944
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 4862.090139,
+     "cpuMs": 8667.898,
+     "peakRssMB": 563.2578125,
+     "firstUsableMs": 562.1237060000003,
+     "initialFinalMs": 562.1653450000003,
+     "editLatencyMs": [
+      30.367209000000003,
+      420.37090400000034,
+      8.739364000000023,
+      10.225680999999895,
+      996.8788509999995,
+      1376.773489000001,
+      43.590055000000575,
+      350.35629700000027,
+      107.94019899999876,
+      454.2067450000013
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ],
+   [
+    {
+     "pass": "cold",
+     "wallMs": 5333.280354,
+     "cpuMs": 10363.61,
+     "peakRssMB": 505.91015625,
+     "firstUsableMs": 928.393589,
+     "initialFinalMs": 928.683651,
+     "editLatencyMs": [
+      51.599874,
+      439.5173279999999,
+      10.065218999999843,
+      20.920897000000195,
+      803.3431680000003,
+      1033.9701089999999,
+      58.784466000000066,
+      565.8989570000003,
+      121.87490900000012,
+      703.1214520000003
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    },
+    {
+     "pass": "warm",
+     "wallMs": 4910.061785,
+     "cpuMs": 8790.814,
+     "peakRssMB": 567.08984375,
+     "firstUsableMs": 683.1877869999998,
+     "initialFinalMs": 683.2322180000001,
+     "editLatencyMs": [
+      25.789068000000043,
+      562.5966970000009,
+      8.270077999999558,
+      13.970032999999603,
+      771.4132740000005,
+      1140.7917710000002,
+      45.64010000000053,
+      461.8223050000015,
+      169.64725399999952,
+      497.8103030000002
+     ],
+     "regenerated": 30,
+     "recolored": 2,
+     "reused": 118,
+     "samplesEvaluated": 10586070,
+     "finalTriangles": 204536,
+     "finalCells": 280506,
+     "finalIouVsWhole": 1
+    }
+   ]
+  ]
+ }
+}

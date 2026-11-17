@@ -11,7 +11,7 @@ All numbers below were measured in this session on 4 vCPU / 15 GB RAM, no GPU (N
 | WP3 Component-based reconstruction | **VERIFIED** (procedural components) | `src/core/asre/character/*`, `tests/asre-character.test.ts` |
 | WP4 Parallel and adaptive computation | **VERIFIED** | `src/core/asre/scheduler/Scheduler.ts`, `scripts/asre/pool.ts`, `tests/asre-scheduler.test.ts` |
 | WP5 Persistent character identity + variations | **VERIFIED** | `scripts/asre/wp5-variations.ts`, `artifacts/asre/character/variations/` |
-| WP6 Controlled performance experiment | see §WP6 | `scripts/asre/wp6-benchmark.ts`, `artifacts/asre/wp6/` |
+| WP6 Controlled performance experiment | **VERIFIED** — hypothesis supported, with caveats | `scripts/asre/wp6-benchmark.ts`, `artifacts/asre/wp6/` |
 | LÉLU integration | **PARTIAL** (server API + tools wired and tested; no UI surface yet) | `plugins/asreApi.ts`, `src/core/asre/AsreTools.ts`, `tests/asre-integration.test.ts` |
 
 ## WP1 — one image, many analyses, competing hypotheses
@@ -65,3 +65,32 @@ Honest note: procedural components are pure functions of the spec, so dependenci
 - `plugins/asreApi.ts` mounted in both the Vite server and `server.ts`: status, reconstruct job (TripoSR → analyses/hypotheses → NRE/GLB/renders → coverage), job inspection with intermediate results and the next-view request, character variations with reuse, asset serving; cross-origin and path-traversal refusals (tested over real HTTP).
 - `asre.status / asre.reconstruct / asre.job / asre.character` registered in the shared `ToolRegistry` and dispatcher next to the 3D Forge. Zero spend.
 - Not yet done: a UI surface in Genesis/Cosmos for ASRE jobs, placing ASRE GLBs through the Forge placement path, and linking the persona look (`identity.leluLook`) to `LeluCharacterStore`.
+
+## WP6 — controlled performance experiment
+
+**Setup.** Same input for all strategies: the base character, then 10 edits (hair → bob, long sleeves, hair colour, glasses, wave pose, taller body, ponytail, skirt, hat + glasses, relaxed pose) = 11 states. Same 8 mm lattice, same machine (Intel Xeon @ 2.10 GHz, 4 vCPU, Node 22). Strategies interleaved across 5 trials; each trial is a **fresh process** (cold: JIT cold, caches empty, workers spawned), followed by a **warm** pass in the same process with caches cleared. Quality is measured outside the timed region against the whole-object build of the same final state. Raw data: `artifacts/asre/wp6/raw-res0.008.jsonl`, summary `benchmark.json`.
+
+Whole-object is the **competent** baseline: one implicit function for the character with per-component bounding-box culling (the first version without culling was ~4× slower and would have flattered the alternatives).
+
+Medians [IQR], cold start, n = 5:
+
+| Strategy | Session wall | CPU | Peak RSS | First usable | Edit latency (n = 50) | Regenerated / recoloured / reused (10 edits) | Samples | Final IoU vs whole | Triangles |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 Whole-object | 21.85 s [20.97–21.88] | 22.37 s | 300 MB | 1.40 s | 2,061 ms [1,451–2,425] | 150 / 0 / 0 | 19.3 M | 1 | 114,188 |
+| 2 Component (no reuse) | 18.85 s [18.31–19.48] | 19.19 s | 326 MB | 1.26 s | 1,666 ms [1,266–2,028] | 150 / 0 / 0 | 30.3 M | 1 | 204,536 |
+| 3 Incremental | **7.35 s** [6.81–7.81] | **7.70 s** | 294 MB | 1.19 s | **210 ms** [27–641] | **30 / 2 / 118** | **10.6 M** | **1** | 204,536 |
+| 4 Adaptive parallel (4 workers) | **4.85 s** [4.67–5.04] | 10.36 s | 506 MB | **0.93 s** [0.85–1.07] | 241 ms [47–495] | 30 / 2 / 118 | 10.6 M | 1 | 204,536 |
+
+Warm pass (JIT warm, caches cleared): whole 21.99 s, component 18.21 s, incremental 6.83 s, adaptive 4.86 s; first usable 1.29 s / 1.02 s / 1.00 s / **0.60 s**.
+
+**Verdict on the hypothesis** ("incremental reconstruction reduces work and processing time without sacrificing quality"): **supported** for this workload.
+- Work: 45% fewer SDF samples than whole-object, 65% fewer than non-incremental components; 30 of 150 component builds over the 10 edits.
+- Time: 3.0× less session wall time and 2.9× less CPU than whole-object; median edit latency ~10× lower.
+- Quality: final occupancy identical to the whole-object build (IoU 1.0 in every trial).
+
+**Caveats, measured, not hidden.**
+- Component outputs carry **79% more triangles** than the single whole-object mesh: surfaces hidden under clothing and hair are kept (each component is a closed mesh). Same occupancy, heavier asset; a merge/cull pass at export would remove it.
+- Splitting into components without reuse saves little (18.9 s vs 21.9 s) and evaluates *more* samples (overlapping boxes); the gain comes from reuse.
+- Parallelism helps the **initial build** (first usable 0.93 s cold / 0.60 s warm vs 1.19 / 1.00 s) and total wall time, but **not single edits**: most edits invalidate 1–2 components, and the worker round trip costs more than it saves (241 vs 210 ms median). It also costs 35% more CPU and ~1.7× peak memory (worker isolates). The scheduler should run small edits inline and use workers only when several components are invalid; this is not implemented yet.
+- Edit-latency spread is wide by design: a hair or material edit costs ~20–50 ms, a body-proportion edit rebuilds 10 components (~640 ms+).
+- Single machine, procedural components; reconstruction from observations will have different cost profiles.
