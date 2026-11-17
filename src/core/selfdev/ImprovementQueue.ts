@@ -196,6 +196,12 @@ export interface ImprovementProposal {
    * "returned" means: address the feedback before anything else advances.
    */
   ownerDecision?: OwnerDecision;
+  /**
+   * Earlier Gate 2 returns, oldest first. When a returned proposal is
+   * developed again its decision moves here, so the new implementation is
+   * judged afresh and the engineering agent is given the feedback to address.
+   */
+  ownerFeedbackHistory?: OwnerDecision[];
 }
 
 export interface OwnerDecision {
@@ -421,8 +427,45 @@ export default class ImprovementQueue {
   public recordOwnerDecision(id: string, decision: OwnerDecision["decision"], note?: string): boolean {
     const proposal = this.get(id);
     if (!proposal || !AWAITING_ACCEPTANCE_STATUSES.includes(proposal.status)) return false;
-    this.update(id, { ownerDecision: { decision, at: Date.now(), ...(note?.trim() ? { note: note.trim().slice(0, 1000) } : {}) } });
+    // A decision replacing an earlier "returned" keeps that feedback on record.
+    const history = proposal.ownerDecision?.decision === "returned"
+      ? { ownerFeedbackHistory: [...(proposal.ownerFeedbackHistory ?? []), proposal.ownerDecision].slice(-8) }
+      : {};
+    this.update(id, { ...history, ownerDecision: { decision, at: Date.now(), ...(note?.trim() ? { note: note.trim().slice(0, 1000) } : {}) } });
     return true;
+  }
+
+  /**
+   * May this proposal be developed (again) without a new owner decision?
+   * An implementation the owner ACCEPTED at Gate 2 is finished: replacing it
+   * would put an unreviewed diff under the owner's acceptance.
+   */
+  public canRedevelop(id: string): { ok: true } | { ok: false; reason: string } {
+    const proposal = this.get(id);
+    if (!proposal) return { ok: false, reason: "Proposal not found." };
+    if (proposal.ownerDecision?.decision === "accepted") {
+      return { ok: false, reason: "You accepted this implementation at Gate 2; it is not developed again. Propose a new change instead." };
+    }
+    if (proposal.status === "Rejected" || proposal.status === "Rolled Back") {
+      return { ok: false, reason: `This proposal is ${proposal.status}; it is not developed again.` };
+    }
+    return { ok: true };
+  }
+
+  /**
+   * A returned proposal is being developed again: its Gate 2 decision moves
+   * to the feedback history (so the new implementation awaits acceptance
+   * afresh) and the feedback notes are returned for the engineering agent.
+   */
+  public beginRedevelopment(id: string): string[] {
+    const proposal = this.get(id);
+    if (!proposal) return [];
+    const history = [...(proposal.ownerFeedbackHistory ?? [])];
+    if (proposal.ownerDecision?.decision === "returned") {
+      history.push(proposal.ownerDecision);
+      this.update(id, { ownerDecision: undefined, ownerFeedbackHistory: history.slice(-8) });
+    }
+    return history.map((decision) => decision.note ?? "").filter(Boolean);
   }
 
   public setStatus(id: string, status: ImprovementStatus): void {

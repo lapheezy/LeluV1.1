@@ -1,0 +1,2556 @@
+{
+  "started": "2026-11-17T00:09:07.507Z",
+  "base": "http://127.0.0.1:5173",
+  "harness": {
+    "modelBudget": 10,
+    "modelRequestsByDay": {
+      "2026-11-17": 4
+    },
+    "thisRun": [],
+    "blockedRequests": [
+      "GET cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+      "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories",
+      "GET localhost/v1/models",
+      "GET localhost/v1/models",
+      "GET localhost/v1/models",
+      "GET localhost/v1/models",
+      "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories",
+      "GET export.arxiv.org/api/query"
+    ]
+  },
+  "pageErrors": [],
+  "autonomy": {
+    "level": 3,
+    "source": "local"
+  },
+  "sourceStatus": {
+    "reachable": true,
+    "runtime": "vite-dev",
+    "operations": [
+      "typecheck",
+      "build",
+      "test",
+      "inspect"
+    ],
+    "workspace": "LeluV1.1",
+    "tokenRequired": true,
+    "tokenConfigured": true,
+    "baseUrl": "http://127.0.0.1:5173",
+    "info": {
+      "engine": "node",
+      "version": "22.23.4",
+      "platform": "linux",
+      "cwd": "/home/user/LeluV1.1",
+      "startedAt": 1794873998021
+    },
+    "checkedAt": 1794874144970,
+    "snapshotFiles": 745
+  },
+  "selfTests": {
+    "summary": {
+      "passed": 23,
+      "failed": 0,
+      "total": 23
+    },
+    "failing": []
+  },
+  "allowance": {
+    "slotOpenedAt": 1794882651855.3,
+    "rationed": true,
+    "cap": 10,
+    "ownerSet": false,
+    "usedToday": 1,
+    "inFlight": 0,
+    "remaining": 9,
+    "paused": null,
+    "nextAllowedAt": 1794882651855.3,
+    "blockedBy": "pacing"
+  },
+  "usageEvents": [
+    {
+      "at": "2026-11-17T00:07:37.617Z",
+      "source": "OpenRouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "operation": "self-study",
+      "ok": true,
+      "inputTokens": 1034,
+      "outputTokens": 465
+    }
+  ],
+  "rows": [
+    {
+      "cycle": 1,
+      "question": "What does src/core/AICore.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/AICore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 2,
+      "question": "What does src/core/ProviderRegistry.ts contribute to src/core/AICore.ts?",
+      "origin": "discovery",
+      "target": "src/core/ProviderRegistry.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 3,
+      "question": "Is what I believe about Storage persistence still true?",
+      "origin": "revalidation",
+      "target": "storage",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 4,
+      "question": "What does src/core/AIProviderRegistry.ts contribute to src/core/AICore.ts?",
+      "origin": "discovery",
+      "target": "src/core/AIProviderRegistry.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 5,
+      "question": "What does src/providers/Provider.ts contribute to src/core/ProviderRegistry.ts?",
+      "origin": "discovery",
+      "target": "src/providers/Provider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 39; nothing new to conclude."
+    },
+    {
+      "cycle": 6,
+      "question": "What does src/core/storage/KvStore.ts contribute to storage?",
+      "origin": "discovery",
+      "target": "src/core/storage/KvStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 36; nothing new to conclude."
+    },
+    {
+      "cycle": 7,
+      "question": "What does src/providers/AIProvider.ts contribute to src/core/AIProviderRegistry.ts?",
+      "origin": "discovery",
+      "target": "src/providers/AIProvider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 31; nothing new to conclude."
+    },
+    {
+      "cycle": 8,
+      "question": "Is what I believe about IndexedDB still true?",
+      "origin": "revalidation",
+      "target": "memory",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 6; nothing new to conclude."
+    },
+    {
+      "cycle": 9,
+      "question": "What does src/core/AIRouter.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/AIRouter.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 10,
+      "question": "Is what I believe about Browser environment limits still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 11,
+      "question": "What does src/core/studio/StudioTools.ts contribute to src/core/AIRouter.ts?",
+      "origin": "discovery",
+      "target": "src/core/studio/StudioTools.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 12,
+      "question": "What does src/providers/AIProvider.ts contribute to src/core/AIRouter.ts?",
+      "origin": "discovery",
+      "target": "src/providers/AIProvider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 7; nothing new to conclude."
+    },
+    {
+      "cycle": 13,
+      "question": "What does src/core/agent/AgentEvents.ts contribute to src/core/studio/StudioTools.ts?",
+      "origin": "discovery",
+      "target": "src/core/agent/AgentEvents.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 14,
+      "question": "What does src/core/tools/ToolRegistry.ts contribute to src/core/studio/StudioTools.ts?",
+      "origin": "discovery",
+      "target": "src/core/tools/ToolRegistry.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 15,
+      "question": "Is what I believe about Provider fallback chains still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 16,
+      "question": "What does src/core/engineering/WorkspaceRuntime.ts contribute to src/core/tools/ToolRegistry.ts?",
+      "origin": "discovery",
+      "target": "src/core/engineering/WorkspaceRuntime.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 17,
+      "question": "What does src/core/acquisition/CommandCenterToolDefinitions.ts contribute to src/core/tools/ToolRegistry.ts?",
+      "origin": "discovery",
+      "target": "src/core/acquisition/CommandCenterToolDefinitions.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 18,
+      "question": "What does src/core/cognition/AutonomyGate.ts contribute to src/core/engineering/WorkspaceRuntime.ts?",
+      "origin": "discovery",
+      "target": "src/core/cognition/AutonomyGate.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 19,
+      "question": "What does src/core/selfdev/SourceAccess.ts contribute to src/core/engineering/WorkspaceRuntime.ts?",
+      "origin": "discovery",
+      "target": "src/core/selfdev/SourceAccess.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 20,
+      "question": "What does src/core/AIRuntime.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/AIRuntime.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 21,
+      "question": "What does src/core/tools/ToolRegistry.ts contribute to src/core/acquisition/CommandCenterToolDefinitions.ts?",
+      "origin": "discovery",
+      "target": "src/core/tools/ToolRegistry.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 14; nothing new to conclude."
+    },
+    {
+      "cycle": 22,
+      "question": "What does src/core/acquisition/ResourceTools.ts contribute to src/core/acquisition/CommandCenterToolDefinitions.ts?",
+      "origin": "discovery",
+      "target": "src/core/acquisition/ResourceTools.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 23,
+      "question": "What does src/core/cognition/AutonomyPolicy.ts contribute to src/core/cognition/AutonomyGate.ts?",
+      "origin": "discovery",
+      "target": "src/core/cognition/AutonomyPolicy.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 24,
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/cognition/AutonomyGate.ts?",
+      "origin": "discovery",
+      "target": "src/core/storage/KvStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 6; nothing new to conclude."
+    },
+    {
+      "cycle": 25,
+      "question": "What does src/core/resolveEnv.ts contribute to src/core/selfdev/SourceAccess.ts?",
+      "origin": "discovery",
+      "target": "src/core/resolveEnv.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 26,
+      "question": "What does src/core/AICore.ts contribute to src/core/AIRuntime.ts?",
+      "origin": "discovery",
+      "target": "src/core/AICore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 1; nothing new to conclude."
+    },
+    {
+      "cycle": 27,
+      "question": "What does src/core/AIRouter.ts contribute to src/core/AIRuntime.ts?",
+      "origin": "discovery",
+      "target": "src/core/AIRouter.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 9; nothing new to conclude."
+    },
+    {
+      "cycle": 28,
+      "question": "What does src/core/tools/ToolRegistry.ts contribute to src/core/acquisition/ResourceTools.ts?",
+      "origin": "discovery",
+      "target": "src/core/tools/ToolRegistry.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 21; nothing new to conclude."
+    },
+    {
+      "cycle": 29,
+      "question": "What does src/core/tools/ToolDispatcher.ts contribute to src/core/acquisition/ResourceTools.ts?",
+      "origin": "discovery",
+      "target": "src/core/tools/ToolDispatcher.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 30,
+      "question": "Is what I believe about Prompt/context enrichment still true?",
+      "origin": "revalidation",
+      "target": "memory",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 8; nothing new to conclude."
+    },
+    {
+      "cycle": 31,
+      "question": "What does src/core/tools/ClaimGrounding.ts contribute to src/core/tools/ToolDispatcher.ts?",
+      "origin": "discovery",
+      "target": "src/core/tools/ClaimGrounding.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 32,
+      "question": "What does src/providers/AIProvider.ts contribute to src/core/tools/ToolDispatcher.ts?",
+      "origin": "discovery",
+      "target": "src/providers/AIProvider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 12; nothing new to conclude."
+    },
+    {
+      "cycle": 33,
+      "question": "Is what I believe about Virtual sandbox design still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 34,
+      "question": "What does src/core/AIService.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/AIService.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 35,
+      "question": "Is what I believe about Canvas raster pipelines still true?",
+      "origin": "revalidation",
+      "target": "Canvas raster pipelines Downscale, composite and re-encode through 2D canvas; data-URL attachments for vision providers.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 36,
+      "question": "What does src/core/observability/UsageSync.ts contribute to src/core/AIService.ts?",
+      "origin": "discovery",
+      "target": "src/core/observability/UsageSync.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 37,
+      "question": "What does src/core/AIRuntime.ts contribute to src/core/AIService.ts?",
+      "origin": "discovery",
+      "target": "src/core/AIRuntime.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 20; nothing new to conclude."
+    },
+    {
+      "cycle": 38,
+      "question": "What does src/core/observability/UsageLedger.ts contribute to src/core/observability/UsageSync.ts?",
+      "origin": "discovery",
+      "target": "src/core/observability/UsageLedger.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 39,
+      "question": "What does src/core/observability/UsageBudgetGate.ts contribute to src/core/observability/UsageSync.ts?",
+      "origin": "discovery",
+      "target": "src/core/observability/UsageBudgetGate.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 40,
+      "question": "Is what I believe about Canvas raster pipelines still true?",
+      "origin": "revalidation",
+      "target": "Canvas raster pipelines Downscale, composite and re-encode through 2D canvas; data-URL attachments for vision providers.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 41,
+      "question": "What does src/core/observability/UsageLedger.ts contribute to src/core/observability/UsageBudgetGate.ts?",
+      "origin": "discovery",
+      "target": "src/core/observability/UsageLedger.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 38; nothing new to conclude."
+    },
+    {
+      "cycle": 42,
+      "question": "Is what I believe about Canvas raster pipelines still true?",
+      "origin": "revalidation",
+      "target": "Canvas raster pipelines Downscale, composite and re-encode through 2D canvas; data-URL attachments for vision providers.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 43,
+      "question": "Why can I not answer “Is what I believe about Canvas raster pipelines still true” with the tools I have?",
+      "origin": "unresolved",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 44,
+      "question": "What does src/core/Bootstrap.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/Bootstrap.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 45,
+      "question": "What does src/core/Environment.ts contribute to src/core/Bootstrap.ts?",
+      "origin": "discovery",
+      "target": "src/core/Environment.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 46,
+      "question": "What does src/core/AIService.ts contribute to src/core/Bootstrap.ts?",
+      "origin": "discovery",
+      "target": "src/core/AIService.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 34; nothing new to conclude."
+    },
+    {
+      "cycle": 47,
+      "question": "What does src/core/Endpoints.ts contribute to src/core/Environment.ts?",
+      "origin": "discovery",
+      "target": "src/core/Endpoints.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 48,
+      "question": "What does src/core/Endpoints.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/Endpoints.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 47; nothing new to conclude."
+    },
+    {
+      "cycle": 49,
+      "question": "What does src/core/EventBus.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/EventBus.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 50,
+      "question": "What does src/core/ExecutionLogger.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/ExecutionLogger.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 51,
+      "question": "What is causing this failure: Public methods: log, info, error, all, latest, successful, failures, clear?",
+      "origin": "contradiction",
+      "target": "Public methods: log, info, error, all, latest, successful, failures, clear",
+      "tool": "source-list",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 52,
+      "question": "What does src/core/MemoryBridge.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/MemoryBridge.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 53,
+      "question": "What does src/core/AICore.ts contribute to Public methods: log, info, error, all, latest, successful, failures, clear?",
+      "origin": "discovery",
+      "target": "src/core/AICore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 26; nothing new to conclude."
+    },
+    {
+      "cycle": 54,
+      "question": "What does src/core/AIProviderRegistry.ts contribute to Public methods: log, info, error, all, latest, successful, failures, clear?",
+      "origin": "discovery",
+      "target": "src/core/AIProviderRegistry.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 4; nothing new to conclude."
+    },
+    {
+      "cycle": 55,
+      "question": "What does src/core/multichat/MultiChatStore.ts contribute to src/core/MemoryBridge.ts?",
+      "origin": "discovery",
+      "target": "src/core/multichat/MultiChatStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 56,
+      "question": "What does src/core/multichat/ContextProvenance.ts contribute to src/core/MemoryBridge.ts?",
+      "origin": "discovery",
+      "target": "src/core/multichat/ContextProvenance.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 57,
+      "question": "What does src/core/ProviderConfig.ts actually do?",
+      "origin": "architecture",
+      "target": "src/core/ProviderConfig.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 58,
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/multichat/MultiChatStore.ts?",
+      "origin": "discovery",
+      "target": "src/core/storage/KvStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 24; nothing new to conclude."
+    },
+    {
+      "cycle": 59,
+      "question": "What does src/core/multichat/TurnActivity.ts contribute to src/core/multichat/MultiChatStore.ts?",
+      "origin": "discovery",
+      "target": "src/core/multichat/TurnActivity.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 60,
+      "question": "What does src/core/multichat/MultiChatStore.ts contribute to src/core/multichat/ContextProvenance.ts?",
+      "origin": "discovery",
+      "target": "src/core/multichat/MultiChatStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 55; nothing new to conclude."
+    }
+  ],
+  "conclusions": [
+    {
+      "question": "What does src/core/multichat/MultiChatStore.ts contribute to src/core/multichat/ContextProvenance.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/multichat/MultiChatStore.ts (27012 bytes) from the development runtime. Read src/core/multichat/MultiChatStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/MultiChatStore.ts: 785 line(s). Exports: interface ChatMessage, interface ChatConversation, type ConversationSearchScope, interface ConversationSearchHit, function tokenizeText, class MultiChatStore.",
+      "evidence": [
+        "Read src/core/multichat/MultiChatStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/MultiChatStore.ts: 785 line(s).",
+        "Exports: interface ChatMessage, interface ChatConversation, type ConversationSearchScope, interface ConversationSearchHit, function tokenizeText, class MultiChatStore.",
+        "Public methods: flush, subscribe, list, listAll, listArchived, mergeRemote, get, getActiveId, getActive, restoreWorkspace, create, createBackground, archive, unarchive, switchActive, addMessage, upsertMessage, clear, rename, remove, duplicate, merge, pin, reorder, link, unlink, setProject, addTag, setProcessing, markRead, search."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/multichat/MultiChatStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1hvlc6a7y78a6",
+      "cycle": 60,
+      "concludedAt": 1794874147378,
+      "note": "Same evidence as the study concluded in cycle 55; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/multichat/TurnActivity.ts contribute to src/core/multichat/MultiChatStore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/multichat/TurnActivity.ts (16203 bytes) from the development runtime. Read src/core/multichat/TurnActivity.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/TurnActivity.ts: 361 line(s). Exports: type ActivityKind, type StepStatus, interface ActivityStep, interface ActivitySource, interface ActivityPage, interface ActivityArtifact, interface ChatActivity, function emptyActivity, function reduceActivity, function finishActivity, function hasVisibleActivity, interface ActivitySummary, function summarizeActivity.",
+      "evidence": [
+        "Read src/core/multichat/TurnActivity.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/TurnActivity.ts: 361 line(s).",
+        "Exports: type ActivityKind, type StepStatus, interface ActivityStep, interface ActivitySource, interface ActivityPage, interface ActivityArtifact, interface ChatActivity, function emptyActivity, function reduceActivity, function finishActivity, function hasVisibleActivity, interface ActivitySummary, function summarizeActivity.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/multichat/TurnActivity.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1floadj1wyl3hf",
+      "cycle": 59,
+      "concludedAt": 1794874147341
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/multichat/MultiChatStore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1b1kix1ohj4fl",
+      "cycle": 58,
+      "concludedAt": 1794874147313,
+      "note": "Same evidence as the study concluded in cycle 24; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/ProviderConfig.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/ProviderConfig.ts (1725 bytes) from the development runtime. Read src/core/ProviderConfig.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/ProviderConfig.ts: 53 line(s). Exports: interface ProviderConfig, function validateProviderConfig.",
+      "evidence": [
+        "Read src/core/ProviderConfig.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/ProviderConfig.ts: 53 line(s).",
+        "Exports: interface ProviderConfig, function validateProviderConfig.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/ProviderConfig.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "qowydi1tr0wsq",
+      "cycle": 57,
+      "concludedAt": 1794874147281,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/multichat/ContextProvenance.ts contribute to src/core/MemoryBridge.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/multichat/ContextProvenance.ts (4600 bytes) from the development runtime. Read src/core/multichat/ContextProvenance.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/ContextProvenance.ts: 96 line(s). Exports: interface ProvenanceResult, function labelOtherChats, const CHAT_SCOPED.",
+      "evidence": [
+        "Read src/core/multichat/ContextProvenance.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/ContextProvenance.ts: 96 line(s).",
+        "Exports: interface ProvenanceResult, function labelOtherChats, const CHAT_SCOPED.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/multichat/ContextProvenance.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "eyn03wal693",
+      "cycle": 56,
+      "concludedAt": 1794874147250
+    },
+    {
+      "question": "What does src/core/multichat/MultiChatStore.ts contribute to src/core/MemoryBridge.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/multichat/MultiChatStore.ts (27012 bytes) from the development runtime. Read src/core/multichat/MultiChatStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/MultiChatStore.ts: 785 line(s). Exports: interface ChatMessage, interface ChatConversation, type ConversationSearchScope, interface ConversationSearchHit, function tokenizeText, class MultiChatStore.",
+      "evidence": [
+        "Read src/core/multichat/MultiChatStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/MultiChatStore.ts: 785 line(s).",
+        "Exports: interface ChatMessage, interface ChatConversation, type ConversationSearchScope, interface ConversationSearchHit, function tokenizeText, class MultiChatStore.",
+        "Public methods: flush, subscribe, list, listAll, listArchived, mergeRemote, get, getActiveId, getActive, restoreWorkspace, create, createBackground, archive, unarchive, switchActive, addMessage, upsertMessage, clear, rename, remove, duplicate, merge, pin, reorder, link, unlink, setProject, addTag, setProcessing, markRead, search."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/multichat/MultiChatStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1hvlc6a7y78a6",
+      "cycle": 55,
+      "concludedAt": 1794874147214
+    },
+    {
+      "question": "What does src/core/AIProviderRegistry.ts contribute to Public methods: log, info, error, all, latest, successful, failures, clear?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIProviderRegistry.ts (19538 bytes) from the development runtime. Read src/core/AIProviderRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIProviderRegistry.ts: 534 line(s). Exports: type ProviderFailureKind, function isAuthRejection, function classifyProviderFailure, class AIProviderRegistry.",
+      "evidence": [
+        "Read src/core/AIProviderRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIProviderRegistry.ts: 534 line(s).",
+        "Exports: type ProviderFailureKind, function isAuthRejection, function classifyProviderFailure, class AIProviderRegistry.",
+        "Public methods: register, registerMany, initialize, shutdown, get, require, all, enabled, available, markFailure, cooldownFor, clearFailure, markSuccess, getActiveProvider, lastSuccessOf, lastUsageOf, isInCooldown, statusSnapshot, failure, names, has, clear."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIProviderRegistry.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "bcjat24kkf2i",
+      "cycle": 54,
+      "concludedAt": 1794874147187,
+      "note": "Same evidence as the study concluded in cycle 4; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/AICore.ts contribute to Public methods: log, info, error, all, latest, successful, failures, clear?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AICore.ts (3128 bytes) from the development runtime. Read src/core/AICore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AICore.ts: 191 line(s). Exports: class AICore.",
+      "evidence": [
+        "Read src/core/AICore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AICore.ts: 191 line(s).",
+        "Exports: class AICore.",
+        "Public methods: initialize, isReady, getKnowledgeProviders, getAIProviders, getLogger, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AICore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "aenqivut53k3",
+      "cycle": 53,
+      "concludedAt": 1794874147157,
+      "note": "Same evidence as the study concluded in cycle 26; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/MemoryBridge.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/MemoryBridge.ts (17939 bytes) from the development runtime. Read src/core/MemoryBridge.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/MemoryBridge.ts: 465 line(s). Exports: class MemoryBridge.",
+      "evidence": [
+        "Read src/core/MemoryBridge.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/MemoryBridge.ts: 465 line(s).",
+        "Exports: class MemoryBridge.",
+        "Public methods: enrich, learn."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/MemoryBridge.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1ww8bnr25lu5v",
+      "cycle": 52,
+      "concludedAt": 1794874147111,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is causing this failure: Public methods: log, info, error, all, latest, successful, failures, clear?",
+      "verdict": "no-change",
+      "learned": "Listed src/core from the REAL DEVELOPMENT RUNTIME. REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. src/core contains 78 entr(y/ies): acquisition, agent, agentic, agents, apiEcosystem, atelier, avatar, browser, build, capabilities, caretaker, cognition, config, cosmos, creative, curiosity, data, earth, engineering, env",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "src/core contains 78 entr(y/ies): acquisition, agent, agentic, agents, apiEcosystem, atelier, avatar, browser, build, capabilities, caretaker, cognition, config, cosmos, creative, curiosity, data, earth, engineering, env"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Public methods: log, info, error, all, latest, successful, failures, clear",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1gu0h651wdgohl",
+      "cycle": 51,
+      "concludedAt": 1794874147058,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/ExecutionLogger.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/ExecutionLogger.ts (6246 bytes) from the development runtime. Read src/core/ExecutionLogger.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/ExecutionLogger.ts: 364 line(s). Exports: interface ExecutionLog, class ExecutionLogger.",
+      "evidence": [
+        "Read src/core/ExecutionLogger.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/ExecutionLogger.ts: 364 line(s).",
+        "Exports: interface ExecutionLog, class ExecutionLogger.",
+        "Public methods: log, info, error, all, latest, successful, failures, clear."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/ExecutionLogger.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "q93pr54sohlp",
+      "cycle": 50,
+      "concludedAt": 1794874146970,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/EventBus.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/EventBus.ts (2908 bytes) from the development runtime. Read src/core/EventBus.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/EventBus.ts: 285 line(s). Exports: type EventHandler, interface EventMessage, class EventBus.",
+      "evidence": [
+        "Read src/core/EventBus.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/EventBus.ts: 285 line(s).",
+        "Exports: type EventHandler, interface EventMessage, class EventBus.",
+        "Public methods: on, once, off, emit, has, count, events, clear."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/EventBus.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1khjxmx14xocil",
+      "cycle": 49,
+      "concludedAt": 1794874146914,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/Endpoints.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/Endpoints.ts (17623 bytes) from the development runtime. Read src/core/Endpoints.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/Endpoints.ts: 521 line(s). Exports: interface EndpointDefinition, const ENDPOINTS, type EndpointId, function endpoint, function isBrokeredInBrowser, function endpointUrl, function isOverridden, function endpointDiagnostics.",
+      "evidence": [
+        "Read src/core/Endpoints.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/Endpoints.ts: 521 line(s).",
+        "Exports: interface EndpointDefinition, const ENDPOINTS, type EndpointId, function endpoint, function isBrokeredInBrowser, function endpointUrl, function isOverridden, function endpointDiagnostics.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/Endpoints.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1grqcpa1ab7jmy",
+      "cycle": 48,
+      "concludedAt": 1794874146864,
+      "note": "Same evidence as the study concluded in cycle 47; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/Endpoints.ts contribute to src/core/Environment.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/Endpoints.ts (17623 bytes) from the development runtime. Read src/core/Endpoints.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/Endpoints.ts: 521 line(s). Exports: interface EndpointDefinition, const ENDPOINTS, type EndpointId, function endpoint, function isBrokeredInBrowser, function endpointUrl, function isOverridden, function endpointDiagnostics.",
+      "evidence": [
+        "Read src/core/Endpoints.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/Endpoints.ts: 521 line(s).",
+        "Exports: interface EndpointDefinition, const ENDPOINTS, type EndpointId, function endpoint, function isBrokeredInBrowser, function endpointUrl, function isOverridden, function endpointDiagnostics.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/Endpoints.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1grqcpa1ab7jmy",
+      "cycle": 47,
+      "concludedAt": 1794874146826
+    },
+    {
+      "question": "What does src/core/AIService.ts contribute to src/core/Bootstrap.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIService.ts (65272 bytes) from the development runtime. Read src/core/AIService.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIService.ts: 1696 line(s). Exports: interface AIActionEvent, interface CognitionEvent, interface AIMessageEvent, function priorTurnsFor, class AIService.",
+      "evidence": [
+        "Read src/core/AIService.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIService.ts: 1696 line(s).",
+        "Exports: interface AIActionEvent, interface CognitionEvent, interface AIMessageEvent, function priorTurnsFor, class AIService.",
+        "Public methods: waitForPendingConsolidations, subscribeActions, subscribeCognition, subscribeMessages, subscribeStream, subscribeThinking, subscribeSpeaking, subscribeListening, subscribeNotifications, cancelTurn, beginTurn, steerTurn, takeSteering, deliverReply, initialize, chat, isUserTurnActive, delegate, getMemories, deliberate, reason, recall, reflectOnMemory, cancelActiveTurn, isTurnActive, consolidate, getProviders, getProviderHealth, toolContext, getKnowledgeProviderRegistry, getAIProviderRegistry, getApiStatus, getExecutionLogs, providerHealth, modelSystemStatus, setOfflineMode, isOfflineMode, localRuntimeStatus, nativeCapabilities, runCapability, ready, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIService.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1fugqddqasijx",
+      "cycle": 46,
+      "concludedAt": 1794874146790,
+      "note": "Same evidence as the study concluded in cycle 34; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/Environment.ts contribute to src/core/Bootstrap.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/Environment.ts (15925 bytes) from the development runtime. Read src/core/Environment.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/Environment.ts: 396 line(s). Exports: interface LeluEnvironment, interface ProviderEnv, function providerLabel, function getEnvironment, function reloadEnvironment, function environmentDiagnostics, function validateProviderConfig.",
+      "evidence": [
+        "Read src/core/Environment.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/Environment.ts: 396 line(s).",
+        "Exports: interface LeluEnvironment, interface ProviderEnv, function providerLabel, function getEnvironment, function reloadEnvironment, function environmentDiagnostics, function validateProviderConfig.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/Environment.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "mfr6jz6pxtbn",
+      "cycle": 45,
+      "concludedAt": 1794874146748
+    },
+    {
+      "question": "What does src/core/Bootstrap.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/Bootstrap.ts (15766 bytes) from the development runtime. Read src/core/Bootstrap.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/Bootstrap.ts: 374 line(s). Exports: type BootstrapStep, type StepStatus, interface BootstrapStepResult, interface BootstrapReport, type BootstrapListener, class Bootstrap.",
+      "evidence": [
+        "Read src/core/Bootstrap.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/Bootstrap.ts: 374 line(s).",
+        "Exports: type BootstrapStep, type StepStatus, interface BootstrapStepResult, interface BootstrapReport, type BootstrapListener, class Bootstrap.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/Bootstrap.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1m94wn9a87vqx",
+      "cycle": 44,
+      "concludedAt": 1794874146699,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Why can I not answer “Is what I believe about Canvas raster pipelines still true” with the tools I have?",
+      "verdict": "no-change",
+      "learned": "Inspected the capability registry and live manifest (8 not available). Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0. partial: Render — cloud rendering requires provider keys; no photorealistic local generation partial: Video projects — no actual video generation yet; no editing layer yet",
+      "evidence": [
+        "Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0.",
+        "partial: Render — cloud rendering requires provider keys; no photorealistic local generation",
+        "partial: Video projects — no actual video generation yet; no editing layer yet",
+        "partial: Avatar identity — 2D config only — no animation or embodied avatar yet"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:why-can-i-not-answer-is-what-i-believe-about-canvas-raster-pipelines-still-true-",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y4pnwu191664i",
+      "cycle": 43,
+      "concludedAt": 1794874146659,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Is what I believe about Canvas raster pipelines still true?",
+      "verdict": "insufficient",
+      "learned": "Tried 2 provider(s) (guardian, newsdata) — none returned results.",
+      "evidence": [
+        "guardian: no results.",
+        "newsdata: no results.",
+        "Skipped during failure cooldown: youtube, arxiv, news."
+      ],
+      "relevance": "The question “Is what I believe about Canvas raster pipelines still true?” is still open; the evidence did not address it.",
+      "subject": "knowledge:creative-canvas-raster-pipelines",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "idjb3j1x8u0q3",
+      "cycle": 42,
+      "concludedAt": 1794874146643
+    },
+    {
+      "question": "What does src/core/observability/UsageLedger.ts contribute to src/core/observability/UsageBudgetGate.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/observability/UsageLedger.ts (22085 bytes) from the development runtime. Read src/core/observability/UsageLedger.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/observability/UsageLedger.ts: 526 line(s). Exports: type UsageKind, type CostKind, interface UsageEvent, interface UsageTotals, interface UsageBudget, interface PendingUsage, const ALL_SOURCES, const BACKGROUND_PURPOSES, const BACKGROUND_PRIORITY, const BACKGROUND_BUDGET_SOURCE, const DEFAULT_BACKGROUND_DAILY_CALLS, function purposeOf, function isBackgroundPurpose, interface ",
+      "evidence": [
+        "Read src/core/observability/UsageLedger.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/observability/UsageLedger.ts: 526 line(s).",
+        "Exports: type UsageKind, type CostKind, interface UsageEvent, interface UsageTotals, interface UsageBudget, interface PendingUsage, const ALL_SOURCES, const BACKGROUND_PURPOSES, const BACKGROUND_PRIORITY, const BACKGROUND_BUDGET_SOURCE, const DEFAULT_BACKGROUND_DAILY_CALLS, function purposeOf, function isBackgroundPurpose, interface BackgroundPause, function legacyEventId, interface BudgetDecision, function normalizeUsage, function nextUtcMidnight, class UsageLedger.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/observability/UsageLedger.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "rz964ap5g2su",
+      "cycle": 41,
+      "concludedAt": 1794874146615,
+      "note": "Same evidence as the study concluded in cycle 38; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/observability/UsageBudgetGate.ts contribute to src/core/observability/UsageSync.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/observability/UsageBudgetGate.ts (20256 bytes) from the development runtime. Read src/core/observability/UsageBudgetGate.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/observability/UsageBudgetGate.ts: 463 line(s). Exports: function isDailyLimitRefusal, interface BackgroundAllowance, interface RemoteReserveResult, interface UsageRemote, class BudgetExhaustedError, interface Reservation, class UsageBudgetGate, function budgetNotice.",
+      "evidence": [
+        "Read src/core/observability/UsageBudgetGate.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/observability/UsageBudgetGate.ts: 463 line(s).",
+        "Exports: function isDailyLimitRefusal, interface BackgroundAllowance, interface RemoteReserveResult, interface UsageRemote, class BudgetExhaustedError, interface Reservation, class UsageBudgetGate, function budgetNotice.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/observability/UsageBudgetGate.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "lim5xv1rqkexj",
+      "cycle": 39,
+      "concludedAt": 1794874146555
+    },
+    {
+      "question": "What does src/core/observability/UsageLedger.ts contribute to src/core/observability/UsageSync.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/observability/UsageLedger.ts (22085 bytes) from the development runtime. Read src/core/observability/UsageLedger.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/observability/UsageLedger.ts: 526 line(s). Exports: type UsageKind, type CostKind, interface UsageEvent, interface UsageTotals, interface UsageBudget, interface PendingUsage, const ALL_SOURCES, const BACKGROUND_PURPOSES, const BACKGROUND_PRIORITY, const BACKGROUND_BUDGET_SOURCE, const DEFAULT_BACKGROUND_DAILY_CALLS, function purposeOf, function isBackgroundPurpose, interface ",
+      "evidence": [
+        "Read src/core/observability/UsageLedger.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/observability/UsageLedger.ts: 526 line(s).",
+        "Exports: type UsageKind, type CostKind, interface UsageEvent, interface UsageTotals, interface UsageBudget, interface PendingUsage, const ALL_SOURCES, const BACKGROUND_PURPOSES, const BACKGROUND_PRIORITY, const BACKGROUND_BUDGET_SOURCE, const DEFAULT_BACKGROUND_DAILY_CALLS, function purposeOf, function isBackgroundPurpose, interface BackgroundPause, function legacyEventId, interface BudgetDecision, function normalizeUsage, function nextUtcMidnight, class UsageLedger.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/observability/UsageLedger.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "rz964ap5g2su",
+      "cycle": 38,
+      "concludedAt": 1794874146530
+    },
+    {
+      "question": "What does src/core/AIRuntime.ts contribute to src/core/AIService.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIRuntime.ts (14563 bytes) from the development runtime. Read src/core/AIRuntime.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIRuntime.ts: 710 line(s). Exports: class AIRuntime.",
+      "evidence": [
+        "Read src/core/AIRuntime.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIRuntime.ts: 710 line(s).",
+        "Exports: class AIRuntime.",
+        "Public methods: isReady, initialize, process, reason, cognition, aiProviderList, aiProviderHealthList, aiProviderRuntimeStatus, modelSystemStatus, setOfflineMode, isOfflineMode, localRuntimeStatus, toolContext, knowledgeProviderList, executionLogs, providerHealth, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIRuntime.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "po5ls910ur4s5",
+      "cycle": 37,
+      "concludedAt": 1794874146504,
+      "note": "Same evidence as the study concluded in cycle 20; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/observability/UsageSync.ts contribute to src/core/AIService.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/observability/UsageSync.ts (19801 bytes) from the development runtime. Read src/core/observability/UsageSync.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/observability/UsageSync.ts: 444 line(s). Exports: interface UsageBackend, interface UsageChannel, interface SyncStatus, function toRow, function evaluateAccountBudgets, class SupabaseUsageRemote, class UsageSync.",
+      "evidence": [
+        "Read src/core/observability/UsageSync.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/observability/UsageSync.ts: 444 line(s).",
+        "Exports: interface UsageBackend, interface UsageChannel, interface SyncStatus, function toRow, function evaluateAccountBudgets, class SupabaseUsageRemote, class UsageSync.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/observability/UsageSync.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1pic6d11xaalbd",
+      "cycle": 36,
+      "concludedAt": 1794874146463
+    },
+    {
+      "question": "What does src/core/AIService.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIService.ts (65272 bytes) from the development runtime. Read src/core/AIService.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIService.ts: 1696 line(s). Exports: interface AIActionEvent, interface CognitionEvent, interface AIMessageEvent, function priorTurnsFor, class AIService.",
+      "evidence": [
+        "Read src/core/AIService.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIService.ts: 1696 line(s).",
+        "Exports: interface AIActionEvent, interface CognitionEvent, interface AIMessageEvent, function priorTurnsFor, class AIService.",
+        "Public methods: waitForPendingConsolidations, subscribeActions, subscribeCognition, subscribeMessages, subscribeStream, subscribeThinking, subscribeSpeaking, subscribeListening, subscribeNotifications, cancelTurn, beginTurn, steerTurn, takeSteering, deliverReply, initialize, chat, isUserTurnActive, delegate, getMemories, deliberate, reason, recall, reflectOnMemory, cancelActiveTurn, isTurnActive, consolidate, getProviders, getProviderHealth, toolContext, getKnowledgeProviderRegistry, getAIProviderRegistry, getApiStatus, getExecutionLogs, providerHealth, modelSystemStatus, setOfflineMode, isOfflineMode, localRuntimeStatus, nativeCapabilities, runCapability, ready, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIService.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1fugqddqasijx",
+      "cycle": 34,
+      "concludedAt": 1794874146386,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Is what I believe about Virtual sandbox design still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-virtual-sandbox-design",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 33,
+      "concludedAt": 1794874146350
+    },
+    {
+      "question": "What does src/providers/AIProvider.ts contribute to src/core/tools/ToolDispatcher.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/AIProvider.ts (10972 bytes) from the development runtime. Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/AIProvider.ts: 580 line(s). Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+      "evidence": [
+        "Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/AIProvider.ts: 580 line(s).",
+        "Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/AIProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "svh5t1t4a18d",
+      "cycle": 32,
+      "concludedAt": 1794874146333,
+      "note": "Same evidence as the study concluded in cycle 12; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/tools/ClaimGrounding.ts contribute to src/core/tools/ToolDispatcher.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/tools/ClaimGrounding.ts (9320 bytes) from the development runtime. Read src/core/tools/ClaimGrounding.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/tools/ClaimGrounding.ts: 200 line(s). Exports: interface UngroundedClaim, function ungroundedClaims, function groundingNote, interface MeasuredCapture, interface ContradictedClaim, function contradictedCaptureClaims, function contradictionNote.",
+      "evidence": [
+        "Read src/core/tools/ClaimGrounding.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/tools/ClaimGrounding.ts: 200 line(s).",
+        "Exports: interface UngroundedClaim, function ungroundedClaims, function groundingNote, interface MeasuredCapture, interface ContradictedClaim, function contradictedCaptureClaims, function contradictionNote.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/tools/ClaimGrounding.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1sp58g6vevioq",
+      "cycle": 31,
+      "concludedAt": 1794874146312
+    },
+    {
+      "question": "Is what I believe about Prompt/context enrichment still true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 30,
+      "concludedAt": 1794874146273,
+      "note": "Same evidence as the study concluded in cycle 8; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/tools/ToolDispatcher.ts contribute to src/core/acquisition/ResourceTools.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/tools/ToolDispatcher.ts (139102 bytes) from the development runtime. Read src/core/tools/ToolDispatcher.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/tools/ToolDispatcher.ts: 3005 line(s). Exports: interface ToolExecutionResult, interface ToolExecutor, function missingResearchDependencies, const RESEARCH_FOCUS, function describeToolCall, function latestCaptureMeasurements, function compareCaptures, function unsavableContent, function uncomparedConditions, function locateSnippet, function toolNameForModel, function registryIdForTool",
+      "evidence": [
+        "Read src/core/tools/ToolDispatcher.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/tools/ToolDispatcher.ts: 3005 line(s).",
+        "Exports: interface ToolExecutionResult, interface ToolExecutor, function missingResearchDependencies, const RESEARCH_FOCUS, function describeToolCall, function latestCaptureMeasurements, function compareCaptures, function unsavableContent, function uncomparedConditions, function locateSnippet, function toolNameForModel, function registryIdForToolName, function registerExecutor, function unregisterExecutor, function executableToolIds, function executorParameters, function toolPermitted.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/tools/ToolDispatcher.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "18n889oeg0h60",
+      "cycle": 29,
+      "concludedAt": 1794874146249
+    },
+    {
+      "question": "What does src/core/tools/ToolRegistry.ts contribute to src/core/acquisition/ResourceTools.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/tools/ToolRegistry.ts (56548 bytes) from the development runtime. Read src/core/tools/ToolRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/tools/ToolRegistry.ts: 1499 line(s). Exports: type RiskLevel, type PermissionClass, interface ToolDefinition, class ToolRegistry.",
+      "evidence": [
+        "Read src/core/tools/ToolRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/tools/ToolRegistry.ts: 1499 line(s).",
+        "Exports: type RiskLevel, type PermissionClass, interface ToolDefinition, class ToolRegistry.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/tools/ToolRegistry.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "18aa0dhe5z689",
+      "cycle": 28,
+      "concludedAt": 1794874146208,
+      "note": "Same evidence as the study concluded in cycle 21; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/AIRouter.ts contribute to src/core/AIRuntime.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIRouter.ts (25930 bytes) from the development runtime. Read src/core/AIRouter.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIRouter.ts: 523 line(s). Exports: class AIRouter.",
+      "evidence": [
+        "Read src/core/AIRouter.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIRouter.ts: 523 line(s).",
+        "Exports: class AIRouter.",
+        "Public methods: route."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIRouter.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "9yjyvk15kvhj8",
+      "cycle": 27,
+      "concludedAt": 1794874146175,
+      "note": "Same evidence as the study concluded in cycle 9; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/AICore.ts contribute to src/core/AIRuntime.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AICore.ts (3128 bytes) from the development runtime. Read src/core/AICore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AICore.ts: 191 line(s). Exports: class AICore.",
+      "evidence": [
+        "Read src/core/AICore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AICore.ts: 191 line(s).",
+        "Exports: class AICore.",
+        "Public methods: initialize, isReady, getKnowledgeProviders, getAIProviders, getLogger, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AICore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "aenqivut53k3",
+      "cycle": 26,
+      "concludedAt": 1794874146148,
+      "note": "Same evidence as the study concluded in cycle 1; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/resolveEnv.ts contribute to src/core/selfdev/SourceAccess.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/resolveEnv.ts (4652 bytes) from the development runtime. Read src/core/resolveEnv.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/resolveEnv.ts: 107 line(s). Exports: function resolveEnvValue, function resolveFirst, function nasaApiKey, function resolveViteOnly.",
+      "evidence": [
+        "Read src/core/resolveEnv.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/resolveEnv.ts: 107 line(s).",
+        "Exports: function resolveEnvValue, function resolveFirst, function nasaApiKey, function resolveViteOnly.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/resolveEnv.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1wnnyx91avlq9d",
+      "cycle": 25,
+      "concludedAt": 1794874146095
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/cognition/AutonomyGate.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1b1kix1ohj4fl",
+      "cycle": 24,
+      "concludedAt": 1794874146043,
+      "note": "Same evidence as the study concluded in cycle 6; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/cognition/AutonomyPolicy.ts contribute to src/core/cognition/AutonomyGate.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/cognition/AutonomyPolicy.ts (530 bytes) from the development runtime. Read src/core/cognition/AutonomyPolicy.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/cognition/AutonomyPolicy.ts: 12 line(s). Exports: const REAL_PROJECT_APPLY_LEVEL.",
+      "evidence": [
+        "Read src/core/cognition/AutonomyPolicy.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/cognition/AutonomyPolicy.ts: 12 line(s).",
+        "Exports: const REAL_PROJECT_APPLY_LEVEL.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/cognition/AutonomyPolicy.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1xxry4d2hnqwp",
+      "cycle": 23,
+      "concludedAt": 1794874145990
+    },
+    {
+      "question": "What does src/core/acquisition/ResourceTools.ts contribute to src/core/acquisition/CommandCenterToolDefinitions.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/acquisition/ResourceTools.ts (20690 bytes) from the development runtime. Read src/core/acquisition/ResourceTools.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/acquisition/ResourceTools.ts: 308 line(s). Exports: const RESOURCE_TOOL_DEFINITIONS, const RESOURCE_EXECUTORS, interface ResourceScan.",
+      "evidence": [
+        "Read src/core/acquisition/ResourceTools.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/acquisition/ResourceTools.ts: 308 line(s).",
+        "Exports: const RESOURCE_TOOL_DEFINITIONS, const RESOURCE_EXECUTORS, interface ResourceScan.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/acquisition/ResourceTools.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1kfd0hofyhb3k",
+      "cycle": 22,
+      "concludedAt": 1794874145928
+    },
+    {
+      "question": "What does src/core/tools/ToolRegistry.ts contribute to src/core/acquisition/CommandCenterToolDefinitions.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/tools/ToolRegistry.ts (56548 bytes) from the development runtime. Read src/core/tools/ToolRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/tools/ToolRegistry.ts: 1499 line(s). Exports: type RiskLevel, type PermissionClass, interface ToolDefinition, class ToolRegistry.",
+      "evidence": [
+        "Read src/core/tools/ToolRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/tools/ToolRegistry.ts: 1499 line(s).",
+        "Exports: type RiskLevel, type PermissionClass, interface ToolDefinition, class ToolRegistry.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/tools/ToolRegistry.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "18aa0dhe5z689",
+      "cycle": 21,
+      "concludedAt": 1794874145854,
+      "note": "Same evidence as the study concluded in cycle 14; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/AIRuntime.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIRuntime.ts (14563 bytes) from the development runtime. Read src/core/AIRuntime.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIRuntime.ts: 710 line(s). Exports: class AIRuntime.",
+      "evidence": [
+        "Read src/core/AIRuntime.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIRuntime.ts: 710 line(s).",
+        "Exports: class AIRuntime.",
+        "Public methods: isReady, initialize, process, reason, cognition, aiProviderList, aiProviderHealthList, aiProviderRuntimeStatus, modelSystemStatus, setOfflineMode, isOfflineMode, localRuntimeStatus, toolContext, knowledgeProviderList, executionLogs, providerHealth, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIRuntime.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "po5ls910ur4s5",
+      "cycle": 20,
+      "concludedAt": 1794874145807,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/selfdev/SourceAccess.ts contribute to src/core/engineering/WorkspaceRuntime.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/selfdev/SourceAccess.ts (19236 bytes) from the development runtime. Read src/core/selfdev/SourceAccess.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/selfdev/SourceAccess.ts: 564 line(s). Exports: type SourceOrigin, interface SourceRead, interface DirEntry, interface SourceListing, interface RuntimeInfo, interface RuntimeStatus, interface CommandOutcome, function normalizeWorkspacePath, class SourceAccess.",
+      "evidence": [
+        "Read src/core/selfdev/SourceAccess.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/selfdev/SourceAccess.ts: 564 line(s).",
+        "Exports: type SourceOrigin, interface SourceRead, interface DirEntry, interface SourceListing, interface RuntimeInfo, interface RuntimeStatus, interface CommandOutcome, function normalizeWorkspacePath, class SourceAccess.",
+        "Public methods: baseUrl, url, headers, status, cached, describe, read, list, snapshotPaths, command, write."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/selfdev/SourceAccess.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "19zcem74oxpvn",
+      "cycle": 19,
+      "concludedAt": 1794874145759
+    },
+    {
+      "question": "What does src/core/cognition/AutonomyGate.ts contribute to src/core/engineering/WorkspaceRuntime.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/cognition/AutonomyGate.ts (6999 bytes) from the development runtime. Read src/core/cognition/AutonomyGate.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/cognition/AutonomyGate.ts: 191 line(s). Exports: interface AutonomyLevel, const AUTONOMY_LEVELS, interface ServerAutonomyState, class AutonomyGate.",
+      "evidence": [
+        "Read src/core/cognition/AutonomyGate.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/cognition/AutonomyGate.ts: 191 line(s).",
+        "Exports: interface AutonomyLevel, const AUTONOMY_LEVELS, interface ServerAutonomyState, class AutonomyGate.",
+        "Public methods: getLevel, source, serverState, subscribe, syncFromServer, requestServerChange, setLevel, can, describe, levelInfo."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/cognition/AutonomyGate.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "eqbvng3j8cp4",
+      "cycle": 18,
+      "concludedAt": 1794874145721
+    },
+    {
+      "question": "What does src/core/acquisition/CommandCenterToolDefinitions.ts contribute to src/core/tools/ToolRegistry.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/acquisition/CommandCenterToolDefinitions.ts (8358 bytes) from the development runtime. Read src/core/acquisition/CommandCenterToolDefinitions.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/acquisition/CommandCenterToolDefinitions.ts: 226 line(s). Exports: none detected.",
+      "evidence": [
+        "Read src/core/acquisition/CommandCenterToolDefinitions.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/acquisition/CommandCenterToolDefinitions.ts: 226 line(s).",
+        "Exports: none detected.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/acquisition/CommandCenterToolDefinitions.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "ztl89d6yr4bh",
+      "cycle": 17,
+      "concludedAt": 1794874145665
+    },
+    {
+      "question": "What does src/core/engineering/WorkspaceRuntime.ts contribute to src/core/tools/ToolRegistry.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/engineering/WorkspaceRuntime.ts (6792 bytes) from the development runtime. Read src/core/engineering/WorkspaceRuntime.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/engineering/WorkspaceRuntime.ts: 189 line(s). Exports: type WorkspaceOperation, interface WorkspaceCommandResult, interface EngineeringRuntimeState, class WorkspaceRuntime.",
+      "evidence": [
+        "Read src/core/engineering/WorkspaceRuntime.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/engineering/WorkspaceRuntime.ts: 189 line(s).",
+        "Exports: type WorkspaceOperation, interface WorkspaceCommandResult, interface EngineeringRuntimeState, class WorkspaceRuntime.",
+        "Public methods: operations, allowed, requiredLevel, probe, getRuntimeState, run."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/engineering/WorkspaceRuntime.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "6nu6h3ckvr0j",
+      "cycle": 16,
+      "concludedAt": 1794874145639
+    },
+    {
+      "question": "Is what I believe about Provider fallback chains still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-provider-fallback-chains",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 15,
+      "concludedAt": 1794874145616
+    },
+    {
+      "question": "What does src/core/tools/ToolRegistry.ts contribute to src/core/studio/StudioTools.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/tools/ToolRegistry.ts (56548 bytes) from the development runtime. Read src/core/tools/ToolRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/tools/ToolRegistry.ts: 1499 line(s). Exports: type RiskLevel, type PermissionClass, interface ToolDefinition, class ToolRegistry.",
+      "evidence": [
+        "Read src/core/tools/ToolRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/tools/ToolRegistry.ts: 1499 line(s).",
+        "Exports: type RiskLevel, type PermissionClass, interface ToolDefinition, class ToolRegistry.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/tools/ToolRegistry.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "18aa0dhe5z689",
+      "cycle": 14,
+      "concludedAt": 1794874145599
+    },
+    {
+      "question": "What does src/core/agent/AgentEvents.ts contribute to src/core/studio/StudioTools.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/agent/AgentEvents.ts (13013 bytes) from the development runtime. Read src/core/agent/AgentEvents.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/agent/AgentEvents.ts: 367 line(s). Exports: type ExecutionSide, type ExecutionPhase, type CognitionStage, type AgentEvent, interface AgentResultItem, type AgentEventListener, function emitCognition.",
+      "evidence": [
+        "Read src/core/agent/AgentEvents.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/agent/AgentEvents.ts: 367 line(s).",
+        "Exports: type ExecutionSide, type ExecutionPhase, type CognitionStage, type AgentEvent, interface AgentResultItem, type AgentEventListener, function emitCognition.",
+        "Public methods: subscribe, emit, recent, cognitionTrace."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/agent/AgentEvents.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "h6hb931kcdcbv",
+      "cycle": 13,
+      "concludedAt": 1794874145579
+    },
+    {
+      "question": "What does src/providers/AIProvider.ts contribute to src/core/AIRouter.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/AIProvider.ts (10972 bytes) from the development runtime. Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/AIProvider.ts: 580 line(s). Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+      "evidence": [
+        "Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/AIProvider.ts: 580 line(s).",
+        "Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/AIProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "svh5t1t4a18d",
+      "cycle": 12,
+      "concludedAt": 1794874145562,
+      "note": "Same evidence as the study concluded in cycle 7; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/studio/StudioTools.ts contribute to src/core/AIRouter.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/studio/StudioTools.ts (31247 bytes) from the development runtime. Read src/core/studio/StudioTools.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/studio/StudioTools.ts: 513 line(s). Exports: function droppedContent, function preserveDropped, interface StudioExecutor, const STUDIO_OPEN_EVENT, const STUDIO_TOOLS, function openInCosmos, function describeArtifactSpec, const STUDIO_EXECUTORS, function registerStudioTools, function conversationArtifactsContext, function refersToConversationArtifact.",
+      "evidence": [
+        "Read src/core/studio/StudioTools.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/studio/StudioTools.ts: 513 line(s).",
+        "Exports: function droppedContent, function preserveDropped, interface StudioExecutor, const STUDIO_OPEN_EVENT, const STUDIO_TOOLS, function openInCosmos, function describeArtifactSpec, const STUDIO_EXECUTORS, function registerStudioTools, function conversationArtifactsContext, function refersToConversationArtifact.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/studio/StudioTools.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "sja3auun2ca",
+      "cycle": 11,
+      "concludedAt": 1794874145539
+    },
+    {
+      "question": "Is what I believe about Browser environment limits still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:computing-browser-environment-limits",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 10,
+      "concludedAt": 1794874145511
+    },
+    {
+      "question": "What does src/core/AIRouter.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIRouter.ts (25930 bytes) from the development runtime. Read src/core/AIRouter.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIRouter.ts: 523 line(s). Exports: class AIRouter.",
+      "evidence": [
+        "Read src/core/AIRouter.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIRouter.ts: 523 line(s).",
+        "Exports: class AIRouter.",
+        "Public methods: route."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIRouter.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "9yjyvk15kvhj8",
+      "cycle": 9,
+      "concludedAt": 1794874145489,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Is what I believe about IndexedDB still true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 8,
+      "concludedAt": 1794874145466,
+      "note": "Same evidence as the study concluded in cycle 6; nothing new to conclude."
+    },
+    {
+      "question": "What does src/providers/AIProvider.ts contribute to src/core/AIProviderRegistry.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/AIProvider.ts (10972 bytes) from the development runtime. Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/AIProvider.ts: 580 line(s). Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+      "evidence": [
+        "Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/AIProvider.ts: 580 line(s).",
+        "Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/AIProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "svh5t1t4a18d",
+      "cycle": 7,
+      "concludedAt": 1794874145456,
+      "note": "Same evidence as the study concluded in cycle 31; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to storage?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1b1kix1ohj4fl",
+      "cycle": 6,
+      "concludedAt": 1794874145436,
+      "note": "Same evidence as the study concluded in cycle 36; nothing new to conclude."
+    },
+    {
+      "question": "What does src/providers/Provider.ts contribute to src/core/ProviderRegistry.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/Provider.ts (840 bytes) from the development runtime. Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/Provider.ts: 63 line(s). Exports: interface KnowledgeResult, interface Provider.",
+      "evidence": [
+        "Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/Provider.ts: 63 line(s).",
+        "Exports: interface KnowledgeResult, interface Provider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/Provider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1otlnyw1bgbnx8",
+      "cycle": 5,
+      "concludedAt": 1794874145418,
+      "note": "Same evidence as the study concluded in cycle 39; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/AIProviderRegistry.ts contribute to src/core/AICore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AIProviderRegistry.ts (19538 bytes) from the development runtime. Read src/core/AIProviderRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AIProviderRegistry.ts: 534 line(s). Exports: type ProviderFailureKind, function isAuthRejection, function classifyProviderFailure, class AIProviderRegistry.",
+      "evidence": [
+        "Read src/core/AIProviderRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AIProviderRegistry.ts: 534 line(s).",
+        "Exports: type ProviderFailureKind, function isAuthRejection, function classifyProviderFailure, class AIProviderRegistry.",
+        "Public methods: register, registerMany, initialize, shutdown, get, require, all, enabled, available, markFailure, cooldownFor, clearFailure, markSuccess, getActiveProvider, lastSuccessOf, lastUsageOf, isInCooldown, statusSnapshot, failure, names, has, clear."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AIProviderRegistry.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "bcjat24kkf2i",
+      "cycle": 4,
+      "concludedAt": 1794874145399
+    },
+    {
+      "question": "Is what I believe about Storage persistence still true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Persistence layer”: working, 1 file(s). Persistence layer (storage) — kind storage, status working. Description: The shared KvStore (localStorage → sessionStorage → window.name) used by every persistent store, offline-first. Files (1): src/core/storage/KvStore.ts",
+      "evidence": [
+        "Persistence layer (storage) — kind storage, status working.",
+        "Description: The shared KvStore (localStorage → sessionStorage → window.name) used by every persistent store, offline-first.",
+        "Files (1): src/core/storage/KvStore.ts",
+        "Depends on: nothing."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "storage",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1xrofjgkvfwkg",
+      "cycle": 3,
+      "concludedAt": 1794874145372
+    },
+    {
+      "question": "What does src/core/ProviderRegistry.ts contribute to src/core/AICore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/ProviderRegistry.ts (2058 bytes) from the development runtime. Read src/core/ProviderRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/ProviderRegistry.ts: 171 line(s). Exports: class ProviderRegistry.",
+      "evidence": [
+        "Read src/core/ProviderRegistry.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/ProviderRegistry.ts: 171 line(s).",
+        "Exports: class ProviderRegistry.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/ProviderRegistry.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "cofkhreksi5v",
+      "cycle": 2,
+      "concludedAt": 1794874145346
+    },
+    {
+      "question": "What does src/core/AICore.ts actually do?",
+      "verdict": "no-change",
+      "learned": "Read src/core/AICore.ts (3128 bytes) from the development runtime. Read src/core/AICore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/AICore.ts: 191 line(s). Exports: class AICore.",
+      "evidence": [
+        "Read src/core/AICore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/AICore.ts: 191 line(s).",
+        "Exports: class AICore.",
+        "Public methods: initialize, isReady, getKnowledgeProviders, getAIProviders, getLogger, shutdown."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/AICore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "aenqivut53k3",
+      "cycle": 1,
+      "concludedAt": 1794874145293,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Is what I believe about Filesystems & permissions still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:computing-filesystems-permissions",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 40,
+      "concludedAt": 1794874058625
+    },
+    {
+      "question": "What does src/providers/Provider.ts contribute to src/providers/BaseProvider.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/Provider.ts (840 bytes) from the development runtime. Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/Provider.ts: 63 line(s). Exports: interface KnowledgeResult, interface Provider.",
+      "evidence": [
+        "Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/Provider.ts: 63 line(s).",
+        "Exports: interface KnowledgeResult, interface Provider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/Provider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1otlnyw1bgbnx8",
+      "cycle": 39,
+      "concludedAt": 1794874058617
+    },
+    {
+      "question": "What does src/core/router/AIIntent.ts contribute to src/providers/AIProvider.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/router/AIIntent.ts (307 bytes) from the development runtime. Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/router/AIIntent.ts: 18 line(s). Exports: type AIIntent.",
+      "evidence": [
+        "Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/router/AIIntent.ts: 18 line(s).",
+        "Exports: type AIIntent.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/router/AIIntent.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1wsv4811twn0s",
+      "cycle": 38,
+      "concludedAt": 1794874058601
+    },
+    {
+      "question": "What is genuinely missing before “Render” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Render” (partial). Capability “Render” (render) — status partial. Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys. Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+      "evidence": [
+        "Capability “Render” (render) — status partial.",
+        "Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys.",
+        "Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "render",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1f0pxpr1f36rsz",
+      "cycle": 37,
+      "concludedAt": 1794874058545,
+      "note": "Same evidence as the study concluded in cycle 22; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/creative/SketchDocument.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1b1kix1ohj4fl",
+      "cycle": 36,
+      "concludedAt": 1794874058538
+    },
+    {
+      "question": "What is genuinely missing before “Video projects” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Video projects” (partial). Capability “Video projects” (video) — status partial. Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation. Limitations: no actual video generation yet; no editing layer yet.",
+      "evidence": [
+        "Capability “Video projects” (video) — status partial.",
+        "Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation.",
+        "Limitations: no actual video generation yet; no editing layer yet.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "video",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "lfn0qh37pra5",
+      "cycle": 35,
+      "concludedAt": 1794874058498,
+      "note": "Same evidence as the study concluded in cycle 25; nothing new to conclude."
+    },
+    {
+      "question": "What does src/providers/BaseProvider.ts contribute to providers?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/BaseProvider.ts (1104 bytes) from the development runtime. Read src/providers/BaseProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/BaseProvider.ts: 64 line(s). Exports: class BaseProvider.",
+      "evidence": [
+        "Read src/providers/BaseProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/BaseProvider.ts: 64 line(s).",
+        "Exports: class BaseProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/BaseProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "4vs54z98aqa7",
+      "cycle": 34,
+      "concludedAt": 1794874058489
+    },
+    {
+      "question": "What do I still not understand that “Jewelry: Collection concepts, pendants, renders and reference material.” depends on?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Jewelry: Collection concepts, pendants, renders and reference material.",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 33,
+      "concludedAt": 1794874058444,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is the state of cognition?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Cognition” (available). Capability “Cognition” (cognition) — status available. Description: Context enrichment, reasoning and planning resolvers, and the cognitive loop. Limitations: reasoning is heuristic, not a model call.",
+      "evidence": [
+        "Capability “Cognition” (cognition) — status available.",
+        "Description: Context enrichment, reasoning and planning resolvers, and the cognitive loop.",
+        "Limitations: reasoning is heuristic, not a model call.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "cognition",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "dgua0p1s6vg2d",
+      "cycle": 32,
+      "concludedAt": 1794874058416
+    },
+    {
+      "question": "What does src/providers/AIProvider.ts contribute to providers?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/AIProvider.ts (10972 bytes) from the development runtime. Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/AIProvider.ts: 580 line(s). Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+      "evidence": [
+        "Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/AIProvider.ts: 580 line(s).",
+        "Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/AIProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "svh5t1t4a18d",
+      "cycle": 31,
+      "concludedAt": 1794874058408
+    },
+    {
+      "question": "What is genuinely missing before “Avatar identity” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Avatar identity” (partial). Capability “Avatar identity” (avatar) — status partial. Description: Persistent avatar identity (appearance, identity, presence) with a reference image. Limitations: 2D config only — no animation or embodied avatar yet.",
+      "evidence": [
+        "Capability “Avatar identity” (avatar) — status partial.",
+        "Description: Persistent avatar identity (appearance, identity, presence) with a reference image.",
+        "Limitations: 2D config only — no animation or embodied avatar yet.",
+        "Dependencies: cognition."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "avatar",
+      "category": "personality",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1tio1q6pu5c8a",
+      "cycle": 30,
+      "concludedAt": 1794874058354,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/creative/SketchDocument.ts contribute to src/core/creative/CreativeToolInterface.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/SketchDocument.ts (11944 bytes) from the development runtime. Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/creative/SketchDocument.ts: 407 line(s). Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, ",
+      "evidence": [
+        "Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/creative/SketchDocument.ts: 407 line(s).",
+        "Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, function exportDocument, class SketchStore.",
+        "Public methods: list, subscribe, get, save, create, remove."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/SketchDocument.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "9lxcwz84hghz",
+      "cycle": 29,
+      "concludedAt": 1794874058348,
+      "note": "Same evidence as the study concluded in cycle 24; nothing new to conclude."
+    },
+    {
+      "question": "What do I still not understand that “Fashion: Garment concepts, fabric direction, styling and editorial renders.” depends on?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Fashion: Garment concepts, fabric direction, styling and editorial renders.",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 28,
+      "concludedAt": 1794874058328,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Why can I not answer “What do I actually know about Latest frontier model architectures, and is it true” with the tools I have?",
+      "verdict": "no-change",
+      "learned": "Inspected the capability registry and live manifest (8 not available). Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0. partial: Render — cloud rendering requires provider keys; no photorealistic local generation partial: Video projects — no actual video generation yet; no editing layer yet",
+      "evidence": [
+        "Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0.",
+        "partial: Render — cloud rendering requires provider keys; no photorealistic local generation",
+        "partial: Video projects — no actual video generation yet; no editing layer yet",
+        "partial: Avatar identity — 2D config only — no animation or embodied avatar yet"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:why-can-i-not-answer-what-do-i-actually-know-about-latest-frontier-model-archite",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y4pnwu191664i",
+      "cycle": 27,
+      "concludedAt": 1794874058315,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/brain/PatternMemory.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/ResponsePattern.ts (3897 bytes) from the development runtime. Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/brain/ResponsePattern.ts: 204 line(s). Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+      "evidence": [
+        "Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/brain/ResponsePattern.ts: 204 line(s).",
+        "Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/ResponsePattern.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "z4wxx11kt0ort",
+      "cycle": 26,
+      "concludedAt": 1794874058309,
+      "note": "Same evidence as the study concluded in cycle 19; nothing new to conclude."
+    },
+    {
+      "question": "What is the state of video?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Video projects” (partial). Capability “Video projects” (video) — status partial. Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation. Limitations: no actual video generation yet; no editing layer yet.",
+      "evidence": [
+        "Capability “Video projects” (video) — status partial.",
+        "Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation.",
+        "Limitations: no actual video generation yet; no editing layer yet.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "video",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "lfn0qh37pra5",
+      "cycle": 25,
+      "concludedAt": 1794874058292
+    },
+    {
+      "question": "What does src/core/creative/SketchDocument.ts contribute to creative?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/SketchDocument.ts (11944 bytes) from the development runtime. Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/creative/SketchDocument.ts: 407 line(s). Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, ",
+      "evidence": [
+        "Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/creative/SketchDocument.ts: 407 line(s).",
+        "Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, function exportDocument, class SketchStore.",
+        "Public methods: list, subscribe, get, save, create, remove."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/SketchDocument.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "9lxcwz84hghz",
+      "cycle": 24,
+      "concludedAt": 1794874058285
+    },
+    {
+      "question": "What exactly is incomplete in the AI provider registry subsystem?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “AI provider registry”: provider-dependent, 4 file(s). AI provider registry (providers) — kind service, status provider-dependent. Description: Priority/cooldown/fallback registry of AI + knowledge providers, with per-agent provider preference. Files (4): src/providers/AIProvider.ts, src/providers/BaseProvider.ts, src/core/AIProviderRegistry.ts, src/core/router/ProviderResolver.ts",
+      "evidence": [
+        "AI provider registry (providers) — kind service, status provider-dependent.",
+        "Description: Priority/cooldown/fallback registry of AI + knowledge providers, with per-agent provider preference.",
+        "Files (4): src/providers/AIProvider.ts, src/providers/BaseProvider.ts, src/core/AIProviderRegistry.ts, src/core/router/ProviderResolver.ts",
+        "Depends on: nothing."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "providers",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "dvdknvr2zc9j",
+      "cycle": 23,
+      "concludedAt": 1794874058262,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is the state of render?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Render” (partial). Capability “Render” (render) — status partial. Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys. Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+      "evidence": [
+        "Capability “Render” (render) — status partial.",
+        "Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys.",
+        "Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "render",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1f0pxpr1f36rsz",
+      "cycle": 22,
+      "concludedAt": 1794874058253
+    },
+    {
+      "question": "What does src/core/creative/CreativeToolInterface.ts contribute to creative?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/CreativeToolInterface.ts (14593 bytes) from the development runtime. Read src/core/creative/CreativeToolInterface.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/creative/CreativeToolInterface.ts: 456 line(s). Exports: interface ToolCommandResult, interface ToolCommandInput, type ToolExecutor, function executeToolCommand, function toolCommandExamples.",
+      "evidence": [
+        "Read src/core/creative/CreativeToolInterface.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/creative/CreativeToolInterface.ts: 456 line(s).",
+        "Exports: interface ToolCommandResult, interface ToolCommandInput, type ToolExecutor, function executeToolCommand, function toolCommandExamples.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/CreativeToolInterface.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "ova596g1gr3y",
+      "cycle": 21,
+      "concludedAt": 1794874058248
+    },
+    {
+      "question": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "verdict": "insufficient",
+      "learned": "Tried 2 provider(s) (guardian, newsdata) — none returned results.",
+      "evidence": [
+        "guardian: no results.",
+        "newsdata: no results.",
+        "Skipped during failure cooldown: youtube, arxiv, news."
+      ],
+      "relevance": "The question “What do I actually know about Latest frontier model architectures, and is it true?” is still open; the evidence did not address it.",
+      "subject": "knowledge:ai-latest-frontier-model-architectures",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "idjb3j1x8u0q3",
+      "cycle": 20,
+      "concludedAt": 1794874058238
+    },
+    {
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/core/memory/MemoryStore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/ResponsePattern.ts (3897 bytes) from the development runtime. Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/brain/ResponsePattern.ts: 204 line(s). Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+      "evidence": [
+        "Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/brain/ResponsePattern.ts: 204 line(s).",
+        "Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/ResponsePattern.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "z4wxx11kt0ort",
+      "cycle": 19,
+      "concludedAt": 1794874058222
+    },
+    {
+      "question": "What exactly is incomplete in the Creative systems subsystem?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Creative systems”: partial, 6 file(s). Creative systems (creative) — kind creative, status partial. Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity. Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+      "evidence": [
+        "Creative systems (creative) — kind creative, status partial.",
+        "Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity.",
+        "Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "creative",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8er06ckhjai",
+      "cycle": 18,
+      "concludedAt": 1794874058198,
+      "note": "Same evidence as the study concluded in cycle 11; nothing new to conclude."
+    },
+    {
+      "question": "Why can I not answer “What do I actually know about Procedural environment generation, and is it true” with the tools I have?",
+      "verdict": "no-change",
+      "learned": "Inspected the capability registry and live manifest (8 not available). Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0. partial: Render — cloud rendering requires provider keys; no photorealistic local generation partial: Video projects — no actual video generation yet; no editing layer yet",
+      "evidence": [
+        "Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0.",
+        "partial: Render — cloud rendering requires provider keys; no photorealistic local generation",
+        "partial: Video projects — no actual video generation yet; no editing layer yet",
+        "partial: Avatar identity — 2D config only — no animation or embodied avatar yet"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:why-can-i-not-answer-what-do-i-actually-know-about-procedural-environment-genera",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y4pnwu191664i",
+      "cycle": 17,
+      "concludedAt": 1794874058182,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/brain/PatternMemory.ts contribute to memory?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/PatternMemory.ts (11307 bytes) from the development runtime. Read src/brain/PatternMemory.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/brain/PatternMemory.ts: 843 line(s). Exports: class PatternMemory.",
+      "evidence": [
+        "Read src/brain/PatternMemory.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/brain/PatternMemory.ts: 843 line(s).",
+        "Exports: class PatternMemory.",
+        "Public methods: initialize, add, get, update, remove, clear, getAll, mergeRemote, search."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/PatternMemory.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "bqz6h12rm49h",
+      "cycle": 16,
+      "concludedAt": 1794874058175
+    },
+    {
+      "question": "What do I actually know about Procedural environment generation, and is it true?",
+      "verdict": "insufficient",
+      "learned": "Tried 2 provider(s) (guardian, newsdata) — none returned results.",
+      "evidence": [
+        "guardian: no results.",
+        "newsdata: no results.",
+        "Skipped during failure cooldown: youtube, arxiv, news."
+      ],
+      "relevance": "The question “What do I actually know about Procedural environment generation, and is it true?” is still open; the evidence did not address it.",
+      "subject": "knowledge:creative-procedural-environment-generation",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "idjb3j1x8u0q3",
+      "cycle": 15,
+      "concludedAt": 1794874058161
+    },
+    {
+      "question": "What is the state of providers?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "providers",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 14,
+      "concludedAt": 1794874058142
+    },
+    {
+      "question": "What is causing this failure: Self-test suite: / passed, failed?",
+      "verdict": "no-change",
+      "learned": "Testing: 23/23 in-browser tests passed (development runtime reachable). Self-test suite: 23/23 passed, 0 failed. Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop.",
+      "evidence": [
+        "Self-test suite: 23/23 passed, 0 failed.",
+        "Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Self-test suite: / passed, failed",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "13p0y4a1lhte06",
+      "cycle": 13,
+      "concludedAt": 1794874058104,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Do my own self-tests still pass?",
+      "verdict": "no-change",
+      "learned": "Testing: 23/23 in-browser tests passed (development runtime reachable). Self-test suite: 23/23 passed, 0 failed. Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop.",
+      "evidence": [
+        "Self-test suite: 23/23 passed, 0 failed.",
+        "Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "self-tests",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "13p0y4a1lhte06",
+      "cycle": 12,
+      "concludedAt": 1794874057990
+    },
+    {
+      "question": "What is the state of creative?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Creative systems”: partial, 6 file(s). Creative systems (creative) — kind creative, status partial. Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity. Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+      "evidence": [
+        "Creative systems (creative) — kind creative, status partial.",
+        "Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity.",
+        "Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "creative",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8er06ckhjai",
+      "cycle": 11,
+      "concludedAt": 1794874057880
+    },
+    {
+      "question": "Where are tool-level diagnostics (including YouTube) surfaced in the runtime-status or workspace, and why are they absent from this evidence?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:where-are-tool-level-diagnostics-including-youtube-surfaced-in-the-runtime-statu",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 9,
+      "concludedAt": 1794874057859
+    },
+    {
+      "question": "What does src/core/memory/MemoryStore.ts contribute to memory?",
+      "verdict": "no-change",
+      "learned": "Read src/core/memory/MemoryStore.ts (1626 bytes) from the development runtime. Read src/core/memory/MemoryStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/memory/MemoryStore.ts: 227 line(s). Exports: type MemorySpace, interface MemoryMetadata, interface MemoryRecord, interface MemoryStore.",
+      "evidence": [
+        "Read src/core/memory/MemoryStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/memory/MemoryStore.ts: 227 line(s).",
+        "Exports: type MemorySpace, interface MemoryMetadata, interface MemoryRecord, interface MemoryStore.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/memory/MemoryStore.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1e7ap0ia51wxa",
+      "cycle": 8,
+      "concludedAt": 1794874057839
+    },
+    {
+      "question": "What is causing this failure: youtube failed: YouTube?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "youtube failed: YouTube",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 7,
+      "concludedAt": 1794874057814,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What do I actually know about State-of-the-art agent memory, and is it true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 6,
+      "concludedAt": 1794874057772,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What do I actually know about Self-modifying systems, and is it true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-self-modifying-systems",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 4,
+      "concludedAt": 1794874057688,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is causing this failure: Self-diagnostics: ok, warning(s), error(s)?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Self-diagnostics: ok, warning(s), error(s)",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 3,
+      "concludedAt": 1794874057681,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    }
+  ],
+  "selfStudyProposals": [],
+  "development": null,
+  "developmentRecord": [
+    {
+      "objectiveId": "88c0d861-85d7-4d46-a563-1511027a5e1f",
+      "question": "What does src/core/multichat/MultiChatStore.ts contribute to src/core/multichat/ContextProvenance.ts?",
+      "why": "src/core/multichat/MultiChatStore.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/multichat/MultiChatStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/MultiChatStore.ts: 785 line(s).",
+        "Exports: interface ChatMessage, interface ChatConversation, type ConversationSearchScope, interface ConversationSearchHit, function tokenizeText, class MultiChatStore.",
+        "Public methods: flush, subscribe, list, listAll, listArchived, mergeRemote, get, getActiveId, getActive, restoreWorkspace, create, createBackground, archive, unarchive, switchActive, addMessage, upsertMessage, clear, rename, remove, duplicate, merge, pin, reorder, link, unlink, setProject, addTag, setProcessing, markRead, search."
+      ],
+      "conclusion": {
+        "subject": "src/core/multichat/MultiChatStore.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/multichat/MultiChatStore.ts (27012 bytes) from the development runtime. Read src/core/multichat/MultiChatStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/MultiChatStore.ts: 785 line(s). Exports: interface ChatMessage, interface ChatConversation, type ConversationSearchScope, interface ConversationSearchHit, function tokenizeText, class MultiChatStore.",
+        "synthesizedBy": "deterministic",
+        "cycle": 60,
+        "concludedAt": 1794874147378
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "20317e70-4a30-4b44-9b3a-893997b5a142",
+      "question": "What does src/core/multichat/TurnActivity.ts contribute to src/core/multichat/MultiChatStore.ts?",
+      "why": "src/core/multichat/TurnActivity.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/multichat/TurnActivity.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/TurnActivity.ts: 361 line(s).",
+        "Exports: type ActivityKind, type StepStatus, interface ActivityStep, interface ActivitySource, interface ActivityPage, interface ActivityArtifact, interface ChatActivity, function emptyActivity, function reduceActivity, function finishActivity, function hasVisibleActivity, interface ActivitySummary, function summarizeActivity.",
+        "Public methods: none detected."
+      ],
+      "conclusion": {
+        "subject": "src/core/multichat/TurnActivity.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/multichat/TurnActivity.ts (16203 bytes) from the development runtime. Read src/core/multichat/TurnActivity.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/TurnActivity.ts: 361 line(s). Exports: type ActivityKind, type StepStatus, interface ActivityStep, interface ActivitySource, interface ActivityPage, interface ActivityArtifact, interface ChatActivity, function emptyActivity, function reduceActivity, function finishActivity, function hasVisibleActivity, interface ActivitySummary, function summarizeActivity.",
+        "synthesizedBy": "deterministic",
+        "cycle": 59,
+        "concludedAt": 1794874147341
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "647c4115-f74a-41f2-8914-3934afb6b7e3",
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/multichat/MultiChatStore.ts?",
+      "why": "src/core/storage/KvStore.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "conclusion": {
+        "subject": "src/core/storage/KvStore.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+        "synthesizedBy": "deterministic",
+        "cycle": 58,
+        "concludedAt": 1794874147313
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "f44cd18b-632e-4f46-a927-1249f9d4d740",
+      "question": "What does src/core/ProviderConfig.ts actually do?",
+      "why": "I cannot describe src/core/ProviderConfig.ts from evidence. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/ProviderConfig.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/ProviderConfig.ts: 53 line(s).",
+        "Exports: interface ProviderConfig, function validateProviderConfig.",
+        "Public methods: none detected."
+      ],
+      "conclusion": {
+        "subject": "src/core/ProviderConfig.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/ProviderConfig.ts (1725 bytes) from the development runtime. Read src/core/ProviderConfig.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/ProviderConfig.ts: 53 line(s). Exports: interface ProviderConfig, function validateProviderConfig.",
+        "synthesizedBy": "deterministic",
+        "cycle": 57,
+        "concludedAt": 1794874147281
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "04b55070-f545-4caa-b051-aeec8d136ec0",
+      "question": "What does src/core/multichat/ContextProvenance.ts contribute to src/core/MemoryBridge.ts?",
+      "why": "src/core/multichat/ContextProvenance.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/multichat/ContextProvenance.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/multichat/ContextProvenance.ts: 96 line(s).",
+        "Exports: interface ProvenanceResult, function labelOtherChats, const CHAT_SCOPED.",
+        "Public methods: none detected."
+      ],
+      "conclusion": {
+        "subject": "src/core/multichat/ContextProvenance.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/multichat/ContextProvenance.ts (4600 bytes) from the development runtime. Read src/core/multichat/ContextProvenance.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/multichat/ContextProvenance.ts: 96 line(s). Exports: interface ProvenanceResult, function labelOtherChats, const CHAT_SCOPED.",
+        "synthesizedBy": "deterministic",
+        "cycle": 56,
+        "concludedAt": 1794874147250
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    }
+  ],
+  "developmentRecordAsSheReadsIt": "## MY DEVELOPMENT RECORD\nNo self-study conclusion has called for a change yet."
+}

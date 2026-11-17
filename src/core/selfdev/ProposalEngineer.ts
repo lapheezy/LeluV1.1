@@ -174,6 +174,11 @@ function describeProposal(proposal: ImprovementProposal): string {
     `Expected benefit: ${proposal.expectedBenefit}`,
     proposal.capabilityId ? `Target capability id: ${proposal.capabilityId}` : "",
     `Test plan: ${proposal.testPlan}`,
+    ...(proposal.ownerFeedbackHistory ?? [])
+      .filter((decision) => decision.note)
+      .map((decision, index, all) =>
+        `Owner feedback on ${index === all.length - 1 ? "the previous" : "an earlier"} implementation (address this): ${decision.note}`,
+      ),
   ]
     .filter(Boolean)
     .join("\n");

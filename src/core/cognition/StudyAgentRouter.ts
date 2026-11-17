@@ -34,7 +34,6 @@ import CapabilityManifest from "../capabilities/CapabilityManifest";
 import SelfTestRunner from "../selfdev/SelfTestRunner";
 import SelfDiagnostics from "../selfdev/SelfDiagnostics";
 import SourceAccess, { type SourceOrigin } from "../selfdev/SourceAccess";
-import AutonomyGate from "./AutonomyGate";
 import type { KnowledgeResult } from "../../providers/Provider";
 import type { StudyDomain, StudyObjective } from "./StudyObjectives";
 import { withDeadline } from "../runtime/BackgroundTimer";
@@ -454,28 +453,23 @@ export default class StudyAgentRouter {
       leads.push(failure.name);
     }
 
-    // The real workspace test command needs the development runtime AND
-    // execute authorization — an ACTION, so the gate applies here only.
+    // The project's FULL suite (`npm test`) is not run from self-study. It
+    // takes minutes — far longer than a study step's deadline, so the step
+    // was abandoned while the suite kept running on the runtime, and the
+    // in-browser results above were discarded with it — and its live
+    // provider tests spend model quota from the runtime's keys, outside the
+    // background allowance. It runs where a change is checked: the
+    // development loop runs the relevant tests and the typecheck in an
+    // isolated copy, and the owner can run it on request.
     let origin: SourceOrigin | "none" = "none";
-    const access = SourceAccess.getInstance();
-    const status = await access.status();
-    if (!status.reachable) {
-      evidence.push(
-        "The real `bun test` suite could not be run: no development runtime (STATIC SNAPSHOT only).",
-      );
-    } else if (!AutonomyGate.getInstance().can(3)) {
-      evidence.push(
-        `Development runtime is live (${status.runtime}), but running the real test suite needs autonomy L3 — evidence limited to the in-browser suite.`,
-      );
+    const status = await SourceAccess.getInstance().status();
+    if (status.reachable) {
       origin = "development-runtime";
-    } else {
-      const outcome = await access.command("test");
-      origin = outcome.origin;
       evidence.push(
-        outcome.ok
-          ? `Real workspace test run passed in ${outcome.durationMs}ms: ${outcome.stdout.trim().split("\n").slice(-3).join(" | ")}`
-          : `Real workspace test run failed: ${(outcome.stderr || outcome.error || outcome.stdout).trim().slice(0, 400)}`,
+        `Development runtime is live (${status.runtime}). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop.`,
       );
+    } else {
+      evidence.push("No development runtime (STATIC SNAPSHOT only): evidence is the in-browser suite.");
     }
 
     return {

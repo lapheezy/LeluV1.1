@@ -76,6 +76,8 @@ export interface DevelopmentEntry {
       diff?: string;
     };
     ownerDecision?: { decision: "accepted" | "returned"; at: number; note?: string };
+    /** Earlier Gate 2 returns this implementation was developed again to address. */
+    feedbackHistory?: Array<{ decision: "accepted" | "returned"; at: number; note?: string }>;
   };
 }
 
@@ -91,6 +93,29 @@ export function stageOf(conclusion: StudyConclusion, proposal: ImprovementPropos
   if (IN_DEVELOPMENT.includes(proposal.status)) return "in-development";
   if (proposal.status === "Failed" || proposal.status === "Blocked") return "needs-decision";
   return "awaiting-approval";
+}
+
+function proposalView(proposal: ImprovementProposal): NonNullable<DevelopmentEntry["proposal"]> {
+  const execution = proposal.lastExecution;
+  return {
+    id: proposal.id,
+    title: proposal.title,
+    status: proposal.status,
+    ...(execution
+      ? {
+          implementation: {
+            agent: execution.agent,
+            filesChanged: execution.filesChanged,
+            checks: execution.checks,
+            outcome: execution.outcome,
+            error: execution.error,
+            diff: execution.diff,
+          },
+        }
+      : {}),
+    ...(proposal.ownerDecision ? { ownerDecision: proposal.ownerDecision } : {}),
+    ...(proposal.ownerFeedbackHistory?.length ? { feedbackHistory: proposal.ownerFeedbackHistory } : {}),
+  };
 }
 
 /**
@@ -122,7 +147,6 @@ export function buildDevelopmentRecord(
       noChange += 1;
     }
     const stage = stageOf(conclusion, proposal);
-    const execution = proposal?.lastExecution;
     entries.push({
       objectiveId: objective.id,
       question: objective.question,
@@ -143,30 +167,41 @@ export function buildDevelopmentRecord(
       },
       stage,
       stageLabel: DEVELOPMENT_STAGE_LABELS[stage],
-      ...(proposal
-        ? {
-            proposal: {
-              id: proposal.id,
-              title: proposal.title,
-              status: proposal.status,
-              ...(execution
-                ? {
-                    implementation: {
-                      agent: execution.agent,
-                      filesChanged: execution.filesChanged,
-                      checks: execution.checks,
-                      outcome: execution.outcome,
-                      error: execution.error,
-                      diff: execution.diff,
-                    },
-                  }
-                : {}),
-              ...(proposal.ownerDecision ? { ownerDecision: proposal.ownerDecision } : {}),
-            },
-          }
-        : {}),
+      ...(proposal ? { proposal: proposalView(proposal) } : {}),
     });
   }
+  // A self-study proposal whose study is no longer on this device — the
+  // study history is capped and device-local, while proposals sync — is
+  // still the owner's to decide. It is shown from the proposal itself, so a
+  // proposal awaiting either gate can never drop out of the record.
+  for (const proposal of proposals) {
+    if (proposal.origin?.kind !== "self-study" || seenProposals.has(proposal.id)) continue;
+    seenProposals.add(proposal.id);
+    const stage = stageOf({ verdict: "change" } as StudyConclusion, proposal);
+    entries.push({
+      objectiveId: proposal.origin.objectiveId,
+      question: proposal.problem,
+      why: `${proposal.observation} (the study itself is not on this device; shown from its proposal)`,
+      evidence: proposal.evidence.split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 6),
+      conclusion: {
+        subject: proposal.origin.subject,
+        category: proposal.kind,
+        verdict: "change",
+        learned: proposal.observation,
+        change: proposal.proposedSolution,
+        expectedBenefit: proposal.expectedBenefit,
+        risks: proposal.risk,
+        verification: proposal.testPlan,
+        synthesizedBy: "recorded in proposal",
+        cycle: proposal.origin.cycle,
+        concludedAt: proposal.created,
+      },
+      stage,
+      stageLabel: DEVELOPMENT_STAGE_LABELS[stage],
+      proposal: proposalView(proposal),
+    });
+  }
+
   const weight = (entry: DevelopmentEntry): number => (entry.proposal ? 1 : 0);
   return entries.sort((a, b) => weight(b) - weight(a) || b.conclusion.concludedAt - a.conclusion.concludedAt);
 }

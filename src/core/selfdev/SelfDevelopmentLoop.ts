@@ -207,6 +207,14 @@ export default class SelfDevelopmentLoop {
     // Explicit sandbox edits (the self-test probe, scripted runs) keep
     // the original in-browser sandbox pipeline. A proposal developed from
     // the UI has no edits: its change must be GENERATED first.
+    // Gate 2 is final: an implementation the owner accepted is never
+    // replaced by a new, unreviewed one under the same acceptance.
+    const redevelop = this.queue.canRedevelop(proposalId);
+    if (!redevelop.ok) {
+      const existing = this.queue.get(proposalId) ?? null;
+      this.lastRun = this.finish(existing, false, existing?.status ?? "Rejected", [], redevelop.reason, Date.now());
+      return this.lastRun;
+    }
     if (!options.edits || options.edits.length === 0) {
       return this.developProposal(proposalId);
     }
@@ -475,6 +483,13 @@ export default class SelfDevelopmentLoop {
       return this.lastRun;
     }
 
+    // A proposal the owner returned at Gate 2 is developed again WITH the
+    // feedback, and its new implementation awaits acceptance afresh.
+    const feedback = this.queue.beginRedevelopment(proposalId);
+    if (feedback.length > 0) {
+      this.addStep(steps, "feedback", "done", `Addressing your Gate 2 feedback: ${feedback[feedback.length - 1].slice(0, 200)}`);
+    }
+
     this.queue.update(proposalId, { status: "In Development", blocked: undefined });
     save();
 
@@ -497,7 +512,7 @@ export default class SelfDevelopmentLoop {
     /* inspect + generate */
     events.emit({ type: "tool_selected", taskId, tool: "selfdev.engineer", label: "Engineering agent: inspect and generate the change" });
     const access = this.copyAccess(workspaceId);
-    const generated = await new ProposalEngineer().generate(proposal, access, (label) =>
+    const generated = await new ProposalEngineer().generate(this.queue.get(proposalId) ?? proposal, access, (label) =>
       events.emit({ type: "tool_started", taskId, tool: "selfdev.engineer", label }),
     );
     execution.agent = generated.agent;

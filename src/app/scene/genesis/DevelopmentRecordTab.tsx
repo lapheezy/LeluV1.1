@@ -73,6 +73,14 @@ function Entry({ entry, onChanged }: { entry: DevelopmentEntry; onChanged: () =>
         </div>
       ) : null}
       {proposal?.ownerDecision?.note ? <div><span style={label}>Your feedback</span><br />{proposal.ownerDecision.note}</div> : null}
+      {proposal?.feedbackHistory?.length ? (
+        <div data-testid="development-feedback-history">
+          <span style={label}>Earlier feedback this implementation addresses</span>
+          <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+            {proposal.feedbackHistory.map((item) => <li key={item.at}>{item.note ?? "(no note)"}</li>)}
+          </ul>
+        </div>
+      ) : null}
 
       <button type="button" onClick={() => setOpen((value) => !value)} style={{ ...button, justifySelf: "start", background: "transparent" }}>
         {open ? "Hide evidence" : "Show evidence"}{proposal?.implementation?.diff ? " and diff" : ""}
@@ -120,6 +128,16 @@ function Entry({ entry, onChanged }: { entry: DevelopmentEntry; onChanged: () =>
             >
               Return with feedback
             </button>
+            {entry.stage === "returned" ? (
+              <button
+                type="button"
+                style={button}
+                title="Her development loop builds a new implementation in an isolated copy, with your feedback in its brief. It then waits for your acceptance again."
+                onClick={() => { void SelfDevelopmentLoop.getInstance().retry(proposal.id).then(onChanged); onChanged(); }}
+              >
+                Develop again with your feedback
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}

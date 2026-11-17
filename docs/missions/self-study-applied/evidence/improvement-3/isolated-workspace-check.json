@@ -1,0 +1,78 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "workspace": "ws-probe-mwjxrbu2",
+  "passed": 14,
+  "total": 14,
+  "steps": [
+    {
+      "name": "copy",
+      "ok": true,
+      "detail": "6697 files in .lelu-sandbox/ws-probe-mwjxrbu2"
+    },
+    {
+      "name": "edit in copy",
+      "ok": true,
+      "detail": "src/core/selfdev/DevelopmentRecord.ts"
+    },
+    {
+      "name": "diff shows only the probe",
+      "ok": true,
+      "detail": "src/core/selfdev/DevelopmentRecord.ts"
+    },
+    {
+      "name": "syntax (copy)",
+      "ok": true,
+      "detail": "exit 0"
+    },
+    {
+      "name": "relevant test (copy)",
+      "ok": true,
+      "detail": "tests/development-gates.test.ts: exit 0; # pass 7, # fail 0"
+    },
+    {
+      "name": "typecheck (copy)",
+      "ok": true,
+      "detail": "exit 0"
+    },
+    {
+      "name": "real tree unchanged",
+      "ok": true,
+      "detail": "sha256 of the target and git status identical before/after"
+    },
+    {
+      "name": "request-apply refused",
+      "ok": true,
+      "detail": "HTTP 503: This runtime cannot verify who is asking: no Supabase project is configured (VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY — the same names the app itself"
+    },
+    {
+      "name": "apply refused",
+      "ok": true,
+      "detail": "HTTP 503: This runtime cannot verify who is asking: no Supabase project is configured (VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY — the same names the app itself"
+    },
+    {
+      "name": "git commit refused",
+      "ok": true,
+      "detail": "HTTP 503: This runtime cannot verify who is asking: no Supabase project is configured (VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY — the same names the app itself"
+    },
+    {
+      "name": "git push refused",
+      "ok": true,
+      "detail": "HTTP 503: This runtime cannot verify who is asking: no Supabase project is configured (VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY — the same names the app itself"
+    },
+    {
+      "name": "no token → refused",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "name": "copy removed",
+      "ok": true,
+      "detail": "ws-probe-mwjxrbu2"
+    },
+    {
+      "name": "real tree still unchanged",
+      "ok": true,
+      "detail": "after cleanup"
+    }
+  ]
+}
