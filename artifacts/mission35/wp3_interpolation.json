@@ -1,0 +1,247 @@
+{
+ "cases": [
+  {
+   "method": "occupancy-blend",
+   "t": 0,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 360,
+    "fromBOnly": 0,
+    "fromBoth": 0,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 0,
+    "maxDisplacementCells": 0,
+    "meanConfidence": 0.6000000238418579,
+    "meanUncertainty": 0,
+    "agreement": 0
+   },
+   "note": "occupancy blend at t=0.000: no correspondence is assumed, so cell positions are not moved — this answers how much of the change has happened, not where it happened."
+  },
+  {
+   "method": "occupancy-blend",
+   "t": 0.5,
+   "state": "interpolated",
+   "cells": 692,
+   "metrics": {
+    "cells": 692,
+    "fromAOnly": 332,
+    "fromBOnly": 332,
+    "fromBoth": 28,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 0,
+    "maxDisplacementCells": 0,
+    "meanConfidence": 0.7000000178813934,
+    "meanUncertainty": 0.9595375722543352,
+    "agreement": 0.04046242774566474
+   },
+   "note": "occupancy blend at t=0.500: no correspondence is assumed, so cell positions are not moved — this answers how much of the change has happened, not where it happened."
+  },
+  {
+   "method": "occupancy-blend",
+   "t": 1,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 0,
+    "fromBOnly": 360,
+    "fromBoth": 0,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 0,
+    "maxDisplacementCells": 0,
+    "meanConfidence": 0.800000011920929,
+    "meanUncertainty": 0,
+    "agreement": 0
+   },
+   "note": "occupancy blend at t=1.000: no correspondence is assumed, so cell positions are not moved — this answers how much of the change has happened, not where it happened."
+  },
+  {
+   "method": "rigid",
+   "t": 0,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 360,
+    "fromBOnly": 0,
+    "fromBoth": 0,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 0,
+    "maxDisplacementCells": 0,
+    "meanConfidence": 0.6000000238418579,
+    "meanUncertainty": 0,
+    "agreement": 0
+   },
+   "note": "rigid interpolation at t=0.000 along the measured centroid shift (5.00, 0.00, 0.00 cells); shape is assumed constant between endpoints."
+  },
+  {
+   "method": "rigid",
+   "t": 0.5,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 0,
+    "fromBOnly": 0,
+    "fromBoth": 360,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 3,
+    "maxDisplacementCells": 3,
+    "meanConfidence": 0.7000000178813934,
+    "meanUncertainty": 0,
+    "agreement": 1
+   },
+   "note": "rigid interpolation at t=0.500 along the measured centroid shift (5.00, 0.00, 0.00 cells); shape is assumed constant between endpoints."
+  },
+  {
+   "method": "rigid",
+   "t": 1,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 0,
+    "fromBOnly": 360,
+    "fromBoth": 0,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 5,
+    "maxDisplacementCells": 5,
+    "meanConfidence": 0.800000011920929,
+    "meanUncertainty": 0,
+    "agreement": 0
+   },
+   "note": "rigid interpolation at t=1.000 along the measured centroid shift (5.00, 0.00, 0.00 cells); shape is assumed constant between endpoints."
+  },
+  {
+   "method": "correspondence",
+   "t": 0,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 360,
+    "fromBOnly": 0,
+    "fromBoth": 0,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 2.4249407717384055,
+    "maxDisplacementCells": 5,
+    "meanConfidence": 0.6000000238418579,
+    "meanUncertainty": 0,
+    "agreement": 0
+   },
+   "note": "correspondence interpolation at t=0.000 within a 6-cell radius: 0 cell(s) of the earlier and 0 of the later snapshot had no counterpart and were left in place, still marked interpolated."
+  },
+  {
+   "method": "correspondence",
+   "t": 0.5,
+   "state": "interpolated",
+   "cells": 423,
+   "metrics": {
+    "cells": 423,
+    "fromAOnly": 172,
+    "fromBOnly": 170,
+    "fromBoth": 81,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 2.4249407717384055,
+    "maxDisplacementCells": 5,
+    "meanConfidence": 0.6982663694425677,
+    "meanUncertainty": 0.8340425531914892,
+    "agreement": 0.19148936170212766
+   },
+   "note": "correspondence interpolation at t=0.500 within a 6-cell radius: 0 cell(s) of the earlier and 0 of the later snapshot had no counterpart and were left in place, still marked interpolated."
+  },
+  {
+   "method": "correspondence",
+   "t": 1,
+   "state": "interpolated",
+   "cells": 360,
+   "metrics": {
+    "cells": 360,
+    "fromAOnly": 0,
+    "fromBOnly": 360,
+    "fromBoth": 0,
+    "unmatchedA": 0,
+    "unmatchedB": 0,
+    "meanDisplacementCells": 2.4249407717384055,
+    "maxDisplacementCells": 5,
+    "meanConfidence": 0.800000011920929,
+    "meanUncertainty": 0,
+    "agreement": 0
+   },
+   "note": "correspondence interpolation at t=1.000 within a 6-cell radius: 0 cell(s) of the earlier and 0 of the later snapshot had no counterpart and were left in place, still marked interpolated."
+  }
+ ],
+ "transformCheck": {
+  "t0": [
+   1,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  "tHalf": [
+   0.7071067811865475,
+   0,
+   -0.7071067811865476,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0.7071067811865476,
+   0,
+   0.7071067811865475,
+   0,
+   0.5,
+   1,
+   1.5,
+   1
+  ],
+  "t1": [
+   0.7071067811865475,
+   0,
+   -0.7071067811865476,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0.7071067811865476,
+   0,
+   0.7071067811865475,
+   0,
+   0.5,
+   1,
+   1.5,
+   1
+  ],
+  "slerpUnitNorm": true,
+  "endpointsMatch": true
+ },
+ "summary": {
+  "status": "VERIFIED",
+  "lowestUncertaintyAtEnds": true,
+  "statement": "Halfway is where nothing was measured, and the uncertainty channel says so: 0 at both observed endpoints, maximal at t=0.5. Confidence is propagated as a weighted mean of the contributing observations and never rises above the best endpoint."
+ }
+}

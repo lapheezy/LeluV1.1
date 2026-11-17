@@ -108,3 +108,6 @@ __pycache__/
 
 # Runtime state (spend authorizations + audit: plugins/spendPolicy.ts)
 .lelu-state/
+
+# Character Foundry local runtime (Blender install, sysroot, caches)
+.foundry/

@@ -1,0 +1,275 @@
+{
+  "source": "references/PRIMARY_SOURCE",
+  "images": {
+    "front": {
+      "file": "01_front_full_body.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "background_rgb": [
+        33,
+        24,
+        18
+      ],
+      "figure_pixels": 408250,
+      "landmarks_px": {
+        "hair_top_y": 0,
+        "sole_y": 1535,
+        "shoulder_y": 307,
+        "waist_y": 743,
+        "hip_y": 900,
+        "crotch_y": 900,
+        "knee_y": 1330,
+        "shoulder_width_px": 150.88890075683594,
+        "waist_width_px": 5.666666030883789,
+        "hip_width_px": 36.11111068725586,
+        "figure_px": 1535.0
+      },
+      "colours": {
+        "skin": {
+          "n": 276822,
+          "hex": "#77412c",
+          "rgb": [
+            119,
+            65,
+            44
+          ]
+        },
+        "hair": {
+          "n": 77171,
+          "hex": "#0b0402",
+          "rgb": [
+            11,
+            4,
+            2
+          ]
+        },
+        "camo_cloth": {
+          "n": 2537,
+          "hex": "#3c312c",
+          "rgb": [
+            60,
+            49,
+            44
+          ]
+        },
+        "bone_panel": {
+          "n": 4605,
+          "hex": "#efbd97",
+          "rgb": [
+            239,
+            189,
+            151
+          ]
+        },
+        "copper": {
+          "n": 48129,
+          "hex": "#ac5e41",
+          "rgb": [
+            172,
+            94,
+            65
+          ]
+        }
+      },
+      "proportions": {
+        "figure_px": 1535.0,
+        "shoulder_width_over_figure": 0.0983,
+        "waist_width_over_figure": 0.0037,
+        "hip_width_over_figure": 0.0235,
+        "shoulder_to_waist_y": 0.284,
+        "waist_to_hip_y": 0.1023,
+        "hip_to_knee_y": 0.2801,
+        "leg_fraction": 0.4137
+      },
+      "verified_landmarks": {
+        "hair_top": [
+          0.5,
+          0.006
+        ],
+        "skull_crown": [
+          0.5,
+          0.033
+        ],
+        "hairline": [
+          0.5,
+          0.062
+        ],
+        "brow": [
+          0.5,
+          0.088
+        ],
+        "eye": [
+          0.5,
+          0.096
+        ],
+        "nose_tip": [
+          0.5,
+          0.135
+        ],
+        "lip": [
+          0.5,
+          0.155
+        ],
+        "chin": [
+          0.5,
+          0.175
+        ],
+        "neck_base": [
+          0.5,
+          0.19
+        ],
+        "shoulder": [
+          0.5,
+          0.2
+        ],
+        "bust": [
+          0.5,
+          0.244
+        ],
+        "underbust": [
+          0.5,
+          0.285
+        ],
+        "waist": [
+          0.5,
+          0.3
+        ],
+        "belt": [
+          0.5,
+          0.345
+        ],
+        "crotch": [
+          0.5,
+          0.469
+        ],
+        "knee": [
+          0.5,
+          0.668
+        ],
+        "ankle": [
+          0.5,
+          0.913
+        ],
+        "sole": [
+          0.5,
+          0.985
+        ]
+      },
+      "verified_fractions_of_figure": {
+        "hairline": 0.0305,
+        "brow": 0.0578,
+        "eye": 0.0662,
+        "nose_tip": 0.1071,
+        "lip": 0.1282,
+        "chin": 0.1492,
+        "neck_base": 0.1649,
+        "shoulder": 0.1754,
+        "bust": 0.2216,
+        "underbust": 0.2647,
+        "waist": 0.2805,
+        "belt": 0.3277,
+        "crotch": 0.458,
+        "knee": 0.667,
+        "ankle": 0.9244,
+        "sole": 1.0
+      },
+      "heads_tall_skull": 6.704,
+      "heads_tall_with_hair": 5.793
+    },
+    "face": {
+      "file": "02_face_closeup.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "background_rgb": [
+        36,
+        30,
+        28
+      ],
+      "figure_pixels": 1139461,
+      "landmarks_px": {},
+      "colours": {
+        "skin": {
+          "n": 373590,
+          "hex": "#924d35",
+          "rgb": [
+            146,
+            77,
+            53
+          ]
+        },
+        "hair": {
+          "n": 392391,
+          "hex": "#0f0605",
+          "rgb": [
+            15,
+            6,
+            5
+          ]
+        },
+        "lips": {
+          "n": 38036,
+          "hex": "#541e1b",
+          "rgb": [
+            84,
+            30,
+            27
+          ]
+        }
+      },
+      "face_box_px": [
+        0,
+        93,
+        1023,
+        1105
+      ],
+      "face_width_px": 1023
+    },
+    "back": {
+      "file": "03_back_upper_body.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "background_rgb": [
+        28,
+        26,
+        24
+      ],
+      "figure_pixels": 523913,
+      "landmarks_px": {},
+      "colours": {
+        "skin": {
+          "n": 153304,
+          "hex": "#874e37",
+          "rgb": [
+            135,
+            78,
+            55
+          ]
+        },
+        "hair": {
+          "n": 126974,
+          "hex": "#0b0504",
+          "rgb": [
+            11,
+            5,
+            4
+          ]
+        },
+        "lips": {
+          "n": 18228,
+          "hex": "#52211f",
+          "rgb": [
+            82,
+            33,
+            31
+          ]
+        }
+      }
+    }
+  }
+}

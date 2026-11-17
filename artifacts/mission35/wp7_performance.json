@@ -1,0 +1,82 @@
+{
+ "rows": [
+  {
+   "operation": "measureVolume",
+   "cells": 13824,
+   "representation": "sparse-volume",
+   "milliseconds": 5.6087740000000395,
+   "bytes": null,
+   "note": "component + interior analysis"
+  },
+  {
+   "operation": "solidFromSurface",
+   "cells": 3176,
+   "representation": "sparse-surface",
+   "milliseconds": 59.86300799999992,
+   "bytes": null,
+   "note": "flood fill over the lattice"
+  },
+  {
+   "operation": "boundaryOf",
+   "cells": 13824,
+   "representation": "sparse-volume",
+   "milliseconds": 11.568225999999981,
+   "bytes": null,
+   "note": "interior removal"
+  },
+  {
+   "operation": "measureVolumeRoundTrip",
+   "cells": 13824,
+   "representation": "sparse-volume",
+   "milliseconds": 69.85741199999995,
+   "bytes": null,
+   "note": "boundary + solidify + compare"
+  },
+  {
+   "operation": "connectedComponents",
+   "cells": 13824,
+   "representation": "sparse-volume",
+   "milliseconds": 9.363399999999956,
+   "bytes": null,
+   "note": "6-connected labelling"
+  },
+  {
+   "operation": "serialize",
+   "cells": 13824,
+   "representation": "sparse-volume",
+   "milliseconds": 12.697987000000012,
+   "bytes": 30300,
+   "note": "deflate-raw"
+  },
+  {
+   "operation": "serialize",
+   "cells": 3176,
+   "representation": "sparse-surface",
+   "milliseconds": 2.661664999999971,
+   "bytes": 6577,
+   "note": "deflate-raw"
+  },
+  {
+   "operation": "encodeGlb",
+   "cells": 3176,
+   "representation": "sparse-surface",
+   "milliseconds": 10.821986000000038,
+   "bytes": 229708,
+   "note": "boundary only"
+  },
+  {
+   "operation": "interpolate(correspondence)",
+   "cells": 13824,
+   "representation": "sparse-volume",
+   "milliseconds": 111.1609739999999,
+   "bytes": null,
+   "note": "t=0.5"
+  }
+ ],
+ "memory": {
+  "volumeBytes": 30300,
+  "surfaceBytes": 6577,
+  "overheadFactor": 4.606963661243729
+ },
+ "status": "VERIFIED"
+}

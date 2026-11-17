@@ -1,0 +1,45 @@
+{
+ "shape": "filled sphere, radius 0.44 m, 5 cm cells",
+ "cells": 2872,
+ "boundaryCells": 744,
+ "interiorCells": 2128,
+ "interiorFraction": 0.7409470752089137,
+ "decision": "volumetric",
+ "storage": "sparse-volume",
+ "exports": [
+  {
+   "file": "nre_solid_boundary.glb",
+   "bytes": 54324,
+   "triangles": 2976,
+   "accepted": true,
+   "keepsInterior": false,
+   "note": "boundary extraction: interior faces are skipped by definition, so the interior is gone"
+  },
+  {
+   "file": "nre_solid_all_cells.glb",
+   "bytes": 690020,
+   "triangles": 34464,
+   "accepted": true,
+   "keepsInterior": true,
+   "note": "one closed cube per occupied cell: the interior is real geometry, not a shading effect"
+  },
+  {
+   "file": "nre_solid_boundary_cut.glb",
+   "bytes": 47420,
+   "triangles": 2784,
+   "accepted": true,
+   "keepsInterior": false,
+   "note": "cutaway at cell row 11: same solid, boundary export only"
+  },
+  {
+   "file": "nre_solid_all_cells_cut.glb",
+   "bytes": 345388,
+   "triangles": 17232,
+   "accepted": true,
+   "keepsInterior": true,
+   "note": "cutaway at cell row 11: same solid, every cell kept"
+  }
+ ],
+ "trianglesRatio": 11.580645161290322,
+ "bytesRatio": 12.701936528974302
+}

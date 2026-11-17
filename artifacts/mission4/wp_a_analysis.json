@@ -1,0 +1,551 @@
+{
+ "image": {
+  "path": "leluverse/assets/characters/lelu_character/references/PRIMARY_SOURCE/04_front_apose.png",
+  "width": 1024,
+  "height": 1536,
+  "pixelDigest": "a02428e383b09285"
+ },
+ "colour": {
+  "background": {
+   "r": 27,
+   "g": 25,
+   "b": 24
+  },
+  "backgroundMethod": "per-channel median of the 1% border ring, thresholded by Otsu on the L1 colour distance",
+  "mean": {
+   "r": 93.59388079691946,
+   "g": 75.54746358613762,
+   "b": 68.30386740331491
+  },
+  "std": {
+   "r": 12.127473271859808,
+   "g": 7.77978653513599,
+   "b": 6.276038752648242
+  },
+  "foregroundFraction": 0.01519012451171875,
+  "dominant": [
+   {
+    "rgb": {
+     "r": 83,
+     "g": 69,
+     "b": 64
+    },
+    "share": 0.4439979909593169
+   },
+   {
+    "rgb": {
+     "r": 98,
+     "g": 80,
+     "b": 71
+    },
+    "share": 0.20224342876276577
+   },
+   {
+    "rgb": {
+     "r": 93,
+     "g": 74,
+     "b": 61
+    },
+    "share": 0.18215302193202745
+   },
+   {
+    "rgb": {
+     "r": 107,
+     "g": 78,
+     "b": 65
+    },
+    "share": 0.08944416541101624
+   },
+   {
+    "rgb": {
+     "r": 110,
+     "g": 80,
+     "b": 80
+    },
+    "share": 0.01766281600535744
+   },
+   {
+    "rgb": {
+     "r": 79,
+     "g": 66,
+     "b": 59
+    },
+    "share": 0.016616440649589823
+   }
+  ],
+  "threshold": 135,
+  "notes": [
+   "background estimated as rgb(27, 25, 24)",
+   "foreground threshold 135 L1 units, from an Otsu split on the distance histogram",
+   "178964 of 201478 foreground pixels were disconnected fragments and were dropped.",
+   "1378 enclosed background pixels were treated as body (holes the border flood could not reach)."
+  ]
+ },
+ "segmentation": {
+  "threshold": 135,
+  "rawPixels": 201478,
+  "discardedPixels": 178964,
+  "filledHoles": 1378,
+  "areaPx": 23892,
+  "notes": [
+   "178964 of 201478 foreground pixels were disconnected fragments and were dropped.",
+   "1378 enclosed background pixels were treated as body (holes the border flood could not reach)."
+  ]
+ },
+ "silhouette": {
+  "bbox": {
+   "minX": 0,
+   "minY": 1383,
+   "maxX": 332,
+   "maxY": 1535
+  },
+  "area": 23892,
+  "perimeter": 3552,
+  "symmetry": 0.23184421534937,
+  "centroid": [
+   156.77867068474802,
+   1481.7181483341703
+  ]
+ },
+ "surface": {
+  "meanGradient": 2.9482983640612765,
+  "maxGradient": 95.77964838215829,
+  "shadingYield": 0.010338188514984095,
+  "edgeThreshold": 12,
+  "orientationHistogram": [
+   0.010556104970005099,
+   0.0025635939226390054,
+   0.03072620761744858,
+   0.06024054525323059,
+   0.4759912484983356,
+   0.14921949346586177,
+   0.042261928635672644,
+   0.22844087763680673
+  ],
+  "meanGradientNormalised": 0.030782096341569802,
+  "notes": []
+ },
+ "depth": {
+  "maxInflation": 40,
+  "maxHalfThicknessPx": 40,
+  "weights": {
+   "inflation": 0.7,
+   "shading": 0.3
+  },
+  "notes": []
+ },
+ "landmarks": [
+  {
+   "id": "head-top",
+   "label": "Top of head",
+   "x": 288.5,
+   "y": 1402,
+   "confidence": 0.95,
+   "provenance": "OBSERVED",
+   "evidence": "first silhouette row at or above 3% of the widest row (9 px)"
+  },
+  {
+   "id": "feet-bottom",
+   "label": "Lowest point of the feet",
+   "x": 95,
+   "y": 1535,
+   "confidence": 0.95,
+   "provenance": "OBSERVED",
+   "evidence": "last silhouette row at or above the 3% width floor"
+  },
+  {
+   "id": "shoulder-left",
+   "label": "Left shoulder (image left)",
+   "x": 174,
+   "y": 1428,
+   "confidence": 0.85,
+   "provenance": "OBSERVED",
+   "evidence": "outermost foreground pixel on the row of steepest sustained widening"
+  },
+  {
+   "id": "shoulder-right",
+   "label": "Right shoulder (image right)",
+   "x": 331,
+   "y": 1428,
+   "confidence": 0.85,
+   "provenance": "OBSERVED",
+   "evidence": "outermost foreground pixel on the row of steepest sustained widening"
+  },
+  {
+   "id": "shoulder-line",
+   "label": "Shoulder line",
+   "x": 252.5,
+   "y": 1428,
+   "confidence": 0.85,
+   "provenance": "OBSERVED",
+   "evidence": "row of steepest sustained widening in the upper third"
+  },
+  {
+   "id": "neck",
+   "label": "Neck",
+   "x": 288.5,
+   "y": 1411,
+   "confidence": 0.8,
+   "provenance": "OBSERVED",
+   "evidence": "narrowest smoothed row between the top of the head and the shoulder line"
+  },
+  {
+   "id": "chin",
+   "label": "Chin",
+   "x": 289,
+   "y": 1409,
+   "confidence": 0.55,
+   "provenance": "INFERRED",
+   "evidence": "placed one jaw-thickness above the neck narrowing; the jawline itself is not resolved at this resolution"
+  },
+  {
+   "id": "hip-line",
+   "label": "Hip line",
+   "x": 183.5,
+   "y": 1466,
+   "confidence": 0.8,
+   "provenance": "OBSERVED",
+   "evidence": "widest smoothed row below the shoulder line"
+  },
+  {
+   "id": "crotch",
+   "label": "Crotch",
+   "x": 183.5,
+   "y": 1482,
+   "confidence": 0.75,
+   "provenance": "OBSERVED",
+   "evidence": "first row below the hip whose central band (±17 px) is empty"
+  },
+  {
+   "id": "hand-left",
+   "label": "Left hand (image left)",
+   "x": 49,
+   "y": 1481,
+   "confidence": 0.7,
+   "provenance": "OBSERVED",
+   "evidence": "lowest row with three separate runs; the outer runs are the arms"
+  },
+  {
+   "id": "hand-right",
+   "label": "Right hand (image right)",
+   "x": 321,
+   "y": 1481,
+   "confidence": 0.7,
+   "provenance": "OBSERVED",
+   "evidence": "lowest row with three separate runs; the outer runs are the arms"
+  },
+  {
+   "id": "knee",
+   "label": "Knee (both)",
+   "x": 183.5,
+   "y": 1509,
+   "confidence": 0.35,
+   "provenance": "INFERRED",
+   "evidence": "halfway between the crotch and the lowest row; not detectable in a single silhouette"
+  },
+  {
+   "id": "ankle",
+   "label": "Ankle (both)",
+   "x": 183.5,
+   "y": 1532,
+   "confidence": 0.35,
+   "provenance": "INFERRED",
+   "evidence": "6% of the leg length above the lowest row; not detectable in a single silhouette"
+  },
+  {
+   "id": "eye-left",
+   "label": "Left eye (image left)",
+   "x": 284,
+   "y": 1404,
+   "confidence": 0.5914182691023027,
+   "provenance": "OBSERVED",
+   "evidence": "darkest pixel in the left half of the head band, 48% of the way from the head median to the darkest 5%"
+  },
+  {
+   "id": "eye-right",
+   "label": "Right eye (image right)",
+   "x": 292,
+   "y": 1405,
+   "confidence": 0.5914182691023027,
+   "provenance": "OBSERVED",
+   "evidence": "darkest pixel in the right half of the head band, same height as its pair"
+  }
+ ],
+ "components": [
+  {
+   "id": "head",
+   "label": "head",
+   "detected": true,
+   "bbox": {
+    "minX": 284,
+    "minY": 1402,
+    "maxX": 294,
+    "maxY": 1411
+   },
+   "pixels": 102,
+   "share": 0.004269211451531894,
+   "meanDepth": 0.08892054636688794,
+   "meanLuminance": 80.01616070317287,
+   "provenance": "OBSERVED",
+   "evidence": "102 foreground pixels inside the landmark-derived region (0.4% of the silhouette)"
+  },
+  {
+   "id": "face",
+   "label": "face",
+   "detected": true,
+   "bbox": {
+    "minX": 286,
+    "minY": 1404,
+    "maxX": 292,
+    "maxY": 1409
+   },
+   "pixels": 42,
+   "share": 0.0017579105976896032,
+   "meanDepth": 0.10335274519664901,
+   "meanLuminance": 79.07161930629185,
+   "provenance": "INFERRED",
+   "evidence": "an anatomical region drawn from landmarks; 42 foreground pixels fall inside it (0.2% of the silhouette)"
+  },
+  {
+   "id": "hair",
+   "label": "hair",
+   "detected": true,
+   "bbox": {
+    "minX": 284,
+    "minY": 1402,
+    "maxX": 294,
+    "maxY": 1405
+   },
+   "pixels": 40,
+   "share": 0.0016742005692281935,
+   "meanDepth": 0.08955013612285256,
+   "meanLuminance": 82.88904457092285,
+   "provenance": "OBSERVED",
+   "evidence": "40 foreground pixels inside the landmark-derived region (0.2% of the silhouette)"
+  },
+  {
+   "id": "neck",
+   "label": "neck",
+   "detected": true,
+   "bbox": {
+    "minX": 287,
+    "minY": 1411,
+    "maxX": 291,
+    "maxY": 1428
+   },
+   "pixels": 90,
+   "share": 0.0037669512807634357,
+   "meanDepth": 0.12561645093891355,
+   "meanLuminance": 82.90439571804471,
+   "provenance": "OBSERVED",
+   "evidence": "90 foreground pixels inside the landmark-derived region (0.4% of the silhouette)"
+  },
+  {
+   "id": "torso",
+   "label": "torso",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1428,
+    "maxX": 332,
+    "maxY": 1466
+   },
+   "pixels": 7669,
+   "share": 0.3209861041352754,
+   "meanDepth": 0.1063159528776298,
+   "meanLuminance": 77.33598484273591,
+   "provenance": "OBSERVED",
+   "evidence": "7669 foreground pixels inside the landmark-derived region (32.1% of the silhouette)"
+  },
+  {
+   "id": "arms",
+   "label": "arms",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1428,
+    "maxX": 332,
+    "maxY": 1481
+   },
+   "pixels": 11056,
+   "share": 0.4627490373346727,
+   "meanDepth": 0.139172666659983,
+   "meanLuminance": 78.63733750348844,
+   "provenance": "OBSERVED",
+   "evidence": "11056 foreground pixels inside the landmark-derived region (46.3% of the silhouette)"
+  },
+  {
+   "id": "hands",
+   "label": "hands",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1479,
+    "maxX": 332,
+    "maxY": 1481
+   },
+   "pixels": 693,
+   "share": 0.029005524861878452,
+   "meanDepth": 0.24874519271854026,
+   "meanLuminance": 82.69561433998537,
+   "provenance": "OBSERVED",
+   "evidence": "693 foreground pixels inside the landmark-derived region (2.9% of the silhouette)"
+  },
+  {
+   "id": "pelvis",
+   "label": "pelvis",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1466,
+    "maxX": 332,
+    "maxY": 1482
+   },
+   "pixels": 3885,
+   "share": 0.1626067302862883,
+   "meanDepth": 0.2117109348788915,
+   "meanLuminance": 81.4515687900774,
+   "provenance": "OBSERVED",
+   "evidence": "3885 foreground pixels inside the landmark-derived region (16.3% of the silhouette)"
+  },
+  {
+   "id": "legs",
+   "label": "legs",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1482,
+    "maxX": 332,
+    "maxY": 1535
+   },
+   "pixels": 12280,
+   "share": 0.5139795747530554,
+   "meanDepth": 0.27177395488132483,
+   "meanLuminance": 79.03802976484019,
+   "provenance": "OBSERVED",
+   "evidence": "12280 foreground pixels inside the landmark-derived region (51.4% of the silhouette)"
+  },
+  {
+   "id": "feet",
+   "label": "feet",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1532,
+    "maxX": 332,
+    "maxY": 1535
+   },
+   "pixels": 589,
+   "share": 0.02465260338188515,
+   "meanDepth": 0.06990976698683964,
+   "meanLuminance": 76.01012537232482,
+   "provenance": "OBSERVED",
+   "evidence": "589 foreground pixels inside the landmark-derived region (2.5% of the silhouette)"
+  },
+  {
+   "id": "clothing",
+   "label": "clothing",
+   "detected": true,
+   "bbox": {
+    "minX": 0,
+    "minY": 1428,
+    "maxX": 332,
+    "maxY": 1495
+   },
+   "pixels": 14442,
+   "share": 0.6044701155198393,
+   "meanDepth": 0.1735926730014779,
+   "meanLuminance": 79.18147479581496,
+   "provenance": "INFERRED",
+   "evidence": "an anatomical region drawn from landmarks; 14442 foreground pixels fall inside it (60.4% of the silhouette)"
+  },
+  {
+   "id": "accessories",
+   "label": "accessories",
+   "detected": false,
+   "bbox": {
+    "minX": null,
+    "minY": null,
+    "maxX": null,
+    "maxY": null
+   },
+   "pixels": 0,
+   "share": 0,
+   "meanDepth": 0,
+   "meanLuminance": 0,
+   "provenance": "SYNTHESIZED",
+   "evidence": "not separated from a neighbouring part by this analysis"
+  }
+ ],
+ "componentNotes": {
+  "notDetected": [
+   {
+    "id": "hands",
+    "because": "hands are the lowest 2 rows of the arm runs; the silhouette does not separate fingers or a wrist, so the hand region overlaps the arm"
+   },
+   {
+    "id": "accessories",
+    "because": "no accessory detector is implemented; a single front view without a catalogue cannot distinguish a worn object from a body part"
+   }
+  ],
+  "notes": [
+   "The face is a region of the head, not a detected facial surface: no face-landmark model is used, and the eyes are the only face features measured.",
+   "Hair is identified as the upper head region; where hair ends and face begins is not separable from one photograph without a segmentation model.",
+   "Clothing is the region a garment covers (torso, pelvis, upper legs); the image does not separate cloth from skin by colour in this scene."
+  ]
+ },
+ "measurements": {
+  "heightPx": 153,
+  "widthPx": 333,
+  "aspect": 0.4594594594594595,
+  "headHeightPx": 7,
+  "headToHeight": 0.0457516339869281,
+  "shoulderWidthPx": 157,
+  "shoulderToHeight": 1.026143790849673,
+  "hipWidthPx": 277,
+  "hipToHeight": 1.8104575163398693,
+  "legLengthPx": 53,
+  "legToHeight": 0.3464052287581699,
+  "armSpanPx": 272,
+  "symmetry": 0.23184421534937,
+  "foregroundFraction": 0.01519012451171875,
+  "assumedWorldHeightM": 1.7,
+  "metresPerPixel": 0.011111111111111112,
+  "worldHeightM": 1.7,
+  "worldShoulderWidthM": 1.7444444444444445,
+  "notes": [
+   "Metric values use an assumed height of 1.70 m; the image carries no scale reference, so this is a declared assumption, not a measurement."
+  ]
+ },
+ "lattice": {
+  "resX": 213,
+  "resY": 96,
+  "resZ": 55,
+  "cellSize": 0.017708333333333333,
+  "maxDepthCells": 25.098039215686274,
+  "notes": [
+   "lattice 213x96x55 at 1.77 cm cells, Y-up, +Z toward the viewer",
+   "96 cells span the declared 1.70 m height",
+   "depth resolution chosen from the silhouette: widest inradius 40.0 px = 25.10 cells"
+  ]
+ },
+ "timings": {
+  "segmentMs": 191.26732800000002,
+  "silhouetteMs": 44.02592100000004,
+  "surfaceMs": 16.867189999999937,
+  "depthMs": 77.52827500000001,
+  "landmarksMs": 13.106813999999986,
+  "componentsMs": 8.51961700000004,
+  "totalMs": 388.67204200000003
+ },
+ "notes": [
+  "background estimated as rgb(27, 25, 24)",
+  "foreground threshold 135 L1 units, from an Otsu split on the distance histogram",
+  "178964 of 201478 foreground pixels were disconnected fragments and were dropped.",
+  "1378 enclosed background pixels were treated as body (holes the border flood could not reach).",
+  "The face is a region of the head, not a detected facial surface: no face-landmark model is used, and the eyes are the only face features measured.",
+  "Hair is identified as the upper head region; where hair ends and face begins is not separable from one photograph without a segmentation model.",
+  "Clothing is the region a garment covers (torso, pelvis, upper legs); the image does not separate cloth from skin by colour in this scene.",
+  "Metric values use an assumed height of 1.70 m; the image carries no scale reference, so this is a declared assumption, not a measurement."
+ ]
+}

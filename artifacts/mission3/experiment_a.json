@@ -1,0 +1,107 @@
+{
+ "ok": true,
+ "status": "VERIFIED",
+ "input": {
+  "reference": "04_front_apose.png",
+  "referenceSha256": "1e01242a0a2729614e8d97da418077df3279daab8a08daee6b01a1e056ba6f02",
+  "referenceBytes": 2070376,
+  "glb": "/tmp/lelu_apose6.glb",
+  "glbBytes": 574752
+ },
+ "gate": {
+  "accepted": true,
+  "problems": [],
+  "warnings": [],
+  "vertices": 15950,
+  "triangles": 31848,
+  "bounds": {
+   "min": [
+    -0.19062934815883636,
+    -0.5,
+    -0.23145326972007751
+   ],
+   "max": [
+    0.19062934815883636,
+    0.5,
+    0.23145326972007751
+   ],
+   "size": [
+    0.38125869631767273,
+    1,
+    0.46290653944015503
+   ]
+  },
+  "generator": "lelu-nre-glb-writer",
+  "textured": false,
+  "rigged": false
+ },
+ "numerical": {
+  "cells": 45475,
+  "boundaryCells": 44310,
+  "interiorCells": 1165,
+  "interiorFraction": 0.025618471687740518,
+  "components": 15,
+  "resolution": [
+   64,
+   162,
+   77
+  ],
+  "cellSizeMetres": 0.00625,
+  "representation": "hollow",
+  "storage": "sparse-surface",
+  "reasons": [
+   "2.56% of cells are interior, and the shell encloses 149720 empty cells: a hollow structure whose boundary is complete."
+  ]
+ },
+ "container": {
+  "bytes": 110884,
+  "sha256": "6551ca0fdaec565793ee1dba2e698f36a180c88ea4e65a2bbcf8d6b86c810d49",
+  "id": "snp-63e5441d6e8bb4e2",
+  "compressedRatio": 9.842718516648029
+ },
+ "export": {
+  "path": "/workspace/chats/dabd4582007a8c6e487b4757/artifacts/mission3/lelu_apose_nre.glb",
+  "bytes": 3377628,
+  "accepted": true,
+  "triangles": 189672,
+  "roundTripCells": 44310,
+  "roundTripSharedCells": 44310,
+  "roundTripIou": 0.9743815283122594
+ },
+ "timings": {
+  "voxelizeMs": 276.12179,
+  "totalMs": 2158.806383
+ },
+ "stages": [
+  {
+   "id": "image-input",
+   "label": "Image input",
+   "status": "VERIFIED",
+   "detail": "04_front_apose.png read and hashed (sha256 1e01242a0a272961…, 2070376 bytes)"
+  },
+  {
+   "id": "image-analysis",
+   "label": "Image analysis",
+   "status": "VERIFIED",
+   "detail": "TripoSR forward pass on CPU produced a signed-distance grid at marching-cubes resolution 128 (worker total 38.4s)."
+  },
+  {
+   "id": "spatial-reconstruction",
+   "label": "Spatial reconstruction",
+   "status": "VERIFIED",
+   "detail": "15950 vertices / 31848 triangles returned by the worker; export gate accepted."
+  },
+  {
+   "id": "numerical-representation",
+   "label": "Numerical representation",
+   "status": "VERIFIED",
+   "detail": "45475 occupied cells on a 64×162×77 lattice at 0.625 cm, 1165 of them interior; classified hollow (sparse-surface)."
+  },
+  {
+   "id": "geometry-export",
+   "label": "3D geometry export",
+   "status": "VERIFIED",
+   "detail": "NRE exported a 3377628-byte GLB (189672 triangles); re-voxelising it returns 44310 cells with IoU 0.9744."
+  }
+ ]
+}

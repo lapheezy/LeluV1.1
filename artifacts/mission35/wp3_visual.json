@@ -1,0 +1,54 @@
+{
+ "combined": {
+  "file": "wp3_states_combined.glb",
+  "bytes": 133004,
+  "triangles": 7376,
+  "accepted": true,
+  "order": [
+   "t=0 observed",
+   "t=0.5 interpolated",
+   "t=1 observed"
+  ],
+  "spacingMetres": 0.75
+ },
+ "method": "correspondence",
+ "midpointState": "interpolated",
+ "sources": [
+  "snp-a332017d62b1cbb0",
+  "snp-5f7b11d2d229a59e"
+ ],
+ "uncertainty": null,
+ "assets": [
+  {
+   "file": "wp3_state_t0_observed.glb",
+   "cells": 632,
+   "triangles": 1968,
+   "bytes": 36208,
+   "accepted": true,
+   "label": "t=0 observed",
+   "confidence": 0.55,
+   "state": "observed"
+  },
+  {
+   "file": "wp3_state_t05_interpolated.glb",
+   "cells": 941,
+   "triangles": 3440,
+   "bytes": 62092,
+   "accepted": true,
+   "label": "t=0.5 generated",
+   "confidence": null,
+   "state": "interpolated"
+  },
+  {
+   "file": "wp3_state_t1_observed.glb",
+   "cells": 632,
+   "triangles": 1968,
+   "bytes": 36208,
+   "accepted": true,
+   "label": "t=1 observed",
+   "confidence": 0.9,
+   "state": "observed"
+  }
+ ],
+ "statement": "Only t=0 and t=1 are observations. The midpoint is generated from them, is labelled interpolated, and carries the uncertainty its two sources cannot resolve."
+}

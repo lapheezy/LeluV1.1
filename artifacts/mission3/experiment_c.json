@@ -1,0 +1,220 @@
+{
+ "objectId": "lelu-head-demo",
+ "grid": {
+  "resolution": [
+   32,
+   32,
+   32
+  ],
+  "cellSize": 0.05
+ },
+ "snapshots": [
+  {
+   "id": "snp-841caf8460a1ef4c",
+   "ordinal": 0,
+   "state": "observed",
+   "confidence": 0.6,
+   "cells": 560,
+   "containerBytes": 3125,
+   "containerSha256": "4e8d8daed85a65f7eb0b8db5ed238267ce93c7e57e66fb8e2c78c6f85a3abb10",
+   "summary": "001 initial shell"
+  },
+  {
+   "id": "snp-dd247e64d01efd6a",
+   "ordinal": 1,
+   "state": "observed",
+   "confidence": 0.55,
+   "cells": 650,
+   "containerBytes": 3379,
+   "containerSha256": "03060bc35c94cee385cd6c0ceb7562ff9b83c6a9392750ab24f2f1b87f005273",
+   "summary": "002 added volume"
+  },
+  {
+   "id": "snp-6b165a0a00f05233",
+   "ordinal": 2,
+   "state": "observed",
+   "confidence": 0.8,
+   "cells": 650,
+   "containerBytes": 3461,
+   "containerSha256": "5a0a72aac27b13f7fa592023571a72e6aaaf601995024a5b468f78e55b5c98aa",
+   "summary": "003 same geometry, confidence 0.8"
+  },
+  {
+   "id": "snp-b035000d4381a6e5",
+   "ordinal": 3,
+   "state": "observed",
+   "confidence": 0.62,
+   "cells": 650,
+   "containerBytes": 3686,
+   "containerSha256": "880e4ed955e4a10ea8b18a47265f1289be7b75a4503bcdfe93de8d59ae6c084f",
+   "summary": "004 translated 3,1,0 cells"
+  },
+  {
+   "id": "snp-0032a973f3648ab6",
+   "ordinal": 4,
+   "state": "accumulated",
+   "confidence": 0.91,
+   "cells": 650,
+   "containerBytes": 4218,
+   "containerSha256": "0556a8dcf142d52f9b458f9d653484542a2849fd9fffe9054bbf1d8d58054d95",
+   "summary": "accumulated from 2 snapshots: snp-dd247e64d01efd6a, snp-6b165a0a00f05233; occupancy union with noisy-OR confidence fusion"
+  },
+  {
+   "id": "snp-c4b3f28ae034af9f",
+   "ordinal": 5,
+   "state": "interpolated",
+   "confidence": 0,
+   "cells": 650,
+   "containerBytes": 2998,
+   "containerSha256": "86c4fb9f2b3e9ca69001175a2d1ec8ef1d750f6ecb205de7cb09dcaffd97744c",
+   "summary": "interpolated at t=0.500 between nre-841caf8460a1ef4c and nre-dd247e64d01efd6a; 650 cells pass the 0.5 weight threshold — a hypothesis between measurements, not a measurement"
+  }
+ ],
+ "diffs": [
+  {
+   "from": "snp-841caf8460a1ef4c",
+   "to": "snp-dd247e64d01efd6a",
+   "kind": "expanded",
+   "explains": "90 cells appeared and none disappeared: new surface was observed, the earlier evidence is still present.",
+   "iou": 0.8615384615384616,
+   "onlyOnlyEarlier": 0,
+   "onlyLater": 90,
+   "confidenceDelta": -0.04999999999999993
+  },
+  {
+   "from": "snp-dd247e64d01efd6a",
+   "to": "snp-6b165a0a00f05233",
+   "kind": "improved-confidence",
+   "explains": "Identical occupancy; aggregate confidence rose from 0.5500 to 0.8000 — the same object seen with more or better evidence.",
+   "iou": 1,
+   "onlyOnlyEarlier": 0,
+   "onlyLater": 0,
+   "confidenceDelta": 0.25
+  },
+  {
+   "from": "snp-6b165a0a00f05233",
+   "to": "snp-b035000d4381a6e5",
+   "kind": "rigid-movement",
+   "explains": "Geometry survives a 3,1,0 cell shift with 100.0% of cells landing on the later set: consistent with movement, not deformation.",
+   "iou": 0.10638297872340426,
+   "onlyOnlyEarlier": 525,
+   "onlyLater": 525,
+   "confidenceDelta": -0.18000000000000005
+  },
+  {
+   "from": "snp-b035000d4381a6e5",
+   "to": "snp-0032a973f3648ab6",
+   "kind": "rigid-movement",
+   "explains": "Geometry survives a -3,-1,0 cell shift with 100.0% of cells landing on the later set: consistent with movement, not deformation.",
+   "iou": 0.10638297872340426,
+   "onlyOnlyEarlier": 525,
+   "onlyLater": 525,
+   "confidenceDelta": 0.29000000000000004
+  },
+  {
+   "from": "snp-0032a973f3648ab6",
+   "to": "snp-c4b3f28ae034af9f",
+   "kind": "confidence-regressed",
+   "explains": "Identical occupancy but aggregate confidence FELL from 0.9100 to 0.0000; recorded as a regression, not an improvement.",
+   "iou": 1,
+   "onlyOnlyEarlier": 0,
+   "onlyLater": 0,
+   "confidenceDelta": -0.91
+  }
+ ],
+ "accumulation": {
+  "id": "snp-0032a973f3648ab6",
+  "contributions": [
+   {
+    "id": "snp-dd247e64d01efd6a",
+    "onlyInContribution": 0,
+    "onlyInAccumulated": 0
+   },
+   {
+    "id": "snp-6b165a0a00f05233",
+    "onlyInContribution": 0,
+    "onlyInAccumulated": 0
+   }
+  ],
+  "fusedCells": 650,
+  "fusedConfidence": 0.91,
+  "expectedNoisyOr": 0.91,
+  "sourceSnapshotsUnchanged": true
+ },
+ "interpolation": {
+  "from": "snp-841caf8460a1ef4c",
+  "to": "snp-dd247e64d01efd6a",
+  "t": 0.5,
+  "state": "interpolated",
+  "cells": 650,
+  "betweenObserved": true,
+  "iouToEither": 1,
+  "note": "interpolated at t=0.500 between nre-841caf8460a1ef4c and nre-dd247e64d01efd6a; 650 cells pass the 0.5 weight threshold — a hypothesis between measurements, not a measurement"
+ },
+ "restoration": {
+  "id": "snp-841caf8460a1ef4c",
+  "recoveredCells": 560,
+  "byteIdentical": true,
+  "occupancyIdentical": true,
+  "observationCount": 1,
+  "provenanceSurvived": true,
+  "confidenceSurvived": true
+ },
+ "history": [
+  {
+   "ordinal": 0,
+   "id": "snp-841caf8460a1ef4c",
+   "parentId": null,
+   "state": "observed",
+   "cells": 560
+  },
+  {
+   "ordinal": 1,
+   "id": "snp-dd247e64d01efd6a",
+   "parentId": "snp-841caf8460a1ef4c",
+   "state": "observed",
+   "cells": 650
+  },
+  {
+   "ordinal": 2,
+   "id": "snp-6b165a0a00f05233",
+   "parentId": "snp-dd247e64d01efd6a",
+   "state": "observed",
+   "cells": 650
+  },
+  {
+   "ordinal": 3,
+   "id": "snp-b035000d4381a6e5",
+   "parentId": "snp-6b165a0a00f05233",
+   "state": "observed",
+   "cells": 650
+  },
+  {
+   "ordinal": 4,
+   "id": "snp-0032a973f3648ab6",
+   "parentId": "snp-b035000d4381a6e5",
+   "state": "accumulated",
+   "cells": 650
+  },
+  {
+   "ordinal": 5,
+   "id": "snp-c4b3f28ae034af9f",
+   "parentId": "snp-0032a973f3648ab6",
+   "state": "interpolated",
+   "cells": 650
+  }
+ ],
+ "export": {
+  "glbBytes": 61008,
+  "gateAccepted": true,
+  "triangles": 3504
+ },
+ "timings": {
+  "firstSnapshotMs": 37.63142200000004,
+  "totalMs": 131.69135800000004,
+  "diffMs": 26.299568999999906,
+  "restoreMs": 2.941389000000072
+ },
+ "status": "VERIFIED",
+ "statement": "Four observed snapshots, one accumulated, one interpolated: all written as independent containers, all recoverable alone, and the first is byte-identical after six later appends."
+}

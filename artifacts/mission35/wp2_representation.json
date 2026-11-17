@@ -1,0 +1,193 @@
+{
+ "cases": [
+  {
+   "name": "solid box",
+   "expected": "volumetric",
+   "actual": "volumetric",
+   "storage": "sparse-volume",
+   "exportPath": "volumetric-container",
+   "metrics": {
+    "cells": 1728,
+    "interiorFraction": 0.5787037037037037,
+    "components": 1,
+    "isolatedFraction": 0,
+    "fillRatio": 1
+   },
+   "temporal": null,
+   "reasons": [
+    "57.87% of cells are interior (1000 of 1728); a boundary mesh would keep only 728, so storage must be volumetric."
+   ],
+   "rejected": 1,
+   "pass": true
+  },
+  {
+   "name": "closed shell",
+   "expected": "hollow",
+   "actual": "hollow",
+   "storage": "sparse-surface",
+   "exportPath": "glb-boundary",
+   "metrics": {
+    "cells": 728,
+    "interiorFraction": 0,
+    "components": 1,
+    "isolatedFraction": 0,
+    "fillRatio": 0.4212962962962963
+   },
+   "temporal": null,
+   "reasons": [
+    "0.00% of cells are interior, and the shell encloses 1000 empty cells: a hollow structure whose boundary is complete."
+   ],
+   "rejected": 1,
+   "pass": true
+  },
+  {
+   "name": "point cloud",
+   "expected": "point-cloud",
+   "actual": "point-cloud",
+   "storage": "sparse-surface",
+   "exportPath": "glb-boundary",
+   "metrics": {
+    "cells": 300,
+    "interiorFraction": 0,
+    "components": 300,
+    "isolatedFraction": 1,
+    "fillRatio": 0.024656858716199555
+   },
+   "temporal": null,
+   "reasons": [
+    "100.00% of 300 cells have no face neighbour and the shape splits into 300 components: this is a point cloud."
+   ],
+   "rejected": 2,
+   "pass": true
+  },
+  {
+   "name": "flat sheet",
+   "expected": "sparse-surface",
+   "actual": "sparse-surface",
+   "storage": "sparse-surface",
+   "exportPath": "glb-boundary",
+   "metrics": {
+    "cells": 144,
+    "interiorFraction": 0,
+    "components": 1,
+    "isolatedFraction": 0,
+    "fillRatio": 1
+   },
+   "temporal": null,
+   "reasons": [
+    "Thin structure: 0.00% interior, surface-to-volume 0.389, 1 component(s). A boundary mesh describes it completely."
+   ],
+   "rejected": 0,
+   "pass": true
+  },
+  {
+   "name": "irregular shell",
+   "expected": "sparse-surface",
+   "actual": "sparse-surface",
+   "storage": "sparse-surface",
+   "exportPath": "glb-boundary",
+   "metrics": {
+    "cells": 590,
+    "interiorFraction": 0,
+    "components": 2,
+    "isolatedFraction": 0,
+    "fillRatio": 0.14404296875
+   },
+   "temporal": null,
+   "reasons": [
+    "Thin structure: 0.00% interior, surface-to-volume 0.502, 2 component(s). A boundary mesh describes it completely."
+   ],
+   "rejected": 0,
+   "pass": true
+  },
+  {
+   "name": "two blocks moving differently",
+   "expected": "articulated",
+   "actual": "articulated",
+   "storage": "sparse-volume",
+   "exportPath": "temporal-sequence",
+   "metrics": {
+    "cells": 250,
+    "interiorFraction": 0.216,
+    "components": 2,
+    "isolatedFraction": 0,
+    "fillRatio": 0.5882352941176471
+   },
+   "temporal": {
+    "snapshots": 2,
+    "occupancyChanged": true,
+    "rigidMatch": 0.3,
+    "componentShifts": [
+     {
+      "shift": [
+       3,
+       0,
+       0
+      ],
+      "match": 1,
+      "cells": 125
+     },
+     {
+      "shift": [
+       0,
+       0,
+       4
+      ],
+      "match": 1,
+      "cells": 125
+     }
+    ],
+    "confidenceDelta": 0
+   },
+   "reasons": [
+    "2 components move with 2 distinct shifts (overall match 30.00%): articulated, so one rigid transform would misrepresent it.",
+    "Storage follows the interior: 21.60% of cells are interior, so the container must keep volume."
+   ],
+   "rejected": 0,
+   "pass": true
+  },
+  {
+   "name": "surface change, no rigid explanation",
+   "expected": "deforming",
+   "actual": "deforming",
+   "storage": "sparse-surface",
+   "exportPath": "temporal-sequence",
+   "metrics": {
+    "cells": 24,
+    "interiorFraction": 0,
+    "components": 1,
+    "isolatedFraction": 0,
+    "fillRatio": 1
+   },
+   "temporal": {
+    "snapshots": 2,
+    "occupancyChanged": true,
+    "rigidMatch": 0.625,
+    "componentShifts": [
+     {
+      "shift": [
+       -3,
+       0,
+       0
+      ],
+      "match": 0.625,
+      "cells": 24
+     }
+    ],
+    "confidenceDelta": 0
+   },
+   "reasons": [
+    "Occupancy changed across 2 snapshots and only 62.50% of cells survive the best rigid shift: the surface itself deforms."
+   ],
+   "rejected": 0,
+   "pass": true
+  }
+ ],
+ "summary": {
+  "cases": 7,
+  "passed": 7,
+  "failed": 0,
+  "status": "VERIFIED",
+  "statement": "Each classification is derived from measured cell statistics, and each decision names the representation it rejected and why. No shape is assigned a representation by name."
+ }
+}
