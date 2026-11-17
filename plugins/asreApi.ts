@@ -13,9 +13,24 @@
  *   POST /api/asre/jobs/<id>/cancel    stop it (a running Python worker is killed)
  *   POST /api/asre/jobs/<id>/retry     run a failed/cancelled/interrupted job again
  *   POST /api/asre/jobs/<id>/observe   { view, imageBase64 | image } → incremental refinement job
- *   POST /api/asre/character           { patch?, render? } → a variation of the
- *                                      persistent character; reports regenerated
- *                                      vs reused components
+ *   POST /api/asre/character           { patch?, render? } → a one-off variation of the
+ *                                      base character (Mission 4 contract; shares the
+ *                                      persistent component cache)
+ *
+ * Persistent characters (plugins/asreCharacters.ts) — identity + immutable versions:
+ *   GET  /api/asre/characters                         every character with its head
+ *   POST /api/asre/characters                         { id, name?, leluLook? } → v0001
+ *   GET  /api/asre/characters/<id>                    record + every version summary
+ *   GET  /api/asre/characters/<id>/versions/<v>       the full, verified version record
+ *   GET  /api/asre/characters/<id>/versions/<v>/glb   its model
+ *   POST /api/asre/characters/<id>/impact             { patch, base? } → what would be rebuilt, and why (builds nothing)
+ *   POST /api/asre/characters/<id>/edit               { patch, base?, label? } → new version (base ≠ head = branch)
+ *   POST /api/asre/characters/<id>/restore            { from, groups? } → new version
+ *   POST /api/asre/characters/<id>/undo | redo        move the head; nothing is deleted
+ *   POST /api/asre/characters/<id>/checkout           { version } → head
+ *   GET  /api/asre/characters/<id>/compare?a=&b=      spec, component and voxel differences
+ *   POST /api/asre/characters/<id>/export             { version } → Forge job (kind "asre")
+ *   GET  /api/asre/characters/<id>/verify             immutability check of every version
  *   GET  /api/asre/assets/<path>       GLB / PNG / JSON produced above
  *
  * Forge intake (plugins/asreForge.ts) — finished geometry lives in the
@@ -40,6 +55,8 @@ import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from 
 import { AsreJobError, AsreJobManager, type AsreRuntime, type ImageInput, type SucceededHook } from "./asreJobs.ts";
 import { AsreForge, AsreForgeError } from "./asreForge.ts";
 import { ForgeStore } from "./forgeStore.ts";
+import { AsreCharacterStore, CharacterError } from "./asreCharacters.ts";
+import { impactOf } from "../src/core/asre/character/identity.ts";
 import type { ViewName } from "../src/core/asre/reconstruct/silhouette.ts";
 
 type EnvReader = (name: string) => string | undefined;
@@ -100,7 +117,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
           }
         : null;
   const manager = new AsreJobManager({ root, runtime, onSucceeded: intake });
-  let characterCache: unknown = null;
+  const characters = new AsreCharacterStore({ root, forge });
 
   const inside = (p: string) => {
     const abs = path.resolve(root, p);
@@ -128,7 +145,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
     const B = await import("../src/core/asre/character/build.ts");
     const { writeGlb } = await import("../src/core/asre/gltf/GlbWriter.ts");
     const { inspectGlb } = await import("../src/core/forge/GlbInspector.ts");
-    const cache = (characterCache ??= new B.ComponentCache()) as InstanceType<typeof B.ComponentCache>;
+    const cache = characters.cache;
     const spec = C.withChanges(C.BASE_CHARACTER, (body.patch ?? {}) as Parameters<typeof C.withChanges>[1]);
     const build = B.buildCharacter(spec, cache);
     const glb = writeGlb(B.glbParts(build, B.DEFAULT_LATTICE.resolution, spec), { extras: { identity: spec.identity.id } });
@@ -218,6 +235,56 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
           return send(res, { ok: true, job: forge.edit(parts[1], (body.edit ?? {}) as never) }, 201);
         }
       }
+      if (parts[0] === "characters") {
+        const id = parts[1];
+        if (!id && method === "GET") return send(res, { ok: true, characters: characters.list() });
+        if (!id && method === "POST") {
+          const body = await json(req);
+          if (typeof body.id !== "string") return send(res, { ok: false, error: "id is required" }, 400);
+          const version = await characters.create({ id: body.id, name: typeof body.name === "string" ? body.name : undefined, leluLook: typeof body.leluLook === "string" ? body.leluLook : undefined });
+          return send(res, { ok: true, version, history: characters.history(body.id) }, 201);
+        }
+        if (id && method === "GET" && !parts[2]) return send(res, { ok: true, ...characters.history(id) });
+        if (id && method === "GET" && parts[2] === "versions" && parts[3] && !parts[4]) return send(res, { ok: true, version: characters.version(id, parts[3]) });
+        if (id && method === "GET" && parts[2] === "versions" && parts[3] && parts[4] === "glb") {
+          const file = characters.glbFile(id, parts[3]);
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "model/gltf-binary");
+          res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
+          res.end(readFileSync(file) as unknown as string);
+          return;
+        }
+        if (id && method === "GET" && parts[2] === "compare") {
+          const q = new URLSearchParams((req.url ?? "").split("?")[1] ?? "");
+          return send(res, { ok: true, comparison: await characters.compare(id, q.get("a") ?? "", q.get("b") ?? "") });
+        }
+        if (id && method === "GET" && parts[2] === "verify") {
+          const problems = characters.verify(id);
+          return send(res, { ok: problems.length === 0, problems });
+        }
+        if (id && method === "POST") {
+          const body = await json(req);
+          const after = () => characters.history(id);
+          if (parts[2] === "impact") {
+            const r = characters.record(id);
+            const base = characters.version(id, typeof body.base === "string" ? body.base : r.head);
+            const { withChanges } = await import("../src/core/asre/character/CharacterSpec.ts");
+            return send(res, { ok: true, base: base.id, impact: impactOf(base.spec, withChanges(base.spec, (body.patch ?? {}) as never), characters.lattice) });
+          }
+          if (parts[2] === "edit") {
+            const version = await characters.edit(id, (body.patch ?? {}) as never, { base: typeof body.base === "string" ? body.base : undefined, label: typeof body.label === "string" ? body.label : undefined });
+            return send(res, { ok: true, version, ...after() }, 201);
+          }
+          if (parts[2] === "restore") {
+            const version = await characters.restore(id, String(body.from ?? ""), Array.isArray(body.groups) ? (body.groups as never) : undefined);
+            return send(res, { ok: true, version, ...after() }, 201);
+          }
+          if (parts[2] === "undo") return send(res, { ok: true, record: await characters.undo(id), ...after() });
+          if (parts[2] === "redo") return send(res, { ok: true, record: await characters.redo(id), ...after() });
+          if (parts[2] === "checkout") return send(res, { ok: true, record: await characters.checkout(id, String(body.version ?? "")), ...after() });
+          if (parts[2] === "export") return send(res, { ok: true, ...(await characters.export(id, String(body.version ?? characters.record(id).head))), ...after() });
+        }
+      }
       if (method === "POST" && parts[0] === "character") {
         const body = JSON.parse((await readBody(req)).toString("utf8") || "{}") as Record<string, unknown>;
         return send(res, { ok: true, ...(await character(body)) });
@@ -233,7 +300,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
       }
       next();
     } catch (e) {
-      if (e instanceof AsreJobError || e instanceof AsreForgeError) return send(res, { ok: false, error: e.message }, e.status);
+      if (e instanceof AsreJobError || e instanceof AsreForgeError || e instanceof CharacterError) return send(res, { ok: false, error: e.message }, e.status);
       const status = (e as { status?: unknown })?.status;
       if (typeof status === "number" && status >= 400 && status < 600) return send(res, { ok: false, error: e instanceof Error ? e.message : String(e) }, status);
       send(res, { ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
@@ -244,6 +311,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
     root,
     manager,
     forge,
+    characters,
     handle,
     attach(middlewares: { use: (path: string, h: Handler) => void }) {
       middlewares.use(MOUNT, (req, res, next) => void handle(req, res, next));
