@@ -1,0 +1,21 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/wp1/police_woman/hypothesis_ellipse-hull_three-quarter.png",
+ "objects": [
+  "hypothesis-ellipse-hull"
+ ],
+ "triangles": 204068,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4376493990421295,
+   -0.33125001192092896,
+   -0.506399393081665
+  ],
+  "max": [
+   0.4626493453979492,
+   0.3938993811607361,
+   0.5063993334770203
+  ]
+ },
+ "render_seconds": 0.97,
+ "blender": "4.2.23 LTS"
+}
