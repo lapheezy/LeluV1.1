@@ -1,0 +1,162 @@
+/**
+ * ==========================================================
+ * LÉLU ASRE — PERSISTENT CHARACTER SPEC
+ *
+ * One identity, many variations. The identity (id, face, skin, head
+ * shape) is what makes her HER; hair, clothing, accessories, materials,
+ * body proportions and pose vary around it. Every component reads only
+ * its own slice of this spec (see components.ts), which is what lets a
+ * hair change leave the body untouched.
+ *
+ * Units: metres. Frame: Y up, +Z is the character's front, +X her left.
+ * ==========================================================
+ */
+
+import type { Rgb } from "./shape";
+
+export interface CharacterIdentity {
+  id: string;
+  name: string;
+  /** Link to LÉLU's persona look (src/core/avatar/LeluRig.ts LeluLookId), when there is one. */
+  leluLook?: string;
+}
+
+export interface BodyParams {
+  height: number;
+  shoulderWidth: number;
+  hipWidth: number;
+  /** Thickness multiplier for limbs and torso. */
+  build: number;
+  legRatio: number;
+  armRatio: number;
+}
+
+export interface FaceParams {
+  headScale: number;
+  eyeSize: number;
+  eyeSpacing: number;
+  noseSize: number;
+}
+
+export type HairStyleId =
+  | "buzz" | "pixie" | "bob" | "lob" | "long-straight" | "long-wavy" | "ponytail" | "high-ponytail" | "bun" | "top-knot"
+  | "double-buns" | "pigtails" | "afro" | "mohawk" | "curtain-bangs" | "side-swept" | "braids" | "spiky" | "undercut" | "mullet"
+  | "dreadlocks" | "none";
+
+export interface HairParams {
+  style: HairStyleId;
+  /** 0.5 … 1.5 — scales length-type features. */
+  length: number;
+  /** 0.7 … 1.4 — scales thickness/volume. */
+  volume: number;
+}
+
+export type TopType = "none" | "tank" | "tshirt" | "longsleeve" | "jacket";
+export type BottomType = "none" | "shorts" | "pants" | "skirt";
+
+export interface ClothingParams {
+  top: TopType;
+  bottom: BottomType;
+  shoes: boolean;
+}
+
+export type HeadAccessory = "glasses" | "hat" | "earrings";
+export type BodyAccessory = "necklace" | "backpack";
+
+export interface Materials {
+  skin: Rgb;
+  hair: Rgb;
+  top: Rgb;
+  bottom: Rgb;
+  shoes: Rgb;
+  accessory: Rgb;
+  eyes: Rgb;
+}
+
+export type PoseId = "relaxed" | "a-pose" | "t-pose" | "wave" | "stride";
+
+export interface CharacterSpec {
+  identity: CharacterIdentity;
+  body: BodyParams;
+  face: FaceParams;
+  hair: HairParams;
+  clothing: ClothingParams;
+  accessories: { head: HeadAccessory[]; body: BodyAccessory[] };
+  materials: Materials;
+  pose: PoseId;
+}
+
+export const BASE_CHARACTER: CharacterSpec = {
+  identity: { id: "lelu-asre-base", name: "LÉLU (ASRE base)", leluLook: "gothic" },
+  body: { height: 1.7, shoulderWidth: 0.4, hipWidth: 0.34, build: 1, legRatio: 0.48, armRatio: 1 },
+  face: { headScale: 1, eyeSize: 1, eyeSpacing: 1, noseSize: 1 },
+  hair: { style: "long-straight", length: 1, volume: 1 },
+  clothing: { top: "tshirt", bottom: "pants", shoes: true },
+  accessories: { head: [], body: [] },
+  materials: {
+    skin: [0.62, 0.42, 0.32],
+    hair: [0.08, 0.06, 0.07],
+    top: [0.12, 0.1, 0.16],
+    bottom: [0.1, 0.1, 0.12],
+    shoes: [0.05, 0.05, 0.05],
+    accessory: [0.75, 0.68, 0.45],
+    eyes: [0.05, 0.03, 0.03],
+  },
+  pose: "relaxed",
+};
+
+export const HAIR_STYLES: HairStyleId[] = [
+  "buzz", "pixie", "bob", "lob", "long-straight", "long-wavy", "ponytail", "high-ponytail", "bun", "top-knot",
+  "double-buns", "pigtails", "afro", "mohawk", "curtain-bangs", "side-swept", "braids", "spiky", "undercut", "mullet", "dreadlocks",
+];
+
+const HAIR_COLORS: Rgb[] = [
+  [0.08, 0.06, 0.07], [0.35, 0.2, 0.1], [0.75, 0.55, 0.3], [0.55, 0.12, 0.08], [0.85, 0.85, 0.85], [0.3, 0.1, 0.45], [0.1, 0.35, 0.45],
+];
+
+/** Deterministic hairstyle variations: every style × (short/long or thin/full), then colours. */
+export function hairVariations(count = 40): Array<{ hair: HairParams; color: Rgb; label: string }> {
+  const out: Array<{ hair: HairParams; color: Rgb; label: string }> = [];
+  const shapes: Array<[number, number, string]> = [[0.8, 0.9, "a"], [1.25, 1.2, "b"]];
+  for (const [length, volume, tag] of shapes)
+    for (const style of HAIR_STYLES) {
+      if (out.length >= count) break;
+      const color = HAIR_COLORS[out.length % HAIR_COLORS.length];
+      out.push({ hair: { style, length, volume }, color, label: `${style}-${tag}` });
+    }
+  return out;
+}
+
+export const OUTFITS: Array<{ label: string; clothing: ClothingParams; top: Rgb; bottom: Rgb }> = [
+  { label: "tee-jeans", clothing: { top: "tshirt", bottom: "pants", shoes: true }, top: [0.85, 0.85, 0.82], bottom: [0.15, 0.22, 0.4] },
+  { label: "tank-shorts", clothing: { top: "tank", bottom: "shorts", shoes: true }, top: [0.75, 0.2, 0.25], bottom: [0.3, 0.3, 0.32] },
+  { label: "longsleeve-skirt", clothing: { top: "longsleeve", bottom: "skirt", shoes: true }, top: [0.12, 0.1, 0.16], bottom: [0.35, 0.05, 0.1] },
+  { label: "jacket-pants", clothing: { top: "jacket", bottom: "pants", shoes: true }, top: [0.3, 0.22, 0.12], bottom: [0.08, 0.08, 0.1] },
+  { label: "tee-skirt", clothing: { top: "tshirt", bottom: "skirt", shoes: true }, top: [0.95, 0.75, 0.3], bottom: [0.1, 0.2, 0.15] },
+  { label: "longsleeve-pants", clothing: { top: "longsleeve", bottom: "pants", shoes: true }, top: [0.2, 0.35, 0.3], bottom: [0.4, 0.35, 0.28] },
+  { label: "jacket-shorts", clothing: { top: "jacket", bottom: "shorts", shoes: false }, top: [0.1, 0.1, 0.1], bottom: [0.6, 0.55, 0.45] },
+  { label: "tank-skirt", clothing: { top: "tank", bottom: "skirt", shoes: false }, top: [0.9, 0.9, 0.95], bottom: [0.05, 0.05, 0.07] },
+];
+
+export const BODY_VARIANTS: Array<{ label: string; body: Partial<BodyParams> }> = [
+  { label: "base", body: {} },
+  { label: "tall", body: { height: 1.84, legRatio: 0.5 } },
+  { label: "broad", body: { shoulderWidth: 0.47, build: 1.18 } },
+  { label: "petite", body: { height: 1.56, shoulderWidth: 0.36, hipWidth: 0.31, build: 0.9 } },
+];
+
+export function withChanges(spec: CharacterSpec, patch: {
+  body?: Partial<BodyParams>; face?: Partial<FaceParams>; hair?: Partial<HairParams>; clothing?: Partial<ClothingParams>;
+  accessories?: Partial<CharacterSpec["accessories"]>; materials?: Partial<Materials>; pose?: PoseId;
+}): CharacterSpec {
+  return {
+    identity: spec.identity,
+    body: { ...spec.body, ...patch.body },
+    face: { ...spec.face, ...patch.face },
+    hair: { ...spec.hair, ...patch.hair },
+    clothing: { ...spec.clothing, ...patch.clothing },
+    accessories: { ...spec.accessories, ...patch.accessories },
+    materials: { ...spec.materials, ...patch.materials },
+    pose: patch.pose ?? spec.pose,
+  };
+}
