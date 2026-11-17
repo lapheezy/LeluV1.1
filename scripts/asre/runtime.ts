@@ -70,15 +70,21 @@ export function workerEnv(): NodeJS.ProcessEnv {
 }
 
 /** Run a Python worker script with a JSON job; resolves with its parsed JSON result. */
-export function runWorker(script: string, job: unknown, timeoutMs = 900_000): Promise<{ result: Record<string, unknown>; log: string }> {
+export function runWorker(script: string, job: unknown, timeoutMs = 900_000, signal?: AbortSignal): Promise<{ result: Record<string, unknown>; log: string }> {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(new Error(`${script} cancelled before it started`));
     const child = spawn(asrePython(), ["-I", path.join(SERVICE, script), JSON.stringify(job)], { env: workerEnv(), stdio: ["ignore", "pipe", "pipe"] });
     let out = "", err = "";
     child.stdout.on("data", (c) => (out += c));
     child.stderr.on("data", (c) => (err = (err + c).slice(-20_000)));
     const timer = setTimeout(() => child.kill("SIGKILL"), timeoutMs);
+    // Cancellation kills the worker: a cancelled job must not keep a CPU busy.
+    const onAbort = () => child.kill("SIGKILL");
+    signal?.addEventListener("abort", onAbort, { once: true });
     child.on("close", (code) => {
       clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      if (signal?.aborted) return reject(new Error(`${script} cancelled`));
       const line = out.trim().split("\n").pop() ?? "";
       if (code !== 0) return reject(new Error(`${script} exited ${code}: ${err.slice(-3000)}`));
       try {

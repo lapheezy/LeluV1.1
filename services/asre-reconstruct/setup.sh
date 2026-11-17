@@ -16,7 +16,7 @@ if [ ! -x asre-venv/bin/python ]; then
   python3 -m venv asre-venv
   asre-venv/bin/pip install -q --upgrade pip
   asre-venv/bin/pip install -q torch torchvision --index-url https://download.pytorch.org/whl/cpu
-  asre-venv/bin/pip install -q "numpy>=2" omegaconf einops "transformers>=4.40,<5" trimesh scikit-image scipy pillow huggingface-hub rembg onnxruntime pybind11 cmake ninja
+  asre-venv/bin/pip install -q "numpy>=2" omegaconf einops "transformers>=4.40,<5" trimesh scikit-image scipy pillow huggingface-hub rembg onnxruntime pybind11 cmake ninja scikit-build-core
 fi
 
 # TripoSR code (MIT), pinned
@@ -25,8 +25,11 @@ if [ ! -d TripoSR ]; then
   git -C TripoSR checkout -q 107cefdc244c39106fa830359024f6a2f1c78871
 fi
 
-# Upstream marching cubes, only for validation against upstream TripoSR
-if ! asre-venv/bin/python -c "import torchmcubes" 2>/dev/null; then
+# Upstream marching cubes (tsr imports it; also used to validate against upstream TripoSR).
+# -I and a real symbol: run from $T, a bare "import torchmcubes" finds the cloned
+# source folder as an empty namespace package and would skip a failed build.
+asre-venv/bin/pip install -q scikit-build-core
+if ! asre-venv/bin/python -I -c "from torchmcubes import marching_cubes" 2>/dev/null; then
   [ -d torchmcubes ] || git clone -q https://github.com/tatsy/torchmcubes.git
   git -C torchmcubes checkout -q a9ac95aa329957ba646e7bb057f825f5dfa77f38
   (cd torchmcubes && PATH="$T/asre-venv/bin:$PATH" CMAKE_PREFIX_PATH="$("$T/asre-venv/bin/python" -c "import torch,pybind11;print(torch.utils.cmake_prefix_path+';'+pybind11.get_cmake_dir())")" "$T/asre-venv/bin/pip" install -q --no-build-isolation .)

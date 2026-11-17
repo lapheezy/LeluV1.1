@@ -79,6 +79,15 @@ export class Flipbook {
     return this.state.clone();
   }
 
+  /**
+   * Commit a state produced outside `turn` (e.g. evidence re-attribution
+   * after a new view) as the next page. The previous pages stay immutable.
+   */
+  commit(next: SparseVoxelGrid, label: string, transformations: TransformRecord[]): Snapshot {
+    this.state = next.clone();
+    return this.store.commit(this.state, { label, transformations });
+  }
+
   turn(page: Page, label = page.observation.id): PageReport {
     const t0 = performance.now();
     const before = this.state;

@@ -3,11 +3,16 @@
  * LÉLU ASRE — SERVER API (server only, zero spend)
  *
  *   GET  /api/asre/status              toolchain: Blender, Python worker, weights
- *   POST /api/asre/reconstruct         { image: <path under the asset root> | imageBase64 }
- *                                      → job: TripoSR CPU → analyses → hypotheses
- *                                        → NRE + GLB + coverage (+ renders)
+ *   POST /api/asre/reconstruct         { images: [{ view, imageBase64 | image }] | image | imageBase64,
+ *                                        engine?: auto|silhouette|triposr, resolution?, heightMeters?, render? }
+ *                                      → job (plugins/asreJobs.ts): hypotheses → selected geometry
+ *                                        → NRE + GLB + coverage (+ render) → Forge intake
+ *   GET  /api/asre/jobs                every job, newest first
  *   GET  /api/asre/jobs/<id>           job state, every intermediate result so far,
  *                                      and which observation would help most next
+ *   POST /api/asre/jobs/<id>/cancel    stop it (a running Python worker is killed)
+ *   POST /api/asre/jobs/<id>/retry     run a failed/cancelled/interrupted job again
+ *   POST /api/asre/jobs/<id>/observe   { view, imageBase64 | image } → incremental refinement job
  *   POST /api/asre/character           { patch?, render? } → a variation of the
  *                                      persistent character; reports regenerated
  *                                      vs reused components
@@ -22,6 +27,8 @@ import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from "./modelApi.ts";
+import { AsreJobError, AsreJobManager, type AsreRuntime, type ImageInput, type SucceededHook } from "./asreJobs.ts";
+import type { ViewName } from "../src/core/asre/reconstruct/silhouette.ts";
 
 type EnvReader = (name: string) => string | undefined;
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
@@ -29,15 +36,6 @@ type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => v
 const MOUNT = "/api/asre";
 const MIME: Record<string, string> = { ".glb": "model/gltf-binary", ".png": "image/png", ".json": "application/json" };
 
-export interface AsreJob {
-  id: string;
-  state: "queued" | "running" | "succeeded" | "failed";
-  steps: Array<{ step: string; state: "running" | "done" | "failed"; ms?: number; note?: string }>;
-  dir: string;
-  createdAt: number;
-  error?: string;
-  results: Record<string, unknown>;
-}
 
 function send(res: ConnectLikeRes, payload: unknown, status = 200): void {
   res.statusCode = status;
@@ -46,9 +44,37 @@ function send(res: ConnectLikeRes, payload: unknown, status = 200): void {
   res.end(JSON.stringify(payload));
 }
 
-export function createAsreApi(readEnv: EnvReader, options: { root?: string } = {}) {
+/** The local toolchain behind the job manager (Python workers, Blender), loaded lazily. */
+export function localRuntime(): AsreRuntime {
+  const rt = () => import("../scripts/asre/runtime.ts");
+  return {
+    async available() {
+      const r = await rt();
+      const env = r.workerEnv();
+      const weights = path.join(env.HF_HOME ?? "", "hub", "models--stabilityai--TripoSR");
+      return { triposr: existsSync(r.asrePython()) && existsSync(path.join(env.LELU_TRIPOSR_SRC ?? "", "tsr")) && existsSync(weights), blender: Boolean(r.blenderRunner()) };
+    },
+    async runWorker(script, job, timeoutMs, signal) {
+      return (await rt()).runWorker(script, job, timeoutMs, signal);
+    },
+    async ingest(dir, options) {
+      return (await import("../scripts/asre/triposr-ingest.ts")).ingest(dir, options);
+    },
+    async triposrHypotheses(trDir, wpDir) {
+      return (await import("../scripts/asre/triposr-hypotheses.ts")).triposrHypotheses(trDir, wpDir);
+    },
+    async render(glb, png) {
+      const r = await rt();
+      if (!r.blenderRunner()) return null;
+      return (await r.renderGlb({ inputs: [glb], output: png, resolution: [512, 512], samples: 16 })).output;
+    },
+  };
+}
+
+export function createAsreApi(readEnv: EnvReader, options: { root?: string; runtime?: AsreRuntime; onSucceeded?: SucceededHook | null } = {}) {
   const root = path.resolve(options.root || readEnv("LELU_ASRE_ROOT") || path.join(process.cwd(), "leluverse", "assets", "asre"));
-  const jobs = new Map<string, AsreJob>();
+  const runtime = options.runtime ?? localRuntime();
+  const manager = new AsreJobManager({ root, runtime, onSucceeded: options.onSucceeded ?? null });
   let characterCache: unknown = null;
 
   const inside = (p: string) => {
@@ -66,49 +92,10 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string } = {
       python: existsSync(py) ? py : null,
       triposrSource: existsSync(path.join(env.LELU_TRIPOSR_SRC ?? "", "tsr")) ? env.LELU_TRIPOSR_SRC : null,
       triposrWeights: existsSync(weights),
+      engines: { silhouette: true, triposr: (await runtime.available()).triposr },
       spend: "zero: local CPU only, no paid API, no account, no key",
       setup: "services/asre-reconstruct/setup.sh",
     };
-  }
-
-  async function runReconstruction(job: AsreJob, image: string): Promise<void> {
-    const rt = await import("../scripts/asre/runtime.ts");
-    const step = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
-      const s = { step: name, state: "running" as const, ms: 0 };
-      job.steps.push(s);
-      const t0 = Date.now();
-      try {
-        const r = await fn();
-        Object.assign(s, { state: "done", ms: Date.now() - t0 });
-        return r;
-      } catch (e) {
-        Object.assign(s, { state: "failed", ms: Date.now() - t0, note: e instanceof Error ? e.message.slice(0, 500) : String(e) });
-        throw e;
-      }
-    };
-    job.state = "running";
-    try {
-      const tr = path.join(job.dir, "triposr");
-      job.results.triposr = (await step("triposr", () => rt.runWorker("triposr_worker.py", { image, out_dir: tr }))).result;
-      job.results.analysis = (await step("analyses+hypotheses", () => rt.runWorker("analyze_worker.py", { image, triposr_dir: tr, out_dir: path.join(job.dir, "wp1") }))).result;
-      const { ingest } = await import("../scripts/asre/triposr-ingest.ts");
-      const canRender = Boolean((await status()).blender);
-      job.results.ingest = await step("nre+glb+renders", () => ingest(tr, { render: canRender }));
-      job.results.coverage = await step("coverage", async () => {
-        const { decodeGrid } = await import("../src/core/asre/nre/serialize.ts");
-        const { deflate } = await import("../scripts/asre/triposr-ingest.ts");
-        const { assessCoverage } = await import("../src/core/asre/analysis/coverage.ts");
-        const grid = decodeGrid(new Uint8Array(readFileSync(path.join(tr, "reconstruction.lnre"))), { codecs: [deflate] }).grid;
-        // TripoSR conditioning camera sits on +X; Z is up in that frame
-        return assessCoverage(grid, [1, 0, 0], [0, 0, 1]);
-      });
-      job.results.glb = path.relative(root, path.join(tr, "reconstruction.glb"));
-      job.state = "succeeded";
-    } catch (e) {
-      job.state = "failed";
-      job.error = e instanceof Error ? e.message.slice(0, 2000) : String(e);
-    }
-    writeFileSync(path.join(job.dir, "job.json"), JSON.stringify(job, null, 1));
   }
 
   async function character(body: Record<string, unknown>) {
@@ -133,6 +120,26 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string } = {
     return { identity: spec.identity.id, glb: `character/${id}.glb`, render, regenerated: build.regenerated, recolored: build.recolored, reused: build.reused, buildMs: Math.round(build.ms), meshValid: report.verdict.meshValid, triangles: report.geometry.triangles };
   }
 
+  const json = async (req: ConnectLikeReq) => {
+    try {
+      return JSON.parse((await readBody(req)).toString("utf8") || "{}") as Record<string, unknown>;
+    } catch {
+      throw new AsreJobError("the request body is not JSON");
+    }
+  };
+
+  /** { view?, imageBase64 | image } → bytes; a path must stay inside the asset root. */
+  function imageOf(o: Record<string, unknown>): ImageInput | null {
+    const view = (typeof o.view === "string" ? o.view : "front") as ViewName;
+    if (typeof o.imageBase64 === "string" && o.imageBase64) return { view, bytes: new Uint8Array(Buffer.from(o.imageBase64.replace(/^data:[^,]*,/, ""), "base64")) };
+    if (typeof o.image === "string" && o.image) {
+      const file = inside(o.image);
+      if (!file || !existsSync(file)) return null;
+      return { view, bytes: new Uint8Array(readFileSync(file)) };
+    }
+    return null;
+  }
+
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
     const method = (req.method ?? "GET").toUpperCase();
     const raw = (req.url ?? "").split("?")[0];
@@ -142,25 +149,32 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string } = {
     try {
       if (method === "GET" && parts[0] === "status") return send(res, { ok: true, ...(await status()) });
       if (method === "POST" && parts[0] === "reconstruct") {
-        const body = JSON.parse((await readBody(req)).toString("utf8") || "{}") as { image?: string; imageBase64?: string };
-        const id = randomUUID().slice(0, 12);
-        const dir = path.join(root, "jobs", id);
-        mkdirSync(dir, { recursive: true });
-        let image: string | null = null;
-        if (body.imageBase64) {
-          image = path.join(dir, "input.png");
-          writeFileSync(image, Buffer.from(body.imageBase64, "base64"));
-        } else if (body.image) image = inside(body.image);
-        if (!image || !existsSync(image)) return send(res, { ok: false, error: "image must be imageBase64 or a path inside the ASRE asset root" }, 400);
-        const job: AsreJob = { id, state: "queued", steps: [], dir, createdAt: Date.now(), results: {} };
-        jobs.set(id, job);
-        void runReconstruction(job, image);
-        return send(res, { ok: true, job: { id, state: job.state } }, 202);
+        const body = await json(req);
+        const list = Array.isArray(body.images) ? (body.images as Array<Record<string, unknown>>) : [{ view: body.view ?? "front", image: body.image, imageBase64: body.imageBase64 }];
+        const images = list.map(imageOf);
+        if (images.some((im) => !im)) return send(res, { ok: false, error: "each image must be imageBase64 or a path inside the ASRE asset root" }, 400);
+        const job = await manager.reconstruct(images as ImageInput[], {
+          engine: typeof body.engine === "string" ? (body.engine as never) : "auto",
+          resolution: typeof body.resolution === "number" ? body.resolution : undefined,
+          heightMeters: typeof body.heightMeters === "number" ? body.heightMeters : undefined,
+          render: body.render === true,
+        });
+        return send(res, { ok: true, job }, 202);
       }
-      if (method === "GET" && parts[0] === "jobs" && parts[1]) {
-        const job = jobs.get(parts[1]);
-        if (!job) return send(res, { ok: false, error: `no job ${parts[1]}` }, 404);
-        return send(res, { ok: true, job: { ...job, dir: undefined } });
+      if (method === "GET" && parts[0] === "jobs" && !parts[1]) return send(res, { ok: true, jobs: manager.list() });
+      if (parts[0] === "jobs" && parts[1]) {
+        if (method === "GET" && !parts[2]) {
+          const job = manager.get(parts[1]);
+          if (!job) return send(res, { ok: false, error: `no job ${parts[1]}` }, 404);
+          return send(res, { ok: true, job });
+        }
+        if (method === "POST" && parts[2] === "cancel") return send(res, { ok: true, job: manager.cancel(parts[1]) });
+        if (method === "POST" && parts[2] === "retry") return send(res, { ok: true, job: await manager.retry(parts[1]) }, 202);
+        if (method === "POST" && parts[2] === "observe") {
+          const image = imageOf(await json(req));
+          if (!image) return send(res, { ok: false, error: "the view image must be imageBase64 or a path inside the ASRE asset root" }, 400);
+          return send(res, { ok: true, job: await manager.observe(parts[1], image) }, 202);
+        }
       }
       if (method === "POST" && parts[0] === "character") {
         const body = JSON.parse((await readBody(req)).toString("utf8") || "{}") as Record<string, unknown>;
@@ -177,13 +191,14 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string } = {
       }
       next();
     } catch (e) {
+      if (e instanceof AsreJobError) return send(res, { ok: false, error: e.message }, e.status);
       send(res, { ok: false, error: e instanceof Error ? e.message : String(e) }, 500);
     }
   }
 
   return {
     root,
-    jobs,
+    manager,
     handle,
     attach(middlewares: { use: (path: string, h: Handler) => void }) {
       middlewares.use(MOUNT, (req, res, next) => void handle(req, res, next));
