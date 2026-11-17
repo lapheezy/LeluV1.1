@@ -12,7 +12,7 @@
  * then repeats the session in that process with caches cleared (warm JIT).
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -179,14 +179,27 @@ async function parent() {
   const strategies: Strategy[] = ["whole-object", "component", "incremental", "adaptive-parallel"];
   const raw: Record<string, unknown[]> = {};
   const self = fileURLToPath(import.meta.url);
+  const out = path.resolve(path.dirname(self), "../../artifacts/asre/wp6");
+  mkdirSync(out, { recursive: true });
+  // resumable: every finished (trial, strategy) is appended at once; a rerun skips it
+  const journal = path.join(out, `raw-res${RES}.jsonl`);
+  const done = new Map<string, unknown>();
+  if (existsSync(journal)) for (const l of readFileSync(journal, "utf8").split("\n").filter(Boolean)) {
+    const j = JSON.parse(l);
+    done.set(`${j.trial}/${j.strategy}`, j.passes);
+  }
   for (let t = 0; t < trials; t++)
     for (const s of strategies) {
       // interleave strategies across trials so drift in machine load hits all of them
-      const r = spawnSync(process.execPath, ["--import", "tsx", self, "--child", s, "--res", String(RES)], { encoding: "utf8", maxBuffer: 1 << 26 });
-      if (r.status !== 0) throw new Error(`${s} trial ${t}: ${r.stderr.slice(-2000)}`);
-      const line = JSON.parse(r.stdout.trim().split("\n").pop()!);
-      (raw[s] ??= []).push(line.passes);
-      console.error(`trial ${t + 1}/${trials} ${s}: cold ${Math.round(line.passes[0].wallMs)} ms, warm ${Math.round(line.passes[1].wallMs)} ms`);
+      let passes = done.get(`${t}/${s}`) as Array<{ wallMs: number }> | undefined;
+      if (!passes) {
+        const r = spawnSync(process.execPath, ["--import", "tsx", self, "--child", s, "--res", String(RES)], { encoding: "utf8", maxBuffer: 1 << 26 });
+        if (r.status !== 0) throw new Error(`${s} trial ${t}: ${r.stderr.slice(-2000)}`);
+        passes = JSON.parse(r.stdout.trim().split("\n").pop()!).passes as Array<{ wallMs: number }>;
+        appendFileSync(journal, JSON.stringify({ trial: t, strategy: s, passes }) + "\n");
+      }
+      (raw[s] ??= []).push(passes);
+      console.error(`trial ${t + 1}/${trials} ${s}: cold ${Math.round(passes[0].wallMs)} ms, warm ${Math.round(passes[1].wallMs)} ms`);
     }
   const summary: Record<string, Record<string, unknown>> = {};
   for (const s of strategies) {
@@ -209,8 +222,6 @@ async function parent() {
     }
   }
   const env = { cpus: os.cpus().length, cpuModel: os.cpus()[0]?.model, memGB: +(os.totalmem() / 2 ** 30).toFixed(1), node: process.version, lattice: LATTICE, trials, edits: EDITS.map(([l]) => l) };
-  const out = path.resolve(path.dirname(self), "../../artifacts/asre/wp6");
-  mkdirSync(out, { recursive: true });
   writeFileSync(path.join(out, "benchmark.json"), JSON.stringify({ env, summary, raw }, null, 1));
   console.log(JSON.stringify({ env, summary }, null, 1));
 }
