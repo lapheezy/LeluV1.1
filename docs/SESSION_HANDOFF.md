@@ -35,7 +35,7 @@ Container restarts happened twice during this session; both times the committed 
 
 Reports: `docs/asre/00-BASELINE-AUDIT.md`, `01-MISSION-3-3.5-REBUILD.md`, `02-MISSION-4-ASRE.md`.
 
-Checks at the end of this session: full `tsc -b --force` exit 0; ASRE suites 54 tests + registry-related suites pass; full `npm test` result recorded in the session report (baseline before this session: 2,298 tests, 2,292 pass, 0 fail, 6 skipped).
+Checks at the end of this session: full `tsc -b --force` exit 0; full `npm test`: **2,351 tests, 2,345 pass, 0 fail, 6 skipped** (baseline before this session: 2,298 / 2,292 / 0 / 6; the difference is the new ASRE tests).
 
 ## Known defects and gaps
 
