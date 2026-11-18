@@ -78,8 +78,11 @@ function useJob(jobId: string | undefined) {
   return { job, error };
 }
 
-function Surface({ summon }: { summon: SpatialSummon }) {
-  const { job } = useJob(summon.jobId);
+function Surface({ summon, defaultOpen }: { summon: SpatialSummon; defaultOpen: boolean }) {
+  // A thread of live WebGL canvases is expensive; older surfaces stay folded
+  // to a one-line summary until they are wanted again.
+  const [open, setOpen] = useState(defaultOpen);
+  const { job } = useJob(open ? summon.jobId : undefined);
   const glbUrl = summon.glbUrl ?? (job?.result?.files.glb ? AsreClient.assetUrl(job.result.files.glb) : undefined);
   const result = job?.state === "succeeded" ? job.result ?? null : null;
   const [target, setTarget] = useState<{ url: string; label: string; forgeJobId?: string | null } | null>(null);
@@ -104,9 +107,16 @@ function Surface({ summon }: { summon: SpatialSummon }) {
       }}
     >
       <header style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#d4c8ff" }}>
+        <button
+          type="button"
+          data-spatial-expand
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#d4c8ff", background: "transparent", border: 0, padding: 0, cursor: "pointer", fontFamily: "inherit" }}
+        >
           <Box size={14} aria-hidden /> {summon.title}
-        </span>
+          <ChevronDown size={12} style={{ transform: open ? "none" : "rotate(-90deg)" }} aria-hidden />
+        </button>
         <span style={{ fontSize: 11, color: text.dim }}>{describeSummon(summon)}{summon.note ? ` · ${summon.note}` : ""}</span>
         <button
           type="button"
@@ -119,6 +129,7 @@ function Surface({ summon }: { summon: SpatialSummon }) {
         </button>
       </header>
 
+      {open ? (
       <nav style={{ display: "flex", gap: 6, flexWrap: "wrap" }} aria-label="Spatial capabilities">
         {TABS.map((t) => (
           <button
@@ -145,8 +156,9 @@ function Surface({ summon }: { summon: SpatialSummon }) {
           </button>
         ))}
       </nav>
+      ) : null}
 
-      {job && job.state !== "succeeded" ? (
+      {!open ? null : job && job.state !== "succeeded" ? (
         <p style={{ margin: 0, fontSize: 12, color: job.state === "failed" ? text.bad : text.dim }} data-spatial-job-state={job.state}>
           {job.state === "failed" ? `The reconstruction failed: ${job.error ?? "no reason recorded"}` : `Reconstruction ${job.state} — ${job.steps.filter((s) => s.state === "done").length}/${job.steps.length} steps done.`}
         </p>
@@ -158,6 +170,7 @@ function Surface({ summon }: { summon: SpatialSummon }) {
         </div>
       ) : null}
 
+      {!open ? null : (
       <Suspense fallback={<Wait label="Opening the spatial workspace…" />}>
         {summon.tab === "model" ? (
           glbUrl ? (
@@ -176,6 +189,7 @@ function Surface({ summon }: { summon: SpatialSummon }) {
           <RenderWorkspace target={target ?? (glbUrl ? { url: glbUrl, label: summon.title } : null)} onTarget={setTarget} />
         ) : null}
       </Suspense>
+      )}
     </section>
   );
 }
@@ -204,7 +218,7 @@ export default function SpatialSurfaces({ conversationId }: { conversationId: st
         <ChevronDown size={12} style={{ transform: open ? "none" : "rotate(-90deg)" }} aria-hidden />
         {list.length} spatial {list.length === 1 ? "surface" : "surfaces"} in this conversation
       </button>
-      {open ? list.map((summon) => <Surface key={summon.id} summon={summon} />) : null}
+      {open ? list.map((summon, i) => <Surface key={summon.id} summon={summon} defaultOpen={i === list.length - 1} />) : null}
     </div>
   );
 }

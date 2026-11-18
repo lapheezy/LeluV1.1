@@ -1,0 +1,143 @@
+{
+  "at": "2026-11-18T02:26:41.061Z",
+  "base": "http://127.0.0.1:5180",
+  "image": "chair.png",
+  "passed": 16,
+  "total": 16,
+  "failed": [],
+  "checks": [
+    {
+      "name": "Chat Universe opens without an account",
+      "ok": true,
+      "detail": "1 universe root(s)"
+    },
+    {
+      "name": "A conversation is open",
+      "ok": true,
+      "detail": "1 chat element(s)"
+    },
+    {
+      "name": "asre.reconstruct returns a job",
+      "ok": true,
+      "detail": "Reconstruction 6fe2038b-d50 started locally (silhouette) from the front view. Inspect it with asre.job; until it finishe"
+    },
+    {
+      "name": "A spatial surface appeared in the conversation",
+      "ok": true,
+      "detail": "sp-mwli1zb7-naq9l"
+    },
+    {
+      "name": "The reconstruction opens in the conversation (three.js)",
+      "ok": true,
+      "detail": "three-quarter front back left right top wireframe 15,860 triangles · drag to orbit"
+    },
+    {
+      "name": "Numerical planes render in the chat",
+      "ok": true,
+      "detail": "Reconstructing the front view reconstruction 6fe2038b-d50 · silhouette engine, local 3D Numerical Create Render / export"
+    },
+    {
+      "name": "asre.character creates the persistent character",
+      "ok": true,
+      "detail": "Character m57-mwli25ep: head v0001, 1 version(s). Every cell is GENERATED (procedural)."
+    },
+    {
+      "name": "asre.character edits the hair (new version)",
+      "ok": true,
+      "detail": "New version v0002 of m57-mwli25ep (hair afro): rebuilt nothing, recoloured nothing, reused 15 components, 1 ms. Identity unchanged. All geometry is GENERATED."
+    },
+    {
+      "name": "Character surfaces are in the same conversation",
+      "ok": true,
+      "detail": "2 surface(s)"
+    },
+    {
+      "name": "asre.history lists the versions",
+      "ok": true,
+      "detail": "m57-mwli25ep: v0001 created; ▶v0002 hair afro."
+    },
+    {
+      "name": "Restore mints a new version (history is never rewritten)",
+      "ok": true,
+      "detail": "Restored hair from v0001 as new version v0003 (earlier versions are untouched; rebuilt nothing)."
+    },
+    {
+      "name": "Export goes through the Forge gate",
+      "ok": true,
+      "detail": "Exported Forge asset fj_mwli2eal_a848f6 with Blender as fj_mwli2hfu_8f7e99: report.json, runtime.glb, source.mtl, source.obj, source.stl."
+    },
+    {
+      "name": "The same capabilities are registered as LÉLU's tools",
+      "ok": true,
+      "detail": "asre.status, asre.reconstruct, asre.job, asre.observe, asre.character, asre.history, asre.export"
+    },
+    {
+      "name": "A spatial prompt routes to them; an unrelated one does not",
+      "ok": true,
+      "detail": "spatial → asre_observe,asre_job,asre_export,asre_history,asre_reconstruct | weather → none"
+    },
+    {
+      "name": "Surfaces are stored per conversation (they survive a reopen)",
+      "ok": true,
+      "detail": "{\"stored\":3,\"tabs\":[\"create\",\"create\",\"render\"]}"
+    },
+    {
+      "name": "After a reload the conversation still has its surfaces",
+      "ok": true,
+      "detail": "3 surface(s)"
+    }
+  ],
+  "toolOutputs": {
+    "reconstruct": {
+      "ok": true,
+      "content": "Reconstruction 6fe2038b-d50 started locally (silhouette) from the front view. Inspect it with asre.job; until it finishes nothing about the shape is known.",
+      "ms": 38
+    },
+    "character": {
+      "ok": true,
+      "content": "Character m57-mwli25ep: head v0001, 1 version(s). Every cell is GENERATED (procedural).",
+      "ms": 1038
+    },
+    "hair": {
+      "ok": true,
+      "content": "New version v0002 of m57-mwli25ep (hair afro): rebuilt nothing, recoloured nothing, reused 15 components, 1 ms. Identity unchanged. All geometry is GENERATED.",
+      "ms": 894
+    },
+    "history": {
+      "ok": true,
+      "content": "m57-mwli25ep: v0001 created; ▶v0002 hair afro.",
+      "ms": 316
+    },
+    "restore": {
+      "ok": true,
+      "content": "Restored hair from v0001 as new version v0003 (earlier versions are untouched; rebuilt nothing).",
+      "ms": 1115
+    },
+    "export": {
+      "ok": true,
+      "content": "Exported Forge asset fj_mwli2eal_a848f6 with Blender as fj_mwli2hfu_8f7e99: report.json, runtime.glb, source.mtl, source.obj, source.stl.",
+      "ms": 4730
+    }
+  },
+  "pageErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "screenshots": [
+    "00-home.png",
+    "01-chat-universe.png",
+    "02-conversation.png",
+    "03-surface-summoned.png",
+    "04-reconstruction-in-chat.png",
+    "05-numerical-in-chat.png",
+    "06-character-in-chat.png",
+    "07-restored-in-chat.png",
+    "08-export-in-chat.png",
+    "09-after-reload.png",
+    "dbg-before.png",
+    "dbg-fonttest.png",
+    "dbg-forcecolor.png"
+  ],
+  "home": "00-home.png",
+  "universe": 1
+}

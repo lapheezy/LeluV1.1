@@ -28,6 +28,38 @@ Reproduce: start vite with `LELU_ASRE_ROOT`/`FORGE_ASSET_ROOT` pointing at scrat
 `node scripts/asre/wp7-slices.mjs artifacts/mission5/WP07/A-image-to-3d/02-slices.json artifacts/mission5/WP07/A-image-to-3d/renders`.
 Blender headless here needs the X libraries on `LD_LIBRARY_PATH` (see the WP07 record).
 
+### Mission 5.7 — Spatial Studio is a Chat Universe capability
+
+Architecture change: spatial work is **summoned into the conversation** instead
+of being a destination. `src/core/asre/SpatialSummon.ts` owns the summon event
+and the per-conversation roster (persisted in `lelu.spatial.surfaces.v1`);
+`src/app/scene/genesis/chat/SpatialSurface.tsx` renders it in the thread and
+imports the existing `SpatialViewer`, `NumericalWorkspace`, `CreationWorkspace`
+and `RenderWorkspace` rather than reimplementing them. LÉLU's `asre.reconstruct`,
+`asre.observe`, `asre.job`, `asre.character`, `asre.history` (restore) and
+`asre.export` each raise a surface. The Visual Studio's Spatial mode stays as
+the direct, secondary entry point.
+
+Where it renders: `UniverseChatWindow` (a chat window in Chat Universe) and
+`GenesisChat` (the classic chat panel). Older surfaces fold to one line so a
+thread never holds several live WebGL canvases.
+
+Status: VERIFIED by `scripts/asre/m57-chat-surface.cjs` — **16/16 checks** in the
+real app, driving LÉLU's own pathway (`registerAsreTools()` +
+`dispatchToolCall(toolNameForModel(id))`). Evidence and the acceptance-criteria
+table: `docs/asre/07_MISSION5_7_CHAT_NATIVE_SPATIAL.md`, `artifacts/mission57/`.
+
+Remaining work: the model's *choice* of tool is still untested here (no provider
+key in this container); everything below that decision — dispatcher, gate,
+executor, service, render, export — is real. Also open: WP08 (benchmark) and
+WP09 (final report) from Mission 5.
+
+Environment note: this container has **no system fonts**, so every headless
+screenshot painted layout with no glyphs. `~/m57fonts/etc/fonts.conf` + DejaVu
+fixes it; the walkthrough needs `FONTCONFIG_FILE=$HOME/m57fonts/etc/fonts.conf`.
+The two Inter faces under `scripts/asre/fixtures/fonts/` are committed for the
+same reason.
+
 Order note: WP04/WP05 (server) were built before WP03 so the UI binds to real endpoints.
 
 Toolchain in a fresh container: `bash services/asre-reconstruct/setup.sh` (fixed in WP01), then the Depth-Anything download below. UI flow: run vite with `LELU_ASRE_ROOT`/`FORGE_ASSET_ROOT` pointing at scratch dirs, then `node scripts/asre/m5-ui-flow.cjs <dir>`.
