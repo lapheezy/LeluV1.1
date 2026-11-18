@@ -1,5 +1,5 @@
 {
- "output": "artifacts/lelu/wp04/model-fitted/head-ortho-front.png",
+ "output": "/tmp/claude-0/mf/head-ortho-front.png",
  "wireframe": false,
  "objects": [
   "head",
@@ -15,20 +15,20 @@
   ],
   "radius": 0.13
  },
- "triangles": 174412,
+ "triangles": 174406,
  "bounds_blender_zup": {
   "min": [
-   -0.2144639939069748,
-   -0.16650646924972534,
-   1.3464449644088745
+   -0.21523790061473846,
+   -0.16710731387138367,
+   1.3513036966323853
   ],
   "max": [
-   0.2144639939069748,
-   0.0546705462038517,
-   1.6822282075881958
+   0.21523790061473846,
+   0.05486782640218735,
+   1.683246374130249
   ]
  },
- "render_seconds": 17.19,
+ "render_seconds": 18.55,
  "hair_curves": null,
  "blender": "4.2.23 LTS"
 }
