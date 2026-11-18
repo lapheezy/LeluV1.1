@@ -31,6 +31,13 @@ export interface Shape {
    * `color` unless the mesh already carries them.
    */
   mesh?: Mesh;
+  /**
+   * Material class per point (skin 1, cloth .5, metal .9 …, see
+   * reference/wardrobe.ts MAT), written to the vertex-colour alpha so a
+   * renderer can shade skin, metal, gloss and hair differently. glTF viewers
+   * ignore alpha on opaque materials. Default 1.
+   */
+  material?: (x: number, y: number, z: number) => number;
 }
 
 const flat = (c: Rgb) => () => c;

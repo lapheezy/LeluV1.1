@@ -19,6 +19,13 @@ import { sha256Hex } from "../nre/hash.ts";
 import { canonicalJson } from "../nre/serialize.ts";
 import { basisFrom, handLocal, mirrorX, placeLocal, vsub } from "./anatomy.ts";
 import { referenceRegion, usesReference } from "../reference/provider.ts";
+import { MAT } from "../reference/wardrobe.ts";
+
+/** Her jewelry is metal, except where the nearest part is rose quartz. */
+function jewelry(sh: Shape): Shape {
+  const rq = LELU_COLOURS.roseQuartz;
+  return { ...sh, material: (x, y, z) => (sh.color(x, y, z) === rq ? MAT.gem : MAT.metal) };
+}
 import { isLelu, LELU_COLOURS } from "./leluIdentity.ts";
 import { group } from "./shape.ts";
 import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec.ts";
@@ -358,7 +365,7 @@ function leluHeadJewelry(R: number): Shape {
   parts.push(torus([0, 0.64 * R, 0.7 * R], 0.075 * R, 0.014 * R, 2, cu));
   // crystal drop between the brows
   parts.push(sphere([0, -0.02 * R, 0.95 * R], 0.026 * R, rq));
-  return union(...parts);
+  return jewelry(union(...parts));
 }
 
 function headAccessoriesLocal(ctx: Ctx): Shape | null {
@@ -403,7 +410,7 @@ function leluBodyJewelry(ctx: Ctx): Shape {
     parts.push(torus([0, wy, 0], spec.body.hipWidth * 0.455, 0.0095, 1, cu));
     for (const s of [1, -1] as const) parts.push(capsule([s * spec.body.hipWidth * 0.5, wy, 0.02], [s * spec.body.hipWidth * 0.44, sk.pelvisY - 0.06, 0.03], 0.008, 0.008, rg));
   }
-  return union(...parts);
+  return jewelry(union(...parts));
 }
 
 function bodyAccessories(ctx: Ctx): Shape | null {

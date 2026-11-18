@@ -208,7 +208,7 @@ function explicitComponent(shape: Shape, m: Mesh, hMesh: number, hCells: number,
     colors = new Float32Array((m.positions.length / 3) * 4);
     for (let v = 0; v < m.positions.length / 3; v++) {
       const c = shape.color(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]);
-      colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), 1], 4 * v);
+      colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), shape.material ? shape.material(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]) : 1], 4 * v);
     }
   }
   const mesh: Mesh = { positions: m.positions, indices: m.indices, colors, normals: m.normals ?? vertexNormals(m) };
@@ -242,7 +242,7 @@ export function sampleShape(shape: Shape, h: number, key = ""): LocalComponent {
   const colors = new Float32Array((mesh.positions.length / 3) * 4);
   for (let v = 0; v < mesh.positions.length / 3; v++) {
     const c = shape.color(mesh.positions[3 * v], mesh.positions[3 * v + 1], mesh.positions[3 * v + 2]);
-    colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), 1], 4 * v);
+    colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), shape.material ? shape.material(mesh.positions[3 * v], mesh.positions[3 * v + 1], mesh.positions[3 * v + 2]) : 1], 4 * v);
   }
   mesh.colors = colors;
   return { key, cells: new Int32Array(cells), mesh, samples: values.length, buildMs: performance.now() - t0 };
@@ -290,7 +290,7 @@ function recolor(shape: Shape, geometry: LocalComponent, key: string): LocalComp
   const colors = new Float32Array((m.positions.length / 3) * 4);
   for (let v = 0; v < m.positions.length / 3; v++) {
     const c = shape.color(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]);
-    colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), 1], 4 * v);
+    colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), shape.material ? shape.material(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]) : 1], 4 * v);
   }
   return { key, cells: geometry.cells, mesh: { ...m, colors }, samples: 0, buildMs: performance.now() - t0, hMesh: geometry.hMesh, hCells: geometry.hCells };
 }

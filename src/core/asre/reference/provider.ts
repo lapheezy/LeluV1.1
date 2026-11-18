@@ -29,9 +29,11 @@ import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
 import type { BonePose, Rig } from "./skin.ts";
 import { extractSubmesh, loopSubdivide, smoothNormals } from "./surface.ts";
+import { mergeMeshes } from "./garment.ts";
 import type { Mesh } from "../volume/mesh.ts";
 import { buildWardrobe, MAT, type Wardrobe } from "./wardrobe.ts";
 import { growCurls, LELU_CURLS, type Curls } from "./hair.ts";
+import { eyeball, faceColour, HeadRays, lashes, measureEye, skinTone, tattoo, EYE_R, type FaceLandmarks } from "./face.ts";
 
 export interface RefProxy {
   /** Mesh in metres, placed on the body by its `.mhclo` mapping. */
@@ -306,6 +308,42 @@ function onScalp(spec: CharacterSpec, x: number, y: number, z: number): boolean 
   const i = Math.round(x / 0.006), j = Math.round(y / 0.006), k = Math.round(z / 0.006);
   for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) if (scalpHash.cells.has(`${i + a},${j + b},${k + c}`)) return true;
   return false;
+}
+
+let faceCache: { key: string; lm: FaceLandmarks } | null = null;
+/** Her face landmarks, measured on her own subdivided head surface. */
+export function faceLandmarks(spec: CharacterSpec): FaceLandmarks {
+  const b = bodySurface(spec);
+  if (faceCache?.key === b.key) return faceCache.lm;
+  const tris: number[] = [];
+  for (let t = 0; t < b.labels.length; t++) if (b.labels[t] === BODY_LABEL.head) tris.push(t);
+  const rays = new HeadRays(b.positions, b.indices, tris);
+  const eL = measureEye(rays, J("joint-l-eye"), 1), eR = measureEye(rays, J("joint-r-eye"), -1);
+  const mj = J("joint-mouth"), hp = J("joint-head");
+  let noseTip: V3 = [0, mj[1] + 0.02, 0], nz = -Infinity;
+  for (let y = mj[1] - 0.01; y < eL.center[1] - 0.01; y += 0.0005) {
+    const z = rays.front(0.0004, y);
+    if (z !== null && z > nz) [nz, noseTip] = [z, [0, y, z]];
+  }
+  // The lips, from her own midline profile: below the nose the profile
+  // bulges twice (upper lip, lower lip); the lip line is the hollow between.
+  // A "deepest point near the mouth joint" found the nose-lip junction.
+  const prof: [number, number][] = [];
+  for (let y = noseTip[1] - 0.012; y > noseTip[1] - 0.075; y -= 0.0003) {
+    const z = rays.front(0.0004, y);
+    if (z !== null) prof.push([y, z]);
+  }
+  const peaks: number[] = [];
+  for (let i = 3; i + 3 < prof.length; i++) if (prof[i][1] >= prof[i - 3][1] && prof[i][1] >= prof[i + 3][1] && prof[i][1] > prof[i - 1][1] - 1e-9 && prof[i][1] >= prof[i + 1][1]) if (!peaks.length || i - peaks[peaks.length - 1] > 8) peaks.push(i);
+  let mouth: V3 = [mj[0], mj[1], rays.front(mj[0], mj[1]) ?? mj[2] + 0.05];
+  if (peaks.length >= 2) {
+    let lo = peaks[0];
+    for (let i = peaks[0]; i <= peaks[1]; i++) if (prof[i][1] < prof[lo][1]) lo = i;
+    mouth = [0, prof[lo][0], prof[lo][1]];
+  }
+  const lm: FaceLandmarks = { eyes: [eL, eR], mouth, head: hp, noseTip };
+  faceCache = { key: b.key, lm };
+  return lm;
 }
 
 let curlCache: { key: string; c: Curls } | null = null;
@@ -883,18 +921,41 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
         const ap = (e: V3) => eyeAperture(e, span, Math.sign(e[0]) || 1);
         result = subtract(result, (x, y, z) => Math.min(ap(eL)(x, y, z), ap(eR)(x, y, z)));
       }
-      shape = {
-        ...result,
-        // The head is sampled in its LOCAL frame but every landmark (her eyes,
-        // mouth, brow line) is in world space, so the paint has to be evaluated
-        // back in world space or none of her marks land anywhere.
-        color: isLelu(spec)
-          ? (x, y, z) => (onScalp(spec, x + anchor[0], y + anchor[1], z + anchor[2]) ? hairC : leluFaceColour(x + anchor[0], y + anchor[1], z + anchor[2], skinC, hairC))
-          : (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC),
-      };
+      // Colour is written in WORLD space: the anchor block below moves the
+      // field, the colour and the material into the head's frame together.
+      if (isLelu(spec)) {
+        const lm = faceLandmarks(spec);
+        const pal = { skin: skinC, shade: L.skinShade, lip: L.lip, lipHighlight: L.lipHighlight, ink: L.ink, brow: [0.06, 0.04, 0.035] as Rgb };
+        shape = {
+          ...result,
+          color: (x, y, z) => (onScalp(spec, x, y, z) ? hairC : faceColour(x, y, z, lm, pal).c),
+          material: (x, y, z) => (onScalp(spec, x, y, z) ? 1 : faceColour(x, y, z, lm, pal).m),
+        };
+      } else shape = { ...result, color: (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC) };
       break;
     }
     case "face": {
+      if (isLelu(spec)) {
+        // Her eyes: 29 mm globes on the rig's eye joints with corneal bulge
+        // and a fibred iris (explicit, 96 x 64), lashes grown from her measured
+        // lid margins. Occupancy: the two globes.
+        const lm = faceLandmarks(spec);
+        const pal = { iris: L.iris, irisRing: L.irisRing, sclera: L.sclera, pupil: L.pupil };
+        const parts: Mesh[] = [];
+        for (const e of lm.eyes) {
+          parts.push(eyeball(e.center, pal));
+          parts.push(lashes(e, L.hair).mesh);
+        }
+        const mesh = mergeMeshes(parts);
+        const P = new Float32Array(mesh.positions.length);
+        for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) P[i + a] = mesh.positions[i + a] - anchor[a];
+        const [a, b] = lm.eyes.map((e) => e.center);
+        shape = {
+          ...union(sphereShape(a, EYE_R, L.sclera), sphereShape(b, EYE_R, L.sclera)),
+          mesh: { ...mesh, positions: P },
+        };
+        break;
+      }
       // Real eyeballs and teeth. The eye proxy holds both eyes and a cornea
       // shell, so each is clipped to its own socket ball; the pupil is painted
       // on the front of the ball rather than left as a flat disc.
@@ -962,7 +1023,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       shape = clip(f, above(spine1Y - 0.02), below(shoulderY + 0.05));
       if (isLelu(spec)) {
         const base = shape;
-        shape = { ...base, color: (x, y, z) => leluTattoo(x + anchor[0], y + anchor[1], z + anchor[2], skinC, "chest") };
+        shape = { ...base, color: (x, y, z) => { const t = skinTone(x, y, z, skinC); return tattoo(x, y, z, t, L.ink, "chest", J) ?? t; } };
       }
       break;
     }
@@ -993,7 +1054,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
           const lo: V3 = [Math.min(sh[0], el[0], w[0]) - pad, Math.min(sh[1], el[1], w[1]) - pad, Math.min(sh[2], el[2], w[2]) - pad];
           const hi: V3 = [Math.max(sh[0], el[0], w[0]) + pad, Math.max(sh[1], el[1], w[1]) + pad, Math.max(sh[2], el[2], w[2]) + pad];
           const f = body(`arm-${l}`, [], { lo, hi });
-          if (isLelu(spec)) f.color = (x, y, z) => leluTattoo(x + anchor[0], y + anchor[1], z + anchor[2], skinC, "forearm");
+          if (isLelu(spec)) f.color = (x, y, z) => { const t = skinTone(x, y, z, skinC); return tattoo(x, y, z, t, L.ink, "forearm", J) ?? t; };
           // A half-space in front of the shoulder also keeps a wedge of the
           // chest, which the window then caps into a flat fin. Keeping the
           // limb's own capsule as well removes that wedge.
@@ -1013,6 +1074,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
           const f = body(`hand-${l}`, poses, { lo: [w[0] - 0.21, w[1] - 0.22, w[2] - 0.22], hi: [w[0] + 0.21, w[1] + 0.22, w[2] + 0.22] }, ARTICULATED_FIELD_H);
           // rounded crease: the wrist cut meets the arm at a grazing angle and
           // a sharp crease there pinches the surface into non-manifold cells
+          if (isLelu(spec)) f.color = (x, y, z) => { const t = skinTone(x, y, z, skinC); return tattoo(x, y, z, t, L.ink, "hand", J) ?? t; };
           parts.push(softClip(f, 0.005, beyond([w[0] - dir[0] * 0.015, w[1] - dir[1] * 0.015, w[2] - dir[2] * 0.015], dir), ball(w, 0.18)));
         }
       }
@@ -1152,10 +1214,27 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
   // The visible skin is the asset's real surface; the field above stays the
   // region's occupancy.
   const label = BODY_LABEL[id];
-  if (label) shape = { ...shape, mesh: bodyRegionMesh(spec, label, anchor) };
+  if (label) {
+    // every region of her skin gets the same living tone, so seams match
+    if (isLelu(spec) && (id === "neck" || id === "pelvis" || id === "legs" || id === "feet")) {
+      const base = shape;
+      shape = { ...base, color: (x, y, z) => skinTone(x, y, z, base.color(x, y, z)) };
+    }
+    shape = { ...shape, mesh: bodyRegionMesh(spec, label, anchor) };
+  }
   if (anchor[0] || anchor[1] || anchor[2]) {
     const base = shape;
-    shape = { ...base, f: (x, y, z) => base.f(x + anchor[0], y + anchor[1], z + anchor[2]), lo: [base.lo[0] - anchor[0], base.lo[1] - anchor[1], base.lo[2] - anchor[2]], hi: [base.hi[0] - anchor[0], base.hi[1] - anchor[1], base.hi[2] - anchor[2]] };
+    // field, colour and material all move into the component's frame: moving
+    // only the field left every head-frame colour evaluated ~1.5 m from its
+    // landmarks (her iris came out as sclera)
+    shape = {
+      ...base,
+      f: (x, y, z) => base.f(x + anchor[0], y + anchor[1], z + anchor[2]),
+      color: (x, y, z) => base.color(x + anchor[0], y + anchor[1], z + anchor[2]),
+      ...(base.material ? { material: (x: number, y: number, z: number) => base.material!(x + anchor[0], y + anchor[1], z + anchor[2]) } : {}),
+      lo: [base.lo[0] - anchor[0], base.lo[1] - anchor[1], base.lo[2] - anchor[2]],
+      hi: [base.hi[0] - anchor[0], base.hi[1] - anchor[1], base.hi[2] - anchor[2]],
+    };
   }
   return shape;
 }

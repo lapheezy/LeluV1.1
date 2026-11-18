@@ -16,7 +16,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildCharacter, ComponentCache, DEFAULT_LATTICE, glbParts, occupancyCodes } from "../../src/core/asre/character/build.ts";
-import { leluCanon, LELU_IDENTITY, LELU_COLOURS } from "../../src/core/asre/character/leluIdentity.ts";
+import { leluCanon, leluTargets, LELU_EXPRESSIONS, LELU_IDENTITY, LELU_COLOURS } from "../../src/core/asre/character/leluIdentity.ts";
 import { withChanges, type CharacterSpec } from "../../src/core/asre/character/CharacterSpec.ts";
 import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
 import { loadReference } from "./cc0-anatomy.ts";
@@ -29,12 +29,15 @@ const arg = (name: string, dflt: string) => {
 
 const outDir = arg("out", "artifacts/lelu/canon");
 const hair = arg("hair", "long-wavy");
+const expression = arg("expression", "composed");
+if (!LELU_EXPRESSIONS[expression]) throw new Error(`unknown expression ${expression}: ${Object.keys(LELU_EXPRESSIONS).join(", ")}`);
 mkdirSync(outDir, { recursive: true });
 
 const spec: CharacterSpec = (() => {
   const s = leluCanon();
   return withChanges(s, {
     hair: { ...s.hair, style: hair as CharacterSpec["hair"]["style"] },
+    anatomy: { ...s.anatomy, targets: leluTargets(expression) },
     identity: { id: LELU_IDENTITY.id, name: LELU_IDENTITY.name, leluLook: "canonical" },
   });
 })();
@@ -57,6 +60,7 @@ const report = {
   name: LELU_IDENTITY.name,
   identity: LELU_IDENTITY,
   palette: LELU_COLOURS,
+  expression,
   spec: { hair: spec.hair, clothing: spec.clothing, body: spec.body, anatomy: spec.anatomy, hands: spec.hands, pose: spec.pose },
   reference: ref.stats,
   proxies: referenceProxies(),

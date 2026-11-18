@@ -164,10 +164,12 @@ export function loadReference(opts: LoadOptions = {}): LoadedReference {
 
   // 1. morph targets, in mesh units
   const applied: string[] = [];
+  // `path@weight` applies a target partially (default weight 1)
   for (const t of targetPaths) {
-    const p = join(CORE, t);
+    const [file, w] = t.split("@");
+    const p = join(CORE, file);
     if (!exists(p)) continue;
-    applyTarget(positions, parseTarget(read(p)), 1);
+    applyTarget(positions, parseTarget(read(p)), w === undefined ? 1 : Number(w));
     applied.push(t);
   }
 

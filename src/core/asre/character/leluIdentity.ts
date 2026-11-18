@@ -29,6 +29,59 @@ const TARGETS = {
   femaleYoung: "targets/macrodetails/universal-female-young-average-1.target",
 };
 
+/**
+ * Her FACE as anatomy, transcribed from identity.json with CC0 morph targets
+ * (`path@weight`). These used to be faked in paint on a generic face — a
+ * painted lid line on a lid of the wrong shape is what read as artificial.
+ *
+ *   faceShape "oval, high defined cheekbones … rounded chin" (ref10 is rounder
+ *             than the base head)            → head-round, cheek-bones
+ *   eyes      "almond … slightly upturned outer corners"
+ *                                            → eye-height2 (opening), corner1-up
+ *                                              (outer), corner2-down (inner)
+ *   lips      "full lips, defined cupid's bow, fuller lower lip"
+ *                                            → lower/upper-lip volume, cupid's bow
+ *   nose      "softly rounded tip, moderately full alae"
+ *                                            → nose-flaring, nose-point-width
+ */
+export const LELU_FACE_TARGETS = [
+  "targets/head/head-round.target@0.3",
+  "targets/cheek/l-cheek-bones-incr.target@0.5",
+  "targets/cheek/r-cheek-bones-incr.target@0.5",
+  "targets/eyes/l-eye-height2-incr.target@0.45",
+  "targets/eyes/r-eye-height2-incr.target@0.45",
+  "targets/eyes/l-eye-corner1-up.target@0.6",
+  "targets/eyes/r-eye-corner1-up.target@0.6",
+  "targets/eyes/l-eye-corner2-down.target@0.2",
+  "targets/eyes/r-eye-corner2-down.target@0.2",
+  "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
+  "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
+  "targets/mouth/mouth-cupidsbow-incr.target@0.6",
+  "targets/nose/nose-flaring-incr.target@0.3",
+  "targets/nose/nose-point-width-incr.target@0.25",
+];
+
+/**
+ * Expressions (identity.mayChange includes "expression"): weighted CC0
+ * facial expression units for an African face (MakeHuman expression/units),
+ * applied as real deformation of her face. Her lid margins, liner and lashes
+ * are measured on every build, so they follow the expression.
+ */
+const EXPR = (unit: string, w: number) => `targets/expression/units/african/${unit}.target@${w}`;
+export const LELU_EXPRESSIONS: Record<string, string[]> = {
+  neutral: [],
+  // her canonical, ref10: composed, a hint of a smile, softly lowered lids
+  composed: [EXPR("mouth-corner-puller", 0.14), EXPR("eye-left-slit", 0.12), EXPR("eye-right-slit", 0.12)],
+  smile: [EXPR("mouth-corner-puller", 0.6), EXPR("mouth-elevation", 0.12), EXPR("eye-left-slit", 0.3), EXPR("eye-right-slit", 0.3), EXPR("eyebrows-left-extern-up", 0.15), EXPR("eyebrows-right-extern-up", 0.15)],
+  sultry: [EXPR("eye-left-slit", 0.42), EXPR("eye-right-slit", 0.42), EXPR("mouth-parling", 0.25), EXPR("eyebrows-left-extern-up", 0.2), EXPR("eyebrows-right-extern-up", 0.2)],
+  surprise: [EXPR("eyebrows-left-up", 0.65), EXPR("eyebrows-right-up", 0.65), EXPR("eye-left-opened-up", 0.5), EXPR("eye-right-opened-up", 0.5), EXPR("mouth-open", 0.3)],
+};
+
+/** Her anatomy targets with an expression applied. */
+export function leluTargets(expression = "composed"): string[] {
+  return [TARGETS.africanFemale, TARGETS.femaleYoung, ...LELU_FACE_TARGETS, ...(LELU_EXPRESSIONS[expression] ?? [])];
+}
+
 /** Her locked face and body, quoted from identity.json → preserve. */
 export const LELU_IDENTITY = {
   id: "lelu-canonical",
@@ -59,11 +112,11 @@ export const LELU_COLOURS = {
   /** Shadow and crease tone, used for freckles and lid shading. */
   skinShade: [0.3, 0.165, 0.105] as Rgb,
   /** Glossy deep berry lips: redder and juicier than a brown-plum. */
-  lip: [0.42, 0.085, 0.12] as Rgb,
-  lipHighlight: [0.62, 0.17, 0.2] as Rgb,
+  lip: [0.33, 0.085, 0.1] as Rgb,
+  lipHighlight: [0.5, 0.16, 0.17] as Rgb,
   /** Warm brown iris with a darker limbal ring. */
-  iris: [0.4, 0.255, 0.13] as Rgb,
-  irisRing: [0.19, 0.1, 0.06] as Rgb,
+  iris: [0.32, 0.185, 0.085] as Rgb,
+  irisRing: [0.13, 0.065, 0.035] as Rgb,
   /** Warm off-white, never pure white: a white sclera is what made her eyes
    * read as two bright slits. */
   sclera: [0.78, 0.735, 0.69] as Rgb,
@@ -122,7 +175,7 @@ export function leluCanon(): CharacterSpec {
     },
     hands: { curl: 0.3, spread: 0.4, opposition: 0.55 },
     feet: { toeCurl: 0 },
-    anatomy: { source: "reference", targets: [TARGETS.africanFemale, TARGETS.femaleYoung] },
+    anatomy: { source: "reference", targets: leluTargets("composed") },
   });
   // The identity is the lock: every identity-driven branch (her marks, her
   // jewelry, her hair colour) reads it, and only an approved relock changes it.

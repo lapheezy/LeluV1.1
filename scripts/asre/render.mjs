@@ -64,6 +64,10 @@ export async function renderViews({
   ground = false,
   /** Blender view transform: "Standard" | "AgX" | "Filmic". */
   viewTransform,
+  /** "classes": shade by the material class in the vertex-colour alpha. */
+  materials,
+  /** OpenImageDenoise on the final image. */
+  denoise = false,
   timeoutMs = 600_000,
 }) {
   mkdirSync(outDir, { recursive: true });
@@ -83,6 +87,8 @@ export async function renderViews({
       ...(camera ? { camera } : {}),
       ...(ground ? { ground: true } : {}),
       ...(viewTransform ? { view_transform: viewTransform } : {}),
+      ...(materials ? { materials } : {}),
+      ...(denoise ? { denoise: true } : {}),
     };
     const jobFile = path.join(outDir, `${stem}.job.json`);
     writeFileSync(jobFile, JSON.stringify(job, null, 1));

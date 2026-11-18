@@ -1,0 +1,25 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m4/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/04-face-materials/full-side--side.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 48,
+ "view": "side",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 1
+ },
+ "ground": true,
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true
+}

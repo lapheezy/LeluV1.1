@@ -42,7 +42,7 @@ export const LELU_SHOTS = {
   ],
 };
 
-export async function renderLelu({ glb, outDir, set = "all", size = 800, samples = 32, prefix = "" }) {
+export async function renderLelu({ glb, outDir, set = "all", size = 800, samples = 32, prefix = "", materials = "classes", denoise = true }) {
   mkdirSync(outDir, { recursive: true });
   const sets = set === "all" ? ["full", "close", "wire"] : set.split(",");
   const out = [];
@@ -59,6 +59,8 @@ export async function renderLelu({ glb, outDir, set = "all", size = 800, samples
         ground: !!shot.ground,
         wireframe: !!shot.wireframe,
         viewTransform: "AgX",
+        ...(materials && materials !== "none" ? { materials } : {}),
+        denoise: denoise && !shot.wireframe,
       });
       out.push({ shot: shot.name, set: s, png: path.basename(r.png), triangles: r.triangles, seconds: r.render_seconds });
       console.log(`${s.padEnd(5)} ${shot.name.padEnd(26)} ${r.render_seconds}s`);
@@ -77,7 +79,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(im
     console.error("usage: node scripts/asre/lelu-render.mjs <glb> <outDir> [--set full,close,wire|all] [--size 800] [--samples 32]");
     process.exit(2);
   }
-  renderLelu({ glb, outDir, set: opt("set", "all"), size: +opt("size", 800), samples: +opt("samples", 32), prefix: opt("prefix", "") }).catch((e) => {
+  renderLelu({ glb, outDir, set: opt("set", "all"), size: +opt("size", 800), samples: +opt("samples", 32), prefix: opt("prefix", ""), materials: opt("materials", "classes"), denoise: opt("denoise", "1") !== "0" }).catch((e) => {
     console.error(e.message);
     process.exit(1);
   });

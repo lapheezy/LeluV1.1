@@ -42,6 +42,77 @@ meshes = [o for o in scene.objects if o.type == "MESH"]
 if not meshes:
     raise SystemExit("no mesh objects imported")
 
+# Material classes (job "materials": "classes"): LÉLU writes a material class
+# into the vertex-colour alpha (skin 1, cloth .5, satin .45, leather .8,
+# rubber .7, metal .9, gem .35, hair .25, gloss .6 — reference/wardrobe.ts MAT).
+# One shared Principled material reads it and gives each class its own
+# response: subsurface skin, sheen cloth, coated leather, metal, wet eyes and
+# lips. Without it every surface was the same plastic.
+MATERIAL_CLASSES = {
+    # alpha: (roughness, metallic, subsurface, coat, sheen, specular level)
+    1.00: (0.56, 0.0, 0.30, 0.00, 0.06, 0.42),
+    0.50: (0.86, 0.0, 0.00, 0.00, 0.45, 0.35),
+    0.45: (0.34, 0.0, 0.00, 0.00, 0.25, 0.60),
+    0.80: (0.40, 0.0, 0.00, 0.20, 0.00, 0.55),
+    0.70: (0.78, 0.0, 0.00, 0.00, 0.00, 0.35),
+    0.90: (0.24, 1.0, 0.00, 0.00, 0.00, 0.50),
+    0.35: (0.04, 0.0, 0.00, 1.00, 0.00, 1.00),
+    0.25: (0.48, 0.0, 0.00, 0.00, 0.20, 0.28),
+    0.60: (0.22, 0.0, 0.00, 0.55, 0.00, 0.50),
+}
+
+
+def class_material():
+    mat = bpy.data.materials.new("lelu-classes")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes.get("Principled BSDF")
+    vc = nt.nodes.new("ShaderNodeVertexColor")
+    vc.layer_name = "Color"
+    nt.links.new(vc.outputs["Color"], bsdf.inputs["Base Color"])
+    inputs = ["Roughness", "Metallic", "Subsurface Weight", "Coat Weight", "Sheen Weight", "Specular IOR Level"]
+    sums = [None] * len(inputs)
+    for alpha, params in MATERIAL_CLASSES.items():
+        cmp = nt.nodes.new("ShaderNodeMath")
+        cmp.operation = "COMPARE"
+        nt.links.new(vc.outputs["Alpha"], cmp.inputs[0])
+        cmp.inputs[1].default_value = alpha
+        cmp.inputs[2].default_value = 0.024
+        for k, v in enumerate(params):
+            if v == 0:
+                continue
+            mul = nt.nodes.new("ShaderNodeMath")
+            mul.operation = "MULTIPLY"
+            nt.links.new(cmp.outputs[0], mul.inputs[0])
+            mul.inputs[1].default_value = v
+            if sums[k] is None:
+                sums[k] = mul
+            else:
+                add = nt.nodes.new("ShaderNodeMath")
+                add.operation = "ADD"
+                nt.links.new(sums[k].outputs[0], add.inputs[0])
+                nt.links.new(mul.outputs[0], add.inputs[1])
+                sums[k] = add
+    for k, name in enumerate(inputs):
+        if sums[k] is not None and name in bsdf.inputs:
+            nt.links.new(sums[k].outputs[0], bsdf.inputs[name])
+    if "Subsurface Radius" in bsdf.inputs:
+        bsdf.inputs["Subsurface Radius"].default_value = (1.0, 0.32, 0.16)
+    if "Subsurface Scale" in bsdf.inputs:
+        bsdf.inputs["Subsurface Scale"].default_value = 0.004
+    if "Coat Roughness" in bsdf.inputs:
+        bsdf.inputs["Coat Roughness"].default_value = 0.06
+    if "Sheen Roughness" in bsdf.inputs:
+        bsdf.inputs["Sheen Roughness"].default_value = 0.4
+    return mat
+
+
+if job.get("materials") == "classes" and not job.get("wireframe"):
+    shared = class_material()
+    for o in meshes:
+        o.data.materials.clear()
+        o.data.materials.append(shared)
+
 
 def bbox(objects):
     a = Vector((math.inf,) * 3)
@@ -162,7 +233,7 @@ scene.world = world
 scene.render.engine = "CYCLES"
 scene.cycles.device = "CPU"
 scene.cycles.samples = int(job.get("samples", 16))
-scene.cycles.use_denoising = False
+scene.cycles.use_denoising = bool(job.get("denoise", False))
 scene.render.resolution_x, scene.render.resolution_y = job.get("resolution", [640, 640])
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = "PNG"
