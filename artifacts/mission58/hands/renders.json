@@ -1,0 +1,40 @@
+{
+ "generatedAt": "2026-11-18T05:09:06.699Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/hands",
+ "size": 720,
+ "samples": 40,
+ "renders": [
+  {
+   "label": "full-body",
+   "kind": "full",
+   "view": "front",
+   "png": "full-body-front.png",
+   "triangles": 594220,
+   "seconds": 5.83,
+   "camera": {
+    "center": [
+     0,
+     -0.04696986824274063,
+     0.834032416343689
+    ],
+    "radius": 0.956049826573609
+   }
+  },
+  {
+   "label": "full-body",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "full-body-three-quarter.png",
+   "triangles": 594220,
+   "seconds": 6.07,
+   "camera": {
+    "center": [
+     0,
+     -0.04696986824274063,
+     0.834032416343689
+    ],
+    "radius": 0.956049826573609
+   }
+  }
+ ]
+}

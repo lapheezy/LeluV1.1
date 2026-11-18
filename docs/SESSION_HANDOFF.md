@@ -147,3 +147,26 @@ npx tsx scripts/asre/wp6-benchmark.ts --trials 5 --res 0.008   # resumable; dele
 ```
 
 Environment: Linux x86-64, Node 22, Python 3.13, ~6 GB free disk for the toolchain, no GPU needed. Licences: TripoSR code + weights MIT; Depth-Anything-V2-Small Apache-2.0; DINO ViT-B/16 config Apache-2.0; Blender GPL (separate program); no paid API, account or key anywhere.
+
+## Mission 5.8 — WP02.1 Hands (in progress)
+
+Read `docs/asre/08_MISSION58_AUDIT.md` first (measured audit + attribution) and
+`docs/asre/09_MISSION58_WP02_HANDS.md` (this step).
+
+- Branch `claude/mission5-lelu-asre-integration-mm6xau`. The character now has
+  parametric hands: palm, thenar/hypothenar, knuckle ridge, four 3-phalanx
+  digits and an opposed thumb, built in a real hand frame; hands are 29.5k
+  triangles (was 6.3k capsules), closed (0 boundary edges), surface error
+  0.09 mm, articulation measured at joint landmarks (100 mm fingertip travel
+  open → fist).
+- Architecture intact: only `hands` rebuilds on a hand edit, face/head/hair are
+  byte-identical, two cold builds give identical component hashes, and the
+  shared-lattice IoU against the whole-object build is still 1.000.
+- **Known defect**: 0–8 non-manifold edges of ~44k at some articulation values
+  (closed, no holes), caused by naive surface nets' one-vertex-per-cube where two
+  hand surfaces fall within a cell. Fix path: manifold dual contouring in
+  `src/core/asre/volume/mesh.ts`. Do not claim the hands are manifold.
+- Next in WP02: feet (heel, arch, forefoot, toes, ground contact), then head and
+  face, then the body joint transitions. Reuse
+  `scripts/asre/m58-family.ts --family <name>` and `m58-render.mjs` for the
+  per-family benchmark and renders; both already produce the before/after pair.

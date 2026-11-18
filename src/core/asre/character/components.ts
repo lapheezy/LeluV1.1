@@ -17,6 +17,8 @@
 
 import { sha256Hex } from "../nre/hash.ts";
 import { canonicalJson } from "../nre/serialize.ts";
+import { basisFrom, handLocal, mirrorX, placeLocal, vsub } from "./anatomy.ts";
+import { group } from "./shape.ts";
 import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec.ts";
 import type { Sdf, V3 } from "./sdf.ts";
 import * as P from "./sdf.ts";
@@ -119,7 +121,7 @@ export function skeleton(spec: CharacterSpec, lattice: number): Skeleton {
 
 export const restKneeY = (s: CharacterSpec) => +(s.body.height * s.body.legRatio * 0.5).toFixed(5);
 
-type Ctx = { spec: CharacterSpec; sk: Skeleton };
+type Ctx = { spec: CharacterSpec; sk: Skeleton; /** mesh resolution, for sub-cell gap handling */ h?: number };
 const m = (ctx: Ctx) => ctx.spec.materials;
 
 function torsoShape({ spec, sk }: Ctx): Shape {
@@ -215,9 +217,23 @@ function armsShape({ spec, sk }: Ctx): Shape {
   return union(...[0, 1].flatMap((s) => [capsule(sk.shoulder[s], sk.elbow[s], 0.046 * k, 0.038 * k, skin), capsule(sk.elbow[s], sk.wrist[s], 0.037 * k, 0.028 * k, skin)]));
 }
 
-function handsShape({ spec, sk }: Ctx): Shape {
-  const skin = spec.materials.skin;
-  return union(...[0, 1].map((s) => capsule(sk.wrist[s], sk.handTip[s], 0.032, 0.022, skin)));
+/**
+ * Both hands: the same parametric hand placed in each wrist's own frame.
+ * +Y along the hand, +Z out of the back of the hand (lateral for a hanging
+ * arm), +X on the thumb side — so the digits stay in the palm plane whatever
+ * the arm pose, and the palm faces the body instead of the camera.
+ */
+function handsShape({ spec, sk, h }: Ctx): Shape {
+  const parts = [0, 1].map((side) => {
+    const wrist = sk.wrist[side];
+    const along = vsub(sk.handTip[side], wrist);
+    const b = basisFrom(wrist, along, [side === 0 ? 1 : -1, 0, 0]);
+    const hand = handLocal(spec);
+    // the thumb points forward on both sides: the right hand is the mirror image
+    return placeLocal(side === 0 ? hand : mirrorX(hand), b);
+  });
+  // the two hands cannot touch, so each is sampled in its own box
+  return group(...parts);
 }
 
 function legsShape({ spec, sk }: Ctx): Shape {
@@ -327,7 +343,7 @@ export const COMPONENTS: Record<ComponentId, ComponentDef> = {
   face: { id: "face", frame: "head", deps: () => ["head"], params: (s) => ({ face: s.face, eyes: s.materials.eyes, brows: s.materials.hair }), build: faceLocal },
   hair: { id: "hair", frame: "head", deps: () => ["head"], params: (s) => ({ hair: s.hair, color: s.materials.hair }), build: ({ spec, sk }) => hairLocal(sk.headR, spec.hair, spec.materials.hair) },
   arms: { id: "arms", frame: "world", deps: () => ["torso"], params: (s) => ({ ...bodyP(s), pose: pose(s) }), build: armsShape },
-  hands: { id: "hands", frame: "world", deps: () => ["arms"], params: (s) => ({ skin: s.materials.skin }), build: handsShape },
+  hands: { id: "hands", frame: "world", deps: () => ["arms"], params: (s) => ({ hands: s.hands, skin: s.materials.skin, height: s.body.height, build: s.body.build }), build: handsShape },
   legs: { id: "legs", frame: "world", deps: () => ["pelvis"], params: (s) => ({ ...bodyP(s), pose: pose(s) }), build: legsShape },
   feet: { id: "feet", frame: "world", deps: () => ["legs"], params: (s) => ({ skin: s.materials.skin }), build: feetShape },
   "clothing.top": {
@@ -368,7 +384,7 @@ export function anchorCells(def: ComponentDef, sk: Skeleton, lattice: number): V
   return [0, 0, 0];
 }
 
-export function contextFor(spec: CharacterSpec, sk: Skeleton): Ctx {
-  return { spec, sk };
+export function contextFor(spec: CharacterSpec, sk: Skeleton, h?: number): Ctx {
+  return { spec, sk, h };
 }
 

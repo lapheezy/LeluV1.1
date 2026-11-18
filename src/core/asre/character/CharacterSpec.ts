@@ -75,6 +75,20 @@ export interface Materials {
 
 export type PoseId = "relaxed" | "a-pose" | "t-pose" | "wave" | "stride";
 
+/**
+ * Hand articulation. These bend the real phalanx chain (see anatomy.ts), so a
+ * different value is different geometry — a fist and an open hand are both
+ * closed, watertight meshes, not a skin of the same shape.
+ */
+export interface HandParams {
+  /** 0 = extended fingers, 1 = relaxed, 2 = clenched. */
+  curl: number;
+  /** 0 = digits together, 1 = fully spread. */
+  spread: number;
+  /** 0 = thumb at the side, 1 = thumb across the palm. */
+  opposition: number;
+}
+
 export interface CharacterSpec {
   identity: CharacterIdentity;
   body: BodyParams;
@@ -84,6 +98,7 @@ export interface CharacterSpec {
   accessories: { head: HeadAccessory[]; body: BodyAccessory[] };
   materials: Materials;
   pose: PoseId;
+  hands: HandParams;
 }
 
 export const BASE_CHARACTER: CharacterSpec = {
@@ -103,6 +118,7 @@ export const BASE_CHARACTER: CharacterSpec = {
     eyes: [0.05, 0.03, 0.03],
   },
   pose: "relaxed",
+  hands: { curl: 0.22, spread: 0.45, opposition: 0.5 },
 };
 
 export const HAIR_STYLES: HairStyleId[] = [
@@ -147,7 +163,7 @@ export const BODY_VARIANTS: Array<{ label: string; body: Partial<BodyParams> }> 
 
 export function withChanges(spec: CharacterSpec, patch: {
   body?: Partial<BodyParams>; face?: Partial<FaceParams>; hair?: Partial<HairParams>; clothing?: Partial<ClothingParams>;
-  accessories?: Partial<CharacterSpec["accessories"]>; materials?: Partial<Materials>; pose?: PoseId;
+  accessories?: Partial<CharacterSpec["accessories"]>; materials?: Partial<Materials>; pose?: PoseId; hands?: Partial<HandParams>;
 }): CharacterSpec {
   return {
     identity: spec.identity,
@@ -158,5 +174,6 @@ export function withChanges(spec: CharacterSpec, patch: {
     accessories: { ...spec.accessories, ...patch.accessories },
     materials: { ...spec.materials, ...patch.materials },
     pose: patch.pose ?? spec.pose,
+    hands: { ...spec.hands, ...patch.hands },
   };
 }

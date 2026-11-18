@@ -14,6 +14,13 @@ export interface Shape {
   lo: V3;
   hi: V3;
   color: (x: number, y: number, z: number) => Rgb;
+  /**
+   * Sub-shapes whose bounding boxes do not overlap (e.g. the two hands, the
+   * two feet). Purely a sampling hint: the builder may mesh each of them in
+   * its own box instead of the union box, which is the same geometry for a
+   * fraction of the samples. Never set it on parts that can touch.
+   */
+  parts?: Shape[];
 }
 
 const flat = (c: Rgb) => () => c;
@@ -62,6 +69,14 @@ function nearestColor(shapes: Shape[]) {
 
 export function union(...shapes: Shape[]): Shape {
   return { f: S.union(...shapes.map((s) => s.f)), ...mergeBounds(shapes), color: nearestColor(shapes) };
+}
+
+/**
+ * A union that declares its members as separate parts. Only for members that
+ * cannot touch: the builder is then allowed to sample each in its own box.
+ */
+export function group(...shapes: Shape[]): Shape {
+  return { ...union(...shapes), parts: shapes };
 }
 
 export function smooth(k: number, ...shapes: Shape[]): Shape {

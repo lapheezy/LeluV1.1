@@ -1,0 +1,32 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/hands/hands-open-side.png",
+ "wireframe": false,
+ "objects": [
+  "hands",
+  "arms"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.06085970625281334,
+   1.0180176496505737
+  ],
+  "radius": 0.5230789353157884
+ },
+ "triangles": 83488,
+ "bounds_blender_zup": {
+  "min": [
+   -0.33370691537857056,
+   -0.1676321178674698,
+   0.6296223402023315
+  ],
+  "max": [
+   0.33370691537857056,
+   0.04591270536184311,
+   1.406412959098816
+  ]
+ },
+ "render_seconds": 2.93,
+ "blender": "4.2.23 LTS"
+}

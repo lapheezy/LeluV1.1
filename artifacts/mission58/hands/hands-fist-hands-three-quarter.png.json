@@ -1,0 +1,34 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/hands/hands-fist-hands-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "hands",
+  "arms"
+ ],
+ "focused": [
+  "hands"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.08848366141319275,
+   0.7648712992668152
+  ],
+  "radius": 0.351599942306271
+ },
+ "triangles": 83504,
+ "bounds_blender_zup": {
+  "min": [
+   -0.33370691537857056,
+   -0.15800313651561737,
+   0.6786781549453735
+  ],
+  "max": [
+   0.33370691537857056,
+   -0.018964190036058426,
+   0.8510644435882568
+  ]
+ },
+ "render_seconds": 1.4,
+ "blender": "4.2.23 LTS"
+}

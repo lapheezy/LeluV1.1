@@ -87,8 +87,10 @@ for (const glb of glbs) {
     }
   }
   if (CLOSEUPS) {
+    const wanted = (flag("closeup", "face,hands,feet") || "").split(",");
     for (const [name, objects] of Object.entries(CLOSEUP_SETS)) {
-      for (const view of ["front", "three-quarter"]) {
+      if (!wanted.includes(name)) continue;
+      for (const view of (flag("closeup-views", "front,side,three-quarter") || "").split(",")) {
         const [r] = await renderViews({
           glb: path.join(DIR, glb),
           outDir: OUT,

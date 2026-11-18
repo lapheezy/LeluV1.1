@@ -124,7 +124,7 @@ export type VersionOperation =
   | { kind: "restore"; from: string; components?: RestorableGroup[] };
 
 /** Groups of the spec that can be restored on their own from an earlier version. */
-export type RestorableGroup = "hair" | "clothing" | "body" | "face" | "accessories" | "materials" | "pose";
+export type RestorableGroup = "hair" | "clothing" | "body" | "face" | "accessories" | "materials" | "pose" | "hands";
 
 export interface SpecPatch {
   body?: Partial<CharacterSpec["body"]>;
@@ -134,6 +134,7 @@ export interface SpecPatch {
   accessories?: Partial<CharacterSpec["accessories"]>;
   materials?: Partial<CharacterSpec["materials"]>;
   pose?: CharacterSpec["pose"];
+  hands?: Partial<CharacterSpec["hands"]>;
 }
 
 export interface CharacterVersion {
@@ -186,6 +187,7 @@ export function restoreGroups(into: CharacterSpec, from: CharacterSpec, groups: 
       next.materials.accessory = [...from.materials.accessory];
     } else if (g === "materials") next.materials = structuredClone(from.materials);
     else if (g === "pose") next.pose = from.pose;
+    else if (g === "hands") next.hands = structuredClone(from.hands);
   }
   return next;
 }

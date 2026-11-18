@@ -22,7 +22,7 @@ const HEAD_ACC = ["glasses", "hat", "earrings"] as const;
 const BODY_ACC = ["necklace", "backpack"] as const;
 const SLIDERS: Array<[keyof CharacterSpec["body"], number, number, number]> = [["height", 1.4, 2.0, 0.01], ["shoulderWidth", 0.32, 0.52, 0.005], ["hipWidth", 0.28, 0.44, 0.005], ["build", 0.8, 1.3, 0.01], ["legRatio", 0.44, 0.52, 0.002]];
 const MATERIALS = ["skin", "hair", "top", "bottom", "shoes", "accessory", "eyes"] as const;
-const GROUPS: RestorableGroup[] = ["hair", "clothing", "body", "face", "accessories", "materials", "pose"];
+const GROUPS: RestorableGroup[] = ["hair", "clothing", "body", "face", "accessories", "materials", "pose", "hands"];
 
 const hex = (c: [number, number, number]) => `#${c.map((v) => Math.round(v * 255).toString(16).padStart(2, "0")).join("")}`;
 const rgb = (h: string): [number, number, number] => [1, 3, 5].map((i) => +(parseInt(h.slice(i, i + 2), 16) / 255).toFixed(4)) as [number, number, number];
@@ -39,6 +39,7 @@ function patchBetween(a: CharacterSpec, b: CharacterSpec): SpecPatch {
   const m = Object.fromEntries(MATERIALS.filter((k) => !same(a.materials[k], b.materials[k])).map((k) => [k, b.materials[k]]));
   if (Object.keys(m).length) p.materials = m as SpecPatch["materials"];
   if (a.pose !== b.pose) p.pose = b.pose;
+  if (!same(a.hands, b.hands)) p.hands = b.hands;
   return p;
 }
 
@@ -188,6 +189,11 @@ export default function CreationWorkspace({ onRender }: { onRender: (t: RenderTa
               </label>
             ))}
           </div>
+          {([["curl", 0, 2, 0.05], ["spread", 0, 1, 0.05], ["opposition", 0, 1, 0.05]] as const).map(([k, lo, hi, step]) => (
+            <Field key={k} label={`hand ${k} ${draft.hands[k].toFixed(2)}`}>
+              <input data-spatial-hands={k} type="range" min={lo} max={hi} step={step} value={draft.hands[k]} onChange={(e) => set((d) => void (d.hands[k] = Number(e.target.value)))} />
+            </Field>
+          ))}
           {SLIDERS.map(([k, lo, hi, step]) => (
             <Field key={k} label={`${k} ${draft.body[k].toFixed(3)}`}>
               <input data-spatial-body={k} type="range" min={lo} max={hi} step={step} value={draft.body[k]} onChange={(e) => set((d) => void (d.body[k] = Number(e.target.value)))} />

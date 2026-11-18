@@ -1,0 +1,34 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/hands/hands-open-hands-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "hands",
+  "arms"
+ ],
+ "focused": [
+  "hands"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.09329815208911896,
+   0.7403433918952942
+  ],
+  "radius": 0.35936749103206334
+ },
+ "triangles": 83488,
+ "bounds_blender_zup": {
+  "min": [
+   -0.33370691537857056,
+   -0.1676321178674698,
+   0.6296223402023315
+  ],
+  "max": [
+   0.33370691537857056,
+   -0.018964190036058426,
+   0.8510644435882568
+  ]
+ },
+ "render_seconds": 1.35,
+ "blender": "4.2.23 LTS"
+}

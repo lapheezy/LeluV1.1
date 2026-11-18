@@ -1,0 +1,43 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/hands/full-body-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.04696986824274063,
+   0.834032416343689
+  ],
+  "radius": 0.956049826573609
+ },
+ "triangles": 594220,
+ "bounds_blender_zup": {
+  "min": [
+   -0.33370691537857056,
+   -0.21991005539894104,
+   -0.045036740601062775
+  ],
+  "max": [
+   0.33370691537857056,
+   0.12597031891345978,
+   1.7131016254425049
+  ]
+ },
+ "render_seconds": 5.83,
+ "blender": "4.2.23 LTS"
+}

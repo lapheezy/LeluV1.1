@@ -272,6 +272,7 @@ export function voxelizeMesh(mesh: Mesh, contains: (x: number, y: number, z: num
   return out;
 }
 
+
 /** Concatenate meshes (indices re-based). */
 export function mergeMeshes(meshes: Mesh[]): Mesh {
   let nv = 0, ni = 0;

@@ -55,7 +55,7 @@ export interface Lattice {
  */
 export const DETAIL_RESOLUTION: Partial<Record<ComponentId, number>> = {
   face: 0.0022,
-  hands: 0.0022,
+  hands: 0.003,
   head: 0.003,
   feet: 0.003,
   "accessories.head": 0.003,
@@ -131,11 +131,53 @@ export function occupancyCellsOf(shape: Shape, h: number): Int32Array {
   return new Int32Array(cells);
 }
 
+/** True when no two part boxes overlap: each can be sampled in its own box. */
+function disjointParts(parts: Shape[]): boolean {
+  for (let i = 0; i < parts.length; i++)
+    for (let j = i + 1; j < parts.length; j++) {
+      const a = parts[i], b = parts[j];
+      // separated on AT LEAST one axis ⇒ the boxes cannot touch
+      let separated = false;
+      for (let d = 0; d < 3; d++) if (a.hi[d] < b.lo[d] || b.hi[d] < a.lo[d]) separated = true;
+      if (!separated) return false;
+    }
+  return true;
+}
+
+/** Concatenate independently-sampled parts into one component (same frame, same lattice). */
+function mergeLocals(locals: LocalComponent[], key: string, hMesh: number, hCells: number): LocalComponent {
+  let nv = 0, ni = 0, nc = 0, ncell = 0;
+  for (const l of locals) {
+    nv += l.mesh.positions.length;
+    ni += l.mesh.indices.length;
+    nc += l.mesh.colors?.length ?? 0;
+    ncell += l.cells.length;
+  }
+  const positions = new Float32Array(nv), indices = new Uint32Array(ni), colors = new Float32Array(nc), cells = new Int32Array(ncell);
+  let ov = 0, oi = 0, oc = 0, ocell = 0;
+  for (const l of locals) {
+    positions.set(l.mesh.positions, ov);
+    colors.set(l.mesh.colors ?? new Float32Array(0), oc);
+    for (let i = 0; i < l.mesh.indices.length; i++) indices[oi + i] = l.mesh.indices[i] + ov / 3;
+    cells.set(l.cells, ocell);
+    ov += l.mesh.positions.length;
+    oi += l.mesh.indices.length;
+    oc += l.mesh.colors?.length ?? 0;
+    ocell += l.cells.length;
+  }
+  const mesh: Mesh = { positions, indices, ...(nc ? { colors } : {}) };
+  mesh.normals = vertexNormals(mesh);
+  return { key, cells, mesh, samples: locals.reduce((a, l) => a + l.samples, 0), buildMs: locals.reduce((a, l) => a + l.buildMs, 0), hMesh, hCells };
+}
+
 /**
  * Sample one component: mesh at `hMesh`, occupancy cells at `hCells`. When
- * they are equal this is exactly `sampleShape`.
+ * they are equal this is exactly `sampleShape`. A shape declared as a `group`
+ * of non-touching parts is sampled per part — same geometry, and it keeps a
+ * 2.2 mm hand from paying for the empty box between the two hands.
  */
 export function sampleComponent(shape: Shape, hMesh: number, hCells: number, key = ""): LocalComponent {
+  if (shape.parts && shape.parts.length > 1 && disjointParts(shape.parts)) return mergeLocals(shape.parts.map((p) => sampleComponent(p, hMesh, hCells, key)), key, hMesh, hCells);
   const local = sampleShape(shape, hMesh, key);
   local.hMesh = hMesh;
   local.hCells = hCells;
@@ -246,7 +288,7 @@ export function buildComponent(id: ComponentId, p: BuildPlan, cache: ComponentCa
   const t0 = performance.now();
   const hit = cache?.get(cacheKey);
   if (hit) return { id, key, geometryKey, anchor, ...at, regenerated: false, action: "reused", ms: performance.now() - t0, local: hit };
-  const shape = def.build(contextFor(p.spec, p.sk));
+  const shape = def.build(contextFor(p.spec, p.sk, hMesh));
   const geo = cache?.get(`geo:${geometryKey}@${hMesh}`);
   if (geo && !shape) return { id, key, geometryKey, anchor, ...at, regenerated: false, action: "reused", ms: performance.now() - t0, local: geo };
   if (geo && shape) {
@@ -345,7 +387,7 @@ export function buildWholeObject(spec: CharacterSpec, lattice = DEFAULT_LATTICE)
   const shapes: Shape[] = [];
   for (const id of COMPONENT_ORDER) {
     const def = COMPONENTS[id];
-    const s = def.build(contextFor(spec, p.sk));
+    const s = def.build(contextFor(spec, p.sk, h));
     if (!s) continue;
     const a = anchorCells(def, p.sk, h).map((v) => v * h) as Vec3;
     shapes.push({ f: (x, y, z) => s.f(x - a[0], y - a[1], z - a[2]), lo: s.lo.map((v, i) => v + a[i]) as Vec3, hi: s.hi.map((v, i) => v + a[i]) as Vec3, color: (x, y, z) => s.color(x - a[0], y - a[1], z - a[2]) });

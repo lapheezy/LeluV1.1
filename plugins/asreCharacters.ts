@@ -582,7 +582,7 @@ function componentRegion(c: BuiltComponent, lattice: Lattice): { min: Vec3; max:
   return { min, max };
 }
 
-const GROUPS = new Set(["body", "face", "hair", "clothing", "accessories", "materials", "pose"]);
+const GROUPS = new Set(["body", "face", "hair", "clothing", "accessories", "materials", "pose", "hands"]);
 function validatePatch(patch: SpecPatch): void {
   if (!patch || typeof patch !== "object") throw new CharacterError("patch must be an object");
   for (const k of Object.keys(patch)) if (!GROUPS.has(k)) throw new CharacterError(`unknown patch group "${k}" (identity cannot be edited)`);
@@ -595,6 +595,7 @@ function validatePatch(patch: SpecPatch): void {
   };
   nums(patch.body as Record<string, unknown>, { height: [1.2, 2.2], shoulderWidth: [0.28, 0.6], hipWidth: [0.24, 0.5], build: [0.7, 1.4], legRatio: [0.4, 0.56], armRatio: [0.8, 1.2] });
   nums(patch.face as Record<string, unknown>, { headScale: [0.8, 1.25], eyeSize: [0.6, 1.5], eyeSpacing: [0.8, 1.25], noseSize: [0.6, 1.5] });
+  nums(patch.hands as Record<string, unknown>, { curl: [0, 2], spread: [0, 1], opposition: [0, 1] });
   for (const [k, v] of Object.entries(patch.materials ?? {})) {
     if (!Array.isArray(v) || v.length !== 3 || v.some((c) => typeof c !== "number" || c < 0 || c > 1)) throw new CharacterError(`material ${k} must be [r, g, b] in 0..1`);
   }
@@ -609,5 +610,6 @@ function describePatch(p: SpecPatch): string {
   if (p.accessories) parts.push("accessories");
   if (p.materials) parts.push(`materials (${Object.keys(p.materials).join(", ")})`);
   if (p.pose) parts.push(`pose ${p.pose}`);
+  if (p.hands) parts.push(`hands (${Object.keys(p.hands).join(", ")})`);
   return parts.join("; ") || "edit";
 }
