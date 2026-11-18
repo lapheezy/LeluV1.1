@@ -125,3 +125,10 @@ resources/cc0/blender/
 # Variation GLBs are ~38 MB each and fully regenerable; the metrics and the
 # renders that prove them are tracked instead.
 artifacts/mission58/variations/v[0-9]-*.glb
+
+# LÉLU 2 — upstream repositories are acquired for inspection, never vendored.
+research/sources/
+
+# LÉLU 2 — experiment GLBs are large and fully regenerable; metrics and renders
+# that prove them are tracked instead.
+artifacts/lelu2/**/*.glb
