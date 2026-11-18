@@ -1,23 +1,71 @@
 {
- "generatedAt": "2026-11-18T10:56:10.078Z",
+ "generatedAt": "2026-11-18T10:59:30.059Z",
  "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon",
- "size": 900,
- "samples": 32,
+ "size": 800,
+ "samples": 26,
  "renders": [
   {
    "label": "lelu-canon",
    "kind": "full",
    "view": "front",
    "png": "lelu-canon-front.png",
-   "triangles": 1378864,
-   "seconds": 8.88,
+   "triangles": 1373164,
+   "seconds": 7.05,
    "camera": {
     "center": [
      0.01195843517780304,
      -0.08204931020736694,
-     0.8684262037277222
+     0.8499830365180969
     ],
-    "radius": 1.038209299561035
+    "radius": 1.022710447281371
+   }
+  },
+  {
+   "label": "lelu-canon",
+   "kind": "full",
+   "view": "side",
+   "png": "lelu-canon-side.png",
+   "triangles": 1373164,
+   "seconds": 6.38,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8499830365180969
+    ],
+    "radius": 1.022710447281371
+   }
+  },
+  {
+   "label": "lelu-canon",
+   "kind": "full",
+   "view": "back",
+   "png": "lelu-canon-back.png",
+   "triangles": 1373164,
+   "seconds": 6.89,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8499830365180969
+    ],
+    "radius": 1.022710447281371
+   }
+  },
+  {
+   "label": "lelu-canon",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "lelu-canon-three-quarter.png",
+   "triangles": 1373164,
+   "seconds": 6.99,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8499830365180969
+    ],
+    "radius": 1.022710447281371
    }
   },
   {
@@ -25,8 +73,8 @@
    "kind": "face",
    "view": "front",
    "png": "lelu-canon-face-front.png",
-   "triangles": 1378864,
-   "seconds": 8.15,
+   "triangles": 1373164,
+   "seconds": 6.37,
    "focused": [
     "head",
     "face",

@@ -4,10 +4,10 @@
  ],
  "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon/lelu-canon-face-front.png",
  "resolution": [
-  900,
-  900
+  800,
+  800
  ],
- "samples": 32,
+ "samples": 26,
  "view": "front",
  "wireframe": false,
  "focus": [

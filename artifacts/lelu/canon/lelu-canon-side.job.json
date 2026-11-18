@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon/lelu-canon.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon/lelu-canon-side.png",
+ "resolution": [
+  800,
+  800
+ ],
+ "samples": 26,
+ "view": "side",
+ "wireframe": false,
+ "ground": true,
+ "view_transform": "AgX"
+}

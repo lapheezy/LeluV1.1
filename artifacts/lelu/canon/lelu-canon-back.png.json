@@ -1,0 +1,45 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon/lelu-canon-back.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.01195843517780304,
+   -0.08204931020736694,
+   0.8499830365180969
+  ],
+  "radius": 1.022710447281371
+ },
+ "triangles": 1373164,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4906481206417084,
+   -0.3256304860115051,
+   -0.00675000436604023
+  ],
+  "max": [
+   0.5145649909973145,
+   0.16153186559677124,
+   1.7067160606384277
+  ]
+ },
+ "render_seconds": 6.89,
+ "blender": "4.2.23 LTS"
+}

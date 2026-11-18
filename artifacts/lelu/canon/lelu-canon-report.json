@@ -187,10 +187,10 @@
     "shoes:shoes03",
     "teeth"
   ],
-  "ms": 51556,
-  "triangles": 1378864,
-  "glbBytes": 43818576,
-  "occupancyCells": 344336,
+  "ms": 55334,
+  "triangles": 1373164,
+  "glbBytes": 43626176,
+  "occupancyCells": 355093,
   "components": [
     {
       "id": "torso",
@@ -220,7 +220,7 @@
     {
       "id": "hair",
       "action": "regenerated",
-      "triangles": 522500
+      "triangles": 516800
     },
     {
       "id": "arms",

@@ -203,19 +203,30 @@ export function footPoses(spec: CharacterSpec, side: 0 | 1): BonePose[] {
  * Strand growth, per hairstyle: length in metres, how hard gravity pulls the
  * lock down, how kinked it is, how many locks, and how thick each is.
  */
-const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; count: number; radius: number }> = {
+/**
+ * Strand growth, per hairstyle: length in metres, how hard gravity pulls the
+ * lock down, how kinked it is, how many locks and how thick.
+ *
+ * `turns` and `curl` are what make a CORKSCREW: the lock winds `turns` times
+ * around its own drooping axis at radius `curl`. Without them a lock is a
+ * random walk, which is a loc — and thick locs are exactly what her curls kept
+ * looking like.
+ */
+const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; count: number; radius: number; turns?: number; curl?: number }> = {
   buzz: { len: 0.014, droop: 0.15, wave: 0.1, count: 1800, radius: 0.0036 },
-  pixie: { len: 0.06, droop: 0.35, wave: 0.2, count: 1700, radius: 0.0042 },
-  bob: { len: 0.15, droop: 0.7, wave: 0.18, count: 1700, radius: 0.0048 },
-  lob: { len: 0.21, droop: 0.7, wave: 0.2, count: 1600, radius: 0.0048 },
-  "long-straight": { len: 0.34, droop: 0.75, wave: 0.12, count: 1000, radius: 0.0046 },
-  "long-wavy": { len: 0.24, droop: 0.55, wave: 1.35, count: 1150, radius: 0.0062 },
-  ponytail: { len: 0.3, droop: 0.7, wave: 0.16, count: 1500, radius: 0.0052 },
-  "high-ponytail": { len: 0.3, droop: 0.65, wave: 0.18, count: 1450, radius: 0.0052 },
-  afro: { len: 0.1, droop: 0.05, wave: 1.2, count: 2000, radius: 0.0046 },
-  braids: { len: 0.36, droop: 0.75, wave: 0.35, count: 900, radius: 0.0060 },
-  "top-knot": { len: 0.15, droop: 0.3, wave: 0.25, count: 1400, radius: 0.0050 },
-  "double-buns": { len: 0.13, droop: 0.25, wave: 0.3, count: 1400, radius: 0.0050 },
+  pixie: { len: 0.06, droop: 0.35, wave: 0.2, count: 1700, radius: 0.0042, turns: 1.2, curl: 0.005 },
+  bob: { len: 0.15, droop: 0.7, wave: 0.18, count: 1700, radius: 0.0048, turns: 2.2, curl: 0.007 },
+  lob: { len: 0.21, droop: 0.7, wave: 0.2, count: 1600, radius: 0.0048, turns: 2.6, curl: 0.008 },
+  "long-straight": { len: 0.34, droop: 0.75, wave: 0.12, count: 1000, radius: 0.0046, turns: 0.5, curl: 0.002 },
+  // Her documented foundation: dense black corkscrew curls. 5.5 turns over
+  // 22 cm is a ~4 cm pitch on a 1 cm spiral — a real corkscrew, not a wave.
+  "long-wavy": { len: 0.22, droop: 0.8, wave: 1.0, count: 1350, radius: 0.0074, turns: 5.5, curl: 0.0105 },
+  ponytail: { len: 0.3, droop: 0.7, wave: 0.16, count: 1500, radius: 0.0052, turns: 1.6, curl: 0.006 },
+  "high-ponytail": { len: 0.3, droop: 0.65, wave: 0.18, count: 1450, radius: 0.0052, turns: 1.6, curl: 0.006 },
+  afro: { len: 0.1, droop: 0.05, wave: 1.2, count: 2000, radius: 0.0046, turns: 3.2, curl: 0.010 },
+  braids: { len: 0.36, droop: 0.75, wave: 0.35, count: 900, radius: 0.0060, turns: 0.6, curl: 0.003 },
+  "top-knot": { len: 0.15, droop: 0.3, wave: 0.25, count: 1400, radius: 0.0050, turns: 2.0, curl: 0.007 },
+  "double-buns": { len: 0.13, droop: 0.25, wave: 0.3, count: 1400, radius: 0.0050, turns: 2.0, curl: 0.007 },
 };
 
 /** Voxel size of the hair density grid: fine enough to keep locks apart. */
@@ -310,7 +321,7 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
 
   // 1. the scalp layer: the asset's own coverage, 2 mm thick, so no skin shows
   const step = Math.max(1, Math.floor(roots.length / 3 / 1600));
-  for (let v = 0; v < roots.length / 3; v += step) stamp(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2], 0.0028);
+  for (let v = 0; v < roots.length / 3; v += step) stamp(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2], 0.0035);
 
   // 2. strands
   const count = Math.min(st.count, Math.floor(roots.length / 3));
@@ -318,36 +329,51 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   let strand = 0;
   for (let v = 0; v < roots.length / 3; v += rootStep) {
     const r0 = hash3(v, 1), r1 = hash3(v, 2), r2 = hash3(v, 3);
-    let px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
+    const px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
     // outward from the skull centre, jittered so locks do not comb in rows
     let dx = px - centre[0], dy = py - centre[1], dz = pz - centre[2];
     const l = Math.hypot(dx, dy, dz) || 1;
     dx /= l; dy /= l; dz /= l;
     dx += (r0 - 0.5) * 0.4; dz += (r1 - 0.5) * 0.4;
-    const segs = 22;
+    // A lock falls along a slowly drooping axis and SPIRALS around it. The
+    // axis carries gravity; the spiral is what makes it a corkscrew curl.
+    let ax = dx, ay = dy - st.droop * 1.5, az = dz;
+    const al = Math.hypot(ax, ay, az) || 1;
+    ax /= al; ay /= al; az /= al;
+    // two vectors across that axis, so the spiral can be written in its plane
+    const ref: V3 = Math.abs(ay) > 0.9 ? [1, 0, 0] : [0, 1, 0];
+    let e1x = ref[1] * az - ref[2] * ay, e1y = ref[2] * ax - ref[0] * az, e1z = ref[0] * ay - ref[1] * ax;
+    const e1l = Math.hypot(e1x, e1y, e1z) || 1;
+    e1x /= e1l; e1y /= e1l; e1z /= e1l;
+    const e2x = ay * e1z - az * e1y, e2y = az * e1x - ax * e1z, e2z = ax * e1y - ay * e1x;
+
+    const turns = (st.turns ?? 0.8) * (0.82 + 0.4 * r0) * Math.max(0.6, spec.hair.volume);
+    const curlR = (st.curl ?? 0.004) * (0.75 + 0.5 * r1);
+    const phase = r2 * Math.PI * 2;
     const radius = st.radius * (0.85 + 0.3 * r2);
-    for (let s = 0; s < segs; s++) {
+    const segs = 32;
+    const r0x = px, r0y = py, r0z = pz;
+    let prevx = r0x, prevy = r0y, prevz = r0z;
+    for (let s = 1; s <= segs; s++) {
       const t = s / segs;
-      // gravity, then the style's kink
-      dy -= st.droop * 0.55;
-      const wave = st.wave * 0.5;
-      dx += (hash3(v, s + 11) - 0.5) * wave;
-      dy += (hash3(v, s + 23) - 0.5) * wave * 0.5;
-      dz += (hash3(v, s + 37) - 0.5) * wave;
-      const n = Math.hypot(dx, dy, dz) || 1;
-      const sx = px, sy = py, sz = pz;
-      px += (dx / n) * (len / segs);
-      py += (dy / n) * (len / segs);
-      pz += (dz / n) * (len / segs);
-      // stamp along the whole segment, or a lock thins into disconnected dots
-      for (let u = 0; u <= 1.001; u += 0.25) {
-        const qx = sx + (px - sx) * u, qy = sy + (py - sy) * u, qz = sz + (pz - sz) * u;
+      const ang = phase + turns * Math.PI * 2 * t;
+      const rad = curlR * (0.5 + 0.65 * t);
+      const cx = r0x + ax * (len * t), cy = r0y + ay * (len * t), cz = r0z + az * (len * t);
+      const qx = cx + (e1x * Math.cos(ang) + e2x * Math.sin(ang)) * rad;
+      const qy = cy + (e1y * Math.cos(ang) + e2y * Math.sin(ang)) * rad;
+      const qz = cz + (e1z * Math.cos(ang) + e2z * Math.sin(ang)) * rad;
+      // stamp along the whole segment, or a curl thins into disconnected beads
+      const span = Math.hypot(qx - prevx, qy - prevy, qz - prevz);
+      const sub = Math.max(2, Math.ceil(span / (radius * 0.6)));
+      for (let u = 1; u <= sub; u++) {
+        const sxp = prevx + (qx - prevx) * (u / sub), syp = prevy + (qy - prevy) * (u / sub), szp = prevz + (qz - prevz) * (u / sub);
         // A face is not a place hair grows. Locks that would cross the face are
         // left out, which is what gives a fringe that frames the face instead
         // of a curtain drawn over it.
-        const inFace = qz > head[2] - 0.02 && Math.abs(qx - head[0]) < 0.095 && qy < head[1] + 0.105 && qy > head[1] - 0.21;
-        if (!inFace) stamp(qx, qy, qz, radius * (1 - 0.45 * t));
+        const inFace = szp > head[2] - 0.02 && Math.abs(sxp - head[0]) < 0.095 && syp < head[1] + 0.105 && syp > head[1] - 0.21;
+        if (!inFace) stamp(sxp, syp, szp, radius * (1 - 0.4 * t));
       }
+      prevx = qx; prevy = qy; prevz = qz;
     }
     strand++;
   }
@@ -913,8 +939,13 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
               lo: f.lo,
               hi: f.hi,
               color: (x, y, z) => {
-                const s = noise(Math.round(x * 300), Math.round(y * 300), Math.round(z * 300), 11);
-                return s > 0.95 ? L.hairRose : s > 0.86 ? [0.34, 0.11, 0.2] : s > 0.5 ? [0.12, 0.075, 0.1] : spec.materials.hair;
+                // Highlights live in CLUMPS, not per voxel: her rose is woven
+                // through whole curls, so the noise is sampled at 3 cm and every
+                // curl in a clump takes the same hue.
+                const s = noise(Math.round(x * 33), Math.round(y * 33), Math.round(z * 33), 11);
+                const fine = noise(Math.round(x * 220), Math.round(y * 220), Math.round(z * 220), 5);
+                if (s > 0.72) return fine > 0.5 ? L.hairRose : [0.42, 0.13, 0.24];
+                return fine > 0.86 ? [0.2, 0.1, 0.14] : spec.materials.hair;
               },
             }
           : fieldShape(f, spec.materials.hair)
