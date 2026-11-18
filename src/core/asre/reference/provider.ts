@@ -30,6 +30,7 @@ import { cross, skin, sub, unit } from "./skin.ts";
 import type { BonePose, Rig } from "./skin.ts";
 import { extractSubmesh, loopSubdivide, smoothNormals } from "./surface.ts";
 import type { Mesh } from "../volume/mesh.ts";
+import { buildWardrobe, type Wardrobe } from "./wardrobe.ts";
 
 export interface RefProxy {
   /** Mesh in metres, placed on the body by its `.mhclo` mapping. */
@@ -447,6 +448,34 @@ export function bodySurface(spec: CharacterSpec): BodySurface {
   }
   bodySurfaceCache = { key, positions, normals, indices, labels };
   return bodySurfaceCache;
+}
+
+let wardrobeCache: { key: string; w: Wardrobe } | null = null;
+
+/**
+ * Her wardrobe, constructed on her body (see wardrobe.ts). Built once per
+ * body + pose + outfit and shared by the three clothing components, because
+ * the layers depend on each other: the trousers are fitted over the corset
+ * and the boot shafts.
+ */
+export function leluWardrobe(spec: CharacterSpec): Wardrobe {
+  const d = current!;
+  const poses = [...handPoses(spec, 0), ...handPoses(spec, 1), ...footPoses(spec, 0), ...footPoses(spec, 1)];
+  const key = `${d.digest}|${poseKey(poses)}|${JSON.stringify(spec.clothing)}`;
+  if (wardrobeCache?.key === key) return wardrobeCache.w;
+  const posed = poses.length ? skin(d.positions, d.rig, poses) : d.positions;
+  const sd = loopSubdivide(d.indices, [{ data: Float32Array.from(posed), stride: 3 }], 1);
+  const positions = sd.attrs[0].data, indices = sd.indices;
+  const normals = smoothNormals(positions, indices);
+  const labels = new Uint8Array(indices.length / 3);
+  for (let t = 0; t < labels.length; t++) {
+    const a = 3 * indices[3 * t], b = 3 * indices[3 * t + 1], c = 3 * indices[3 * t + 2];
+    labels[t] = bodyLabel((positions[a] + positions[b] + positions[c]) / 3, (positions[a + 1] + positions[b + 1] + positions[c + 1]) / 3, (positions[a + 2] + positions[b + 2] + positions[c + 2]) / 3);
+  }
+  const L = BODY_LABEL as Required<Pick<typeof BODY_LABEL, "head" | "hands" | "arms" | "feet" | "neck" | "torso" | "pelvis" | "legs">>;
+  const w = buildWardrobe({ joint: J, surf: { positions, normals, indices, labels }, labels: L, body: fieldSdf(bodyField("body", 0, [], null)) });
+  wardrobeCache = { key, w };
+  return w;
 }
 
 /** One region's share of her skin, in the component's frame (world − anchor). */
@@ -937,7 +966,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
     case "clothing.shoes": {
       const name = garmentFor(id, spec);
       if (!name) { shape = null; break; }
-      let color = id === "clothing.top" ? spec.materials.top : id === "clothing.bottom" ? spec.materials.bottom : spec.materials.shoes;
+      const color = id === "clothing.top" ? spec.materials.top : id === "clothing.bottom" ? spec.materials.bottom : spec.materials.shoes;
       // Her corset is a dark camo ground printed with coral roses, and her cargo
       // is printed with the same rose. Painting the cloth is what makes these
       // read as her garments rather than as one flat colour.
@@ -958,59 +987,12 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
             }
           : null;
       if (isLelu(spec)) {
-        // HER wardrobe, not the CC0 suit recoloured. Each garment is its own
-        // closed solid built as a shell around HER body at its own stand-off,
-        // so the silhouette is hers: a strapless corset from underbust to high
-        // hip, loose cargo tubes per leg, and platform boots with a sole.
-        const bodySd = fieldSdf(bodyField("body", h, [], null));
-        const shY = J("joint-l-shoulder")[1], pelY = J("joint-pelvis")[1], ank = J("joint-l-ankle");
-        const cloth = (gap: number, t: number, mask: Sdf): Shape => ({
-          f: (x, y, z) => Math.max(Math.abs(bodySd(x, y, z) - gap - t / 2) - t / 2, mask(x, y, z)),
-          lo: [-0.30, -0.05, -0.28],
-          hi: [0.30, shY + 0.02, 0.28],
-          color: clothPaint ?? (() => color),
-        });
-        if (id === "clothing.top") {
-          // corset: underbust to high hip, hugging her own torso
-          // strapless: no sleeve stubs where the shell rides onto her arms
-          shape = cloth(0.006, 0.010, (x, y) => Math.max(Math.max(pelY + 0.02 - y, y - (shY - 0.03)), Math.abs(x) - 0.125));
-        } else if (id === "clothing.bottom") {
-          // cargo: a tube per leg, relaxed, from the waist to the boot top
-          const legMask = (side: 0 | 1): Sdf => {
-            const l = SIDE(side);
-            const hip = J(`joint-${l}-upper-leg`), ankle = J(`joint-${l}-ankle`);
-            // loose fit: a cargo leg hangs well clear of the shin, and the
-            // mask has to be wider than the limb or it clips the trouser away
-            return around(hip, ankle, 0.145);
-          };
-          shape = cloth(0.02, 0.012, (x, y, z) =>
-            Math.max(Math.max(ank[1] + 0.05 - y, y - (pelY + 0.06)), Math.min(legMask(0)(x, y, z), legMask(1)(x, y, z))),
-          );
-        } else {
-          // platform boots: shaft around the ankle plus a chunky sole slab
-          const parts: Shape[] = [];
-          for (const side of [0, 1] as const) {
-            const l = SIDE(side);
-            const a = J(`joint-${l}-ankle`);
-            const sx = a[0] > 0 ? 1 : -1;
-            const shaft = cloth(0.014, 0.012, (x, y, _z) =>
-              Math.max(Math.max(-0.01 - y, y - (a[1] + 0.24)), Math.min(-x * sx + 0.02, Math.abs(x) - 0.20)),
-            );
-            const soleC: V3 = [a[0], 0.016, a[2] + 0.055];
-            const sole: Shape = {
-              f: (x, y, z) => {
-                const qx = Math.abs(x - soleC[0]) - 0.048, qy = Math.abs(y - soleC[1]) - 0.017, qz = Math.abs(z - soleC[2]) - 0.105;
-                const ox = Math.max(qx, 0), oy = Math.max(qy, 0), oz = Math.max(qz, 0);
-                return Math.hypot(ox, oy, oz) + Math.min(Math.max(qx, qy, qz), 0);
-              },
-              lo: [soleC[0] - 0.048, 0, soleC[2] - 0.105],
-              hi: [soleC[0] + 0.048, 0.033, soleC[2] + 0.105],
-              color: () => L.copper,
-            };
-            parts.push(union(shaft, sole));
-          }
-          shape = group(...parts);
-        }
+        // HER wardrobe, constructed on her body and layered (wardrobe.ts):
+        // the visible mesh is the garment itself, and occupancy is the
+        // garment's own solid.
+        const w = leluWardrobe(spec);
+        const g = id === "clothing.top" ? w.top : id === "clothing.bottom" ? w.bottom : w.shoes;
+        shape = { f: g.f, lo: g.lo, hi: g.hi, color: () => color, mesh: g.mesh };
         break;
       }
       const garmentMesh = current!.proxies[name];

@@ -395,10 +395,14 @@ function leluBodyJewelry(ctx: Ctx): Shape {
   parts.push(sphere([0, sk.chestY - 0.075, 0.09], 0.014, rq));
   parts.push(torus([0, sk.chestY - 0.075, 0.09], 0.02, 0.005, 2, cu));
   parts.push(capsule([0, sk.chestY - 0.09, 0.09], [0, sk.chestY - 0.14, 0.088], 0.0035, 0.006, cu));
-  // waist harness: belt plus two hip straps
-  const wy = sk.waistY - 0.055;
-  parts.push(torus([0, wy, 0], spec.body.hipWidth * 0.455, 0.0095, 1, cu));
-  for (const s of [1, -1] as const) parts.push(capsule([s * spec.body.hipWidth * 0.5, wy, 0.02], [s * spec.body.hipWidth * 0.44, sk.pelvisY - 0.06, 0.03], 0.008, 0.008, rg));
+  // Her waist harness is no longer a free-floating ring: on the reference
+  // body the belt, its buckle and the hanging straps are part of her fitted
+  // trousers (reference/wardrobe.ts). The procedural body keeps the ring.
+  if (!usesReference(spec)) {
+    const wy = sk.waistY - 0.055;
+    parts.push(torus([0, wy, 0], spec.body.hipWidth * 0.455, 0.0095, 1, cu));
+    for (const s of [1, -1] as const) parts.push(capsule([s * spec.body.hipWidth * 0.5, wy, 0.02], [s * spec.body.hipWidth * 0.44, sk.pelvisY - 0.06, 0.03], 0.008, 0.008, rg));
+  }
   return union(...parts);
 }
 

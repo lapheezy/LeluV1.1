@@ -1,0 +1,161 @@
+{
+ "glb": "lelu-canon.glb",
+ "size": 720,
+ "samples": 32,
+ "renders": [
+  {
+   "shot": "full-front",
+   "set": "full",
+   "png": "full-front--front.png",
+   "triangles": 1622676,
+   "seconds": 10.41
+  },
+  {
+   "shot": "full-back",
+   "set": "full",
+   "png": "full-back--back.png",
+   "triangles": 1622676,
+   "seconds": 9.59
+  },
+  {
+   "shot": "full-side",
+   "set": "full",
+   "png": "full-side--side.png",
+   "triangles": 1622676,
+   "seconds": 9.24
+  },
+  {
+   "shot": "full-three-quarter",
+   "set": "full",
+   "png": "full-three-quarter--three-quarter.png",
+   "triangles": 1622676,
+   "seconds": 10.86
+  },
+  {
+   "shot": "face-front",
+   "set": "close",
+   "png": "face-front--front.png",
+   "triangles": 1622676,
+   "seconds": 17.72
+  },
+  {
+   "shot": "face-three-quarter",
+   "set": "close",
+   "png": "face-three-quarter--three-quarter.png",
+   "triangles": 1622676,
+   "seconds": 15.13
+  },
+  {
+   "shot": "hair-back",
+   "set": "close",
+   "png": "hair-back--back.png",
+   "triangles": 1622676,
+   "seconds": 9.48
+  },
+  {
+   "shot": "hair-side",
+   "set": "close",
+   "png": "hair-side--side.png",
+   "triangles": 1622676,
+   "seconds": 7.32
+  },
+  {
+   "shot": "torso-front",
+   "set": "close",
+   "png": "torso-front--front.png",
+   "triangles": 1622676,
+   "seconds": 11.31
+  },
+  {
+   "shot": "torso-side",
+   "set": "close",
+   "png": "torso-side--side.png",
+   "triangles": 1622676,
+   "seconds": 8.33
+  },
+  {
+   "shot": "pelvis-front",
+   "set": "close",
+   "png": "pelvis-front--front.png",
+   "triangles": 1622676,
+   "seconds": 10.61
+  },
+  {
+   "shot": "pelvis-back",
+   "set": "close",
+   "png": "pelvis-back--back.png",
+   "triangles": 1622676,
+   "seconds": 10.2
+  },
+  {
+   "shot": "pelvis-side",
+   "set": "close",
+   "png": "pelvis-side--side.png",
+   "triangles": 1622676,
+   "seconds": 8.24
+  },
+  {
+   "shot": "legs-front",
+   "set": "close",
+   "png": "legs-front--front.png",
+   "triangles": 1622676,
+   "seconds": 11.4
+  },
+  {
+   "shot": "hands-left",
+   "set": "close",
+   "png": "hands-left--front.png",
+   "triangles": 1622676,
+   "seconds": 6.48
+  },
+  {
+   "shot": "hands-left-three-quarter",
+   "set": "close",
+   "png": "hands-left-three-quarter--three-quarter.png",
+   "triangles": 1622676,
+   "seconds": 8.09
+  },
+  {
+   "shot": "feet-front",
+   "set": "close",
+   "png": "feet-front--front.png",
+   "triangles": 1622676,
+   "seconds": 13.33
+  },
+  {
+   "shot": "feet-three-quarter",
+   "set": "close",
+   "png": "feet-three-quarter--three-quarter.png",
+   "triangles": 1622676,
+   "seconds": 14.37
+  },
+  {
+   "shot": "full-front",
+   "set": "wire",
+   "png": "full-front--front-wireframe.png",
+   "triangles": 1622676,
+   "seconds": 5.69
+  },
+  {
+   "shot": "face-front",
+   "set": "wire",
+   "png": "face-front--front-wireframe.png",
+   "triangles": 770684,
+   "seconds": 20.91
+  },
+  {
+   "shot": "pelvis-front",
+   "set": "wire",
+   "png": "pelvis-front--front-wireframe.png",
+   "triangles": 1062988,
+   "seconds": 11.29
+  },
+  {
+   "shot": "hands-left",
+   "set": "wire",
+   "png": "hands-left--front-wireframe.png",
+   "triangles": 432968,
+   "seconds": 6.07
+  }
+ ]
+}

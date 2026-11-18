@@ -8,9 +8,9 @@
  *              non-manifold edges, degenerate triangles, edge-length spread;
  *              and the union of her skin components welded into one surface
  *              (0 open edges = one continuous, closed skin)
- *   coverage   for every skin vertex in an anatomical zone (bust, pelvis
+ *   coverage   for every skin vertex in an anatomical zone (bust apex, pelvis
  *              front, crotch, seat, thighs, shins), whether a garment solid
- *              lies over it along its outward normal within 6 cm
+ *              lies over it along its outward normal within 12 cm
  *   occupancy  IoU of the per-component build against the conventional
  *              whole-object build on the shared lattice (must be 1.000000)
  *
@@ -109,7 +109,8 @@ const cloth = (["clothing.top", "clothing.bottom", "clothing.shoes"] as const)
   .map((id) => COMPONENTS[id].build(contextFor(spec, sk, L.resolution)))
   .filter((s): s is NonNullable<typeof s> => !!s);
 const covered = (x: number, y: number, z: number, nx: number, ny: number, nz: number) => {
-  for (let t = 0.0015; t <= 0.06; t += 0.003) {
+  // 12 cm: baggy cargo stands up to ~7 cm off the leg
+  for (let t = 0.0015; t <= 0.12; t += 0.003) {
     const px = x + nx * t, py = y + ny * t, pz = z + nz * t;
     for (const s of cloth) {
       if (px < s.lo[0] || py < s.lo[1] || pz < s.lo[2] || px > s.hi[0] || py > s.hi[1] || pz > s.hi[2]) continue;
@@ -119,15 +120,29 @@ const covered = (x: number, y: number, z: number, nx: number, ny: number, nz: nu
   return false;
 };
 const pelY = J("joint-pelvis")[1], kneeY = J("joint-l-knee")[1], ankY = J("joint-l-ankle")[1], chestY = J("joint-spine-1")[1];
+// The bust zone is centred on her measured bust apex (the most forward point
+// of each breast): 4.5 cm around it must be covered. The upper chest above a
+// sweetheart neckline is open by design, as in her references.
+const body = bodySurface(spec);
+let apex: number[] = [0.09, 1.24, 0.12];
+{
+  let bz = -Infinity;
+  for (let t = 0; t < body.labels.length; t++)
+    for (let k = 0; k < 3; k++) {
+      const v = body.indices[3 * t + k];
+      const x = body.positions[3 * v], y = body.positions[3 * v + 1], z = body.positions[3 * v + 2];
+      if (x > 0.04 && x < 0.14 && y > 1.1 && y < 1.36 && z > bz) [bz, apex] = [z, [x, y, z]];
+    }
+}
+void chestY;
 const zones: Record<string, (x: number, y: number, z: number) => boolean> = {
-  bust: (x, y, z) => y > chestY - 0.09 && y < chestY + 0.02 && z > 0.03 && Math.abs(x) < 0.14,
+  bust: (x, y, z) => z > 0 && Math.hypot(Math.abs(x) - apex[0], y - apex[1], z - apex[2]) < 0.045,
   "pelvis-front": (x, y, z) => y > pelY - 0.13 && y < pelY + 0.08 && z > 0,
   crotch: (x, y) => Math.abs(x) < 0.06 && y > pelY - 0.18 && y < pelY - 0.06,
   seat: (x, y, z) => y > pelY - 0.15 && y < pelY + 0.08 && z < 0,
   thighs: (x, y) => y > kneeY && y < pelY - 0.13 && Math.abs(x) > 0.02,
   shins: (_x, y) => y > ankY + 0.1 && y < kneeY,
 };
-const body = bodySurface(spec);
 const legal = new Set([BODY_LABEL.torso, BODY_LABEL.pelvis, BODY_LABEL.legs]);
 const onSkin = new Uint8Array(body.positions.length / 3);
 for (let t = 0; t < body.labels.length; t++) if (legal.has(body.labels[t])) for (let k = 0; k < 3; k++) onSkin[body.indices[3 * t + k]] = 1;

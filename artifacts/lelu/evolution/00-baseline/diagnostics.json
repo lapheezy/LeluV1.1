@@ -1,7 +1,7 @@
 {
  "character": "lelu-canonical",
  "referenceDigest": "0883b24ef7a9655f",
- "buildMs": 54972,
+ "buildMs": 58127,
  "triangles": 1373776,
  "components": {
   "torso": {
@@ -199,9 +199,9 @@
  },
  "coverage": {
   "bust": {
-   "vertices": 2523,
-   "covered": 2208,
-   "percent": 87.51
+   "vertices": 1528,
+   "covered": 1528,
+   "percent": 100
   },
   "pelvis-front": {
    "vertices": 1879,
@@ -210,13 +210,13 @@
   },
   "crotch": {
    "vertices": 1062,
-   "covered": 955,
-   "percent": 89.92
+   "covered": 957,
+   "percent": 90.11
   },
   "seat": {
    "vertices": 1638,
-   "covered": 1363,
-   "percent": 83.21
+   "covered": 1365,
+   "percent": 83.33
   },
   "thighs": {
    "vertices": 3783,
