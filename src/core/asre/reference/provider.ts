@@ -28,6 +28,8 @@ import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
 import type { BonePose, Rig } from "./skin.ts";
+import { extractSubmesh, loopSubdivide, smoothNormals } from "./surface.ts";
+import type { Mesh } from "../volume/mesh.ts";
 
 export interface RefProxy {
   /** Mesh in metres, placed on the body by its `.mhclo` mapping. */
@@ -379,6 +381,78 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   }
   if (!strand) return null;
   return fieldFromVoxels(inside, dims, origin, h);
+}
+
+
+/* ------------------------------ real surface ----------------------------- */
+
+/**
+ * Which component each body triangle belongs to. The rules are the same
+ * anatomical cuts the regions' distance fields use, applied to the triangle
+ * centroid, so every triangle of her skin lands in exactly one component:
+ * the union of the body components is ONE continuous surface, with no caps,
+ * no overlaps and no seam where two regions meet.
+ */
+export const BODY_LABEL: Partial<Record<RegionId, number>> = { head: 1, hands: 2, arms: 3, feet: 4, neck: 5, torso: 6, pelvis: 7, legs: 8 };
+
+function bodyLabel(x: number, y: number, z: number): number {
+  const neckY = J("joint-neck")[1], shoulderY = J("joint-l-shoulder")[1];
+  const pelvisY = J("joint-pelvis")[1], spine1Y = J("joint-spine-1")[1];
+  const ankleY = J("joint-l-ankle")[1];
+  if (y > neckY - 0.004) return 1;
+  const p: V3 = [x, y, z];
+  for (const side of [0, 1] as const) {
+    const l = SIDE(side);
+    if (!has(`joint-${l}-shoulder`)) continue;
+    const sh = J(`joint-${l}-shoulder`), el = J(`joint-${l}-elbow`), w = J(`joint-${l}-hand`);
+    if (Math.sign(x) !== Math.sign(sh[0])) continue;
+    const dh = unit(sub(w, el));
+    const wc: V3 = [w[0] - dh[0] * 0.015, w[1] - dh[1] * 0.015, w[2] - dh[2] * 0.015];
+    if ((x - wc[0]) * dh[0] + (y - wc[1]) * dh[1] + (z - wc[2]) * dh[2] > 0 && Math.hypot(x - w[0], y - w[1], z - w[2]) < 0.18) return 2;
+    const da = unit(sub(el, sh));
+    const sc: V3 = [sh[0] + da[0] * 0.02, sh[1] + da[1] * 0.02, sh[2] + da[2] * 0.02];
+    if ((x - sc[0]) * da[0] + (y - sc[1]) * da[1] + (z - sc[2]) * da[2] > 0 && around(sh, w, 0.085)(...p) < 0) return 3;
+  }
+  if (y < ankleY + 0.02) return 4;
+  if (y > shoulderY - 0.01) return 5;
+  if (y > spine1Y - 0.02) return 6;
+  if (y > pelvisY - 0.10) return 7;
+  return 8;
+}
+
+/** Subdivision levels of the visible body: 26.7 k CC0 triangles → 428 k. */
+export const BODY_SUBDIVISIONS = 2;
+
+interface BodySurface { key: string; positions: Float32Array; normals: Float32Array; indices: Uint32Array; labels: Uint8Array }
+let bodySurfaceCache: BodySurface | null = null;
+
+/**
+ * Her whole skin as one explicit surface: the CC0 body posed by the same
+ * bone rotations the hand and foot fields use, Loop-subdivided, and shaded
+ * with normals computed over the WHOLE body before it is split.
+ */
+export function bodySurface(spec: CharacterSpec): BodySurface {
+  const d = current!;
+  const poses = [...handPoses(spec, 0), ...handPoses(spec, 1), ...footPoses(spec, 0), ...footPoses(spec, 1)];
+  const key = `${d.digest}|${poseKey(poses)}|${BODY_SUBDIVISIONS}`;
+  if (bodySurfaceCache?.key === key) return bodySurfaceCache;
+  const posed = poses.length ? skin(d.positions, d.rig, poses) : d.positions;
+  const sd = loopSubdivide(d.indices, [{ data: Float32Array.from(posed), stride: 3 }], BODY_SUBDIVISIONS);
+  const positions = sd.attrs[0].data, indices = sd.indices;
+  const normals = smoothNormals(positions, indices);
+  const labels = new Uint8Array(indices.length / 3);
+  for (let t = 0; t < labels.length; t++) {
+    const a = 3 * indices[3 * t], b = 3 * indices[3 * t + 1], c = 3 * indices[3 * t + 2];
+    labels[t] = bodyLabel((positions[a] + positions[b] + positions[c]) / 3, (positions[a + 1] + positions[b + 1] + positions[c + 1]) / 3, (positions[a + 2] + positions[b + 2] + positions[c + 2]) / 3);
+  }
+  bodySurfaceCache = { key, positions, normals, indices, labels };
+  return bodySurfaceCache;
+}
+
+/** One region's share of her skin, in the component's frame (world − anchor). */
+function bodyRegionMesh(spec: CharacterSpec, label: number, anchor: V3): Mesh {
+  const b = bodySurface(spec);
+  return extractSubmesh(b.positions, b.normals, b.indices, b.labels, label, anchor);
 }
 
 /* -------------------------------- regions ------------------------------- */
@@ -1010,6 +1084,10 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
     }
   }
   if (!shape) return null;
+  // The visible skin is the asset's real surface; the field above stays the
+  // region's occupancy.
+  const label = BODY_LABEL[id];
+  if (label) shape = { ...shape, mesh: bodyRegionMesh(spec, label, anchor) };
   if (anchor[0] || anchor[1] || anchor[2]) {
     const base = shape;
     shape = { ...base, f: (x, y, z) => base.f(x + anchor[0], y + anchor[1], z + anchor[2]), lo: [base.lo[0] - anchor[0], base.lo[1] - anchor[1], base.lo[2] - anchor[2]], hi: [base.hi[0] - anchor[0], base.hi[1] - anchor[1], base.hi[2] - anchor[2]] };

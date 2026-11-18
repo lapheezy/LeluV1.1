@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m1/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/01-body-surface/hair-back--back.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "back",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   1.4
+  ],
+  "radius": 0.4
+ },
+ "view_transform": "AgX"
+}

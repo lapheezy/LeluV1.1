@@ -6,6 +6,7 @@
  */
 import * as S from "./sdf.ts";
 import type { Sdf, V3 } from "./sdf.ts";
+import type { Mesh } from "../volume/mesh.ts";
 
 export type Rgb = [number, number, number];
 
@@ -21,6 +22,15 @@ export interface Shape {
    * fraction of the samples. Never set it on parts that can touch.
    */
   parts?: Shape[];
+  /**
+   * An explicit render mesh in the shape's own frame. When present the
+   * builder uses these triangles as the component's mesh instead of
+   * re-meshing `f`, while occupancy is still `f` sampled on the shared
+   * lattice — so every cell-indexed invariant is unchanged and the visible
+   * surface keeps a real asset's topology. Vertex colours are taken from
+   * `color` unless the mesh already carries them.
+   */
+  mesh?: Mesh;
 }
 
 const flat = (c: Rgb) => () => c;

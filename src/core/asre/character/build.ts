@@ -178,6 +178,7 @@ function mergeLocals(locals: LocalComponent[], key: string, hMesh: number, hCell
  * 2.2 mm hand from paying for the empty box between the two hands.
  */
 export function sampleComponent(shape: Shape, hMesh: number, hCells: number, key = ""): LocalComponent {
+  if (shape.mesh) return explicitComponent(shape, shape.mesh, hMesh, hCells, key);
   if (shape.parts && shape.parts.length > 1 && disjointParts(shape.parts)) return mergeLocals(shape.parts.map((p) => sampleComponent(p, hMesh, hCells, key)), key, hMesh, hCells);
   const local = sampleShape(shape, hMesh, key);
   local.hMesh = hMesh;
@@ -191,6 +192,30 @@ export function sampleComponent(shape: Shape, hMesh: number, hCells: number, key
     local.samples += (hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) * (hi[2] - lo[2] + 1);
   }
   return local;
+}
+
+/**
+ * A component whose mesh is given explicitly (a real asset surface, a
+ * constructed garment). Occupancy is `f` on the shared lattice exactly as
+ * for a sampled component, so per-component and whole-object occupancy
+ * still agree cell for cell; only the triangles a viewer sees differ.
+ */
+function explicitComponent(shape: Shape, m: Mesh, hMesh: number, hCells: number, key: string): LocalComponent {
+  const t0 = performance.now();
+  const cells = occupancyCellsOf(shape, hCells);
+  let colors = m.colors;
+  if (!colors) {
+    colors = new Float32Array((m.positions.length / 3) * 4);
+    for (let v = 0; v < m.positions.length / 3; v++) {
+      const c = shape.color(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]);
+      colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), 1], 4 * v);
+    }
+  }
+  const mesh: Mesh = { positions: m.positions, indices: m.indices, colors, normals: m.normals ?? vertexNormals(m) };
+  const lo = shape.lo.map((v) => Math.floor(v / hCells - 0.5) - 1);
+  const hi = shape.hi.map((v) => Math.ceil(v / hCells - 0.5) + 1);
+  const samples = (hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) * (hi[2] - lo[2] + 1);
+  return { key, cells, mesh, samples, buildMs: performance.now() - t0, hMesh, hCells };
 }
 
 /** Sample a shape on lattice cell centres within its bounds; mesh it; colour vertices. */

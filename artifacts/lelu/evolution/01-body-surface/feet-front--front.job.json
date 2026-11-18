@@ -1,0 +1,23 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m1/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/01-body-surface/feet-front--front.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "front",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   -0.05,
+   0.13
+  ],
+  "radius": 0.3
+ },
+ "ground": true,
+ "view_transform": "AgX"
+}

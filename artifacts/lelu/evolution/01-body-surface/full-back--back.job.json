@@ -1,0 +1,23 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m1/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/01-body-surface/full-back--back.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "back",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 1
+ },
+ "ground": true,
+ "view_transform": "AgX"
+}
