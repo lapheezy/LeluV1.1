@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117213811-124",
+  "at": 1794951491000,
+  "type": "source-change",
+  "workPackage": "WP06",
+  "summary": "chore(asre): keep reproducible hypothesis GLBs out of git (renders and reports stay)",
+  "detail": "1 file(s): .gitignore",
+  "interpretation": "Associated with WP06 by keyword \\bwp\\s*0?6\\b|question|agenda. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "e4c988378444221bbfec8055af8f5426b01f5c08",
+      "commit": "e4c988378444221bbfec8055af8f5426b01f5c08",
+      "note": "chore(asre): keep reproducible hypothesis GLBs out of git (renders and reports stay)"
+    },
+    {
+      "kind": "code",
+      "ref": ".gitignore",
+      "commit": "e4c988378444221bbfec8055af8f5426b01f5c08"
+    }
+  ],
+  "commit": "e4c988378444221bbfec8055af8f5426b01f5c08",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:e4c988378444221bbfec8055af8f5426b01f5c08"
+}

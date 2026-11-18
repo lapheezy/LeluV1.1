@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118222304-156",
+  "at": 1795040584505.2202,
+  "type": "comparison",
+  "workPackage": "MISSION",
+  "summary": "artifacts/lelu2/m23/youth/metrics-youth.json (5.1 KB)",
+  "detail": "a measured result — the only kind of artefact that can promote a claim to verified; 5227 bytes",
+  "interpretation": "classed as comparison · measurement evidence · associated with MISSION by no work-package signal",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/m23/youth/metrics-youth.json",
+      "at": 1795040584505.2202
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/m23/youth/metrics-youth.json:5227"
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118061314-097",
+  "at": 1794982394000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(asre): M5.8 WP03 — LÉLU rebuilt from CC0 reference anatomy",
+  "detail": "41 file(s): .gitignore, artifacts/mission58/MANIFEST.md, artifacts/mission58/reference/cameras.json, artifacts/mission58/reference/reference-base-back.png, artifacts/mission58/reference/reference-base-face-front.png, artifacts/mission58/reference/reference-base-face-three-quarter.png, artifacts/mission58/reference/reference-base-feet-front.png, artifacts/mission58/reference/reference-base-feet-three-quarter.png, …",
+  "interpretation": "Associated with WP03 by explicit WP03. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1",
+      "note": "feat(asre): M5.8 WP03 — LÉLU rebuilt from CC0 reference anatomy"
+    },
+    {
+      "kind": "code",
+      "ref": ".gitignore",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/MANIFEST.md",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/cameras.json",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-back.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-face-front.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-face-three-quarter.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-feet-front.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-feet-three-quarter.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-hands-front.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-hands-three-quarter.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-side.png",
+      "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+    }
+  ],
+  "commit": "fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:fe273a8d10ae24c8790ecdfcc0af7461bb2e4dc1"
+}

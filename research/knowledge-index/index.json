@@ -1,36 +1,37 @@
 {
-  "generatedAt": 1795034720301,
-  "entries": 12,
+  "generatedAt": 1795041058501,
+  "entries": 15,
   "byKind": {
     "discoveries": 5,
     "hypotheses": 1,
-    "failures": 1,
+    "failures": 3,
     "experiments": 2,
     "research-papers": 1,
     "technical-studies": 1,
-    "daily-journals": 1
+    "daily-journals": 1,
+    "capabilities": 1
   },
   "byStatus": {
-    "verified": 4,
+    "verified": 7,
     "hypothesis": 1,
     "rejected": 3,
     "open": 2,
     "experiment": 2
   },
   "byWorkPackage": {
-    "WP01": 1,
+    "WP01": 2,
     "WP02": 2,
     "WP03": 4,
     "WP04": 2,
-    "WP05": 1,
+    "WP05": 2,
     "WP09": 1,
-    "WP07": 1
+    "WP07": 2
   },
   "tags": {
     "audit": 1,
     "uniformity": 1,
     "confound": 1,
-    "wp01": 1,
+    "wp01": 2,
     "sampling": 2,
     "vogel": 2,
     "fibonacci": 1,
@@ -44,20 +45,20 @@
     "roots": 1,
     "diagnostics": 1,
     "contradiction": 1,
-    "failure": 1,
+    "failure": 3,
     "cut": 1,
     "face": 1,
     "head": 2,
     "anatomy": 1,
-    "measurement": 1,
+    "measurement": 2,
     "wp04": 2,
-    "hairline": 1,
+    "hairline": 2,
     "landmark": 1,
     "mobile": 1,
     "benchmark": 1,
     "projection": 1,
     "unmeasured": 1,
-    "wp05": 1,
+    "wp05": 2,
     "literature": 2,
     "bridson": 1,
     "parallel-transport": 1,
@@ -67,7 +68,14 @@
     "wp09": 1,
     "visual": 1,
     "silhouette": 1,
-    "wp07": 1
+    "wp07": 2,
+    "baby-hair": 1,
+    "youth": 1,
+    "identity": 1,
+    "sdf": 1,
+    "chat": 1,
+    "evidence": 1,
+    "capability": 1
   },
   "ids": [
     "R-20261118-wp01-three-claims-did-not-survive",
@@ -81,6 +89,9 @@
     "R-20261118-lit-sampling-laws",
     "R-20261118-lit-swept-tubes",
     "R-20261118-daily-journal",
-    "R-20261118-wp07-silhouette-of-the-hair-swap"
+    "R-20261118-wp07-silhouette-of-the-hair-swap",
+    "R-20261118-wp01-the-hairline-was-the-hair-curtain",
+    "R-20261118-wp05-the-youth-warp-was-inert-then-wrong",
+    "R-20261118-wp07-evidence-must-arrive-in-chat"
   ]
 }

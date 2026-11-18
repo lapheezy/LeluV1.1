@@ -1,0 +1,67 @@
+{
+  "id": "O-20261116181000-138",
+  "at": 1794852600000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "M15.3 WP04: performance stages in progress (partial output)",
+  "detail": "9 file(s): docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-03-world-+3s.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-04-world-+8s.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-05-world-+15s.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-06-end.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.console.txt, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.json, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-01-home-ready.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-02-worlds-menu.png, …",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb",
+      "note": "M15.3 WP04: performance stages in progress (partial output)"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-03-world-+3s.png",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-04-world-+8s.png",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-05-world-+15s.png",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-06-end.png",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.console.txt",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.json",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-01-home-ready.png",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-02-worlds-menu.png",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone.console.txt",
+      "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+    }
+  ],
+  "commit": "4fa5660d87e66a8b0606475f51575d5d8d72e4cb",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:4fa5660d87e66a8b0606475f51575d5d8d72e4cb"
+}

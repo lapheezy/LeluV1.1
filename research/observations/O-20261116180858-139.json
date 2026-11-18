@@ -1,0 +1,32 @@
+{
+  "id": "O-20261116180858-139",
+  "at": 1794852538000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "M15.3 WP04: first-paint profiles in progress (partial output)",
+  "detail": "2 file(s): docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-02-worlds-menu.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.console.txt",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "d92843aebf609dcb385e257c598eff31035c5f59",
+      "commit": "d92843aebf609dcb385e257c598eff31035c5f59",
+      "note": "M15.3 WP04: first-paint profiles in progress (partial output)"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-02-worlds-menu.png",
+      "commit": "d92843aebf609dcb385e257c598eff31035c5f59"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.console.txt",
+      "commit": "d92843aebf609dcb385e257c598eff31035c5f59"
+    }
+  ],
+  "commit": "d92843aebf609dcb385e257c598eff31035c5f59",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:d92843aebf609dcb385e257c598eff31035c5f59"
+}

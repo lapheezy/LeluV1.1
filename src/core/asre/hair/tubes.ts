@@ -150,6 +150,14 @@ export interface StrandSpec {
   /** Deterministic per-strand value in [0,1); drives taper and diameter. */
   seed: number;
   droop: number;
+  /**
+   * Per-strand override of the bundle's diameter jitter. A baby hair's recorded
+   * thickness IS its drawn thickness, so those strands pass 0 and the number in
+   * the strand record cannot disagree with the geometry.
+   */
+  diameterJitter?: number;
+  /** Per-strand override of the bundle's tip jitter. */
+  taperJitter?: number;
 }
 
 export interface BundleOptions extends TubeOptions {
@@ -166,8 +174,8 @@ export function bundleTubes(strands: readonly StrandSpec[], options: BundleOptio
   const perStrand: { radius: number; tipScale: number; triangles: number }[] = [];
   let vertexOffset = 0;
   for (const s of strands) {
-    const radius = s.radius * (1 + options.diameterVariation * (s.seed - 0.5) * 2);
-    const tipScale = Math.max(0.05, options.tipScale * (1 + options.taperVariation * (s.seed - 0.5) * 2));
+    const radius = s.radius * (1 + (s.diameterJitter ?? options.diameterVariation) * (s.seed - 0.5) * 2);
+    const tipScale = Math.max(0.05, options.tipScale * (1 + (s.taperJitter ?? options.taperVariation) * (s.seed - 0.5) * 2));
     const radiusAt = (t: number) => {
       // taper: radius falls from `radius` at the root to `radius * tipScale` at the tip
       const shaped = Math.pow(1 - t, options.taper);

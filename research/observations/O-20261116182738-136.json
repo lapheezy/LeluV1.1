@@ -1,0 +1,82 @@
+{
+  "id": "O-20261116182738-136",
+  "at": 1794853658000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "M15.3 WP04: settled measurements; a phone can leave her world again",
+  "detail": "34 file(s): docs/missions/m15-home/avatar-15.3/measure-wp04-final-desktop.json, docs/missions/m15-home/avatar-15.3/measure-wp04-final-phone.json, docs/missions/m15-home/avatar-15.3/wp04-final-desktop-01-home.png, docs/missions/m15-home/avatar-15.3/wp04-final-desktop-02-chat.png, docs/missions/m15-home/avatar-15.3/wp04-final-desktop-03-home-2.png, docs/missions/m15-home/avatar-15.3/wp04-final-desktop-04-browser.png, docs/missions/m15-home/avatar-15.3/wp04-final-desktop-05-home-3.png, docs/missions/m15-home/avatar-15.3/wp04-final-desktop-06-studio.png, …",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "01d5f218c820047c0b27057d15cf5bf3072c169e",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e",
+      "note": "M15.3 WP04: settled measurements; a phone can leave her world again"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/measure-wp04-final-desktop.json",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/measure-wp04-final-phone.json",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-01-home.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-02-chat.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-03-home-2.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-04-browser.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-05-home-3.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-06-studio.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-07-home-4.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-08-code.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-09-home-5.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04-final-desktop-10-world.png",
+      "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e"
+    }
+  ],
+  "commit": "01d5f218c820047c0b27057d15cf5bf3072c169e",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:01d5f218c820047c0b27057d15cf5bf3072c169e"
+}

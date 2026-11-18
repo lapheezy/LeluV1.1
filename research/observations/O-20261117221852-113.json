@@ -1,0 +1,37 @@
+{
+  "id": "O-20261117221852-113",
+  "at": 1794953932000,
+  "type": "source-change",
+  "workPackage": "WP06",
+  "summary": "docs(asre): WP6 benchmark results - incremental 3.0x faster, same quality",
+  "detail": "3 file(s): artifacts/asre/wp6/benchmark.json, artifacts/asre/wp6/raw-res0.008.jsonl, docs/asre/02-MISSION-4-ASRE.md",
+  "interpretation": "Associated with WP06 by explicit WP6. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "ae9b34786aa62f55dfa9392b399c90b4a9691b9e",
+      "commit": "ae9b34786aa62f55dfa9392b399c90b4a9691b9e",
+      "note": "docs(asre): WP6 benchmark results - incremental 3.0x faster, same quality"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp6/benchmark.json",
+      "commit": "ae9b34786aa62f55dfa9392b399c90b4a9691b9e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp6/raw-res0.008.jsonl",
+      "commit": "ae9b34786aa62f55dfa9392b399c90b4a9691b9e"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/02-MISSION-4-ASRE.md",
+      "commit": "ae9b34786aa62f55dfa9392b399c90b4a9691b9e"
+    }
+  ],
+  "commit": "ae9b34786aa62f55dfa9392b399c90b4a9691b9e",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:ae9b34786aa62f55dfa9392b399c90b4a9691b9e"
+}

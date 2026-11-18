@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118222327-149",
+  "at": 1795040607125.0718,
+  "type": "render",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/m23/baseline/lelu2-m23-baseline-head-three-quarter.png (1.1 MB)",
+  "detail": "a rendered image — visual evidence that can be compared, not just counted; 1120952 bytes",
+  "interpretation": "classed as render · render evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/m23/baseline/lelu2-m23-baseline-head-three-quarter.png",
+      "at": 1795040607125.0718
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/m23/baseline/lelu2-m23-baseline-head-three-quarter.png:1120952"
+}

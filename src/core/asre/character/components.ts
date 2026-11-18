@@ -453,15 +453,18 @@ export const COMPONENTS: Record<ComponentId, ComponentDef> = {
   torso: { id: "torso", frame: "world", deps: () => [], params: (s) => bodyP(s), build: torsoShape },
   pelvis: { id: "pelvis", frame: "world", deps: () => [], params: (s) => bodyP(s), build: pelvisShape },
   neck: { id: "neck", frame: "world", deps: () => ["torso"], params: (s, sk) => ({ ...bodyP(s), neckTop: sk.neckTop }), build: neckShape },
-  head: { id: "head", frame: "head", deps: () => [], params: (s) => ({ headScale: s.face.headScale, skin: s.materials.skin, anatomy: s.anatomy }), build: headLocal },
-  face: { id: "face", frame: "head", deps: () => ["head"], params: (s) => ({ face: s.face, eyes: s.materials.eyes, brows: s.materials.hair, anatomy: s.anatomy }), build: faceLocal },
+  // The youth pass deforms the head, its paint and (through the head field) the
+  // hair that grows on it, so it belongs in those three content keys. Added only
+  // when ON: a canonical build keeps exactly the keys it had.
+  head: { id: "head", frame: "head", deps: () => [], params: (s) => ({ headScale: s.face.headScale, skin: s.materials.skin, anatomy: s.anatomy, ...(s.geometry?.youth ? { youth: true } : {}) }), build: headLocal },
+  face: { id: "face", frame: "head", deps: () => ["head"], params: (s) => ({ face: s.face, eyes: s.materials.eyes, brows: s.materials.hair, anatomy: s.anatomy, ...(s.geometry?.youth ? { youth: true } : {}) }), build: faceLocal },
   hair: {
     id: "hair",
     frame: "head",
     deps: () => ["head"],
     // The golden flag is part of the content key: switching it must regenerate
     // the hair, not return the cached canonical strands.
-    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy, golden: s.geometry?.golden === true, tubes: s.geometry?.hairTubes === true, lod: s.geometry?.hairLod ?? null }),
+    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy, golden: s.geometry?.golden === true, tubes: s.geometry?.hairTubes === true, lod: s.geometry?.hairLod ?? null, ...(s.geometry?.youth ? { youth: true } : {}), ...(s.geometry?.babyHairCounts ? { babyHairCounts: s.geometry.babyHairCounts } : {}) }),
     build: (ctx) => {
       if (usesReference(ctx.spec)) {
         const ref = referenceRegion("hair", ctx.spec, ctx.h ?? 0.004, "head", ctx.sk.headCenter);

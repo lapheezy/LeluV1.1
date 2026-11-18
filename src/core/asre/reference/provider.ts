@@ -26,6 +26,8 @@ import { CELL } from "../character/lattice.ts";
 import { isLelu, LELU_COLOURS as L } from "../character/leluIdentity.ts";
 import { conicalCurl, nearestNeighbourStats, selectSphericalEvenSubset } from "../../geometry/golden/index.ts";
 import { bundleTubes, setHairRootPoints, hairTubeBuild, resetTubeDiagnostics, TUBE_LOD, tubeDiagnostics, type StrandSpec } from "../hair/tubes.ts";
+import { growBabyHair, babyHairState } from "../hair/baby.ts";
+import { landmarksFromJoints, recordYouth, youthDiagnostics, youthWarp, YOUTH_PAINT, type YouthLandmarks } from "../character/youth.ts";
 import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
@@ -106,6 +108,57 @@ const has = (name: string): boolean => !!current?.joints.get(name);
 
 const SIDE = (side: 0 | 1) => (side === 0 ? "l" : "r");
 const SIDEB = (side: 0 | 1) => (side === 0 ? "L" : "R");
+
+/* ------------------------------- youth pass ------------------------------ */
+
+/**
+ * Whether the head being built carries the LÉLU 2.3 youth pass.
+ *
+ * Every reference region is built through `referenceRegion`, so the flag is set
+ * there and read by the head-field helpers and the face paint below. This is the
+ * same module-state pattern `current` uses; the head-field cache and the region
+ * cache both key on it, so a canonical and a youth build can never be served
+ * each other's geometry.
+ */
+let youthEnabled = false;
+
+/**
+ * The mouth line the face paint is drawn against, resolved once per head build.
+ *
+ * Her rig's mouth joint resolves to the origin, so a lip mask anchored on it is
+ * painted at her feet — which is why no lip had ever appeared on a render. The
+ * resolved line comes from `landmarksFromJoints`, which falls back to the
+ * reference's own eye→mouth→chin ratio.
+ */
+let faceMouthY: number | null = null;
+
+/**
+ * Her own face landmarks, in world metres, from the rig she is built on.
+ *
+ * `faceZ` is her eye joint's z plus 2 cm — the front of her face — and it is
+ * deliberately NOT measured with `skinZ`, which builds the head field and would
+ * recurse through the warp it is being asked to place.
+ */
+function youthLandmarks(): YouthLandmarks {
+  const eye = J("joint-l-eye");
+  const lm = landmarksFromJoints(J, eye[2] + 0.02);
+  faceMouthY = lm.mouthY;
+  return lm;
+}
+
+/** The head SDF with the youth pass applied, when this build asks for it. */
+function applyYouth(field: Sdf): Sdf {
+  const lm = youthLandmarks();
+  faceMouthY = lm.mouthY;
+  if (!youthEnabled) return field;
+  recordYouth(lm);
+  return youthWarp(field, lm);
+}
+
+/** The head field with the youth pass applied — every consumer uses this. */
+function headFieldWithYouth(field: SdfField): Sdf {
+  return applyYouth(fieldSdf(field));
+}
 
 /* -------------------------------- fields -------------------------------- */
 
@@ -310,7 +363,10 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   // over the face.
   const head = J("joint-head");
   const headBox = { lo: [head[0] - 0.17, head[1] - 0.2, head[2] - 0.2] as V3, hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.2] as V3 };
-  const headField = fieldSdf(bodyField("head", 0.003, [], headBox));
+  // The hair grows on the head that is actually built, youth pass included: if
+  // the roots were projected onto the un-warped skull they would float off a
+  // shortened chin and a fuller cheek.
+  const headField = headFieldWithYouth(bodyField("head", 0.003, [], headBox));
   const scalp: number[] = [];
   const eps = 0.002;
   const golden = spec.geometry?.golden === true;
@@ -504,50 +560,66 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   if (!strand) return null;
 
   if (tubes) {
-    // Baby hairs along the actual hairline: the lowest band of the scalp cloud,
-    // followed onto the skin itself so they hug the forehead and temples instead
-    // of hanging in front of them.
-    let yLo = Infinity, yHi = -Infinity;
+    // BABY HAIR — its own coordinated system (hair/baby.ts).
+    //
+    // Every strand is a RECORD first: root and tip coordinates, the control
+    // points that are actually swept, measured length and thickness, growth
+    // direction, curvature, its distances to the front hairline / brow / nearest
+    // eye / temple, and its visibility and skin clearance. The tubes below are
+    // swept from those same control points, so the geometry cannot disagree with
+    // the record and a strand that disappears is a visible, countable fact.
+    let yLo = Infinity, yHi = -Infinity, yFront = Infinity;
     for (let i = 0; i < roots.length / 3; i++) {
-      yLo = Math.min(yLo, roots[3 * i + 1]);
-      yHi = Math.max(yHi, roots[3 * i + 1]);
+      const y = roots[3 * i + 1];
+      yLo = Math.min(yLo, y);
+      yHi = Math.max(yHi, y);
+      if (roots[3 * i + 2] > centre[2] + 0.015) yFront = Math.min(yFront, y);
     }
-    const band = yLo + (yHi - yLo) * 0.18;
-    const edge: number[] = [];
-    for (let i = 0; i < roots.length / 3; i++) if (roots[3 * i + 1] <= band) edge.push(i);
-    const edgeStep = Math.max(1, Math.floor(edge.length / 120));
-    let baby = 0;
-    for (let k = 0; k < edge.length && baby < 120; k += edgeStep) {
-      const v = edge[k];
-      const px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
-      const fall = 0.018 + 0.012 * hash3(v, 7);
-      const path: { x: number; y: number; z: number }[] = [];
-      for (let s = 0; s <= 8; s++) {
-        const t = s / 8;
-        let x = px + (hash3(v, 13) - 0.5) * 0.004 * t;
-        let y = py - fall * t;
-        let z = pz - 0.006 * t;
-        // project onto the skin with a 0.6 mm lift: a baby hair follows the
-        // forehead, it does not cut into it and it does not float above it
-        for (let it = 0; it < 3; it++) {
-          const d = headField(x, y, z);
-          if (Math.abs(d - 0.0006) < 0.0002) break;
+    const eyeL = J("joint-l-eye"), eyeR = J("joint-r-eye");
+    const eyeSpan = Math.abs(eyeL[0] - eyeR[0]) || 0.062;
+    const babyReport = growBabyHair({
+      roots,
+      landmarks: {
+        centre: { x: centre[0], y: centre[1], z: centre[2] },
+        hairlineFrontY: Number.isFinite(yFront) ? yFront : yHi,
+        hairlineY: yLo,
+        browY: eyeL[1] + eyeSpan * (youthEnabled ? YOUTH_PAINT.browLiftSpan : 0.2),
+        eyes: [
+          { x: eyeL[0], y: eyeL[1], z: eyeL[2] },
+          { x: eyeR[0], y: eyeR[1], z: eyeR[2] },
+        ],
+        temples: [
+          { x: eyeL[0] - eyeSpan * 0.55, y: eyeL[1] + eyeSpan * 0.16, z: eyeL[2] },
+          { x: eyeR[0] + eyeSpan * 0.55, y: eyeR[1] + eyeSpan * 0.16, z: eyeR[2] },
+        ],
+        faceSpan: eyeSpan,
+      },
+      probe: {
+        distance: (p) => headField(p.x, p.y, p.z),
+        gradient: (p) => {
           const g: V3 = [
-            headField(x + eps, y, z) - headField(x - eps, y, z),
-            headField(x, y + eps, z) - headField(x, y - eps, z),
-            headField(x, y, z + eps) - headField(x, y, z - eps),
+            headField(p.x + eps, p.y, p.z) - headField(p.x - eps, p.y, p.z),
+            headField(p.x, p.y + eps, p.z) - headField(p.x, p.y - eps, p.z),
+            headField(p.x, p.y, p.z + eps) - headField(p.x, p.y, p.z - eps),
           ];
-          const gl = Math.hypot(g[0], g[1], g[2]) || 1;
-          const move = Math.max(-0.002, Math.min(0.002, d - 0.0006));
-          x -= (g[0] / gl) * move;
-          y -= (g[1] / gl) * move;
-          z -= (g[2] / gl) * move;
-        }
-        path.push({ x, y, z });
-      }
-      tubeStrands.push({ path, radius: 0.0005 * (0.8 + 0.5 * hash3(v, 9)), seed: hash3(v, 11), droop: 1 });
-      baby++;
+          const l = Math.hypot(g[0], g[1], g[2]) || 1;
+          return { x: g[0] / l, y: g[1] / l, z: g[2] / l };
+        },
+      },
+      counts: spec.geometry?.babyHairCounts,
+    });
+    for (const s of babyReport.strands) {
+      tubeStrands.push({
+        path: s.controlPoints.map((p) => ({ x: p.x, y: p.y, z: p.z })),
+        radius: s.rootThicknessMm / 1000,
+        seed: 0.5,
+        droop: 1,
+        // A measured thickness is the drawn thickness: no jitter on these.
+        diameterJitter: 0,
+        taperJitter: 0,
+      });
     }
+    babyHairState.report = babyReport;
     const lod = spec.geometry?.hairLod ?? "high";
     const options = TUBE_LOD[lod];
     const built = bundleTubes(tubeStrands, { ...options, diameterVariation: 0.35, taperVariation: 0.4 });
@@ -597,8 +669,8 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     tubeDiagnostics.diameterCv = meanR > 0 ? Math.sqrt(varR) / meanR : 0;
     tubeDiagnostics.tipScaleMin = Math.min(...tips);
     tubeDiagnostics.tipScaleMax = Math.max(...tips);
-    tubeDiagnostics.babyStrands = baby;
-    tubeDiagnostics.babyMaxLengthMm = 30;
+    tubeDiagnostics.babyStrands = babyHairState.report?.count ?? 0;
+    tubeDiagnostics.babyMaxLengthMm = babyHairState.report?.lengthMm.max ?? 0;
     tubeDiagnostics.rootsMeasured = offsets.length;
     tubeDiagnostics.rootsOutsideFieldBox = outsideBox;
     tubeDiagnostics.rootOffsetP50Mm = offsets.length ? offsets[Math.floor(offsets.length / 2)] * 1000 : 0;
@@ -682,19 +754,19 @@ function skinZ(x: number, y: number, seeded = 0): number {
   // Her face is at +z, so the front-most skin on a ray is the FIRST solid met
   // marching in from in front of her head — measured on the RAW head field, the
   // one that exists before any eyelid is cut into it.
-  const sd = fieldSdf(headSdf());
+  const sd = headFieldWithYouth(headSdf());
   const hp = J("joint-head");
   for (let z = hp[2] + 0.14; z > hp[2] - 0.14; z -= 0.0005) if (sd(x, y, z) < 0) return z;
   return seeded;
 }
 
 /** Her head's distance field, built once per loaded reference. */
-let headFieldCache: { digest: string; field: SdfField } | null = null;
+let headFieldCache: { digest: string; youth: boolean; field: SdfField } | null = null;
 function headSdf(): SdfField {
-  if (headFieldCache && headFieldCache.digest === (current!.digest as string)) return headFieldCache.field;
+  if (headFieldCache && headFieldCache.digest === (current!.digest as string) && headFieldCache.youth === youthEnabled) return headFieldCache.field;
   const hp = J("joint-head"), neckY = J("joint-neck")[1];
   const field = bodyField("head", FIELD_H, [], { lo: [hp[0] - 0.16, neckY - 0.06, hp[2] - 0.20], hi: [hp[0] + 0.16, hp[1] + 0.16, hp[2] + 0.20] });
-  headFieldCache = { digest: current!.digest as string, field };
+  headFieldCache = { digest: current!.digest as string, youth: youthEnabled, field };
   return field;
 }
 
@@ -809,27 +881,58 @@ function noise(x: number, y: number, z: number, seed = 0): number {
  */
 function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb): Rgb {
   const mouth = J("joint-mouth"), eL = J("joint-l-eye"), eR = J("joint-r-eye");
+  // The mouth line: her rig's mouth joint when it is real, otherwise the line
+  // measured from her own eye line (see `faceMouthY`), plus the youth pass's lift
+  // so the lips are painted on the lifted face rather than under it.
+  const mouthY = (faceMouthY ?? mouth[1]) + (youthEnabled ? youthDiagnostics.mouthLiftMm / 1000 : 0);
   const span = Math.abs(eL[0] - eR[0]) || 0.062;
   const eyeY = (eL[1] + eR[1]) / 2;
   const front = z > mouth[2] - span * 0.5;
 
-  // lips: fuller lower lip, defined cupid's bow
+  // The youth pass moves three paint thresholds with the shape: a higher, thinner
+  // brow and a mouth widened toward the reference's mouth : eye-span ratio.
+  const browArchSpan = youthEnabled ? YOUTH_PAINT.browLiftSpan : 0.2;
+  const browThickSpan = youthEnabled ? YOUTH_PAINT.browThicknessSpan : 0.058;
+  const lipWidthSpan = youthEnabled ? YOUTH_PAINT.lipWidthSpan : 0.46;
+  const lipHeightSpan = youthEnabled ? YOUTH_PAINT.lipHeightSpan : 0.2;
+
+  // lips: fuller lower lip, defined cupid's bow.
+  //
+  // The ellipse used to carry a THIRD axis in z about the mouth joint, and the
+  // joint sits well behind her lip surface — so the test never passed and her
+  // lips were never painted at all. Lips are a marking on the front of her face:
+  // they are decided in x/y, and only gated by being on the front.
   if (front) {
-    const lip = Math.hypot((x - mouth[0]) / (span * 0.46), (y - mouth[1]) / (span * 0.2), (z - mouth[2]) / (span * 0.36));
-    if (lip < 1) {
-      // gloss sits on the centre of the lower lip, where it catches light
-      const gloss = y < mouth[1] - span * 0.012 && Math.abs(x - mouth[0]) < span * 0.2 && z > mouth[2] + span * 0.1;
-      return gloss ? L.lipHighlight : L.lip;
+    // Two lips and the line between them, not one oval: a single ellipse reads as
+    // a painted blob. The cupid's bow is a dip in the upper lip at the midline and
+    // the corners taper, which is what makes a mouth look like a mouth.
+    const lx = (x - mouth[0]) / (span * lipWidthSpan);
+    const ly = (y - mouthY) / (span * lipHeightSpan);
+    if (Math.abs(lx) < 1) {
+      const width = 1 - 0.85 * lx * lx;
+      const bow = 1 - 0.5 * Math.exp(-((lx / 0.2) * (lx / 0.2)));
+      const upper = ly > 0 && ly < 0.5 * width * bow;
+      const lower = ly <= 0 && -ly < 0.8 * width;
+      if (upper || lower) {
+        if (Math.abs(ly) < 0.055) return [0.14, 0.03, 0.05];
+        const gloss = lower && ly < -0.45 * width && Math.abs(lx) < 0.5;
+        return gloss ? L.lipHighlight : L.lip;
+      }
     }
   }
 
   // brows: full, dark, softly arched, tapering into a clean tail. The arch is a
   // curve, not an ellipse: an elliptical brow reads as a smudge above the eye.
+  //
+  // Three things stop a brow reading as a painted bar: a gap at the midline (or
+  // the two brows join into one), a rise toward the tail (a flat brow reads
+  // stern), and a thickness that falls off toward both ends.
   for (const e of [eL, eR]) {
     const u = (x - e[0]) / (span * 0.54);
-    if (Math.abs(u) < 1) {
-      const arch = e[1] + span * (0.2 + 0.055 * (1 - u * u));
-      const th = span * 0.058 * (1 - 0.5 * Math.abs(u * u));
+    const fromCentre = Math.abs(x - mouth[0]);
+    if (Math.abs(u) < 1 && fromCentre > span * 0.15) {
+      const arch = e[1] + span * (browArchSpan + 0.05 * (1 - u * u) + 0.045 * u * Math.sign(e[0] || 1));
+      const th = span * browThickSpan * (1 - 0.62 * u * u);
       if (Math.abs(y - arch) < th) return hairC;
     }
   }
@@ -864,7 +967,7 @@ function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb):
   }
 
   // freckles across nose and cheeks
-  if (y < eyeY - span * 0.05 && y > mouth[1] + span * 0.16 && front)
+  if (y < eyeY - span * 0.05 && y > mouthY + span * 0.16 && front)
     if (noise(Math.round(x * 1400), Math.round(y * 1400), 3) > 0.975) return L.skinShade;
 
   return skin;
@@ -949,12 +1052,13 @@ export type RegionId =
  */
 export function referenceRegion(id: RegionId, spec: CharacterSpec, h: number, frame: "world" | "head" = "world", headCenter: V3 = [0, 0, 0]): Shape | null {
   if (!current) return null;
+  youthEnabled = spec.geometry?.youth === true;
   // Snapped to the OCCUPANCY cell, never to the mesh resolution: the anchor
   // that places this shape is `anchorCells(…, lattice.resolution)`, so
   // snapping with the mesh resolution shifted the head by up to 3 mm between
   // the per-component and whole-object paths.
   const anchor: V3 = frame === "head" ? [Math.round(headCenter[0] / CELL) * CELL, Math.round(headCenter[1] / CELL) * CELL, Math.round(headCenter[2] / CELL) * CELL] : [0, 0, 0];
-  const key = `${current.digest}|region:${id}|${h}|${frame}|${anchor.join(",")}|${spec.hands.curl},${spec.hands.spread},${spec.hands.opposition},${spec.feet?.toeCurl ?? 0}`;
+  const key = `${current.digest}|region:${id}|${h}|${frame}|${anchor.join(",")}|${spec.hands.curl},${spec.hands.spread},${spec.hands.opposition},${spec.feet?.toeCurl ?? 0}|youth:${youthEnabled}`;
   const hit = shapeCache.get(key);
   if (hit !== undefined) return hit;
   const s = buildRegion(id, spec, h, anchor);
@@ -980,15 +1084,27 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
     case "head": {
       const hp = J("joint-head");
       const f = body("head", [], { lo: [hp[0] - 0.16, neckY - 0.06, hp[2] - 0.20], hi: [hp[0] + 0.16, hp[1] + 0.16, hp[2] + 0.20] });
+      // The youth pass deforms the head she HAS — her skull, her marks, her eye
+      // joints. No generic face is substituted. The bounds are grown by the
+      // displacement so no surface is sampled outside its own box.
+      // Resolve her mouth line for the paint whether or not the warp is on: the
+      // rig's joint is unusable, and her lips must exist in both builds.
+      faceMouthY = youthLandmarks().mouthY;
+      const headShape: Shape = youthEnabled
+        ? { ...f, f: applyYouth(f.f), lo: [f.lo[0], f.lo[1], f.lo[2] - 0.002] as V3, hi: [f.hi[0] + 0.004, f.hi[1] + 0.004, f.hi[2] + 0.012] as V3 }
+        : f;
       const m = faceMasks();
       const hairC = spec.materials.hair;
-      let result = clip(f, above(neckY - 0.004));
+      let result = clip(headShape, above(neckY - 0.004));
       if (isLelu(spec)) {
         // Open her eyelids: without an aperture the reference mesh is closed and
         // the eyeballs read as two white slits behind skin.
         const eL = J("joint-l-eye"), eR = J("joint-r-eye");
         const span = Math.abs(eL[0] - eR[0]) || 0.062;
-        const ap = (e: V3) => eyeAperture(e, span, Math.sign(e[0]) || 1);
+        // A youth pass opens the lid aperture slightly: the reference's eyes are
+        // larger than the 2.1 build's, and a larger opening is what makes an eye
+        // read young rather than small.
+        const ap = (e: V3) => eyeAperture(e, span * (youthEnabled ? YOUTH_PAINT.apertureScale : 1), Math.sign(e[0]) || 1);
         result = subtract(result, (x, y, z) => Math.min(ap(eL)(x, y, z), ap(eR)(x, y, z)));
       }
       shape = {
@@ -1028,7 +1144,12 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
         // does tell us reliably. So the globe goes on the joint, and the lid
         // opening is cut around the same point.
         const zs = isLelu(spec) ? skinZ(raw[0], raw[1], raw[2]) : raw[2];
-        const e: V3 = isLelu(spec) ? [raw[0], raw[1], raw[2]] : raw;
+        // The globe sits where her SKIN is, not on the rig's joint: the joint is
+        // a couple of millimetres behind the surface, which left only the globe's
+        // edge visible through the lid opening and made her eyes read as two pale
+        // slits with a dot in them. `zs` was already measured here and then
+        // ignored; the cornea now sits 1.5 mm proud of the skin.
+        const e: V3 = isLelu(spec) ? [raw[0], raw[1], zs - EYE_GLOBE_R + 0.0015] : raw;
         if (lelu) {
           feats.push(leluEyeball(e, zs));
         } else {

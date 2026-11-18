@@ -1,0 +1,47 @@
+{
+  "id": "O-20261117231424-106",
+  "at": 1794957264000,
+  "type": "source-change",
+  "workPackage": "WP05",
+  "summary": "feat(asre): WP05 temporal creation - snapshots, diffs, undo/redo, branches, lineage",
+  "detail": "5 file(s): plugins/asreApi.ts, plugins/asreCharacters.ts, plugins/asreJobs.ts, src/core/asre/character/identity.ts, tests/asre-temporal-creation.test.ts",
+  "interpretation": "Associated with WP05 by explicit WP05. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "489ccaed7f7d7fd534efa192a5cc8166ac88b993",
+      "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993",
+      "note": "feat(asre): WP05 temporal creation - snapshots, diffs, undo/redo, branches, lineage"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreCharacters.ts",
+      "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreJobs.ts",
+      "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/identity.ts",
+      "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-temporal-creation.test.ts",
+      "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993"
+    }
+  ],
+  "commit": "489ccaed7f7d7fd534efa192a5cc8166ac88b993",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:489ccaed7f7d7fd534efa192a5cc8166ac88b993"
+}

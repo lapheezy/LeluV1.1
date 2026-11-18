@@ -1,0 +1,57 @@
+{
+  "id": "O-20261117211710-132",
+  "at": 1794950230000,
+  "type": "architecture-change",
+  "workPackage": "MISSION",
+  "summary": "feat(nre): numerical reconstruction engine schema, Morton ordering, fusion and versioned container",
+  "detail": "7 file(s): src/core/asre/nre/SparseVoxelGrid.ts, src/core/asre/nre/hash.ts, src/core/asre/nre/index.ts, src/core/asre/nre/morton.ts, src/core/asre/nre/serialize.ts, src/core/asre/nre/types.ts, tests/asre-nre.test.ts",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f",
+      "note": "feat(nre): numerical reconstruction engine schema, Morton ordering, fusion and versioned container"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/nre/SparseVoxelGrid.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/nre/hash.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/nre/index.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/nre/morton.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/nre/serialize.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/nre/types.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-nre.test.ts",
+      "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+    }
+  ],
+  "commit": "5ef3ba22d830153bd350829d7f0b15a43bf1ca7f",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:5ef3ba22d830153bd350829d7f0b15a43bf1ca7f"
+}

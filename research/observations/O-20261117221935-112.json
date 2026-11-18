@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117221935-112",
+  "at": 1794953975000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "docs(asre): session handoff (state, results, gaps, next steps, reproduction)",
+  "detail": "1 file(s): docs/SESSION_HANDOFF.md",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "beb3f1f91398c5a79da2a62ba53b88bbd31866f4",
+      "commit": "beb3f1f91398c5a79da2a62ba53b88bbd31866f4",
+      "note": "docs(asre): session handoff (state, results, gaps, next steps, reproduction)"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/SESSION_HANDOFF.md",
+      "commit": "beb3f1f91398c5a79da2a62ba53b88bbd31866f4"
+    }
+  ],
+  "commit": "beb3f1f91398c5a79da2a62ba53b88bbd31866f4",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:beb3f1f91398c5a79da2a62ba53b88bbd31866f4"
+}

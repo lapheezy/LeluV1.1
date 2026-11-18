@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118222956-142",
+  "at": 1795040996032.1804,
+  "type": "render",
+  "workPackage": "WP10",
+  "summary": "artifacts/lelu2/research/baby-hair-overlay.png (221.0 KB)",
+  "detail": "a rendered image — visual evidence that can be compared, not just counted; 226257 bytes",
+  "interpretation": "classed as render · render evidence · associated with WP10 by artefact path \\/research\\/",
+  "evidence": [
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/research/baby-hair-overlay.png",
+      "at": 1795040996032.1804
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/research/baby-hair-overlay.png:226257"
+}

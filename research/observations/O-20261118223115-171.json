@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118223115-171",
+  "at": 1795041075018,
+  "type": "test",
+  "workPackage": "MISSION",
+  "summary": "lelu-research-acceptance: passed",
+  "detail": "11/11 criteria passed",
+  "interpretation": "a passing check — evidence that re-runs, so it can support verification",
+  "evidence": [
+    {
+      "kind": "test",
+      "ref": "lelu-research-acceptance@1795041075018",
+      "note": "passed"
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "result",
+  "key": "result:lelu-research-acceptance:1795041075018"
+}

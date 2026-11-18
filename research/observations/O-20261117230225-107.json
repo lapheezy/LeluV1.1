@@ -1,0 +1,47 @@
+{
+  "id": "O-20261117230225-107",
+  "at": 1794956545000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "feat(asre): WP04 persistent character identity with dependency-aware regeneration",
+  "detail": "5 file(s): plugins/asreApi.ts, plugins/asreCharacters.ts, src/core/asre/character/identity.ts, src/core/avatar/LeluCharacterStore.ts, tests/asre-character-identity.test.ts",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40",
+      "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40",
+      "note": "feat(asre): WP04 persistent character identity with dependency-aware regeneration"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreCharacters.ts",
+      "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/identity.ts",
+      "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/avatar/LeluCharacterStore.ts",
+      "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-character-identity.test.ts",
+      "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40"
+    }
+  ],
+  "commit": "5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:5b97aac0d57cbbe1c42bd1e7e4999a2a71bdfe40"
+}

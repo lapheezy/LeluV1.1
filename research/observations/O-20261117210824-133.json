@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117210824-133",
+  "at": 1794949704000,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "docs(asre): baseline audit for clean-session reconstruction",
+  "detail": "1 file(s): docs/asre/00-BASELINE-AUDIT.md",
+  "interpretation": "Associated with WP01 by keyword \\bwp\\s*0?1\\b|claim|audit|ret. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "a93f947faa6240ad86b3017e91160731f0e23c95",
+      "commit": "a93f947faa6240ad86b3017e91160731f0e23c95",
+      "note": "docs(asre): baseline audit for clean-session reconstruction"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/00-BASELINE-AUDIT.md",
+      "commit": "a93f947faa6240ad86b3017e91160731f0e23c95"
+    }
+  ],
+  "commit": "a93f947faa6240ad86b3017e91160731f0e23c95",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:a93f947faa6240ad86b3017e91160731f0e23c95"
+}

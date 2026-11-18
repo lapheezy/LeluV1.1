@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117221424-114",
+  "at": 1794953664000,
+  "type": "source-change",
+  "workPackage": "WP06",
+  "summary": "chore(checkpoint): WP6 benchmark journal, trials 1-3 of 5 (in progress)",
+  "detail": "1 file(s): artifacts/asre/wp6/raw-res0.008.jsonl",
+  "interpretation": "Associated with WP06 by explicit WP6. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "cff373ab372701f2901472059dcb6cabdc7eaed8",
+      "commit": "cff373ab372701f2901472059dcb6cabdc7eaed8",
+      "note": "chore(checkpoint): WP6 benchmark journal, trials 1-3 of 5 (in progress)"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp6/raw-res0.008.jsonl",
+      "commit": "cff373ab372701f2901472059dcb6cabdc7eaed8"
+    }
+  ],
+  "commit": "cff373ab372701f2901472059dcb6cabdc7eaed8",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:cff373ab372701f2901472059dcb6cabdc7eaed8"
+}

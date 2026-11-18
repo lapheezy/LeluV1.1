@@ -1,0 +1,32 @@
+{
+  "id": "O-20261117212307-130",
+  "at": 1794950587000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "feat(volume): volumetric intelligence - boundary/interior, fill, loss measurement, selector, interpolation",
+  "detail": "2 file(s): src/core/asre/volume/volumetric.ts, tests/asre-volumetric.test.ts",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "0bb9d7eb800eed5cd85dc95b0e2ad4ede7b6db02",
+      "commit": "0bb9d7eb800eed5cd85dc95b0e2ad4ede7b6db02",
+      "note": "feat(volume): volumetric intelligence - boundary/interior, fill, loss measurement, selector, interpolation"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/volume/volumetric.ts",
+      "commit": "0bb9d7eb800eed5cd85dc95b0e2ad4ede7b6db02"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-volumetric.test.ts",
+      "commit": "0bb9d7eb800eed5cd85dc95b0e2ad4ede7b6db02"
+    }
+  ],
+  "commit": "0bb9d7eb800eed5cd85dc95b0e2ad4ede7b6db02",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:0bb9d7eb800eed5cd85dc95b0e2ad4ede7b6db02"
+}

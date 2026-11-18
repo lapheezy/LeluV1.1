@@ -1,0 +1,139 @@
+[
+ {
+  "kind": "compare",
+  "title": "Her face, same camera: without → with the youth pass",
+  "before": {
+   "src": "artifacts/lelu2/m23/baseline/lelu2-m23-baseline-face-front.png",
+   "alt": "Her face before the youth pass",
+   "caption": "2.3 paint fixes, no youth pass",
+   "commit": "761d01c88633c664a376bd8605a351df3a626287"
+  },
+  "after": {
+   "src": "artifacts/lelu2/m23/youth/lelu2-m23-youth-face-front.png",
+   "alt": "Her face after the youth pass",
+   "caption": "youth pass: lower face shorter, jaw narrower, cheeks fuller",
+   "commit": "761d01c88633c664a376bd8605a351df3a626287"
+  },
+  "note": "Eye line → chin 112.6 mm → 103.4 mm; the chin is 1474.9 mm above the floor.",
+  "measurements": [
+   {
+    "label": "eye → chin",
+    "value": 103.4,
+    "unit": "mm",
+    "delta": "-9.2 mm",
+    "source": "metrics-youth.json → face.eyeToChinMm"
+   },
+   {
+    "label": "jaw / cheek",
+    "value": 0.792,
+    "delta": "-0.006",
+    "source": "face fractions"
+   },
+   {
+    "label": "cheek share of head",
+    "value": "19.3 %",
+    "delta": "0.5 pts"
+   }
+  ]
+ },
+ {
+  "kind": "compare",
+  "title": "Head, three-quarter view",
+  "before": {
+   "src": "artifacts/lelu2/m23/baseline/lelu2-m23-baseline-head-three-quarter.png",
+   "alt": "Head before",
+   "caption": "without the youth pass",
+   "commit": "761d01c88633c664a376bd8605a351df3a626287"
+  },
+  "after": {
+   "src": "artifacts/lelu2/m23/youth/lelu2-m23-youth-head-three-quarter.png",
+   "alt": "Head after",
+   "caption": "with the youth pass",
+   "commit": "761d01c88633c664a376bd8605a351df3a626287"
+  }
+ },
+ {
+  "kind": "image",
+  "src": "artifacts/lelu2/research/baby-hair-overlay.png",
+  "alt": "Baby hair placement overlay, rasterised from the strand records",
+  "caption": "Placement of all 88 strands in the front view, with her eye line (1578 mm) and hairline band visible. Front strands sit ~45 mm above the eyes: the hairline is high and the strands are 7–35 mm long, which is the sparse-forehead defect this overlay exposes.",
+  "commit": "761d01c88633c664a376bd8605a351df3a626287"
+ },
+ {
+  "kind": "image",
+  "src": "artifacts/lelu2/m23/youth/baby-hair-youth.svg",
+  "alt": "Baby hair placement overlay",
+  "caption": "88 strands: 36 front, 24 temples, 12 sideburns, 16 flyaways · hairline coverage 100 %",
+  "commit": "761d01c88633c664a376bd8605a351df3a626287",
+  "measurements": [
+   {
+    "label": "strands",
+    "value": 88
+   },
+   {
+    "label": "length",
+    "value": "7.2–35.2",
+    "unit": "mm"
+   },
+   {
+    "label": "root Ø",
+    "value": "0.16–0.45",
+    "unit": "mm"
+   },
+   {
+    "label": "skin collisions",
+    "value": 2
+   }
+  ]
+ },
+ {
+  "kind": "measure",
+  "title": "What changed, measured on the mesh",
+  "rows": [
+   {
+    "label": "eye → chin",
+    "value": 103.4,
+    "unit": "mm",
+    "delta": "-9.2 mm"
+   },
+   {
+    "label": "lower third share",
+    "value": "46.1 %",
+    "delta": "-2.1 pts"
+   },
+   {
+    "label": "jaw width",
+    "value": 114.3,
+    "unit": "mm",
+    "delta": "-1.9 mm"
+   },
+   {
+    "label": "chin width",
+    "value": 87.8,
+    "unit": "mm",
+    "delta": "-0.7 mm"
+   },
+   {
+    "label": "chin / jaw",
+    "value": 0.768,
+    "delta": "0.007"
+   },
+   {
+    "label": "baby hair strands",
+    "value": 88,
+    "delta": "0"
+   },
+   {
+    "label": "hairline coverage",
+    "value": "10000.0 %",
+    "delta": "0 pts"
+   }
+  ],
+  "note": "Every value is read from the build's own metrics file, not typed in. Widths are measured at fixed fractions of the FACE (chin → eye line), so a lifted chin cannot silently re-sample a different part of the jaw."
+ },
+ {
+  "kind": "commit",
+  "sha": "761d01c88633c664a376bd8605a351df3a626287",
+  "subject": "LÉLU 2.3 — youth pass, baby-hair system, evidence in chat"
+ }
+]

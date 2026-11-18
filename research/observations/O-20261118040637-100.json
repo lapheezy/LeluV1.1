@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118040637-100",
+  "at": 1794974797000,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "docs(asre): M5.8 audit — measure the character before changing it",
+  "detail": "30 file(s): artifacts/mission58/MANIFEST.md, artifacts/mission58/before/base-back.png, artifacts/mission58/before/base-back.png.json, artifacts/mission58/before/base-face-front.png, artifacts/mission58/before/base-face-front.png.json, artifacts/mission58/before/base-face-three-quarter.png, artifacts/mission58/before/base-face-three-quarter.png.json, artifacts/mission58/before/base-feet-front.png, …",
+  "interpretation": "Associated with WP01 by keyword \\bwp\\s*0?1\\b|claim|audit|ret. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a",
+      "note": "docs(asre): M5.8 audit — measure the character before changing it"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/MANIFEST.md",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-back.png",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-back.png.json",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-face-front.png",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-face-front.png.json",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-face-three-quarter.png",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-face-three-quarter.png.json",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-feet-front.png",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-feet-front.png.json",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-feet-three-quarter.png",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-feet-three-quarter.png.json",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/before/base-front.png",
+      "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+    }
+  ],
+  "commit": "c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:c3f0e4e7c571a23cbd578b6733e536a3c2c9a80a"
+}

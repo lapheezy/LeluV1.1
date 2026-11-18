@@ -128,6 +128,18 @@ export interface GeometryParams {
   /** Tube detail level: 7×26, 5×14 or 3×7 sides × segments.
    */
   hairLod?: "high" | "medium" | "low";
+  /**
+   * The LÉLU 2.3 youth/identity pass (see `youth.ts`): a measured deformation of
+   * her own head — shorter lower face, narrower jaw, fuller cheeks and chin,
+   * fuller lips and larger lid aperture. Off by default, so the canonical build
+   * is byte-identical and every earlier artifact still reproduces.
+   */
+  youth?: boolean;
+  /**
+   * Per-region baby-hair counts. Absent means the baby-hair system's own
+   * defaults (see `hair/baby.ts`); present, each named region is overridden.
+   */
+  babyHairCounts?: Partial<Record<"front" | "temple-left" | "temple-right" | "sideburn-left" | "sideburn-right" | "flyaway", number>>;
 }
 
 export interface CharacterSpec {

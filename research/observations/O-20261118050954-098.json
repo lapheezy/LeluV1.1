@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118050954-098",
+  "at": 1794978594000,
+  "type": "architecture-change",
+  "workPackage": "WP02",
+  "summary": "feat(asre): M5.8 WP02.1 — parametric hands with five digits and a thumb",
+  "detail": "82 file(s): artifacts/mission58/MANIFEST.md, artifacts/mission58/hands/cameras.json, artifacts/mission58/hands/full-body-front.png, artifacts/mission58/hands/full-body-front.png.json, artifacts/mission58/hands/full-body-three-quarter.png, artifacts/mission58/hands/full-body-three-quarter.png.json, artifacts/mission58/hands/full-body.glb, artifacts/mission58/hands/hands-base-back.png, …",
+  "interpretation": "Associated with WP02 by explicit WP02. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5",
+      "note": "feat(asre): M5.8 WP02.1 — parametric hands with five digits and a thumb"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/MANIFEST.md",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/cameras.json",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/full-body-front.png",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/full-body-front.png.json",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/full-body-three-quarter.png",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/full-body-three-quarter.png.json",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/full-body.glb",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/hands-base-back.png",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/hands-base-back.png.json",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/hands-base-front.png",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/hands-base-front.png.json",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/hands/hands-base-hands-front.png",
+      "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+    }
+  ],
+  "commit": "7d525b79d256ca7a568b4ebbfc1e18deae90cbc5",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:7d525b79d256ca7a568b4ebbfc1e18deae90cbc5"
+}

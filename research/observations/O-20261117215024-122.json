@@ -1,0 +1,82 @@
+{
+  "id": "O-20261117215024-122",
+  "at": 1794952224000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(asre): WP3 component-based character with content-keyed reuse",
+  "detail": "12 file(s): artifacts/asre/character/smoke/base_front.png, artifacts/asre/character/smoke/base_front.png.json, artifacts/asre/character/smoke/base_three-quarter.png, artifacts/asre/character/smoke/base_three-quarter.png.json, artifacts/asre/character/smoke/sheet.png, scripts/asre/character-smoke.ts, src/core/asre/character/CharacterSpec.ts, src/core/asre/character/build.ts, …",
+  "interpretation": "Associated with WP03 by explicit WP3. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "680fe615c3c4a71a539b9014f131d537d9a34b63",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63",
+      "note": "feat(asre): WP3 component-based character with content-keyed reuse"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/smoke/base_front.png",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/smoke/base_front.png.json",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/smoke/base_three-quarter.png",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/smoke/base_three-quarter.png.json",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/smoke/sheet.png",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/character-smoke.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/CharacterSpec.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/build.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/components.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/sdf.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/shape.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-character.test.ts",
+      "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63"
+    }
+  ],
+  "commit": "680fe615c3c4a71a539b9014f131d537d9a34b63",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:680fe615c3c4a71a539b9014f131d537d9a34b63"
+}

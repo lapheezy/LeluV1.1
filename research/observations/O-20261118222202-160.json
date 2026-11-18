@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118222202-160",
+  "at": 1795040522964.624,
+  "type": "comparison",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/m23/baseline/metrics-baseline.json (4.9 KB)",
+  "detail": "a measured result — the only kind of artefact that can promote a claim to verified; 4984 bytes",
+  "interpretation": "classed as comparison · measurement evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/m23/baseline/metrics-baseline.json",
+      "at": 1795040522964.624
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/m23/baseline/metrics-baseline.json:4984"
+}

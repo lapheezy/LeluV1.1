@@ -1,0 +1,83 @@
+{
+  "id": "R-20261118-wp01-the-hairline-was-the-hair-curtain",
+  "kind": "failures",
+  "createdAt": 1795041058448,
+  "updatedAt": 1795041058448,
+  "mission": "LÉLU 2.3 — autonomous learning, visual creation and identity reconstruction",
+  "workPackage": "WP01",
+  "observed": "The 2.1 contract reported a front hairline ~100 mm below her eye line, with 0 % front coverage, and the first 2.3 baby-hair run produced 88 strands — sideburns and flyaways only, no front strands and no temple strands.",
+  "studied": "Root clouds vs hairline geometry: what a scalp root cloud actually contains, and why a global minimum of a cloud that includes hanging hair cannot be a forehead edge.",
+  "question": "Why did the baby-hair system place no strands on the forehead, and what is the real front hairline?",
+  "hypothesis": "The scalp has no front roots, because her hairline is too high.",
+  "method": "Dump the root distribution and the report's own `available` counts, then classify every root by its direction from the head centre and re-measure the hairline on the forehead band only.",
+  "results": "Hypothesis refuted. The front roots exist; they were never in the band. After classifying by facing, the run produced 88 strands (36 front, 24 temples, 12 sideburns, 16 flyaways) with 100 % front-hairline coverage.",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/m23/baseline/metrics-baseline.json",
+      "note": "the run with no front strands, and the root cloud that produced it"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/m23/youth/baby-hair-youth.json",
+      "note": "every strand's record, with its landmark distances"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/m23/youth/baby-hair-youth.svg",
+      "note": "the placement overlay drawn from those records"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-m23.test.ts",
+      "note": "the baby-hair guards"
+    },
+    {
+      "kind": "commit",
+      "ref": "761d01c88633c664a376bd8605a351df3a626287",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "A scalp cloud is not a scalp: it contains the hairstyle. Any hairline measurement must be taken on the FRONT band by facing, or it measures hair hanging beside the jaw.",
+  "confidence": 0.93,
+  "limitations": [
+    "The fix is a classification of roots the asset provides; it cannot invent forehead coverage where the hair card has none.",
+    "2 of 88 strands still report a skin collision and are drawn in red in the overlay."
+  ],
+  "applications": [
+    "Every hairline figure in future reports must state which band it was measured on.",
+    "The same facing classification places temples and sideburns."
+  ],
+  "nextQuestions": [
+    "Why do a few temple strands penetrate the skin even after projection?",
+    "Does the hair card's own coverage hide a real gap at the crown?"
+  ],
+  "answers": [
+    "Why did the baby-hair system place no strands on the forehead?"
+  ],
+  "status": "verified",
+  "tags": [
+    "hairline",
+    "baby-hair",
+    "measurement",
+    "failure",
+    "wp01"
+  ],
+  "commit": "761d01c88633c664a376bd8605a351df3a626287",
+  "session": "S-2026-11-18",
+  "assumptions": [
+    {
+      "statement": "the lowest front root is the forehead hairline",
+      "verdict": "refuted"
+    },
+    {
+      "statement": "the scalp cloud contains no roots on the forehead",
+      "verdict": "refuted"
+    }
+  ],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": 1795041058448
+}

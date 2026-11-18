@@ -1,0 +1,77 @@
+{
+  "id": "O-20261117225023-109",
+  "at": 1794955823000,
+  "type": "architecture-change",
+  "workPackage": "WP01",
+  "summary": "feat(asre): WP01 native ASRE service - typed jobs, lifecycle, hypotheses, multi-view",
+  "detail": "11 file(s): plugins/asreApi.ts, plugins/asreJobs.ts, scripts/asre/runtime.ts, scripts/asre/triposr-hypotheses.ts, services/asre-reconstruct/setup.sh, src/core/asre/contracts.ts, src/core/asre/image/png.ts, src/core/asre/reconstruct/pipeline.ts, …",
+  "interpretation": "Associated with WP01 by explicit WP01. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3",
+      "note": "feat(asre): WP01 native ASRE service - typed jobs, lifecycle, hypotheses, multi-view"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreJobs.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/runtime.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/triposr-hypotheses.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "services/asre-reconstruct/setup.sh",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/contracts.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/image/png.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/reconstruct/pipeline.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/reconstruct/silhouette.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/temporal/Flipbook.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-jobs.test.ts",
+      "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+    }
+  ],
+  "commit": "c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:c8f9f0f4bfbce0881e77b20cb44d837a71a9c0e3"
+}

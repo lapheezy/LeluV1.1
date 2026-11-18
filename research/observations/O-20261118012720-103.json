@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118012720-103",
+  "at": 1794965240000,
+  "type": "source-change",
+  "workPackage": "WP07",
+  "summary": "feat(asre): WP07 end-to-end creation proven through the running app",
+  "detail": "167 file(s): artifacts/mission5/WP07/A-image-to-3d/00-status.json, artifacts/mission5/WP07/A-image-to-3d/01-job.json, artifacts/mission5/WP07/A-image-to-3d/02-slices.json, artifacts/mission5/WP07/A-image-to-3d/03-lineage.json, artifacts/mission5/WP07/A-image-to-3d/04-renders.json, artifacts/mission5/WP07/A-image-to-3d/05-forge.json, artifacts/mission5/WP07/A-image-to-3d/06-forge-history.json, artifacts/mission5/WP07/A-image-to-3d/07-export-downloads.json, …",
+  "interpretation": "Associated with WP07 by explicit WP07. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c",
+      "note": "feat(asre): WP07 end-to-end creation proven through the running app"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/00-status.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/01-job.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/02-slices.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/03-lineage.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/04-renders.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/05-forge.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/06-forge-history.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/07-export-downloads.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/07-export.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/08-summary.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/export/render.png",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission5/WP07/A-image-to-3d/export/report.json",
+      "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+    }
+  ],
+  "commit": "b046964bf452fe39c4acd9ae1d6256f9588f5c2c",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:b046964bf452fe39c4acd9ae1d6256f9588f5c2c"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "O-20261117214125-123",
+  "at": 1794951685000,
+  "type": "architecture-change",
+  "workPackage": "WP02",
+  "summary": "feat(temporal): WP2 flipbook reconstruction with conflict carving and region preservation",
+  "detail": "3 file(s): src/core/asre/temporal/Flipbook.ts, src/core/asre/temporal/index.ts, tests/asre-flipbook.test.ts",
+  "interpretation": "Associated with WP02 by explicit WP2. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "994d59ccb643643c2041ce0e9f246c90a5b9ae82",
+      "commit": "994d59ccb643643c2041ce0e9f246c90a5b9ae82",
+      "note": "feat(temporal): WP2 flipbook reconstruction with conflict carving and region preservation"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/temporal/Flipbook.ts",
+      "commit": "994d59ccb643643c2041ce0e9f246c90a5b9ae82"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/temporal/index.ts",
+      "commit": "994d59ccb643643c2041ce0e9f246c90a5b9ae82"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-flipbook.test.ts",
+      "commit": "994d59ccb643643c2041ce0e9f246c90a5b9ae82"
+    }
+  ],
+  "commit": "994d59ccb643643c2041ce0e9f246c90a5b9ae82",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:994d59ccb643643c2041ce0e9f246c90a5b9ae82"
+}

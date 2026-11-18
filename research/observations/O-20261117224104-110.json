@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117224104-110",
+  "at": 1794955264000,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "docs(asre): Mission 5 WP00 audit - verified baseline, gaps, integration plan",
+  "detail": "1 file(s): docs/asre/05_MISSION5_AUDIT.md",
+  "interpretation": "Associated with WP01 by keyword \\bwp\\s*0?1\\b|claim|audit|ret. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "68cb322c3a04e4e3b2e569eaa2678bf4ac6b533f",
+      "commit": "68cb322c3a04e4e3b2e569eaa2678bf4ac6b533f",
+      "note": "docs(asre): Mission 5 WP00 audit - verified baseline, gaps, integration plan"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/05_MISSION5_AUDIT.md",
+      "commit": "68cb322c3a04e4e3b2e569eaa2678bf4ac6b533f"
+    }
+  ],
+  "commit": "68cb322c3a04e4e3b2e569eaa2678bf4ac6b533f",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:68cb322c3a04e4e3b2e569eaa2678bf4ac6b533f"
+}

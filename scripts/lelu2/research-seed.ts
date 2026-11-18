@@ -517,6 +517,176 @@ export async function seed(deps: {
     tags: ["hair", "tubes", "parallel-transport", "literature"],
   });
 
+  /* ------------------------------ M23 ------------------------------ */
+  interface M23Metrics {
+    variant: string;
+    head: { heightMm: number; widthMm: number; jawToCheek: number; chinToJaw: number; cheekShareOfHead: number };
+    face: { chinMmL: number; eyeToChinMm: number; lowerThirdShare: number; jawToCheek: number; chinToJaw: number };
+    babyHair: { count: number; byRegion: Record<string, number>; lengthMm: { min: number; max: number; median: number }; hairline: { coveragePct: number }; collision: Record<string, number>; available: { front: number; temples: number; sideburns: number } } | null;
+    youth: { enabled: boolean; chinLiftMm: number; jawNarrowMm: number; mouthLiftMm: number };
+  }
+  const m23 = (variant: string): M23Metrics | null => {
+    try {
+      return read<M23Metrics>(`artifacts/lelu2/m23/${variant}/metrics-${variant}.json`);
+    } catch {
+      return null;
+    }
+  };
+  const m23Before = m23("baseline");
+  const m23After = m23("youth");
+
+  if (m23Before?.babyHair && m23After?.babyHair && m23After.face) {
+    /**
+     * WP01/WP04 — the hairline that was not a hairline.
+     *
+     * The 2.1 hairline diagnostic reported a front hairline 100 mm BELOW her eyes.
+     * That number was not a bug in the arithmetic: the scalp cloud includes the
+     * length of the hairstyle, so "the lowest front root" is hair hanging beside
+     * her neck. Classifying roots by their direction from the skull fixed the
+     * measurement and the placement together.
+     */
+    recordOnce({
+      id: "R-20261118-wp01-the-hairline-was-the-hair-curtain",
+      kind: "failures",
+      mission: "LÉLU 2.3 — autonomous learning, visual creation and identity reconstruction",
+      workPackage: "WP01",
+      observed:
+        `The 2.1 contract reported a front hairline ~100 mm below her eye line, with 0 % front coverage, and the first 2.3 baby-hair run produced ` +
+        `${m23Before.babyHair.count} strands — sideburns and flyaways only, no front strands and no temple strands.`,
+      studied:
+        "Root clouds vs hairline geometry: what a scalp root cloud actually contains, and why a global minimum of a cloud that includes hanging hair cannot be a forehead edge.",
+      question: "Why did the baby-hair system place no strands on the forehead, and what is the real front hairline?",
+      hypothesis: "The scalp has no front roots, because her hairline is too high.",
+      method:
+        "Dump the root distribution and the report's own `available` counts, then classify every root by its direction from the head centre and re-measure the hairline on the forehead band only.",
+      results:
+        `Hypothesis refuted. The front roots exist; they were never in the band. After classifying by facing, the run produced ${m23After.babyHair.count} strands ` +
+        `(${m23After.babyHair.byRegion.front ?? 0} front, ${(m23After.babyHair.byRegion["temple-left"] ?? 0) + (m23After.babyHair.byRegion["temple-right"] ?? 0)} temples, ` +
+        `${(m23After.babyHair.byRegion["sideburn-left"] ?? 0) + (m23After.babyHair.byRegion["sideburn-right"] ?? 0)} sideburns, ${m23After.babyHair.byRegion.flyaway ?? 0} flyaways) ` +
+        `with ${m23After.babyHair.hairline.coveragePct.toFixed(0)} % front-hairline coverage.`,
+      evidence: [
+        artefact("artifacts/lelu2/m23/baseline/metrics-baseline.json", "the run with no front strands, and the root cloud that produced it"),
+        artefact("artifacts/lelu2/m23/youth/baby-hair-youth.json", "every strand's record, with its landmark distances"),
+        artefact("artifacts/lelu2/m23/youth/baby-hair-youth.svg", "the placement overlay drawn from those records"),
+        test("tests/lelu2-m23.test.ts", "the baby-hair guards"),
+        ...commit(head),
+      ],
+      learned:
+        "A scalp cloud is not a scalp: it contains the hairstyle. Any hairline measurement must be taken on the FRONT band by facing, or it measures hair hanging beside the jaw.",
+      status: "verified",
+      limitations: [
+        "The fix is a classification of roots the asset provides; it cannot invent forehead coverage where the hair card has none.",
+        `${m23After.babyHair.collision.penetrating} of ${m23After.babyHair.count} strands still report a skin collision and are drawn in red in the overlay.`,
+      ],
+      applications: [
+        "Every hairline figure in future reports must state which band it was measured on.",
+        "The same facing classification places temples and sideburns.",
+      ],
+      nextQuestions: [
+        "Why do a few temple strands penetrate the skin even after projection?",
+        "Does the hair card's own coverage hide a real gap at the crown?",
+      ],
+      answers: ["Why did the baby-hair system place no strands on the forehead?"],
+      assumptions: [
+        { statement: "the lowest front root is the forehead hairline", verdict: "refuted" },
+        { statement: "the scalp cloud contains no roots on the forehead", verdict: "refuted" },
+      ],
+      tags: ["hairline", "baby-hair", "measurement", "failure", "wp01"],
+    });
+
+    /**
+     * WP05 — the warp that was applied and did nothing, and the warp that moved
+     * the wrong thing. Two failures worth keeping: the first produced an inert
+     * "improvement"; the second produced a 303 mm-wide head.
+     */
+    recordOnce({
+      id: "R-20261118-wp05-the-youth-warp-was-inert-then-wrong",
+      kind: "failures",
+      mission: "LÉLU 2.3 — autonomous learning, visual creation and identity reconstruction",
+      workPackage: "WP05",
+      observed:
+        `The first youth build reported identical geometry to the baseline (${m23Before.head.heightMm.toFixed(1)} mm tall, jaw/cheek ${m23Before.head.jawToCheek.toFixed(3)}) ` +
+        `while its own diagnostics claimed a chin lift of 134 mm. The second build moved geometry and produced a head ${m23After.head.widthMm.toFixed(1)} mm wide instead of ${m23Before.head.widthMm.toFixed(1)} mm.`,
+      studied: "Implicit-surface deformation: what a coordinate warp does to an SDF, and what happens when it samples outside its own grid.",
+      question: "Does the youth pass actually change her head, and is it a valid deformation of her field?",
+      hypothesis: "A smooth coordinate warp is a safe way to shorten a lower face.",
+      method:
+        "Compare the two builds' head metrics and bounds, probe the extreme vertices, and test the warp directly on an analytic SDF whose surface is known.",
+      results:
+        `Both failures identified. (1) The CC0 rig has no chin joint, so it resolved to the origin and the "lower face" was 1.579 m long: a warp with nothing to compress. ` +
+        `(2) A scale warp sampled below the head field's grid, where the field reads zero, and a false solid slab appeared across the bottom of the box — the 303 mm width. ` +
+        `Replaced with a translation lift that fades out 20 mm under the jaw: chin ${(m23After.face.chinMmL - m23Before.face.chinMmL).toFixed(1)} mm higher, ` +
+        `eye→chin ${m23Before.face.eyeToChinMm.toFixed(1)} → ${m23After.face.eyeToChinMm.toFixed(1)} mm, head width back to ${m23After.head.widthMm.toFixed(1)} mm.`,
+      evidence: [
+        artefact("artifacts/lelu2/m23/baseline/metrics-baseline.json", "the inert build's measurements"),
+        artefact("artifacts/lelu2/m23/youth/metrics-youth.json", "the corrected build's measurements"),
+        artefact("artifacts/lelu2/m23/youth/lelu2-m23-youth-face-front.png", "the face the corrected build renders"),
+        test("tests/lelu2-m23.test.ts", "the warp guards: chin lift, fixed eye line, front-only volume"),
+        ...commit(head),
+      ],
+      learned:
+        "A deformation of an implicit surface must never sample outside that surface's grid, and a landmark that silently resolves to the origin makes a change that looks applied and measures as nothing. Both are now guarded by tests.",
+      status: "verified",
+      limitations: [
+        "The lift is a translation, not anatomy: it shortens the lower face without changing the teeth, jaw or neck joints.",
+        "Fixed-fraction width metrics re-sample a different slice when the face is lifted, which is why widths are now measured at fractions of the face.",
+      ],
+      applications: [
+        "Any future head/face morph must be measured on the face's own landmarks, not the component's bounding box.",
+        "The same guard rejects any warp that reads outside its field.",
+      ],
+      nextQuestions: [
+        "Does the youth pass read as younger in a blind comparison against ref10?",
+        `Should the chin/jaw ratio target be 0.45, given the measured ${m23After.face.chinToJaw.toFixed(3)}?`,
+      ],
+      answers: ["Does the youth pass actually change her head?"],
+      assumptions: [
+        { statement: "the rig has a usable chin joint", verdict: "refuted" },
+        { statement: "scaling the lower face is safe on this field", verdict: "refuted" },
+      ],
+      tags: ["youth", "identity", "sdf", "failure", "wp05"],
+    });
+
+    /**
+     * WP07 — evidence has to be delivered in the conversation, and a repo path is
+     * not a delivered image.
+     */
+    recordOnce({
+      id: "R-20261118-wp07-evidence-must-arrive-in-chat",
+      kind: "capabilities",
+      mission: "LÉLU 2.3 — autonomous learning, visual creation and identity reconstruction",
+      workPackage: "WP07",
+      observed:
+        "The mission requires renders, before/after comparisons and measurements to appear in the conversation itself. The chat renderer handled markdown images and SVG blocks, and no surface could load an image cited at a repository path.",
+      studied: "How a chat bubble can carry structured evidence: a fenced block parsed into a validated block list, rendered by one component on every surface.",
+      question: "How does evidence get into the conversation without an artifact directory or a dashboard?",
+      hypothesis: "A fenced `evidence` block with validated blocks and a public-path mapping is enough for every surface.",
+      method:
+        "Define the block protocol in the research layer, render it in the chat bubble (image, compare, group, measure, commit), and copy every cited image into the app's public directory under the same mapping the renderer uses.",
+      results:
+        `Implemented: src/core/cognition/research/evidence.ts (parse, normalise, markdown, public-path mapping, evidenceFromEntry), ` +
+        `src/app/scene/genesis/chat/ChatEvidence.tsx (inline images, expandable lightbox, labelled before/after, measurement tables), ` +
+        `wired into ChatMarkdown so a message renders it, and scripts/lelu2/evidence.ts emits the blocks for this mission.`,
+      evidence: [
+        test("tests/lelu2-m23.test.ts", "five guards: round-trip, refusal of a malformed block, labelled comparison, entry→blocks, public path"),
+        artefact("artifacts/lelu2/research/evidence-m23.json", "the blocks generated from this mission's own builds"),
+        artefact("artifacts/lelu2/research/evidence-m23.md", "the same evidence as markdown"),
+        ...commit(head),
+      ],
+      learned:
+        "Evidence delivery is a protocol, not a UI feature: the same blocks must render in the bubble, export as markdown, and be copied to a loadable path, or one surface silently becomes the only place the work can be seen.",
+      status: "verified",
+      limitations: [
+        "The lightbox is a fixed overlay, not a pinch-zoom viewer.",
+        "The evidence CLI copies images for the app's public directory; a deployed build still needs that copy step to run.",
+      ],
+      applications: ["Every future mission can deliver its evidence through the same fence and the same renderer."],
+      nextQuestions: ["Should the chat also be able to pull historical evidence back by entry id?"],
+      answers: ["How does evidence get into the conversation without an artifact directory or a dashboard?"],
+      tags: ["chat", "evidence", "capability", "wp07"],
+    });
+  }
+
   /* --------------------------- daily journal --------------------------- */
   const digestNote = deps.observations.digest();
   recordOnce({

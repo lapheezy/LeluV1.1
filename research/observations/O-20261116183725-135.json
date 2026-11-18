@@ -1,0 +1,82 @@
+{
+  "id": "O-20261116183725-135",
+  "at": 1794854245000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "M15.3 WP04: report, gates (2294 tests, 0 fail; lint 0 errors/178; build; bundle check), phone O after exit fix",
+  "detail": "18 file(s): docs/missions/M15.3-WP04-WORLD-FIRST-PAINT-AND-DEVICE-ACCEPTANCE.md, docs/missions/m15-home/avatar-15.3/wp04/build.txt, docs/missions/m15-home/avatar-15.3/wp04/lint.txt, docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/001-O-in-world-1.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/002-O-home-1.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/003-O-in-world-2.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/004-O-home-2.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/005-O-in-world-3.png, …",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "04610b786db160b3f3c7cd13cbe2b71397a33015",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015",
+      "note": "M15.3 WP04: report, gates (2294 tests, 0 fail; lint 0 errors/178; build; bundle check), phone O after exit fix"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/M15.3-WP04-WORLD-FIRST-PAINT-AND-DEVICE-ACCEPTANCE.md",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/build.txt",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/lint.txt",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/001-O-in-world-1.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/002-O-home-1.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/003-O-in-world-2.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/004-O-home-2.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/005-O-in-world-3.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/006-O-home-3.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/007-walking-+0s.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/008-walking-+5s.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/final-O-phone/009-walking-+10s.png",
+      "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015"
+    }
+  ],
+  "commit": "04610b786db160b3f3c7cd13cbe2b71397a33015",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:04610b786db160b3f3c7cd13cbe2b71397a33015"
+}

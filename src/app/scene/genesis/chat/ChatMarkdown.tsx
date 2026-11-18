@@ -10,6 +10,8 @@
  *   ``` code ```                → a code block with copy + scroll
  *   ```mermaid```               → a rendered diagram (lazy-loaded)
  *   ```svg``` / <svg …>         → the image itself, sandboxed in <img>
+ *   ```evidence```              → renders, before/after, measurements and the
+ *                                 commit they belong to, in the bubble
  *   tables                      → scroll sideways inside the bubble
  * ==========================================================
  */
@@ -17,6 +19,7 @@
 import { Children, isValidElement, memo, useEffect, useState, type ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ChatEvidence from "./ChatEvidence";
 
 /** Plain text of a rendered node tree (code blocks arrive as elements). */
 function textOf(node: ReactNode): string {
@@ -214,6 +217,7 @@ const components: Components = {
     const language = /language-([\w+-]+)/.exec(className)?.[1]?.toLowerCase() ?? "";
     const code = textOf(children).replace(/\n$/, "");
     if (language === "mermaid") return <DiagramBlock source={code} />;
+    if (language === "evidence") return <ChatEvidence source={code} />;
     if (language === "svg" || (language === "" && /^\s*<svg[\s>]/i.test(code))) return <SvgBlock source={code} />;
     return <CodeBlock language={language} code={code} />;
   },
