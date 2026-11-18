@@ -1,0 +1,365 @@
+{
+  "generatedAt": "2026-11-18T16:55:03.378Z",
+  "comparisons": [
+    {
+      "metric": "hair root spacing CV",
+      "baseline": {
+        "metric": "hair root spacing CV",
+        "variant": "baseline",
+        "value": 1.34460580905992,
+        "direction": "lower",
+        "source": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json",
+        "n": 928,
+        "layout": "asset vertex order"
+      },
+      "golden": {
+        "metric": "hair root spacing CV",
+        "variant": "golden",
+        "value": 0.6433879142701002,
+        "direction": "lower",
+        "source": "artifacts/lelu2/golden/lelu2-golden-metrics.json",
+        "n": 1350,
+        "layout": "area-even Fibonacci subset"
+      },
+      "sampleSizeSensitive": true
+    },
+    {
+      "metric": "hair root spacing CV at equal n=800 (WP02)",
+      "baseline": {
+        "metric": "hair root spacing CV at equal n=800 (hair roots)",
+        "variant": "baseline",
+        "value": 0.39245525615991156,
+        "direction": "lower",
+        "source": "artifacts/lelu2/matrix/summary.json",
+        "field": "applications[0].methods[0].spacing.cv",
+        "n": 800,
+        "layout": "A-conventional",
+        "variantTag": "A-conventional (baseline)"
+      },
+      "golden": {
+        "metric": "hair root spacing CV at equal n=800 (hair roots)",
+        "variant": "golden",
+        "value": 0.0967665956281501,
+        "direction": "lower",
+        "source": "artifacts/lelu2/matrix/summary.json",
+        "field": "applications[0].methods[4].spacing.cv",
+        "n": 800,
+        "layout": "E-hybrid",
+        "variantTag": "E-hybrid (golden)"
+      },
+      "claimed": "golden",
+      "sampleSizeSensitive": true
+    },
+    {
+      "metric": "hair root count",
+      "baseline": {
+        "metric": "hair root count",
+        "variant": "baseline",
+        "value": 928,
+        "direction": "higher",
+        "source": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json"
+      },
+      "golden": {
+        "metric": "hair root count",
+        "variant": "golden",
+        "value": 1350,
+        "direction": "higher",
+        "source": "artifacts/lelu2/golden/lelu2-golden-metrics.json"
+      }
+    },
+    {
+      "metric": "closest hair root pair (metres)",
+      "baseline": {
+        "metric": "closest hair root pair (metres)",
+        "variant": "baseline",
+        "value": 0,
+        "direction": "higher",
+        "source": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json"
+      },
+      "golden": {
+        "metric": "closest hair root pair (metres)",
+        "variant": "golden",
+        "value": 0.00017277482794100904,
+        "direction": "higher",
+        "source": "artifacts/lelu2/golden/lelu2-golden-metrics.json"
+      }
+    },
+    {
+      "metric": "bead spacing CV",
+      "baseline": {
+        "metric": "bead spacing CV",
+        "value": 0.16611777736876018,
+        "direction": "lower",
+        "n": 34,
+        "layout": "concentric rings",
+        "variant": "baseline",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "baseline.beadSpacing.cv"
+      },
+      "golden": {
+        "metric": "bead spacing CV",
+        "value": 0.030373659752068183,
+        "direction": "lower",
+        "n": 34,
+        "layout": "Vogel disc",
+        "variant": "golden",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "golden.beadSpacing.cv"
+      },
+      "claimed": "golden",
+      "sampleSizeSensitive": true
+    },
+    {
+      "metric": "bead max/min spacing",
+      "baseline": {
+        "metric": "bead max/min spacing",
+        "value": 1.6794129562988864,
+        "direction": "lower",
+        "n": 34,
+        "layout": "concentric rings",
+        "variant": "baseline",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "baseline.beadSpacing.maxOverMin"
+      },
+      "golden": {
+        "metric": "bead max/min spacing",
+        "value": 1.1592621911904486,
+        "direction": "lower",
+        "n": 34,
+        "layout": "Vogel disc",
+        "variant": "golden",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "golden.beadSpacing.maxOverMin"
+      },
+      "claimed": "golden"
+    },
+    {
+      "metric": "mean bead spacing (metres)",
+      "baseline": {
+        "metric": "mean bead spacing (metres)",
+        "value": 0.017764024550972566,
+        "direction": "higher",
+        "descriptive": true,
+        "variant": "baseline",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "baseline.beadSpacing.mean"
+      },
+      "golden": {
+        "metric": "mean bead spacing (metres)",
+        "value": 0.01588325391054695,
+        "direction": "higher",
+        "descriptive": true,
+        "variant": "golden",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "golden.beadSpacing.mean"
+      }
+    },
+    {
+      "metric": "recovered divergence (degrees)",
+      "baseline": {
+        "metric": "recovered divergence (degrees)",
+        "value": 27.5,
+        "direction": "lower",
+        "layout": "concentric rings",
+        "applicable": false,
+        "variant": "baseline",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "baseline.divergenceDeg"
+      },
+      "golden": {
+        "metric": "recovered divergence (degrees)",
+        "value": 137.5,
+        "direction": "lower",
+        "layout": "Vogel disc",
+        "variant": "golden",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "golden.divergenceDeg"
+      }
+    },
+    {
+      "metric": "radial exponent (0.5 = equal area)",
+      "baseline": {
+        "metric": "radial exponent (0.5 = equal area)",
+        "value": 0.43192566702060475,
+        "direction": "higher",
+        "layout": "concentric rings",
+        "applicable": false,
+        "variant": "baseline",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "baseline.radialExponent"
+      },
+      "golden": {
+        "metric": "radial exponent (0.5 = equal area)",
+        "value": 0.4903977767686367,
+        "direction": "higher",
+        "layout": "Vogel disc",
+        "variant": "golden",
+        "source": "artifacts/lelu2/ornament/comparison.json",
+        "field": "golden.radialExponent"
+      }
+    },
+    {
+      "metric": "share of landmark ratios within 2% of a phi power",
+      "baseline": {
+        "metric": "share of landmark ratios within 2% of a phi power",
+        "variant": "baseline",
+        "value": 0.036,
+        "direction": "higher",
+        "source": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json",
+        "n": 111
+      },
+      "golden": {
+        "metric": "share of landmark ratios within 2% of a phi power",
+        "variant": "golden",
+        "value": 0.036,
+        "direction": "higher",
+        "source": "artifacts/lelu2/golden/lelu2-golden-metrics.json",
+        "n": 111
+      }
+    },
+    {
+      "metric": "triangles",
+      "baseline": {
+        "metric": "triangles",
+        "variant": "baseline",
+        "value": 1373624,
+        "direction": "lower",
+        "source": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json"
+      },
+      "golden": {
+        "metric": "triangles",
+        "variant": "golden",
+        "value": 1389588,
+        "direction": "lower",
+        "source": "artifacts/lelu2/golden/lelu2-golden-metrics.json"
+      }
+    }
+  ],
+  "verdicts": [
+    {
+      "metric": "hair root spacing CV",
+      "baseline": 1.34460580905992,
+      "golden": 0.6433879142701002,
+      "winner": "golden",
+      "relativeChange": 0.5215044365159152,
+      "applicable": true,
+      "confounded": true,
+      "notes": [
+        "computed over n=928 vs n=1350; the statistic depends on sample count, so the difference is confounded"
+      ]
+    },
+    {
+      "metric": "hair root spacing CV at equal n=800 (WP02)",
+      "baseline": 0.39245525615991156,
+      "golden": 0.0967665956281501,
+      "winner": "golden",
+      "relativeChange": 0.7534327949254904,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    },
+    {
+      "metric": "hair root count",
+      "baseline": 928,
+      "golden": 1350,
+      "winner": "golden",
+      "relativeChange": 0.4547413793103448,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    },
+    {
+      "metric": "closest hair root pair (metres)",
+      "baseline": 0,
+      "golden": 0.00017277482794100904,
+      "winner": "golden",
+      "relativeChange": 0.00017277482794100904,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    },
+    {
+      "metric": "bead spacing CV",
+      "baseline": 0.16611777736876018,
+      "golden": 0.030373659752068183,
+      "winner": "golden",
+      "relativeChange": 0.8171558743851807,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    },
+    {
+      "metric": "bead max/min spacing",
+      "baseline": 1.6794129562988864,
+      "golden": 1.1592621911904486,
+      "winner": "golden",
+      "relativeChange": 0.30972177698018555,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    },
+    {
+      "metric": "mean bead spacing (metres)",
+      "baseline": 0.017764024550972566,
+      "golden": 0.01588325391054695,
+      "winner": "descriptive",
+      "relativeChange": -0.10587525563415442,
+      "applicable": true,
+      "confounded": false,
+      "notes": [
+        "mean bead spacing (metres) is reported for completeness; it has no better-or-worse direction"
+      ]
+    },
+    {
+      "metric": "recovered divergence (degrees)",
+      "baseline": 27.5,
+      "golden": 137.5,
+      "winner": "not-comparable",
+      "relativeChange": -4,
+      "applicable": false,
+      "confounded": false,
+      "notes": [
+        "recovered divergence (degrees) does not describe both layouts — excluded from scoring"
+      ]
+    },
+    {
+      "metric": "radial exponent (0.5 = equal area)",
+      "baseline": 0.43192566702060475,
+      "golden": 0.4903977767686367,
+      "winner": "not-comparable",
+      "relativeChange": 0.13537539954818797,
+      "applicable": false,
+      "confounded": false,
+      "notes": [
+        "radial exponent (0.5 = equal area) does not describe both layouts — excluded from scoring"
+      ]
+    },
+    {
+      "metric": "share of landmark ratios within 2% of a phi power",
+      "baseline": 0.036,
+      "golden": 0.036,
+      "winner": "tie",
+      "relativeChange": 0,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    },
+    {
+      "metric": "triangles",
+      "baseline": 1373624,
+      "golden": 1389588,
+      "winner": "baseline",
+      "relativeChange": -0.011621812082491278,
+      "applicable": true,
+      "confounded": false,
+      "notes": []
+    }
+  ],
+  "violations": [],
+  "warnings": [
+    "hair root spacing CV: confounded by sample count — repeat at equal n before publishing",
+    "recovered divergence (degrees): not applicable to one of the layouts — report it as \"not comparable\", not as a win",
+    "radial exponent (0.5 = equal area): not applicable to one of the layouts — report it as \"not comparable\", not as a win"
+  ],
+  "ok": true
+}
