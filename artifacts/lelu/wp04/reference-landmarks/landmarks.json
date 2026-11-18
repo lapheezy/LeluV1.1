@@ -1,0 +1,1334 @@
+{
+ "tool": "MediaPipe FaceLandmarker 478 (float16 v1)",
+ "units": "IOD-normalized lengths; y_* as fraction of face height (lm10..lm152); roll-corrected",
+ "images": {
+  "ref10_face_primary": {
+   "source": "leluverse/assets/characters/lelu_character/references/ref10_face_primary.png",
+   "detected": true,
+   "size": [
+    1024,
+    1536
+   ],
+   "yaw_deg": -0.08,
+   "iod_px": 190.49,
+   "roll_deg": -1.81,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.41273,
+     0.26959
+    ],
+    "pupil_l": [
+     0.59866,
+     0.26567
+    ],
+    "eye_r_outer": [
+     0.37576,
+     0.27013
+    ],
+    "eye_r_inner": [
+     0.45512,
+     0.27505
+    ],
+    "eye_l_inner": [
+     0.5559,
+     0.27291
+    ],
+    "eye_l_outer": [
+     0.6348,
+     0.26435
+    ],
+    "lid_r_up": [
+     0.40774,
+     0.26425
+    ],
+    "lid_r_lo": [
+     0.41163,
+     0.27983
+    ],
+    "lid_l_up": [
+     0.60148,
+     0.25982
+    ],
+    "lid_l_lo": [
+     0.59972,
+     0.27557
+    ],
+    "brow_r_inner": [
+     0.45567,
+     0.22593
+    ],
+    "brow_r_peak": [
+     0.37673,
+     0.21339
+    ],
+    "brow_r_outer": [
+     0.34429,
+     0.23408
+    ],
+    "brow_l_inner": [
+     0.55025,
+     0.22287
+    ],
+    "brow_l_peak": [
+     0.63026,
+     0.20563
+    ],
+    "brow_l_outer": [
+     0.66523,
+     0.22595
+    ],
+    "nasion": [
+     0.50455,
+     0.261
+    ],
+    "nose_tip": [
+     0.50732,
+     0.33304
+    ],
+    "subnasale": [
+     0.50722,
+     0.34407
+    ],
+    "ala_r": [
+     0.46258,
+     0.3376
+    ],
+    "ala_l": [
+     0.55162,
+     0.33608
+    ],
+    "mouth_r": [
+     0.44491,
+     0.38542
+    ],
+    "mouth_l": [
+     0.57208,
+     0.3826
+    ],
+    "lip_up_top": [
+     0.50742,
+     0.36417
+    ],
+    "stomion_up": [
+     0.50829,
+     0.37982
+    ],
+    "stomion_lo": [
+     0.50883,
+     0.3851
+    ],
+    "lip_lo_bot": [
+     0.50913,
+     0.40906
+    ],
+    "forehead": [
+     0.49958,
+     0.17295
+    ],
+    "menton": [
+     0.51042,
+     0.45127
+    ],
+    "temple_r": [
+     0.3081,
+     0.26553
+    ],
+    "temple_l": [
+     0.70083,
+     0.25907
+    ],
+    "zygion_r": [
+     0.31388,
+     0.28907
+    ],
+    "zygion_l": [
+     0.69752,
+     0.28264
+    ],
+    "jaw_r": [
+     0.33195,
+     0.33964
+    ],
+    "jaw_l": [
+     0.68354,
+     0.33327
+    ],
+    "gonion_r": [
+     0.3472,
+     0.36807
+    ],
+    "gonion_l": [
+     0.67024,
+     0.3614
+    ],
+    "chin_r": [
+     0.40952,
+     0.42256
+    ],
+    "chin_l": [
+     0.61069,
+     0.41775
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.1118,
+    "face_width_cheek": 2.0629,
+    "face_width_jaw": 1.8907,
+    "face_width_gonion": 1.7374,
+    "face_width_chin": 1.0821,
+    "face_height": 2.245,
+    "eye_width": 0.4291,
+    "eye_height": 0.1265,
+    "canthal_tilt_deg": 7.2748,
+    "intercanthal": 0.542,
+    "nose_width": 0.4788,
+    "nose_length": 0.6699,
+    "mouth_width": 0.684,
+    "upper_lip": 0.1263,
+    "lower_lip": 0.1931,
+    "brow_height": 0.4235,
+    "y_brow": 0.1315,
+    "y_eye": 0.3404,
+    "y_subnasale": 0.6149,
+    "y_stomion": 0.7528,
+    "y_lip_lo": 0.8484,
+    "jaw_to_cheek": 0.8422,
+    "face_aspect": 1.0883,
+    "eye_aspect": 0.2947,
+    "lip_ratio": 1.5295
+   }
+  },
+  "ref17_head_front_unhooded": {
+   "source": "leluverse/assets/characters/lelu_character/references/ref17_head_front_unhooded.png",
+   "detected": true,
+   "size": [
+    476,
+    600
+   ],
+   "yaw_deg": 0.62,
+   "iod_px": 96.16,
+   "roll_deg": -1.13,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.40885,
+     0.35944
+    ],
+    "pupil_l": [
+     0.61083,
+     0.35626
+    ],
+    "eye_r_outer": [
+     0.3717,
+     0.35946
+    ],
+    "eye_r_inner": [
+     0.45678,
+     0.36768
+    ],
+    "eye_l_inner": [
+     0.56404,
+     0.36595
+    ],
+    "eye_l_outer": [
+     0.648,
+     0.35444
+    ],
+    "lid_r_up": [
+     0.40618,
+     0.35096
+    ],
+    "lid_r_lo": [
+     0.41059,
+     0.37234
+    ],
+    "lid_l_up": [
+     0.61397,
+     0.34758
+    ],
+    "lid_l_lo": [
+     0.61054,
+     0.36883
+    ],
+    "brow_r_inner": [
+     0.45963,
+     0.30707
+    ],
+    "brow_r_peak": [
+     0.37415,
+     0.28861
+    ],
+    "brow_r_outer": [
+     0.33779,
+     0.31435
+    ],
+    "brow_l_inner": [
+     0.56106,
+     0.30343
+    ],
+    "brow_l_peak": [
+     0.64663,
+     0.27866
+    ],
+    "brow_l_outer": [
+     0.68279,
+     0.30462
+    ],
+    "nasion": [
+     0.51094,
+     0.3508
+    ],
+    "nose_tip": [
+     0.51275,
+     0.4412
+    ],
+    "subnasale": [
+     0.51197,
+     0.45539
+    ],
+    "ala_r": [
+     0.46298,
+     0.44734
+    ],
+    "ala_l": [
+     0.5587,
+     0.44572
+    ],
+    "mouth_r": [
+     0.44133,
+     0.50943
+    ],
+    "mouth_l": [
+     0.57995,
+     0.50531
+    ],
+    "lip_up_top": [
+     0.51274,
+     0.48123
+    ],
+    "stomion_up": [
+     0.51302,
+     0.4994
+    ],
+    "stomion_lo": [
+     0.51305,
+     0.50888
+    ],
+    "lip_lo_bot": [
+     0.51288,
+     0.53766
+    ],
+    "forehead": [
+     0.50854,
+     0.23834
+    ],
+    "menton": [
+     0.511,
+     0.59479
+    ],
+    "temple_r": [
+     0.29444,
+     0.35581
+    ],
+    "temple_l": [
+     0.7181,
+     0.3489
+    ],
+    "zygion_r": [
+     0.29951,
+     0.38638
+    ],
+    "zygion_l": [
+     0.7132,
+     0.37922
+    ],
+    "jaw_r": [
+     0.31647,
+     0.45195
+    ],
+    "jaw_l": [
+     0.69634,
+     0.44412
+    ],
+    "gonion_r": [
+     0.33145,
+     0.48869
+    ],
+    "gonion_l": [
+     0.68176,
+     0.48002
+    ],
+    "chin_r": [
+     0.40079,
+     0.55783
+    ],
+    "chin_l": [
+     0.6174,
+     0.55167
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.0976,
+    "face_width_cheek": 2.0483,
+    "face_width_jaw": 1.881,
+    "face_width_gonion": 1.7348,
+    "face_width_chin": 1.0728,
+    "face_height": 2.224,
+    "eye_width": 0.423,
+    "eye_height": 0.133,
+    "canthal_tilt_deg": 8.3756,
+    "intercanthal": 0.5311,
+    "nose_width": 0.4739,
+    "nose_length": 0.6526,
+    "mouth_width": 0.6866,
+    "upper_lip": 0.1133,
+    "lower_lip": 0.1795,
+    "brow_height": 0.4094,
+    "y_brow": 0.1271,
+    "y_eye": 0.3353,
+    "y_subnasale": 0.609,
+    "y_stomion": 0.7458,
+    "y_lip_lo": 0.8398,
+    "jaw_to_cheek": 0.847,
+    "face_aspect": 1.0858,
+    "eye_aspect": 0.3145,
+    "lip_ratio": 1.5835
+   }
+  },
+  "ref08_face_upper_body": {
+   "source": "leluverse/assets/characters/lelu_character/references/ref08_face_upper_body.png",
+   "detected": true,
+   "size": [
+    1024,
+    1536
+   ],
+   "yaw_deg": 1.05,
+   "iod_px": 146.69,
+   "roll_deg": 0.32,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.42869,
+     0.21964
+    ],
+    "pupil_l": [
+     0.57194,
+     0.22017
+    ],
+    "eye_r_outer": [
+     0.40031,
+     0.21843
+    ],
+    "eye_r_inner": [
+     0.46243,
+     0.22508
+    ],
+    "eye_l_inner": [
+     0.54022,
+     0.22556
+    ],
+    "eye_l_outer": [
+     0.60092,
+     0.21924
+    ],
+    "lid_r_up": [
+     0.42604,
+     0.21441
+    ],
+    "lid_r_lo": [
+     0.42893,
+     0.22738
+    ],
+    "lid_l_up": [
+     0.5761,
+     0.21514
+    ],
+    "lid_l_lo": [
+     0.57264,
+     0.22773
+    ],
+    "brow_r_inner": [
+     0.46575,
+     0.18786
+    ],
+    "brow_r_peak": [
+     0.40487,
+     0.17534
+    ],
+    "brow_r_outer": [
+     0.37827,
+     0.19083
+    ],
+    "brow_l_inner": [
+     0.53767,
+     0.18816
+    ],
+    "brow_l_peak": [
+     0.59846,
+     0.17524
+    ],
+    "brow_l_outer": [
+     0.62411,
+     0.19103
+    ],
+    "nasion": [
+     0.50192,
+     0.21572
+    ],
+    "nose_tip": [
+     0.50191,
+     0.2728
+    ],
+    "subnasale": [
+     0.50093,
+     0.28105
+    ],
+    "ala_r": [
+     0.46513,
+     0.27507
+    ],
+    "ala_l": [
+     0.53599,
+     0.27542
+    ],
+    "mouth_r": [
+     0.4485,
+     0.31216
+    ],
+    "mouth_l": [
+     0.54824,
+     0.31256
+    ],
+    "lip_up_top": [
+     0.5005,
+     0.29633
+    ],
+    "stomion_up": [
+     0.50003,
+     0.31016
+    ],
+    "stomion_lo": [
+     0.49979,
+     0.31299
+    ],
+    "lip_lo_bot": [
+     0.49932,
+     0.33157
+    ],
+    "forehead": [
+     0.50203,
+     0.14578
+    ],
+    "menton": [
+     0.49871,
+     0.36446
+    ],
+    "temple_r": [
+     0.34626,
+     0.21516
+    ],
+    "temple_l": [
+     0.6497,
+     0.21642
+    ],
+    "zygion_r": [
+     0.34932,
+     0.23377
+    ],
+    "zygion_l": [
+     0.64588,
+     0.23491
+    ],
+    "jaw_r": [
+     0.35996,
+     0.27392
+    ],
+    "jaw_l": [
+     0.63332,
+     0.27469
+    ],
+    "gonion_r": [
+     0.36994,
+     0.2967
+    ],
+    "gonion_l": [
+     0.6226,
+     0.2968
+    ],
+    "chin_r": [
+     0.41908,
+     0.34046
+    ],
+    "chin_l": [
+     0.57605,
+     0.34061
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.1183,
+    "face_width_cheek": 2.0702,
+    "face_width_jaw": 1.9083,
+    "face_width_gonion": 1.7638,
+    "face_width_chin": 1.0958,
+    "face_height": 2.2898,
+    "eye_width": 0.434,
+    "eye_height": 0.1338,
+    "canthal_tilt_deg": 9.0058,
+    "intercanthal": 0.5431,
+    "nose_width": 0.4947,
+    "nose_length": 0.6841,
+    "mouth_width": 0.6963,
+    "upper_lip": 0.1448,
+    "lower_lip": 0.1945,
+    "brow_height": 0.4135,
+    "y_brow": 0.1349,
+    "y_eye": 0.339,
+    "y_subnasale": 0.6186,
+    "y_stomion": 0.7582,
+    "y_lip_lo": 0.8496,
+    "jaw_to_cheek": 0.852,
+    "face_aspect": 1.1061,
+    "eye_aspect": 0.3083,
+    "lip_ratio": 1.343
+   }
+  },
+  "ref01_front_fullbody_A--headcrop": {
+   "source": "/tmp/claude-0/crops/ref01_front_fullbody_A--headcrop.png",
+   "detected": true,
+   "size": [
+    1227,
+    1011
+   ],
+   "yaw_deg": -1.08,
+   "iod_px": 158.59,
+   "roll_deg": -6.34,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.40578,
+     0.32189
+    ],
+    "pupil_l": [
+     0.53424,
+     0.30457
+    ],
+    "eye_r_outer": [
+     0.37955,
+     0.32506
+    ],
+    "eye_r_inner": [
+     0.43502,
+     0.32659
+    ],
+    "eye_l_inner": [
+     0.50556,
+     0.31696
+    ],
+    "eye_l_outer": [
+     0.56096,
+     0.30049
+    ],
+    "lid_r_up": [
+     0.40156,
+     0.31073
+    ],
+    "lid_r_lo": [
+     0.40484,
+     0.33507
+    ],
+    "lid_l_up": [
+     0.53653,
+     0.29233
+    ],
+    "lid_l_lo": [
+     0.53732,
+     0.317
+    ],
+    "brow_r_inner": [
+     0.43299,
+     0.26076
+    ],
+    "brow_r_peak": [
+     0.37754,
+     0.25294
+    ],
+    "brow_r_outer": [
+     0.35645,
+     0.28528
+    ],
+    "brow_l_inner": [
+     0.4946,
+     0.25112
+    ],
+    "brow_l_peak": [
+     0.54944,
+     0.22666
+    ],
+    "brow_l_outer": [
+     0.57755,
+     0.25315
+    ],
+    "nasion": [
+     0.46729,
+     0.3035
+    ],
+    "nose_tip": [
+     0.47452,
+     0.39818
+    ],
+    "subnasale": [
+     0.47684,
+     0.41565
+    ],
+    "ala_r": [
+     0.44363,
+     0.41118
+    ],
+    "ala_l": [
+     0.50889,
+     0.40264
+    ],
+    "mouth_r": [
+     0.43409,
+     0.48214
+    ],
+    "mouth_l": [
+     0.53136,
+     0.46747
+    ],
+    "lip_up_top": [
+     0.47934,
+     0.43955
+    ],
+    "stomion_up": [
+     0.48194,
+     0.46424
+    ],
+    "stomion_lo": [
+     0.48244,
+     0.47039
+    ],
+    "lip_lo_bot": [
+     0.48561,
+     0.50436
+    ],
+    "forehead": [
+     0.4573,
+     0.1894
+    ],
+    "menton": [
+     0.49138,
+     0.5707
+    ],
+    "temple_r": [
+     0.33629,
+     0.34072
+    ],
+    "temple_l": [
+     0.61132,
+     0.30282
+    ],
+    "zygion_r": [
+     0.3414,
+     0.374
+    ],
+    "zygion_l": [
+     0.61243,
+     0.3367
+    ],
+    "jaw_r": [
+     0.3555,
+     0.44408
+    ],
+    "jaw_l": [
+     0.6102,
+     0.40939
+    ],
+    "gonion_r": [
+     0.36617,
+     0.4831
+    ],
+    "gonion_l": [
+     0.6058,
+     0.44992
+    ],
+    "chin_r": [
+     0.41395,
+     0.54762
+    ],
+    "chin_l": [
+     0.56688,
+     0.52721
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.1415,
+    "face_width_cheek": 2.1103,
+    "face_width_jaw": 1.983,
+    "face_width_gonion": 1.866,
+    "face_width_chin": 1.1904,
+    "face_height": 2.445,
+    "eye_width": 0.4353,
+    "eye_height": 0.157,
+    "canthal_tilt_deg": 7.5319,
+    "intercanthal": 0.5492,
+    "nose_width": 0.5078,
+    "nose_length": 0.7187,
+    "mouth_width": 0.7583,
+    "upper_lip": 0.1587,
+    "lower_lip": 0.2179,
+    "brow_height": 0.3959,
+    "y_brow": 0.1328,
+    "y_eye": 0.3253,
+    "y_subnasale": 0.5931,
+    "y_stomion": 0.7289,
+    "y_lip_lo": 0.8261,
+    "jaw_to_cheek": 0.8842,
+    "face_aspect": 1.1586,
+    "eye_aspect": 0.3607,
+    "lip_ratio": 1.3736
+   }
+  },
+  "ref11_front_apose_B--headcrop": {
+   "source": "/tmp/claude-0/crops/ref11_front_apose_B--headcrop.png",
+   "detected": true,
+   "size": [
+    1227,
+    1011
+   ],
+   "yaw_deg": -0.47,
+   "iod_px": 159.54,
+   "roll_deg": -0.19,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.43436,
+     0.33409
+    ],
+    "pupil_l": [
+     0.56439,
+     0.33356
+    ],
+    "eye_r_outer": [
+     0.40923,
+     0.33421
+    ],
+    "eye_r_inner": [
+     0.46229,
+     0.34272
+    ],
+    "eye_l_inner": [
+     0.53559,
+     0.34238
+    ],
+    "eye_l_outer": [
+     0.58895,
+     0.33386
+    ],
+    "lid_r_up": [
+     0.43147,
+     0.32476
+    ],
+    "lid_r_lo": [
+     0.43322,
+     0.34652
+    ],
+    "lid_l_up": [
+     0.56633,
+     0.32408
+    ],
+    "lid_l_lo": [
+     0.56491,
+     0.34602
+    ],
+    "brow_r_inner": [
+     0.46651,
+     0.27963
+    ],
+    "brow_r_peak": [
+     0.41234,
+     0.26607
+    ],
+    "brow_r_outer": [
+     0.38932,
+     0.29253
+    ],
+    "brow_l_inner": [
+     0.52929,
+     0.27853
+    ],
+    "brow_l_peak": [
+     0.58454,
+     0.26527
+    ],
+    "brow_l_outer": [
+     0.60887,
+     0.29232
+    ],
+    "nasion": [
+     0.49798,
+     0.32495
+    ],
+    "nose_tip": [
+     0.49802,
+     0.41173
+    ],
+    "subnasale": [
+     0.49851,
+     0.42877
+    ],
+    "ala_r": [
+     0.46708,
+     0.42199
+    ],
+    "ala_l": [
+     0.52992,
+     0.42158
+    ],
+    "mouth_r": [
+     0.45417,
+     0.48613
+    ],
+    "mouth_l": [
+     0.54486,
+     0.48537
+    ],
+    "lip_up_top": [
+     0.49885,
+     0.45301
+    ],
+    "stomion_up": [
+     0.499,
+     0.4736
+    ],
+    "stomion_lo": [
+     0.49964,
+     0.48212
+    ],
+    "lip_lo_bot": [
+     0.49934,
+     0.50996
+    ],
+    "forehead": [
+     0.497,
+     0.21807
+    ],
+    "menton": [
+     0.4994,
+     0.57362
+    ],
+    "temple_r": [
+     0.36425,
+     0.33647
+    ],
+    "temple_l": [
+     0.63636,
+     0.33702
+    ],
+    "zygion_r": [
+     0.36676,
+     0.36758
+    ],
+    "zygion_l": [
+     0.63477,
+     0.3679
+    ],
+    "jaw_r": [
+     0.3761,
+     0.43358
+    ],
+    "jaw_l": [
+     0.62632,
+     0.43421
+    ],
+    "gonion_r": [
+     0.38463,
+     0.4704
+    ],
+    "gonion_l": [
+     0.61792,
+     0.47077
+    ],
+    "chin_r": [
+     0.42692,
+     0.53806
+    ],
+    "chin_l": [
+     0.57396,
+     0.53865
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.0927,
+    "face_width_cheek": 2.0612,
+    "face_width_jaw": 1.9244,
+    "face_width_gonion": 1.7942,
+    "face_width_chin": 1.1309,
+    "face_height": 2.2531,
+    "eye_width": 0.4128,
+    "eye_height": 0.1385,
+    "canthal_tilt_deg": 7.5117,
+    "intercanthal": 0.5638,
+    "nose_width": 0.4833,
+    "nose_length": 0.6579,
+    "mouth_width": 0.6975,
+    "upper_lip": 0.1305,
+    "lower_lip": 0.1764,
+    "brow_height": 0.3723,
+    "y_brow": 0.1339,
+    "y_eye": 0.3256,
+    "y_subnasale": 0.5926,
+    "y_stomion": 0.7307,
+    "y_lip_lo": 0.821,
+    "jaw_to_cheek": 0.8705,
+    "face_aspect": 1.0931,
+    "eye_aspect": 0.3355,
+    "lip_ratio": 1.352
+   }
+  },
+  "ref14_front_apose_hooded_B--headcrop": {
+   "source": "/tmp/claude-0/crops/ref14_front_apose_hooded_B--headcrop.png",
+   "detected": true,
+   "size": [
+    1227,
+    1011
+   ],
+   "yaw_deg": -0.4,
+   "iod_px": 156.78,
+   "roll_deg": 0.04,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.43708,
+     0.337
+    ],
+    "pupil_l": [
+     0.56486,
+     0.3371
+    ],
+    "eye_r_outer": [
+     0.41241,
+     0.33686
+    ],
+    "eye_r_inner": [
+     0.46655,
+     0.34518
+    ],
+    "eye_l_inner": [
+     0.53627,
+     0.34536
+    ],
+    "eye_l_outer": [
+     0.59092,
+     0.33679
+    ],
+    "lid_r_up": [
+     0.43528,
+     0.32838
+    ],
+    "lid_r_lo": [
+     0.43711,
+     0.34868
+    ],
+    "lid_l_up": [
+     0.56858,
+     0.32817
+    ],
+    "lid_l_lo": [
+     0.56654,
+     0.34909
+    ],
+    "brow_r_inner": [
+     0.47095,
+     0.28283
+    ],
+    "brow_r_peak": [
+     0.41682,
+     0.26846
+    ],
+    "brow_r_outer": [
+     0.39294,
+     0.29453
+    ],
+    "brow_l_inner": [
+     0.53413,
+     0.28117
+    ],
+    "brow_l_peak": [
+     0.59,
+     0.26579
+    ],
+    "brow_l_outer": [
+     0.61372,
+     0.29299
+    ],
+    "nasion": [
+     0.50202,
+     0.32777
+    ],
+    "nose_tip": [
+     0.50113,
+     0.41724
+    ],
+    "subnasale": [
+     0.50115,
+     0.43273
+    ],
+    "ala_r": [
+     0.47081,
+     0.42488
+    ],
+    "ala_l": [
+     0.53159,
+     0.42534
+    ],
+    "mouth_r": [
+     0.45509,
+     0.48878
+    ],
+    "mouth_l": [
+     0.54723,
+     0.48886
+    ],
+    "lip_up_top": [
+     0.5008,
+     0.45643
+    ],
+    "stomion_up": [
+     0.50097,
+     0.47595
+    ],
+    "stomion_lo": [
+     0.50134,
+     0.48579
+    ],
+    "lip_lo_bot": [
+     0.50076,
+     0.51369
+    ],
+    "forehead": [
+     0.50257,
+     0.21813
+    ],
+    "menton": [
+     0.50053,
+     0.57506
+    ],
+    "temple_r": [
+     0.36477,
+     0.33415
+    ],
+    "temple_l": [
+     0.64267,
+     0.33407
+    ],
+    "zygion_r": [
+     0.36704,
+     0.36512
+    ],
+    "zygion_l": [
+     0.64011,
+     0.36509
+    ],
+    "jaw_r": [
+     0.37644,
+     0.43156
+    ],
+    "jaw_l": [
+     0.62944,
+     0.43197
+    ],
+    "gonion_r": [
+     0.38495,
+     0.46901
+    ],
+    "gonion_l": [
+     0.62007,
+     0.46903
+    ],
+    "chin_r": [
+     0.42789,
+     0.53863
+    ],
+    "chin_l": [
+     0.57495,
+     0.53905
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.1748,
+    "face_width_cheek": 2.137,
+    "face_width_jaw": 1.98,
+    "face_width_gonion": 1.8401,
+    "face_width_chin": 1.1509,
+    "face_height": 2.3016,
+    "eye_width": 0.4292,
+    "eye_height": 0.1329,
+    "canthal_tilt_deg": 7.2912,
+    "intercanthal": 0.5457,
+    "nose_width": 0.4756,
+    "nose_length": 0.6768,
+    "mouth_width": 0.7211,
+    "upper_lip": 0.1259,
+    "lower_lip": 0.1799,
+    "brow_height": 0.3943,
+    "y_brow": 0.1373,
+    "y_eye": 0.3332,
+    "y_subnasale": 0.6012,
+    "y_stomion": 0.7361,
+    "y_lip_lo": 0.8281,
+    "jaw_to_cheek": 0.8611,
+    "face_aspect": 1.077,
+    "eye_aspect": 0.3097,
+    "lip_ratio": 1.4294
+   }
+  }
+ },
+ "aggregate": {
+  "face_width_temple": {
+   "mean": 2.1228,
+   "std": 0.0308,
+   "n": 6,
+   "definition": "temple width (127-356) / IOD"
+  },
+  "face_width_cheek": {
+   "mean": 2.0817,
+   "std": 0.0343,
+   "n": 6,
+   "definition": "bizygomatic width (234-454) / IOD"
+  },
+  "face_width_jaw": {
+   "mean": 1.9279,
+   "std": 0.0441,
+   "n": 6,
+   "definition": "mid-jaw width (132-361) / IOD"
+  },
+  "face_width_gonion": {
+   "mean": 1.7894,
+   "std": 0.0544,
+   "n": 6,
+   "definition": "gonial width (58-288) / IOD"
+  },
+  "face_width_chin": {
+   "mean": 1.1205,
+   "std": 0.0453,
+   "n": 6,
+   "definition": "chin width (150-379) / IOD"
+  },
+  "face_height": {
+   "mean": 2.2931,
+   "std": 0.0798,
+   "n": 6,
+   "definition": "upper forehead to menton (10-152) / IOD"
+  },
+  "eye_width": {
+   "mean": 0.4272,
+   "std": 0.0083,
+   "n": 6,
+   "definition": "palpebral fissure length (33-133, 362-263), mean / IOD"
+  },
+  "eye_height": {
+   "mean": 0.137,
+   "std": 0.0105,
+   "n": 6,
+   "definition": "lid aperture (159-145, 386-374), mean / IOD"
+  },
+  "canthal_tilt_deg": {
+   "mean": 7.8318,
+   "std": 0.7027,
+   "n": 6,
+   "definition": "angle inner->outer canthus above horizontal, mean"
+  },
+  "intercanthal": {
+   "mean": 0.5458,
+   "std": 0.0107,
+   "n": 6,
+   "definition": "inner canthi distance (133-362) / IOD"
+  },
+  "nose_width": {
+   "mean": 0.4857,
+   "std": 0.0131,
+   "n": 6,
+   "definition": "alar width (64-294) / IOD"
+  },
+  "nose_length": {
+   "mean": 0.6767,
+   "std": 0.0237,
+   "n": 6,
+   "definition": "nasion to subnasale (168-2) / IOD"
+  },
+  "mouth_width": {
+   "mean": 0.7073,
+   "std": 0.0282,
+   "n": 6,
+   "definition": "commissure width (61-291) / IOD"
+  },
+  "upper_lip": {
+   "mean": 0.1333,
+   "std": 0.0161,
+   "n": 6,
+   "definition": "upper lip height (0-13) / IOD"
+  },
+  "lower_lip": {
+   "mean": 0.1902,
+   "std": 0.0155,
+   "n": 6,
+   "definition": "lower lip height (14-17) / IOD"
+  },
+  "brow_height": {
+   "mean": 0.4015,
+   "std": 0.018,
+   "n": 6,
+   "definition": "brow peak above upper lid (105-159, 334-386), mean / IOD"
+  },
+  "y_brow": {
+   "mean": 0.1329,
+   "std": 0.0035,
+   "n": 6,
+   "definition": "brow peak height, fraction of face height from 10"
+  },
+  "y_eye": {
+   "mean": 0.3331,
+   "std": 0.0065,
+   "n": 6,
+   "definition": "pupil line, fraction of face height"
+  },
+  "y_subnasale": {
+   "mean": 0.6049,
+   "std": 0.011,
+   "n": 6,
+   "definition": "nose base, fraction of face height"
+  },
+  "y_stomion": {
+   "mean": 0.7421,
+   "std": 0.0121,
+   "n": 6,
+   "definition": "mouth line, fraction of face height"
+  },
+  "y_lip_lo": {
+   "mean": 0.8355,
+   "std": 0.0121,
+   "n": 6,
+   "definition": "lower lip bottom, fraction of face height"
+  },
+  "jaw_to_cheek": {
+   "mean": 0.8595,
+   "std": 0.0158,
+   "n": 6,
+   "definition": "gonial width / bizygomatic width (taper of the jaw)"
+  },
+  "face_aspect": {
+   "mean": 1.1015,
+   "std": 0.0296,
+   "n": 6,
+   "definition": "face height / bizygomatic width (oval vs round)"
+  },
+  "eye_aspect": {
+   "mean": 0.3206,
+   "std": 0.0237,
+   "n": 6,
+   "definition": "eye height / eye width (almond)"
+  },
+  "lip_ratio": {
+   "mean": 1.4352,
+   "std": 0.1001,
+   "n": 6,
+   "definition": "lower lip / upper lip"
+  }
+ }
+}
