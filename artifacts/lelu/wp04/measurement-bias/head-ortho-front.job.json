@@ -1,0 +1,30 @@
+{
+ "inputs": [
+  "/tmp/claude-0/head-fit.glb"
+ ],
+ "output": "/tmp/claude-0/mf2/head-ortho-front.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 32,
+ "view": "front",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   -0.1,
+   1.555
+  ],
+  "radius": 0.13
+ },
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true,
+ "ortho": true,
+ "hide": [
+  "hair",
+  "accessories.head"
+ ],
+ "lighting": "neutral"
+}
