@@ -12,7 +12,7 @@ const b = buildCharacter(BASE_CHARACTER, cache);
 console.log("components ms", Math.round(b.ms), b.components.map((c) => `${c.id}:${Math.round(c.ms)}ms:${(c.local?.cells.length ?? 0) / 3}`).join(" "));
 const w = buildWholeObject(BASE_CHARACTER);
 console.log("whole ms", Math.round(w.ms), "samples", w.samples, "IoU", codesIou(occupancyCodes(b), w.codes));
-const glb = writeGlb(glbParts(b, DEFAULT_LATTICE.resolution, BASE_CHARACTER));
+const glb = writeGlb(glbParts(b, BASE_CHARACTER));
 console.log(inspectGlb(glb).verdict, inspectGlb(glb).geometry.triangles);
 writeFileSync(path.join(out, "base.glb"), glb);
 for (const view of ["front", "three-quarter"] as const) console.log((await renderGlb({ inputs: [path.join(out, "base.glb")], output: path.join(out, `base_${view}.png`), resolution: [384, 512], samples: 16, view })).render_seconds);

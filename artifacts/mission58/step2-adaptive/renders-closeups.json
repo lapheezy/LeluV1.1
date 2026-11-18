@@ -1,0 +1,142 @@
+{
+ "generatedAt": "2026-11-18T04:16:04.831Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/step2-adaptive",
+ "size": 640,
+ "samples": 32,
+ "renders": [
+  {
+   "label": "base",
+   "kind": "full",
+   "view": "front",
+   "png": "base-front.png",
+   "triangles": 612116,
+   "seconds": 4.61,
+   "camera": {
+    "center": [
+     0,
+     -0.04696986824274063,
+     0.834032416343689
+    ],
+    "radius": 0.9620341134071332
+   }
+  },
+  {
+   "label": "base",
+   "kind": "full",
+   "view": "side",
+   "png": "base-side.png",
+   "triangles": 612116,
+   "seconds": 3.75,
+   "camera": {
+    "center": [
+     0,
+     -0.04696986824274063,
+     0.834032416343689
+    ],
+    "radius": 0.9620341134071332
+   }
+  },
+  {
+   "label": "base",
+   "kind": "full",
+   "view": "back",
+   "png": "base-back.png",
+   "triangles": 612116,
+   "seconds": 4.24,
+   "camera": {
+    "center": [
+     0,
+     -0.04696986824274063,
+     0.834032416343689
+    ],
+    "radius": 0.9620341134071332
+   }
+  },
+  {
+   "label": "base",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "base-three-quarter.png",
+   "triangles": 612116,
+   "seconds": 4.28,
+   "camera": {
+    "center": [
+     0,
+     -0.04696986824274063,
+     0.834032416343689
+    ],
+    "radius": 0.9620341134071332
+   }
+  },
+  {
+   "label": "base",
+   "kind": "face",
+   "view": "front",
+   "png": "base-face-front.png",
+   "triangles": 612116,
+   "seconds": 3.42,
+   "focused": [
+    "head",
+    "face",
+    "hair"
+   ]
+  },
+  {
+   "label": "base",
+   "kind": "face",
+   "view": "three-quarter",
+   "png": "base-face-three-quarter.png",
+   "triangles": 612116,
+   "seconds": 3.43,
+   "focused": [
+    "head",
+    "face",
+    "hair"
+   ]
+  },
+  {
+   "label": "base",
+   "kind": "hands",
+   "view": "front",
+   "png": "base-hands-front.png",
+   "triangles": 612116,
+   "seconds": 3.52,
+   "focused": [
+    "hands"
+   ]
+  },
+  {
+   "label": "base",
+   "kind": "hands",
+   "view": "three-quarter",
+   "png": "base-hands-three-quarter.png",
+   "triangles": 612116,
+   "seconds": 3.74,
+   "focused": [
+    "hands"
+   ]
+  },
+  {
+   "label": "base",
+   "kind": "feet",
+   "view": "front",
+   "png": "base-feet-front.png",
+   "triangles": 612116,
+   "seconds": 2.88,
+   "focused": [
+    "feet"
+   ]
+  },
+  {
+   "label": "base",
+   "kind": "feet",
+   "view": "three-quarter",
+   "png": "base-feet-three-quarter.png",
+   "triangles": 612116,
+   "seconds": 3.26,
+   "focused": [
+    "feet"
+   ]
+  }
+ ]
+}

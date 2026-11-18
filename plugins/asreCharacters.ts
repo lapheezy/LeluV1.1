@@ -351,9 +351,9 @@ export class AsreCharacterStore {
     const build = await this.build(spec);
     const h = this.lattice.resolution;
     const components = {} as Record<ComponentId, ComponentRecord>;
-    for (const c of build.components) components[c.id] = componentRecord(c, h);
+    for (const c of build.components) components[c.id] = componentRecord(c);
     // regenerated flags are build facts, not geometry: keep them out of the file so equal specs give equal bytes
-    const parts = glbParts(build, h, spec).map((part) => ({ ...part, extras: { component: part.extras!.component, key: part.extras!.key, identity: spec.identity.id, evidence: "GENERATED" } }));
+    const parts = glbParts(build, spec).map((part) => ({ ...part, extras: { component: part.extras!.component, key: part.extras!.key, identity: spec.identity.id, evidence: "GENERATED" } }));
     const glb = writeGlb(parts, { generator: "LÉLU ASRE character", extras: { identity: spec.identity.id, specHash: specHash(spec), builder: this.builder } });
     const report = inspectGlb(glb);
     const n = r.versions.length + 1;

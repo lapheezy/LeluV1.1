@@ -1,0 +1,45 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/step2-adaptive/base-hands-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": [
+  "hands"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.06656772643327713,
+   0.7224991917610168
+  ],
+  "radius": 0.37102241991296775
+ },
+ "triangles": 612116,
+ "bounds_blender_zup": {
+  "min": [
+   -0.3504834771156311,
+   -0.11206167936325073,
+   0.6095865368843079
+  ],
+  "max": [
+   0.3504834771156311,
+   -0.021073773503303528,
+   0.8354118466377258
+  ]
+ },
+ "render_seconds": 3.74,
+ "blender": "4.2.23 LTS"
+}

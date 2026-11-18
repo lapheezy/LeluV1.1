@@ -1,0 +1,45 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/step2-adaptive/base-feet-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": [
+  "feet"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.06199292093515396,
+   0.01237541064620018
+  ],
+  "radius": 0.22414484812360322
+ },
+ "triangles": 612116,
+ "bounds_blender_zup": {
+  "min": [
+   -0.17568860948085785,
+   -0.1939058005809784,
+   -0.03204773738980293
+  ],
+  "max": [
+   0.17568860948085785,
+   0.06991995871067047,
+   0.05679855868220329
+  ]
+ },
+ "render_seconds": 2.88,
+ "blender": "4.2.23 LTS"
+}

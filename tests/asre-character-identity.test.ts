@@ -95,7 +95,7 @@ test("restoration returns the right version; repeated edits accumulate no corrup
     for (const id of COMPONENT_ORDER) assert.equal(last.components[id].geometrySha, v1.components[id].geometrySha, id);
     // a cold build with no cache gives the same component bytes
     const fresh = buildCharacter(withChanges(BASE_CHARACTER, {}), null);
-    for (const c of fresh.components) assert.equal(componentRecord(c, DEFAULT_LATTICE.resolution).geometrySha, v1.components[c.id].geometrySha, `fresh ${c.id}`);
+    for (const c of fresh.components) assert.equal(componentRecord(c).geometrySha, v1.components[c.id].geometrySha, `fresh ${c.id}`);
 
     const afro = await store.edit("c", { hair: { style: "afro" } });
     const restored = await store.restore("c", v1.id);

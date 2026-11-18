@@ -151,7 +151,7 @@ export function createAsreApi(readEnv: EnvReader, options: { root?: string; runt
     const cache = characters.cache;
     const spec = C.withChanges(C.BASE_CHARACTER, (body.patch ?? {}) as Parameters<typeof C.withChanges>[1]);
     const build = B.buildCharacter(spec, cache);
-    const glb = writeGlb(B.glbParts(build, B.DEFAULT_LATTICE.resolution, spec), { extras: { identity: spec.identity.id } });
+    const glb = writeGlb(B.glbParts(build, spec), { extras: { identity: spec.identity.id } });
     const report = inspectGlb(glb);
     const id = randomUUID().slice(0, 8);
     const dir = path.join(root, "character");

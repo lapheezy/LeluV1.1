@@ -87,12 +87,12 @@ export interface ComponentRecord {
 const bytesOf = (a: ArrayBufferView) => new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
 
 /** Hashes of one placed component (world coordinates, so a move is a change). */
-export function componentRecord(c: BuiltComponent, h: number): ComponentRecord {
+export function componentRecord(c: BuiltComponent): ComponentRecord {
   const local = c.local!;
   if (!local.mesh.indices.length) {
     return { key: c.key, geometryKey: c.geometryKey, geometrySha: "empty", shapeSha: "empty", materialSha: "empty", cells: 0, triangles: 0, action: c.action };
   }
-  const m = placedMesh(c, h);
+  const m = placedMesh(c);
   const anchor = new Int32Array(c.anchor);
   const geo = new Uint8Array(m.positions.byteLength + m.indices.byteLength + local.cells.byteLength + anchor.byteLength);
   let o = 0;

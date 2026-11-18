@@ -43,6 +43,8 @@ mkdirSync(OUT, { recursive: true });
 
 interface ComponentMeasure {
   id: ComponentId;
+  hMeshMm: number;
+  hCellsMm: number;
   cells: number;
   vertices: number;
   triangles: number;
@@ -90,7 +92,7 @@ function measure(spec: CharacterSpec, label: string) {
   const build = buildCharacter(spec, null, L);
   const totalMs = performance.now() - t0;
   const p = plan(spec, L);
-  const parts = glbParts(build, L.resolution, spec);
+  const parts = glbParts(build, spec);
   const glb = writeGlb(parts, { generator: `LÉLU ASRE character (${label})`, extras: { identity: spec.identity.id, label } });
   const file = path.join(OUT, `${label}.glb`);
   writeFileSync(file, glb);
@@ -104,6 +106,8 @@ function measure(spec: CharacterSpec, label: string) {
     const acc = shape && local.mesh.indices.length ? surfaceAccuracy(shape, local.mesh) : { surfaceErrorMm: null, normalErrorDeg: null };
     components.push({
       id: c.id,
+      hMeshMm: +(c.hMesh * 1000).toFixed(2),
+      hCellsMm: +(c.hCells * 1000).toFixed(2),
       cells: local.cells.length / 3,
       vertices: rep.vertices,
       triangles: rep.triangles,
@@ -126,6 +130,8 @@ function measure(spec: CharacterSpec, label: string) {
     file: path.relative(process.cwd(), file),
     glbBytes: glb.length,
     latticeMm: L.resolution * 1000,
+    /** Resident set after this build (KB) — the character's live memory cost. */
+    rssKb: Math.round(process.memoryUsage().rss / 1024),
     buildMs: +totalMs.toFixed(1),
     totals: {
       cells: components.reduce((a, c) => a + c.cells, 0),

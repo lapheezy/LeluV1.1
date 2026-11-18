@@ -2,15 +2,25 @@
  * ==========================================================
  * LÉLU ASRE — COMPONENT BUILD, REUSE AND PLACEMENT
  *
- * A component is sampled on the shared lattice in its own frame
- * (cell centres at (j + ½)·h), meshed with surface nets and stored
- * under its content key. Placing it = offsetting by its anchor cell:
- * no resampling, no remeshing. A build reports, per component,
- * whether it was regenerated or reused, and how long it took.
+ * A component is sampled in its own frame (cell centres at (j + ½)·h),
+ * meshed with surface nets and stored under its content key. Placing it =
+ * offsetting by its anchor cell: no resampling, no remeshing. A build
+ * reports, per component, whether it was regenerated or reused, and how
+ * long it took.
+ *
+ * TWO RESOLUTIONS (Mission 5.8). A body is not uniformly detailed: a face
+ * needs ~2 mm cells to hold eyelids and lips, a torso does not. So the MESH
+ * of a component is sampled at its own detail resolution (`Lattice.detail`,
+ * default `DETAIL_RESOLUTION`), while its OCCUPANCY cells stay on the one
+ * shared lattice `resolution`. That keeps every cell-indexed thing — the
+ * NRE grid, component hashes, version diffs, temporal snapshots, the
+ * "components add up to the whole object" invariant — exactly as it was,
+ * and spends triangles where they can be seen.
  *
  * The whole-object baseline samples ONE implicit function (the union
- * of every component) over the whole character box — what a
- * conventional single-mesh pipeline does on every change.
+ * of every component) over the whole character box at the shared
+ * resolution — what a conventional single-mesh pipeline does on every
+ * change.
  * ==========================================================
  */
 
@@ -24,22 +34,63 @@ import { COMPONENTS, COMPONENT_ORDER, anchorCells, componentKeys, contextFor, sk
 import type { Shape } from "./shape.ts";
 
 export interface Lattice {
+  /** Occupancy-cell size (metres) of the ONE shared lattice. */
   resolution: number;
   /** Absolute cell index of lattice cell (0,0,0). */
   originCells: Vec3;
   dims: Vec3;
+  /**
+   * Per-component MESH resolution, in metres. Absent or a size equal to
+   * `resolution` means "sample the mesh on the shared lattice too".
+   * Occupancy cells are never affected.
+   */
+  detail?: Partial<Record<ComponentId, number>>;
 }
 
-export const DEFAULT_LATTICE: Lattice = { resolution: 0.006, originCells: [-160, -12, -110], dims: [320, 360, 220] };
+/**
+ * Where a finer mesh earns its triangles. Chosen from the 5.8 audit: the
+ * face held only 224 cells and the hands 4,640 at 6 mm, while the two
+ * clothing shells alone were 39 % of every triangle. Values are ~2× finer
+ * on the parts a viewer reads as "a person" and no finer on the rest.
+ */
+export const DETAIL_RESOLUTION: Partial<Record<ComponentId, number>> = {
+  face: 0.0022,
+  hands: 0.0022,
+  head: 0.003,
+  feet: 0.003,
+  "accessories.head": 0.003,
+  hair: 0.004,
+  arms: 0.004,
+  legs: 0.0045,
+  neck: 0.004,
+  "clothing.shoes": 0.004,
+  torso: 0.005,
+  pelvis: 0.005,
+  "clothing.top": 0.005,
+  "clothing.bottom": 0.005,
+  "accessories.body": 0.005,
+};
+
+export const DEFAULT_LATTICE: Lattice = { resolution: 0.006, originCells: [-160, -12, -110], dims: [320, 360, 220], detail: DETAIL_RESOLUTION };
+
+/** Mesh resolution of one component (never finer than the caller asked for). */
+export function meshResolution(id: ComponentId, lattice: Lattice): number {
+  const d = lattice.detail?.[id];
+  return d && d > 0 ? d : lattice.resolution;
+}
 
 export interface LocalComponent {
   key: string;
-  /** Local cell indices j (absolute lattice index = j + anchor). */
+  /** Local OCCUPANCY cell indices j at `hCells` (absolute lattice index = j + anchor). */
   cells: Int32Array;
-  /** Mesh in the local frame. */
+  /** Mesh in the local frame, sampled at `hMesh`. */
   mesh: Mesh;
   samples: number;
   buildMs: number;
+  /** Resolution the mesh was sampled at (metres). */
+  hMesh?: number;
+  /** Resolution the occupancy cells are expressed in (metres). */
+  hCells?: number;
 }
 
 export interface BuiltComponent {
@@ -48,6 +99,10 @@ export interface BuiltComponent {
   /** Key of the geometry alone (materials neutralised). */
   geometryKey: string;
   anchor: Vec3;
+  /** Resolution of this component's mesh (metres). */
+  hMesh: number;
+  /** Resolution of the shared occupancy lattice (metres). */
+  hCells: number;
   /** True only when the component was sampled and meshed again. */
   regenerated: boolean;
   action: "regenerated" | "recolored" | "reused";
@@ -56,6 +111,44 @@ export interface BuiltComponent {
 }
 
 const srgbToLinear = (u: number) => (u <= 0.04045 ? u / 12.92 : ((u + 0.055) / 1.055) ** 2.4);
+
+/**
+ * Occupied cells at `h`, inside the shape's bounds — the same convention
+ * `sampleShape` uses, so occupancy is identical whichever mesh resolution
+ * a component is drawn at.
+ */
+export function occupancyCellsOf(shape: Shape, h: number): Int32Array {
+  const j0 = shape.lo.map((v) => Math.floor(v / h - 0.5) - 1);
+  const j1 = shape.hi.map((v) => Math.ceil(v / h - 0.5) + 1);
+  const cells: number[] = [];
+  for (let x = j0[0]; x <= j1[0]; x++) {
+    const px = (x + 0.5) * h;
+    for (let y = j0[1]; y <= j1[1]; y++) {
+      const py = (y + 0.5) * h;
+      for (let z = j0[2]; z <= j1[2]; z++) if (shape.f(px, py, (z + 0.5) * h) < 0) cells.push(x, y, z);
+    }
+  }
+  return new Int32Array(cells);
+}
+
+/**
+ * Sample one component: mesh at `hMesh`, occupancy cells at `hCells`. When
+ * they are equal this is exactly `sampleShape`.
+ */
+export function sampleComponent(shape: Shape, hMesh: number, hCells: number, key = ""): LocalComponent {
+  const local = sampleShape(shape, hMesh, key);
+  local.hMesh = hMesh;
+  local.hCells = hCells;
+  if (hMesh !== hCells) {
+    // A fine mesh still needs coarse occupancy: sampled on the shared lattice
+    // so every cell-indexed subsystem is unchanged. Counted, so the cost is visible.
+    local.cells = occupancyCellsOf(shape, hCells);
+    const lo = shape.lo.map((v) => Math.floor(v / hCells - 0.5) - 1);
+    const hi = shape.hi.map((v) => Math.ceil(v / hCells - 0.5) + 1);
+    local.samples += (hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) * (hi[2] - lo[2] + 1);
+  }
+  return local;
+}
 
 /** Sample a shape on lattice cell centres within its bounds; mesh it; colour vertices. */
 export function sampleShape(shape: Shape, h: number, key = ""): LocalComponent {
@@ -131,7 +224,7 @@ function recolor(shape: Shape, geometry: LocalComponent, key: string): LocalComp
     const c = shape.color(m.positions[3 * v], m.positions[3 * v + 1], m.positions[3 * v + 2]);
     colors.set([srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2]), 1], 4 * v);
   }
-  return { key, cells: geometry.cells, mesh: { ...m, colors }, samples: 0, buildMs: performance.now() - t0 };
+  return { key, cells: geometry.cells, mesh: { ...m, colors }, samples: 0, buildMs: performance.now() - t0, hMesh: geometry.hMesh, hCells: geometry.hCells };
 }
 
 /**
@@ -144,21 +237,27 @@ export function buildComponent(id: ComponentId, p: BuildPlan, cache: ComponentCa
   const key = p.keys[id];
   const geometryKey = p.geometryKeys[id];
   const anchor = anchorCells(def, p.sk, lattice.resolution);
+  const hMesh = meshResolution(id, lattice);
+  const hCells = lattice.resolution;
+  const at = { hMesh, hCells };
+  // The cache entry also depends on the resolution the mesh was sampled at: the
+  // same content key at another resolution is different geometry.
+  const cacheKey = `${key}@${hMesh}`;
   const t0 = performance.now();
-  const hit = cache?.get(key);
-  if (hit) return { id, key, geometryKey, anchor, regenerated: false, action: "reused", ms: performance.now() - t0, local: hit };
+  const hit = cache?.get(cacheKey);
+  if (hit) return { id, key, geometryKey, anchor, ...at, regenerated: false, action: "reused", ms: performance.now() - t0, local: hit };
   const shape = def.build(contextFor(p.spec, p.sk));
-  const geo = cache?.get(`geo:${geometryKey}`);
-  if (geo && !shape) return { id, key, geometryKey, anchor, regenerated: false, action: "reused", ms: performance.now() - t0, local: geo };
+  const geo = cache?.get(`geo:${geometryKey}@${hMesh}`);
+  if (geo && !shape) return { id, key, geometryKey, anchor, ...at, regenerated: false, action: "reused", ms: performance.now() - t0, local: geo };
   if (geo && shape) {
     const local = recolor(shape, geo, key);
-    cache!.set(key, local);
-    return { id, key, geometryKey, anchor, regenerated: false, action: "recolored", ms: performance.now() - t0, local };
+    cache!.set(cacheKey, local);
+    return { id, key, geometryKey, anchor, ...at, regenerated: false, action: "recolored", ms: performance.now() - t0, local };
   }
-  const local = shape ? sampleShape(shape, lattice.resolution, key) : { key, cells: new Int32Array(0), mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, samples: 0, buildMs: 0 };
-  cache?.set(key, local);
-  cache?.set(`geo:${geometryKey}`, local);
-  return { id, key, geometryKey, anchor, regenerated: true, action: "regenerated", ms: performance.now() - t0, local };
+  const local = shape ? sampleComponent(shape, hMesh, hCells, key) : { key, cells: new Int32Array(0), mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, samples: 0, buildMs: 0, hMesh, hCells };
+  cache?.set(cacheKey, local);
+  cache?.set(`geo:${geometryKey}@${hMesh}`, local);
+  return { id, key, geometryKey, anchor, ...at, regenerated: true, action: "regenerated", ms: performance.now() - t0, local };
 }
 
 export interface CharacterBuild {
@@ -182,9 +281,14 @@ export function buildCharacter(spec: CharacterSpec, cache: ComponentCache | null
   };
 }
 
-/** Mesh of a placed component in world coordinates. */
-export function placedMesh(c: BuiltComponent, h: number): Mesh {
+/**
+ * Mesh of a placed component in world coordinates. The anchor is expressed in
+ * OCCUPANCY cells, so it is scaled by the component's cell resolution — never
+ * by its mesh resolution, or a fine part would be displaced by the ratio.
+ */
+export function placedMesh(c: BuiltComponent): Mesh {
   const m = c.local!.mesh;
+  const h = c.hCells;
   const positions = new Float32Array(m.positions.length);
   for (let i = 0; i < positions.length; i += 3) {
     positions[i] = m.positions[i] + c.anchor[0] * h;
@@ -194,12 +298,12 @@ export function placedMesh(c: BuiltComponent, h: number): Mesh {
   return { positions, indices: m.indices, colors: m.colors, normals: m.normals ?? vertexNormals(m) };
 }
 
-export function glbParts(build: CharacterBuild, h: number, spec: CharacterSpec): GlbPart[] {
+export function glbParts(build: CharacterBuild, spec: CharacterSpec): GlbPart[] {
   return build.components
     .filter((c) => c.local && c.local.mesh.indices.length)
     .map((c) => ({
       name: c.id,
-      mesh: placedMesh(c, h),
+      mesh: placedMesh(c),
       material: { name: `${c.id}-vertex-colour`, baseColor: [1, 1, 1, 1] as [number, number, number, number], roughness: c.id === "hair" ? 0.7 : 0.55 },
       extras: { component: c.id, key: c.key, regenerated: c.regenerated, identity: spec.identity.id, provenance: "SYNTHESIZED" },
     }));

@@ -80,7 +80,7 @@ test("every hairstyle variation produces real, distinct geometry", () => {
 
 test("GLB: one node per component, inspected valid, extras carry identity and keys", () => {
   const b = buildCharacter(base, null, L);
-  const glb = writeGlb(glbParts(b, L.resolution, base));
+  const glb = writeGlb(glbParts(b, base));
   const r = inspectGlb(glb);
   assert.equal(r.verdict.meshValid, true, r.problems.join("; "));
   const json = JSON.parse(new TextDecoder().decode(glb.subarray(20, 20 + new DataView(glb.buffer, glb.byteOffset).getUint32(12, true))));
