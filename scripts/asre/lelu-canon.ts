@@ -20,7 +20,8 @@ import { leluCanon, leluTargets, LELU_EXPRESSIONS, LELU_IDENTITY, LELU_COLOURS }
 import { withChanges, type CharacterSpec } from "../../src/core/asre/character/CharacterSpec.ts";
 import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
 import { loadReference } from "./cc0-anatomy.ts";
-import { referenceProxies } from "../../src/core/asre/reference/provider.ts";
+import { leluHairArch, referenceProxies } from "../../src/core/asre/reference/provider.ts";
+import { encodeStrands } from "./hair-sidecar.ts";
 
 const arg = (name: string, dflt: string) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -54,6 +55,10 @@ let tris = 0;
 for (const p of parts) tris += p.mesh.indices.length / 3;
 const glb = writeGlb(parts, { generator: "LÉLU canonical avatar — ASRE", compactColors: true });
 writeFileSync(join(outDir, "lelu-canon.glb"), glb);
+// full-resolution strands as curves (the GLB's hair is their realtime LOD)
+const arch = leluHairArch(spec);
+const lhc = encodeStrands(arch.strands);
+writeFileSync(join(outDir, "lelu-canon.hair.lhc"), lhc);
 
 const report = {
   character: LELU_IDENTITY.id,
@@ -67,6 +72,7 @@ const report = {
   ms: Math.round(ms),
   triangles: tris,
   glbBytes: glb.length,
+  hair: { ...arch.stats, sidecar: "lelu-canon.hair.lhc", sidecarBytes: lhc.length },
   occupancyCells: occupancyCodes(build, DEFAULT_LATTICE).size,
   components: build.components.map((c) => ({ id: c.id, action: c.action, triangles: c.local ? c.local.mesh.indices.length / 3 : 0 })),
   emptyComponents: build.components.filter((c) => !c.local?.mesh.indices.length).map((c) => c.id),

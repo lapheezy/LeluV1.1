@@ -76,6 +76,8 @@ export async function renderViews({
   hide,
   /** "studio" | "neutral" | "warm". */
   lighting,
+  /** LHC1 strand sidecar to render as native hair curves. */
+  hairCurves,
   timeoutMs = 600_000,
 }) {
   mkdirSync(outDir, { recursive: true });
@@ -101,6 +103,7 @@ export async function renderViews({
       ...(ortho ? { ortho: true } : {}),
       ...(hide ? { hide } : {}),
       ...(lighting ? { lighting } : {}),
+      ...(hairCurves ? { hair_curves: path.resolve(hairCurves) } : {}),
     };
     const jobFile = path.join(outDir, `${stem}.job.json`);
     writeFileSync(jobFile, JSON.stringify(job, null, 1));

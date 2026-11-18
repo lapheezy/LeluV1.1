@@ -42,6 +42,80 @@ meshes = [o for o in scene.objects if o.type == "MESH"]
 if not meshes:
     raise SystemExit("no mesh objects imported")
 
+# "hair_curves": LÉLU's strand sidecar (LHC1, gzip) as native hair curves with
+# a Principled Hair BSDF; the GLB's "hair" mesh is its LOD and is removed.
+def load_hair_curves(path):
+    import gzip, struct
+    import numpy as np
+    raw = gzip.decompress(open(path, "rb").read())
+    magic, hl = struct.unpack_from("<II", raw, 0)
+    hdr = json.loads(raw[8:8 + hl].decode())
+    o = 8 + hl
+    o += (4 - o % 4) % 4
+    n, npnt = hdr["strands"], hdr["points"]
+    counts = np.frombuffer(raw, np.uint16, n, o).astype(np.int64); o += 2 * n
+    q = np.frombuffer(raw, np.uint16, npnt * 3, o).astype(np.float32).reshape(-1, 3); o += 6 * npnt
+    rad = np.frombuffer(raw, np.uint16, 2 * n, o).astype(np.float32).reshape(-1, 2) * 1e-6; o += 4 * n
+    col = np.frombuffer(raw, np.uint8, 3 * n, o).astype(np.float32).reshape(-1, 3) / 255.0; o += 3 * n
+    lo, hi = np.array(hdr["lo"], np.float32), np.array(hdr["hi"], np.float32)
+    p = lo + q / 65535.0 * (hi - lo)
+    # glTF y-up -> Blender z-up: (x, y, z) -> (x, -z, y)
+    pz = np.stack([p[:, 0], -p[:, 2], p[:, 1]], axis=1)
+    hc = bpy.data.hair_curves.new("lelu-hair-strands")
+    hc.add_curves(counts.tolist())
+    hc.position_data.foreach_set("vector", pz.ravel())
+    # taper from root radius to tip radius along each strand
+    t = np.concatenate([np.linspace(0, 1, c, dtype=np.float32) for c in counts])
+    r0 = np.repeat(rad[:, 0], counts); r1 = np.repeat(rad[:, 1], counts)
+    ra = hc.attributes.get("radius") or hc.attributes.new("radius", "FLOAT", "POINT")
+    ra.data.foreach_set("value", (r0 + (r1 - r0) * t).astype(np.float32))
+    lin = np.where(col <= 0.04045, col / 12.92, ((col + 0.055) / 1.055) ** 2.4)
+    ca = hc.attributes.new("strand_color", "FLOAT_COLOR", "CURVE")
+    ca.data.foreach_set("color", np.concatenate([lin, np.ones((n, 1), np.float32)], axis=1).astype(np.float32).ravel())
+    ob = bpy.data.objects.new("lelu-hair-strands", hc)
+    scene.collection.objects.link(ob)
+    mat = bpy.data.materials.new("lelu-hair")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    for nd in list(nt.nodes):
+        if nd.bl_idname != "ShaderNodeOutputMaterial":
+            nt.nodes.remove(nd)
+    out = [nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeOutputMaterial"][0]
+    hb = nt.nodes.new("ShaderNodeBsdfHairPrincipled")
+    hb.parametrization = "COLOR"
+    at = nt.nodes.new("ShaderNodeAttribute")
+    at.attribute_type = "GEOMETRY"
+    at.attribute_name = "strand_color"
+    # accents live in the LENGTHS: black at the root, the strand's colour
+    # from a third of the way down (Hair Info intercept, 0 root -> 1 tip)
+    hi_ = nt.nodes.new("ShaderNodeHairInfo")
+    ramp = nt.nodes.new("ShaderNodeMapRange")
+    ramp.inputs["From Min"].default_value = 0.22
+    ramp.inputs["From Max"].default_value = 0.55
+    nt.links.new(hi_.outputs["Intercept"], ramp.inputs["Value"])
+    mixc = nt.nodes.new("ShaderNodeMix")
+    mixc.data_type = "RGBA"
+    mixc.inputs[6].default_value = (0.004, 0.0032, 0.0036, 1.0)
+    nt.links.new(ramp.outputs["Result"], mixc.inputs[0])
+    nt.links.new(at.outputs["Color"], mixc.inputs[7])
+    nt.links.new(mixc.outputs[2], hb.inputs["Color"])
+    for k, v in (("Roughness", 0.28), ("Radial Roughness", 0.4), ("Coat", 0.08), ("IOR", 1.55)):
+        if k in hb.inputs:
+            hb.inputs[k].default_value = v
+    nt.links.new(hb.outputs[0], out.inputs["Surface"])
+    hc.materials.append(mat)
+    return ob, int(n), int(npnt)
+
+
+hair_info = None
+if job.get("hair_curves") and not job.get("wireframe"):
+    for o in list(meshes):
+        if o.name.split(".")[0] == "hair":
+            bpy.data.objects.remove(o, do_unlink=True)
+            meshes.remove(o)
+    _, hn, hp = load_hair_curves(job["hair_curves"])
+    hair_info = {"strands": hn, "points": hp}
+
 # "hide": component names to leave out (e.g. hair, to measure the bare head)
 for name in job.get("hide", []):
     for o in list(meshes):
@@ -277,5 +351,6 @@ json.dump({
     "triangles": tris,
     "bounds_blender_zup": {"min": list(lo), "max": list(hi)},
     "render_seconds": round(time.time() - t0, 2),
+    "hair_curves": hair_info,
     "blender": bpy.app.version_string,
 }, open(job["output"] + ".json", "w"), indent=1)

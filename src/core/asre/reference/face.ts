@@ -259,17 +259,6 @@ export interface FaceLandmarks {
   noseTip: V3;
 }
 
-/** Distance from point (x,y) to a polyline in the xy-plane. */
-function distXY(pts: V3[], x: number, y: number): number {
-  let best = Infinity;
-  for (let i = 0; i + 1 < pts.length; i++) {
-    const a = pts[i], b = pts[i + 1];
-    const dx = b[0] - a[0], dy = b[1] - a[1];
-    const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1e-12)));
-    best = Math.min(best, Math.hypot(x - a[0] - dx * t, y - a[1] - dy * t));
-  }
-  return best;
-}
 
 /** Her face paint, evaluated in WORLD space: makeup, brows, marks and skin. */
 export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, pal: FacePalette): { c: Rgb; m: number } {
@@ -349,19 +338,8 @@ export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, p
     if (Math.hypot(x - s2x, y - s2y) < 0.0017 * (0.45 + 0.55 * Math.abs(Math.cos(2.5 * Math.atan2(y - s2y, x - s2x) + Math.PI / 2)))) return { c: mix(c, pal.ink, 0.8), m: MAT.skin };
   }
 
-  // forehead and temple swirls: small curls of ink (ref10), not a ring
-  for (const [cx, cy, rr, turns] of [[0.016, 0.047, 0.0055, 1.6], [-0.016, 0.047, 0.0055, 1.6], [0.034, 0.038, 0.0045, 1.3], [-0.034, 0.038, 0.0045, 1.3], [0.006, 0.062, 0.004, 1.2], [-0.006, 0.062, 0.004, 1.2]] as const) {
-    const px = x - cx, py = y - (eyeY + cy);
-    const r = Math.hypot(px, py);
-    if (r > rr * 1.2) continue;
-    let a = Math.atan2(py, px) * Math.sign(cx || 1);
-    if (a < 0) a += Math.PI * 2;
-    for (let k = 0; k < 3; k++) {
-      const target = (rr * (a + 2 * Math.PI * k)) / (2 * Math.PI * turns);
-      if (target <= rr && Math.abs(r - target) < 0.00045) return { c: mix(c, pal.ink, 0.85), m: MAT.skin };
-    }
-  }
-
+  // (her forehead and temple swirls are laid baby hairs: real strand
+  // geometry in hairArch.ts, no longer painted ink)
   // freckles across her nose and cheeks: sparse, soft, 1–1.5 mm
   if (y < eyeY - 0.012 && y > lm.mouth[1] + 0.015 && Math.abs(x) < 0.055) {
     const g = 0.0042;

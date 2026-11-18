@@ -68,7 +68,7 @@ function hash(i: number, j: number): number {
 const srgb2lin = (u: number) => (u <= 0.04045 ? u / 12.92 : ((u + 0.055) / 1.055) ** 2.4);
 
 /** Grow one lock's axis from a root: gravity, stiffness, collision, part and face clearance. */
-function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: number, seed: number): V3[] {
+export function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: number, seed: number): V3[] {
   const h = ctx.head;
   const seg = 0.008;
   const steps = Math.max(4, Math.round(len / seg));
@@ -82,13 +82,21 @@ function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: number,
   let tdir = v3.sub(down, [n[0] * v3.dot(down, n), n[1] * v3.dot(down, n), n[2] * v3.dot(down, n)]);
   if (v3.len(tdir) < 0.35) {
     // the crown, where "down" is into the scalp: comb away from the part and back
-    const away: V3 = [side, 0, -0.6];
+    const away: V3 = [side * 0.55, 0, -0.8];
     tdir = v3.sub(away, [n[0] * v3.dot(away, n), n[1] * v3.dot(away, n), n[2] * v3.dot(away, n)]);
   }
-  let d = v3.unit(v3.add(v3.unit(tdir), n, 0.45));
+  // a low lift keeps the part a LINE: lifted roots open a bald wedge
+  let d = v3.unit(v3.add(v3.unit(tdir), n, 0.18));
   // front hairline locks sweep back and to the side so they frame the face
+  // Front-hairline roots sweep away from the part, to the side and a little
+  // back, lying on the scalp. (Sending them UP and back left the front of the
+  // part bald; letting them fall gave her a fringe her references do not have.)
   const front = root[2] > h[2] + 0.04;
-  if (front) d = v3.unit(v3.add(d, [side * 0.6, 0.1, -0.5]));
+  if (front) {
+    const sweepDir: V3 = [side * 1.0, -0.15, -0.35];
+    const tang = v3.sub(sweepDir, [n[0] * v3.dot(sweepDir, n), n[1] * v3.dot(sweepDir, n), n[2] * v3.dot(sweepDir, n)]);
+    d = v3.unit(v3.add(v3.unit(tang), n, 0.12));
+  }
   let p = v3.add(root, n, 0.002);
   const pts: V3[] = [p];
   const e = 0.003;
@@ -112,14 +120,15 @@ function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: number,
     }
     // never in front of her face
     const fx = Math.abs(p[0] - h[0]), fy = p[1] - h[1];
-    if (p[2] > h[2] + 0.02 && fy < 0.075 && fy > -0.2 && fx < 0.082) p = [h[0] + side * 0.082, p[1], p[2]];
+    // her face, from the chin up to the hairline, is never covered
+    if (p[2] > h[2] + 0.02 && fy < 0.088 && fy > -0.2 && fx < 0.082) p = [h[0] + side * 0.082, p[1], p[2]];
     pts.push(p);
   }
   return pts;
 }
 
 /** Parallel-transport frame of a polyline. */
-function frames(pts: V3[]): [V3, V3][] {
+export function frames(pts: V3[]): [V3, V3][] {
   const out: [V3, V3][] = [];
   let t = v3.unit(v3.sub(pts[1], pts[0]));
   let u = v3.unit(v3.cross(t, Math.abs(t[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]));

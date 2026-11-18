@@ -33,6 +33,7 @@ import { mergeMeshes } from "./garment.ts";
 import type { Mesh } from "../volume/mesh.ts";
 import { buildWardrobe, MAT, type Wardrobe } from "./wardrobe.ts";
 import { growCurls, LELU_CURLS, type Curls } from "./hair.ts";
+import { growHairArchitecture, hairline, LELU_HAIR_ARCH, type HairArchitecture, type Hairline } from "./hairArch.ts";
 import { eyeball, faceColour, HeadRays, lashes, measureEye, skinTone, tattoo, EYE_R, type FaceLandmarks } from "./face.ts";
 
 export interface RefProxy {
@@ -293,21 +294,48 @@ export function scalpRoots(spec: CharacterSpec): { roots: Float32Array; normals:
   return scalpCache;
 }
 
-/** Is (x, y, z) on her scalp, under the hair? A 1 cm hash of the roots. */
-let scalpHash: { key: string; cells: Set<string> } | null = null;
-function onScalp(spec: CharacterSpec, x: number, y: number, z: number): boolean {
-  const r = scalpRoots(spec);
-  if (!r) return false;
-  const key = `${current!.digest}|${spec.hair.style}`;
-  if (scalpHash?.key !== key) {
-    const cells = new Set<string>();
-    for (let i = 0; i < r.roots.length; i += 3) cells.add(`${Math.round(r.roots[i] / 0.006)},${Math.round(r.roots[i + 1] / 0.006)},${Math.round(r.roots[i + 2] / 0.006)}`);
-    scalpHash = { key, cells };
-  }
-  // any root within a cell of this point: the scalp is continuous, the roots are samples
-  const i = Math.round(x / 0.006), j = Math.round(y / 0.006), k = Math.round(z / 0.006);
-  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) if (scalpHash.cells.has(`${i + a},${j + b},${k + c}`)) return true;
-  return false;
+
+let raysCache: { key: string; rays: HeadRays; tris: number[] } | null = null;
+function headRays(spec: CharacterSpec): { rays: HeadRays; tris: number[] } {
+  const b = bodySurface(spec);
+  if (raysCache?.key === b.key) return raysCache;
+  const tris: number[] = [];
+  for (let t = 0; t < b.labels.length; t++) if (b.labels[t] === BODY_LABEL.head) tris.push(t);
+  raysCache = { key: b.key, rays: new HeadRays(b.positions, b.indices, tris), tris };
+  return raysCache;
+}
+
+/** Her hairline, placed from her own pupil line on her own skull. */
+export function leluHairline(spec: CharacterSpec): Hairline {
+  const lm = faceLandmarks(spec);
+  const eyeY = (lm.eyes[0].center[1] + lm.eyes[1].center[1]) / 2;
+  return hairline(eyeY, [0, eyeY, J("joint-head")[2] + 0.005]);
+}
+
+let archCache: { key: string; a: HairArchitecture } | null = null;
+/** Her layered hair (hairArch.ts): strands as curves, clump tubes as the LOD. */
+export function leluHairArch(spec: CharacterSpec): HairArchitecture {
+  const b = bodySurface(spec);
+  const key = `${b.key}|${spec.hair.style}|${spec.hair.length}|${spec.hair.volume}`;
+  if (archCache?.key === key) return archCache.a;
+  const { rays, tris } = headRays(spec);
+  const st = { ...LELU_HAIR_ARCH, length: LELU_HAIR_ARCH.length * Math.max(0.4, spec.hair.length) };
+  const a = growHairArchitecture(
+    {
+      roots: new Float32Array(0),
+      normals: new Float32Array(0),
+      head: J("joint-head"),
+      body: fieldSdf(bodyField("body", 0, [], null)),
+      colors: { base: spec.materials.hair, rose: L.hairRose, berry: [0.4, 0.07, 0.17] },
+      hairline: leluHairline(spec),
+      surf: { positions: b.positions, normals: b.normals, indices: b.indices, tris },
+      rays,
+      colorsArch: { black: spec.materials.hair, rose: L.hairRose, berry: [0.4, 0.07, 0.17] },
+    },
+    st,
+  );
+  archCache = { key, a };
+  return a;
 }
 
 let faceCache: { key: string; lm: FaceLandmarks } | null = null;
@@ -315,9 +343,7 @@ let faceCache: { key: string; lm: FaceLandmarks } | null = null;
 export function faceLandmarks(spec: CharacterSpec): FaceLandmarks {
   const b = bodySurface(spec);
   if (faceCache?.key === b.key) return faceCache.lm;
-  const tris: number[] = [];
-  for (let t = 0; t < b.labels.length; t++) if (b.labels[t] === BODY_LABEL.head) tris.push(t);
-  const rays = new HeadRays(b.positions, b.indices, tris);
+  const { rays } = headRays(spec);
   const eL = measureEye(rays, J("joint-l-eye"), 1), eR = measureEye(rays, J("joint-r-eye"), -1);
   const mj = J("joint-mouth"), hp = J("joint-head");
   let noseTip: V3 = [0, mj[1] + 0.02, 0], nz = -Infinity;
@@ -758,101 +784,7 @@ function noise(x: number, y: number, z: number, seed = 0): number {
   return s - Math.floor(s);
 }
 
-/**
- * LÉLU's face, painted from her locked identity:
- * full dark brows with a clean tail, deep berry-brown glossy lips, star marks
- * high on the cheekbones, dark swirls at the forehead, freckles across the nose
- * and cheeks.
- *
- * These are colour fields on her own head geometry — the marks are surface
- * detail at the scale of a millimetre, and painting them keeps the head one
- * closed solid instead of hundreds of decals. Everything geometric about her
- * face (oval shape, high cheekbones, tapered jaw) comes from the reference
- * morph, not from here.
- */
-function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb): Rgb {
-  const mouth = J("joint-mouth"), eL = J("joint-l-eye"), eR = J("joint-r-eye");
-  const span = Math.abs(eL[0] - eR[0]) || 0.062;
-  const eyeY = (eL[1] + eR[1]) / 2;
-  const front = z > mouth[2] - span * 0.5;
 
-  // lips: fuller lower lip, defined cupid's bow
-  if (front) {
-    const lip = Math.hypot((x - mouth[0]) / (span * 0.46), (y - mouth[1]) / (span * 0.2), (z - mouth[2]) / (span * 0.36));
-    if (lip < 1) {
-      // gloss sits on the centre of the lower lip, where it catches light
-      const gloss = y < mouth[1] - span * 0.012 && Math.abs(x - mouth[0]) < span * 0.2 && z > mouth[2] + span * 0.1;
-      return gloss ? L.lipHighlight : L.lip;
-    }
-  }
-
-  // brows: full, dark, softly arched, tapering into a clean tail. The arch is a
-  // curve, not an ellipse: an elliptical brow reads as a smudge above the eye.
-  for (const e of [eL, eR]) {
-    const u = (x - e[0]) / (span * 0.54);
-    if (Math.abs(u) < 1) {
-      const arch = e[1] + span * (0.2 + 0.055 * (1 - u * u));
-      const th = span * 0.058 * (1 - 0.5 * Math.abs(u * u));
-      if (Math.abs(y - arch) < th) return hairC;
-    }
-  }
-
-  // star marks, high on the cheekbones, with a second smaller cluster below
-  for (const s of [-1, 1] as const) {
-    const cx = mouth[0] + s * span * 0.72, cy = eyeY - span * 0.055;
-    const r = Math.hypot(x - cx, (y - cy) * 0.9);
-    if (r < span * 0.13) {
-      const a = Math.atan2(y - cy, x - cx);
-      // five-pointed: the radius grows to a point five times per turn
-      if (r < span * (0.024 + 0.038 * Math.pow(Math.abs(Math.cos(2.5 * a)), 1.6))) return L.star;
-    }
-    const sx = mouth[0] + s * span * 0.98, sy = eyeY - span * 0.3;
-    if (Math.hypot(x - sx, y - sy) < span * 0.022) return L.star;
-  }
-
-  // lid shading: a darker lid crease above each aperture is what makes the eye
-  // read as an eye rather than as a hole in a face
-  for (const e of [eL, eR]) {
-    const dx = (x - e[0]) / EYE_HALF_W;
-    if (Math.abs(dx) < 1.25 && y > e[1] + EYE_HALF_H * 0.9 && y < e[1] + EYE_HALF_H * 2.9) return L.lidShadow;
-  }
-
-  // dark swirls across the forehead and temples
-  const fy = eyeY + span * 0.28;
-  if (Math.abs(y - fy) < span * 0.2) {
-    const rr = Math.hypot(x - mouth[0], (y - fy) * 1.15);
-    const a = Math.atan2(y - fy, x - mouth[0]);
-    const ring = span * (0.14 + 0.075 * Math.sin(a * 3 + rr * 90));
-    if (Math.abs(rr - ring) < span * 0.02) return L.ink;
-  }
-
-  // freckles across nose and cheeks
-  if (y < eyeY - span * 0.05 && y > mouth[1] + span * 0.16 && front)
-    if (noise(Math.round(x * 1400), Math.round(y * 1400), 3) > 0.975) return L.skinShade;
-
-  return skin;
-}
-
-/**
- * Her tattoos: ornamental filigree across the collarbones and chest, and a
- * filigree band on the forearms. Painted as fine arcs on her skin, in her
- * documented ink. Approximate as a pattern — the reference boards are the
- * authority for placement and style, not for an exact vector tracing.
- */
-function leluTattoo(x: number, y: number, z: number, skin: Rgb, where: "chest" | "forearm"): Rgb {
-  if (where === "chest") {
-    const collar = J("joint-l-shoulder")[1] - 0.055;
-    if (y > collar - 0.14 && y < collar + 0.02 && z > 0) {
-      const arc = Math.abs(Math.sin(x * 62 + y * 24));
-      const vine = Math.abs(Math.sin(x * 21 - y * 40));
-      if (arc < 0.1 || (vine < 0.05 && Math.abs(x) > 0.045)) return L.ink;
-    }
-  } else {
-    const band = Math.abs(Math.sin(y * 150 + z * 40));
-    if (band < 0.09 && Math.abs(x) > 0.12) return L.ink;
-  }
-  return skin;
-}
 
 /** Lip and brow masks in metres, from the mesh's own face joints. */
 export function faceMasks(): { lips: Sdf; brows: Sdf; eyes: [V3, V3] } {
@@ -926,10 +858,21 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       if (isLelu(spec)) {
         const lm = faceLandmarks(spec);
         const pal = { skin: skinC, shade: L.skinShade, lip: L.lip, lipHighlight: L.lipHighlight, ink: L.ink, brow: [0.06, 0.04, 0.035] as Rgb };
+        const hl = leluHairline(spec);
+        // scalp: her hair colour under the hair, blended across the hairline,
+        // with the skin of the centre part showing as a fine line
+        const scalp = (x: number, y: number, z: number, c: Rgb): Rgb => {
+          const k = hl.mask(x, y, z);
+          if (k <= 0) return c;
+          const part = Math.abs(x) < 0.0012 && y > hl.eyeY + 0.06 && z > hl.centre[2] - 0.06 ? 0.55 : 0;
+          const sc: Rgb = [hairC[0] * 1.15 + 0.012, hairC[1] * 1.1 + 0.008, hairC[2] * 1.1 + 0.006];
+          const under: Rgb = [sc[0] + (c[0] - sc[0]) * part, sc[1] + (c[1] - sc[1]) * part, sc[2] + (c[2] - sc[2]) * part];
+          return [c[0] + (under[0] - c[0]) * k, c[1] + (under[1] - c[1]) * k, c[2] + (under[2] - c[2]) * k];
+        };
         shape = {
           ...result,
-          color: (x, y, z) => (onScalp(spec, x, y, z) ? hairC : faceColour(x, y, z, lm, pal).c),
-          material: (x, y, z) => (onScalp(spec, x, y, z) ? 1 : faceColour(x, y, z, lm, pal).m),
+          color: (x, y, z) => scalp(x, y, z, faceColour(x, y, z, lm, pal).c),
+          material: (x, y, z) => (hl.mask(x, y, z) > 0.5 ? 1 : faceColour(x, y, z, lm, pal).m),
         };
       } else shape = { ...result, color: (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC) };
       break;
@@ -1175,10 +1118,10 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       // scalp and rasterised into a density grid, so the surface has separate
       // locks with gaps between them instead of one helmet.
       if (isLelu(spec)) {
-        const c = leluCurls(spec);
-        if (!c) { shape = null; break; }
+        const c = leluHairArch(spec);
+        const m0 = c.lod;
         // the mesh lives in the component's frame; the field is moved below
-        const m = c.mesh, P = new Float32Array(m.positions.length);
+        const m = m0, P = new Float32Array(m.positions.length);
         for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) P[i + a] = m.positions[i + a] - anchor[a];
         shape = { f: c.f, lo: c.lo, hi: c.hi, color: () => spec.materials.hair, mesh: { ...m, positions: P } };
         break;
