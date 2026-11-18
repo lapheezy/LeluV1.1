@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118165214-014",
+  "at": 1795020734182.196,
+  "type": "comparison",
+  "workPackage": "WP04",
+  "summary": "artifacts/lelu2/head/head-metrics.json (2.6 KB)",
+  "detail": "a measured result — the only kind of artefact that can promote a claim to verified; 2628 bytes",
+  "interpretation": "classed as comparison · measurement evidence · associated with WP04 by artefact path \\/head\\/",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/head/head-metrics.json",
+      "at": 1795020734182.196
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/head/head-metrics.json:2628"
+}

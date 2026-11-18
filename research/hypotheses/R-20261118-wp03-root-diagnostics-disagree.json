@@ -1,0 +1,79 @@
+{
+  "id": "R-20261118-wp03-root-diagnostics-disagree",
+  "kind": "hypotheses",
+  "createdAt": 1795034704521,
+  "updatedAt": 1795034704521,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP03",
+  "observed": "The tube builder reports floatingRoots=0 and rootPenetrations=392. The vertex-clearance measure on the same build reports p50 1.11 mm, p95 2.06 mm, 54 roots beyond 4 mm, max 49.2 mm.",
+  "studied": "What each root diagnostic actually measures, and which one answers 'does a root float above the scalp'.",
+  "question": "Why do the two root diagnostics disagree about floating roots?",
+  "hypothesis": "They measure different things: 'floating' compares a root to the field box / normal offset, while clearance compares it to the nearest head-mesh vertex, so a root can be inside the box, above the scalp by tens of millimetres, and count as neither floating nor penetrating.",
+  "method": "Read both diagnostics from the same build and compare their definitions; the follow-up is to measure distance to the head *surface* (not vertices) for every root.",
+  "results": "0 reported floating against 54 roots beyond 4 mm and 392 inside the mesh. The two numbers cannot both describe the same property.",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json",
+      "note": "both diagnostics, same build"
+    },
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png",
+      "note": "sparse crown and front hairline"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "A diagnostic named after the defect it is supposed to catch is not evidence that it catches it. Zero floating roots was a definition, not a measurement.",
+  "confidence": 0.47,
+  "limitations": [
+    "The nearest-vertex distance overestimates clearance on a coarse scalp mesh; a surface-distance measure is still needed.",
+    "Whether the visible sparseness is the same 54 roots is not yet established."
+  ],
+  "applications": [
+    "Replace the counter with a surface-distance measurement before any 'floating roots fixed' claim."
+  ],
+  "nextQuestions": [
+    "Does a surface-distance measure reproduce the 54 out-of-tolerance roots?",
+    "Do those 54 roots correspond to the sparse region in the front render?"
+  ],
+  "answers": [],
+  "status": "hypothesis",
+  "tags": [
+    "hair",
+    "roots",
+    "diagnostics",
+    "contradiction",
+    "wp03"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [
+    {
+      "statement": "floatingRoots=0 means no root floats",
+      "verdict": "refuted"
+    }
+  ],
+  "refutations": [
+    {
+      "entryId": "R-20261118-wp03-tube-hair-cannot-move-occupancy",
+      "assumption": "root placement is carried over unchanged from the voxel roots",
+      "note": "Placement was carried over as coordinates, but the face-plane cut and the normal lift move and shorten roots; the clearance measurement contradicts 'unchanged'.",
+      "evidence": [
+        {
+          "kind": "measurement",
+          "ref": "artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json",
+          "note": "root clearance distribution"
+        }
+      ]
+    }
+  ],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

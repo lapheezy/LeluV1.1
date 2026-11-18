@@ -1,0 +1,45 @@
+{
+  "id": "C-20261118-wp03-tube-hair-cannot-move-occupancy",
+  "name": "Tube hair with invariant occupancy",
+  "fromEntryId": "R-20261118-wp03-tube-hair-cannot-move-occupancy",
+  "status": "verified",
+  "acceptance": [
+    "voxel, tubes-high, tubes-medium and tubes-low report the same occupancyCells",
+    "the same occupancyDigest",
+    "the low LOD uses fewer hair triangles than the high LOD"
+  ],
+  "testCommand": "npx tsx --tsconfig tsconfig.test.json --test tests/lelu2-artifacts.test.ts",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/hair/voxel/metrics-voxel.json",
+      "note": "voxel occupancy baseline"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json",
+      "note": "high LOD occupancy and hair"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/hair/tubes-low/metrics-tubes-low.json",
+      "note": "low LOD occupancy and hair"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-artifacts.test.ts",
+      "note": "asserts the cell counts and digests are equal"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-artifacts.test.ts",
+      "note": "the tube-variant occupancy test passed"
+    }
+  ],
+  "createdAt": 1795034704585,
+  "verifiedAt": 1795034704585,
+  "notes": [
+    "Promoted from a verified measurement, not from a design note.",
+    "Verified by the artefact test run in this session."
+  ]
+}

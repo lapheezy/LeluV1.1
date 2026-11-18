@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118145510-068",
+  "at": 1795013710759.848,
+  "type": "experiment-config",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/ornament/golden/cameras.json (443 B)",
+  "detail": "an experiment configuration or result document; 443 bytes",
+  "interpretation": "classed as experiment-config · artifact evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/ornament/golden/cameras.json",
+      "at": 1795013710759.848
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/ornament/golden/cameras.json:443"
+}

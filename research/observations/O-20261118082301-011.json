@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118082301-011",
+  "at": 1794990181000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "feat(lelu): canonical avatar identity, transcribed from her own locked files",
+  "detail": "25 file(s): artifacts/lelu/canon/cameras.json, artifacts/lelu/canon/lelu-canon-back.job.json, artifacts/lelu/canon/lelu-canon-back.png, artifacts/lelu/canon/lelu-canon-back.png.json, artifacts/lelu/canon/lelu-canon-face-front.job.json, artifacts/lelu/canon/lelu-canon-face-front.png, artifacts/lelu/canon/lelu-canon-face-front.png.json, artifacts/lelu/canon/lelu-canon-front.job.json, …",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e",
+      "note": "feat(lelu): canonical avatar identity, transcribed from her own locked files"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/cameras.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.job.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.png",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.png.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.job.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.job.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-report.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-side.job.json",
+      "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+    }
+  ],
+  "commit": "ff1bb0df543a2ae5347d4ae32f76e46119c8792e",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:ff1bb0df543a2ae5347d4ae32f76e46119c8792e"
+}

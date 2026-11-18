@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118163438-035",
+  "at": 1795019678969.4712,
+  "type": "source-change",
+  "workPackage": "WP03",
+  "summary": "artifacts/lelu2/hair/tubes-medium/lelu2-tubes-medium-head.glb (8.2 MB)",
+  "detail": "a generated model — geometry that can be measured and rendered again; 8619620 bytes",
+  "interpretation": "classed as source-change · artifact evidence · associated with WP03 by artefact path \\/hair\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/hair/tubes-medium/lelu2-tubes-medium-head.glb",
+      "at": 1795019678969.4712
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/hair/tubes-medium/lelu2-tubes-medium-head.glb:8619620"
+}

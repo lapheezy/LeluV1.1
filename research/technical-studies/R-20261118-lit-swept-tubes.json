@@ -1,0 +1,57 @@
+{
+  "id": "R-20261118-lit-swept-tubes",
+  "kind": "technical-studies",
+  "createdAt": 1795034704566,
+  "updatedAt": 1795034704566,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP03",
+  "observed": "Tube hair needed frames that do not spin along the curve, or the cross-section twists visibly.",
+  "studied": "Discrete elastic rods (Bergou et al. 2008) for the framing language: a material frame described by its angular deviation from the natural Bishop frame, with parallel transport along the centreline and holonomy at closed loops.",
+  "question": "How should a tube's cross-section be oriented along a curl so it does not twist?",
+  "hypothesis": "Parallel transport of the previous frame (minimal rotation) prevents twist without a global up-vector.",
+  "method": "Sweep each strand with parallel transport, elliptical cross-sections and a taper; verify by rendering and by diameter statistics.",
+  "results": "Shipped in src/core/asre/hair/tubes.ts: 1219 strands, diameter CV 0.427, no visible twist artefacts in the front and three-quarter renders.",
+  "evidence": [
+    {
+      "kind": "source",
+      "ref": "https://doi.org/10.1145/1360612.1360662",
+      "note": "Bergou et al. 2008, ACM TOG 27(3):63"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/hair/tubes.ts",
+      "note": "sweepTube / bundleTubes"
+    },
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-three-quarter.png",
+      "note": "ringlets frame the face"
+    }
+  ],
+  "learned": "Parallel transport solves orientation, not penetration: frames that do not twist still produce roots that sit above the scalp. The framing literature is not a placement solution.",
+  "confidence": 0.36,
+  "limitations": [
+    "The full rod dynamics (bending, collision) were not implemented; only the framing was used."
+  ],
+  "applications": [
+    "Reuse the framing for any swept geometry: baby hairs, laces, cables."
+  ],
+  "nextQuestions": [
+    "Would a collision-aware rod solve the floating roots that framing does not?"
+  ],
+  "answers": [],
+  "status": "experiment",
+  "tags": [
+    "hair",
+    "tubes",
+    "parallel-transport",
+    "literature"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

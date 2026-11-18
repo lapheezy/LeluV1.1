@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118143608-005",
+  "at": 1795012568000,
+  "type": "architecture-change",
+  "workPackage": "WP02",
+  "summary": "feat(lelu2): isolate LÉLU 2 and give it a golden geometry engine",
+  "detail": "16 file(s): .gitignore, LELU2_DUPLICATION.md, research/COMPATIBILITY.md, research/LICENSES.md, research/meshopt-probe.mjs, src/core/geometry/golden/analysis.ts, src/core/geometry/golden/constants.ts, src/core/geometry/golden/constraints.ts, …",
+  "interpretation": "Associated with WP02 by keyword \\bwp\\s*0?2\\b|sampl|distribut. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2",
+      "note": "feat(lelu2): isolate LÉLU 2 and give it a golden geometry engine"
+    },
+    {
+      "kind": "code",
+      "ref": ".gitignore",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "LELU2_DUPLICATION.md",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "research/COMPATIBILITY.md",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "research/LICENSES.md",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "research/meshopt-probe.mjs",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/analysis.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/constants.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/constraints.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/index.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/phyllotaxis.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/proportions.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/geometry/golden/sequences.ts",
+      "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+    }
+  ],
+  "commit": "6d40c1738dbf83c7f4c0594405e547a1da59f4d2",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:6d40c1738dbf83c7f4c0594405e547a1da59f4d2"
+}

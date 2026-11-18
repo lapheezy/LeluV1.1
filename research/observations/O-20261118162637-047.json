@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118162637-047",
+  "at": 1795019197539.7607,
+  "type": "render",
+  "workPackage": "WP03",
+  "summary": "artifacts/lelu2/hair/voxel/lelu2-voxel-face-front.png (1.0 MB)",
+  "detail": "a rendered image — visual evidence that can be compared, not just counted; 1073233 bytes",
+  "interpretation": "classed as render · render evidence · associated with WP03 by artefact path \\/hair\\/",
+  "evidence": [
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/voxel/lelu2-voxel-face-front.png",
+      "at": 1795019197539.7607
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/hair/voxel/lelu2-voxel-face-front.png:1073233"
+}

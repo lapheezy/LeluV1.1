@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118150416-054",
+  "at": 1795014256987.2886,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/baseline/lelu2-baseline.glb (41.7 MB)",
+  "detail": "a generated model — geometry that can be measured and rendered again; 43679848 bytes",
+  "interpretation": "classed as source-change · artifact evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline.glb",
+      "at": 1795014256987.2886
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/baseline/lelu2-baseline.glb:43679848"
+}

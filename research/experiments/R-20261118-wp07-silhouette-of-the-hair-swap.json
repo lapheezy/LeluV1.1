@@ -1,0 +1,63 @@
+{
+  "id": "R-20261118-wp07-silhouette-of-the-hair-swap",
+  "kind": "experiments",
+  "createdAt": 1795034720295,
+  "updatedAt": 1795034720295,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP07",
+  "observed": "Front renders of voxel and tubes-high hair, same camera: silhouette IoU 0.8931, coverage 61.35% → 59.34%.",
+  "studied": "What changes in the silhouette when the hair surface is replaced, and which changes are visible rather than measured.",
+  "question": "Does the tube hair change the silhouette, and where?",
+  "hypothesis": "The change is confined to detail and the outline stays the same.",
+  "method": "Decode both PNGs, take the background from the corners, build a foreground mask, and compare coverage, third profile, bounds and IoU.",
+  "results": "crown / upper third coverage fell 7.0 percentage points silhouette bounds moved by (0, 54) → (0, 0) px",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/research/visual-voxel-vs-tubes.json",
+      "note": "full comparison"
+    },
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/voxel/lelu2-voxel-head-front.png",
+      "note": "voxel front"
+    },
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png",
+      "note": "tube front"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-artifacts.test.ts",
+      "note": "the same comparison is asserted in the test suite"
+    }
+  ],
+  "learned": "The outline moves at the top of the frame: the tube version loses upper-third coverage. That is consistent with the sparse crown seen in the render and with the 54 roots beyond 4 mm — three independent observations of the same defect.",
+  "confidence": 0.9,
+  "limitations": [
+    "A 2D silhouette cannot show geometry intersections or scalp penetration; those need the mesh and the clearance measure.",
+    "One camera angle only."
+  ],
+  "applications": [
+    "Any hair change now has a measured before/after silhouette, not an opinion."
+  ],
+  "nextQuestions": [
+    "Does the upper-third loss disappear if the front roots keep their full length?"
+  ],
+  "answers": [],
+  "status": "verified",
+  "tags": [
+    "visual",
+    "silhouette",
+    "hair",
+    "wp07"
+  ],
+  "commit": null,
+  "session": "S-2026-11-18",
+  "assumptions": [],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": 1795034720295
+}

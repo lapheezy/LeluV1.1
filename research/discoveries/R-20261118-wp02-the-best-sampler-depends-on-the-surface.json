@@ -1,0 +1,73 @@
+{
+  "id": "R-20261118-wp02-the-best-sampler-depends-on-the-surface",
+  "kind": "discoveries",
+  "createdAt": 1795034704503,
+  "updatedAt": 1795034704503,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP02",
+  "observed": "Five samplers at n=800 on four surfaces: hair roots: A 0.3925 → E-hybrid 0.0968 (coverage 100.0%); surface detail placement: A 0.3943 → E-hybrid 0.0885 (coverage 100.0%); jewelry (diadem): A 0.4092 → C-vogel 0.0382 (coverage 100.0%); procedural surface sampling: A 0.0519 → B-fibonacci 0.0277 (coverage 100.0%). The one-arm logarithmic spiral was rejected on every surface for coverage (7–23%).",
+  "studied": "Equal-area point distributions: ordered stride, Fibonacci sphere, Vogel disc, one-arm logarithmic spiral, and an area-even hybrid. The relevant principle is that equal spacing and equal area are different objectives (Vogel 1979; Bridson 2007).",
+  "question": "Which sampling law produces the most uniform distribution for her actual surfaces?",
+  "hypothesis": "One golden-ratio law is best everywhere.",
+  "method": "Identical point cloud, n=800, same seed and same coverage radius per surface; measure spacing CV, min/max spacing and coverage; reject any method whose coverage falls below the surface it is supposed to cover.",
+  "results": "hair roots: A 0.3925 → E-hybrid 0.0968 (coverage 100.0%); surface detail placement: A 0.3943 → E-hybrid 0.0885 (coverage 100.0%); jewelry (diadem): A 0.4092 → C-vogel 0.0382 (coverage 100.0%); procedural surface sampling: A 0.0519 → B-fibonacci 0.0277 (coverage 100.0%). Curls: the log law is the regular one (R² 1.000, growth 0.618/turn), while the hybrid has diameter CV 0.153 but R² 0.934.",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/matrix/summary.json",
+      "note": "per-surface methods with spacing, coverage and decisions"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-artifacts.test.ts",
+      "note": "guards equal n, coverage and the rejected spiral"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "There is no single winner. A surface thin enough to be one strip (the disc) favours Vogel; a closed sphere favours Fibonacci; an irregular anatomical cloud favours the area-even hybrid. The constant is not the answer — the surface is.",
+  "confidence": 0.57,
+  "limitations": [
+    "Four surfaces only; the accessory and jewellery surfaces were not sampled.",
+    "CV is a spacing statistic, not a perceptual one."
+  ],
+  "applications": [
+    "Hair roots and surface detail keep the hybrid; the ornament disc keeps Vogel.",
+    "The matrix is the harness any new sampler must beat at equal n."
+  ],
+  "nextQuestions": [
+    "Does the hybrid stay ahead on the accessory and jewellery surfaces?",
+    "Can the hybrid be made deterministic across resolutions without losing its coverage guarantee?"
+  ],
+  "answers": [
+    "Which sampling law produces the most uniform distribution for her actual surfaces?"
+  ],
+  "status": "verified",
+  "tags": [
+    "sampling",
+    "vogel",
+    "fibonacci",
+    "poisson",
+    "wp02"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [
+    {
+      "statement": "a golden-ratio law is best on every surface",
+      "verdict": "refuted"
+    },
+    {
+      "statement": "the one-arm spiral is usable if its CV is low",
+      "verdict": "refuted"
+    }
+  ],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": 1795034704503
+}

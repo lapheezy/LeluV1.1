@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118145610-062",
+  "at": 1795013770293.9675,
+  "type": "experiment-config",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/ornament/baseline/ornament-baseline-front.png.json (645 B)",
+  "detail": "an experiment configuration or result document; 645 bytes",
+  "interpretation": "classed as experiment-config · artifact evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/ornament/baseline/ornament-baseline-front.png.json",
+      "at": 1795013770293.9675
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/ornament/baseline/ornament-baseline-front.png.json:645"
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118075926-012",
+  "at": 1794988766000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(asre): hair grown as strands from the scalp instead of a shell around the card",
+  "detail": "26 file(s): artifacts/mission58/reference/reference-base-back.job.json, artifacts/mission58/reference/reference-base-back.png, artifacts/mission58/reference/reference-base-back.png.json, artifacts/mission58/reference/reference-base-face-front.job.json, artifacts/mission58/reference/reference-base-face-front.png, artifacts/mission58/reference/reference-base-face-front.png.json, artifacts/mission58/reference/reference-base-front.job.json, artifacts/mission58/reference/reference-base-front.png, …",
+  "interpretation": "Associated with WP03 by keyword \\bwp\\s*0?3\\b|hair|tube|curl|. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "87cda0579d43c0dd2842fd88f832c299280cdf0b",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b",
+      "note": "feat(asre): hair grown as strands from the scalp instead of a shell around the card"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-back.job.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-back.png",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-back.png.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-face-front.job.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-face-front.png",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-face-front.png.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.job.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.png",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.png.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-hands-front.job.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-hands-front.png",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-hands-front.png.json",
+      "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b"
+    }
+  ],
+  "commit": "87cda0579d43c0dd2842fd88f832c299280cdf0b",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:87cda0579d43c0dd2842fd88f832c299280cdf0b"
+}

@@ -1,0 +1,67 @@
+{
+  "id": "O-20261118165529-002",
+  "at": 1795020929000,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "feat(lelu2.1): audit the published numbers and gate every claim",
+  "detail": "9 file(s): artifacts/lelu2/audit.json, artifacts/lelu2/matrix/summary.json, scripts/asre/lelu2/audit.ts, scripts/asre/lelu2/matrix.ts, src/core/asre/lelu2/claims.ts, src/core/asre/lelu2/distributions.ts, src/core/asre/lelu2/pointcloud.ts, src/core/asre/lelu2/trajectories.ts, …",
+  "interpretation": "Associated with WP01 by keyword \\bwp\\s*0?1\\b|claim|audit|ret. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "d8195e60fb091bf3ba4dc5045983620fd4966539",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539",
+      "note": "feat(lelu2.1): audit the published numbers and gate every claim"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/audit.json",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/matrix/summary.json",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/lelu2/audit.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/lelu2/matrix.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/lelu2/claims.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/lelu2/distributions.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/lelu2/pointcloud.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/lelu2/trajectories.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/claims.test.ts",
+      "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539"
+    }
+  ],
+  "commit": "d8195e60fb091bf3ba4dc5045983620fd4966539",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:d8195e60fb091bf3ba4dc5045983620fd4966539"
+}

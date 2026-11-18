@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118165529-001",
+  "at": 1795020929000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(lelu2.1): draw her hair as swept tubes without moving her occupancy",
+  "detail": "46 file(s): artifacts/lelu2/hair/tubes-high/cameras.json, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-face-front.job.json, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-face-front.png, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-face-front.png.json, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.job.json, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.png, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.png.json, artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.job.json, …",
+  "interpretation": "Associated with WP03 by keyword \\bwp\\s*0?3\\b|hair|tube|curl|. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "feat(lelu2.1): draw her hair as swept tubes without moving her occupancy"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/cameras.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-face-front.job.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-face-front.png",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-face-front.png.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.job.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.png",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.png.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.job.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-three-quarter.job.json",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-three-quarter.png",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+    }
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:4512e9466d7157da81a190bb11b985c3c1e1b3ec"
+}

@@ -1,0 +1,52 @@
+{
+  "id": "R-20261118-lit-sampling-laws",
+  "kind": "research-papers",
+  "createdAt": 1795034704559,
+  "updatedAt": 1795034704559,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP02",
+  "observed": "The matrix needed a reason to expect a spiral disc law and a blue-noise law to behave differently.",
+  "studied": "Vogel's sunflower construction (1979): the golden angle 137.5° with radius ∝ √n produces equal-area packing on a disc. Bridson's fast Poisson-disk sampling (2007): dart throwing with a background grid gives blue-noise samples at every scale, in O(N).",
+  "question": "What do the sampling laws LÉLU uses actually promise?",
+  "hypothesis": "Equal-area packing and minimum-distance separation are different guarantees, so one law cannot be best everywhere.",
+  "method": "Read the two primary sources and state the guarantee each construction provides; no implementation was changed.",
+  "results": "Vogel guarantees equal area per point on a disc and is not a minimum-distance construction. Bridson guarantees a minimum separation with blue-noise spectrum. Neither makes a claim about an irregular anatomical surface, which is why the hybrid is empirical.",
+  "evidence": [
+    {
+      "kind": "source",
+      "ref": "https://doi.org/10.1016/0025-5564(79)90080-4",
+      "note": "Vogel 1979, Math. Biosci. 44:179–189"
+    },
+    {
+      "kind": "source",
+      "ref": "https://doi.org/10.1145/1278780.1278807",
+      "note": "Bridson 2007, SIGGRAPH sketches"
+    }
+  ],
+  "learned": "The matrix's result is not surprising once the guarantees are separated: the disc has a law, the skull does not.",
+  "confidence": 0.21,
+  "limitations": [
+    "Studied from abstracts and the published construction, not from re-implementing both papers."
+  ],
+  "applications": [
+    "Choose a sampler by the guarantee the surface needs, not by the constant it contains."
+  ],
+  "nextQuestions": [
+    "Would a Bridson variant on the head cloud beat the hybrid at equal n?"
+  ],
+  "answers": [],
+  "status": "open",
+  "tags": [
+    "sampling",
+    "literature",
+    "vogel",
+    "bridson"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

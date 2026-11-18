@@ -33,7 +33,11 @@
     "measure:cost": "node scripts/measure-render-cost.mjs",
     "verify:bundle": "node scripts/verify-no-tests-in-bundle.mjs",
     "verify:asset-caching": "node scripts/verify-asset-caching.mjs",
-    "verify:mobile-cache": "node scripts/verify-mobile-model-cache.mjs"
+    "verify:mobile-cache": "node scripts/verify-mobile-model-cache.mjs",
+    "research": "tsx scripts/lelu2/research.ts",
+    "research:observe": "tsx scripts/lelu2/research.ts observe",
+    "research:acceptance": "tsx scripts/lelu2/research.ts acceptance",
+    "research:dashboard": "tsx scripts/lelu2/research.ts dashboard"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

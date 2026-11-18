@@ -1,0 +1,36 @@
+{
+  "a": "artifacts/lelu2/hair/voxel/lelu2-voxel-head-front.png",
+  "b": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png",
+  "width": 900,
+  "height": 900,
+  "coverageA": 0.6135,
+  "coverageB": 0.5934,
+  "coverageRelative": -0.0328,
+  "iou": 0.8931,
+  "pixelDifference": 0.2906,
+  "boundsDelta": {
+    "x0": 0,
+    "y0": 54,
+    "x1": 0,
+    "y1": 0
+  },
+  "thirdDeltas": [
+    -0.0701,
+    0.0047,
+    0.0053
+  ],
+  "findings": [
+    {
+      "kind": "region-change",
+      "severity": "medium",
+      "detail": "crown / upper third coverage fell 7.0 percentage points",
+      "corroborateWith": "strand roots in that region and the root-clearance report"
+    },
+    {
+      "kind": "frame-change",
+      "severity": "medium",
+      "detail": "silhouette bounds moved by (0, 54) → (0, 0) px",
+      "corroborateWith": "the shared cameras.json — a bounds change with identical framing is geometry, not camera"
+    }
+  ]
+}

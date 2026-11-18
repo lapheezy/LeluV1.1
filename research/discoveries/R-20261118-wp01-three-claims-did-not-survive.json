@@ -1,0 +1,72 @@
+{
+  "id": "R-20261118-wp01-three-claims-did-not-survive",
+  "kind": "discoveries",
+  "createdAt": 1795034704490,
+  "updatedAt": 1795034704490,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP01",
+  "observed": "The 2.0 report claimed a more uniform hair root layout. The same comparison re-read from the published files reports CV 1.3446 at n=928 against 0.6434 at n=1350 — 11 verdicts, 3 warnings.",
+  "studied": "Sampling-uniformity statistics and how the coefficient of variation depends on sample count.",
+  "question": "Do the 2.0 uniformity claims survive an independent re-measurement?",
+  "hypothesis": "The golden layout is more uniform than the baseline on every published metric.",
+  "method": "Re-read every published value from its own artefact path (no transcription), recompute the winner, and refuse a claim when the two sides were measured at different sample counts or when the metric does not describe both layouts.",
+  "results": "Audit ok=true with 3 warnings. The hair CV comparison is confounded (928 vs 1350). Divergence and radial exponent are not applicable to concentric rings, so they cannot be wins. The 2.0 ringlet was mis-parameterised: growth was 1.09×/turn, not φ.",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/audit.json",
+      "note": "every verdict, with its source path and sample count"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/claims.test.ts",
+      "note": "eight guard tests, one per way a claim can lie"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "Three of the 2.0 claims were artefacts of unequal sample counts or of applying a disc metric to a ring layout. The comparison that survives is the equal-n one: 0.3925 → 0.0968 at n=800, a 75.3% reduction.",
+  "confidence": 0.57,
+  "limitations": [
+    "The audit re-reads files; it cannot repair an experiment that was never run at equal n.",
+    "Blueprint: the original 2.0 renders were not regenerated, only their measurements re-checked."
+  ],
+  "applications": [
+    "Any future uniformity claim must name the sample count on both sides.",
+    "The audit is re-runnable and gates the report."
+  ],
+  "nextQuestions": [
+    "How many other published numbers were computed at unequal sample counts?",
+    "Does the equal-n result hold on the garment and disc surfaces too?"
+  ],
+  "answers": [
+    "Do the 2.0 uniformity claims survive an independent re-measurement?"
+  ],
+  "status": "verified",
+  "tags": [
+    "audit",
+    "uniformity",
+    "confound",
+    "wp01"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [
+    {
+      "statement": "published metrics were comparable across variants",
+      "verdict": "refuted"
+    },
+    {
+      "statement": "the golden ringlet used φ per turn",
+      "verdict": "refuted"
+    }
+  ],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": 1795034704490
+}

@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118145614-057",
+  "at": 1795013774033.6138,
+  "type": "experiment-config",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/ornament/golden/renders.json (485 B)",
+  "detail": "an experiment configuration or result document; 485 bytes",
+  "interpretation": "classed as experiment-config · artifact evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/ornament/golden/renders.json",
+      "at": 1795013774033.6138
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/ornament/golden/renders.json:485"
+}
