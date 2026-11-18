@@ -19,6 +19,7 @@ import { sha256Hex } from "../nre/hash.ts";
 import { canonicalJson } from "../nre/serialize.ts";
 import { basisFrom, handLocal, mirrorX, placeLocal, vsub } from "./anatomy.ts";
 import { referenceRegion, usesReference } from "../reference/provider.ts";
+import { isLelu, LELU_COLOURS } from "./leluIdentity.ts";
 import { group } from "./shape.ts";
 import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec.ts";
 import type { Sdf, V3 } from "./sdf.ts";
@@ -331,8 +332,38 @@ function shoesShape(ctx: Ctx): Shape | null {
   return union(...[0, 1].map((s) => capsule(add(ctx.sk.ankle[s], [0, -0.03, -0.04]), add(ctx.sk.ankle[s], [0, -0.042, 0.175]), 0.052, 0.045, c)));
 }
 
+/**
+ * LÉLU's own head jewelry, in the head's local frame.
+ *
+ * From her locked identity: large rose-gold hoop earrings, a septum ring, a
+ * centred labret stud with a small drop, a rose-quartz jewel at the hairline
+ * centre and the crystal drop between her brows. Metal is rose gold, stone is
+ * rose quartz — the copper/rose-gold language of her design.
+ */
+function leluHeadJewelry(R: number): Shape {
+  const rg = LELU_COLOURS.roseGold, rq = LELU_COLOURS.roseQuartz, cu = LELU_COLOURS.copper;
+  const parts: Shape[] = [];
+  // large hoops, hanging in the plane of each ear
+  for (const s of [1, -1] as const) {
+    parts.push(torus([s * 0.84 * R, -0.3 * R, 0.02 * R], 0.26 * R, 0.028 * R, 0, rg));
+    parts.push(sphere([s * 0.84 * R, -0.56 * R, 0.02 * R], 0.045 * R, cu));
+  }
+  // septum ring, through the nose
+  parts.push(torus([0, -0.5 * R, 0.84 * R], 0.09 * R, 0.017 * R, 2, rg));
+  // centred labret stud with a small drop below it
+  parts.push(sphere([0, -0.62 * R, 0.8 * R], 0.03 * R, rg));
+  parts.push(capsule([0, -0.66 * R, 0.8 * R], [0, -0.74 * R, 0.78 * R], 0.012 * R, 0.02 * R, cu));
+  // rose-quartz jewel at the hairline, in a copper setting
+  parts.push(sphere([0, 0.64 * R, 0.7 * R], 0.06 * R, rq));
+  parts.push(torus([0, 0.64 * R, 0.7 * R], 0.075 * R, 0.014 * R, 2, cu));
+  // crystal drop between the brows
+  parts.push(sphere([0, -0.02 * R, 0.95 * R], 0.026 * R, rq));
+  return union(...parts);
+}
+
 function headAccessoriesLocal(ctx: Ctx): Shape | null {
   const R = ctx.sk.headR, c = m(ctx).accessory, parts: Shape[] = [];
+  if (isLelu(ctx.spec)) return leluHeadJewelry(R);
   for (const a of ctx.spec.accessories.head) {
     if (a === "glasses") {
       const ex = 0.36 * R * ctx.spec.face.eyeSpacing;
@@ -348,8 +379,32 @@ function headAccessoriesLocal(ctx: Ctx): Shape | null {
   return parts.length ? union(...parts) : null;
 }
 
+/**
+ * Her neck and waist pieces: the choker with its chain and pendant, the layered
+ * chains, and the waist harness that holds the corset and cargo together.
+ */
+function leluBodyJewelry(ctx: Ctx): Shape {
+  const { sk, spec } = ctx;
+  const rg = LELU_COLOURS.roseGold, cu = LELU_COLOURS.copper, rq = LELU_COLOURS.roseQuartz;
+  const parts: Shape[] = [];
+  const neckY = sk.shoulderY + 0.075;
+  // choker
+  parts.push(torus([0, neckY, 0], 0.052 * spec.body.build, 0.007, 1, cu));
+  // chains falling to the chest, and the pendant jewel
+  for (const s of [1, -1] as const) parts.push(capsule([s * 0.05, neckY - 0.005, 0.05], [s * 0.02, sk.chestY - 0.08, 0.085], 0.0045, 0.0045, rg));
+  parts.push(sphere([0, sk.chestY - 0.075, 0.09], 0.014, rq));
+  parts.push(torus([0, sk.chestY - 0.075, 0.09], 0.02, 0.005, 2, cu));
+  parts.push(capsule([0, sk.chestY - 0.09, 0.09], [0, sk.chestY - 0.14, 0.088], 0.0035, 0.006, cu));
+  // waist harness: belt plus two hip straps
+  const wy = sk.waistY - 0.055;
+  parts.push(torus([0, wy, 0], spec.body.hipWidth * 0.455, 0.0095, 1, cu));
+  for (const s of [1, -1] as const) parts.push(capsule([s * spec.body.hipWidth * 0.5, wy, 0.02], [s * spec.body.hipWidth * 0.44, sk.pelvisY - 0.06, 0.03], 0.008, 0.008, rg));
+  return union(...parts);
+}
+
 function bodyAccessories(ctx: Ctx): Shape | null {
   const { sk, spec } = ctx, c = m(ctx).accessory, parts: Shape[] = [];
+  if (isLelu(spec)) return leluBodyJewelry(ctx);
   for (const a of spec.accessories.body) {
     if (a === "necklace") parts.push(torus([0, sk.shoulderY + 0.005, 0.01], 0.075 * spec.body.build, 0.006, 1, c));
     if (a === "backpack") parts.push(roundBox([0, sk.chestY - 0.03, -0.17 * spec.body.build], [0.15, 0.2, 0.07], 0.04, [0.25, 0.3, 0.2]));
@@ -410,8 +465,8 @@ export const COMPONENTS: Record<ComponentId, ComponentDef> = {
     build: bottomShape,
   },
   "clothing.shoes": { id: "clothing.shoes", frame: "world", deps: () => ["feet"], params: (s) => ({ shoes: s.clothing.shoes, color: s.materials.shoes }), build: shoesShape },
-  "accessories.head": { id: "accessories.head", frame: "head", deps: () => ["head", "face"], params: (s) => ({ items: s.accessories.head, color: s.materials.accessory }), build: headAccessoriesLocal },
-  "accessories.body": { id: "accessories.body", frame: "world", deps: () => ["torso", "neck"], params: (s) => ({ items: s.accessories.body, color: s.materials.accessory }), build: bodyAccessories },
+  "accessories.head": { id: "accessories.head", frame: "head", deps: () => ["head", "face"], params: (s) => ({ items: s.accessories.head, color: s.materials.accessory, identity: s.identity.id }), build: headAccessoriesLocal },
+  "accessories.body": { id: "accessories.body", frame: "world", deps: () => ["torso", "neck"], params: (s) => ({ items: s.accessories.body, color: s.materials.accessory, identity: s.identity.id }), build: bodyAccessories },
 };
 
 /** Content keys for every component (topological order). */

@@ -23,6 +23,8 @@ import type { Shape } from "../character/shape.ts";
 import type { CharacterSpec } from "../character/CharacterSpec.ts";
 import { fieldFromMesh, fieldFromVoxels, fieldSdf, fieldShape } from "./field.ts";
 import { CELL } from "../character/lattice.ts";
+import { isLelu, LELU_COLOURS as L } from "../character/leluIdentity.ts";
+import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
 import type { BonePose, Rig } from "./skin.ts";
@@ -206,8 +208,8 @@ const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; cou
   pixie: { len: 0.06, droop: 0.35, wave: 0.2, count: 1700, radius: 0.0042 },
   bob: { len: 0.15, droop: 0.7, wave: 0.18, count: 1700, radius: 0.0048 },
   lob: { len: 0.21, droop: 0.7, wave: 0.2, count: 1600, radius: 0.0048 },
-  "long-straight": { len: 0.34, droop: 0.75, wave: 0.12, count: 1700, radius: 0.0050 },
-  "long-wavy": { len: 0.34, droop: 0.7, wave: 0.55, count: 1600, radius: 0.0052 },
+  "long-straight": { len: 0.34, droop: 0.75, wave: 0.12, count: 1000, radius: 0.0046 },
+  "long-wavy": { len: 0.34, droop: 0.62, wave: 1.15, count: 780, radius: 0.0046 },
   ponytail: { len: 0.3, droop: 0.7, wave: 0.16, count: 1500, radius: 0.0052 },
   "high-ponytail": { len: 0.3, droop: 0.65, wave: 0.18, count: 1450, radius: 0.0052 },
   afro: { len: 0.1, droop: 0.05, wave: 1.2, count: 2000, radius: 0.0046 },
@@ -322,7 +324,7 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     const l = Math.hypot(dx, dy, dz) || 1;
     dx /= l; dy /= l; dz /= l;
     dx += (r0 - 0.5) * 0.4; dz += (r1 - 0.5) * 0.4;
-    const segs = 16;
+    const segs = 22;
     const radius = st.radius * (0.85 + 0.3 * r2);
     for (let s = 0; s < segs; s++) {
       const t = s / segs;
@@ -343,7 +345,7 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
         // A face is not a place hair grows. Locks that would cross the face are
         // left out, which is what gives a fringe that frames the face instead
         // of a curtain drawn over it.
-        const inFace = qz > head[2] + 0.004 && Math.abs(qx - head[0]) < 0.082 && qy < head[1] + 0.085 && qy > head[1] - 0.19;
+        const inFace = qz > head[2] - 0.005 && Math.abs(qx - head[0]) < 0.075 && qy < head[1] + 0.095 && qy > head[1] - 0.2;
         if (!inFace) stamp(qx, qy, qz, radius * (1 - 0.45 * t));
       }
     }
@@ -379,6 +381,90 @@ const around = (a: V3, b: V3, r: number): Sdf => {
     return Math.hypot(px - dx * t, py - dy * t, pz - dz * t) - r;
   };
 };
+
+/** Deterministic noise in [0,1) from a position — same value everywhere. */
+function noise(x: number, y: number, z: number, seed = 0): number {
+  const s = Math.sin(x * 1271.3 + y * 3117.7 + z * 743.9 + seed * 91.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+/**
+ * LÉLU's face, painted from her locked identity:
+ * full dark brows with a clean tail, deep berry-brown glossy lips, star marks
+ * high on the cheekbones, dark swirls at the forehead, freckles across the nose
+ * and cheeks.
+ *
+ * These are colour fields on her own head geometry — the marks are surface
+ * detail at the scale of a millimetre, and painting them keeps the head one
+ * closed solid instead of hundreds of decals. Everything geometric about her
+ * face (oval shape, high cheekbones, tapered jaw) comes from the reference
+ * morph, not from here.
+ */
+function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb): Rgb {
+  const mouth = J("joint-mouth"), eL = J("joint-l-eye"), eR = J("joint-r-eye");
+  const span = Math.abs(eL[0] - eR[0]) || 0.062;
+  const eyeY = (eL[1] + eR[1]) / 2;
+  const front = z > mouth[2] - span * 0.5;
+
+  // lips: fuller lower lip, defined cupid's bow
+  if (front) {
+    const lip = Math.hypot((x - mouth[0]) / (span * 0.46), (y - mouth[1]) / (span * 0.2), (z - mouth[2]) / (span * 0.36));
+    if (lip < 1) return y < mouth[1] - span * 0.01 ? L.lipHighlight : L.lip;
+  }
+
+  // brows: full, softly arched, clean tail
+  for (const e of [eL, eR]) {
+    const dx = (x - e[0]) / (span * 0.46);
+    const dy = (y - (e[1] + span * 0.2)) / (span * 0.085);
+    if (dx * dx + dy * dy < 1) return hairC;
+  }
+
+  // star marks, high on the cheekbones
+  for (const s of [-1, 1] as const) {
+    const cx = mouth[0] + s * span * 0.74, cy = eyeY - span * 0.11;
+    const r = Math.hypot(x - cx, (y - cy) * 0.85);
+    if (r < span * 0.11) {
+      const a = Math.atan2(y - cy, x - cx);
+      if (r < span * (0.032 + 0.03 * Math.abs(Math.cos(2.5 * a)))) return L.star;
+    }
+  }
+
+  // dark swirls across the forehead and temples
+  const fy = eyeY + span * 0.28;
+  if (Math.abs(y - fy) < span * 0.2) {
+    const rr = Math.hypot(x - mouth[0], (y - fy) * 1.15);
+    const a = Math.atan2(y - fy, x - mouth[0]);
+    const ring = span * (0.14 + 0.075 * Math.sin(a * 3 + rr * 90));
+    if (Math.abs(rr - ring) < span * 0.02) return L.ink;
+  }
+
+  // freckles across nose and cheeks
+  if (y < eyeY - span * 0.05 && y > mouth[1] + span * 0.16 && front)
+    if (noise(Math.round(x * 1400), Math.round(y * 1400), 3) > 0.975) return L.skinShade;
+
+  return skin;
+}
+
+/**
+ * Her tattoos: ornamental filigree across the collarbones and chest, and a
+ * filigree band on the forearms. Painted as fine arcs on her skin, in her
+ * documented ink. Approximate as a pattern — the reference boards are the
+ * authority for placement and style, not for an exact vector tracing.
+ */
+function leluTattoo(x: number, y: number, z: number, skin: Rgb, where: "chest" | "forearm"): Rgb {
+  if (where === "chest") {
+    const collar = J("joint-l-shoulder")[1] - 0.055;
+    if (y > collar - 0.14 && y < collar + 0.02 && z > 0) {
+      const arc = Math.abs(Math.sin(x * 62 + y * 24));
+      const vine = Math.abs(Math.sin(x * 21 - y * 40));
+      if (arc < 0.1 || (vine < 0.05 && Math.abs(x) > 0.045)) return L.ink;
+    }
+  } else {
+    const band = Math.abs(Math.sin(y * 150 + z * 40));
+    if (band < 0.09 && Math.abs(x) > 0.12) return L.ink;
+  }
+  return skin;
+}
 
 /** Lip and brow masks in metres, from the mesh's own face joints. */
 export function faceMasks(): { lips: Sdf; brows: Sdf; eyes: [V3, V3] } {
@@ -439,7 +525,12 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       const m = faceMasks();
       const hairC = spec.materials.hair;
       const result = clip(f, above(neckY - 0.004));
-      shape = { ...result, color: (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC) };
+      shape = {
+        ...result,
+        color: isLelu(spec)
+          ? (x, y, z) => leluFaceColour(x, y, z, skinC, hairC)
+          : (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC),
+      };
       break;
     }
     case "face": {
@@ -450,15 +541,34 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       // spheres: the CC0 eye mesh is an open cornea shell, and an open surface
       // has no honest interior to mesh. Radius and centre come from the fitted
       // body, so the eyeball sits in the real socket behind the real lids.
+      const lelu = isLelu(spec);
       const feats: Shape[] = [];
       for (const e of [J("joint-l-eye"), J("joint-r-eye")]) {
         // Iris and pupil are proud of the sclera by a fraction of a cell, so
         // they survive sampling as geometry instead of being averaged away
         // into the ball's vertex colours.
-        const sclera: V3 = [e[0], e[1], e[2] - 0.0022];
-        feats.push(sphereShape(sclera, 0.0112, [0.93, 0.91, 0.89]));
-        feats.push(sphereShape([e[0], e[1], e[2] + 0.0086], 0.0060, spec.materials.eyes));
-        feats.push(sphereShape([e[0], e[1], e[2] + 0.0118], 0.0026, [0.02, 0.02, 0.02]));
+        // Her eyes are almond with a warm brown iris and a dark limbal ring, so
+        // the iris is larger and sits inside a ring rather than a flat disc.
+        const sclera: V3 = [e[0], e[1], e[2] - (lelu ? 0.0056 : 0.0022)];
+        const r = lelu ? 0.0112 : 0.0112;
+        feats.push(sphereShape(sclera, r, lelu ? L.sclera : [0.93, 0.91, 0.89]));
+        // lid shadow across the top of the eye, so the sclera is not a white ball
+        if (lelu) feats.push(sphereShape([e[0], e[1] + 0.0058, e[2] - 0.0042], 0.0092, L.lidShadow));
+        // her iris is large — almond eyes, warm brown, dark limbal ring
+        feats.push(sphereShape([e[0], e[1], e[2] + 0.0024], lelu ? 0.0086 : 0.006, lelu ? L.irisRing : spec.materials.eyes));
+        feats.push(sphereShape([e[0], e[1], e[2] + 0.0042], lelu ? 0.0074 : 0.006, lelu ? L.iris : spec.materials.eyes));
+        feats.push(sphereShape([e[0], e[1], e[2] + 0.0066], lelu ? 0.0034 : 0.0026, lelu ? L.pupil : [0.02, 0.02, 0.02]));
+        if (lelu) {
+          // long dense lashes: a row of thin fanned strands on the upper lid
+          for (let i = 0; i < 9; i++) {
+            const t = i / 8;
+            const lx = e[0] + (t - 0.5) * 0.021;
+            const ly = e[1] + 0.0088 - Math.abs(t - 0.5) * 0.0035;
+            const lz = e[2] + 0.0062 - Math.abs(t - 0.5) * 0.0025;
+            feats.push(sphereShape([lx, ly, lz], 0.0011, L.hair));
+            feats.push(sphereShape([lx, ly + 0.0022, lz + 0.0022], 0.0008, L.hair));
+          }
+        }
       }
       shape = union(...feats);
       break;
@@ -473,6 +583,10 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       const sh = J("joint-l-shoulder");
       const f = body("torso", [], { lo: [-sh[0] - 0.10, spine1Y - 0.10, -0.24], hi: [sh[0] + 0.10, shoulderY + 0.10, 0.24] });
       shape = clip(f, above(spine1Y - 0.02), below(shoulderY + 0.05));
+      if (isLelu(spec)) {
+        const base = shape;
+        shape = { ...base, color: (x, y, z) => leluTattoo(x, y, z, skinC, "chest") };
+      }
       break;
     }
     case "pelvis": {
@@ -502,6 +616,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
           const lo: V3 = [Math.min(sh[0], el[0], w[0]) - pad, Math.min(sh[1], el[1], w[1]) - pad, Math.min(sh[2], el[2], w[2]) - pad];
           const hi: V3 = [Math.max(sh[0], el[0], w[0]) + pad, Math.max(sh[1], el[1], w[1]) + pad, Math.max(sh[2], el[2], w[2]) + pad];
           const f = body(`arm-${l}`, [], { lo, hi });
+          if (isLelu(spec)) f.color = (x, y, z) => leluTattoo(x, y, z, skinC, "forearm");
           // A half-space in front of the shoulder also keeps a wedge of the
           // chest, which the window then caps into a flat fin. Keeping the
           // limb's own capsule as well removes that wedge.
@@ -596,7 +711,21 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       const cap = proxyField(`hair:${spec.hair.style}`, h);
       if (!mesh || !cap) { shape = null; break; }
       const f = strandHairField(spec, cap, mesh.positions);
-      shape = f ? fieldShape(f, spec.materials.hair) : null;
+      // Her curls are black with rose-magenta highlights, so the colour varies
+      // along the locks instead of being one flat black.
+      shape = f
+        ? isLelu(spec)
+          ? {
+              f: fieldShape(f, spec.materials.hair).f,
+              lo: f.lo,
+              hi: f.hi,
+              color: (x, y, z) => {
+                const s = noise(Math.round(x * 300), Math.round(y * 300), Math.round(z * 300), 11);
+                return s > 0.9 ? L.hairRose : s > 0.7 ? [0.42, 0.13, 0.24] : s > 0.42 ? [0.14, 0.08, 0.11] : spec.materials.hair;
+              },
+            }
+          : fieldShape(f, spec.materials.hair)
+        : null;
       break;
     }
   }

@@ -1,0 +1,137 @@
+/**
+ * ==========================================================
+ * LÉLU — CANONICAL DIGITAL-HUMAN IDENTITY
+ *
+ * This is not a character preset. It is LÉLU, transcribed from her own locked
+ * identity file and her design references:
+ *
+ *   leluverse/assets/characters/lelu_character/identity/identity.json
+ *   leluverse/assets/characters/lelu_character/references/ref10_face_primary.png
+ *   leluverse/assets/wardrobe/inventory.json
+ *
+ * Everything here comes from those files, and only an explicit relock changes
+ * it (see `identity.json` → `rule`). Hair, outfit, pose, expression and
+ * accessories are the things she may vary around it — those live in the
+ * CharacterSpec, not here.
+ *
+ * Colours are sRGB (the build converts to linear for the GLB), sampled from her
+ * primary reference.
+ * ==========================================================
+ */
+import type { Rgb } from "./shape.ts";
+import { BASE_CHARACTER, withChanges, type CharacterSpec } from "./CharacterSpec.ts";
+/**
+ * The CC0 morph targets that carry her ancestry and build. Paths, not imports:
+ * the character layer must not depend on the Node asset loader.
+ */
+const TARGETS = {
+  africanFemale: "targets/macrodetails/universal-female-young-african-average-1.target",
+  femaleYoung: "targets/macrodetails/universal-female-young-average-1.target",
+};
+
+/** Her locked face and body, quoted from identity.json → preserve. */
+export const LELU_IDENTITY = {
+  id: "lelu-canonical",
+  name: "LÉLU",
+  primaryReference: "ref10_face_primary",
+  faceShape: "Oval face, high defined cheekbones, softly tapered jaw and rounded chin.",
+  eyes: "Almond-shaped warm brown eyes, slightly upturned outer corners, winged liner, long dense lashes, moderate spacing.",
+  brows: "Full, dark, softly arched brows with a clean tail.",
+  nose: "Straight bridge, softly rounded tip, moderately full alae.",
+  lips: "Full lips, defined cupid's bow, fuller lower lip, glossy deep berry-brown colour.",
+  skin: "Deep warm brown complexion with a soft sheen; light freckles across cheeks and nose.",
+  markings: "Small star marks high on the cheekbones; dark swirl/curl markings at the forehead and temples; rose-quartz jewel at the hairline centre with a small crystal drop between the brows.",
+  piercings: "Septum ring; centred lower-lip (labret) stud with small drop; large rose-gold hoop earrings.",
+  tattoos: "Ornamental filigree across collarbones and chest; rose and filigree tattoos on hands and forearms.",
+  hairline: "Centre part; dense black corkscrew curls framing the face, pink/magenta highlights.",
+  mayChange: ["outfit", "hairstyle", "pose", "expression", "accessories"],
+} as const;
+
+/** Her palette, sampled from ref10 / ref01 and the wardrobe boards. */
+export const LELU_COLOURS = {
+  /** Deep warm brown with copper warmth in the light. */
+  skin: [0.3, 0.16, 0.1] as Rgb,
+  /** Shadow and crease tone, used for freckles and lid shading. */
+  skinShade: [0.22, 0.11, 0.07] as Rgb,
+  /** Cupid's-bow shading on the lower lip. */
+  lip: [0.36, 0.12, 0.16] as Rgb,
+  lipHighlight: [0.52, 0.2, 0.22] as Rgb,
+  /** Warm brown iris with a darker limbal ring. */
+  iris: [0.42, 0.26, 0.14] as Rgb,
+  irisRing: [0.2, 0.11, 0.07] as Rgb,
+  sclera: [0.8, 0.76, 0.72] as Rgb,
+  /** Upper-lid shadow over the top of the eyeball: what stops eyes reading
+   * as two white balls. */
+  lidShadow: [0.28, 0.2, 0.16] as Rgb,
+  pupil: [0.02, 0.02, 0.03] as Rgb,
+  /** Black curls with rose-magenta highlights. */
+  hair: [0.055, 0.045, 0.05] as Rgb,
+  hairRose: [0.55, 0.16, 0.3] as Rgb,
+  /** Rose gold and copper: her metal, used for every jewel. */
+  roseGold: [0.86, 0.53, 0.43] as Rgb,
+  copper: [0.66, 0.34, 0.22] as Rgb,
+  roseQuartz: [0.93, 0.64, 0.68] as Rgb,
+  /** Ink for tattoos and her forehead swirls. */
+  ink: [0.12, 0.09, 0.12] as Rgb,
+  /** Star marks: pale gold on deep skin. */
+  star: [0.93, 0.78, 0.56] as Rgb,
+  /** Corset: dark camo ground with coral roses. */
+  corset: [0.17, 0.19, 0.14] as Rgb,
+  corsetRose: [0.66, 0.32, 0.3] as Rgb,
+  /** Cargo trousers and platform boots. */
+  cargo: [0.16, 0.15, 0.13] as Rgb,
+  boot: [0.09, 0.085, 0.08] as Rgb,
+} as const;
+
+/** Proportions read off her full-body boards: slender, long-legged. */
+export const LELU_BODY = {
+  height: 1.7,
+  shoulderWidth: 0.375,
+  hipWidth: 0.335,
+  build: 0.97,
+  legRatio: 0.5,
+  armRatio: 1,
+};
+
+/**
+ * Her canonical spec: LÉLU at rest, with her identity locked and her hair in
+ * its documented centre-part curl state. Outfit and pose here are the base
+ * look from ref01; the wardrobe swaps them without touching identity.
+ */
+export function leluCanon(): CharacterSpec {
+  const spec = withChanges(BASE_CHARACTER, {
+    body: LELU_BODY,
+    face: { headScale: 1, eyeSize: 1, eyeSpacing: 1, noseSize: 1 },
+    hair: { style: "long-wavy", length: 1, volume: 1.05 },
+    clothing: { top: "jacket", bottom: "pants", shoes: true },
+    materials: {
+      skin: LELU_COLOURS.skin,
+      hair: LELU_COLOURS.hair,
+      top: LELU_COLOURS.corset,
+      bottom: LELU_COLOURS.cargo,
+      shoes: LELU_COLOURS.boot,
+      accessory: LELU_COLOURS.roseGold,
+      eyes: LELU_COLOURS.iris,
+    },
+    hands: { curl: 0.3, spread: 0.4, opposition: 0.55 },
+    feet: { toeCurl: 0 },
+    anatomy: { source: "reference", targets: [TARGETS.africanFemale, TARGETS.femaleYoung] },
+  });
+  // The identity is the lock: every identity-driven branch (her marks, her
+  // jewelry, her hair colour) reads it, and only an approved relock changes it.
+  return { ...spec, identity: { id: LELU_IDENTITY.id, name: LELU_IDENTITY.name, leluLook: "canonical" } };
+}
+
+/** True when this spec is LÉLU herself (as opposed to a generated variation). */
+export function isLelu(spec: CharacterSpec): boolean {
+  return spec.identity.id === LELU_IDENTITY.id;
+}
+
+/**
+ * A derivative of LÉLU: any variation of look, pose, outfit or hairstyle that
+ * still carries her canonical identity. This is AVATAR DUPLICATION MODE — a
+ * copy she can dress and animate, never a new identity.
+ */
+export function leluDerivative(patch: Parameters<typeof withChanges>[1]): CharacterSpec {
+  return { ...withChanges(leluCanon(), patch), identity: { id: LELU_IDENTITY.id, name: LELU_IDENTITY.name, leluLook: patch.hair?.style ?? "canonical" } };
+}
