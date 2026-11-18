@@ -32,6 +32,7 @@ import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry.ts";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher.ts";
 import AsreClient from "./AsreClient.ts";
 import { describeEvidence, type AsreJobView } from "./contracts.ts";
+import { summonSpatial } from "./SpatialSummon.ts";
 import type { RestorableGroup, SpecPatch } from "./character/identity.ts";
 
 const OBJECT = (properties: Record<string, unknown>, required: string[]) => ({ type: "object", properties, required });
@@ -180,6 +181,8 @@ export const ASRE_EXECUTORS: AsreExecutor[] = [
       const images = Array.isArray(a.images) && a.images.length ? (a.images as Array<{ view: string; image?: string; imageBase64?: string }>) : [{ view: "front", image: str(a.image), imageBase64: str(a.imageBase64) }];
       if (!images.some((i) => i.image || i.imageBase64)) return { ok: false, content: "ASRE: I need at least one image of the object (ideally a plain or transparent background)." };
       const { job } = await AsreClient.reconstruct({ images, engine: str(a.engine) ?? "auto" });
+      // Mission 5.7: the work appears IN the conversation, not in a destination.
+      summonSpatial({ tab: "model", jobId: job.id, source: "asre.reconstruct", title: `Reconstructing the ${images.map((i) => i.view).join(" + ")} view`, note: `${job.engine} engine, local` });
       return { ok: true, content: `Reconstruction ${job.id} started locally (${job.engine}) from the ${images.map((i) => i.view).join(" + ")} view${images.length > 1 ? "s" : ""}. Inspect it with asre.job; until it finishes nothing about the shape is known.`, data: { job } };
     }),
   },
@@ -188,7 +191,15 @@ export const ASRE_EXECUTORS: AsreExecutor[] = [
     parameters: OBJECT({ jobId: { type: "string" }, focus: { type: "string", enum: ["summary", "hypotheses", "uncertainty", "geometry"] } }, ["jobId"]),
     run: guard(async (a) => {
       const { job } = await AsreClient.job(String(a.jobId ?? ""));
-      return { ok: true, content: explainJob(job, str(a.focus) ?? "summary"), data: job };
+      const focus = str(a.focus) ?? "summary";
+      summonSpatial({
+        tab: focus === "uncertainty" ? "numerical" : "model",
+        jobId: job.id,
+        source: "asre.job",
+        title: `Reconstruction ${job.id}`,
+        note: job.state === "succeeded" ? `${job.result?.mesh.triangles.toLocaleString() ?? "?"} triangles` : job.state,
+      });
+      return { ok: true, content: explainJob(job, focus), data: job };
     }),
   },
   {
@@ -200,6 +211,7 @@ export const ASRE_EXECUTORS: AsreExecutor[] = [
       const res = await fetch(`/api/asre/jobs/${encodeURIComponent(String(a.jobId))}/observe`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ view: a.view, image: str(a.image), imageBase64: b64 }) });
       const j = (await res.json()) as { ok: boolean; error?: string; job?: AsreJobView };
       if (!j.ok || !j.job) return fail(j.error ?? `HTTP ${res.status}`);
+      summonSpatial({ tab: "model", jobId: j.job.id, source: "asre.observe", title: `Adding the ${String(a.view)} view`, note: "incremental refinement" });
       return { ok: true, content: `Refinement ${j.job.id} started: the ${String(a.view)} view is being fused into ${String(a.jobId)}. Inspect it with asre.job.`, data: j };
     }),
   },
@@ -242,6 +254,14 @@ export const ASRE_EXECUTORS: AsreExecutor[] = [
         return { ok: true, content: `From ${base}: ${changed.map((c) => `${c.action} ${c.id} (${c.reason})`).join("; ") || "nothing would change"}; ${impact.length - changed.length} components kept as they are.`, data: { base, impact } };
       }
       const { version } = await AsreClient.edit(id, patch, str(a.base));
+      summonSpatial({
+        tab: "create",
+        characterId: id,
+        glbUrl: AsreClient.characterGlbUrl(id, version.id),
+        source: "asre.character",
+        title: `${id} ${version.id}`,
+        note: version.label,
+      });
       return {
         ok: true,
         content: `New version ${version.id} of ${id} (${version.label}): rebuilt ${version.build.regenerated.join(", ") || "nothing"}, recoloured ${version.build.recolored.join(", ") || "nothing"}, reused ${version.build.reused.length} components, ${version.build.ms} ms. Identity unchanged. All geometry is GENERATED.`,
@@ -283,6 +303,7 @@ export const ASRE_EXECUTORS: AsreExecutor[] = [
       if (action === "restore") {
         const groups = Array.isArray(a.groups) ? (a.groups as RestorableGroup[]) : undefined;
         const { version } = await AsreClient.restore(id, String(a.version ?? ""), groups);
+        summonSpatial({ tab: "create", characterId: id, glbUrl: AsreClient.characterGlbUrl(id, version.id), source: "asre.history", title: `${id} restored to ${version.id}`, note: groups?.length ? groups.join(", ") : "everything" });
         return { ok: true, content: `Restored ${groups?.length ? groups.join(", ") + " from " : ""}${String(a.version)} as new version ${version.id} (earlier versions are untouched; rebuilt ${version.build.regenerated.join(", ") || "nothing"}).`, data: { id: version.id, label: version.label, build: version.build } };
       }
       const h = await AsreClient.history(id);
@@ -304,6 +325,14 @@ export const ASRE_EXECUTORS: AsreExecutor[] = [
       const formats = Array.isArray(a.formats) && a.formats.length ? (a.formats as string[]) : ["glb", "obj", "stl"];
       const { job } = await AsreClient.forgeExport(forgeJobId, formats);
       const files = job.output?.files.map((f) => f.file.split("/").pop()).join(", ") ?? "";
+      const runtime = job.output?.files.find((f) => /\.glb$/i.test(f.file));
+      summonSpatial({
+        tab: "render",
+        source: "asre.export",
+        title: `Exported ${forgeJobId}`,
+        note: files,
+        ...(runtime ? { glbUrl: AsreClient.forgeAssetUrl(runtime.file) } : {}),
+      });
       return { ok: true, content: `Exported Forge asset ${forgeJobId} with Blender as ${job.id}: ${files}.`, data: { forgeJobId, export: job } };
     }),
   },

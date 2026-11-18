@@ -91,6 +91,8 @@ import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../
 import { recordTurnActivity } from "./chat/activityRecorder";
 import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouting";
 import ChatTranscript from "./chat/ChatTranscript";
+import SpatialSurfaces from "./chat/SpatialSurface";
+import { setSpatialConversationResolver } from "../../../core/asre/SpatialSummon";
 import { modelFormatOf, type ModelAttachment } from "./chat/Model3DView";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
 import { chatFillsScreen } from "./chat/chatLayout";
@@ -1482,6 +1484,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
 
   // Search results and pages read now show in the turn's activity card
   // (chat/ChatActivity), attached to the reply they belong to.
+  // Mission 5.7: spatial tools summon their surface into THIS conversation.
+  useEffect(() => {
+    setSpatialConversationResolver(() => state.activeConversationId || "active");
+    return () => setSpatialConversationResolver(null);
+  }, [state.activeConversationId]);
+
   const liveExtras = useMemo(() => {
     const images = exchange?.images ?? [];
     if (images.length === 0) return null;
@@ -1866,6 +1874,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             speaking={voiceEcho}
             onRetry={retry}
           />
+          {/* Spatial work LÉLU did here: in the thread, expandable, kept with the chat. */}
+          <SpatialSurfaces conversationId={state.activeConversationId} />
           {awayFromLatest ? (
             <button type="button" className="lelu-cc-jump" onClick={() => scrollToLatest(true)} aria-label="Jump to the latest message">
               <ArrowDown size={15} aria-hidden />
