@@ -1,0 +1,72 @@
+{
+ "generatedAt": "2026-11-18T06:07:39.517Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference",
+ "size": 800,
+ "samples": 36,
+ "renders": [
+  {
+   "label": "reference-base",
+   "kind": "full",
+   "view": "front",
+   "png": "reference-base-front.png",
+   "triangles": 1273680,
+   "seconds": 8.62,
+   "camera": {
+    "center": [
+     0.010309755802154541,
+     -0.11783832311630249,
+     0.8623548746109009
+    ],
+    "radius": 1.0062667688311213
+   }
+  },
+  {
+   "label": "reference-base",
+   "kind": "full",
+   "view": "side",
+   "png": "reference-base-side.png",
+   "triangles": 1273680,
+   "seconds": 8.08,
+   "camera": {
+    "center": [
+     0.010309755802154541,
+     -0.11783832311630249,
+     0.8623548746109009
+    ],
+    "radius": 1.0062667688311213
+   }
+  },
+  {
+   "label": "reference-base",
+   "kind": "full",
+   "view": "back",
+   "png": "reference-base-back.png",
+   "triangles": 1273680,
+   "seconds": 8.68,
+   "camera": {
+    "center": [
+     0.010309755802154541,
+     -0.11783832311630249,
+     0.8623548746109009
+    ],
+    "radius": 1.0062667688311213
+   }
+  },
+  {
+   "label": "reference-base",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "reference-base-three-quarter.png",
+   "triangles": 1273680,
+   "seconds": 9.14,
+   "camera": {
+    "center": [
+     0.010309755802154541,
+     -0.11783832311630249,
+     0.8623548746109009
+    ],
+    "radius": 1.0062667688311213
+   }
+  }
+ ]
+}

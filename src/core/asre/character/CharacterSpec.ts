@@ -89,6 +89,27 @@ export interface HandParams {
   opposition: number;
 }
 
+/**
+ * Where the body's anatomy comes from.
+ *
+ * "procedural" is LÉLU's own SDF vocabulary (the M5.8 baseline).
+ * "reference" builds the same components from a fitted CC0 reference body
+ * (MakeHuman base mesh + morph targets + rig), resampled into her own lattice.
+ * The choice is part of every body component's content key, so switching it
+ * regenerates exactly the components it affects and nothing else.
+ */
+export interface AnatomyParams {
+  source: "procedural" | "reference";
+  /** CC0 morph target names applied to the reference body, e.g. "macrodetails/…". */
+  targets: string[];
+}
+
+/** Foot articulation, in the same spirit as HandParams: geometry, not a pose. */
+export interface FeetParams {
+  /** 0 = flat, 1 = toes gripping the ground. */
+  toeCurl: number;
+}
+
 export interface CharacterSpec {
   identity: CharacterIdentity;
   body: BodyParams;
@@ -99,6 +120,8 @@ export interface CharacterSpec {
   materials: Materials;
   pose: PoseId;
   hands: HandParams;
+  feet: FeetParams;
+  anatomy: AnatomyParams;
 }
 
 export const BASE_CHARACTER: CharacterSpec = {
@@ -119,6 +142,8 @@ export const BASE_CHARACTER: CharacterSpec = {
   },
   pose: "relaxed",
   hands: { curl: 0.22, spread: 0.45, opposition: 0.5 },
+  feet: { toeCurl: 0 },
+  anatomy: { source: "procedural", targets: [] },
 };
 
 export const HAIR_STYLES: HairStyleId[] = [
@@ -164,6 +189,7 @@ export const BODY_VARIANTS: Array<{ label: string; body: Partial<BodyParams> }> 
 export function withChanges(spec: CharacterSpec, patch: {
   body?: Partial<BodyParams>; face?: Partial<FaceParams>; hair?: Partial<HairParams>; clothing?: Partial<ClothingParams>;
   accessories?: Partial<CharacterSpec["accessories"]>; materials?: Partial<Materials>; pose?: PoseId; hands?: Partial<HandParams>;
+  feet?: Partial<FeetParams>; anatomy?: Partial<AnatomyParams>;
 }): CharacterSpec {
   return {
     identity: spec.identity,
@@ -175,5 +201,7 @@ export function withChanges(spec: CharacterSpec, patch: {
     materials: { ...spec.materials, ...patch.materials },
     pose: patch.pose ?? spec.pose,
     hands: { ...spec.hands, ...patch.hands },
+    feet: { ...spec.feet, ...patch.feet },
+    anatomy: { ...spec.anatomy, ...patch.anatomy },
   };
 }

@@ -33,3 +33,21 @@ Read: [docs/asre/08_MISSION58_AUDIT.md](../../docs/asre/08_MISSION58_AUDIT.md).
 | `hands/full-body-front.png`, `-three-quarter.png` | the figure | same, `--glb full-body.glb --views front,three-quarter` |
 
 Read: [docs/asre/09_MISSION58_WP02_HANDS.md](../../docs/asre/09_MISSION58_WP02_HANDS.md).
+
+## Step 4 — WP03 reference anatomy (CC0)
+
+| file | what it is | produced by |
+|---|---|---|
+| `reference/reference-base.glb` | **the deliverable**: the character rebuilt from a fitted CC0 human body, 1,273,680 triangles | `npx tsx scripts/asre/m58-reference.ts --out artifacts/mission58/reference` |
+| `reference/reference-report.json` | component-by-component triangles, timings, occupancy, IoU, proxy list | same |
+| `reference/reference-base-{front,side,back,three-quarter}.png` | full-body views, Cycles CPU, 800², 36 samples | `node scripts/asre/m58-render.mjs --dir artifacts/mission58/reference --glb reference-base.glb --views front,side,back,three-quarter` |
+| `reference/reference-base-face-{front,three-quarter}.png` | face close-up | same, `--closeups --closeup face` |
+| `reference/reference-base-hands-*.png`, `-feet-*.png` | hands and feet close-ups | same, `--closeup hands,feet` |
+| `variations/v1-long.glb` … `v5-afro-broad.glb` | five generated variations (long, bob, ponytail taller, braids petite, afro broad) | `npx tsx scripts/asre/m58-variations.ts` |
+| `variations/hands-{open,relaxed,fist}.glb` | hand articulation on the reference rig | same |
+| `variations/feet-{flat,grip}.glb` | toe articulation and ground contact | same |
+| `variations/hands-{open,fist}-front.png` | open hand vs fist, same camera | `node scripts/asre/m58-render.mjs --dir artifacts/mission58/variations --glb hands-fist.glb --views front` |
+| `variations/variations-report.json` | regeneration matrix, articulation measurements, hand topology | same |
+
+Read: [docs/asre/10_MISSION58_WP03_REFERENCE.md](../../docs/asre/10_MISSION58_WP03_REFERENCE.md)
+and the licence audit in [resources/cc0/README.md](../../resources/cc0/README.md).

@@ -170,3 +170,26 @@ Read `docs/asre/08_MISSION58_AUDIT.md` first (measured audit + attribution) and
   face, then the body joint transitions. Reuse
   `scripts/asre/m58-family.ts --family <name>` and `m58-render.mjs` for the
   per-family benchmark and renders; both already produce the before/after pair.
+
+## Mission 5.8 — WP03 reference anatomy (this step)
+
+Read `docs/asre/10_MISSION58_WP03_REFERENCE.md`. LÉLU now builds from a fitted
+CC0 human body instead of SDF primitives:
+
+- `CharacterSpec.anatomy = { source: "reference" | "procedural", targets }`.
+  Procedural is the default and is unchanged (13/13 tests pass, byte-identical).
+- `src/core/asre/reference/` holds the whole bridge: parsers, mesh→SDF field,
+  linear blend skinning, and the provider that clips anatomical regions and
+  places CC0 garments/hair/eyes.
+- Assets are in `resources/cc0/` (git-ignored, ~785 MB) with a fetcher and
+  hash list; every file's CC0 claim was verified from inside the file.
+- Base build: 1,273,680 tris, 45.5 MB GLB, 30–42 s, 0 boundary edges, IoU 0.975.
+- Articulation: hands 265 → 135 mm span open→fist; toes 191 → 168 mm reach.
+- Known defects (documented, not hidden): garments are the body's surface
+  offset inside the CC0 asset's coverage (so no garment folds/seams, and shoes
+  take the foot's shape); eyes are spheres at the reference eye joints; teeth,
+  tongue, brows and lashes are loaded but not meshed (open surfaces); pose does
+  not retarget reference arms yet; the clenched fist has 334 non-manifold edges
+  because the digits interpenetrate; no UV textures yet.
+- Next: bind the CC0 skin/hair/fabric maps to UVs, retarget the arm pose onto
+  the reference rig, and give garments real thickness from their own mesh.

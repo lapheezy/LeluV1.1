@@ -18,6 +18,7 @@
 import { sha256Hex } from "../nre/hash.ts";
 import { canonicalJson } from "../nre/serialize.ts";
 import { basisFrom, handLocal, mirrorX, placeLocal, vsub } from "./anatomy.ts";
+import { referenceRegion, usesReference } from "../reference/provider.ts";
 import { group } from "./shape.ts";
 import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec.ts";
 import type { Sdf, V3 } from "./sdf.ts";
@@ -124,7 +125,10 @@ export const restKneeY = (s: CharacterSpec) => +(s.body.height * s.body.legRatio
 type Ctx = { spec: CharacterSpec; sk: Skeleton; /** mesh resolution, for sub-cell gap handling */ h?: number };
 const m = (ctx: Ctx) => ctx.spec.materials;
 
-function torsoShape({ spec, sk }: Ctx): Shape {
+function torsoShape(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("torso", spec, ctx.h ?? 0.005) : null;
+  if (ref) return ref;
   const b = spec.body, k = b.build, skin = spec.materials.skin;
   return smooth(
     0.06,
@@ -134,20 +138,34 @@ function torsoShape({ spec, sk }: Ctx): Shape {
   );
 }
 
-function pelvisShape({ spec, sk }: Ctx): Shape {
+function pelvisShape(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("pelvis", spec, ctx.h ?? 0.005) : null;
+  if (ref) return ref;
   const b = spec.body, skin = spec.materials.skin;
   return smooth(0.05, ellipsoid([0, sk.pelvisY, 0], [b.hipWidth * 0.5, 0.11, 0.115 * b.build], skin), sphere(sk.hip[0], 0.075 * b.build, skin), sphere(sk.hip[1], 0.075 * b.build, skin));
 }
 
-const neckShape = ({ spec, sk }: Ctx): Shape => capsule(sk.neckTop, [0, sk.shoulderY - 0.02, -0.01], 0.052 * spec.body.build, 0.06 * spec.body.build, spec.materials.skin);
+const neckShape = (ctx: Ctx): Shape => {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("neck", spec, ctx.h ?? 0.004) : null;
+  if (ref) return ref;
+  return capsule(sk.neckTop, [0, sk.shoulderY - 0.02, -0.01], 0.052 * spec.body.build, 0.06 * spec.body.build, spec.materials.skin);
+};
 
 /** Head in its LOCAL frame (origin = head centre). */
-function headLocal({ spec, sk }: Ctx): Shape {
+function headLocal(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("head", spec, ctx.h ?? 0.003, "head", sk.headCenter) : null;
+  if (ref) return ref;
   const R = sk.headR, skin = spec.materials.skin;
   return smooth(0.02, ellipsoid([0, 0, 0], [0.86 * R, 1.08 * R, 0.98 * R], skin), ellipsoid([0, -0.55 * R, 0.25 * R], [0.62 * R, 0.5 * R, 0.62 * R], skin), ellipsoid([0.86 * R, -0.05 * R, -0.05 * R], [0.1 * R, 0.24 * R, 0.14 * R], skin), ellipsoid([-0.86 * R, -0.05 * R, -0.05 * R], [0.1 * R, 0.24 * R, 0.14 * R], skin));
 }
 
-function faceLocal({ spec, sk }: Ctx): Shape {
+function faceLocal(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("face", spec, ctx.h ?? 0.0022, "head", sk.headCenter) : null;
+  if (ref) return ref;
   const R = sk.headR, f = spec.face, eye = spec.materials.eyes, skin = spec.materials.skin;
   const ex = 0.36 * R * f.eyeSpacing, er = 0.13 * R * f.eyeSize;
   return union(
@@ -212,7 +230,10 @@ export function hairLocal(R: number, hair: HairParams, color: Rgb): Shape | null
   }
 }
 
-function armsShape({ spec, sk }: Ctx): Shape {
+function armsShape(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("arms", spec, ctx.h ?? 0.004) : null;
+  if (ref) return ref;
   const k = spec.body.build, skin = spec.materials.skin;
   return union(...[0, 1].flatMap((s) => [capsule(sk.shoulder[s], sk.elbow[s], 0.046 * k, 0.038 * k, skin), capsule(sk.elbow[s], sk.wrist[s], 0.037 * k, 0.028 * k, skin)]));
 }
@@ -223,7 +244,12 @@ function armsShape({ spec, sk }: Ctx): Shape {
  * arm), +X on the thumb side — so the digits stay in the palm plane whatever
  * the arm pose, and the palm faces the body instead of the camera.
  */
-function handsShape({ spec, sk, h }: Ctx): Shape {
+function handsShape(ctx: Ctx): Shape {
+  const { spec, sk, h } = ctx;
+  if (usesReference(spec)) {
+    const ref = referenceRegion("hands", spec, h ?? 0.003);
+    if (ref) return ref;
+  }
   const parts = [0, 1].map((side) => {
     const wrist = sk.wrist[side];
     const along = vsub(sk.handTip[side], wrist);
@@ -236,12 +262,18 @@ function handsShape({ spec, sk, h }: Ctx): Shape {
   return group(...parts);
 }
 
-function legsShape({ spec, sk }: Ctx): Shape {
+function legsShape(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("legs", spec, ctx.h ?? 0.0045) : null;
+  if (ref) return ref;
   const k = spec.body.build, skin = spec.materials.skin;
   return union(...[0, 1].flatMap((s) => [capsule(sk.hip[s], sk.knee[s], 0.072 * k, 0.05 * k, skin), capsule(sk.knee[s], sk.ankle[s], 0.049 * k, 0.034 * k, skin)]));
 }
 
-function feetShape({ spec, sk }: Ctx): Shape {
+function feetShape(ctx: Ctx): Shape {
+  const { spec, sk } = ctx;
+  const ref = usesReference(spec) ? referenceRegion("feet", spec, ctx.h ?? 0.003) : null;
+  if (ref) return ref;
   const skin = spec.materials.skin;
   return union(...[0, 1].map((s) => capsule(add(sk.ankle[s], [0, -0.025, -0.03]), add(sk.ankle[s], [0, -0.04, 0.16]), 0.04, 0.034, skin)));
 }
@@ -256,6 +288,7 @@ function sleeve(a: V3, b: V3, ra: number, rb: number, frac: number, gap: number,
 function topShape(ctx: Ctx): Shape | null {
   const { spec, sk } = ctx;
   const type = spec.clothing.top;
+  if (usesReference(spec)) return referenceRegion("clothing.top", spec, ctx.h ?? 0.005);
   if (type === "none") return null;
   const c = m(ctx).top, k = spec.body.build;
   const t = type === "jacket" ? 0.016 : 0.008;
@@ -273,6 +306,7 @@ function topShape(ctx: Ctx): Shape | null {
 function bottomShape(ctx: Ctx): Shape | null {
   const { spec, sk } = ctx;
   const type = spec.clothing.bottom;
+  if (usesReference(spec)) return referenceRegion("clothing.bottom", spec, ctx.h ?? 0.005);
   if (type === "none") return null;
   const c = m(ctx).bottom, k = spec.body.build;
   const hips = clip(inflate(pelvisShape(ctx), 0.01, c), P.plane([0, sk.waistY - 0.02, 0], [0, 1, 0]));
@@ -291,6 +325,7 @@ function bottomShape(ctx: Ctx): Shape | null {
 }
 
 function shoesShape(ctx: Ctx): Shape | null {
+  if (usesReference(ctx.spec)) return referenceRegion("clothing.shoes", ctx.spec, ctx.h ?? 0.004);
   if (!ctx.spec.clothing.shoes) return null;
   const c = m(ctx).shoes;
   return union(...[0, 1].map((s) => capsule(add(ctx.sk.ankle[s], [0, -0.03, -0.04]), add(ctx.sk.ankle[s], [0, -0.042, 0.175]), 0.052, 0.045, c)));
@@ -332,20 +367,32 @@ export interface ComponentDef {
   build: (ctx: Ctx) => Shape | null;
 }
 
-const bodyP = (s: CharacterSpec) => ({ body: s.body, skin: s.materials.skin });
+const bodyP = (s: CharacterSpec) => ({ body: s.body, skin: s.materials.skin, anatomy: s.anatomy });
 const pose = (s: CharacterSpec) => s.pose;
 
 export const COMPONENTS: Record<ComponentId, ComponentDef> = {
   torso: { id: "torso", frame: "world", deps: () => [], params: (s) => bodyP(s), build: torsoShape },
   pelvis: { id: "pelvis", frame: "world", deps: () => [], params: (s) => bodyP(s), build: pelvisShape },
   neck: { id: "neck", frame: "world", deps: () => ["torso"], params: (s, sk) => ({ ...bodyP(s), neckTop: sk.neckTop }), build: neckShape },
-  head: { id: "head", frame: "head", deps: () => [], params: (s) => ({ headScale: s.face.headScale, skin: s.materials.skin }), build: headLocal },
-  face: { id: "face", frame: "head", deps: () => ["head"], params: (s) => ({ face: s.face, eyes: s.materials.eyes, brows: s.materials.hair }), build: faceLocal },
-  hair: { id: "hair", frame: "head", deps: () => ["head"], params: (s) => ({ hair: s.hair, color: s.materials.hair }), build: ({ spec, sk }) => hairLocal(sk.headR, spec.hair, spec.materials.hair) },
+  head: { id: "head", frame: "head", deps: () => [], params: (s) => ({ headScale: s.face.headScale, skin: s.materials.skin, anatomy: s.anatomy }), build: headLocal },
+  face: { id: "face", frame: "head", deps: () => ["head"], params: (s) => ({ face: s.face, eyes: s.materials.eyes, brows: s.materials.hair, anatomy: s.anatomy }), build: faceLocal },
+  hair: {
+    id: "hair",
+    frame: "head",
+    deps: () => ["head"],
+    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy }),
+    build: (ctx) => {
+      if (usesReference(ctx.spec)) {
+        const ref = referenceRegion("hair", ctx.spec, ctx.h ?? 0.004, "head", ctx.sk.headCenter);
+        if (ref) return ref;
+      }
+      return hairLocal(ctx.sk.headR, ctx.spec.hair, ctx.spec.materials.hair);
+    },
+  },
   arms: { id: "arms", frame: "world", deps: () => ["torso"], params: (s) => ({ ...bodyP(s), pose: pose(s) }), build: armsShape },
-  hands: { id: "hands", frame: "world", deps: () => ["arms"], params: (s) => ({ hands: s.hands, skin: s.materials.skin, height: s.body.height, build: s.body.build }), build: handsShape },
+  hands: { id: "hands", frame: "world", deps: () => ["arms"], params: (s) => ({ hands: s.hands, skin: s.materials.skin, height: s.body.height, build: s.body.build, anatomy: s.anatomy }), build: handsShape },
   legs: { id: "legs", frame: "world", deps: () => ["pelvis"], params: (s) => ({ ...bodyP(s), pose: pose(s) }), build: legsShape },
-  feet: { id: "feet", frame: "world", deps: () => ["legs"], params: (s) => ({ skin: s.materials.skin }), build: feetShape },
+  feet: { id: "feet", frame: "world", deps: () => ["legs"], params: (s) => ({ skin: s.materials.skin, feet: s.feet, anatomy: s.anatomy }), build: feetShape },
   "clothing.top": {
     id: "clothing.top",
     frame: "world",
