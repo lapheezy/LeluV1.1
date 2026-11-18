@@ -285,10 +285,14 @@ export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, p
 
   // lips: berry, a darker liner at the edge, gloss through the centre
   const mo = lm.mouth;
+
   // vermilion: upper 0.133 IOD at the bow (0.82 of the ellipse), lower 0.190 IOD, half-width 0.37 IOD
   const lu = (x - mo[0]) / (0.37 * IOD), lv = (y - mo[1]) / (y > mo[1] ? (0.133 * IOD) / 0.82 : 0.19 * IOD);
   const bow = y > mo[1] ? 0.18 * Math.exp(-((lu / 0.18) ** 2)) : 0;
   const lipR = Math.hypot(lu * (1 + 0.15 * lu * lu), lv + bow);
+  // inside her mouth: within the inner lip ellipse and behind the lip line
+  // (the corners are as deep as the interior, so depth alone is not enough)
+  if (lipR < 0.8 && Math.abs(y - mo[1]) < 0.045 * IOD && z < mo[2] - 0.0025) return { c: [0.12, 0.035, 0.04], m: MAT.skin };
   if (lipR < 1 && z > mo[2] - 0.006) {
     let lc = mix(pal.lip, pal.ink, 0.35 * smoothstep(0.78, 1, lipR));
     // a soft highlight on the lower lip; the gloss itself is the material

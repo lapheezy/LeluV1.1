@@ -93,9 +93,17 @@ export function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: 
   // part bald; letting them fall gave her a fringe her references do not have.)
   const front = root[2] > h[2] + 0.04;
   if (front) {
-    const sweepDir: V3 = [side * 1.0, -0.15, -0.35];
+    const sweepDir: V3 = [side * 0.85, -0.12, -0.7];
     const tang = v3.sub(sweepDir, [n[0] * v3.dot(sweepDir, n), n[1] * v3.dot(sweepDir, n), n[2] * v3.dot(sweepDir, n)]);
     d = v3.unit(v3.add(v3.unit(tang), n, 0.12));
+  }
+  // temple and side roots (in front of the ear) sweep back over the ear, as
+  // in her profile references, instead of hanging down beside her cheek
+  const phiAbs = Math.abs(Math.atan2(root[0] - h[0], root[2] - h[2]));
+  if (phiAbs > 0.75 && phiAbs < 1.9) {
+    const back: V3 = [side * 0.35, -0.4, -1.0];
+    const tb = v3.sub(back, [n[0] * v3.dot(back, n), n[1] * v3.dot(back, n), n[2] * v3.dot(back, n)]);
+    d = v3.unit(v3.add(v3.unit(tb), n, 0.15));
   }
   let p = v3.add(root, n, 0.002);
   const pts: V3[] = [p];
@@ -107,6 +115,19 @@ export function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: 
     const wob = (hash(seed, s) - 0.5) * 0.18;
     d = v3.unit(v3.add(d, [wob * 0.6, -g, wob * 0.4]));
     p = v3.add(p, d, seg);
+    // framing locks lie along the SIDES of her face (ref17), not in front of
+    // her cheekbones: beside the face a lock is steered out and back until it
+    // is behind the face's side plane, so her profile stays clear (ref18)
+    {
+      const fyF = p[1] - h[1], fxF = Math.abs(p[0] - h[0]);
+      if (fyF < 0.088 && fyF > -0.2 && fxF < 0.15 && p[2] > h[2] + 0.035) d = v3.unit(v3.add(d, [side * 0.35, 0.05, -0.75]));
+    }
+    // tucked behind the ear (ref18): a temple or side lock passing the ear in
+    // front of it is steered back along its path until it is behind the ear
+    if (phiAbs > 0.75 && phiAbs < 1.9) {
+      const fyE = p[1] - h[1], fxE = Math.abs(p[0] - h[0]);
+      if (fyE < 0.07 && fyE > -0.09 && fxE < 0.16 && p[2] > h[2] - 0.01) d = v3.unit(v3.add(d, [0, 0.05, -0.9]));
+    }
     // keep clear of her: head, neck, shoulders, back, arms
     const want = clear * Math.min(1, 0.35 + t * 3);
     for (let it = 0; it < 4; it++) {
@@ -122,11 +143,6 @@ export function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: 
     const fx = Math.abs(p[0] - h[0]), fy = p[1] - h[1];
     // her face, from the chin up to the hairline, is never covered
     if (p[2] > h[2] + 0.02 && fy < 0.088 && fy > -0.2 && fx < 0.082) p = [h[0] + side * 0.082, p[1], p[2]];
-    // and beside her face, locks hang BEHIND the front plane of her cheeks,
-    // so her profile stays clear (ref18/ref20): a lock pushed sideways out of
-    // the face was still left hanging in front of the cheek
-    const fx2 = Math.abs(p[0] - h[0]);
-    if (fy < 0.06 && fy > -0.2 && fx2 < 0.14 && p[2] > h[2] + 0.055) p = [p[0], p[1], h[2] + 0.055];
     pts.push(p);
   }
   return pts;

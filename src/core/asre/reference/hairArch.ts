@@ -172,6 +172,20 @@ function arc(axis: V3[]) {
 
 export function growHairArchitecture(ctx: HairArchContext, st: ArchStyle): HairArchitecture {
   const roots = scalpRoots(ctx);
+  // Her face stays clear on the FINAL geometry (ringlets, masses and
+  // flyaways are added after the axis is grown): inside the face prism hair
+  // is pushed to its side. (Clamping hair to a plane beside the face was
+  // tried and rejected: it flattens the mass into a wall. Her profile is kept
+  // clear by how the hair grows instead: see the volume direction below and
+  // growAxis' side sweep.)
+  const hh = ctx.head;
+  const clearFace = (p: V3): V3 => {
+    const fy = p[1] - hh[1], fx = Math.abs(p[0] - hh[0]);
+    if (fy > 0.088 || fy < -0.2) return p;
+    let q = p;
+    if (q[2] > hh[2] + 0.02 && fx < 0.082 && fy < 0.088) q = [hh[0] + Math.sign(q[0] - hh[0] || 1) * 0.082, q[1], q[2]];
+    return q;
+  };
   const nClumps = Math.min(st.clumps, roots.length);
   const head = ctx.head;
   const counts: number[] = [], pos: number[] = [], rad: number[] = [], col: number[] = [], kind: number[] = [];
@@ -208,7 +222,9 @@ export function growHairArchitecture(ctx: HairArchContext, st: ArchStyle): HairA
     for (let k = 0; k < axis.length; k++) {
       const t = k / (axis.length - 1);
       const dy = Math.max(0, r.p[1] - axis[k][1]);
-      const out = v3.unit([axis[k][0] - head[0], 0, axis[k][2] - head[2] + 0.03]);
+      // outward and slightly BACK: a forward bias pushed the side mass in
+      // front of her face plane
+      const out = v3.unit([axis[k][0] - head[0], 0, axis[k][2] - head[2] - 0.03]);
       axis[k] = v3.add(axis[k], out, (0.016 + 0.012 * hash(c, 24)) * smoothstep(0.0, 0.06, dy) + (0.02 + 0.02 * hash(c, 24)) * smoothstep(0.06, 0.3, dy) * Math.pow(t, 0.6));
     }
     // primary masses: a shared low-frequency S-wave per 3.5 cm scalp patch
@@ -233,14 +249,14 @@ export function growHairArchitecture(ctx: HairArchContext, st: ArchStyle): HairA
     const perTurn = 8;
     const n = Math.max(12, Math.round((A.total / pitch) * perTurn));
     const cpts: V3[] = [];
-    for (let j = 0; j <= n; j++) cpts.push(center((j / n) * A.total));
+    for (let j = 0; j <= n; j++) cpts.push(clearFace(center((j / n) * A.total)));
     clumpAxes.push(cpts);
     envelopes.push({ pts: axis, r: ringR + clumpR + mAmp });
     // LOD: one tube per clump, thick enough to stand for its strands
     // the LOD follows the same ringlet at 5 samples a turn (strands keep 6-8)
     const nl = Math.max(8, Math.round((A.total / pitch) * 5));
     const lpts: V3[] = [];
-    for (let j = 0; j <= nl; j++) lpts.push(center((j / nl) * A.total));
+    for (let j = 0; j <= nl; j++) lpts.push(clearFace(center((j / nl) * A.total)));
     const m = sweep(lpts, { profile: "round", width: clumpR * 0.95, height: clumpR * 0.95, sides: 4, scale: (t) => 1 - 0.5 * t * t });
     const colors = new Float32Array((m.positions.length / 3) * 4);
     for (let v = 0; v < m.positions.length / 3; v++) {
@@ -266,7 +282,7 @@ export function growHairArchitecture(ctx: HairArchContext, st: ArchStyle): HairA
         const frizz = 0.0008 * Math.sin(s * 310 + k * 1.7) * smoothstep(sleek, sleek + 0.1, s);
         let o = off * (s < 0.01 ? s / 0.01 : 1) + frizz;
         if (s / A.total > escape) o += 0.03 * (s / A.total - escape) * (0.5 + hash(c * 31 + k, 16));
-        pts.push(v3.add(v3.add(ccen, f.u, o * Math.cos(twist)), f.w, o * Math.sin(twist)));
+        pts.push(clearFace(v3.add(v3.add(ccen, f.u, o * Math.cos(twist)), f.w, o * Math.sin(twist))));
       }
       // even inside an accent section, a third of the strands stay black
       const cc: Rgb = tint && hash(c * 31 + k, 17) < 0.65 ? tint : black;
@@ -325,7 +341,7 @@ export function growHairArchitecture(ctx: HairArchContext, st: ArchStyle): HairA
       const a = axis[Math.min(axis.length - 1, start + j * 2)];
       const t = j / 39;
       const wob: V3 = [Math.sin(j * 0.9 + i) * 0.004, Math.cos(j * 0.7 + i * 2) * 0.003, Math.sin(j * 1.3 + i * 3) * 0.004];
-      pts.push(v3.add(v3.add(a, out, 0.035 * t * (0.5 + hash(i, 23))), wob, t));
+      pts.push(clearFace(v3.add(v3.add(a, out, 0.035 * t * (0.5 + hash(i, 23))), wob, t)));
     }
     pushStrand(pts, 0.00007, 0.00003, black, 1);
   }
