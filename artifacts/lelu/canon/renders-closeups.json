@@ -1,64 +1,16 @@
 {
- "generatedAt": "2026-11-18T08:45:38.259Z",
+ "generatedAt": "2026-11-18T10:56:10.078Z",
  "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon",
- "size": 640,
- "samples": 26,
+ "size": 900,
+ "samples": 32,
  "renders": [
   {
    "label": "lelu-canon",
    "kind": "full",
    "view": "front",
    "png": "lelu-canon-front.png",
-   "triangles": 1377552,
-   "seconds": 5.33,
-   "camera": {
-    "center": [
-     0.01195843517780304,
-     -0.08204931020736694,
-     0.8684262037277222
-    ],
-    "radius": 1.038209299561035
-   }
-  },
-  {
-   "label": "lelu-canon",
-   "kind": "full",
-   "view": "side",
-   "png": "lelu-canon-side.png",
-   "triangles": 1377552,
-   "seconds": 4.95,
-   "camera": {
-    "center": [
-     0.01195843517780304,
-     -0.08204931020736694,
-     0.8684262037277222
-    ],
-    "radius": 1.038209299561035
-   }
-  },
-  {
-   "label": "lelu-canon",
-   "kind": "full",
-   "view": "back",
-   "png": "lelu-canon-back.png",
-   "triangles": 1377552,
-   "seconds": 5.07,
-   "camera": {
-    "center": [
-     0.01195843517780304,
-     -0.08204931020736694,
-     0.8684262037277222
-    ],
-    "radius": 1.038209299561035
-   }
-  },
-  {
-   "label": "lelu-canon",
-   "kind": "full",
-   "view": "three-quarter",
-   "png": "lelu-canon-three-quarter.png",
-   "triangles": 1377552,
-   "seconds": 5.25,
+   "triangles": 1378864,
+   "seconds": 8.88,
    "camera": {
     "center": [
      0.01195843517780304,
@@ -73,34 +25,12 @@
    "kind": "face",
    "view": "front",
    "png": "lelu-canon-face-front.png",
-   "triangles": 1377552,
-   "seconds": 4.89,
+   "triangles": 1378864,
+   "seconds": 8.15,
    "focused": [
     "head",
     "face",
     "hair"
-   ]
-  },
-  {
-   "label": "lelu-canon",
-   "kind": "hands",
-   "view": "front",
-   "png": "lelu-canon-hands-front.png",
-   "triangles": 1377552,
-   "seconds": 4.34,
-   "focused": [
-    "hands"
-   ]
-  },
-  {
-   "label": "lelu-canon",
-   "kind": "feet",
-   "view": "front",
-   "png": "lelu-canon-feet-front.png",
-   "triangles": 1377552,
-   "seconds": 3.62,
-   "focused": [
-    "feet"
    ]
   }
  ]

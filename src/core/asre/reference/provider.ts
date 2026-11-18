@@ -390,23 +390,125 @@ const around = (a: V3, b: V3, r: number): Sdf => {
  * two spheres in front of her face. Everything that has to sit ON her face —
  * eyeballs, nose ring, labret — is placed against the surface measured here.
  */
-function skinZ(x: number, y: number, radius = 0.006): number {
-  const d = current!;
-  let best = -Infinity;
-  for (let i = 0; i < d.positions.length; i += 3) {
-    if (Math.abs(d.positions[i] - x) > radius || Math.abs(d.positions[i + 1] - y) > radius) continue;
-    if (d.positions[i + 2] > best) best = d.positions[i + 2];
-  }
-  return best === -Infinity ? 0 : best;
+/**
+ * Where her skin is in front of (x, y), measured from a point INSIDE her head.
+ *
+ * Starting outside and marching in is a trap: the first surface met can be the
+ * back of her skull, and marching from the eye joint outward in one fixed
+ * direction met the same. Starting inside — every face joint is inside the
+ * head — and taking the NEAREST outward exit is unambiguous, because the eye
+ * sits a few millimetres from the front of the face and centimetres from the
+ * back of the head.
+ */
+function skinZ(x: number, y: number, seeded = 0): number {
+  // Her face is at +z, so the front-most skin on a ray is the FIRST solid met
+  // marching in from in front of her head — measured on the RAW head field, the
+  // one that exists before any eyelid is cut into it.
+  const sd = fieldSdf(headSdf());
+  const hp = J("joint-head");
+  for (let z = hp[2] + 0.14; z > hp[2] - 0.14; z -= 0.0005) if (sd(x, y, z) < 0) return z;
+  return seeded;
 }
 
-/** An almond eye opening, as an SDF to subtract from her head. */
-function eyeAperture(e: V3, span: number): Sdf {
-  return (x, y, z) => {
-    // almond, not round: wider than tall, with a slightly upturned outer corner
-    const k = Math.hypot((x - e[0]) / (span * 0.33), (y - e[1]) / (span * 0.15), (z - e[2]) / 0.022);
-    return k - 1;
+/** Her head's distance field, built once per loaded reference. */
+let headFieldCache: { digest: string; field: SdfField } | null = null;
+function headSdf(): SdfField {
+  if (headFieldCache && headFieldCache.digest === (current!.digest as string)) return headFieldCache.field;
+  const hp = J("joint-head"), neckY = J("joint-neck")[1];
+  const field = bodyField("head", FIELD_H, [], { lo: [hp[0] - 0.16, neckY - 0.06, hp[2] - 0.20], hi: [hp[0] + 0.16, hp[1] + 0.16, hp[2] + 0.20] });
+  headFieldCache = { digest: current!.digest as string, field };
+  return field;
+}
+
+/** Semi-axes of her palpebral fissure, in metres, from the interpupillary span. */
+const EYE_HALF_W = 0.0165, EYE_HALF_H = 0.0052;
+/** Radius of her eyeball: a 24 mm globe, the real thing. */
+const EYE_GLOBE_R = 0.012;
+
+/**
+ * Her eyeball: a single globe whose pupil, iris, limbal ring and sclera are
+ * decided by the direction from its centre, plus the cornea's catchlight.
+ *
+ * Angular sizes are anatomical: iris 12 mm across on a 24 mm globe (30 degrees
+ * from the pole), pupil 4 mm (9.5 degrees), limbal ring just outside the iris.
+ */
+function leluEyeball(c: V3, skinFront: number): Shape {
+  const R = EYE_GLOBE_R;
+  const base: Shape = {
+    f: (x, y, z) => Math.hypot(x - c[0], y - c[1], z - c[2]) - R,
+    lo: [c[0] - R, c[1] - R, c[2] - R],
+    hi: [c[0] + R, c[1] + R, c[2] + R],
+    color: (_x, y, z) => {
+      const vy = (y - c[1]) / R, vz = (z - c[2]) / R;
+      const cos = vz; // forward is +z
+      if (cos > 0.986) return L.pupil;
+      if (cos > 0.868) return L.iris;
+      if (cos > 0.851) return L.irisRing;
+      // sclera: warm off-white, shaded under the upper lid
+      const shade = Math.max(0, Math.min(1, (vy + 0.45) / 1.2));
+      const k = 1 - 0.4 * shade;
+      return [(L.sclera[0] * k + 0.02 * shade) as number, (L.sclera[1] * k) as number, (L.sclera[2] * k) as number] as Rgb;
+    },
   };
+  const out: Shape[] = [base];
+  // cornea catchlight: the specular that makes an eye look wet and alive
+  const hx = c[0] - 0.0045, hy = c[1] + 0.0048;
+  const hz = c[2] + Math.sqrt(Math.max(0, R * R - 0.0045 ** 2 - 0.0048 ** 2)) - 0.0004;
+  out.push(sphereShape([hx, hy, hz], 0.0014, [0.97, 0.96, 0.94]));
+  void skinFront;
+  return union(...out);
+}
+
+/**
+ * Her actual eye opening, as an SDF to subtract from her head.
+ *
+ * The opening is an almond 33 mm wide and 10 mm tall with an upturned outer
+ * corner — the dimensions of a real palpebral fissure. The earlier aperture was
+ * span*0.33 across and span*0.15 tall (41 x 19 mm), which is why her sclera
+ * read as two big white almonds instead of eyes.
+ */
+function eyeAperture(c: V3, span: number, side: number): Sdf {
+  const w = EYE_HALF_W * (span / 0.062), tall = EYE_HALF_H * (span / 0.062);
+  // An almond PRISM centred on the eyeball: the cross-section is the lid
+  // opening, extruded far enough either side of the globe that it cannot miss
+  // the skin. Anchoring the cut to the globe itself — rather than to a measured
+  // "skin front" — is what makes it deterministic: a measured centre put the
+  // pocket BEHIND the skin, which left the eyelid closed and the globe buried.
+  const half = EYE_GLOBE_R + 0.02;
+  return (x, y, z) => {
+    const dx = (x - c[0]) / w;
+    const dy = (y - (c[1] + side * 0.002 * dx)) / tall;
+    const almond = Math.hypot(dx, dy * (1 + 0.55 * dx * dx)) - 1;
+    return Math.max(almond * 0.012, Math.abs(z - c[2]) - half);
+  };
+}
+
+/**
+ * Her upper lid line: a dark arc that follows the top rim of the aperture and
+ * flicks out at the outer corner. Painted as small spheres on the skin so it
+ * survives sampling and reads as liner at any distance.
+ */
+function lidLiner(e: V3, span: number, side: number, out: Shape[], seedZ: number): void {
+  const w = EYE_HALF_W * (span / 0.062), tall = EYE_HALF_H * (span / 0.062);
+  const n = 13;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const dx = -1 + 2.05 * t;
+    const lx = e[0] + dx * w * 1.02;
+    const ly = e[1] + side * 0.002 * dx + tall * (0.92 + 0.1 * Math.sin(Math.PI * t));
+    const lz = skinZ(lx, ly, seedZ);
+    if (lz === 0) continue;
+    const r = 0.0013 * (0.75 + 0.6 * Math.sin(Math.PI * Math.min(1, t * 1.15)));
+    out.push(sphereShape([lx, ly, lz + 0.0004], r, L.ink));
+  }
+  // the wing: three spheres kicking up and out past the outer corner
+  for (let i = 1; i <= 3; i++) {
+    const lx = e[0] + side * (w * 1.02 + i * 0.0032);
+    const ly = e[1] + tall * 0.95 + i * 0.0026;
+    const lz = skinZ(lx, ly, seedZ);
+    if (lz === 0) continue;
+    out.push(sphereShape([lx, ly, lz + 0.0004], 0.0012 - i * 0.00018, L.ink));
+  }
 }
 
 /** Deterministic noise in [0,1) from a position — same value everywhere. */
@@ -436,24 +538,42 @@ function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb):
   // lips: fuller lower lip, defined cupid's bow
   if (front) {
     const lip = Math.hypot((x - mouth[0]) / (span * 0.46), (y - mouth[1]) / (span * 0.2), (z - mouth[2]) / (span * 0.36));
-    if (lip < 1) return y < mouth[1] - span * 0.01 ? L.lipHighlight : L.lip;
-  }
-
-  // brows: full, softly arched, clean tail
-  for (const e of [eL, eR]) {
-    const dx = (x - e[0]) / (span * 0.46);
-    const dy = (y - (e[1] + span * 0.2)) / (span * 0.085);
-    if (dx * dx + dy * dy < 1) return hairC;
-  }
-
-  // star marks, high on the cheekbones
-  for (const s of [-1, 1] as const) {
-    const cx = mouth[0] + s * span * 0.74, cy = eyeY - span * 0.11;
-    const r = Math.hypot(x - cx, (y - cy) * 0.85);
-    if (r < span * 0.11) {
-      const a = Math.atan2(y - cy, x - cx);
-      if (r < span * (0.032 + 0.03 * Math.abs(Math.cos(2.5 * a)))) return L.star;
+    if (lip < 1) {
+      // gloss sits on the centre of the lower lip, where it catches light
+      const gloss = y < mouth[1] - span * 0.012 && Math.abs(x - mouth[0]) < span * 0.2 && z > mouth[2] + span * 0.1;
+      return gloss ? L.lipHighlight : L.lip;
     }
+  }
+
+  // brows: full, dark, softly arched, tapering into a clean tail. The arch is a
+  // curve, not an ellipse: an elliptical brow reads as a smudge above the eye.
+  for (const e of [eL, eR]) {
+    const u = (x - e[0]) / (span * 0.54);
+    if (Math.abs(u) < 1) {
+      const arch = e[1] + span * (0.2 + 0.055 * (1 - u * u));
+      const th = span * 0.058 * (1 - 0.5 * Math.abs(u * u));
+      if (Math.abs(y - arch) < th) return hairC;
+    }
+  }
+
+  // star marks, high on the cheekbones, with a second smaller cluster below
+  for (const s of [-1, 1] as const) {
+    const cx = mouth[0] + s * span * 0.72, cy = eyeY - span * 0.055;
+    const r = Math.hypot(x - cx, (y - cy) * 0.9);
+    if (r < span * 0.13) {
+      const a = Math.atan2(y - cy, x - cx);
+      // five-pointed: the radius grows to a point five times per turn
+      if (r < span * (0.024 + 0.038 * Math.pow(Math.abs(Math.cos(2.5 * a)), 1.6))) return L.star;
+    }
+    const sx = mouth[0] + s * span * 0.98, sy = eyeY - span * 0.3;
+    if (Math.hypot(x - sx, y - sy) < span * 0.022) return L.star;
+  }
+
+  // lid shading: a darker lid crease above each aperture is what makes the eye
+  // read as an eye rather than as a hole in a face
+  for (const e of [eL, eR]) {
+    const dx = (x - e[0]) / EYE_HALF_W;
+    if (Math.abs(dx) < 1.25 && y > e[1] + EYE_HALF_H * 0.9 && y < e[1] + EYE_HALF_H * 2.9) return L.lidShadow;
   }
 
   // dark swirls across the forehead and temples
@@ -557,7 +677,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
         // the eyeballs read as two white slits behind skin.
         const eL = J("joint-l-eye"), eR = J("joint-r-eye");
         const span = Math.abs(eL[0] - eR[0]) || 0.062;
-        const ap = (e: V3) => eyeAperture([e[0], e[1], skinZ(e[0], e[1]) - 0.008], span);
+        const ap = (e: V3) => eyeAperture(e, span, Math.sign(e[0]) || 1);
         result = subtract(result, (x, y, z) => Math.min(ap(eL)(x, y, z), ap(eR)(x, y, z)));
       }
       shape = {
@@ -582,30 +702,45 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       const lelu = isLelu(spec);
       const feats: Shape[] = [];
       for (const raw of [J("joint-l-eye"), J("joint-r-eye")]) {
-        // sit the ball in the socket: 1.4 mm behind the skin, apex just proud
-        const e: V3 = isLelu(spec) ? [raw[0], raw[1], skinZ(raw[0], raw[1]) - 0.014] : raw;
-        // Iris and pupil are proud of the sclera by a fraction of a cell, so
-        // they survive sampling as geometry instead of being averaged away
-        // into the ball's vertex colours.
-        // Her eyes are almond with a warm brown iris and a dark limbal ring, so
-        // the iris is larger and sits inside a ring rather than a flat disc.
-        // The sclera sits 2.2 mm behind the joint and the iris/pupil spheres are
-        // pushed forward until their near caps emerge through it: that is what
-        // gives a lens on a ball instead of a flat disc buried inside one.
-        const sclera: V3 = [e[0], e[1], e[2] - 0.0022];
-        feats.push(sphereShape(sclera, lelu ? 0.0104 : 0.0112, lelu ? L.sclera : [0.93, 0.91, 0.89]));
-        feats.push(sphereShape([e[0], e[1], e[2] + (lelu ? 0.0078 : 0.0086)], lelu ? 0.0074 : 0.006, lelu ? L.irisRing : spec.materials.eyes));
-        feats.push(sphereShape([e[0], e[1], e[2] + (lelu ? 0.0092 : 0.0104)], lelu ? 0.0066 : 0.0058, lelu ? L.iris : spec.materials.eyes));
-        feats.push(sphereShape([e[0], e[1], e[2] + 0.0116], lelu ? 0.003 : 0.0026, lelu ? L.pupil : [0.02, 0.02, 0.02]));
+        // ONE sphere per eye, its parts carried by DIRECTION from the ball's
+        // centre: pupil, iris, limbal ring, sclera. Building the iris as a
+        // second sphere in front of the sclera meant the union's colour rule
+        // (nearest surface wins) painted the iris's bulge with the sclera's
+        // colour — which is exactly the white ball with a dark dot that the
+        // renders showed.
+        //
+        // Placement is measured, not assumed: the ball's apex sits flush with
+        // the skin so no sclera shows through her eyelids, and the almond
+        // aperture is what opens the lids over it.
+        // The reference rig already puts the eye joint at the eyeball's centre:
+        // the CC0 eye proxy sits exactly there, which is the one thing the rig
+        // does tell us reliably. So the globe goes on the joint, and the lid
+        // opening is cut around the same point.
+        const zs = isLelu(spec) ? skinZ(raw[0], raw[1], raw[2]) : raw[2];
+        const e: V3 = isLelu(spec) ? [raw[0], raw[1], raw[2]] : raw;
         if (lelu) {
-          // long dense lashes: a row of thin fanned strands on the upper lid
-          for (let i = 0; i < 9; i++) {
-            const t = i / 8;
-            const lx = e[0] + (t - 0.5) * 0.021;
-            const ly = e[1] + 0.0088 - Math.abs(t - 0.5) * 0.0035;
-            const lz = e[2] + 0.0062 - Math.abs(t - 0.5) * 0.0025;
-            feats.push(sphereShape([lx, ly, lz], 0.0011, L.hair));
-            feats.push(sphereShape([lx, ly + 0.0022, lz + 0.0022], 0.0008, L.hair));
+          feats.push(leluEyeball(e, zs));
+        } else {
+          feats.push(sphereShape([e[0], e[1], e[2] - 0.0022], 0.0112, [0.93, 0.91, 0.89]));
+          feats.push(sphereShape([e[0], e[1], e[2] + 0.0086], 0.006, spec.materials.eyes));
+          feats.push(sphereShape([e[0], e[1], e[2] + 0.0116], 0.0026, [0.02, 0.02, 0.02]));
+        }
+        if (lelu) {
+          const side = Math.sign(e[0]) || 1;
+          // winged liner on the upper lid rim, in her ink
+          lidLiner(e, Math.abs(J("joint-l-eye")[0] - J("joint-r-eye")[0]) || 0.062, side, feats, raw[2]);
+          // long dense lashes, growing from the lid rim and fanning up and out
+          for (let i = 0; i < 11; i++) {
+            const t = i / 10;
+            const dx = -1 + 2.05 * t;
+            const lx = e[0] + dx * EYE_HALF_W * 1.01;
+            const ly = e[1] + side * 0.002 * dx + EYE_HALF_H * 0.95;
+            const lz = skinZ(lx, ly, raw[2]) || e[2];
+            if (!lz) continue;
+            const len = 0.0068 * (0.6 + 0.55 * Math.sin(Math.PI * Math.min(1, t * 1.1)));
+            feats.push(sphereShape([lx, ly, lz + 0.0006], 0.0009, L.hair));
+            feats.push(sphereShape([lx + side * len * 0.28, ly + len * 0.62, lz + len * 0.42], 0.0007, L.hair));
+            feats.push(sphereShape([lx + side * len * 0.5, ly + len * 0.9, lz + len * 0.6], 0.0005, L.hair));
           }
         }
       }

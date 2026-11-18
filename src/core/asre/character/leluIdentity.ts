@@ -49,17 +49,24 @@ export const LELU_IDENTITY = {
 
 /** Her palette, sampled from ref10 / ref01 and the wardrobe boards. */
 export const LELU_COLOURS = {
-  /** Deep warm brown with copper warmth in the light. */
-  skin: [0.3, 0.16, 0.1] as Rgb,
+  /**
+   * Warm copper-tan, measured off ref10: the reference is a light-to-medium
+   * brown with strong copper warmth, not a deep brown. At 0.30/0.16/0.10 the
+   * render read almost black under her lighting, which is what stopped her
+   * reading as herself.
+   */
+  skin: [0.44, 0.26, 0.165] as Rgb,
   /** Shadow and crease tone, used for freckles and lid shading. */
-  skinShade: [0.22, 0.11, 0.07] as Rgb,
-  /** Cupid's-bow shading on the lower lip. */
-  lip: [0.36, 0.12, 0.16] as Rgb,
-  lipHighlight: [0.52, 0.2, 0.22] as Rgb,
+  skinShade: [0.3, 0.165, 0.105] as Rgb,
+  /** Glossy deep berry lips: redder and juicier than a brown-plum. */
+  lip: [0.42, 0.085, 0.12] as Rgb,
+  lipHighlight: [0.62, 0.17, 0.2] as Rgb,
   /** Warm brown iris with a darker limbal ring. */
-  iris: [0.42, 0.26, 0.14] as Rgb,
-  irisRing: [0.2, 0.11, 0.07] as Rgb,
-  sclera: [0.8, 0.76, 0.72] as Rgb,
+  iris: [0.4, 0.255, 0.13] as Rgb,
+  irisRing: [0.19, 0.1, 0.06] as Rgb,
+  /** Warm off-white, never pure white: a white sclera is what made her eyes
+   * read as two bright slits. */
+  sclera: [0.78, 0.735, 0.69] as Rgb,
   /** Upper-lid shadow over the top of the eyeball: what stops eyes reading
    * as two white balls. */
   lidShadow: [0.28, 0.2, 0.16] as Rgb,
