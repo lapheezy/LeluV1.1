@@ -5,7 +5,7 @@
   "geometry": {
     "golden": false
   },
-  "ms": 60786,
+  "ms": 58767,
   "triangles": 1373624,
   "glbBytes": 43679848,
   "occupancyCells": 366164,
@@ -84,7 +84,6 @@
   "proxies": 10,
   "landmarks": {
     "totalHeight": 1.6573355340263707,
-    "headTop": 1.6573355340263707,
     "eyeHeight": 1.5783550068111551,
     "chinHeight": 0,
     "neckHeight": 1.438516689089123,
@@ -104,14 +103,8 @@
     "headWidth": 0.06174795563336428
   },
   "proportions": {
-    "pairsTested": 127,
+    "pairsTested": 111,
     "supported": [
-      {
-        "pair": "totalHeight/headTop",
-        "ratio": 1,
-        "phiPower": 0,
-        "relativeError": 0
-      },
       {
         "pair": "ankleHeight/headWidth",
         "ratio": 1.6262,
@@ -131,19 +124,13 @@
         "relativeError": 0.01032
       },
       {
-        "pair": "headTop/waistHeight",
-        "ratio": 1.6015,
-        "phiPower": 1,
-        "relativeError": 0.01032
-      },
-      {
         "pair": "eyeHeight/shin",
         "ratio": 4.1921,
         "phiPower": 3,
         "relativeError": 0.0105
       }
     ],
-    "shareWithinTolerance": 0.047,
+    "shareWithinTolerance": 0.036,
     "medianRelativeError": 0.1577
   },
   "fibonacciCount": {
@@ -162,17 +149,6 @@
       "score": 1,
       "accepted": true,
       "rationale": "The only divergence that never repeats and never leaves a gap: 137.508°."
-    },
-    {
-      "id": "ratio.totalHeight/headTop",
-      "kind": "ratio",
-      "value": 1,
-      "unit": "ratio",
-      "source": "measured landmark ratio totalHeight/headTop",
-      "measuredError": 0,
-      "score": 1,
-      "accepted": true,
-      "rationale": "φ^0 within 0.00 % — measured, and tight enough to hold."
     },
     {
       "id": "ratio.ankleHeight/headWidth",
@@ -208,17 +184,6 @@
       "rationale": "φ^1 within 1.03 % — measured, and tight enough to hold."
     },
     {
-      "id": "ratio.headTop/waistHeight",
-      "kind": "ratio",
-      "value": 1.6015029263422558,
-      "unit": "ratio",
-      "source": "measured landmark ratio headTop/waistHeight",
-      "measuredError": 0.010322218046391687,
-      "score": 0.48388909768041566,
-      "accepted": true,
-      "rationale": "φ^1 within 1.03 % — measured, and tight enough to hold."
-    },
-    {
       "id": "ratio.eyeHeight/shin",
       "kind": "ratio",
       "value": 4.1920717901321884,
@@ -243,18 +208,11 @@
   ],
   "acceptedConstraints": [
     "divergence.golden",
-    "ratio.totalHeight/headTop",
     "ratio.ankleHeight/headWidth",
     "ratio.neckHeight/shoulderWidth",
     "ratio.totalHeight/waistHeight",
-    "ratio.headTop/waistHeight",
     "ratio.eyeHeight/shin"
   ],
   "phi": 1.618033988749895,
-  "goldenAngleDeg": 137.50776405003785,
-  "sphereSignature": {
-    "spacingCv": 0.0173,
-    "divergenceDeg": 92.5,
-    "radialExponent": 0
-  }
+  "goldenAngleDeg": 137.50776405003785
 }

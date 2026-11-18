@@ -766,7 +766,6 @@ export function bodyLandmarks(): Record<string, number> {
   const eye = J("joint-l-eye"), chin = J("joint-chin");
   return {
     totalHeight: head[1] + 0.11,
-    headTop: head[1] + 0.11,
     eyeHeight: eye[1],
     chinHeight: chin[1],
     neckHeight: neck[1],

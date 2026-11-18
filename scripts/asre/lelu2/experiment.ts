@@ -27,7 +27,7 @@ import { withChanges, type CharacterSpec } from "../../../src/core/asre/characte
 import { writeGlb } from "../../../src/core/asre/gltf/GlbWriter.ts";
 import { bodyLandmarks, hairDiagnostics, referenceProxies } from "../../../src/core/asre/reference/provider.ts";
 import { loadReference } from "../cc0-anatomy.ts";
-import { analyseProportions, geometricSignature, nearestFibonacci, selectConstraints, acceptedConstraints, GOLDEN_ANGLE_DEG, PHI } from "../../../src/core/geometry/golden/index.ts";
+import { analyseProportions, nearestFibonacci, selectConstraints, acceptedConstraints, GOLDEN_ANGLE_DEG, PHI } from "../../../src/core/geometry/golden/index.ts";
 
 const arg = (name: string, dflt: string) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -70,16 +70,6 @@ const constraints = selectConstraints({
   supportedRatios: proportions.supported.map((m) => ({ a: m.a, b: m.b, ratio: m.ratio, power: m.power, relativeError: m.relativeError })),
 });
 
-// A signature of a Fibonacci-sphere root cloud, for the report's comparison table.
-const signature = geometricSignature(
-  Array.from({ length: 600 }, (_, i) => {
-    const z = 1 - (2 * (i + 0.5)) / 600;
-    const r = Math.sqrt(Math.max(0, 1 - z * z));
-    const t = i * GOLDEN_ANGLE_DEG * (Math.PI / 180);
-    return { x: Math.cos(t) * r * 0.1, y: z * 0.1, z: Math.sin(t) * r * 0.1 };
-  }),
-);
-
 const report = {
   variant,
   identity: LELU_IDENTITY.id,
@@ -105,11 +95,6 @@ const report = {
   acceptedConstraints: acceptedConstraints(constraints).map((c) => c.id),
   phi: PHI,
   goldenAngleDeg: GOLDEN_ANGLE_DEG,
-  sphereSignature: {
-    spacingCv: Number(signature.points.cv.toFixed(4)),
-    divergenceDeg: Number(signature.divergence.dominantDeg.toFixed(2)),
-    radialExponent: Number(signature.radial.exponent.toFixed(4)),
-  },
 };
 
 writeFileSync(join(outDir, `lelu2-${variant}-metrics.json`), JSON.stringify(report, null, 2));
