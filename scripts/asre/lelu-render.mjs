@@ -34,17 +34,28 @@ export const LELU_SHOTS = {
     { name: "feet-front", view: "front", camera: { center: [0, -0.05, 0.13], radius: 0.30 }, ground: true },
     { name: "feet-three-quarter", view: "three-quarter", camera: { center: [0, -0.05, 0.13], radius: 0.30 }, ground: true },
   ],
+  detail: [
+    { name: "eye-left", view: "front", camera: { center: [0.031, -0.13, 1.578], radius: 0.028 } },
+    { name: "lips", view: "front", camera: { center: [0, -0.15, 1.512], radius: 0.035 } },
+    { name: "corset-back", view: "back", camera: { center: [0, 0, 1.15], radius: 0.16 } },
+    { name: "belt-buckle", view: "front", camera: { center: [0, -0.12, 0.99], radius: 0.12 } },
+    { name: "pocket-left", view: "side", camera: { center: [0.2, 0, 0.62], radius: 0.13 } },
+    { name: "boot-left-side", view: "side", camera: { center: [0.22, -0.05, 0.13], radius: 0.17 }, ground: true },
+  ],
   wire: [
     { name: "full-front", view: "front", camera: { center: [0, 0, 0.88], radius: 1.0 }, wireframe: true },
     { name: "face-front", view: "front", camera: { center: [0, -0.03, 1.565], radius: 0.15 }, wireframe: true },
     { name: "pelvis-front", view: "front", camera: { center: [0, 0, 0.88], radius: 0.30 }, wireframe: true },
     { name: "hands-left", view: "front", camera: { center: [0.43, -0.12, 1.06], radius: 0.13 }, wireframe: true },
+    { name: "feet-three-quarter", view: "three-quarter", camera: { center: [0, -0.05, 0.13], radius: 0.30 }, wireframe: true },
+    { name: "hair-back", view: "back", camera: { center: [0, 0, 1.40], radius: 0.40 }, wireframe: true },
+    { name: "eye-left", view: "front", camera: { center: [0.031, -0.13, 1.578], radius: 0.028 }, wireframe: true, wirePx: 0.6 },
   ],
 };
 
 export async function renderLelu({ glb, outDir, set = "all", size = 800, samples = 32, prefix = "", materials = "classes", denoise = true }) {
   mkdirSync(outDir, { recursive: true });
-  const sets = set === "all" ? ["full", "close", "wire"] : set.split(",");
+  const sets = set === "all" ? ["full", "close", "detail", "wire"] : set.split(",");
   const out = [];
   for (const s of sets)
     for (const shot of LELU_SHOTS[s]) {
@@ -58,6 +69,7 @@ export async function renderLelu({ glb, outDir, set = "all", size = 800, samples
         camera: shot.camera,
         ground: !!shot.ground,
         wireframe: !!shot.wireframe,
+        ...(shot.wirePx ? { wirePx: shot.wirePx } : {}),
         viewTransform: "AgX",
         ...(materials && materials !== "none" ? { materials } : {}),
         denoise: denoise && !shot.wireframe,

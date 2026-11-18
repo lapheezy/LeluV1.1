@@ -68,6 +68,8 @@ export async function renderViews({
   materials,
   /** OpenImageDenoise on the final image. */
   denoise = false,
+  /** Wireframe edge width in pixels. */
+  wirePx,
   timeoutMs = 600_000,
 }) {
   mkdirSync(outDir, { recursive: true });
@@ -89,6 +91,7 @@ export async function renderViews({
       ...(viewTransform ? { view_transform: viewTransform } : {}),
       ...(materials ? { materials } : {}),
       ...(denoise ? { denoise: true } : {}),
+      ...(wirePx ? { wire_px: wirePx } : {}),
     };
     const jobFile = path.join(outDir, `${stem}.job.json`);
     writeFileSync(jobFile, JSON.stringify(job, null, 1));
