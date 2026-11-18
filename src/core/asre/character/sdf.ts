@@ -68,6 +68,25 @@ export const intersect = (...s: Sdf[]): Sdf => (x, y, z) => {
   return d;
 };
 
+/**
+ * Intersection with a rounded crease of radius k (polynomial smooth max).
+ *
+ * A sharp intersection is not a distance field near the crease, and surface
+ * nets turns grazing creases into ambiguous cells (cells with two disjoint
+ * surface patches), i.e. non-manifold edges. Rounding the crease at the scale
+ * of about one cell keeps the field well conditioned; it also looks like what
+ * it physically is — a soft edge, not a razor.
+ */
+export const smoothIntersect = (k: number, ...s: Sdf[]): Sdf => (x, y, z) => {
+  let d = s[0](x, y, z);
+  for (let i = 1; i < s.length; i++) {
+    const b = s[i](x, y, z);
+    const h = Math.max(k - Math.abs(d - b), 0) / k;
+    d = Math.max(d, b) + (h * h * k) / 4;
+  }
+  return d;
+};
+
 export const subtract = (a: Sdf, b: Sdf): Sdf => (x, y, z) => Math.max(a(x, y, z), -b(x, y, z));
 
 /** Hollow shell of thickness t around the zero set of s, pushed outward by `offset`. */

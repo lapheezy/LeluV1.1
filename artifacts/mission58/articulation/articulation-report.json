@@ -1,0 +1,77 @@
+{
+  "fieldResolution": 0.003,
+  "rows": [
+    {
+      "state": "curl 0",
+      "curl": 0,
+      "triangles": 23952,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 2,
+      "degenerate": 0
+    },
+    {
+      "state": "curl 0.4",
+      "curl": 0.4,
+      "triangles": 23860,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 3,
+      "degenerate": 0
+    },
+    {
+      "state": "curl 0.7",
+      "curl": 0.7,
+      "triangles": 23736,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 4,
+      "degenerate": 0
+    },
+    {
+      "state": "curl 1",
+      "curl": 1,
+      "triangles": 25696,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 6,
+      "degenerate": 0
+    },
+    {
+      "state": "curl 1.3",
+      "curl": 1.3,
+      "triangles": 23656,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 17,
+      "degenerate": 0
+    },
+    {
+      "state": "curl 1.6",
+      "curl": 1.6,
+      "triangles": 24840,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 64,
+      "degenerate": 0
+    },
+    {
+      "state": "toeCurl 0",
+      "toeCurl": 0,
+      "triangles": 38172,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 4,
+      "degenerate": 0
+    },
+    {
+      "state": "toeCurl 0.5",
+      "toeCurl": 0.5,
+      "triangles": 37504,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 14,
+      "degenerate": 0
+    },
+    {
+      "state": "toeCurl 1",
+      "toeCurl": 1,
+      "triangles": 37384,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 12,
+      "degenerate": 0
+    }
+  ]
+}

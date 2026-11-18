@@ -18,7 +18,7 @@
  */
 import { plane } from "../character/sdf.ts";
 import type { Sdf, V3 } from "../character/sdf.ts";
-import { clip, group, union } from "../character/shape.ts";
+import { clip, group, softClip, union } from "../character/shape.ts";
 import type { Shape } from "../character/shape.ts";
 import type { CharacterSpec } from "../character/CharacterSpec.ts";
 import { fieldFromMesh, fieldSdf, fieldShape, fieldShellShape } from "./field.ts";
@@ -66,6 +66,18 @@ export interface ReferenceData {
  */
 export const FIELD_H = 0.003;
 
+/**
+ * Articulated parts need a finer field than the body.
+ *
+ * A finger is ~16 mm across and the gaps between neighbouring fingers are
+ * 3–5 mm. At 3 mm sampling the gap is often thinner than one cell, which is
+ * exactly where surface nets produces non-manifold pinches — and blurring the
+ * field enough to remove them merges the fingers into a mitten. Sampling the
+ * hand and foot fields at 1.8 mm resolves the gaps instead of erasing them.
+ * Still canonical, so both build paths see the same solid.
+ */
+export const ARTICULATED_FIELD_H = 0.0018;
+
 let current: ReferenceData | null = null;
 const fieldCache = new Map<string, SdfField>();
 const shapeCache = new Map<string, Shape | null>();
@@ -95,14 +107,14 @@ const SIDEB = (side: 0 | 1) => (side === 0 ? "L" : "R");
 
 const poseKey = (poses: BonePose[]) => (poses.length ? poses.map((p) => `${p.bone}:${p.angle.toFixed(4)}`).join(",") : "rest");
 
-function bodyField(id: string, _h: number, poses: BonePose[], window: { lo: V3; hi: V3 } | null): SdfField {
+function bodyField(id: string, _h: number, poses: BonePose[], window: { lo: V3; hi: V3 } | null, blur = 0, fieldRes = FIELD_H): SdfField {
   const d = current!;
   const pk = poseKey(poses);
-  const key = `${d.digest}|${id}|${FIELD_H}|${pk}|${window ? window.lo.join(",") + ":" + window.hi.join(",") : ""}`;
+  const key = `${d.digest}|${id}|${fieldRes}|${pk}|${blur}|${window ? window.lo.join(",") + ":" + window.hi.join(",") : ""}`;
   const hit = fieldCache.get(key);
   if (hit) return hit;
   const positions = poses.length ? skin(d.positions, d.rig, poses) : d.positions;
-  const f = fieldFromMesh(positions, d.indices, FIELD_H, 3, 4, window ?? undefined);
+  const f = fieldFromMesh(positions, d.indices, fieldRes, 3, 4, window ?? undefined, blur);
   fieldCache.set(key, f);
   return f;
 }
@@ -239,7 +251,12 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
   const pelvisY = J("joint-pelvis")[1], spine1Y = J("joint-spine-1")[1];
   const ankleY = J("joint-l-ankle")[1];
 
-  const body = (tag: string, poses: BonePose[], window: { lo: V3; hi: V3 }) => fieldShape(bodyField(tag, h, poses, window), skinC);
+  /**
+   * Articulated parts are blurred once: a skinned knuckle folds the surface
+   * into itself, and the field's sub-cell double crossings are what produced
+   * the non-manifold edges there. Rest-pose regions are not blurred.
+   */
+  const body = (tag: string, poses: BonePose[], window: { lo: V3; hi: V3 }, fieldRes = FIELD_H) => fieldShape(bodyField(tag, h, poses, window, poses.length ? 1 : 0, fieldRes), skinC);
 
   let shape: Shape | null = null;
   switch (id) {
@@ -328,8 +345,10 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
           const poses = handPoses(spec, side);
           // the window must clear the clipping ball, or the box edge caps the
           // hand with a flat sliver
-          const f = body(`hand-${l}`, poses, { lo: [w[0] - 0.21, w[1] - 0.22, w[2] - 0.22], hi: [w[0] + 0.21, w[1] + 0.22, w[2] + 0.22] });
-          parts.push(clip(f, beyond([w[0] - dir[0] * 0.015, w[1] - dir[1] * 0.015, w[2] - dir[2] * 0.015], dir), ball(w, 0.18)));
+          const f = body(`hand-${l}`, poses, { lo: [w[0] - 0.21, w[1] - 0.22, w[2] - 0.22], hi: [w[0] + 0.21, w[1] + 0.22, w[2] + 0.22] }, ARTICULATED_FIELD_H);
+          // rounded crease: the wrist cut meets the arm at a grazing angle and
+          // a sharp crease there pinches the surface into non-manifold cells
+          parts.push(softClip(f, 0.005, beyond([w[0] - dir[0] * 0.015, w[1] - dir[1] * 0.015, w[2] - dir[2] * 0.015], dir), ball(w, 0.18)));
         }
       }
       shape = parts.length ? group(...parts) : null;
@@ -343,10 +362,10 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
         const a = J(`joint-${l}-ankle`);
         const poses = footPoses(spec, side);
         const sx = a[0] > 0 ? 1 : -1;
-        const f = body(`foot-${l}`, poses, { lo: [a[0] - 0.14, -0.02, a[2] - 0.16], hi: [a[0] + 0.14, a[1] + 0.10, a[2] + 0.24] });
+        const f = body(`foot-${l}`, poses, { lo: [a[0] - 0.14, -0.02, a[2] - 0.16], hi: [a[0] + 0.14, a[1] + 0.10, a[2] + 0.24] }, ARTICULATED_FIELD_H);
         // below the ankle, on its own side of the midline, and within a ball
         // around the ankle so a wide stance cannot pull in the other foot
-        parts.push(clip(f, below(a[1] + 0.02), (x) => -x * sx + 0.02, ball(a, 0.26)));
+        parts.push(softClip(f, 0.005, below(a[1] + 0.02), (x) => -x * sx + 0.02, ball(a, 0.26)));
       }
       shape = parts.length ? group(...parts) : null;
       break;

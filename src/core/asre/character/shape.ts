@@ -89,6 +89,15 @@ export function clip(a: Shape, ...masks: Sdf[]): Shape {
   return { f: S.intersect(a.f, ...masks), lo: a.lo, hi: a.hi, color: a.color };
 }
 
+/**
+ * Clip with a crease rounded over k metres. Use it where a cut surface meets
+ * the body at a grazing angle (wrists, ankles): a sharp crease there is not a
+ * distance field and meshes into non-manifold pinches.
+ */
+export function softClip(a: Shape, k: number, ...masks: Sdf[]): Shape {
+  return { f: S.smoothIntersect(k, a.f, ...masks), lo: a.lo, hi: a.hi, color: a.color };
+}
+
 export function subtract(a: Shape, b: Sdf): Shape {
   return { f: S.subtract(a.f, b), lo: a.lo, hi: a.hi, color: a.color };
 }

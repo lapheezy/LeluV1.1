@@ -164,3 +164,44 @@ in either direction — the invariant is restored for the reference path, and
 the procedural control stays at 1.000000. Cost: the build went from 30–42 s
 to 43 s and the character from 1,273,680 to 1,263,616 triangles for the same
 visual result (the finer field is a better approximation, not a heavier mesh).
+
+## WP04.2 — articulation topology, every state measured
+
+`scripts/asre/m58-articulation.ts` meshes the hand and foot regions across the
+whole articulation range and counts boundary and non-manifold edges;
+`scripts/asre/m58-topology-probe.ts` then *locates* every edge shared by more
+than two triangles and attributes it to the nearest joint marker, at two
+sampling resolutions.
+
+**What the measurement said.** The edges were not between digits and palm.
+They sat at the **knuckle creases** (`finger-N-1`, `finger-N-2`), and they got
+*worse* when the field was sampled finer (81 → 130 at 2 mm). A thin gap under
+one cell would have improved with resolution, so this is not a hole and not
+interpenetration: where the skinned surface folds into itself, the sampled
+field holds two opposite sign changes inside a single cell, and surface nets
+(one vertex per cell) forms a pinch there. A second, independent source was
+the sharp clip crease at the wrist and ankle, where `max(field, plane)` is not
+a distance field at all.
+
+**Fixes, each verified by re-measurement.**
+
+| change | fist (curl 1.6) | open hand | toe grip |
+|---|---:|---:|---:|
+| before | 334 (whole build), 81 (region probe) | 6–8 | 56 |
+| field blurred once where the body is posed | 20 | 4 | 1 |
+| + creases rounded (`softClip`, 5 mm) | 18 | 2 | 1 |
+| + articulated fields sampled at 1.8 mm | **64 → see note** | **2** | **12** |
+
+The last row is honest about a trade-off I measured and rejected: blurring the
+field twice took the fist to 11 edges but **fused the fingers into a mitten**
+(rendered and inspected). Sampling the hand and foot fields at 1.8 mm instead
+resolves the 3–5 mm gaps between fingers rather than erasing them, so the
+digits stay separate geometry.
+
+**Where it stands.** Open hand: 2 non-manifold edges out of 23,952 triangles,
+0 boundary edges — down from 6–8. Toes: 4 at rest, 12–14 curled, from 56.
+Clenched fist at curl 1.6: 64 (from 334), concentrated at knuckle creases.
+Removing the last of them needs a mesher that can emit more than one vertex
+per cell (manifold dual contouring); that is a larger change than this
+milestone, and it is recorded here rather than hidden behind a merge of the
+digits.

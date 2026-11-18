@@ -1,0 +1,31 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/articulation/hand-open-front.png",
+ "wireframe": false,
+ "objects": [
+  "hand-open"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.443464457988739,
+   -0.23718762397766113,
+   1.0402979850769043
+  ],
+  "radius": 0.12443547906646388
+ },
+ "triangles": 11976,
+ "bounds_blender_zup": {
+  "min": [
+   0.3882932662963867,
+   -0.3228982985019684,
+   0.9689255952835083
+  ],
+  "max": [
+   0.4986356496810913,
+   -0.15147696435451508,
+   1.1116702556610107
+  ]
+ },
+ "render_seconds": 2.5,
+ "blender": "4.2.23 LTS"
+}

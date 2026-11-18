@@ -1,0 +1,31 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/articulation/hand-fist-front.png",
+ "wireframe": false,
+ "objects": [
+  "hand-fist"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.45166394114494324,
+   -0.22393640875816345,
+   1.0481159687042236
+  ],
+  "radius": 0.10975584605122117
+ },
+ "triangles": 10368,
+ "bounds_blender_zup": {
+  "min": [
+   0.39823681116104126,
+   -0.2958162724971771,
+   0.9846717119216919
+  ],
+  "max": [
+   0.5050910711288452,
+   -0.15205655992031097,
+   1.1115602254867554
+  ]
+ },
+ "render_seconds": 2.68,
+ "blender": "4.2.23 LTS"
+}

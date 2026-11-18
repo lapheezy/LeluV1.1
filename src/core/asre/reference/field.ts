@@ -72,6 +72,57 @@ function pointTriangle(px: number, py: number, pz: number, ax: number, ay: numbe
 }
 
 /**
+ * Separable 3×3×3 box blur over a grid, in place, `passes` times.
+ *
+ * Why a field needs this: when the skinned surface folds into itself at a
+ * knuckle, the sampled field can hold two opposite sign changes inside ONE
+ * cell. Surface nets keeps a single vertex per cell, so such a cell becomes a
+ * pinch where more than two faces share an edge — the non-manifold edges at
+ * the finger creases. Blurring the field removes the sub-cell double crossing
+ * before meshing. It is applied to the field itself, at its canonical
+ * resolution, so every caller (and every build path) sees the same smoothed
+ * solid — occupancy included.
+ */
+function boxBlurInPlace(values: Float32Array, dims: [number, number, number], passes: number): void {
+  const [nx, ny, nz] = dims;
+  const tmp = new Float32Array(values.length);
+  const clamp = (v: number, n: number) => (v < 0 ? 0 : v > n - 1 ? n - 1 : v);
+  for (let p = 0; p < passes; p++) {
+    // x
+    for (let k = 0; k < nz; k++)
+      for (let j = 0; j < ny; j++) {
+        const base = (k * ny + j) * nx;
+        for (let i = 0; i < nx; i++) {
+          const a = values[base + clamp(i - 1, nx)], b = values[base + i], c = values[base + clamp(i + 1, nx)];
+          tmp[base + i] = (a + b + c) / 3;
+        }
+      }
+    // y
+    for (let k = 0; k < nz; k++)
+      for (let j = 0; j < ny; j++) {
+        const base = (k * ny + j) * nx;
+        const up = (k * ny + clamp(j - 1, ny)) * nx, dn = (k * ny + clamp(j + 1, ny)) * nx;
+        for (let i = 0; i < nx; i++) {
+          const a = tmp[up + i], b = tmp[base + i], c = tmp[dn + i];
+          values[base + i] = (a + b + c) / 3;
+        }
+      }
+    // z
+    for (let k = 0; k < nz; k++) {
+      const up = (clamp(k - 1, nz) * ny) * nx, dn = (clamp(k + 1, nz) * ny) * nx;
+      for (let j = 0; j < ny; j++) {
+        const base = (k * ny + j) * nx;
+        for (let i = 0; i < nx; i++) {
+          const a = values[up + j * nx + i], b = values[base + i], c = values[dn + j * nx + i];
+          tmp[base + i] = (a + b + c) / 3;
+        }
+      }
+    }
+    values.set(tmp);
+  }
+}
+
+/**
  * Sample a triangle mesh onto a regular grid of signed distances.
  *
  * `band` is in cells. Inside the band the value is the exact euclidean
@@ -80,7 +131,7 @@ function pointTriangle(px: number, py: number, pz: number, ax: number, ay: numbe
  * magnitude is a conservative fill. Surface nets only reads crossings, so the
  * band is what matters; occupancy only needs the sign, which is exact.
  */
-export function fieldFromMesh(positions: Float32Array, indices: Uint32Array, h: number, band = 3, pad = 4, window?: { lo: V3; hi: V3 }): SdfField {
+export function fieldFromMesh(positions: Float32Array, indices: Uint32Array, h: number, band = 3, pad = 4, window?: { lo: V3; hi: V3 }, blur = 0): SdfField {
   const nv = positions.length / 3;
   let lox = Infinity, loy = Infinity, loz = Infinity, hix = -Infinity, hiy = -Infinity, hiz = -Infinity;
   for (let i = 0; i < nv; i++) {
@@ -236,6 +287,8 @@ export function fieldFromMesh(positions: Float32Array, indices: Uint32Array, h: 
         values[q] = inside[j * nx + i] ? -10 * h : 10 * h;
       }
     }
+
+  if (blur > 0) boxBlurInPlace(values, dims, blur);
 
   return { h, origin, dims, values, lo: [origin[0] - h / 2, origin[1] - h / 2, origin[2] - h / 2], hi: [origin[0] + (nx - 0.5) * h, origin[1] + (ny - 0.5) * h, origin[2] + (nz - 0.5) * h], band };
 }

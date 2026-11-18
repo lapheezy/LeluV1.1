@@ -1,0 +1,24 @@
+{
+ "generatedAt": "2026-11-18T07:19:16.689Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/articulation",
+ "size": 640,
+ "samples": 24,
+ "renders": [
+  {
+   "label": "hand-open",
+   "kind": "full",
+   "view": "front",
+   "png": "hand-open-front.png",
+   "triangles": 11976,
+   "seconds": 2.5,
+   "camera": {
+    "center": [
+     0.443464457988739,
+     -0.23718762397766113,
+     1.0402979850769043
+    ],
+    "radius": 0.12443547906646388
+   }
+  }
+ ]
+}
