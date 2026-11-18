@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/home/user/LeluV1.1/artifacts/lelu/canon/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/00-baseline/face-front--front.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "front",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   -0.03,
+   1.565
+  ],
+  "radius": 0.15
+ },
+ "view_transform": "AgX"
+}

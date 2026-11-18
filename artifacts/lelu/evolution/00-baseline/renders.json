@@ -1,0 +1,35 @@
+{
+ "glb": "lelu-canon.glb",
+ "size": 720,
+ "samples": 16,
+ "renders": [
+  {
+   "shot": "full-front",
+   "set": "wire",
+   "png": "full-front--front-wireframe.png",
+   "triangles": 1373776,
+   "seconds": 3.84
+  },
+  {
+   "shot": "face-front",
+   "set": "wire",
+   "png": "face-front--front-wireframe.png",
+   "triangles": 749204,
+   "seconds": 11.93
+  },
+  {
+   "shot": "pelvis-front",
+   "set": "wire",
+   "png": "pelvis-front--front-wireframe.png",
+   "triangles": 1153180,
+   "seconds": 6.13
+  },
+  {
+   "shot": "hands-left",
+   "set": "wire",
+   "png": "hands-left--front-wireframe.png",
+   "triangles": 513108,
+   "seconds": 3.82
+  }
+ ]
+}

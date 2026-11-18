@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/home/user/LeluV1.1/artifacts/lelu/canon/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/00-baseline/hair-side--side.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "side",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   1.4
+  ],
+  "radius": 0.4
+ },
+ "view_transform": "AgX"
+}

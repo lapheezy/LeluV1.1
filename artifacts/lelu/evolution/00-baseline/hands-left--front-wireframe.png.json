@@ -1,0 +1,35 @@
+{
+ "output": "artifacts/lelu/evolution/00-baseline/hands-left--front-wireframe.png",
+ "wireframe": true,
+ "objects": [
+  "pelvis",
+  "arms",
+  "hands",
+  "legs",
+  "clothing.bottom"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.4300000071525574,
+   -0.11999999731779099,
+   1.059999942779541
+  ],
+  "radius": 0.13
+ },
+ "triangles": 513108,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4906481206417084,
+   -0.3256304860115051,
+   -0.0010000000474974513
+  ],
+  "max": [
+   0.5145649909973145,
+   0.16153186559677124,
+   1.7067160606384277
+  ]
+ },
+ "render_seconds": 3.82,
+ "blender": "4.2.23 LTS"
+}

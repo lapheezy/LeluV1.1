@@ -11,7 +11,7 @@ job.json:
      "camera": {"center": [x, y, z], "radius": r},  # explicit framing (Z-up)
      "ground": true, "view_transform": "Standard" | "AgX" | "Filmic"}
 
-wireframe=true replaces each surface with its mesh edges, so a render shows the
+wireframe=true draws each surface's mesh edges (shader wireframe), so a render shows the
 actual triangulation (used by Mission 5 WP07 for geometry inspection evidence).
 
 focus/camera exist so a before/after pair can be shot from the SAME camera:
@@ -118,18 +118,37 @@ if job.get("ground"):
     scene.collection.objects.link(plane)
 
 if job.get("wireframe"):
+    # Shader wireframe: the Cycles Wireframe node draws every mesh edge at a
+    # fixed pixel width over a flat clay surface. No edge geometry is
+    # generated, so a 1.4 M-triangle character costs what its surface costs
+    # (the old WIREFRAME modifier built ~16 M triangles of tubes and ran the
+    # machine out of memory). Objects whose box misses the framed sphere are
+    # dropped first.
+    if override:
+        keep = []
+        for o in meshes:
+            a, b = bbox([o])
+            near = Vector([min(max(center[i], a[i]), b[i]) for i in range(3)])
+            if (near - center).length <= radius * 1.6:
+                keep.append(o)
+            else:
+                bpy.data.objects.remove(o, do_unlink=True)
+        meshes = keep
     wire_mat = bpy.data.materials.new("wire-mat")
     wire_mat.use_nodes = True
-    bsdf_w = wire_mat.node_tree.nodes.get("Principled BSDF")
-    if bsdf_w is not None:
-        bsdf_w.inputs["Base Color"].default_value = (0.45, 0.8, 1.0, 1.0)
-        if "Emission Color" in bsdf_w.inputs:
-            bsdf_w.inputs["Emission Color"].default_value = (0.35, 0.75, 1.0, 1.0)
-            bsdf_w.inputs["Emission Strength"].default_value = 1.5
+    nt = wire_mat.node_tree
+    bsdf_w = nt.nodes.get("Principled BSDF")
+    bsdf_w.inputs["Roughness"].default_value = 0.6
+    wn = nt.nodes.new("ShaderNodeWireframe")
+    wn.use_pixel_size = True
+    wn.inputs["Size"].default_value = float(job.get("wire_px", 1.0))
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.inputs[6].default_value = (0.62, 0.62, 0.66, 1.0)   # clay
+    mix.inputs[7].default_value = (0.02, 0.18, 0.55, 1.0)   # edge
+    nt.links.new(wn.outputs["Fac"], mix.inputs[0])
+    nt.links.new(mix.outputs[2], bsdf_w.inputs["Base Color"])
     for o in meshes:
-        mod = o.modifiers.new("wireframe", "WIREFRAME")
-        mod.thickness = max(size.length * 0.0018, 1e-4)
-        mod.use_replace = True
         o.data.materials.clear()
         o.data.materials.append(wire_mat)
 
