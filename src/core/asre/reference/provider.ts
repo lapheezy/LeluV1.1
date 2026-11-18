@@ -22,6 +22,7 @@ import { clip, group, union } from "../character/shape.ts";
 import type { Shape } from "../character/shape.ts";
 import type { CharacterSpec } from "../character/CharacterSpec.ts";
 import { fieldFromMesh, fieldSdf, fieldShape, fieldShellShape } from "./field.ts";
+import { CELL } from "../character/lattice.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
 import type { BonePose, Rig } from "./skin.ts";
@@ -47,6 +48,23 @@ export interface ReferenceData {
   /** Which morph targets produced this body. */
   targets: string[];
 }
+
+/**
+ * Canonical sampling resolution of every reference field, in metres.
+ *
+ * This is deliberately NOT the component's mesh resolution. A mesh→SDF field
+ * is a sampled approximation: its zero set, its bounds and its stand-off
+ * outside the grid all depend on the cell size. Building the same region at
+ * two mesh resolutions therefore produced two slightly different solids, and
+ * the whole-object baseline (which samples at the occupancy resolution) then
+ * disagreed with the per-component build on ~1 % of cells — the 0.975
+ * regression. One canonical field resolution for every path restores the
+ * exact invariant: identical shape in, identical cells out.
+ *
+ * It must stay well below the thinnest shell the pipeline makes (the hair
+ * shell, 8 mm ⇒ 2.7 cells here) so a shell never self-cancels.
+ */
+export const FIELD_H = 0.003;
 
 let current: ReferenceData | null = null;
 const fieldCache = new Map<string, SdfField>();
@@ -77,26 +95,26 @@ const SIDEB = (side: 0 | 1) => (side === 0 ? "L" : "R");
 
 const poseKey = (poses: BonePose[]) => (poses.length ? poses.map((p) => `${p.bone}:${p.angle.toFixed(4)}`).join(",") : "rest");
 
-function bodyField(id: string, h: number, poses: BonePose[], window: { lo: V3; hi: V3 } | null): SdfField {
+function bodyField(id: string, _h: number, poses: BonePose[], window: { lo: V3; hi: V3 } | null): SdfField {
   const d = current!;
   const pk = poseKey(poses);
-  const key = `${d.digest}|${id}|${h}|${pk}|${window ? window.lo.join(",") + ":" + window.hi.join(",") : ""}`;
+  const key = `${d.digest}|${id}|${FIELD_H}|${pk}|${window ? window.lo.join(",") + ":" + window.hi.join(",") : ""}`;
   const hit = fieldCache.get(key);
   if (hit) return hit;
   const positions = poses.length ? skin(d.positions, d.rig, poses) : d.positions;
-  const f = fieldFromMesh(positions, d.indices, h, 3, 4, window ?? undefined);
+  const f = fieldFromMesh(positions, d.indices, FIELD_H, 3, 4, window ?? undefined);
   fieldCache.set(key, f);
   return f;
 }
 
-function proxyField(name: string, h: number): SdfField | null {
+function proxyField(name: string, _h: number): SdfField | null {
   const d = current!;
   const p = d.proxies[name];
   if (!p || !p.indices.length) return null;
-  const key = `${d.digest}|proxy:${name}|${h}`;
+  const key = `${d.digest}|proxy:${name}|${FIELD_H}`;
   const hit = fieldCache.get(key);
   if (hit) return hit;
-  const f = fieldFromMesh(p.positions, p.indices, h, 3, 4);
+  const f = fieldFromMesh(p.positions, p.indices, FIELD_H, 3, 4);
   fieldCache.set(key, f);
   return f;
 }
@@ -202,7 +220,11 @@ export type RegionId =
  */
 export function referenceRegion(id: RegionId, spec: CharacterSpec, h: number, frame: "world" | "head" = "world", headCenter: V3 = [0, 0, 0]): Shape | null {
   if (!current) return null;
-  const anchor: V3 = frame === "head" ? [Math.round(headCenter[0] / h) * h, Math.round(headCenter[1] / h) * h, Math.round(headCenter[2] / h) * h] : [0, 0, 0];
+  // Snapped to the OCCUPANCY cell, never to the mesh resolution: the anchor
+  // that places this shape is `anchorCells(…, lattice.resolution)`, so
+  // snapping with the mesh resolution shifted the head by up to 3 mm between
+  // the per-component and whole-object paths.
+  const anchor: V3 = frame === "head" ? [Math.round(headCenter[0] / CELL) * CELL, Math.round(headCenter[1] / CELL) * CELL, Math.round(headCenter[2] / CELL) * CELL] : [0, 0, 0];
   const key = `${current.digest}|region:${id}|${h}|${frame}|${anchor.join(",")}|${spec.hands.curl},${spec.hands.spread},${spec.hands.opposition},${spec.feet?.toeCurl ?? 0}`;
   const hit = shapeCache.get(key);
   if (hit !== undefined) return hit;
@@ -360,8 +382,9 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
     case "hair": {
       // Hair assets are open card surfaces: shell them into a volume with
       // real thickness rather than pretending they enclose a solid.
+      // 8 mm: at FIELD_H this is 2.7 cells, so the shell cannot self-cancel.
       const f = proxyField(`hair:${spec.hair.style}`, h);
-      shape = f ? fieldShellShape(f, 0.007 * spec.hair.volume, spec.materials.hair) : null;
+      shape = f ? fieldShellShape(f, Math.max(0.008, 0.008 * spec.hair.volume), spec.materials.hair) : null;
       break;
     }
   }

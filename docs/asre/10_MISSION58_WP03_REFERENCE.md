@@ -122,3 +122,45 @@ npx tsx scripts/asre/m58-reference.ts --out artifacts/mission58/reference
 npx tsx scripts/asre/m58-variations.ts --out artifacts/mission58/variations
 node scripts/asre/m58-render.mjs --dir artifacts/mission58/reference --glb reference-base.glb --views front,side,back,three-quarter
 ```
+
+## WP04.1 — the occupancy regression, found and fixed
+
+**Diagnosis, measured.** `scripts/asre/m58-iou.ts` attributes every cell that
+the per-component build and the whole-object build disagree on:
+
+```
+per-component 299159 cells, whole-object 299107 cells
+IoU 0.978929   only per 3211   only whole 3159
+by component: hair 2143, clothing.top 808, head 111, hands 70, shoes 56 …
+procedural control: IoU 1.000000
+```
+
+Most of the disagreeing cells were **far from the body surface** (1,168 of
+2,143 hair cells at more than 5 cells), which rules out surface jitter. Two
+causes, both real:
+
+1. **The reference field was sampled at the component's mesh resolution.**
+   `buildComponent` builds a region at `hMesh` (5.5 mm for the torso) while
+   `buildWholeObject` builds the same region at the occupancy resolution
+   (6 mm). A mesh→SDF field is a *sampled approximation*: its zero set, its
+   bounds and its stand-off outside the grid all depend on the cell size, so
+   the two paths were meshing two slightly different solids. The stand-off
+   outside the grid was the worst part: `2·(band+1)·h` is 32 mm at h = 4 mm
+   and 48 mm at 6 mm, which moved the point where a hair shell or a garment
+   reach band stopped — hence thousands of hair cells differing a centimetre
+   from any surface.
+2. **The head frame was snapped with the mesh resolution**, not the occupancy
+   cell, so the head region was translated by up to 3 mm between the paths.
+
+**Fix.** `FIELD_H = 0.003` — one canonical reference sampling resolution for
+every path and every region (`src/core/asre/reference/provider.ts`). The head
+frame now snaps to `CELL` (`character/lattice.ts`), the same cell size
+`anchorCells` uses. Outside a field's grid the SDF now returns a large finite
+stand-off instead of a resolution-dependent one, so a shell can never mistake
+"off the grid" for "near the surface".
+
+**Result.** IoU **1.000000**, 300,060 cells in both paths, zero disagreements
+in either direction — the invariant is restored for the reference path, and
+the procedural control stays at 1.000000. Cost: the build went from 30–42 s
+to 43 s and the character from 1,273,680 to 1,263,616 triangles for the same
+visual result (the finer field is a better approximation, not a heavier mesh).

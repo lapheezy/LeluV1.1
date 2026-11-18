@@ -3,87 +3,87 @@
   "height": 1.7,
   "hairStyle": "long-straight",
   "pose": "relaxed",
-  "ms": 42327,
-  "glbBytes": 40742260,
-  "triangles": 1273680,
+  "ms": 43445,
+  "glbBytes": 40400564,
+  "triangles": 1263616,
   "components": [
     {
       "id": "torso",
       "action": "regenerated",
-      "triangles": 26332,
-      "ms": 980
+      "triangles": 26200,
+      "ms": 1086
     },
     {
       "id": "pelvis",
       "action": "regenerated",
-      "triangles": 52572,
-      "ms": 1157
+      "triangles": 51044,
+      "ms": 1376
     },
     {
       "id": "neck",
       "action": "regenerated",
-      "triangles": 21212,
-      "ms": 402
+      "triangles": 20184,
+      "ms": 352
     },
     {
       "id": "head",
       "action": "regenerated",
       "triangles": 56576,
-      "ms": 2142
+      "ms": 1991
     },
     {
       "id": "face",
       "action": "regenerated",
-      "triangles": 2112,
-      "ms": 10
+      "triangles": 2152,
+      "ms": 15
     },
     {
       "id": "hair",
       "action": "regenerated",
-      "triangles": 167368,
-      "ms": 1835
+      "triangles": 175380,
+      "ms": 1931
     },
     {
       "id": "arms",
       "action": "regenerated",
-      "triangles": 26500,
-      "ms": 5351
+      "triangles": 26544,
+      "ms": 5409
     },
     {
       "id": "hands",
       "action": "regenerated",
       "triangles": 24920,
-      "ms": 4741
+      "ms": 4336
     },
     {
       "id": "legs",
       "action": "regenerated",
-      "triangles": 99284,
-      "ms": 2532
+      "triangles": 97856,
+      "ms": 3057
     },
     {
       "id": "feet",
       "action": "regenerated",
       "triangles": 38116,
-      "ms": 2359
+      "ms": 2183
     },
     {
       "id": "clothing.top",
       "action": "regenerated",
-      "triangles": 358136,
-      "ms": 10596
+      "triangles": 352284,
+      "ms": 13313
     },
     {
       "id": "clothing.bottom",
       "action": "regenerated",
-      "triangles": 358136,
-      "ms": 7079
+      "triangles": 352284,
+      "ms": 7024
     },
     {
       "id": "clothing.shoes",
       "action": "regenerated",
-      "triangles": 42416,
-      "ms": 3139
+      "triangles": 40076,
+      "ms": 1366
     },
     {
       "id": "accessories.head",
@@ -103,8 +103,8 @@
     "accessories.body"
   ],
   "occupancy": {
-    "cells": 299159,
-    "iouVsWholeObject": 0.9789
+    "cells": 300060,
+    "iouVsWholeObject": 1
   },
   "reference": {
     "vertices": 19158,

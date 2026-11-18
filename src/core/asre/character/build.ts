@@ -31,6 +31,7 @@ import { surfaceNets, vertexNormals, type Mesh } from "../volume/mesh.ts";
 import type { GlbPart } from "../gltf/GlbWriter.ts";
 import type { CharacterSpec } from "./CharacterSpec.ts";
 import { COMPONENTS, COMPONENT_ORDER, anchorCells, componentKeys, contextFor, skeleton, type ComponentId, type Skeleton } from "./components.ts";
+import { CELL } from "./lattice.ts";
 import type { Shape } from "./shape.ts";
 
 export interface Lattice {
@@ -71,7 +72,7 @@ export const DETAIL_RESOLUTION: Partial<Record<ComponentId, number>> = {
   "accessories.body": 0.005,
 };
 
-export const DEFAULT_LATTICE: Lattice = { resolution: 0.006, originCells: [-160, -12, -110], dims: [320, 360, 220], detail: DETAIL_RESOLUTION };
+export const DEFAULT_LATTICE: Lattice = { resolution: CELL, originCells: [-160, -12, -110], dims: [320, 360, 220], detail: DETAIL_RESOLUTION };
 
 /** Mesh resolution of one component (never finer than the caller asked for). */
 export function meshResolution(id: ComponentId, lattice: Lattice): number {

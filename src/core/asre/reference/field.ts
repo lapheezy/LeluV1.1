@@ -240,8 +240,16 @@ export function fieldFromMesh(positions: Float32Array, indices: Uint32Array, h: 
   return { h, origin, dims, values, lo: [origin[0] - h / 2, origin[1] - h / 2, origin[2] - h / 2], hi: [origin[0] + (nx - 0.5) * h, origin[1] + (ny - 0.5) * h, origin[2] + (nz - 0.5) * h], band };
 }
 
-/** Conservative stand-off used outside a field's grid. */
-const band_h = (f: SdfField) => f.h * (f.band + 1);
+/**
+ * Stand-off returned outside a field's grid.
+ *
+ * It must be large enough that no consumer can mistake "off the grid" for
+ * "near the surface": a shell of thickness t (|d| − t/2) and a garment reach
+ * band (|d| − reach) both must read as unambiguously outside, or the field's
+ * grid boundary silently becomes a garment edge that moves with the sampling
+ * resolution. That was one half of the 0.975 occupancy regression.
+ */
+const OUTSIDE = 1e3;
 
 /** Trilinear lookup inside the grid; outside it, "outside the solid". */
 export function fieldSdf(f: SdfField): Sdf {
@@ -252,7 +260,7 @@ export function fieldSdf(f: SdfField): Sdf {
   // distance. Clamping to the nearest edge value instead would keep negative
   // (inside) values at the box face, and the mesher would then cut the surface
   // open there — the boundary-edge holes this pipeline must not have.
-  const outside = 2 * band_h(f);
+  const outside = OUTSIDE;
   return (x, y, z) => {
     const gx = (x - origin[0]) / h, gy = (y - origin[1]) / h, gz = (z - origin[2]) / h;
     if (gx < 0 || gy < 0 || gz < 0 || gx > nx - 1 || gy > ny - 1 || gz > nz - 1) return outside;

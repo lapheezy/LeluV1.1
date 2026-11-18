@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-18T06:07:39.517Z",
+ "generatedAt": "2026-11-18T07:01:15.861Z",
  "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference",
  "size": 800,
  "samples": 36,
@@ -9,47 +9,15 @@
    "kind": "full",
    "view": "front",
    "png": "reference-base-front.png",
-   "triangles": 1273680,
-   "seconds": 8.62,
+   "triangles": 1263616,
+   "seconds": 8.3,
    "camera": {
     "center": [
      0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
+     -0.11784370988607407,
+     0.8635032176971436
     ],
-    "radius": 1.0062667688311213
-   }
-  },
-  {
-   "label": "reference-base",
-   "kind": "full",
-   "view": "side",
-   "png": "reference-base-side.png",
-   "triangles": 1273680,
-   "seconds": 8.08,
-   "camera": {
-    "center": [
-     0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
-    ],
-    "radius": 1.0062667688311213
-   }
-  },
-  {
-   "label": "reference-base",
-   "kind": "full",
-   "view": "back",
-   "png": "reference-base-back.png",
-   "triangles": 1273680,
-   "seconds": 8.68,
-   "camera": {
-    "center": [
-     0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
-    ],
-    "radius": 1.0062667688311213
+    "radius": 1.0070449138628832
    }
   },
   {
@@ -57,15 +25,15 @@
    "kind": "full",
    "view": "three-quarter",
    "png": "reference-base-three-quarter.png",
-   "triangles": 1273680,
-   "seconds": 9.14,
+   "triangles": 1263616,
+   "seconds": 8.24,
    "camera": {
     "center": [
      0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
+     -0.11784370988607407,
+     0.8635032176971436
     ],
-    "radius": 1.0062667688311213
+    "radius": 1.0070449138628832
    }
   }
  ]

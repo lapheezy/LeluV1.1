@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference/reference-base.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference/reference-base-front.png",
+ "resolution": [
+  800,
+  800
+ ],
+ "samples": 36,
+ "view": "front",
+ "wireframe": false,
+ "ground": true,
+ "view_transform": "AgX"
+}
