@@ -126,7 +126,7 @@ export interface ArchStyle {
   /** Back length (m); front and sides are shorter. */
   length: number;
 }
-export const LELU_HAIR_ARCH: ArchStyle = { clumps: 1150, strandsPerClump: 14, flyaways: 420, babyHairs: 170, length: 0.68 };
+export const LELU_HAIR_ARCH: ArchStyle = { clumps: 1150, strandsPerClump: 14, flyaways: 420, babyHairs: 170, length: 0.86 };
 
 /** Evenly spread roots on the scalp: one per occupied 4.6 mm cell of her head surface. */
 function scalpRoots(ctx: HairArchContext): { p: V3; n: V3; phi: number }[] {
@@ -199,16 +199,17 @@ export function growHairArchitecture(ctx: HairArchContext, st: ArchStyle): HairA
     const r = roots[Math.floor((c * roots.length) / nClumps)];
     const phi = Math.abs(r.phi);
     // length: hip length at the back, shorter toward the face
-    const len = st.length * (0.62 + 0.38 * smoothstep(0.6, 2.0, phi)) * (0.82 + 0.3 * hash(c, 1));
+    // her front and side lengths frame her body almost as long as the back (ref01)
+    const len = st.length * (0.84 + 0.16 * smoothstep(0.6, 2.0, phi)) * (0.82 + 0.3 * hash(c, 1));
     // clumps hug the skull over the crown (small clearance), then fall free
-    const axis = growAxis(ctx, r.p, r.n, len, 0.006 + 0.008 * hash(c, 2), c * 7 + 3);
+    const axis = growAxis(ctx, r.p, r.n, len, 0.009 + 0.009 * hash(c, 2), c * 7 + 3);
     // volume: below the crown the mass widens outward (her references are
     // much wider than her shoulders), more at the back and sides
     for (let k = 0; k < axis.length; k++) {
       const t = k / (axis.length - 1);
       const dy = Math.max(0, r.p[1] - axis[k][1]);
       const out = v3.unit([axis[k][0] - head[0], 0, axis[k][2] - head[2] + 0.03]);
-      axis[k] = v3.add(axis[k], out, (0.05 + 0.05 * hash(c, 24)) * smoothstep(0.04, 0.25, dy) * Math.pow(t, 0.6));
+      axis[k] = v3.add(axis[k], out, (0.016 + 0.012 * hash(c, 24)) * smoothstep(0.0, 0.06, dy) + (0.02 + 0.02 * hash(c, 24)) * smoothstep(0.06, 0.3, dy) * Math.pow(t, 0.6));
     }
     // primary masses: a shared low-frequency S-wave per 3.5 cm scalp patch
     const mass = Math.floor(r.p[0] / 0.035) * 131 + Math.floor(r.p[1] / 0.035) * 17 + Math.floor(r.p[2] / 0.035);
