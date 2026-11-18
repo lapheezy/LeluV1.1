@@ -70,10 +70,79 @@ export function sphereSpiral(n: number, turns = 9): { x: number; y: number; z: n
   return out;
 }
 
+/**
+ * Choose `count` of the given surface points so that they are evenly spread over
+ * the *sphere of directions* around `centre` — the discrete version of the
+ * Fibonacci sphere, constrained to points that actually exist.
+ *
+ * This is the tool for a scalp: the root candidates come from a real hair asset
+ * (a few hundred vertices on a dome), and what is wanted is a subset of those
+ * candidates with equal angular area, not new points invented in space. The
+ * matching is O(count · points), which at a couple of thousand candidates is
+ * milliseconds.
+ */
+export function selectSphericalEvenSubset(
+  points: Float32Array | readonly { x: number; y: number; z: number }[],
+  count: number,
+  centre: [number, number, number],
+  opts: { axis?: "y" | "z"; phase?: number } = {},
+): { points: Float32Array; skipped: number } {
+  const pts = points instanceof Float32Array ? points : Float32Array.from((points as readonly { x: number; y: number; z: number }[]).flatMap((p) => [p.x, p.y, p.z]));
+  const n = Math.floor(pts.length / 3);
+  const want = Math.max(0, Math.min(count, n));
+  if (!want) return { points: new Float32Array(0), skipped: n };
+  const axisIsZ = opts.axis === "z";
+  const phase = opts.phase ?? 0;
+  const dirs = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const dx = pts[3 * i] - centre[0], dy = pts[3 * i + 1] - centre[1], dz = pts[3 * i + 2] - centre[2];
+    const l = Math.hypot(dx, dy, dz) || 1;
+    dirs[3 * i] = dx / l;
+    dirs[3 * i + 1] = dy / l;
+    dirs[3 * i + 2] = dz / l;
+  }
+  const used = new Uint8Array(n);
+  const chosen: number[] = [];
+  // cosθ from the +axis end to the −axis end, evenly in area; azimuth by the
+  // golden angle, which is what keeps successive picks from lining up.
+  for (let k = 0; k < want; k++) {
+    const c = 1 - (2 * (k + 0.5)) / want;
+    const sr = Math.sqrt(Math.max(0, 1 - c * c));
+    const az = k * GOLDEN_ANGLE + phase;
+    const ax1 = Math.cos(az) * sr, ax2 = Math.sin(az) * sr;
+    // Target unit vector in world axes: the even-area coordinate is along `axis`.
+    const tx = axisIsZ ? ax1 : ax1, ty = axisIsZ ? ax2 : c, tz = axisIsZ ? c : ax2;
+    let best = -1;
+    let bestScore = Infinity;
+    for (let i = 0; i < n; i++) {
+      if (used[i]) continue;
+      const score = 1 - (dirs[3 * i] * tx + dirs[3 * i + 1] * ty + dirs[3 * i + 2] * tz);
+      if (score < bestScore) {
+        bestScore = score;
+        best = i;
+      }
+    }
+    if (best < 0) break;
+    used[best] = 1;
+    chosen.push(best);
+  }
+  const out = new Float32Array(chosen.length * 3);
+  for (let k = 0; k < chosen.length; k++) {
+    out[3 * k] = pts[3 * chosen[k]];
+    out[3 * k + 1] = pts[3 * chosen[k] + 1];
+    out[3 * k + 2] = pts[3 * chosen[k] + 2];
+  }
+  return { points: out, skipped: n - chosen.length };
+}
+
 /** Uniform grid keyed by cell size, for nearest-point queries in O(1)-ish. */
 export class PointGrid {
   private cells = new Map<string, number[]>();
-  constructor(readonly points: Float32Array, readonly cell: number) {
+  readonly points: Float32Array;
+  readonly cell: number;
+  constructor(points: Float32Array, cell: number) {
+    this.points = points;
+    this.cell = cell;
     const n = points.length / 3;
     for (let i = 0; i < n; i++) {
       const key = this.key(points[3 * i], points[3 * i + 1], points[3 * i + 2]);

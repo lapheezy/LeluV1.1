@@ -1,0 +1,260 @@
+{
+  "variant": "golden",
+  "identity": "lelu-canonical",
+  "hairStyle": "long-wavy",
+  "geometry": {
+    "golden": true
+  },
+  "ms": 61055,
+  "triangles": 1389588,
+  "glbBytes": 44163296,
+  "occupancyCells": 383273,
+  "components": [
+    {
+      "id": "torso",
+      "triangles": 26200
+    },
+    {
+      "id": "pelvis",
+      "triangles": 51044
+    },
+    {
+      "id": "neck",
+      "triangles": 20184
+    },
+    {
+      "id": "head",
+      "triangles": 57232
+    },
+    {
+      "id": "face",
+      "triangles": 2536
+    },
+    {
+      "id": "hair",
+      "triangles": 531992
+    },
+    {
+      "id": "arms",
+      "triangles": 26544
+    },
+    {
+      "id": "hands",
+      "triangles": 23868
+    },
+    {
+      "id": "legs",
+      "triangles": 97856
+    },
+    {
+      "id": "feet",
+      "triangles": 38172
+    },
+    {
+      "id": "clothing.top",
+      "triangles": 84872
+    },
+    {
+      "id": "clothing.bottom",
+      "triangles": 313796
+    },
+    {
+      "id": "clothing.shoes",
+      "triangles": 99836
+    },
+    {
+      "id": "accessories.head",
+      "triangles": 2636
+    },
+    {
+      "id": "accessories.body",
+      "triangles": 12820
+    }
+  ],
+  "emptyComponents": [],
+  "hair": {
+    "golden": true,
+    "roots": 1350,
+    "curl": "golden-spiral",
+    "rootCv": 0.6433879142701002,
+    "meanSpacing": 0.006399495414351534,
+    "minSpacing": 0.00017277482794100904,
+    "maxSpacing": 0.024888007175223662
+  },
+  "proxies": 10,
+  "landmarks": {
+    "totalHeight": 1.6573355340263707,
+    "headTop": 1.6573355340263707,
+    "eyeHeight": 1.5783550068111551,
+    "chinHeight": 0,
+    "neckHeight": 1.438516689089123,
+    "chestHeight": 1.2818444090700218,
+    "waistHeight": 1.0348626323222734,
+    "pelvisHeight": 0.9205160549313129,
+    "kneeHeight": 0.4769264689991837,
+    "ankleHeight": 0.10041693246727593,
+    "toeHeight": 0.04461805824248275,
+    "shoulderToWrist": 1.373864428041643,
+    "upperArm": 0.1758249202809219,
+    "forearm": 1.198039507760721,
+    "thigh": 0.44358958593212927,
+    "shin": 0.3765095365319078,
+    "shoulderWidth": 0.3365037795510012,
+    "hipWidth": 0,
+    "headWidth": 0.06174795563336428
+  },
+  "proportions": {
+    "pairsTested": 127,
+    "supported": [
+      {
+        "pair": "totalHeight/headTop",
+        "ratio": 1,
+        "phiPower": 0,
+        "relativeError": 0
+      },
+      {
+        "pair": "ankleHeight/headWidth",
+        "ratio": 1.6262,
+        "phiPower": 1,
+        "relativeError": 0.00505
+      },
+      {
+        "pair": "neckHeight/shoulderWidth",
+        "ratio": 4.2749,
+        "phiPower": 3,
+        "relativeError": 0.00908
+      },
+      {
+        "pair": "totalHeight/waistHeight",
+        "ratio": 1.6015,
+        "phiPower": 1,
+        "relativeError": 0.01032
+      },
+      {
+        "pair": "headTop/waistHeight",
+        "ratio": 1.6015,
+        "phiPower": 1,
+        "relativeError": 0.01032
+      },
+      {
+        "pair": "eyeHeight/shin",
+        "ratio": 4.1921,
+        "phiPower": 3,
+        "relativeError": 0.0105
+      }
+    ],
+    "shareWithinTolerance": 0.047,
+    "medianRelativeError": 0.1577
+  },
+  "fibonacciCount": {
+    "value": 1597,
+    "index": 17,
+    "error": 247
+  },
+  "constraints": [
+    {
+      "id": "divergence.golden",
+      "kind": "angle",
+      "value": 2.399963229728653,
+      "unit": "rad",
+      "source": "geometor/phyllotaxis sweep_phi_short; sacred-sandbox GOLDEN_ANGLE = π(3−√5)",
+      "measuredError": 0,
+      "score": 1,
+      "accepted": true,
+      "rationale": "The only divergence that never repeats and never leaves a gap: 137.508°."
+    },
+    {
+      "id": "ratio.totalHeight/headTop",
+      "kind": "ratio",
+      "value": 1,
+      "unit": "ratio",
+      "source": "measured landmark ratio totalHeight/headTop",
+      "measuredError": 0,
+      "score": 1,
+      "accepted": true,
+      "rationale": "φ^0 within 0.00 % — measured, and tight enough to hold."
+    },
+    {
+      "id": "ratio.ankleHeight/headWidth",
+      "kind": "ratio",
+      "value": 1.6262389813115956,
+      "unit": "ratio",
+      "source": "measured landmark ratio ankleHeight/headWidth",
+      "measuredError": 0.005045379342145157,
+      "score": 0.7477310328927422,
+      "accepted": true,
+      "rationale": "φ^1 within 0.50 % — measured, and tight enough to hold."
+    },
+    {
+      "id": "ratio.neckHeight/shoulderWidth",
+      "kind": "ratio",
+      "value": 4.274890139446706,
+      "unit": "ratio",
+      "source": "measured landmark ratio neckHeight/shoulderWidth",
+      "measuredError": 0.009081440851235705,
+      "score": 0.5459279574382148,
+      "accepted": true,
+      "rationale": "φ^3 within 0.91 % — measured, and tight enough to hold."
+    },
+    {
+      "id": "ratio.totalHeight/waistHeight",
+      "kind": "ratio",
+      "value": 1.6015029263422558,
+      "unit": "ratio",
+      "source": "measured landmark ratio totalHeight/waistHeight",
+      "measuredError": 0.010322218046391687,
+      "score": 0.48388909768041566,
+      "accepted": true,
+      "rationale": "φ^1 within 1.03 % — measured, and tight enough to hold."
+    },
+    {
+      "id": "ratio.headTop/waistHeight",
+      "kind": "ratio",
+      "value": 1.6015029263422558,
+      "unit": "ratio",
+      "source": "measured landmark ratio headTop/waistHeight",
+      "measuredError": 0.010322218046391687,
+      "score": 0.48388909768041566,
+      "accepted": true,
+      "rationale": "φ^1 within 1.03 % — measured, and tight enough to hold."
+    },
+    {
+      "id": "ratio.eyeHeight/shin",
+      "kind": "ratio",
+      "value": 4.1920717901321884,
+      "unit": "ratio",
+      "source": "measured landmark ratio eyeHeight/shin",
+      "measuredError": 0.010495093970280988,
+      "score": 0.47524530148595057,
+      "accepted": true,
+      "rationale": "φ^3 within 1.05 % — measured, and tight enough to hold."
+    },
+    {
+      "id": "count.fibonacci",
+      "kind": "count",
+      "value": 1597,
+      "unit": "count",
+      "source": "nearest Fibonacci number to the requested 1350",
+      "measuredError": 0.18296296296296297,
+      "score": 0,
+      "accepted": false,
+      "rationale": "Fibonacci 1597 would change the count by 18.3 %; rejected — the pattern must not cost density."
+    }
+  ],
+  "acceptedConstraints": [
+    "divergence.golden",
+    "ratio.totalHeight/headTop",
+    "ratio.ankleHeight/headWidth",
+    "ratio.neckHeight/shoulderWidth",
+    "ratio.totalHeight/waistHeight",
+    "ratio.headTop/waistHeight",
+    "ratio.eyeHeight/shin"
+  ],
+  "phi": 1.618033988749895,
+  "goldenAngleDeg": 137.50776405003785,
+  "sphereSignature": {
+    "spacingCv": 0.0173,
+    "divergenceDeg": 92.5,
+    "radialExponent": 0
+  }
+}

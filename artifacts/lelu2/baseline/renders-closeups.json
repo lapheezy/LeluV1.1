@@ -1,0 +1,69 @@
+{
+ "generatedAt": "2026-11-18T14:52:42.206Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/baseline",
+ "size": 720,
+ "samples": 24,
+ "renders": [
+  {
+   "label": "lelu2-baseline",
+   "kind": "full",
+   "view": "front",
+   "png": "lelu2-baseline-front.png",
+   "triangles": 1373624,
+   "seconds": 13.55,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8534848093986511
+    ],
+    "radius": 1.0208278683431793
+   }
+  },
+  {
+   "label": "lelu2-baseline",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "lelu2-baseline-three-quarter.png",
+   "triangles": 1373624,
+   "seconds": 8.01,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8534848093986511
+    ],
+    "radius": 1.0208278683431793
+   }
+  },
+  {
+   "label": "lelu2-baseline",
+   "kind": "full",
+   "view": "back",
+   "png": "lelu2-baseline-back.png",
+   "triangles": 1373624,
+   "seconds": 7.76,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8534848093986511
+    ],
+    "radius": 1.0208278683431793
+   }
+  },
+  {
+   "label": "lelu2-baseline",
+   "kind": "face",
+   "view": "front",
+   "png": "lelu2-baseline-face-front.png",
+   "triangles": 1373624,
+   "seconds": 6.32,
+   "focused": [
+    "head",
+    "face",
+    "hair"
+   ]
+  }
+ ]
+}

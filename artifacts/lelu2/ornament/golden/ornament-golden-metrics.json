@@ -1,0 +1,19 @@
+{
+  "variant": "golden",
+  "beads": 34,
+  "triangles": 18976,
+  "glbBytes": 360512,
+  "beadSpacing": {
+    "mean": 0.01588325391054695,
+    "cv": 0.030373659752068183,
+    "min": 0.014582848315475986,
+    "max": 0.016905344691996633,
+    "maxOverMin": 1.1592621911904486
+  },
+  "radialExponent": 0.4903977767686367,
+  "divergenceDeg": 137.5,
+  "petalSpiralFit": {
+    "r2": 1.0000000000000002,
+    "growthPerTurn": 6.85410196624969
+  }
+}

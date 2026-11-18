@@ -24,6 +24,7 @@ import type { CharacterSpec } from "../character/CharacterSpec.ts";
 import { fieldFromMesh, fieldFromVoxels, fieldSdf, fieldShape } from "./field.ts";
 import { CELL } from "../character/lattice.ts";
 import { isLelu, LELU_COLOURS as L } from "../character/leluIdentity.ts";
+import { conicalCurl, nearestNeighbourStats, selectSphericalEvenSubset } from "../../geometry/golden/index.ts";
 import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
@@ -212,6 +213,21 @@ export function footPoses(spec: CharacterSpec, side: 0 | 1): BonePose[] {
  * random walk, which is a loc — and thick locs are exactly what her curls kept
  * looking like.
  */
+/**
+ * What the last hair build actually did. Measured by the LÉLU 2 experiment
+ * harness so a root-distribution claim is read off the builder, not off a copy of
+ * its algorithm.
+ */
+export const hairDiagnostics: {
+  golden: boolean;
+  roots: number;
+  curl: "helix" | "golden-spiral";
+  rootCv: number;
+  meanSpacing: number;
+  minSpacing: number;
+  maxSpacing: number;
+} = { golden: false, roots: 0, curl: "helix", rootCv: 0, meanSpacing: 0, minSpacing: 0, maxSpacing: 0 };
+
 const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; count: number; radius: number; turns?: number; curl?: number }> = {
   buzz: { len: 0.014, droop: 0.15, wave: 0.1, count: 1800, radius: 0.0036 },
   pixie: { len: 0.06, droop: 0.35, wave: 0.2, count: 1700, radius: 0.0042, turns: 1.2, curl: 0.005 },
@@ -291,9 +307,31 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   const headField = fieldSdf(bodyField("head", 0.003, [], { lo: [head[0] - 0.17, head[1] - 0.20, head[2] - 0.20], hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.20] }));
   const scalp: number[] = [];
   const eps = 0.002;
-  const cardStep = Math.max(1, Math.floor(roots.length / 3 / 1800));
-  for (let v = 0; v < roots.length / 3; v += cardStep) {
-    let x = roots[3 * v], y = roots[3 * v + 1], z = roots[3 * v + 2];
+  const golden = spec.geometry?.golden === true;
+  // Candidate roots. In golden mode the hair card's own triangles are sampled at
+  // four interior barycentric points each: the card defines the coverage region,
+  // and a few thousand candidates inside it give the even-subset selection real
+  // points to choose from (her card has only ~900 vertices, which is coarser than
+  // the strand count). Otherwise the card's vertices are stepped as before.
+  const candidates: number[] = [];
+  const card = current!.proxies[`hair:${spec.hair.style}`];
+  if (golden && card) {
+    const P = card.positions, I = card.indices;
+    const BARY: [number, number][] = [[1 / 3, 1 / 3], [1 / 6, 1 / 6], [1 / 6, 2 / 3], [2 / 3, 1 / 6]];
+    for (let t = 0; t + 2 < I.length; t += 3) {
+      const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3;
+      for (const [u, v] of BARY) {
+        const w = 1 - u - v;
+        candidates.push(P[a] * w + P[b] * u + P[c] * v, P[a + 1] * w + P[b + 1] * u + P[c + 1] * v, P[a + 2] * w + P[b + 2] * u + P[c + 2] * v);
+      }
+    }
+  }
+  if (!candidates.length) {
+    const cardStep = Math.max(1, Math.floor(roots.length / 3 / 1800));
+    for (let v = 0; v < roots.length / 3; v += cardStep) candidates.push(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2]);
+  }
+  for (let v = 0; v < candidates.length / 3; v++) {
+    let x = candidates[3 * v], y = candidates[3 * v + 1], z = candidates[3 * v + 2];
     // Only the part of the card that lies on the SCALP can be a root. The rest
     // of the card is the length of the hairstyle hanging in the air, and
     // projecting that onto the skin grew a curtain over the face.
@@ -319,15 +357,38 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   if (!scalp.length) return null;
   roots = Float32Array.from(scalp);
 
+  // GOLDEN GEOMETRY: the scalp is an area, so the roots are distributed over its
+  // area. The candidate roots are her asset's own scalp vertices; the engine picks
+  // the subset whose directions around the skull are evenly spread *by area*
+  // (cos-latitude even, azimuth turned by the golden angle). That is Vogel's law
+  // on a sphere, applied to points that actually exist on her head. The gate is
+  // `spec.geometry.golden`, so her canonical build keeps the asset's own vertex
+  // distribution and stays byte-identical.
+  const scalpCount = Math.floor(roots.length / 3);
+  if (golden) {
+    const chosen = selectSphericalEvenSubset(roots, Math.min(st.count, scalpCount), centre);
+    if (chosen.points.length >= 96) roots = chosen.points;
+  }
+
   // 1. the scalp layer: the asset's own coverage, 2 mm thick, so no skin shows
   const step = Math.max(1, Math.floor(roots.length / 3 / 1600));
   for (let v = 0; v < roots.length / 3; v += step) stamp(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2], 0.0035);
 
   // 2. strands
-  const count = Math.min(st.count, Math.floor(roots.length / 3));
-  const rootStep = Math.max(1, Math.floor(roots.length / 3 / count));
+  const nRoots = Math.floor(roots.length / 3);
+  const count = Math.min(st.count, nRoots);
+  // Golden roots arrive in Fibonacci-direction order, so taking `count` of them at
+  // even index positions keeps the area-even property. The asset's own vertex order
+  // carries no such guarantee, so it is strided as before.
+  const rootIndexes: number[] = [];
+  if (golden) {
+    for (let k = 0; k < count; k++) rootIndexes.push(Math.floor((k * nRoots) / count));
+  } else {
+    const rootStep = Math.max(1, Math.floor(nRoots / count));
+    for (let k = 0; k < nRoots; k += rootStep) rootIndexes.push(k);
+  }
   let strand = 0;
-  for (let v = 0; v < roots.length / 3; v += rootStep) {
+  for (const v of rootIndexes) {
     const r0 = hash3(v, 1), r1 = hash3(v, 2), r2 = hash3(v, 3);
     const px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
     // outward from the skull centre, jittered so locks do not comb in rows
@@ -352,16 +413,43 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     const phase = r2 * Math.PI * 2;
     const radius = st.radius * (0.85 + 0.3 * r2);
     const segs = 32;
-    const r0x = px, r0y = py, r0z = pz;
-    let prevx = r0x, prevy = r0y, prevz = r0z;
-    for (let s = 1; s <= segs; s++) {
-      const t = s / segs;
-      const ang = phase + turns * Math.PI * 2 * t;
-      const rad = curlR * (0.5 + 0.65 * t);
-      const cx = r0x + ax * (len * t), cy = r0y + ay * (len * t), cz = r0z + az * (len * t);
-      const qx = cx + (e1x * Math.cos(ang) + e2x * Math.sin(ang)) * rad;
-      const qy = cy + (e1y * Math.cos(ang) + e2y * Math.sin(ang)) * rad;
-      const qz = cz + (e1z * Math.cos(ang) + e2z * Math.sin(ang)) * rad;
+    // The lock is built as a PATH first, then rasterised, so the two shape laws
+    // differ only in the path:
+    //   helix          constant radius around the drooping axis (the M5.8 lock)
+    //   golden-spiral  a logarithmic spiral whose radius decays by 1/φ along the
+    //                  lock, i.e. a ringlet: tight tip, wide root
+    const path: { x: number; y: number; z: number; t: number }[] = [];
+    if (golden) {
+      const spiral = conicalCurl({
+        origin: [px, py, pz],
+        axis: [ax, ay, az],
+        e1: [e1x, e1y, e1z],
+        e2: [e2x, e2y, e2z],
+        length: len,
+        radius0: curlR * 1.15,
+        turns,
+        samples: segs,
+        taper: 1,
+        growth: 1 / 1.6180339887498949,
+        phase,
+      });
+      path.push(...spiral);
+    } else {
+      for (let s = 0; s <= segs; s++) {
+        const t = s / segs;
+        const ang = phase + turns * Math.PI * 2 * t;
+        const rad = curlR * (0.5 + 0.65 * t);
+        path.push({
+          x: px + ax * (len * t) + (e1x * Math.cos(ang) + e2x * Math.sin(ang)) * rad,
+          y: py + ay * (len * t) + (e1y * Math.cos(ang) + e2y * Math.sin(ang)) * rad,
+          z: pz + az * (len * t) + (e1z * Math.cos(ang) + e2z * Math.sin(ang)) * rad,
+          t,
+        });
+      }
+    }
+    let prevx = path[0].x, prevy = path[0].y, prevz = path[0].z;
+    for (let s = 1; s < path.length; s++) {
+      const { x: qx, y: qy, z: qz, t } = path[s];
       // stamp along the whole segment, or a curl thins into disconnected beads
       const span = Math.hypot(qx - prevx, qy - prevy, qz - prevz);
       const sub = Math.max(2, Math.ceil(span / (radius * 0.6)));
@@ -378,6 +466,20 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     strand++;
   }
   if (!strand) return null;
+  const sample: { x: number; y: number; z: number }[] = [];
+  const sampleStep = Math.max(1, Math.floor(rootIndexes.length / 500));
+  for (let k = 0; k < rootIndexes.length; k += sampleStep) {
+    const v = rootIndexes[k];
+    sample.push({ x: roots[3 * v], y: roots[3 * v + 1], z: roots[3 * v + 2] });
+  }
+  const nn = nearestNeighbourStats(sample);
+  hairDiagnostics.golden = golden;
+  hairDiagnostics.roots = rootIndexes.length;
+  hairDiagnostics.curl = golden ? "golden-spiral" : "helix";
+  hairDiagnostics.rootCv = nn.cv;
+  hairDiagnostics.meanSpacing = nn.mean;
+  hairDiagnostics.minSpacing = nn.min;
+  hairDiagnostics.maxSpacing = nn.max;
   return fieldFromVoxels(inside, dims, origin, h);
 }
 
@@ -649,6 +751,40 @@ export function faceMasks(): { lips: Sdf; brows: Sdf; eyes: [V3, V3] } {
     (Math.hypot((x - e[0]) / (span * 0.28), (y - (e[1] + span * 0.24)) / (span * 0.055), (z - e[2]) / (span * 0.26)) - 1) * span * 0.2;
   const brows: Sdf = (x, y, z) => Math.min(browAt(eyeL)(x, y, z), browAt(eyeR)(x, y, z));
   return { lips, brows, eyes: [eyeL, eyeR] };
+}
+
+/**
+ * Her measured landmarks, in metres above the floor, plus the joint-derived
+ * widths the proportion analysis needs. Read from the same rig every component
+ * uses, so the numbers are the body that was actually built.
+ */
+export function bodyLandmarks(): Record<string, number> {
+  const head = J("joint-head"), neck = J("joint-neck"), chest = J("joint-spine-1");
+  const waist = J("joint-spine-3"), pelvis = J("joint-pelvis");
+  const knee = J("joint-l-knee"), ankle = J("joint-l-ankle"), toe = J("joint-l-toe-1-1");
+  const shoulder = J("joint-l-shoulder"), elbow = J("joint-l-elbow"), wrist = J("joint-l-wrist");
+  const eye = J("joint-l-eye"), chin = J("joint-chin");
+  return {
+    totalHeight: head[1] + 0.11,
+    headTop: head[1] + 0.11,
+    eyeHeight: eye[1],
+    chinHeight: chin[1],
+    neckHeight: neck[1],
+    chestHeight: chest[1],
+    waistHeight: waist[1],
+    pelvisHeight: pelvis[1],
+    kneeHeight: knee[1],
+    ankleHeight: ankle[1],
+    toeHeight: toe[1],
+    shoulderToWrist: shoulder[1] - wrist[1],
+    upperArm: shoulder[1] - elbow[1],
+    forearm: elbow[1] - wrist[1],
+    thigh: pelvis[1] - knee[1],
+    shin: knee[1] - ankle[1],
+    shoulderWidth: Math.abs(J("joint-l-shoulder")[0] - J("joint-r-shoulder")[0]),
+    hipWidth: Math.abs(J("joint-l-hip")[0] - J("joint-r-hip")[0]),
+    headWidth: Math.abs(J("joint-l-eye")[0] - J("joint-r-eye")[0]),
+  };
 }
 
 export type RegionId =

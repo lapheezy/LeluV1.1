@@ -20,6 +20,7 @@ import { canonicalJson } from "../nre/serialize.ts";
 import { basisFrom, handLocal, mirrorX, placeLocal, vsub } from "./anatomy.ts";
 import { referenceRegion, usesReference } from "../reference/provider.ts";
 import { isLelu, LELU_COLOURS } from "./leluIdentity.ts";
+import { GOLDEN_ANGLE, PHI_INV, goldenScaleLadder } from "../../geometry/golden/index.ts";
 import { group } from "./shape.ts";
 import type { CharacterSpec, HairParams, PoseId } from "./CharacterSpec.ts";
 import type { Sdf, V3 } from "./sdf.ts";
@@ -340,7 +341,7 @@ function shoesShape(ctx: Ctx): Shape | null {
  * centre and the crystal drop between her brows. Metal is rose gold, stone is
  * rose quartz — the copper/rose-gold language of her design.
  */
-function leluHeadJewelry(R: number): Shape {
+function leluHeadJewelry(R: number, golden = false): Shape {
   const rg = LELU_COLOURS.roseGold, rq = LELU_COLOURS.roseQuartz, cu = LELU_COLOURS.copper;
   const parts: Shape[] = [];
   // large hoops, hanging in the plane of each ear
@@ -358,12 +359,25 @@ function leluHeadJewelry(R: number): Shape {
   parts.push(torus([0, 0.64 * R, 0.7 * R], 0.075 * R, 0.014 * R, 2, cu));
   // crystal drop between the brows
   parts.push(sphere([0, -0.02 * R, 0.95 * R], 0.026 * R, rq));
+  if (golden) {
+    // GOLDEN GEOMETRY: bead work on her hoops. 13 is a Fibonacci number, so the
+    // beads sit on the arms of a natural phyllotactic count, and their sizes step
+    // down by 1/φ, which makes the ornament self-similar at every scale.
+    const ladder = goldenScaleLadder(3);
+    for (const s of [1, -1] as const) {
+      const cx = s * 0.84 * R, cy = -0.3 * R, cz = 0.02 * R, ring = 0.26 * R;
+      for (let k = 0; k < 13; k++) {
+        const a = (k / 13) * Math.PI * 2 + GOLDEN_ANGLE * 0.5;
+        parts.push(sphere([cx, cy + Math.cos(a) * ring, cz + Math.sin(a) * ring], 0.021 * R * ladder[k % 3], k % 3 === 0 ? rq : rg));
+      }
+    }
+  }
   return union(...parts);
 }
 
 function headAccessoriesLocal(ctx: Ctx): Shape | null {
   const R = ctx.sk.headR, c = m(ctx).accessory, parts: Shape[] = [];
-  if (isLelu(ctx.spec)) return leluHeadJewelry(R);
+  if (isLelu(ctx.spec)) return leluHeadJewelry(R, ctx.spec.geometry?.golden === true);
   for (const a of ctx.spec.accessories.head) {
     if (a === "glasses") {
       const ex = 0.36 * R * ctx.spec.face.eyeSpacing;
@@ -395,6 +409,16 @@ function leluBodyJewelry(ctx: Ctx): Shape {
   parts.push(sphere([0, sk.chestY - 0.075, 0.09], 0.014, rq));
   parts.push(torus([0, sk.chestY - 0.075, 0.09], 0.02, 0.005, 2, cu));
   parts.push(capsule([0, sk.chestY - 0.09, 0.09], [0, sk.chestY - 0.14, 0.088], 0.0035, 0.006, cu));
+  // GOLDEN GEOMETRY: a bead cascade from the choker to the pendant, whose
+  // spacing shrinks by 1/φ step by step (geometric, not an even run of beads).
+  if (spec.geometry?.golden) {
+    const from = neckY - 0.012, to = sk.chestY - 0.085, n = 8;
+    const span = 1 - Math.pow(PHI_INV, n);
+    for (let k = 0; k < n; k++) {
+      const t = (1 - Math.pow(PHI_INV, k)) / span;
+      parts.push(sphere([0, from + (to - from) * t, 0.045 + 0.045 * t], 0.0105 * Math.pow(PHI_INV, (k % 2) * 0.5), k % 3 === 0 ? rq : rg));
+    }
+  }
   // waist harness: belt plus two hip straps
   const wy = sk.waistY - 0.055;
   parts.push(torus([0, wy, 0], spec.body.hipWidth * 0.455, 0.0095, 1, cu));
@@ -435,7 +459,9 @@ export const COMPONENTS: Record<ComponentId, ComponentDef> = {
     id: "hair",
     frame: "head",
     deps: () => ["head"],
-    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy }),
+    // The golden flag is part of the content key: switching it must regenerate
+    // the hair, not return the cached canonical strands.
+    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy, golden: s.geometry?.golden === true }),
     build: (ctx) => {
       if (usesReference(ctx.spec)) {
         const ref = referenceRegion("hair", ctx.spec, ctx.h ?? 0.004, "head", ctx.sk.headCenter);
@@ -465,8 +491,8 @@ export const COMPONENTS: Record<ComponentId, ComponentDef> = {
     build: bottomShape,
   },
   "clothing.shoes": { id: "clothing.shoes", frame: "world", deps: () => ["feet"], params: (s) => ({ shoes: s.clothing.shoes, color: s.materials.shoes }), build: shoesShape },
-  "accessories.head": { id: "accessories.head", frame: "head", deps: () => ["head", "face"], params: (s) => ({ items: s.accessories.head, color: s.materials.accessory, identity: s.identity.id }), build: headAccessoriesLocal },
-  "accessories.body": { id: "accessories.body", frame: "world", deps: () => ["torso", "neck"], params: (s) => ({ items: s.accessories.body, color: s.materials.accessory, identity: s.identity.id }), build: bodyAccessories },
+  "accessories.head": { id: "accessories.head", frame: "head", deps: () => ["head", "face"], params: (s) => ({ items: s.accessories.head, color: s.materials.accessory, identity: s.identity.id, golden: s.geometry?.golden === true }), build: headAccessoriesLocal },
+  "accessories.body": { id: "accessories.body", frame: "world", deps: () => ["torso", "neck"], params: (s) => ({ items: s.accessories.body, color: s.materials.accessory, identity: s.identity.id, golden: s.geometry?.golden === true }), build: bodyAccessories },
 };
 
 /** Content keys for every component (topological order). */

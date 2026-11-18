@@ -1,0 +1,33 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/ornament/golden/ornament-golden-front.png",
+ "wireframe": false,
+ "objects": [
+  "ornament.gold",
+  "ornament.quartz",
+  "ornament.copper"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0004038456827402115,
+   -0.002861454151570797,
+   0.0
+  ],
+  "radius": 0.08222274420646775
+ },
+ "triangles": 18976,
+ "bounds_blender_zup": {
+  "min": [
+   -0.05779999867081642,
+   -0.008522908203303814,
+   -0.05779999867081642
+  ],
+  "max": [
+   0.058607690036296844,
+   0.00279999990016222,
+   0.05779999867081642
+  ]
+ },
+ "render_seconds": 3.11,
+ "blender": "4.2.23 LTS"
+}

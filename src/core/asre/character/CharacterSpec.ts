@@ -110,6 +110,17 @@ export interface FeetParams {
   toeCurl: number;
 }
 
+/**
+ * Geometric-generation options. `golden` swaps LÉLU's hair root distribution for
+ * an area-even Fibonacci one and her curls for a golden-logarithmic ringlet, and
+ * adds the Fibonacci bead work to her jewelry. It changes generation, never
+ * identity: her colours, marks, rig and canonical spec are untouched, and the
+ * canonical build leaves this off.
+ */
+export interface GeometryParams {
+  golden?: boolean;
+}
+
 export interface CharacterSpec {
   identity: CharacterIdentity;
   body: BodyParams;
@@ -122,6 +133,7 @@ export interface CharacterSpec {
   hands: HandParams;
   feet: FeetParams;
   anatomy: AnatomyParams;
+  geometry?: GeometryParams;
 }
 
 export const BASE_CHARACTER: CharacterSpec = {
@@ -144,6 +156,7 @@ export const BASE_CHARACTER: CharacterSpec = {
   hands: { curl: 0.22, spread: 0.45, opposition: 0.5 },
   feet: { toeCurl: 0 },
   anatomy: { source: "procedural", targets: [] },
+  geometry: { golden: false },
 };
 
 export const HAIR_STYLES: HairStyleId[] = [
@@ -189,7 +202,7 @@ export const BODY_VARIANTS: Array<{ label: string; body: Partial<BodyParams> }> 
 export function withChanges(spec: CharacterSpec, patch: {
   body?: Partial<BodyParams>; face?: Partial<FaceParams>; hair?: Partial<HairParams>; clothing?: Partial<ClothingParams>;
   accessories?: Partial<CharacterSpec["accessories"]>; materials?: Partial<Materials>; pose?: PoseId; hands?: Partial<HandParams>;
-  feet?: Partial<FeetParams>; anatomy?: Partial<AnatomyParams>;
+  feet?: Partial<FeetParams>; anatomy?: Partial<AnatomyParams>; geometry?: GeometryParams;
 }): CharacterSpec {
   return {
     identity: spec.identity,
@@ -203,5 +216,6 @@ export function withChanges(spec: CharacterSpec, patch: {
     hands: { ...spec.hands, ...patch.hands },
     feet: { ...spec.feet, ...patch.feet },
     anatomy: { ...spec.anatomy, ...patch.anatomy },
+    geometry: { ...spec.geometry, ...patch.geometry },
   };
 }

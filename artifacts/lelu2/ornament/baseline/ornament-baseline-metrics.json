@@ -1,0 +1,16 @@
+{
+  "variant": "baseline",
+  "beads": 34,
+  "triangles": 16416,
+  "glbBytes": 311432,
+  "beadSpacing": {
+    "mean": 0.017764024550972566,
+    "cv": 0.16611777736876018,
+    "min": 0.012628553268047961,
+    "max": 0.02120855597767039,
+    "maxOverMin": 1.6794129562988864
+  },
+  "radialExponent": 0.43192566702060475,
+  "divergenceDeg": 27.5,
+  "petalSpiralFit": null
+}
