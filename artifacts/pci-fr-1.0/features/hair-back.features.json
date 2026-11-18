@@ -1,0 +1,2087 @@
+{
+ "schema": "lelu.perception.features/1",
+ "source": {
+  "path": "leluverse/assets/characters/lelu_character/references/hair-back.png",
+  "size": [
+   1024,
+   1536
+  ],
+  "sha256": "bec0f68f49ed752e21597b251cc95909ca6265197e454288a8f93bff746f5355"
+ },
+ "features": {
+  "skin_mask": {
+   "kind": "mask_summary",
+   "area_fraction": 0.2725,
+   "confidence": 0.75,
+   "evidence": {
+    "space": "YCrCb+HSV",
+    "note": "warm-skin range, deep complexions included"
+   }
+  },
+  "hair_region": {
+   "kind": "mask_summary",
+   "area_fraction": 0.0,
+   "confidence": 0.1,
+   "evidence": {
+    "space": "HSV dark+magenta within head window"
+   }
+  },
+  "silhouette": {
+   "kind": "contour",
+   "area_px": 818672,
+   "area_fraction": 0.5205,
+   "bbox": [
+    40,
+    15,
+    942,
+    1489
+   ],
+   "contour": [
+    [
+     468,
+     24
+    ],
+    [
+     359,
+     116
+    ],
+    [
+     237,
+     527
+    ],
+    [
+     246,
+     609
+    ],
+    [
+     218,
+     737
+    ],
+    [
+     100,
+     923
+    ],
+    [
+     62,
+     1045
+    ],
+    [
+     42,
+     1210
+    ],
+    [
+     74,
+     1251
+    ],
+    [
+     120,
+     1105
+    ],
+    [
+     166,
+     1102
+    ],
+    [
+     168,
+     1056
+    ],
+    [
+     198,
+     1065
+    ],
+    [
+     199,
+     948
+    ],
+    [
+     297,
+     787
+    ],
+    [
+     374,
+     847
+    ],
+    [
+     311,
+     922
+    ],
+    [
+     193,
+     1165
+    ],
+    [
+     108,
+     1460
+    ],
+    [
+     124,
+     1492
+    ],
+    [
+     190,
+     1433
+    ],
+    [
+     175,
+     1503
+    ],
+    [
+     306,
+     1500
+    ],
+    [
+     327,
+     1280
+    ],
+    [
+     374,
+     1266
+    ],
+    [
+     375,
+     1503
+    ],
+    [
+     716,
+     1498
+    ],
+    [
+     739,
+     1478
+    ],
+    [
+     733,
+     1395
+    ],
+    [
+     785,
+     1421
+    ],
+    [
+     800,
+     1501
+    ],
+    [
+     907,
+     1502
+    ],
+    [
+     867,
+     1387
+    ],
+    [
+     884,
+     1338
+    ],
+    [
+     842,
+     1257
+    ],
+    [
+     849,
+     1221
+    ],
+    [
+     734,
+     931
+    ],
+    [
+     666,
+     828
+    ],
+    [
+     725,
+     802
+    ],
+    [
+     812,
+     920
+    ],
+    [
+     815,
+     1043
+    ],
+    [
+     855,
+     1056
+    ],
+    [
+     863,
+     1125
+    ],
+    [
+     901,
+     1109
+    ],
+    [
+     927,
+     1281
+    ],
+    [
+     958,
+     1270
+    ],
+    [
+     980,
+     1194
+    ],
+    [
+     917,
+     920
+    ],
+    [
+     803,
+     739
+    ],
+    [
+     781,
+     530
+    ],
+    [
+     726,
+     423
+    ],
+    [
+     719,
+     337
+    ],
+    [
+     682,
+     307
+    ],
+    [
+     678,
+     190
+    ],
+    [
+     564,
+     19
+    ]
+   ],
+   "confidence": 0.833,
+   "evidence": {
+    "method": "grabcut",
+    "iterations": 4,
+    "contour_points": 55
+   }
+  },
+  "jewelry": {
+   "kind": "bead_set",
+   "count": 105,
+   "beads": [
+    {
+     "center": [
+      711.0,
+      1270.5
+     ],
+     "radius_px": 154.8,
+     "bbox": [
+      548,
+      946,
+      361,
+      590
+     ],
+     "circularity": 0.353,
+     "confidence": 0.364,
+     "spacing_px": 811.8,
+     "spacing_over_radius": 5.24
+    },
+    {
+     "center": [
+      285.2,
+      579.3
+     ],
+     "radius_px": 84.4,
+     "bbox": [
+      210,
+      411,
+      146,
+      349
+     ],
+     "circularity": 0.367,
+     "confidence": 0.482
+    },
+    {
+     "center": [
+      456.6,
+      1368.9
+     ],
+     "radius_px": 35.9,
+     "bbox": [
+      419,
+      1312,
+      83,
+      123
+     ],
+     "circularity": 0.398,
+     "confidence": 0.376,
+     "spacing_px": 118.8,
+     "spacing_over_radius": 3.31
+    },
+    {
+     "center": [
+      519.8,
+      618.0
+     ],
+     "radius_px": 31.8,
+     "bbox": [
+      483,
+      584,
+      73,
+      67
+     ],
+     "circularity": 0.651,
+     "confidence": 0.48,
+     "spacing_px": 103.1,
+     "spacing_over_radius": 3.24
+    },
+    {
+     "center": [
+      619.2,
+      188.9
+     ],
+     "radius_px": 29.8,
+     "bbox": [
+      584,
+      155,
+      68,
+      81
+     ],
+     "circularity": 0.507,
+     "confidence": 0.403,
+     "spacing_px": 122.3,
+     "spacing_over_radius": 4.1
+    },
+    {
+     "center": [
+      403.3,
+      179.1
+     ],
+     "radius_px": 29.1,
+     "bbox": [
+      370,
+      147,
+      62,
+      68
+     ],
+     "circularity": 0.632,
+     "confidence": 0.469,
+     "spacing_px": 92.6,
+     "spacing_over_radius": 3.18
+    },
+    {
+     "center": [
+      419.2,
+      1481.7
+     ],
+     "radius_px": 27.7,
+     "bbox": [
+      384,
+      1439,
+      68,
+      97
+     ],
+     "circularity": 0.366,
+     "confidence": 0.346,
+     "spacing_px": 118.8,
+     "spacing_over_radius": 4.29
+    },
+    {
+     "center": [
+      527.6,
+      1050.2
+     ],
+     "radius_px": 23.9,
+     "bbox": [
+      507,
+      1012,
+      42,
+      73
+     ],
+     "circularity": 0.584,
+     "confidence": 0.536,
+     "spacing_px": 96.9,
+     "spacing_over_radius": 4.05
+    },
+    {
+     "center": [
+      616.8,
+      583.1
+     ],
+     "radius_px": 23.6,
+     "bbox": [
+      599,
+      541,
+      36,
+      88
+     ],
+     "circularity": 0.452,
+     "confidence": 0.564,
+     "spacing_px": 103.1,
+     "spacing_over_radius": 4.37
+    },
+    {
+     "center": [
+      641.0,
+      309.2
+     ],
+     "radius_px": 21.5,
+     "bbox": [
+      622,
+      275,
+      51,
+      67
+     ],
+     "circularity": 0.424,
+     "confidence": 0.368,
+     "spacing_px": 39.5,
+     "spacing_over_radius": 1.84
+    },
+    {
+     "center": [
+      387.6,
+      521.1
+     ],
+     "radius_px": 21.4,
+     "bbox": [
+      362,
+      491,
+      46,
+      59
+     ],
+     "circularity": 0.532,
+     "confidence": 0.439,
+     "spacing_px": 76.3,
+     "spacing_over_radius": 3.57
+    },
+    {
+     "center": [
+      390.1,
+      444.8
+     ],
+     "radius_px": 18.8,
+     "bbox": [
+      375,
+      409,
+      34,
+      73
+     ],
+     "circularity": 0.419,
+     "confidence": 0.475,
+     "spacing_px": 76.3,
+     "spacing_over_radius": 4.06
+    },
+    {
+     "center": [
+      534.0,
+      850.9
+     ],
+     "radius_px": 18.5,
+     "bbox": [
+      519,
+      819,
+      27,
+      68
+     ],
+     "circularity": 0.464,
+     "confidence": 0.59,
+     "spacing_px": 45.0,
+     "spacing_over_radius": 2.43
+    },
+    {
+     "center": [
+      382.6,
+      647.1
+     ],
+     "radius_px": 17.9,
+     "bbox": [
+      359,
+      614,
+      41,
+      63
+     ],
+     "circularity": 0.389,
+     "confidence": 0.377,
+     "spacing_px": 119.0,
+     "spacing_over_radius": 6.65
+    },
+    {
+     "center": [
+      527.4,
+      1147.1
+     ],
+     "radius_px": 16.8,
+     "bbox": [
+      508,
+      1111,
+      36,
+      60
+     ],
+     "circularity": 0.409,
+     "confidence": 0.406,
+     "spacing_px": 96.9,
+     "spacing_over_radius": 5.77
+    },
+    {
+     "center": [
+      388.9,
+      365.1
+     ],
+     "radius_px": 16.7,
+     "bbox": [
+      363,
+      341,
+      45,
+      60
+     ],
+     "circularity": 0.325,
+     "confidence": 0.302,
+     "spacing_px": 78.7,
+     "spacing_over_radius": 4.71
+    },
+    {
+     "center": [
+      396.0,
+      271.4
+     ],
+     "radius_px": 15.7,
+     "bbox": [
+      381,
+      245,
+      30,
+      49
+     ],
+     "circularity": 0.524,
+     "confidence": 0.483,
+     "spacing_px": 61.0,
+     "spacing_over_radius": 3.89
+    },
+    {
+     "center": [
+      615.0,
+      976.7
+     ],
+     "radius_px": 15.3,
+     "bbox": [
+      603,
+      958,
+      33,
+      41
+     ],
+     "circularity": 0.543,
+     "confidence": 0.439,
+     "spacing_px": 82.3,
+     "spacing_over_radius": 5.38
+    },
+    {
+     "center": [
+      419.7,
+      90.3
+     ],
+     "radius_px": 14.1,
+     "bbox": [
+      406,
+      68,
+      27,
+      50
+     ],
+     "circularity": 0.462,
+     "confidence": 0.462,
+     "spacing_px": 176.4,
+     "spacing_over_radius": 12.51
+    },
+    {
+     "center": [
+      604.5,
+      883.0
+     ],
+     "radius_px": 14.1,
+     "bbox": [
+      594,
+      865,
+      24,
+      39
+     ],
+     "circularity": 0.666,
+     "confidence": 0.581,
+     "spacing_px": 73.0,
+     "spacing_over_radius": 5.18
+    },
+    {
+     "center": [
+      753.6,
+      832.5
+     ],
+     "radius_px": 13.3,
+     "bbox": [
+      738,
+      802,
+      27,
+      65
+     ],
+     "circularity": 0.262,
+     "confidence": 0.396,
+     "spacing_px": 121.7,
+     "spacing_over_radius": 9.15
+    },
+    {
+     "center": [
+      592.1,
+      128.9
+     ],
+     "radius_px": 13.1,
+     "bbox": [
+      580,
+      94,
+      26,
+      62
+     ],
+     "circularity": 0.279,
+     "confidence": 0.407,
+     "spacing_px": 90.7,
+     "spacing_over_radius": 6.92
+    },
+    {
+     "center": [
+      638.1,
+      737.4
+     ],
+     "radius_px": 13.0,
+     "bbox": [
+      625,
+      717,
+      26,
+      39
+     ],
+     "circularity": 0.52,
+     "confidence": 0.464,
+     "spacing_px": 84.7,
+     "spacing_over_radius": 6.51
+    },
+    {
+     "center": [
+      606.4,
+      290.1
+     ],
+     "radius_px": 12.6,
+     "bbox": [
+      596,
+      268,
+      22,
+      50
+     ],
+     "circularity": 0.4,
+     "confidence": 0.486,
+     "spacing_px": 45.0,
+     "spacing_over_radius": 3.57
+    },
+    {
+     "center": [
+      200.5,
+      978.6
+     ],
+     "radius_px": 12.2,
+     "bbox": [
+      185,
+      963,
+      29,
+      30
+     ],
+     "circularity": 0.536,
+     "confidence": 0.385,
+     "spacing_px": 31.4,
+     "spacing_over_radius": 2.58
+    },
+    {
+     "center": [
+      498.9,
+      822.8
+     ],
+     "radius_px": 11.8,
+     "bbox": [
+      484,
+      808,
+      31,
+      33
+     ],
+     "circularity": 0.425,
+     "confidence": 0.316,
+     "spacing_px": 78.5,
+     "spacing_over_radius": 6.65
+    },
+    {
+     "center": [
+      163.9,
+      1512.1
+     ],
+     "radius_px": 11.6,
+     "bbox": [
+      154,
+      1489,
+      26,
+      47
+     ],
+     "circularity": 0.345,
+     "confidence": 0.375,
+     "spacing_px": 311.9,
+     "spacing_over_radius": 26.88
+    },
+    {
+     "center": [
+      499.2,
+      451.4
+     ],
+     "radius_px": 11.5,
+     "bbox": [
+      485,
+      440,
+      30,
+      23
+     ],
+     "circularity": 0.604,
+     "confidence": 0.493,
+     "spacing_px": 39.7,
+     "spacing_over_radius": 3.45
+    },
+    {
+     "center": [
+      666.9,
+      239.4
+     ],
+     "radius_px": 11.3,
+     "bbox": [
+      659,
+      218,
+      23,
+      43
+     ],
+     "circularity": 0.404,
+     "confidence": 0.423,
+     "spacing_px": 55.5,
+     "spacing_over_radius": 4.91
+    },
+    {
+     "center": [
+      495.7,
+      558.7
+     ],
+     "radius_px": 11.2,
+     "bbox": [
+      481,
+      542,
+      29,
+      35
+     ],
+     "circularity": 0.39,
+     "confidence": 0.325,
+     "spacing_px": 56.9,
+     "spacing_over_radius": 5.08
+    },
+    {
+     "center": [
+      533.7,
+      963.9
+     ],
+     "radius_px": 11.0,
+     "bbox": [
+      524,
+      939,
+      23,
+      53
+     ],
+     "circularity": 0.268,
+     "confidence": 0.386,
+     "spacing_px": 35.3,
+     "spacing_over_radius": 3.21
+    },
+    {
+     "center": [
+      817.3,
+      976.7
+     ],
+     "radius_px": 11.0,
+     "bbox": [
+      806,
+      954,
+      23,
+      40
+     ],
+     "circularity": 0.413,
+     "confidence": 0.417,
+     "spacing_px": 35.6,
+     "spacing_over_radius": 3.23
+    },
+    {
+     "center": [
+      114.8,
+      1090.1
+     ],
+     "radius_px": 9.9,
+     "bbox": [
+      107,
+      1072,
+      21,
+      39
+     ],
+     "circularity": 0.372,
+     "confidence": 0.399,
+     "spacing_px": 125.8,
+     "spacing_over_radius": 12.71
+    },
+    {
+     "center": [
+      851.7,
+      967.6
+     ],
+     "radius_px": 9.5,
+     "bbox": [
+      839,
+      958,
+      25,
+      23
+     ],
+     "circularity": 0.496,
+     "confidence": 0.371,
+     "spacing_px": 35.6,
+     "spacing_over_radius": 3.75
+    },
+    {
+     "center": [
+      421.1,
+      833.3
+     ],
+     "radius_px": 9.4,
+     "bbox": [
+      413,
+      820,
+      21,
+      26
+     ],
+     "circularity": 0.507,
+     "confidence": 0.413,
+     "spacing_px": 24.0,
+     "spacing_over_radius": 2.56
+    },
+    {
+     "center": [
+      497.7,
+      677.4
+     ],
+     "radius_px": 9.0,
+     "bbox": [
+      485,
+      668,
+      26,
+      21
+     ],
+     "circularity": 0.462,
+     "confidence": 0.381,
+     "spacing_px": 25.6,
+     "spacing_over_radius": 2.85
+    },
+    {
+     "center": [
+      419.8,
+      1300.5
+     ],
+     "radius_px": 8.6,
+     "bbox": [
+      409,
+      1290,
+      23,
+      24
+     ],
+     "circularity": 0.417,
+     "confidence": 0.304,
+     "spacing_px": 28.2,
+     "spacing_over_radius": 3.28
+    },
+    {
+     "center": [
+      311.5,
+      350.9
+     ],
+     "radius_px": 8.4,
+     "bbox": [
+      301,
+      334,
+      17,
+      36
+     ],
+     "circularity": 0.341,
+     "confidence": 0.411,
+     "spacing_px": 22.0,
+     "spacing_over_radius": 2.62
+    },
+    {
+     "center": [
+      498.3,
+      501.9
+     ],
+     "radius_px": 8.4,
+     "bbox": [
+      483,
+      495,
+      29,
+      15
+     ],
+     "circularity": 0.508,
+     "confidence": 0.5,
+     "spacing_px": 50.5,
+     "spacing_over_radius": 6.01
+    },
+    {
+     "center": [
+      588.9,
+      219.5
+     ],
+     "radius_px": 8.3,
+     "bbox": [
+      581,
+      209,
+      21,
+      25
+     ],
+     "circularity": 0.417,
+     "confidence": 0.34,
+     "spacing_px": 28.3,
+     "spacing_over_radius": 3.41
+    },
+    {
+     "center": [
+      497.2,
+      731.5
+     ],
+     "radius_px": 8.3,
+     "bbox": [
+      488,
+      718,
+      18,
+      26
+     ],
+     "circularity": 0.462,
+     "confidence": 0.415,
+     "spacing_px": 54.1,
+     "spacing_over_radius": 6.52
+    },
+    {
+     "center": [
+      189.9,
+      949.0
+     ],
+     "radius_px": 8.3,
+     "bbox": [
+      172,
+      939,
+      31,
+      21
+     ],
+     "circularity": 0.33,
+     "confidence": 0.328,
+     "spacing_px": 22.5,
+     "spacing_over_radius": 2.71
+    },
+    {
+     "center": [
+      339.8,
+      247.6
+     ],
+     "radius_px": 7.9,
+     "bbox": [
+      327,
+      240,
+      23,
+      17
+     ],
+     "circularity": 0.506,
+     "confidence": 0.433,
+     "spacing_px": 19.9,
+     "spacing_over_radius": 2.52
+    },
+    {
+     "center": [
+      591.4,
+      247.7
+     ],
+     "radius_px": 7.7,
+     "bbox": [
+      583,
+      238,
+      20,
+      19
+     ],
+     "circularity": 0.484,
+     "confidence": 0.354,
+     "spacing_px": 28.3,
+     "spacing_over_radius": 3.68
+    },
+    {
+     "center": [
+      632.7,
+      652.9
+     ],
+     "radius_px": 7.4,
+     "bbox": [
+      626,
+      643,
+      15,
+      21
+     ],
+     "circularity": 0.543,
+     "confidence": 0.466,
+     "spacing_px": 115.7,
+     "spacing_over_radius": 15.63
+    },
+    {
+     "center": [
+      491.1,
+      961.5
+     ],
+     "radius_px": 7.3,
+     "bbox": [
+      483,
+      951,
+      16,
+      22
+     ],
+     "circularity": 0.472,
+     "confidence": 0.412,
+     "spacing_px": 17.9,
+     "spacing_over_radius": 2.45
+    },
+    {
+     "center": [
+      539.0,
+      915.2
+     ],
+     "radius_px": 7.2,
+     "bbox": [
+      533,
+      903,
+      13,
+      24
+     ],
+     "circularity": 0.529,
+     "confidence": 0.508,
+     "spacing_px": 18.8,
+     "spacing_over_radius": 2.61
+    },
+    {
+     "center": [
+      285.1,
+      394.1
+     ],
+     "radius_px": 7.1,
+     "bbox": [
+      273,
+      386,
+      27,
+      18
+     ],
+     "circularity": 0.323,
+     "confidence": 0.326,
+     "spacing_px": 25.5,
+     "spacing_over_radius": 3.59
+    },
+    {
+     "center": [
+      556.9,
+      990.5
+     ],
+     "radius_px": 6.9,
+     "bbox": [
+      548,
+      982,
+      17,
+      15
+     ],
+     "circularity": 0.588,
+     "confidence": 0.447,
+     "spacing_px": 53.8,
+     "spacing_over_radius": 7.8
+    },
+    {
+     "center": [
+      816.5,
+      936.7
+     ],
+     "radius_px": 6.7,
+     "bbox": [
+      810,
+      931,
+      13,
+      14
+     ],
+     "circularity": 0.769,
+     "confidence": 0.56,
+     "spacing_px": 19.9,
+     "spacing_over_radius": 2.97
+    },
+    {
+     "center": [
+      187.5,
+      926.6
+     ],
+     "radius_px": 6.6,
+     "bbox": [
+      181,
+      916,
+      12,
+      19
+     ],
+     "circularity": 0.601,
+     "confidence": 0.531,
+     "spacing_px": 22.5,
+     "spacing_over_radius": 3.41
+    },
+    {
+     "center": [
+      161.1,
+      973.1
+     ],
+     "radius_px": 6.6,
+     "bbox": [
+      156,
+      962,
+      11,
+      20
+     ],
+     "circularity": 0.614,
+     "confidence": 0.565,
+     "spacing_px": 37.6,
+     "spacing_over_radius": 5.69
+    },
+    {
+     "center": [
+      419.8,
+      986.6
+     ],
+     "radius_px": 6.5,
+     "bbox": [
+      410,
+      983,
+      19,
+      9
+     ],
+     "circularity": 0.737,
+     "confidence": 0.702,
+     "spacing_px": 75.6,
+     "spacing_over_radius": 11.63
+    },
+    {
+     "center": [
+      700.3,
+      385.7
+     ],
+     "radius_px": 6.3,
+     "bbox": [
+      692,
+      379,
+      16,
+      13
+     ],
+     "circularity": 0.596,
+     "confidence": 0.474,
+     "spacing_px": 50.3,
+     "spacing_over_radius": 7.98
+    },
+    {
+     "center": [
+      391.6,
+      1299.0
+     ],
+     "radius_px": 6.3,
+     "bbox": [
+      383,
+      1293,
+      18,
+      13
+     ],
+     "circularity": 0.526,
+     "confidence": 0.451,
+     "spacing_px": 28.2,
+     "spacing_over_radius": 4.48
+    },
+    {
+     "center": [
+      502.4,
+      411.8
+     ],
+     "radius_px": 6.2,
+     "bbox": [
+      496,
+      404,
+      14,
+      16
+     ],
+     "circularity": 0.536,
+     "confidence": 0.412,
+     "spacing_px": 34.6,
+     "spacing_over_radius": 5.58
+    },
+    {
+     "center": [
+      336.0,
+      779.5
+     ],
+     "radius_px": 6.2,
+     "bbox": [
+      330,
+      772,
+      13,
+      15
+     ],
+     "circularity": 0.615,
+     "confidence": 0.471,
+     "spacing_px": 38.8,
+     "spacing_over_radius": 6.26
+    },
+    {
+     "center": [
+      880.8,
+      1526.4
+     ],
+     "radius_px": 6.2,
+     "bbox": [
+      876,
+      1519,
+      11,
+      17
+     ],
+     "circularity": 0.652,
+     "confidence": 0.563,
+     "spacing_px": 62.9,
+     "spacing_over_radius": 10.14
+    },
+    {
+     "center": [
+      676.8,
+      294.0
+     ],
+     "radius_px": 5.8,
+     "bbox": [
+      671,
+      279,
+      12,
+      27
+     ],
+     "circularity": 0.285,
+     "confidence": 0.391,
+     "spacing_px": 21.3,
+     "spacing_over_radius": 3.67
+    },
+    {
+     "center": [
+      499.2,
+      369.5
+     ],
+     "radius_px": 5.8,
+     "bbox": [
+      493,
+      364,
+      13,
+      13
+     ],
+     "circularity": 0.615,
+     "confidence": 0.431,
+     "spacing_px": 20.1,
+     "spacing_over_radius": 3.47
+    },
+    {
+     "center": [
+      257.9,
+      866.5
+     ],
+     "radius_px": 5.7,
+     "bbox": [
+      252,
+      860,
+      12,
+      13
+     ],
+     "circularity": 0.647,
+     "confidence": 0.476,
+     "spacing_px": 91.8,
+     "spacing_over_radius": 16.1
+    },
+    {
+     "center": [
+      608.1,
+      358.8
+     ],
+     "radius_px": 5.5,
+     "bbox": [
+      602,
+      353,
+      11,
+      14
+     ],
+     "circularity": 0.61,
+     "confidence": 0.492,
+     "spacing_px": 41.3,
+     "spacing_over_radius": 7.51
+    },
+    {
+     "center": [
+      289.5,
+      352.0
+     ],
+     "radius_px": 5.4,
+     "bbox": [
+      283,
+      347,
+      18,
+      13
+     ],
+     "circularity": 0.393,
+     "confidence": 0.359,
+     "spacing_px": 25.6,
+     "spacing_over_radius": 4.74
+    },
+    {
+     "center": [
+      648.8,
+      365.9
+     ],
+     "radius_px": 5.4,
+     "bbox": [
+      638,
+      362,
+      18,
+      13
+     ],
+     "circularity": 0.385,
+     "confidence": 0.353,
+     "spacing_px": 41.3,
+     "spacing_over_radius": 7.65
+    },
+    {
+     "center": [
+      179.0,
+      1313.7
+     ],
+     "radius_px": 5.4,
+     "bbox": [
+      175,
+      1302,
+      10,
+      25
+     ],
+     "circularity": 0.291,
+     "confidence": 0.435,
+     "spacing_px": 56.2,
+     "spacing_over_radius": 10.41
+    },
+    {
+     "center": [
+      619.4,
+      123.6
+     ],
+     "radius_px": 5.3,
+     "bbox": [
+      616,
+      114,
+      7,
+      18
+     ],
+     "circularity": 0.549,
+     "confidence": 0.678,
+     "spacing_px": 19.8,
+     "spacing_over_radius": 3.73
+    },
+    {
+     "center": [
+      654.2,
+      153.8
+     ],
+     "radius_px": 5.3,
+     "bbox": [
+      648,
+      143,
+      13,
+      21
+     ],
+     "circularity": 0.319,
+     "confidence": 0.337,
+     "spacing_px": 26.5,
+     "spacing_over_radius": 5.0
+    },
+    {
+     "center": [
+      798.8,
+      1123.4
+     ],
+     "radius_px": 5.3,
+     "bbox": [
+      793,
+      1117,
+      14,
+      18
+     ],
+     "circularity": 0.353,
+     "confidence": 0.314,
+     "spacing_px": 130.5,
+     "spacing_over_radius": 24.63
+    },
+    {
+     "center": [
+      454.5,
+      1236.0
+     ],
+     "radius_px": 5.2,
+     "bbox": [
+      449,
+      1230,
+      12,
+      13
+     ],
+     "circularity": 0.551,
+     "confidence": 0.409,
+     "spacing_px": 89.0,
+     "spacing_over_radius": 17.12
+    },
+    {
+     "center": [
+      494.1,
+      290.8
+     ],
+     "radius_px": 5.0,
+     "bbox": [
+      490,
+      286,
+      11,
+      10
+     ],
+     "circularity": 0.709,
+     "confidence": 0.524,
+     "spacing_px": 35.0,
+     "spacing_over_radius": 7.0
+    },
+    {
+     "center": [
+      362.2,
+      605.1
+     ],
+     "radius_px": 5.0,
+     "bbox": [
+      359,
+      599,
+      9,
+      14
+     ],
+     "circularity": 0.627,
+     "confidence": 0.546,
+     "spacing_px": 45.4,
+     "spacing_over_radius": 9.09
+    },
+    {
+     "center": [
+      517.3,
+      660.9
+     ],
+     "radius_px": 5.0,
+     "bbox": [
+      512,
+      657,
+      11,
+      10
+     ],
+     "circularity": 0.709,
+     "confidence": 0.524,
+     "spacing_px": 93.2,
+     "spacing_over_radius": 18.65
+    },
+    {
+     "center": [
+      445.1,
+      834.3
+     ],
+     "radius_px": 5.0,
+     "bbox": [
+      439,
+      826,
+      10,
+      16
+     ],
+     "circularity": 0.487,
+     "confidence": 0.454,
+     "spacing_px": 73.7,
+     "spacing_over_radius": 14.73
+    },
+    {
+     "center": [
+      686.6,
+      337.3
+     ],
+     "radius_px": 4.9,
+     "bbox": [
+      680,
+      330,
+      13,
+      17
+     ],
+     "circularity": 0.339,
+     "confidence": 0.308,
+     "spacing_px": 44.4,
+     "spacing_over_radius": 9.06
+    },
+    {
+     "center": [
+      682.5,
+      273.5
+     ],
+     "radius_px": 4.8,
+     "bbox": [
+      677,
+      271,
+      12,
+      6
+     ],
+     "circularity": 1.0,
+     "confidence": 0.85,
+     "spacing_px": 21.3,
+     "spacing_over_radius": 4.43
+    },
+    {
+     "center": [
+      387.4,
+      567.3
+     ],
+     "radius_px": 4.8,
+     "bbox": [
+      384,
+      562,
+      9,
+      13
+     ],
+     "circularity": 0.615,
+     "confidence": 0.523,
+     "spacing_px": 22.1,
+     "spacing_over_radius": 4.61
+    },
+    {
+     "center": [
+      806.2,
+      919.7
+     ],
+     "radius_px": 4.7,
+     "bbox": [
+      800,
+      916,
+      16,
+      7
+     ],
+     "circularity": 0.547,
+     "confidence": 0.606,
+     "spacing_px": 19.9,
+     "spacing_over_radius": 4.23
+    },
+    {
+     "center": [
+      503.1,
+      989.6
+     ],
+     "radius_px": 4.7,
+     "bbox": [
+      501,
+      983,
+      6,
+      14
+     ],
+     "circularity": 0.694,
+     "confidence": 0.738,
+     "spacing_px": 34.9,
+     "spacing_over_radius": 7.43
+    },
+    {
+     "center": [
+      305.0,
+      286.5
+     ],
+     "radius_px": 4.6,
+     "bbox": [
+      300,
+      281,
+      11,
+      12
+     ],
+     "circularity": 0.508,
+     "confidence": 0.38,
+     "spacing_px": 33.1,
+     "spacing_over_radius": 7.19
+    },
+    {
+     "center": [
+      370.1,
+      463.7
+     ],
+     "radius_px": 4.6,
+     "bbox": [
+      366,
+      457,
+      9,
+      14
+     ],
+     "circularity": 0.532,
+     "confidence": 0.479,
+     "spacing_px": 71.9,
+     "spacing_over_radius": 15.63
+    },
+    {
+     "center": [
+      295.7,
+      1461.5
+     ],
+     "radius_px": 4.6,
+     "bbox": [
+      291,
+      1455,
+      10,
+      14
+     ],
+     "circularity": 0.471,
+     "confidence": 0.416,
+     "spacing_px": 74.2,
+     "spacing_over_radius": 16.13
+    },
+    {
+     "center": [
+      499.5,
+      325.4
+     ],
+     "radius_px": 4.5,
+     "bbox": [
+      496,
+      320,
+      8,
+      12
+     ],
+     "circularity": 0.667,
+     "confidence": 0.567,
+     "spacing_px": 35.0,
+     "spacing_over_radius": 7.78
+    },
+    {
+     "center": [
+      334.5,
+      228.4
+     ],
+     "radius_px": 4.3,
+     "bbox": [
+      332,
+      222,
+      6,
+      14
+     ],
+     "circularity": 0.602,
+     "confidence": 0.663,
+     "spacing_px": 34.6,
+     "spacing_over_radius": 8.05
+    },
+    {
+     "center": [
+      301.5,
+      374.6
+     ],
+     "radius_px": 4.3,
+     "bbox": [
+      298,
+      370,
+      8,
+      10
+     ],
+     "circularity": 0.738,
+     "confidence": 0.576,
+     "spacing_px": 25.6,
+     "spacing_over_radius": 5.95
+    },
+    {
+     "center": [
+      363.7,
+      392.1
+     ],
+     "radius_px": 4.2,
+     "bbox": [
+      359,
+      388,
+      10,
+      9
+     ],
+     "circularity": 0.622,
+     "confidence": 0.466,
+     "spacing_px": 64.6,
+     "spacing_over_radius": 15.38
+    },
+    {
+     "center": [
+      109.4,
+      1458.7
+     ],
+     "radius_px": 4.2,
+     "bbox": [
+      107,
+      1453,
+      6,
+      12
+     ],
+     "circularity": 0.764,
+     "confidence": 0.685,
+     "spacing_px": 132.3,
+     "spacing_over_radius": 31.5
+    },
+    {
+     "center": [
+      635.7,
+      134.8
+     ],
+     "radius_px": 4.1,
+     "bbox": [
+      633,
+      129,
+      7,
+      11
+     ],
+     "circularity": 0.675,
+     "confidence": 0.582,
+     "spacing_px": 19.8,
+     "spacing_over_radius": 4.82
+    },
+    {
+     "center": [
+      500.8,
+      786.1
+     ],
+     "radius_px": 4.1,
+     "bbox": [
+      495,
+      783,
+      12,
+      8
+     ],
+     "circularity": 0.562,
+     "confidence": 0.494,
+     "spacing_px": 33.2,
+     "spacing_over_radius": 8.11
+    },
+    {
+     "center": [
+      235.4,
+      1418.3
+     ],
+     "radius_px": 4.1,
+     "bbox": [
+      233,
+      1413,
+      7,
+      10
+     ],
+     "circularity": 0.743,
+     "confidence": 0.61,
+     "spacing_px": 74.2,
+     "spacing_over_radius": 18.09
+    },
+    {
+     "center": [
+      311.2,
+      254.0
+     ],
+     "radius_px": 4.0,
+     "bbox": [
+      308,
+      249,
+      7,
+      11
+     ],
+     "circularity": 0.649,
+     "confidence": 0.564,
+     "spacing_px": 33.1,
+     "spacing_over_radius": 8.27
+    },
+    {
+     "center": [
+      523.7,
+      904.3
+     ],
+     "radius_px": 4.0,
+     "bbox": [
+      518,
+      899,
+      14,
+      11
+     ],
+     "circularity": 0.331,
+     "confidence": 0.296,
+     "spacing_px": 34.9,
+     "spacing_over_radius": 8.72
+    },
+    {
+     "center": [
+      507.8,
+      955.0
+     ],
+     "radius_px": 4.0,
+     "bbox": [
+      505,
+      950,
+      6,
+      11
+     ],
+     "circularity": 0.758,
+     "confidence": 0.667,
+     "spacing_px": 26.8,
+     "spacing_over_radius": 6.7
+    },
+    {
+     "center": [
+      234.1,
+      1324.9
+     ],
+     "radius_px": 4.0,
+     "bbox": [
+      230,
+      1321,
+      9,
+      9
+     ],
+     "circularity": 0.63,
+     "confidence": 0.441,
+     "spacing_px": 56.2,
+     "spacing_over_radius": 14.06
+    },
+    {
+     "center": [
+      516.3,
+      380.1
+     ],
+     "radius_px": 3.9,
+     "bbox": [
+      514,
+      376,
+      6,
+      11
+     ],
+     "circularity": 0.712,
+     "confidence": 0.635,
+     "spacing_px": 20.1,
+     "spacing_over_radius": 5.16
+    },
+    {
+     "center": [
+      654.0,
+      413.5
+     ],
+     "radius_px": 3.9,
+     "bbox": [
+      649,
+      410,
+      11,
+      9
+     ],
+     "circularity": 0.485,
+     "confidence": 0.394,
+     "spacing_px": 47.9,
+     "spacing_over_radius": 12.28
+    },
+    {
+     "center": [
+      471.2,
+      1369.6
+     ],
+     "radius_px": 3.9,
+     "bbox": [
+      468,
+      1365,
+      7,
+      10
+     ],
+     "circularity": 0.671,
+     "confidence": 0.56,
+     "spacing_px": 134.6,
+     "spacing_over_radius": 34.52
+    },
+    {
+     "center": [
+      336.0,
+      818.3
+     ],
+     "radius_px": 3.8,
+     "bbox": [
+      334,
+      813,
+      5,
+      13
+     ],
+     "circularity": 0.533,
+     "confidence": 0.669,
+     "spacing_px": 110.3,
+     "spacing_over_radius": 29.02
+    },
+    {
+     "center": [
+      499.6,
+      929.5
+     ],
+     "radius_px": 3.8,
+     "bbox": [
+      495,
+      927,
+      10,
+      6
+     ],
+     "circularity": 0.75,
+     "confidence": 0.645,
+     "spacing_px": 26.8,
+     "spacing_over_radius": 7.05
+    },
+    {
+     "center": [
+      850.5,
+      1433.5
+     ],
+     "radius_px": 3.8,
+     "bbox": [
+      846,
+      1430,
+      13,
+      8
+     ],
+     "circularity": 0.442,
+     "confidence": 0.425,
+     "spacing_px": 57.2,
+     "spacing_over_radius": 15.04
+    },
+    {
+     "center": [
+      367.2,
+      558.3
+     ],
+     "radius_px": 3.7,
+     "bbox": [
+      364,
+      554,
+      6,
+      11
+     ],
+     "circularity": 0.652,
+     "confidence": 0.592,
+     "spacing_px": 22.1,
+     "spacing_over_radius": 5.98
+    },
+    {
+     "center": [
+      811.3,
+      765.9
+     ],
+     "radius_px": 3.7,
+     "bbox": [
+      807,
+      764,
+      9,
+      5
+     ],
+     "circularity": 0.933,
+     "confidence": 0.787,
+     "spacing_px": 153.9,
+     "spacing_over_radius": 41.59
+    },
+    {
+     "center": [
+      867.3,
+      1012.3
+     ],
+     "radius_px": 3.7,
+     "bbox": [
+      864,
+      1009,
+      8,
+      8
+     ],
+     "circularity": 0.688,
+     "confidence": 0.481,
+     "spacing_px": 110.9,
+     "spacing_over_radius": 29.98
+    },
+    {
+     "center": [
+      222.2,
+      1111.6
+     ],
+     "radius_px": 3.7,
+     "bbox": [
+      218,
+      1106,
+      9,
+      10
+     ],
+     "circularity": 0.489,
+     "confidence": 0.372,
+     "spacing_px": 206.7,
+     "spacing_over_radius": 55.86
+    },
+    {
+     "center": [
+      508.2,
+      753.7
+     ],
+     "radius_px": 3.6,
+     "bbox": [
+      506,
+      749,
+      5,
+      10
+     ],
+     "circularity": 0.8,
+     "confidence": 0.71,
+     "spacing_px": 33.2,
+     "spacing_over_radius": 9.23
+    },
+    {
+     "center": [
+      831.5,
+      1487.4
+     ],
+     "radius_px": 3.6,
+     "bbox": [
+      829,
+      1484,
+      6,
+      8
+     ],
+     "circularity": 0.833,
+     "confidence": 0.658,
+     "spacing_px": 57.2,
+     "spacing_over_radius": 15.88
+    }
+   ],
+   "median_radius_px": 6.5,
+   "median_spacing_over_radius": 5.96,
+   "symmetry": {
+    "axis_x": 495.1,
+    "mirror_fraction": 0.381
+   },
+   "confidence": 0.95,
+   "evidence": {
+    "mask_px": 293864,
+    "components": 328
+   }
+  }
+ },
+ "relationships": [
+  {
+   "type": "mirrored_about",
+   "from": "bead_chain",
+   "to": "axis_x",
+   "value": 495.1,
+   "confidence": 0.6
+  },
+  {
+   "type": "occludes",
+   "from": "hair",
+   "to": "forehead",
+   "note": "curls over the forehead push the measured hairline down"
+  }
+ ],
+ "warnings": [
+  "no face detected: facial features are absent, not zero"
+ ]
+}

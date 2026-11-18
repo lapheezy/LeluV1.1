@@ -108,3 +108,8 @@ __pycache__/
 
 # Runtime state (spend authorizations + audit: plugins/spendPolicy.ts)
 .lelu-state/
+
+# PCI-FR 1.0 perception pipeline: local Python env and workspace-extracted
+# GL libraries (built by scripts/perception/setup.sh, never committed)
+.venv-perception/
+.libs/
