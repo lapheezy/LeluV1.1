@@ -106,10 +106,16 @@ def main():
     ap.add_argument("--iters", type=int, default=2)
     ap.add_argument("--lam", type=float, default=0.6)
     ap.add_argument("--step", type=float, default=0.35)
+    ap.add_argument("--start", help="fit.json whose weights are the starting point (and the regularisation anchor)")
+    ap.add_argument("--only", help="comma-separated parameters to fit; the rest are held")
     a = ap.parse_args()
     ref = json.load(open(os.path.join(ROOT, "artifacts/lelu/wp04/reference-landmarks/landmarks.json")))["aggregate"]
     KEYS = list(ref)
     w0 = np.array([PARAMS[n][2] for n in NAMES])
+    if a.start:
+        st = json.load(open(a.start))["weights"]
+        w0 = np.array([st.get(n, PARAMS[n][2]) for n in NAMES])
+    active = [j for j, n in enumerate(NAMES) if not a.only or n in a.only.split(",")]
     w = w0.copy()
     log = []
     z = evaluate(w, "it0-base", a, ref)
@@ -118,6 +124,9 @@ def main():
     for it in range(1, a.iters + 1):
         Jcols = []
         for j, n in enumerate(NAMES):
+            if j not in active:
+                Jcols.append(np.zeros_like(z))
+                continue
             h = a.step if w[j] + a.step <= 1 else -a.step
             wj = w.copy()
             wj[j] += h
@@ -127,7 +136,7 @@ def main():
         J = np.stack(Jcols, axis=1)
         # damped least squares toward the start, then clipped to bounds;
         # backtrack if the new point is worse
-        A = J.T @ J + a.lam * np.eye(len(NAMES))
+        A = J.T @ J + a.lam * np.eye(len(NAMES)) + 1e6 * np.diag([0.0 if j in active else 1.0 for j in range(len(NAMES))])
         g = J.T @ z + a.lam * (w - w0)
         dw = -np.linalg.solve(A, g)
         best = None

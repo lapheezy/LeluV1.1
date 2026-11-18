@@ -264,6 +264,11 @@ export interface FaceLandmarks {
 export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, pal: FacePalette): { c: Rgb; m: number } {
   const [eL, eR] = lm.eyes;
   const eyeY = (eL.center[1] + eR.center[1]) / 2;
+  // Every painted feature is placed in HER units: the interpupillary
+  // distance (IOD) and her measured lid margins, using the proportions
+  // measured on her six frontal references (artifacts/lelu/wp04). Fixed
+  // millimetre offsets could not follow her geometry when it was fitted.
+  const IOD = Math.abs(eL.center[0] - eR.center[0]) || 0.062;
   const front = z > lm.head[2] + 0.03;
   let c = skinTone(x, y, z, pal.skin);
   if (!front) return { c, m: MAT.skin };
@@ -280,7 +285,8 @@ export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, p
 
   // lips: berry, a darker liner at the edge, gloss through the centre
   const mo = lm.mouth;
-  const lu = (x - mo[0]) / 0.027, lv = (y - mo[1]) / (y > mo[1] ? 0.0085 : 0.011);
+  // vermilion: upper 0.133 IOD at the bow (0.82 of the ellipse), lower 0.190 IOD, half-width 0.37 IOD
+  const lu = (x - mo[0]) / (0.37 * IOD), lv = (y - mo[1]) / (y > mo[1] ? (0.133 * IOD) / 0.82 : 0.19 * IOD);
   const bow = y > mo[1] ? 0.18 * Math.exp(-((lu / 0.18) ** 2)) : 0;
   const lipR = Math.hypot(lu * (1 + 0.15 * lu * lu), lv + bow);
   if (lipR < 1 && z > mo[2] - 0.006) {
@@ -293,12 +299,18 @@ export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, p
   for (const e of [eL, eR]) {
     const s = e.side, ex = e.center[0], ey = e.center[1];
     // brows: inner end 1.1 cm from the midline, arch at 2/3, a clean tail
-    const inner = s * 0.011, tail = ex + s * 0.03;
+    // brows: inner end 0.18 IOD from the midline, tail 0.48 IOD past the pupil,
+    // peak 0.40 IOD over the upper lid (her references)
+    const lidTop = e.upper.length ? Math.max(...e.upper.map((q) => q[1])) : ey + 0.09 * IOD;
+    const inner = s * 0.18 * IOD, tail = ex + s * 0.48 * IOD;
     const u = (x - inner) / (tail - inner);
     if (u > -0.05 && u < 1.05) {
       const uu = Math.max(0, Math.min(1, u));
-      const base = ey + 0.0135 + 0.0062 * Math.sin(Math.PI * Math.min(1, uu / 0.66) * 0.5) - 0.0085 * smoothstep(0.66, 1, uu);
-      const th = 0.0058 * (1 - uu) + 0.0034 * uu - 0.0024 * smoothstep(0.7, 1, uu);
+      const th = IOD * (0.094 * (1 - uu) + 0.055 * uu - 0.039 * smoothstep(0.7, 1, uu));
+      // the brow's centre line peaks 0.40 IOD over the lid at 2/3 of its length
+      // (0.358, not 0.40: the detector's brow landmark sits on the brow's upper
+      // edge, 0.042 IOD above the centre line; calibrated once on her head)
+      const base = lidTop + IOD * (0.258 + 0.1 * Math.sin(Math.PI * Math.min(1, uu / 0.66) * 0.5) - 0.137 * smoothstep(0.66, 1, uu)) - th * 0.5;
       const dy = y - base;
       if (dy > -0.0006 && dy < th + 0.0006) {
         // hair strokes angled up and out, feathered at the edges
