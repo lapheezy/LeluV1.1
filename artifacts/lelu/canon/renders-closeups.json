@@ -1,23 +1,23 @@
 {
- "generatedAt": "2026-11-18T08:19:00.287Z",
+ "generatedAt": "2026-11-18T08:45:38.259Z",
  "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon",
  "size": 640,
- "samples": 28,
+ "samples": 26,
  "renders": [
   {
    "label": "lelu-canon",
    "kind": "full",
    "view": "front",
    "png": "lelu-canon-front.png",
-   "triangles": 1527448,
-   "seconds": 5.36,
+   "triangles": 1377552,
+   "seconds": 5.33,
    "camera": {
     "center": [
      0.01195843517780304,
-     -0.0703817680478096,
-     0.8724453449249268
+     -0.08204931020736694,
+     0.8684262037277222
     ],
-    "radius": 1.0443896426618873
+    "radius": 1.038209299561035
    }
   },
   {
@@ -25,15 +25,15 @@
    "kind": "full",
    "view": "side",
    "png": "lelu-canon-side.png",
-   "triangles": 1527448,
-   "seconds": 5.3,
+   "triangles": 1377552,
+   "seconds": 4.95,
    "camera": {
     "center": [
      0.01195843517780304,
-     -0.0703817680478096,
-     0.8724453449249268
+     -0.08204931020736694,
+     0.8684262037277222
     ],
-    "radius": 1.0443896426618873
+    "radius": 1.038209299561035
    }
   },
   {
@@ -41,15 +41,15 @@
    "kind": "full",
    "view": "back",
    "png": "lelu-canon-back.png",
-   "triangles": 1527448,
-   "seconds": 5.32,
+   "triangles": 1377552,
+   "seconds": 5.07,
    "camera": {
     "center": [
      0.01195843517780304,
-     -0.0703817680478096,
-     0.8724453449249268
+     -0.08204931020736694,
+     0.8684262037277222
     ],
-    "radius": 1.0443896426618873
+    "radius": 1.038209299561035
    }
   },
   {
@@ -57,15 +57,15 @@
    "kind": "full",
    "view": "three-quarter",
    "png": "lelu-canon-three-quarter.png",
-   "triangles": 1527448,
-   "seconds": 5.75,
+   "triangles": 1377552,
+   "seconds": 5.25,
    "camera": {
     "center": [
      0.01195843517780304,
-     -0.0703817680478096,
-     0.8724453449249268
+     -0.08204931020736694,
+     0.8684262037277222
     ],
-    "radius": 1.0443896426618873
+    "radius": 1.038209299561035
    }
   },
   {
@@ -73,12 +73,34 @@
    "kind": "face",
    "view": "front",
    "png": "lelu-canon-face-front.png",
-   "triangles": 1527448,
-   "seconds": 5.21,
+   "triangles": 1377552,
+   "seconds": 4.89,
    "focused": [
     "head",
     "face",
     "hair"
+   ]
+  },
+  {
+   "label": "lelu-canon",
+   "kind": "hands",
+   "view": "front",
+   "png": "lelu-canon-hands-front.png",
+   "triangles": 1377552,
+   "seconds": 4.34,
+   "focused": [
+    "hands"
+   ]
+  },
+  {
+   "label": "lelu-canon",
+   "kind": "feet",
+   "view": "front",
+   "png": "lelu-canon-feet-front.png",
+   "triangles": 1377552,
+   "seconds": 3.62,
+   "focused": [
+    "feet"
    ]
   }
  ]

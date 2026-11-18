@@ -18,7 +18,7 @@
  */
 import { plane } from "../character/sdf.ts";
 import type { Sdf, V3 } from "../character/sdf.ts";
-import { clip, group, softClip, union } from "../character/shape.ts";
+import { clip, group, softClip, subtract, union } from "../character/shape.ts";
 import type { Shape } from "../character/shape.ts";
 import type { CharacterSpec } from "../character/CharacterSpec.ts";
 import { fieldFromMesh, fieldFromVoxels, fieldSdf, fieldShape } from "./field.ts";
@@ -209,7 +209,7 @@ const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; cou
   bob: { len: 0.15, droop: 0.7, wave: 0.18, count: 1700, radius: 0.0048 },
   lob: { len: 0.21, droop: 0.7, wave: 0.2, count: 1600, radius: 0.0048 },
   "long-straight": { len: 0.34, droop: 0.75, wave: 0.12, count: 1000, radius: 0.0046 },
-  "long-wavy": { len: 0.34, droop: 0.62, wave: 1.15, count: 780, radius: 0.0046 },
+  "long-wavy": { len: 0.24, droop: 0.55, wave: 1.35, count: 1150, radius: 0.0062 },
   ponytail: { len: 0.3, droop: 0.7, wave: 0.16, count: 1500, radius: 0.0052 },
   "high-ponytail": { len: 0.3, droop: 0.65, wave: 0.18, count: 1450, radius: 0.0052 },
   afro: { len: 0.1, droop: 0.05, wave: 1.2, count: 2000, radius: 0.0046 },
@@ -345,7 +345,7 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
         // A face is not a place hair grows. Locks that would cross the face are
         // left out, which is what gives a fringe that frames the face instead
         // of a curtain drawn over it.
-        const inFace = qz > head[2] - 0.005 && Math.abs(qx - head[0]) < 0.075 && qy < head[1] + 0.095 && qy > head[1] - 0.2;
+        const inFace = qz > head[2] - 0.02 && Math.abs(qx - head[0]) < 0.095 && qy < head[1] + 0.105 && qy > head[1] - 0.21;
         if (!inFace) stamp(qx, qy, qz, radius * (1 - 0.45 * t));
       }
     }
@@ -381,6 +381,33 @@ const around = (a: V3, b: V3, r: number): Sdf => {
     return Math.hypot(px - dx * t, py - dy * t, pz - dz * t) - r;
   };
 };
+
+/**
+ * The front-most point of her skin near (x, y): where the surface actually is.
+ *
+ * The reference rig's eye joints sit where the eyes are supposed to be, not
+ * where this mesh's surface happens to be, so placing a ball at the joint put
+ * two spheres in front of her face. Everything that has to sit ON her face —
+ * eyeballs, nose ring, labret — is placed against the surface measured here.
+ */
+function skinZ(x: number, y: number, radius = 0.006): number {
+  const d = current!;
+  let best = -Infinity;
+  for (let i = 0; i < d.positions.length; i += 3) {
+    if (Math.abs(d.positions[i] - x) > radius || Math.abs(d.positions[i + 1] - y) > radius) continue;
+    if (d.positions[i + 2] > best) best = d.positions[i + 2];
+  }
+  return best === -Infinity ? 0 : best;
+}
+
+/** An almond eye opening, as an SDF to subtract from her head. */
+function eyeAperture(e: V3, span: number): Sdf {
+  return (x, y, z) => {
+    // almond, not round: wider than tall, with a slightly upturned outer corner
+    const k = Math.hypot((x - e[0]) / (span * 0.33), (y - e[1]) / (span * 0.15), (z - e[2]) / 0.022);
+    return k - 1;
+  };
+}
 
 /** Deterministic noise in [0,1) from a position — same value everywhere. */
 function noise(x: number, y: number, z: number, seed = 0): number {
@@ -524,11 +551,22 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       const f = body("head", [], { lo: [hp[0] - 0.16, neckY - 0.06, hp[2] - 0.20], hi: [hp[0] + 0.16, hp[1] + 0.16, hp[2] + 0.20] });
       const m = faceMasks();
       const hairC = spec.materials.hair;
-      const result = clip(f, above(neckY - 0.004));
+      let result = clip(f, above(neckY - 0.004));
+      if (isLelu(spec)) {
+        // Open her eyelids: without an aperture the reference mesh is closed and
+        // the eyeballs read as two white slits behind skin.
+        const eL = J("joint-l-eye"), eR = J("joint-r-eye");
+        const span = Math.abs(eL[0] - eR[0]) || 0.062;
+        const ap = (e: V3) => eyeAperture([e[0], e[1], skinZ(e[0], e[1]) - 0.008], span);
+        result = subtract(result, (x, y, z) => Math.min(ap(eL)(x, y, z), ap(eR)(x, y, z)));
+      }
       shape = {
         ...result,
+        // The head is sampled in its LOCAL frame but every landmark (her eyes,
+        // mouth, brow line) is in world space, so the paint has to be evaluated
+        // back in world space or none of her marks land anywhere.
         color: isLelu(spec)
-          ? (x, y, z) => leluFaceColour(x, y, z, skinC, hairC)
+          ? (x, y, z) => leluFaceColour(x + anchor[0], y + anchor[1], z + anchor[2], skinC, hairC)
           : (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC),
       };
       break;
@@ -543,21 +581,22 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       // body, so the eyeball sits in the real socket behind the real lids.
       const lelu = isLelu(spec);
       const feats: Shape[] = [];
-      for (const e of [J("joint-l-eye"), J("joint-r-eye")]) {
+      for (const raw of [J("joint-l-eye"), J("joint-r-eye")]) {
+        // sit the ball in the socket: 1.4 mm behind the skin, apex just proud
+        const e: V3 = isLelu(spec) ? [raw[0], raw[1], skinZ(raw[0], raw[1]) - 0.014] : raw;
         // Iris and pupil are proud of the sclera by a fraction of a cell, so
         // they survive sampling as geometry instead of being averaged away
         // into the ball's vertex colours.
         // Her eyes are almond with a warm brown iris and a dark limbal ring, so
         // the iris is larger and sits inside a ring rather than a flat disc.
-        const sclera: V3 = [e[0], e[1], e[2] - (lelu ? 0.0056 : 0.0022)];
-        const r = lelu ? 0.0112 : 0.0112;
-        feats.push(sphereShape(sclera, r, lelu ? L.sclera : [0.93, 0.91, 0.89]));
-        // lid shadow across the top of the eye, so the sclera is not a white ball
-        if (lelu) feats.push(sphereShape([e[0], e[1] + 0.0058, e[2] - 0.0042], 0.0092, L.lidShadow));
-        // her iris is large — almond eyes, warm brown, dark limbal ring
-        feats.push(sphereShape([e[0], e[1], e[2] + 0.0024], lelu ? 0.0086 : 0.006, lelu ? L.irisRing : spec.materials.eyes));
-        feats.push(sphereShape([e[0], e[1], e[2] + 0.0042], lelu ? 0.0074 : 0.006, lelu ? L.iris : spec.materials.eyes));
-        feats.push(sphereShape([e[0], e[1], e[2] + 0.0066], lelu ? 0.0034 : 0.0026, lelu ? L.pupil : [0.02, 0.02, 0.02]));
+        // The sclera sits 2.2 mm behind the joint and the iris/pupil spheres are
+        // pushed forward until their near caps emerge through it: that is what
+        // gives a lens on a ball instead of a flat disc buried inside one.
+        const sclera: V3 = [e[0], e[1], e[2] - 0.0022];
+        feats.push(sphereShape(sclera, lelu ? 0.0104 : 0.0112, lelu ? L.sclera : [0.93, 0.91, 0.89]));
+        feats.push(sphereShape([e[0], e[1], e[2] + (lelu ? 0.0078 : 0.0086)], lelu ? 0.0074 : 0.006, lelu ? L.irisRing : spec.materials.eyes));
+        feats.push(sphereShape([e[0], e[1], e[2] + (lelu ? 0.0092 : 0.0104)], lelu ? 0.0066 : 0.0058, lelu ? L.iris : spec.materials.eyes));
+        feats.push(sphereShape([e[0], e[1], e[2] + 0.0116], lelu ? 0.003 : 0.0026, lelu ? L.pupil : [0.02, 0.02, 0.02]));
         if (lelu) {
           // long dense lashes: a row of thin fanned strands on the upper lid
           for (let i = 0; i < 9; i++) {
@@ -585,7 +624,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       shape = clip(f, above(spine1Y - 0.02), below(shoulderY + 0.05));
       if (isLelu(spec)) {
         const base = shape;
-        shape = { ...base, color: (x, y, z) => leluTattoo(x, y, z, skinC, "chest") };
+        shape = { ...base, color: (x, y, z) => leluTattoo(x + anchor[0], y + anchor[1], z + anchor[2], skinC, "chest") };
       }
       break;
     }
@@ -616,7 +655,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
           const lo: V3 = [Math.min(sh[0], el[0], w[0]) - pad, Math.min(sh[1], el[1], w[1]) - pad, Math.min(sh[2], el[2], w[2]) - pad];
           const hi: V3 = [Math.max(sh[0], el[0], w[0]) + pad, Math.max(sh[1], el[1], w[1]) + pad, Math.max(sh[2], el[2], w[2]) + pad];
           const f = body(`arm-${l}`, [], { lo, hi });
-          if (isLelu(spec)) f.color = (x, y, z) => leluTattoo(x, y, z, skinC, "forearm");
+          if (isLelu(spec)) f.color = (x, y, z) => leluTattoo(x + anchor[0], y + anchor[1], z + anchor[2], skinC, "forearm");
           // A half-space in front of the shoulder also keeps a wedge of the
           // chest, which the window then caps into a flat fin. Keeping the
           // limb's own capsule as well removes that wedge.
@@ -663,7 +702,26 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
     case "clothing.shoes": {
       const name = garmentFor(id, spec);
       if (!name) { shape = null; break; }
-      const color = id === "clothing.top" ? spec.materials.top : id === "clothing.bottom" ? spec.materials.bottom : spec.materials.shoes;
+      let color = id === "clothing.top" ? spec.materials.top : id === "clothing.bottom" ? spec.materials.bottom : spec.materials.shoes;
+      // Her corset is a dark camo ground printed with coral roses, and her cargo
+      // is printed with the same rose. Painting the cloth is what makes these
+      // read as her garments rather than as one flat colour.
+      const clothPaint: ((x: number, y: number, z: number) => Rgb) | null =
+        isLelu(spec) && id !== "clothing.shoes"
+          ? (x, y) => {
+              // Scattered rose motifs, not a stripe: a deterministic rose centre
+              // per 5 cm cell, then a five-petal rosette around it. That is the
+              // coral-on-camo print of her corset and cargo.
+              const cell = 0.05;
+              const gx = Math.floor(x / cell), gy = Math.floor(y / cell);
+              const cx = (gx + 0.2 + 0.6 * noise(gx, gy, 0, 5)) * cell;
+              const cy = (gy + 0.2 + 0.6 * noise(gx, gy, 0, 9)) * cell;
+              const r = Math.hypot(x - cx, y - cy);
+              const a = Math.atan2(y - cy, x - cx);
+              if (r < 0.013 && Math.abs(Math.sin(2.5 * a + r * 210)) < 0.72) return L.corsetRose;
+              return id === "clothing.top" ? L.corset : L.cargo;
+            }
+          : null;
       const garmentMesh = current!.proxies[name];
       if (!garmentMesh) { shape = null; break; }
       // A thin shell self-cancels on the sampling lattice (two surfaces inside
@@ -696,9 +754,9 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       if (id === "clothing.top" || id === "clothing.bottom") {
         const waist = J("joint-pelvis")[1] + 0.08;
         const mask = id === "clothing.top" ? above(waist - 0.04) : below(waist + 0.04);
-        shape = { f: (x, y, z) => Math.max(shellOfGarment(x, y, z), mask(x, y, z)), lo: g.lo, hi: g.hi, color: () => color };
+        shape = { f: (x, y, z) => Math.max(shellOfGarment(x, y, z), mask(x, y, z)), lo: g.lo, hi: g.hi, color: clothPaint ?? (() => color) };
       } else {
-        shape = { f: shellOfGarment, lo: g.lo, hi: g.hi, color: () => color };
+        shape = { f: shellOfGarment, lo: g.lo, hi: g.hi, color: clothPaint ?? (() => color) };
       }
       break;
     }
@@ -721,7 +779,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
               hi: f.hi,
               color: (x, y, z) => {
                 const s = noise(Math.round(x * 300), Math.round(y * 300), Math.round(z * 300), 11);
-                return s > 0.9 ? L.hairRose : s > 0.7 ? [0.42, 0.13, 0.24] : s > 0.42 ? [0.14, 0.08, 0.11] : spec.materials.hair;
+                return s > 0.95 ? L.hairRose : s > 0.86 ? [0.34, 0.11, 0.2] : s > 0.5 ? [0.12, 0.075, 0.1] : spec.materials.hair;
               },
             }
           : fieldShape(f, spec.materials.hair)

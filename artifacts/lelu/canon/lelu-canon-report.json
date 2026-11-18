@@ -187,10 +187,10 @@
     "shoes:shoes03",
     "teeth"
   ],
-  "ms": 50727,
-  "triangles": 1549284,
-  "glbBytes": 49043692,
-  "occupancyCells": 341203,
+  "ms": 166421,
+  "triangles": 1377552,
+  "glbBytes": 43776188,
+  "occupancyCells": 344375,
   "components": [
     {
       "id": "torso",
@@ -210,17 +210,17 @@
     {
       "id": "head",
       "action": "regenerated",
-      "triangles": 56576
+      "triangles": 56352
     },
     {
       "id": "face",
       "action": "regenerated",
-      "triangles": 2536
+      "triangles": 2104
     },
     {
       "id": "hair",
       "action": "regenerated",
-      "triangles": 693576
+      "triangles": 522500
     },
     {
       "id": "arms",
