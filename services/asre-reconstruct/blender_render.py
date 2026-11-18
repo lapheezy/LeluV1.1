@@ -6,10 +6,16 @@ LÉLU ASRE — headless Blender render of one or more GLB files.
 job.json:
     {"inputs": ["a.glb", ...], "output": "out.png", "resolution": [640, 640],
      "samples": 16, "view": "three-quarter" | "front" | "side" | "back",
-     "background": [0.06, 0.06, 0.08], "wireframe": false}
+     "background": [0.06, 0.06, 0.08], "wireframe": false,
+     "focus": ["head", "face", "hair"],   # frame only these GLB nodes
+     "camera": {"center": [x, y, z], "radius": r},  # explicit framing (Z-up)
+     "ground": true, "view_transform": "Standard" | "AgX" | "Filmic"}
 
 wireframe=true replaces each surface with its mesh edges, so a render shows the
 actual triangulation (used by Mission 5 WP07 for geometry inspection evidence).
+
+focus/camera exist so a before/after pair can be shot from the SAME camera:
+the framing is a number in the job file, not something the geometry decides.
 
 Cycles on the CPU: no GPU or display needed. The camera is framed from the
 imported geometry's real bounding box, so a render that shows the object
@@ -35,16 +41,35 @@ for path in job["inputs"]:
 meshes = [o for o in scene.objects if o.type == "MESH"]
 if not meshes:
     raise SystemExit("no mesh objects imported")
-lo = Vector((math.inf,) * 3)
-hi = Vector((-math.inf,) * 3)
-for o in meshes:
-    for c in o.bound_box:
-        w = o.matrix_world @ Vector(c)
-        lo = Vector(map(min, lo, w))
-        hi = Vector(map(max, hi, w))
+
+
+def bbox(objects):
+    a = Vector((math.inf,) * 3)
+    b = Vector((-math.inf,) * 3)
+    for o in objects:
+        for c in o.bound_box:
+            w = o.matrix_world @ Vector(c)
+            a = Vector(map(min, a, w))
+            b = Vector(map(max, b, w))
+    return a, b
+
+
+lo, hi = bbox(meshes)
+focused = None
+focus = job.get("focus")
+if focus:
+    names = focus if isinstance(focus, list) else focus.get("objects", [])
+    focused = [o for o in meshes if o.name in names or o.name.split(".")[0] in names]
+    if not focused:
+        raise SystemExit("focus objects not found: %r (have %r)" % (names, [o.name for o in meshes]))
+    lo, hi = bbox(focused)
 center = (lo + hi) / 2
 size = hi - lo
 radius = max(size.length / 2, 1e-4)
+override = job.get("camera")
+if override:
+    center = Vector(override["center"])
+    radius = max(float(override["radius"]), 1e-4)
 
 # Blender is Z-up; glTF import converts Y-up → Z-up, so height is on Z here.
 views = {"front": (0, -1, 0.15), "side": (1, 0, 0.15), "back": (0, 1, 0.15), "three-quarter": (0.75, -1, 0.35)}
@@ -75,6 +100,22 @@ s = radius
 light("key", "AREA", 400 * s * s, center + Vector((2.5, -3, 3)) * s, 2 * s)
 light("fill", "AREA", 120 * s * s, center + Vector((-3, -2, 1)) * s, 3 * s)
 light("rim", "AREA", 200 * s * s, center + Vector((0, 3, 2.5)) * s, 2 * s)
+
+if job.get("ground"):
+    mesh = bpy.data.meshes.new("ground")
+    s = radius * 6
+    mesh.from_pydata([(-s, -s, 0), (s, -s, 0), (s, s, 0), (-s, s, 0)], [], [(0, 1, 2, 3)])
+    mesh.update()
+    plane = bpy.data.objects.new("ground", mesh)
+    plane.location = (center.x, center.y, lo.z - radius * 0.004)
+    mat = bpy.data.materials.new("ground-mat")
+    mat.use_nodes = True
+    bsdf_m = mat.node_tree.nodes.get("Principled BSDF")
+    if bsdf_m is not None:
+        bsdf_m.inputs["Base Color"].default_value = (0.32, 0.32, 0.36, 1.0)
+        bsdf_m.inputs["Roughness"].default_value = 0.55
+    mesh.materials.append(mat)
+    scene.collection.objects.link(plane)
 
 if job.get("wireframe"):
     wire_mat = bpy.data.materials.new("wire-mat")
@@ -107,7 +148,7 @@ scene.render.resolution_x, scene.render.resolution_y = job.get("resolution", [64
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = "PNG"
 scene.render.filepath = job["output"]
-scene.view_settings.view_transform = "Standard"
+scene.view_settings.view_transform = job.get("view_transform", "Standard")
 bpy.ops.render.render(write_still=True)
 
 tris = 0
@@ -118,6 +159,8 @@ json.dump({
     "output": job["output"],
     "wireframe": bool(job.get("wireframe")),
     "objects": [o.name for o in meshes],
+    "focused": [o.name for o in focused] if focused else None,
+    "camera_blender_zup": {"center": list(center), "radius": radius},
     "triangles": tris,
     "bounds_blender_zup": {"min": list(lo), "max": list(hi)},
     "render_seconds": round(time.time() - t0, 2),

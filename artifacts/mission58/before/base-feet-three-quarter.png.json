@@ -1,0 +1,45 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/before/base-feet-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": [
+  "feet"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.06195539981126785,
+   0.012402735650539398
+  ],
+  "radius": 0.22381997579407584
+ },
+ "triangles": 307304,
+ "bounds_blender_zup": {
+  "min": [
+   -0.17553533613681793,
+   -0.19360536336898804,
+   -0.03176751732826233
+  ],
+  "max": [
+   0.17553533613681793,
+   0.06969456374645233,
+   0.056572988629341125
+  ]
+ },
+ "render_seconds": 2.58,
+ "blender": "4.2.23 LTS"
+}

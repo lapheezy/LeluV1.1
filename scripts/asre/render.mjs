@@ -56,6 +56,14 @@ export async function renderViews({
   wireframe = false,
   prefix = "",
   background,
+  /** Frame only these GLB node names (component close-ups). */
+  focus,
+  /** Explicit framing in Blender Z-up: { center: [x,y,z], radius } — identical cameras for before/after. */
+  camera,
+  /** Add a floor plane, for a readable silhouette and a contact shadow. */
+  ground = false,
+  /** Blender view transform: "Standard" | "AgX" | "Filmic". */
+  viewTransform,
   timeoutMs = 600_000,
 }) {
   mkdirSync(outDir, { recursive: true });
@@ -71,6 +79,10 @@ export async function renderViews({
       view,
       wireframe,
       ...(background ? { background } : {}),
+      ...(focus ? { focus } : {}),
+      ...(camera ? { camera } : {}),
+      ...(ground ? { ground: true } : {}),
+      ...(viewTransform ? { view_transform: viewTransform } : {}),
     };
     const jobFile = path.join(outDir, `${stem}.job.json`);
     writeFileSync(jobFile, JSON.stringify(job, null, 1));
