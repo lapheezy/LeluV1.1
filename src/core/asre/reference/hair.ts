@@ -122,6 +122,11 @@ export function growAxis(ctx: CurlContext, root: V3, n: V3, len: number, clear: 
     const fx = Math.abs(p[0] - h[0]), fy = p[1] - h[1];
     // her face, from the chin up to the hairline, is never covered
     if (p[2] > h[2] + 0.02 && fy < 0.088 && fy > -0.2 && fx < 0.082) p = [h[0] + side * 0.082, p[1], p[2]];
+    // and beside her face, locks hang BEHIND the front plane of her cheeks,
+    // so her profile stays clear (ref18/ref20): a lock pushed sideways out of
+    // the face was still left hanging in front of the cheek
+    const fx2 = Math.abs(p[0] - h[0]);
+    if (fy < 0.06 && fy > -0.2 && fx2 < 0.14 && p[2] > h[2] + 0.055) p = [p[0], p[1], h[2] + 0.055];
     pts.push(p);
   }
   return pts;

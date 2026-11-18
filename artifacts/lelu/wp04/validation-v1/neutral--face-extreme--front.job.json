@@ -1,0 +1,26 @@
+{
+ "inputs": [
+  "/tmp/claude-0/wp4/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/wp04/validation/neutral--face-extreme--front.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 48,
+ "view": "front",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   -0.13,
+   1.565
+  ],
+  "radius": 0.075
+ },
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true,
+ "lighting": "neutral",
+ "hair_curves": "/tmp/claude-0/wp4/lelu-canon.hair.lhc"
+}

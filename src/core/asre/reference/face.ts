@@ -151,7 +151,7 @@ export function eyeball(c: V3, pal: EyePalette): Mesh {
   const NU = 96, NV = 64, R = EYE_R;
   const P: number[] = [], C: number[] = [];
   const irisA = Math.asin(0.0062 / R), pupilA = Math.asin(0.0021 / R);
-  const dark = mix(pal.iris, pal.irisRing, 0.55), light = mix(pal.iris, [0.78, 0.52, 0.26], 0.35);
+  const dark = mix(pal.iris, pal.irisRing, 0.55), light = mix(pal.iris, [0.6, 0.38, 0.18], 0.3);
   for (let j = 0; j <= NV; j++) {
     const th = (j / NV) * Math.PI;
     for (let i = 0; i < NU; i++) {
@@ -291,8 +291,9 @@ export function faceColour(x: number, y: number, z: number, lm: FaceLandmarks, p
   const lipR = Math.hypot(lu * (1 + 0.15 * lu * lu), lv + bow);
   if (lipR < 1 && z > mo[2] - 0.006) {
     let lc = mix(pal.lip, pal.ink, 0.35 * smoothstep(0.78, 1, lipR));
-    const gloss = Math.exp(-((lu / 0.5) ** 2 + ((y - (mo[1] - 0.004)) / 0.003) ** 2));
-    lc = mix(lc, pal.lipHighlight, 0.6 * gloss);
+    // a soft highlight on the lower lip; the gloss itself is the material
+    const gloss = Math.exp(-((lu / 0.45) ** 2 + ((y - (mo[1] - 0.09 * IOD)) / (0.07 * IOD)) ** 2));
+    lc = mix(lc, pal.lipHighlight, 0.28 * gloss);
     return { c: mix(c, lc, smoothstep(1, 0.9, lipR)), m: MAT.gloss };
   }
 

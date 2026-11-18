@@ -1,0 +1,27 @@
+{
+ "inputs": [
+  "/tmp/claude-0/wp4/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/wp04/validation/neutral--head-ortho-side--side.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 48,
+ "view": "side",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   -0.05,
+   1.55
+  ],
+  "radius": 0.26
+ },
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true,
+ "ortho": true,
+ "lighting": "neutral",
+ "hair_curves": "/tmp/claude-0/wp4/lelu-canon.hair.lhc"
+}

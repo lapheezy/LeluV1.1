@@ -143,11 +143,11 @@ export const LELU_COLOURS = {
   lip: [0.33, 0.085, 0.1] as Rgb,
   lipHighlight: [0.5, 0.16, 0.17] as Rgb,
   /** Warm brown iris with a darker limbal ring. */
-  iris: [0.32, 0.185, 0.085] as Rgb,
+  iris: [0.25, 0.135, 0.06] as Rgb,
   irisRing: [0.13, 0.065, 0.035] as Rgb,
   /** Warm off-white, never pure white: a white sclera is what made her eyes
    * read as two bright slits. */
-  sclera: [0.78, 0.735, 0.69] as Rgb,
+  sclera: [0.66, 0.6, 0.555] as Rgb,
   /** Upper-lid shadow over the top of the eyeball: what stops eyes reading
    * as two white balls. */
   lidShadow: [0.28, 0.2, 0.16] as Rgb,
