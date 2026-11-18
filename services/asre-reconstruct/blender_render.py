@@ -257,7 +257,9 @@ s = radius
 lighting = job.get("lighting", "studio")
 if lighting == "neutral":
     # even, frontal, low-contrast: for measurement and colour judgement
-    light("front", "AREA", 260 * s * s, center + Vector((0, -3.2, 0.6)) * s, 4 * s)
+    # front key from above eye level and not too large: a large frontal
+    # source mirrored in the cornea washed her irises out
+    light("front", "AREA", 260 * s * s, center + Vector((0, -3.2, 1.6)) * s, 1.6 * s)
     light("left", "AREA", 110 * s * s, center + Vector((-3, -1.5, 0.5)) * s, 4 * s)
     light("right", "AREA", 110 * s * s, center + Vector((3, -1.5, 0.5)) * s, 4 * s)
 elif lighting == "warm":
