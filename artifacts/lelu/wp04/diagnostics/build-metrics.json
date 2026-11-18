@@ -1,0 +1,19 @@
+{
+ "build_wall_s": "1:03.76",
+ "max_rss_kb": 1069876,
+ "build_ms_reported": 58542,
+ "triangles": 2853352,
+ "glb_bytes": 80073700,
+ "occupancy_cells": 831301,
+ "hair": {
+  "scalpRoots": 2862,
+  "clumps": 1150,
+  "strands": 16750,
+  "points": 3424392,
+  "babyHairs": 110,
+  "flyaways": 420,
+  "lodTriangles": 1725248,
+  "sidecar": "lelu-canon.hair.lhc",
+  "sidecarBytes": 20032198
+ }
+}
