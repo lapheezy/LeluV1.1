@@ -35,24 +35,24 @@
       0.105
     ],
     "lip": [
-      0.42,
+      0.33,
       0.085,
-      0.12
+      0.1
     ],
     "lipHighlight": [
-      0.62,
-      0.17,
-      0.2
+      0.5,
+      0.16,
+      0.17
     ],
     "iris": [
-      0.4,
-      0.255,
-      0.13
+      0.32,
+      0.185,
+      0.085
     ],
     "irisRing": [
-      0.19,
-      0.1,
-      0.06
+      0.13,
+      0.065,
+      0.035
     ],
     "sclera": [
       0.78,
@@ -125,6 +125,7 @@
       0.08
     ]
   },
+  "expression": "composed",
   "spec": {
     "hair": {
       "style": "long-wavy",
@@ -148,7 +149,24 @@
       "source": "reference",
       "targets": [
         "targets/macrodetails/universal-female-young-african-average-1.target",
-        "targets/macrodetails/universal-female-young-average-1.target"
+        "targets/macrodetails/universal-female-young-average-1.target",
+        "targets/head/head-round.target@0.3",
+        "targets/cheek/l-cheek-bones-incr.target@0.5",
+        "targets/cheek/r-cheek-bones-incr.target@0.5",
+        "targets/eyes/l-eye-height2-incr.target@0.45",
+        "targets/eyes/r-eye-height2-incr.target@0.45",
+        "targets/eyes/l-eye-corner1-up.target@0.6",
+        "targets/eyes/r-eye-corner1-up.target@0.6",
+        "targets/eyes/l-eye-corner2-down.target@0.2",
+        "targets/eyes/r-eye-corner2-down.target@0.2",
+        "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
+        "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
+        "targets/mouth/mouth-cupidsbow-incr.target@0.6",
+        "targets/nose/nose-flaring-incr.target@0.3",
+        "targets/nose/nose-point-width-incr.target@0.25",
+        "targets/expression/units/african/mouth-corner-puller.target@0.14",
+        "targets/expression/units/african/eye-left-slit.target@0.12",
+        "targets/expression/units/african/eye-right-slit.target@0.12"
       ]
     },
     "hands": {
@@ -161,7 +179,25 @@
   "reference": {
     "vertices": 19158,
     "triangles": 26756,
-    "targets": [],
+    "targets": [
+      "targets/head/head-round.target@0.3",
+      "targets/cheek/l-cheek-bones-incr.target@0.5",
+      "targets/cheek/r-cheek-bones-incr.target@0.5",
+      "targets/eyes/l-eye-height2-incr.target@0.45",
+      "targets/eyes/r-eye-height2-incr.target@0.45",
+      "targets/eyes/l-eye-corner1-up.target@0.6",
+      "targets/eyes/r-eye-corner1-up.target@0.6",
+      "targets/eyes/l-eye-corner2-down.target@0.2",
+      "targets/eyes/r-eye-corner2-down.target@0.2",
+      "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
+      "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
+      "targets/mouth/mouth-cupidsbow-incr.target@0.6",
+      "targets/nose/nose-flaring-incr.target@0.3",
+      "targets/nose/nose-point-width-incr.target@0.25",
+      "targets/expression/units/african/mouth-corner-puller.target@0.14",
+      "targets/expression/units/african/eye-left-slit.target@0.12",
+      "targets/expression/units/african/eye-right-slit.target@0.12"
+    ],
     "proxies": [
       "eyes",
       "teeth",
@@ -187,75 +223,75 @@
     "shoes:shoes03",
     "teeth"
   ],
-  "ms": 59651,
-  "triangles": 1373776,
-  "glbBytes": 43685096,
-  "occupancyCells": 366070,
+  "ms": 47299,
+  "triangles": 2675684,
+  "glbBytes": 75106716,
+  "occupancyCells": 475712,
   "components": [
     {
       "id": "torso",
       "action": "regenerated",
-      "triangles": 26200
+      "triangles": 8998
     },
     {
       "id": "pelvis",
       "action": "regenerated",
-      "triangles": 51044
+      "triangles": 41028
     },
     {
       "id": "neck",
       "action": "regenerated",
-      "triangles": 20184
+      "triangles": 9024
     },
     {
       "id": "head",
       "action": "regenerated",
-      "triangles": 57232
+      "triangles": 137338
     },
     {
       "id": "face",
       "action": "regenerated",
-      "triangles": 2536
+      "triangles": 28032
     },
     {
       "id": "hair",
       "action": "regenerated",
-      "triangles": 516800
+      "triangles": 1544312
     },
     {
       "id": "arms",
       "action": "regenerated",
-      "triangles": 26544
+      "triangles": 23936
     },
     {
       "id": "hands",
       "action": "regenerated",
-      "triangles": 23868
+      "triangles": 104808
     },
     {
       "id": "legs",
       "action": "regenerated",
-      "triangles": 97856
+      "triangles": 34806
     },
     {
       "id": "feet",
       "action": "regenerated",
-      "triangles": 38172
+      "triangles": 68158
     },
     {
       "id": "clothing.top",
       "action": "regenerated",
-      "triangles": 84872
+      "triangles": 65528
     },
     {
       "id": "clothing.bottom",
       "action": "regenerated",
-      "triangles": 313796
+      "triangles": 263196
     },
     {
       "id": "clothing.shoes",
       "action": "regenerated",
-      "triangles": 99836
+      "triangles": 339996
     },
     {
       "id": "accessories.head",
@@ -265,7 +301,7 @@
     {
       "id": "accessories.body",
       "action": "regenerated",
-      "triangles": 12200
+      "triangles": 3888
     }
   ],
   "emptyComponents": []
