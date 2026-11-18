@@ -25,6 +25,7 @@ import { fieldFromMesh, fieldFromVoxels, fieldSdf, fieldShape } from "./field.ts
 import { CELL } from "../character/lattice.ts";
 import { isLelu, LELU_COLOURS as L } from "../character/leluIdentity.ts";
 import { conicalCurl, nearestNeighbourStats, selectSphericalEvenSubset } from "../../geometry/golden/index.ts";
+import { bundleTubes, setHairRootPoints, hairTubeBuild, resetTubeDiagnostics, TUBE_LOD, tubeDiagnostics, type StrandSpec } from "../hair/tubes.ts";
 import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
@@ -226,7 +227,11 @@ export const hairDiagnostics: {
   meanSpacing: number;
   minSpacing: number;
   maxSpacing: number;
-} = { golden: false, roots: 0, curl: "helix", rootCv: 0, meanSpacing: 0, minSpacing: 0, maxSpacing: 0 };
+  /** Lowest root anywhere on the scalp (m). */
+  hairlineY: number;
+  /** Lowest root at the FRONT of the skull — the forehead hairline (m). */
+  hairlineFrontY: number;
+} = { golden: false, roots: 0, curl: "helix", rootCv: 0, meanSpacing: 0, minSpacing: 0, maxSpacing: 0, hairlineY: 0, hairlineFrontY: 0 };
 
 const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; count: number; radius: number; turns?: number; curl?: number }> = {
   buzz: { len: 0.014, droop: 0.15, wave: 0.1, count: 1800, radius: 0.0036 },
@@ -304,10 +309,18 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   // card picked up ears and cheeks, which is why an earlier attempt grew hair
   // over the face.
   const head = J("joint-head");
-  const headField = fieldSdf(bodyField("head", 0.003, [], { lo: [head[0] - 0.17, head[1] - 0.20, head[2] - 0.20], hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.20] }));
+  const headBox = { lo: [head[0] - 0.17, head[1] - 0.2, head[2] - 0.2] as V3, hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.2] as V3 };
+  const headField = fieldSdf(bodyField("head", 0.003, [], headBox));
   const scalp: number[] = [];
   const eps = 0.002;
   const golden = spec.geometry?.golden === true;
+  const tubes = spec.geometry?.hairTubes === true;
+  if (tubes) {
+    resetTubeDiagnostics();
+    hairTubeBuild.mesh = null;
+  }
+  const tubeStrands: StrandSpec[] = [];
+  const strandRoots: number[] = [];
   // Candidate roots. In golden mode the hair card's own triangles are sampled at
   // four interior barycentric points each: the card defines the coverage region,
   // and a few thousand candidates inside it give the even-subset selection real
@@ -338,9 +351,9 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     if (y < head[1] - 0.09) continue;
     // and nothing in front of the brow
     if (z > head[2] + 0.015 && y < head[1] + 0.085) continue;
-    for (let it = 0; it < 8; it++) {
+    for (let it = 0; it < 24; it++) {
       const d = headField(x, y, z);
-      if (Math.abs(d) < 0.0012) break;
+      if (Math.abs(d) < 0.0006) break;
       const g: V3 = [
         headField(x + eps, y, z) - headField(x - eps, y, z),
         headField(x, y + eps, z) - headField(x, y - eps, z),
@@ -387,6 +400,12 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     const rootStep = Math.max(1, Math.floor(nRoots / count));
     for (let k = 0; k < nRoots; k += rootStep) rootIndexes.push(k);
   }
+  // A face is not a place hair grows. The voxel field skipped stamps here, but a
+  // swept tube draws its whole PATH — which is why the first tube render had
+  // curls lying across her face. One predicate, used by both representations.
+  const inFacePoint = (x: number, y: number, z: number) =>
+    z > head[2] - 0.02 && Math.abs(x - head[0]) < 0.095 && y < head[1] + 0.105 && y > head[1] - 0.21;
+
   let strand = 0;
   for (const v of rootIndexes) {
     const r0 = hash3(v, 1), r1 = hash3(v, 2), r2 = hash3(v, 3);
@@ -447,6 +466,23 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
         });
       }
     }
+      if (tubes) strandRoots.push(px, py, pz);
+    // Keep the path when tubes are on: the same strand law, drawn as geometry,
+    // cut where it would enter the face so a curl frames her face instead of
+    // being drawn over it.
+    if (tubes) {
+      // Cut where a lock would pass IN FRONT of her face. The voxel test used a
+      // plane 2 cm behind the face (a stamp there has volume and would bulge),
+      // which for a tube cuts strands that only pass beside her cheeks. The tube
+      // test is the actual face plane, so a side lock survives.
+      const kept: { x: number; y: number; z: number }[] = [];
+      for (const p of path) {
+        const inFrontOfFace = p.z > head[2] + 0.03 && Math.abs(p.x - head[0]) < 0.075 && p.y < head[1] + 0.1 && p.y > head[1] - 0.21;
+        if (inFrontOfFace) break;
+        kept.push({ x: p.x, y: p.y, z: p.z });
+      }
+      if (kept.length >= 12) tubeStrands.push({ path: kept, radius, seed: r2, droop: st.droop });
+    }
     let prevx = path[0].x, prevy = path[0].y, prevz = path[0].z;
     for (let s = 1; s < path.length; s++) {
       const { x: qx, y: qy, z: qz, t } = path[s];
@@ -458,7 +494,7 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
         // A face is not a place hair grows. Locks that would cross the face are
         // left out, which is what gives a fringe that frames the face instead
         // of a curtain drawn over it.
-        const inFace = szp > head[2] - 0.02 && Math.abs(sxp - head[0]) < 0.095 && syp < head[1] + 0.105 && syp > head[1] - 0.21;
+        const inFace = inFacePoint(sxp, syp, szp);
         if (!inFace) stamp(sxp, syp, szp, radius * (1 - 0.4 * t));
       }
       prevx = qx; prevy = qy; prevz = qz;
@@ -466,6 +502,109 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     strand++;
   }
   if (!strand) return null;
+
+  if (tubes) {
+    // Baby hairs along the actual hairline: the lowest band of the scalp cloud,
+    // followed onto the skin itself so they hug the forehead and temples instead
+    // of hanging in front of them.
+    let yLo = Infinity, yHi = -Infinity;
+    for (let i = 0; i < roots.length / 3; i++) {
+      yLo = Math.min(yLo, roots[3 * i + 1]);
+      yHi = Math.max(yHi, roots[3 * i + 1]);
+    }
+    const band = yLo + (yHi - yLo) * 0.18;
+    const edge: number[] = [];
+    for (let i = 0; i < roots.length / 3; i++) if (roots[3 * i + 1] <= band) edge.push(i);
+    const edgeStep = Math.max(1, Math.floor(edge.length / 120));
+    let baby = 0;
+    for (let k = 0; k < edge.length && baby < 120; k += edgeStep) {
+      const v = edge[k];
+      const px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
+      const fall = 0.018 + 0.012 * hash3(v, 7);
+      const path: { x: number; y: number; z: number }[] = [];
+      for (let s = 0; s <= 8; s++) {
+        const t = s / 8;
+        let x = px + (hash3(v, 13) - 0.5) * 0.004 * t;
+        let y = py - fall * t;
+        let z = pz - 0.006 * t;
+        // project onto the skin with a 0.6 mm lift: a baby hair follows the
+        // forehead, it does not cut into it and it does not float above it
+        for (let it = 0; it < 3; it++) {
+          const d = headField(x, y, z);
+          if (Math.abs(d - 0.0006) < 0.0002) break;
+          const g: V3 = [
+            headField(x + eps, y, z) - headField(x - eps, y, z),
+            headField(x, y + eps, z) - headField(x, y - eps, z),
+            headField(x, y, z + eps) - headField(x, y, z - eps),
+          ];
+          const gl = Math.hypot(g[0], g[1], g[2]) || 1;
+          const move = Math.max(-0.002, Math.min(0.002, d - 0.0006));
+          x -= (g[0] / gl) * move;
+          y -= (g[1] / gl) * move;
+          z -= (g[2] / gl) * move;
+        }
+        path.push({ x, y, z });
+      }
+      tubeStrands.push({ path, radius: 0.0005 * (0.8 + 0.5 * hash3(v, 9)), seed: hash3(v, 11), droop: 1 });
+      baby++;
+    }
+    const lod = spec.geometry?.hairLod ?? "high";
+    const options = TUBE_LOD[lod];
+    const built = bundleTubes(tubeStrands, { ...options, diameterVariation: 0.35, taperVariation: 0.4 });
+    hairTubeBuild.mesh = { positions: built.positions, indices: built.indices };
+    // Roots of the strands that were actually drawn, for clearance measurement
+    // against her head MESH (a 3 mm occupancy field cannot resolve 0.5 mm).
+    setHairRootPoints(Float32Array.from(strandRoots));
+    const radii = built.perStrand.map((s) => s.radius * 2000);
+    const tips = built.perStrand.map((s) => s.tipScale);
+    const meanR = radii.reduce((s, v) => s + v, 0) / (radii.length || 1);
+    const varR = radii.reduce((s, v) => s + (v - meanR) ** 2, 0) / (radii.length || 1);
+    // Root clearance measured against the skull field: a negative offset is a
+    // root under the skin, a large positive one is a lock hanging in the air.
+    let minOff = Infinity, maxOff = -Infinity, penetrations = 0, floating = 0;
+    const offsets: number[] = [];
+    // The head field is only a valid distance INSIDE its own box; outside it the
+    // value is not a clearance, so those roots are counted separately instead of
+    // being reported as 59 mm of floating hair.
+    let outsideBox = 0;
+    for (let i = 0; i < roots.length / 3; i++) {
+      const x = roots[3 * i], y = roots[3 * i + 1], z = roots[3 * i + 2];
+      const inBox = x > headBox.lo[0] && x < headBox.hi[0] && y > headBox.lo[1] && y < headBox.hi[1] && z > headBox.lo[2] && z < headBox.hi[2];
+      if (!inBox) {
+        outsideBox++;
+        continue;
+      }
+      const d = headField(x, y, z);
+      offsets.push(d);
+      minOff = Math.min(minOff, d);
+      maxOff = Math.max(maxOff, d);
+      if (d < 0) penetrations++;
+      if (d > 0.002) floating++;
+    }
+    offsets.sort((a, b) => a - b);
+    tubeDiagnostics.enabled = true;
+    tubeDiagnostics.lod = lod;
+    tubeDiagnostics.strands = built.perStrand.length;
+    tubeDiagnostics.triangles = built.triangles;
+    tubeDiagnostics.sides = options.sides;
+    tubeDiagnostics.segments = options.segments;
+    tubeDiagnostics.rootOffsetMinMm = minOff * 1000;
+    tubeDiagnostics.rootOffsetMaxMm = maxOff * 1000;
+    tubeDiagnostics.rootPenetrations = penetrations;
+    tubeDiagnostics.floatingRoots = floating;
+    tubeDiagnostics.diameterMinMm = Math.min(...radii);
+    tubeDiagnostics.diameterMaxMm = Math.max(...radii);
+    tubeDiagnostics.diameterCv = meanR > 0 ? Math.sqrt(varR) / meanR : 0;
+    tubeDiagnostics.tipScaleMin = Math.min(...tips);
+    tubeDiagnostics.tipScaleMax = Math.max(...tips);
+    tubeDiagnostics.babyStrands = baby;
+    tubeDiagnostics.babyMaxLengthMm = 30;
+    tubeDiagnostics.rootsMeasured = offsets.length;
+    tubeDiagnostics.rootsOutsideFieldBox = outsideBox;
+    tubeDiagnostics.rootOffsetP50Mm = offsets.length ? offsets[Math.floor(offsets.length / 2)] * 1000 : 0;
+    tubeDiagnostics.rootOffsetP99Mm = offsets.length ? offsets[Math.floor(offsets.length * 0.99)] * 1000 : 0;
+  }
+
   const sample: { x: number; y: number; z: number }[] = [];
   const sampleStep = Math.max(1, Math.floor(rootIndexes.length / 500));
   for (let k = 0; k < rootIndexes.length; k += sampleStep) {
@@ -476,6 +615,17 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   hairDiagnostics.golden = golden;
   hairDiagnostics.roots = rootIndexes.length;
   hairDiagnostics.curl = golden ? "golden-spiral" : "helix";
+  // The hairline is where HAIR GROWS, so it is measured on the roots, not on the
+  // hair mesh: the mesh's front edge is a side lock at temple height and reading
+  // it as the hairline put her hairline 11 mm below her eyes.
+  let hy = Infinity, hyFront = Infinity;
+  for (const v of rootIndexes) {
+    const y = roots[3 * v + 1], z = roots[3 * v + 2];
+    hy = Math.min(hy, y);
+    if (z > centre[2] + 0.015) hyFront = Math.min(hyFront, y);
+  }
+  hairDiagnostics.hairlineY = Number.isFinite(hy) ? hy : 0;
+  hairDiagnostics.hairlineFrontY = Number.isFinite(hyFront) ? hyFront : 0;
   hairDiagnostics.rootCv = nn.cv;
   hairDiagnostics.meanSpacing = nn.mean;
   hairDiagnostics.minSpacing = nn.min;

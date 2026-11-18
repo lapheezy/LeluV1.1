@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/hair/voxel/lelu2-voxel-head.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/hair/voxel/lelu2-voxel-head-three-quarter.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 28,
+ "view": "three-quarter",
+ "wireframe": false,
+ "ground": true,
+ "view_transform": "AgX"
+}

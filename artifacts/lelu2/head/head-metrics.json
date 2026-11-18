@@ -1,0 +1,88 @@
+{
+  "identity": "lelu-canonical",
+  "primaryReference": "ref10_face_primary",
+  "foundation": "0883b24ef7a9655f",
+  "referencePlates": {
+    "available": false,
+    "note": "no orthographic reference plate exists in this repository; measurements are against the documented identity and this mesh"
+  },
+  "head": {
+    "heightMm": 264.6268606185913,
+    "widthMm": 172.08056896924973,
+    "depthMm": 280.72112053632736,
+    "widthToHeight": 0.6502762741733566,
+    "depthToHeight": 1.0608186934618584,
+    "skullWidthMm": 146.63893729448318,
+    "cheekWidthMm": 150.05381405353546,
+    "jawWidthMm": 123.82260710000992,
+    "chinWidthMm": 59.99999865889549,
+    "taper": [
+      0.1466,
+      0.1501,
+      0.1238,
+      0.06
+    ],
+    "jawToCheek": 0.8251880025910777,
+    "chinToJaw": 0.48456416856442275,
+    "cheekVolumeCm3": 748.0822854548376,
+    "headVolumeCm3": 3971.224054337366,
+    "cheekShareOfHead": 0.18837574390641168
+  },
+  "eyes": {
+    "centresMm": [
+      {
+        "x": 30.9,
+        "y": 1578.4,
+        "z": 124.9
+      },
+      {
+        "x": -30.9,
+        "y": 1578.4,
+        "z": 124.9
+      }
+    ],
+    "spacingMm": 61.74795563336428,
+    "spacingToHeadWidth": 0.3588316566084719,
+    "heightAboveChinMm": 143.838338491453,
+    "heightFraction": 0.5435515433135425
+  },
+  "hairline": {
+    "frontLowestYmm": 1528.704047203064,
+    "aboveEyesMm": -49.650959608091185,
+    "aboveChinFraction": 0.3559252400273712,
+    "strands": 928
+  },
+  "body": {
+    "totalHeightMm": 1657.3355340263706,
+    "headsTall": 6.262914997185796,
+    "shoulderWidthMm": 336.5037795510012,
+    "chinHeightMm": 0
+  },
+  "documented": {
+    "faceShape": "Oval face, high defined cheekbones, softly tapered jaw and rounded chin.",
+    "eyes": "Almond-shaped warm brown eyes, slightly upturned outer corners, winged liner, long dense lashes, moderate spacing.",
+    "hairline": "Centre part; dense black corkscrew curls framing the face, pink/magenta highlights."
+  },
+  "checks": [
+    {
+      "claim": "oval face: widest at the skull, tapering through cheek, jaw and chin",
+      "measured": "skull 146.6 > cheek 150.1 > jaw 123.8 > chin 60.0 mm",
+      "agrees": false
+    },
+    {
+      "claim": "high, defined cheekbones",
+      "measured": "cheek slab is 18.8 % of head volume",
+      "agrees": true
+    },
+    {
+      "claim": "eyes spaced about one eye width apart",
+      "measured": "61.7 mm apart on a 172.1 mm head (35.9 %)",
+      "agrees": true
+    },
+    {
+      "claim": "hairline above the brow with a centre part",
+      "measured": "front hairline -49.7 mm above the eyes",
+      "agrees": false
+    }
+  ]
+}

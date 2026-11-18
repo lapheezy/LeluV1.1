@@ -1,0 +1,114 @@
+{
+  "variant": "tubes-high",
+  "lod": "high",
+  "ms": 60588,
+  "triangles": 1284246,
+  "hairTriangles": 426650,
+  "glbBytes": 41772588,
+  "occupancyCells": 375460,
+  "occupancyDigest": 15999,
+  "hair": {
+    "golden": true,
+    "roots": 1350,
+    "curl": "golden-spiral",
+    "rootCv": 0.847142777704976,
+    "meanSpacing": 0.005151661372423803,
+    "minSpacing": 0.000023672242883634266,
+    "maxSpacing": 0.021483353609208646,
+    "hairlineY": 1.4185655117034912,
+    "hairlineFrontY": 1.4778797626495361
+  },
+  "tubes": {
+    "enabled": true,
+    "lod": "high",
+    "strands": 1219,
+    "triangles": 426650,
+    "sides": 7,
+    "segments": 26,
+    "rootOffsetMinMm": -0.5731443801006563,
+    "rootOffsetMaxMm": 0.5968904873120144,
+    "rootPenetrations": 392,
+    "floatingRoots": 0,
+    "diameterMinMm": 0.5324712023772938,
+    "diameterMaxMm": 22.969432751737273,
+    "diameterCv": 0.42735556077851594,
+    "tipScaleMin": 0.07206057102978229,
+    "tipScaleMax": 0.1679594310298562,
+    "babyStrands": 120,
+    "babyMaxLengthMm": 30,
+    "rootsMeasured": 1350,
+    "rootsOutsideFieldBox": 0,
+    "rootOffsetP50Mm": 0.0026963615923530134,
+    "rootOffsetP99Mm": 0.5661826204960929
+  },
+  "components": [
+    {
+      "id": "torso",
+      "triangles": 26200
+    },
+    {
+      "id": "pelvis",
+      "triangles": 51044
+    },
+    {
+      "id": "neck",
+      "triangles": 20184
+    },
+    {
+      "id": "head",
+      "triangles": 57232
+    },
+    {
+      "id": "face",
+      "triangles": 2536
+    },
+    {
+      "id": "hair",
+      "triangles": 426650
+    },
+    {
+      "id": "arms",
+      "triangles": 26544
+    },
+    {
+      "id": "hands",
+      "triangles": 23868
+    },
+    {
+      "id": "legs",
+      "triangles": 97856
+    },
+    {
+      "id": "feet",
+      "triangles": 38172
+    },
+    {
+      "id": "clothing.top",
+      "triangles": 84872
+    },
+    {
+      "id": "clothing.bottom",
+      "triangles": 313796
+    },
+    {
+      "id": "clothing.shoes",
+      "triangles": 99836
+    },
+    {
+      "id": "accessories.head",
+      "triangles": 2636
+    },
+    {
+      "id": "accessories.body",
+      "triangles": 12820
+    }
+  ],
+  "rootClearance": {
+    "measured": 1350,
+    "p50Mm": 1.1057997136652937,
+    "p95Mm": 2.0628299027033044,
+    "maxMm": 49.17556559752792,
+    "over4mm": 54,
+    "note": "distance from each drawn root to the nearest head-mesh vertex"
+  }
+}

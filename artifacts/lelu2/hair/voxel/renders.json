@@ -1,0 +1,40 @@
+{
+ "generatedAt": "2026-11-18T16:37:49.894Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/hair/voxel",
+ "size": 900,
+ "samples": 28,
+ "renders": [
+  {
+   "label": "lelu2-voxel-head",
+   "kind": "full",
+   "view": "front",
+   "png": "lelu2-voxel-head-front.png",
+   "triangles": 600276,
+   "seconds": 9.92,
+   "camera": {
+    "center": [
+     0.0035000070929527283,
+     -0.055874988436698914,
+     1.4514167308807373
+    ],
+    "radius": 0.3680254070536921
+   }
+  },
+  {
+   "label": "lelu2-voxel-head",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "lelu2-voxel-head-three-quarter.png",
+   "triangles": 600276,
+   "seconds": 8.81,
+   "camera": {
+    "center": [
+     0.0035000070929527283,
+     -0.055874988436698914,
+     1.4514167308807373
+    ],
+    "radius": 0.3680254070536921
+   }
+  }
+ ]
+}

@@ -31,6 +31,7 @@ import { surfaceNets, vertexNormals, type Mesh } from "../volume/mesh.ts";
 import type { GlbPart } from "../gltf/GlbWriter.ts";
 import type { CharacterSpec } from "./CharacterSpec.ts";
 import { COMPONENTS, COMPONENT_ORDER, anchorCells, componentKeys, contextFor, skeleton, type ComponentId, type Skeleton } from "./components.ts";
+import { hairTubeBuild } from "../hair/tubes.ts";
 import { CELL } from "./lattice.ts";
 import type { Shape } from "./shape.ts";
 
@@ -259,6 +260,23 @@ export function plan(spec: CharacterSpec, lattice = DEFAULT_LATTICE): BuildPlan 
   return { spec, sk, keys: componentKeys(spec, sk), geometryKeys: componentKeys(neutralMaterials(spec), sk) };
 }
 
+/** World-space tube mesh → the component's local frame, with hair vertex colours. */
+function tubeLocalMesh(world: Mesh, anchor: Vec3, h: number, colour: [number, number, number]): Mesh {
+  const positions = new Float32Array(world.positions.length);
+  for (let i = 0; i < positions.length; i += 3) {
+    positions[i] = world.positions[i] - anchor[0] * h;
+    positions[i + 1] = world.positions[i + 1] - anchor[1] * h;
+    positions[i + 2] = world.positions[i + 2] - anchor[2] * h;
+  }
+  const vertexCount = positions.length / 3;
+  const colors = new Float32Array(vertexCount * 4);
+  const rgb = [srgbToLinear(colour[0]), srgbToLinear(colour[1]), srgbToLinear(colour[2])];
+  for (let v = 0; v < vertexCount; v++) colors.set([rgb[0], rgb[1], rgb[2], 1], 4 * v);
+  const mesh: Mesh = { positions, indices: world.indices, colors };
+  mesh.normals = vertexNormals(mesh);
+  return mesh;
+}
+
 function recolor(shape: Shape, geometry: LocalComponent, key: string): LocalComponent {
   const t0 = performance.now();
   const m = geometry.mesh;
@@ -298,6 +316,11 @@ export function buildComponent(id: ComponentId, p: BuildPlan, cache: ComponentCa
     return { id, key, geometryKey, anchor, ...at, regenerated: false, action: "recolored", ms: performance.now() - t0, local };
   }
   const local = shape ? sampleComponent(shape, hMesh, hCells, key) : { key, cells: new Int32Array(0), mesh: { positions: new Float32Array(0), indices: new Uint32Array(0) }, samples: 0, buildMs: 0, hMesh, hCells };
+  // WP03: the hair may be DRAWN as swept tubes while its occupancy cells stay
+  // exactly the voxel field's. Only the mesh is replaced.
+  if (id === "hair" && p.spec.geometry?.hairTubes === true && hairTubeBuild.mesh && local.mesh.indices.length) {
+    local.mesh = tubeLocalMesh(hairTubeBuild.mesh, anchor, hCells, p.spec.materials.hair);
+  }
   cache?.set(cacheKey, local);
   cache?.set(`geo:${geometryKey}@${hMesh}`, local);
   return { id, key, geometryKey, anchor, ...at, regenerated: true, action: "regenerated", ms: performance.now() - t0, local };

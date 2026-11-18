@@ -461,7 +461,7 @@ export const COMPONENTS: Record<ComponentId, ComponentDef> = {
     deps: () => ["head"],
     // The golden flag is part of the content key: switching it must regenerate
     // the hair, not return the cached canonical strands.
-    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy, golden: s.geometry?.golden === true }),
+    params: (s) => ({ hair: s.hair, color: s.materials.hair, anatomy: s.anatomy, golden: s.geometry?.golden === true, tubes: s.geometry?.hairTubes === true, lod: s.geometry?.hairLod ?? null }),
     build: (ctx) => {
       if (usesReference(ctx.spec)) {
         const ref = referenceRegion("hair", ctx.spec, ctx.h ?? 0.004, "head", ctx.sk.headCenter);

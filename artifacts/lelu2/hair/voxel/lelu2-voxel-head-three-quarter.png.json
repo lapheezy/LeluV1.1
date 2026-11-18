@@ -1,0 +1,33 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/hair/voxel/lelu2-voxel-head-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "head",
+  "face",
+  "hair"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0035000070929527283,
+   -0.055874988436698914,
+   1.4514167308807373
+  ],
+  "radius": 0.3680254070536921
+ },
+ "triangles": 600276,
+ "bounds_blender_zup": {
+  "min": [
+   -0.17675000429153442,
+   -0.24149999022483826,
+   1.1896992921829224
+  ],
+  "max": [
+   0.18375001847743988,
+   0.12975001335144043,
+   1.7131340503692627
+  ]
+ },
+ "render_seconds": 8.81,
+ "blender": "4.2.23 LTS"
+}

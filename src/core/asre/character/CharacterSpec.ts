@@ -119,6 +119,15 @@ export interface FeetParams {
  */
 export interface GeometryParams {
   golden?: boolean;
+  /**
+   * Draw the hair as swept tube geometry instead of the occupancy-field mesh.
+   * The occupancy cells are unchanged: this is a rendering representation, not
+   * a structural one, so ASRE/NRE still see exactly the canonical hair volume.
+   */
+  hairTubes?: boolean;
+  /** Tube detail level: 7×26, 5×14 or 3×7 sides × segments.
+   */
+  hairLod?: "high" | "medium" | "low";
 }
 
 export interface CharacterSpec {
