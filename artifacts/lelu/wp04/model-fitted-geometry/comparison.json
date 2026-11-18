@@ -1,0 +1,282 @@
+{
+ "passed": 20,
+ "total": 25,
+ "rms_z": 1.368,
+ "rows": [
+  {
+   "metric": "face_width_temple",
+   "reference_mean": 2.1228,
+   "reference_std": 0.0308,
+   "n": 6,
+   "model": 2.1818,
+   "deviation_pct": 2.78,
+   "z": 1.92,
+   "pass": true,
+   "definition": "temple width (127-356) / IOD"
+  },
+  {
+   "metric": "face_width_cheek",
+   "reference_mean": 2.0817,
+   "reference_std": 0.0343,
+   "n": 6,
+   "model": 2.1266,
+   "deviation_pct": 2.16,
+   "z": 1.31,
+   "pass": true,
+   "definition": "bizygomatic width (234-454) / IOD"
+  },
+  {
+   "metric": "face_width_jaw",
+   "reference_mean": 1.9279,
+   "reference_std": 0.0441,
+   "n": 6,
+   "model": 1.9493,
+   "deviation_pct": 1.11,
+   "z": 0.49,
+   "pass": true,
+   "definition": "mid-jaw width (132-361) / IOD"
+  },
+  {
+   "metric": "face_width_gonion",
+   "reference_mean": 1.7894,
+   "reference_std": 0.0544,
+   "n": 6,
+   "model": 1.8072,
+   "deviation_pct": 0.99,
+   "z": 0.33,
+   "pass": true,
+   "definition": "gonial width (58-288) / IOD"
+  },
+  {
+   "metric": "face_width_chin",
+   "reference_mean": 1.1205,
+   "reference_std": 0.0453,
+   "n": 6,
+   "model": 1.1432,
+   "deviation_pct": 2.03,
+   "z": 0.5,
+   "pass": true,
+   "definition": "chin width (150-379) / IOD"
+  },
+  {
+   "metric": "face_height",
+   "reference_mean": 2.2931,
+   "reference_std": 0.0798,
+   "n": 6,
+   "model": 2.3452,
+   "deviation_pct": 2.27,
+   "z": 0.65,
+   "pass": true,
+   "definition": "upper forehead to menton (10-152) / IOD"
+  },
+  {
+   "metric": "eye_width",
+   "reference_mean": 0.4272,
+   "reference_std": 0.0083,
+   "n": 6,
+   "model": 0.4211,
+   "deviation_pct": -1.43,
+   "z": -0.73,
+   "pass": true,
+   "definition": "palpebral fissure length (33-133, 362-263), mean / IOD"
+  },
+  {
+   "metric": "eye_height",
+   "reference_mean": 0.137,
+   "reference_std": 0.0105,
+   "n": 6,
+   "model": 0.1453,
+   "deviation_pct": 6.06,
+   "z": 0.79,
+   "pass": true,
+   "definition": "lid aperture (159-145, 386-374), mean / IOD"
+  },
+  {
+   "metric": "canthal_tilt_deg",
+   "reference_mean": 7.8318,
+   "reference_std": 0.7027,
+   "n": 6,
+   "model": 8.4172,
+   "deviation_pct": 7.47,
+   "z": 0.83,
+   "pass": true,
+   "definition": "angle inner->outer canthus above horizontal, mean"
+  },
+  {
+   "metric": "intercanthal",
+   "reference_mean": 0.5458,
+   "reference_std": 0.0107,
+   "n": 6,
+   "model": 0.5312,
+   "deviation_pct": -2.67,
+   "z": -1.36,
+   "pass": true,
+   "definition": "inner canthi distance (133-362) / IOD"
+  },
+  {
+   "metric": "nose_width",
+   "reference_mean": 0.4857,
+   "reference_std": 0.0131,
+   "n": 6,
+   "model": 0.5093,
+   "deviation_pct": 4.86,
+   "z": 1.8,
+   "pass": true,
+   "definition": "alar width (64-294) / IOD"
+  },
+  {
+   "metric": "nose_length",
+   "reference_mean": 0.6767,
+   "reference_std": 0.0237,
+   "n": 6,
+   "model": 0.6828,
+   "deviation_pct": 0.9,
+   "z": 0.26,
+   "pass": true,
+   "definition": "nasion to subnasale (168-2) / IOD"
+  },
+  {
+   "metric": "mouth_width",
+   "reference_mean": 0.7073,
+   "reference_std": 0.0282,
+   "n": 6,
+   "model": 0.7507,
+   "deviation_pct": 6.14,
+   "z": 1.54,
+   "pass": true,
+   "definition": "commissure width (61-291) / IOD"
+  },
+  {
+   "metric": "upper_lip",
+   "reference_mean": 0.1333,
+   "reference_std": 0.0161,
+   "n": 6,
+   "model": 0.097,
+   "deviation_pct": -27.23,
+   "z": -2.25,
+   "pass": false,
+   "definition": "upper lip height (0-13) / IOD"
+  },
+  {
+   "metric": "lower_lip",
+   "reference_mean": 0.1902,
+   "reference_std": 0.0155,
+   "n": 6,
+   "model": 0.1478,
+   "deviation_pct": -22.29,
+   "z": -2.74,
+   "pass": false,
+   "definition": "lower lip height (14-17) / IOD"
+  },
+  {
+   "metric": "brow_height",
+   "reference_mean": 0.4015,
+   "reference_std": 0.018,
+   "n": 6,
+   "model": 0.3616,
+   "deviation_pct": -9.94,
+   "z": -2.22,
+   "pass": false,
+   "definition": "brow peak above upper lid (105-159, 334-386), mean / IOD"
+  },
+  {
+   "metric": "y_brow",
+   "reference_mean": 0.1329,
+   "reference_std": 0.0035,
+   "n": 6,
+   "model": 0.1354,
+   "deviation_pct": 1.88,
+   "z": 0.71,
+   "pass": true,
+   "definition": "brow peak height, fraction of face height from 10"
+  },
+  {
+   "metric": "y_eye",
+   "reference_mean": 0.3331,
+   "reference_std": 0.0065,
+   "n": 6,
+   "model": 0.3187,
+   "deviation_pct": -4.32,
+   "z": -2.22,
+   "pass": false,
+   "definition": "pupil line, fraction of face height"
+  },
+  {
+   "metric": "y_subnasale",
+   "reference_mean": 0.6049,
+   "reference_std": 0.011,
+   "n": 6,
+   "model": 0.5969,
+   "deviation_pct": -1.32,
+   "z": -0.73,
+   "pass": true,
+   "definition": "nose base, fraction of face height"
+  },
+  {
+   "metric": "y_stomion",
+   "reference_mean": 0.7421,
+   "reference_std": 0.0121,
+   "n": 6,
+   "model": 0.7387,
+   "deviation_pct": -0.46,
+   "z": -0.28,
+   "pass": true,
+   "definition": "mouth line, fraction of face height"
+  },
+  {
+   "metric": "y_lip_lo",
+   "reference_mean": 0.8355,
+   "reference_std": 0.0121,
+   "n": 6,
+   "model": 0.8078,
+   "deviation_pct": -3.32,
+   "z": -2.29,
+   "pass": false,
+   "definition": "lower lip bottom, fraction of face height"
+  },
+  {
+   "metric": "jaw_to_cheek",
+   "reference_mean": 0.8595,
+   "reference_std": 0.0158,
+   "n": 6,
+   "model": 0.8498,
+   "deviation_pct": -1.13,
+   "z": -0.61,
+   "pass": true,
+   "definition": "gonial width / bizygomatic width (taper of the jaw)"
+  },
+  {
+   "metric": "face_aspect",
+   "reference_mean": 1.1015,
+   "reference_std": 0.0296,
+   "n": 6,
+   "model": 1.1028,
+   "deviation_pct": 0.12,
+   "z": 0.04,
+   "pass": true,
+   "definition": "face height / bizygomatic width (oval vs round)"
+  },
+  {
+   "metric": "eye_aspect",
+   "reference_mean": 0.3206,
+   "reference_std": 0.0237,
+   "n": 6,
+   "model": 0.3451,
+   "deviation_pct": 7.64,
+   "z": 1.03,
+   "pass": true,
+   "definition": "eye height / eye width (almond)"
+  },
+  {
+   "metric": "lip_ratio",
+   "reference_mean": 1.4352,
+   "reference_std": 0.1001,
+   "n": 6,
+   "model": 1.5239,
+   "deviation_pct": 6.18,
+   "z": 0.89,
+   "pass": true,
+   "definition": "lower lip / upper lip"
+  }
+ ]
+}

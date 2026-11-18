@@ -44,21 +44,44 @@ const TARGETS = {
  *   nose      "softly rounded tip, moderately full alae"
  *                                            → nose-flaring, nose-point-width
  */
+/*
+ * FITTED (WP04): these weights were solved, not chosen. scripts/asre/lelu-fit-face.py
+ * measured 25 landmark metrics on orthographic renders of her head and fitted
+ * 18 signed CC0 morph parameters to the mean of her six independent frontal
+ * references (Gauss-Newton, Tikhonov to the start, bounds +-1):
+ * RMS z 4.60 -> 1.45. Parameters: {"eye_spacing": 0.639, "eye_scale": -0.104, "eye_open": 0.921, "eye_tilt": 0.482, "brow_height": -0.484, "nose_width": -0.862, "nose_length": -1.0, "nose_flare": -0.164, "mouth_width": 0.492, "upper_lip": 0.753, "lower_lip": -1.0, "head_width": -1.0, "head_height": -1.0, "cheek_bones": 1.0, "chin_width": -0.931, "jaw_width": 0.498, "chin_height": 0.202, "forehead_height": 1.0}
+ */
 export const LELU_FACE_TARGETS = [
   "targets/head/head-round.target@0.3",
-  "targets/cheek/l-cheek-bones-incr.target@0.5",
-  "targets/cheek/r-cheek-bones-incr.target@0.5",
-  "targets/eyes/l-eye-height2-incr.target@0.45",
-  "targets/eyes/r-eye-height2-incr.target@0.45",
-  "targets/eyes/l-eye-corner1-up.target@0.6",
-  "targets/eyes/r-eye-corner1-up.target@0.6",
   "targets/eyes/l-eye-corner2-down.target@0.2",
   "targets/eyes/r-eye-corner2-down.target@0.2",
   "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
   "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
   "targets/mouth/mouth-cupidsbow-incr.target@0.6",
-  "targets/nose/nose-flaring-incr.target@0.3",
   "targets/nose/nose-point-width-incr.target@0.25",
+  "targets/eyes/l-eye-trans-out.target@0.6386",
+  "targets/eyes/r-eye-trans-out.target@0.6386",
+  "targets/eyes/l-eye-scale-decr.target@0.1036",
+  "targets/eyes/r-eye-scale-decr.target@0.1036",
+  "targets/eyes/l-eye-height2-incr.target@0.9206",
+  "targets/eyes/r-eye-height2-incr.target@0.9206",
+  "targets/eyes/l-eye-corner1-up.target@0.4820",
+  "targets/eyes/r-eye-corner1-up.target@0.4820",
+  "targets/eyebrows/eyebrows-trans-down.target@0.4840",
+  "targets/nose/nose-scale-horiz-decr.target@0.8621",
+  "targets/nose/nose-scale-vert-decr.target@1.0000",
+  "targets/nose/nose-flaring-decr.target@0.1638",
+  "targets/mouth/mouth-scale-horiz-incr.target@0.4923",
+  "targets/mouth/mouth-upperlip-height-incr.target@0.7532",
+  "targets/mouth/mouth-lowerlip-height-decr.target@1.0000",
+  "targets/head/head-scale-horiz-decr.target@1.0000",
+  "targets/head/head-scale-vert-decr.target@1.0000",
+  "targets/cheek/l-cheek-bones-incr.target@1.0000",
+  "targets/cheek/r-cheek-bones-incr.target@1.0000",
+  "targets/chin/chin-width-decr.target@0.9310",
+  "targets/chin/chin-bones-incr.target@0.4976",
+  "targets/chin/chin-height-incr.target@0.2022",
+  "targets/forehead/forehead-scale-vert-incr.target@1.0000",
 ];
 
 /**
