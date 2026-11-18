@@ -18,6 +18,7 @@ import { sha256Hex } from "../../src/core/asre/nre/hash.ts";
 import { parseMhclo, parseObj, parseTarget, parseWeights, applyTarget } from "../../src/core/asre/reference/parser.ts";
 import type { RefMesh } from "../../src/core/asre/reference/parser.ts";
 import { installReference } from "../../src/core/asre/reference/provider.ts";
+import { fieldFromMesh, fieldSdf } from "../../src/core/asre/reference/field.ts";
 import type { ReferenceData, RefProxy } from "../../src/core/asre/reference/provider.ts";
 import type { Rig } from "../../src/core/asre/reference/skin.ts";
 import type { V3 } from "../../src/core/asre/character/sdf.ts";
@@ -243,6 +244,62 @@ export function loadReference(opts: LoadOptions = {}): LoadedReference {
     proxies[name] = { positions: positionsOut, indices: obj.indices };
   };
 
+  /**
+   * Shrink-wrap a placed proxy onto THIS body with a real stand-off.
+   *
+   * The `.mhclo` mapping puts a garment on the morph targets of the body it
+   * was authored for; this body is a different morph (age, sex, ancestry,
+   * weight, muscle), so where the morph bulges — chest, knees, seat — the skin
+   * pushes out through the cloth and the cloth solid loses those patches.
+   * Projecting every vertex that is inside (or closer than `stand`) out along
+   * the body's own distance gradient fits the garment to the body actually
+   * being built, keeps its topology, hems, sleeves and shoes, and never leaves
+   * a hole.
+   */
+  let bodySd: ((x: number, y: number, z: number) => number) | null = null;
+  const outer = (name: string, stand: number) => {
+    const p = proxies[name];
+    if (!p) return;
+    bodySd ??= fieldSdf(fieldFromMesh(metres, indices, 0.004, 3, 6));
+    const sd = bodySd;
+    const eps = 0.0025;
+    const lo: V3 = [Infinity, Infinity, Infinity], hi: V3 = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < metres.length; i += 3)
+      for (let a = 0; a < 3; a++) {
+        lo[a] = Math.min(lo[a], metres[i + a]);
+        hi[a] = Math.max(hi[a], metres[i + a]);
+      }
+    const pos = p.positions;
+    for (let i = 0; i < pos.length; i += 3) {
+      const orig: V3 = [pos[i], pos[i + 1], pos[i + 2]];
+      for (let iter = 0; iter < 20; iter++) {
+        const d = sd(pos[i], pos[i + 1], pos[i + 2]);
+        if (d >= stand) break;
+        const g: V3 = [
+          sd(pos[i] + eps, pos[i + 1], pos[i + 2]) - sd(pos[i] - eps, pos[i + 1], pos[i + 2]),
+          sd(pos[i], pos[i + 1] + eps, pos[i + 2]) - sd(pos[i], pos[i + 1] - eps, pos[i + 2]),
+          sd(pos[i], pos[i + 1], pos[i + 2] + eps) - sd(pos[i], pos[i + 1], pos[i + 2] - eps),
+        ];
+        const len = Math.hypot(g[0], g[1], g[2]) || 1;
+        // Step along the unit gradient, never by (deficit / |∇|): a trilinear
+        // field's gradient can be almost zero in a flat spot, and dividing by
+        // it launched a vertex metres away — which then made the garment's
+        // field bounds enormous and blew the allocation.
+        const step = Math.min(0.01, Math.max(0, stand - d));
+        pos[i] += (g[0] / len) * step;
+        pos[i + 1] += (g[1] / len) * step;
+        pos[i + 2] += (g[2] / len) * step;
+      }
+      // a vertex must stay near the body, or the proxy is not a garment
+      const out = [0, 1, 2].some((a) => pos[i + a] < lo[a] - 0.15 || pos[i + a] > hi[a] + 0.15);
+      if (out) {
+        pos[i] = orig[0];
+        pos[i + 1] = orig[1];
+        pos[i + 2] = orig[2];
+      }
+    }
+  };
+
   if (opts.eyes !== false) {
     const p = findProxy(join(SYS, "eyes/high-poly"), "high-poly");
     if (p) addProxyFull("eyes", p.obj, p.mhclo);
@@ -254,11 +311,19 @@ export function loadReference(opts: LoadOptions = {}): LoadedReference {
   // whole-outfit and shoe garments, placed by their own .mhclo mappings
   for (const g of ["female_casualsuit01", "female_casualsuit02", "female_sportsuit01", "female_elegantsuit01"]) {
     const p = findProxy(join(SYS, "clothes", g), g);
-    if (p) addProxyFull(`outfit:${g.replace("female_", "")}`, p.obj, p.mhclo);
+    if (p) {
+      const name = `outfit:${g.replace("female_", "")}`;
+      addProxyFull(name, p.obj, p.mhclo);
+      outer(name, 0.003);
+    }
   }
   for (const g of ["shoes01", "shoes02", "shoes03"]) {
     const p = findProxy(join(SYS, "clothes", g), g);
-    if (p) addProxyFull(`shoes:${g}`, p.obj, p.mhclo);
+    if (p) {
+      const name = `shoes:${g}`;
+      addProxyFull(name, p.obj, p.mhclo);
+      outer(name, 0.002);
+    }
   }
   for (const style of opts.hairStyles ?? []) {
     const asset = HAIR_ASSETS[style];

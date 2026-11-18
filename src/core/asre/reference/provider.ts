@@ -114,7 +114,26 @@ function bodyField(id: string, _h: number, poses: BonePose[], window: { lo: V3; 
   const hit = fieldCache.get(key);
   if (hit) return hit;
   const positions = poses.length ? skin(d.positions, d.rig, poses) : d.positions;
-  const f = fieldFromMesh(positions, d.indices, fieldRes, 3, 4, window ?? undefined, blur);
+  return remember(key, fieldFromMesh(positions, d.indices, fieldRes, 3, 4, window ?? undefined, blur));
+}
+
+/**
+ * Cloth and shoes are sampled a little coarser than the body.
+ *
+ * A garment proxy covers the whole body, so its field is the biggest grid in
+ * the pipeline; at 3 mm it exhausted the heap once the cloth became a shell.
+ * 4 mm is still canonical (both build paths use it), still finer than the
+ * 10 mm cloth thickness, and a quarter of the memory.
+ */
+export const GARMENT_FIELD_H = 0.004;
+
+/** Fields are large; keep the cache bounded rather than growing into swap. */
+const FIELD_CACHE_MAX = 20;
+function remember(key: string, f: SdfField): SdfField {
+  if (fieldCache.size >= FIELD_CACHE_MAX) {
+    const oldest = fieldCache.keys().next().value;
+    if (oldest !== undefined) fieldCache.delete(oldest);
+  }
   fieldCache.set(key, f);
   return f;
 }
@@ -123,14 +142,12 @@ function proxyField(name: string, _h: number): SdfField | null {
   const d = current!;
   const p = d.proxies[name];
   if (!p || !p.indices.length) return null;
-  const key = `${d.digest}|proxy:${name}|${FIELD_H}`;
+  const res = name.includes("outfit") || name.includes("shoes") ? GARMENT_FIELD_H : FIELD_H;
+  const key = `${d.digest}|proxy:${name}|${res}`;
   const hit = fieldCache.get(key);
   if (hit) return hit;
-  const f = fieldFromMesh(p.positions, p.indices, FIELD_H, 3, 4);
-  fieldCache.set(key, f);
-  return f;
+  return remember(key, fieldFromMesh(p.positions, p.indices, res, 3, 4));
 }
-
 
 /* ----------------------- articulation from the spec ---------------------- */
 
@@ -388,14 +405,30 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       const g = proxyField(name, h)!;
       const gsd = fieldSdf(g);
       const bodySd = fieldSdf(bodyField("body", h, [], null));
-      const stand = id === "clothing.shoes" ? 0.009 : 0.004;
-      const reach = id === "clothing.shoes" ? 0.03 : 0.035;
-      shape = {
-        f: (x, y, z) => Math.max(bodySd(x, y, z) - stand, Math.abs(gsd(x, y, z)) - reach),
-        lo: g.lo,
-        hi: g.hi,
-        color: () => color,
-      };
+      // Independent garment geometry: a closed shell around the GARMENT's own
+      // surface, so the cloth keeps its own shape, folds and hem edges instead
+      // of being the body painted over. Thickness 10 mm of cloth, 12 mm of
+      // shoe, i.e. 3-4 field cells, so the shell cannot self-cancel. The body
+      // is carved out of it, so cloth sits ON skin rather than inside it.
+      const t = id === "clothing.shoes" ? 0.012 : 0.010;
+      // The suit is mapped onto the skin by its own .mhclo offsets (1-3 mm), so
+      // its inner surface must be allowed to touch the skin: carving the body
+      // with a 2 mm stand-off deleted whole chest and knee patches and left
+      // skin showing through. Carving at half a millimetre keeps the inner
+      // cloth surface on the skin and the outer one 10 mm out.
+      // The stand-off the loader already gave the cloth (shrink-wrapped onto
+      // this body) is the inner surface; the shell adds real thickness outward.
+      const shellOfGarment = (x: number, y: number, z: number) => Math.max(Math.abs(gsd(x, y, z)) - t / 2, -(bodySd(x, y, z) - 0.0005));
+      // The CC0 suits are one piece, so the two slots are the same garment cut
+      // at the waist with a 4 cm overlap: each slot is now its own geometry,
+      // not the same solid twice (that duplication was 56 % of every triangle).
+      if (id === "clothing.top" || id === "clothing.bottom") {
+        const waist = J("joint-pelvis")[1] + 0.08;
+        const mask = id === "clothing.top" ? above(waist - 0.04) : below(waist + 0.04);
+        shape = { f: (x, y, z) => Math.max(shellOfGarment(x, y, z), mask(x, y, z)), lo: g.lo, hi: g.hi, color: () => color };
+      } else {
+        shape = { f: shellOfGarment, lo: g.lo, hi: g.hi, color: () => color };
+      }
       break;
     }
     case "hair": {

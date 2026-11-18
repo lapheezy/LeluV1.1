@@ -205,3 +205,43 @@ Removing the last of them needs a mesher that can emit more than one vertex
 per cell (manifold dual contouring); that is a larger change than this
 milestone, and it is recorded here rather than hidden behind a merge of the
 digits.
+
+## WP04.6 — the garment is the garment now
+
+The old clothing path did exactly what the brief objected to: it drew the
+body's own surface pushed out by 4 mm and used the garment only as a coverage
+mask. Both clothing slots also returned the *same* whole-outfit solid, which
+made clothing 56 % of every triangle in the character as one duplicated mesh.
+
+Now each slot is a **closed shell around the garment asset's own surface** —
+10 mm of cloth (12 mm of shoe), i.e. 2.5 cells at the garment field's 4 mm, so
+the shell cannot self-cancel — with the body carved out so cloth sits on skin
+rather than inside it. The hem, neckline, sleeve and trouser opening are the
+asset's own edges. The two slots are the same CC0 suit *cut at the waist with a
+4 cm overlap*, so top and bottom are distinct geometry instead of one solid
+twice.
+
+**Two real bugs surfaced on the way, both fixed:**
+
+1. **Garments sat inside the morphed body.** The `.mhclo` mapping places a
+   garment on the body it was authored for; this body is a different morph, so
+   the chest, seat and knees pushed out through the cloth and the solid lost
+   those patches — the first render of this milestone showed skin through the
+   suit. `scripts/asre/cc0-anatomy.ts` now shrink-wraps each garment onto the
+   body actually being built, projecting every vertex that is inside (or closer
+   than 3 mm) out along the body's distance gradient.
+2. **The shrink-wrap initially blew up.** It stepped by `deficit / |∇sd|`, and
+   a trilinearly interpolated field has near-zero gradient in flat spots, which
+   launched a vertex metres away; the garment field's bounds then exploded and
+   the process died with `RangeError: Array buffer allocation failed`. The step
+   is now bounded by the deficit itself and every vertex is constrained to the
+   body's box. The field cache is also bounded, and cloth is sampled at a
+   canonical 4 mm rather than 3 mm.
+
+**Numbers.** 1,015,892 triangles (from 1,263,616), GLB 32.3 MB (from 40.4 MB),
+clothing.top 163,400 / clothing.bottom 271,420 (from 352,284 each — the
+duplication is gone), IoU stays **1.000000**, build 45.0 s.
+
+Still true and still reported: the shells follow the CC0 assets, which are
+fitted garments, so folds are the asset's own rather than simulated; there are
+no seams, no cloth simulation and no separate material per garment yet.

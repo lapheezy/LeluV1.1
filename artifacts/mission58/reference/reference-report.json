@@ -3,87 +3,87 @@
   "height": 1.7,
   "hairStyle": "long-straight",
   "pose": "relaxed",
-  "ms": 43445,
-  "glbBytes": 40400564,
-  "triangles": 1263616,
+  "ms": 45000,
+  "glbBytes": 33506544,
+  "triangles": 1048884,
   "components": [
     {
       "id": "torso",
       "action": "regenerated",
       "triangles": 26200,
-      "ms": 1086
+      "ms": 1022
     },
     {
       "id": "pelvis",
       "action": "regenerated",
       "triangles": 51044,
-      "ms": 1376
+      "ms": 1273
     },
     {
       "id": "neck",
       "action": "regenerated",
       "triangles": 20184,
-      "ms": 352
+      "ms": 437
     },
     {
       "id": "head",
       "action": "regenerated",
       "triangles": 56576,
-      "ms": 1991
+      "ms": 2088
     },
     {
       "id": "face",
       "action": "regenerated",
       "triangles": 2152,
-      "ms": 15
+      "ms": 9
     },
     {
       "id": "hair",
       "action": "regenerated",
       "triangles": 175380,
-      "ms": 1931
+      "ms": 1718
     },
     {
       "id": "arms",
       "action": "regenerated",
       "triangles": 26544,
-      "ms": 5409
+      "ms": 5635
     },
     {
       "id": "hands",
       "action": "regenerated",
-      "triangles": 24920,
-      "ms": 4336
+      "triangles": 23924,
+      "ms": 5359
     },
     {
       "id": "legs",
       "action": "regenerated",
       "triangles": 97856,
-      "ms": 3057
+      "ms": 2906
     },
     {
       "id": "feet",
       "action": "regenerated",
-      "triangles": 38116,
-      "ms": 2183
+      "triangles": 38172,
+      "ms": 2525
     },
     {
       "id": "clothing.top",
       "action": "regenerated",
-      "triangles": 352284,
-      "ms": 13313
+      "triangles": 177232,
+      "ms": 12978
     },
     {
       "id": "clothing.bottom",
       "action": "regenerated",
-      "triangles": 352284,
-      "ms": 7024
+      "triangles": 287368,
+      "ms": 7710
     },
     {
       "id": "clothing.shoes",
       "action": "regenerated",
-      "triangles": 40076,
-      "ms": 1366
+      "triangles": 66252,
+      "ms": 1335
     },
     {
       "id": "accessories.head",
@@ -103,7 +103,7 @@
     "accessories.body"
   ],
   "occupancy": {
-    "cells": 300060,
+    "cells": 327295,
     "iouVsWholeObject": 1
   },
   "reference": {

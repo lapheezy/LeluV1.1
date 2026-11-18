@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-18T07:01:15.861Z",
+ "generatedAt": "2026-11-18T07:36:24.179Z",
  "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference",
  "size": 800,
  "samples": 36,
@@ -9,15 +9,15 @@
    "kind": "full",
    "view": "front",
    "png": "reference-base-front.png",
-   "triangles": 1263616,
-   "seconds": 8.3,
+   "triangles": 1048884,
+   "seconds": 7.5,
    "camera": {
     "center": [
-     0.010309755802154541,
-     -0.11784370988607407,
-     0.8635032176971436
+     0.009904786944389343,
+     -0.10815457999706268,
+     0.8501543998718262
     ],
-    "radius": 1.0070449138628832
+    "radius": 1.0160417966980753
    }
   },
   {
@@ -25,15 +25,15 @@
    "kind": "full",
    "view": "three-quarter",
    "png": "reference-base-three-quarter.png",
-   "triangles": 1263616,
-   "seconds": 8.24,
+   "triangles": 1048884,
+   "seconds": 7.82,
    "camera": {
     "center": [
-     0.010309755802154541,
-     -0.11784370988607407,
-     0.8635032176971436
+     0.009904786944389343,
+     -0.10815457999706268,
+     0.8501543998718262
     ],
-    "radius": 1.0070449138628832
+    "radius": 1.0160417966980753
    }
   }
  ]
