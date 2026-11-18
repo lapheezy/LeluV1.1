@@ -1,0 +1,45 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference/reference-base-face-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": [
+  "head",
+  "face"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   -2.833828330039978e-05,
+   -0.10113942623138428,
+   1.5668301582336426
+  ],
+  "radius": 0.21121283725231968
+ },
+ "triangles": 873504,
+ "bounds_blender_zup": {
+  "min": [
+   -0.08606862276792526,
+   -0.24149999022483826,
+   1.4345166683197021
+  ],
+  "max": [
+   0.08601194620132446,
+   0.039221130311489105,
+   1.6991435289382935
+  ]
+ },
+ "render_seconds": 3.79,
+ "blender": "4.2.23 LTS"
+}

@@ -1,0 +1,42 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference/reference-base-back.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.009904786944389343,
+   -0.10815457999706268,
+   0.8461967706680298
+  ],
+  "radius": 1.0127062838336212
+ },
+ "triangles": 873504,
+ "bounds_blender_zup": {
+  "min": [
+   -0.49080803990364075,
+   -0.3257378935813904,
+   -0.00675000436604023
+  ],
+  "max": [
+   0.5106176137924194,
+   0.10942872613668442,
+   1.6991435289382935
+  ]
+ },
+ "render_seconds": 4.26,
+ "blender": "4.2.23 LTS"
+}

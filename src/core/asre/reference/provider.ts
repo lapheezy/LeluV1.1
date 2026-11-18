@@ -21,7 +21,7 @@ import type { Sdf, V3 } from "../character/sdf.ts";
 import { clip, group, softClip, union } from "../character/shape.ts";
 import type { Shape } from "../character/shape.ts";
 import type { CharacterSpec } from "../character/CharacterSpec.ts";
-import { fieldFromMesh, fieldSdf, fieldShape, fieldShellShape } from "./field.ts";
+import { fieldFromMesh, fieldFromVoxels, fieldSdf, fieldShape } from "./field.ts";
 import { CELL } from "../character/lattice.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
@@ -195,6 +195,162 @@ export function footPoses(spec: CharacterSpec, side: 0 | 1): BonePose[] {
   for (const t of [1, 2, 3, 4, 5])
     for (let seg = 1; seg <= 3; seg++) if (has(`joint-${l}-toe-${t}-${seg}`)) poses.push({ bone: `toe${t}-${seg}.${s}`, axis, angle: -curl * (seg === 1 ? 0.7 : 0.9) });
   return poses;
+}
+
+/**
+ * Strand growth, per hairstyle: length in metres, how hard gravity pulls the
+ * lock down, how kinked it is, how many locks, and how thick each is.
+ */
+const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; count: number; radius: number }> = {
+  buzz: { len: 0.014, droop: 0.15, wave: 0.1, count: 1800, radius: 0.0036 },
+  pixie: { len: 0.06, droop: 0.35, wave: 0.2, count: 1700, radius: 0.0042 },
+  bob: { len: 0.15, droop: 0.7, wave: 0.18, count: 1700, radius: 0.0048 },
+  lob: { len: 0.21, droop: 0.7, wave: 0.2, count: 1600, radius: 0.0048 },
+  "long-straight": { len: 0.34, droop: 0.75, wave: 0.12, count: 1700, radius: 0.0050 },
+  "long-wavy": { len: 0.34, droop: 0.7, wave: 0.55, count: 1600, radius: 0.0052 },
+  ponytail: { len: 0.3, droop: 0.7, wave: 0.16, count: 1500, radius: 0.0052 },
+  "high-ponytail": { len: 0.3, droop: 0.65, wave: 0.18, count: 1450, radius: 0.0052 },
+  afro: { len: 0.1, droop: 0.05, wave: 1.2, count: 2000, radius: 0.0046 },
+  braids: { len: 0.36, droop: 0.75, wave: 0.35, count: 900, radius: 0.0060 },
+  "top-knot": { len: 0.15, droop: 0.3, wave: 0.25, count: 1400, radius: 0.0050 },
+  "double-buns": { len: 0.13, droop: 0.25, wave: 0.3, count: 1400, radius: 0.0050 },
+};
+
+/** Voxel size of the hair density grid: fine enough to keep locks apart. */
+const HAIR_VOXEL_H = 0.0025;
+
+/** Deterministic pseudo-random in [0,1) from three integers. */
+function hash3(i: number, j: number, k = 0): number {
+  let x = Math.imul(i, 374761393) ^ Math.imul(j, 668265263) ^ Math.imul(k, 2246822519);
+  x = Math.imul(x ^ (x >>> 13), 1274126177);
+  return ((x ^ (x >>> 16)) >>> 0) / 4294967296;
+}
+
+/**
+ * Grow strands from the hairstyle's own coverage and rasterise them.
+ *
+ * Every strand starts at a point of the CC0 hair surface (so the hairline is
+ * the asset's), leaves the scalp along its outward direction, and is pulled
+ * down and sideways by the style's droop and wave. Locks are stamped as
+ * tapering capsules into an occupancy grid; the SDF is the distance transform
+ * of that grid, which is what makes separate locks possible at all.
+ */
+function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array): SdfField | null {
+  void roots;
+  const st = HAIR_STYLE[spec.hair.style] ?? HAIR_STYLE.bob;
+  const len = st.len * Math.max(0.35, spec.hair.length) * Math.max(0.6, spec.hair.volume);
+  const centre = J("joint-head");
+  const h = HAIR_VOXEL_H;
+
+  const lo: V3 = [cap.lo[0] - 0.02, cap.lo[1] - len * 1.05 - 0.02, cap.lo[2] - 0.02];
+  const hi: V3 = [cap.hi[0] + 0.02, cap.hi[1] + 0.03, cap.hi[2] + 0.02];
+  const dims: [number, number, number] = [0, 1, 2].map((a) => Math.max(2, Math.ceil((hi[a] - lo[a]) / h) + 1)) as [number, number, number];
+  const [nx, ny, nz] = dims;
+  const origin: V3 = [lo[0] + h / 2, lo[1] + h / 2, lo[2] + h / 2];
+  const inside = new Uint8Array(nx * ny * nz);
+  const stamp = (x: number, y: number, z: number, r: number) => {
+    const r2 = r * r;
+    const i0 = Math.max(0, Math.floor((x - r - origin[0]) / h)), i1 = Math.min(nx - 1, Math.ceil((x + r - origin[0]) / h));
+    const j0 = Math.max(0, Math.floor((y - r - origin[1]) / h)), j1 = Math.min(ny - 1, Math.ceil((y + r - origin[1]) / h));
+    const k0 = Math.max(0, Math.floor((z - r - origin[2]) / h)), k1 = Math.min(nz - 1, Math.ceil((z + r - origin[2]) / h));
+    for (let k = k0; k <= k1; k++) {
+      const dz = origin[2] + k * h - z;
+      for (let j = j0; j <= j1; j++) {
+        const dy = origin[1] + j * h - y;
+        const base = (k * ny + j) * nx;
+        for (let i = i0; i <= i1; i++) {
+          const dx = origin[0] + i * h - x;
+          if (dx * dx + dy * dy + dz * dz <= r2) inside[base + i] = 1;
+        }
+      }
+    }
+  };
+
+  // Roots live on the SCALP, not on the hair card: the card floats a centimetre
+  // above the skull, and growing from it left locks hanging in the air. Every
+  // body vertex under the hairstyle's coverage is a root, so the hairline and
+  // the parting follow the asset while the hair starts on skin.
+  // Every hair-card vertex is a root, projected back onto the skin along the
+  // head's own distance gradient. Using body vertices that merely sit near the
+  // card picked up ears and cheeks, which is why an earlier attempt grew hair
+  // over the face.
+  const head = J("joint-head");
+  const headField = fieldSdf(bodyField("head", 0.003, [], { lo: [head[0] - 0.17, head[1] - 0.20, head[2] - 0.20], hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.20] }));
+  const scalp: number[] = [];
+  const eps = 0.002;
+  const cardStep = Math.max(1, Math.floor(roots.length / 3 / 1800));
+  for (let v = 0; v < roots.length / 3; v += cardStep) {
+    let x = roots[3 * v], y = roots[3 * v + 1], z = roots[3 * v + 2];
+    // Only the part of the card that lies on the SCALP can be a root. The rest
+    // of the card is the length of the hairstyle hanging in the air, and
+    // projecting that onto the skin grew a curtain over the face.
+    if (y < head[1] - 0.09) continue;
+    // and nothing in front of the brow
+    if (z > head[2] + 0.015 && y < head[1] + 0.085) continue;
+    for (let it = 0; it < 8; it++) {
+      const d = headField(x, y, z);
+      if (Math.abs(d) < 0.0012) break;
+      const g: V3 = [
+        headField(x + eps, y, z) - headField(x - eps, y, z),
+        headField(x, y + eps, z) - headField(x, y - eps, z),
+        headField(x, y, z + eps) - headField(x, y, z - eps),
+      ];
+      const l = Math.hypot(g[0], g[1], g[2]) || 1;
+      const s = Math.max(-0.004, Math.min(0.004, -d));
+      x += (g[0] / l) * s;
+      y += (g[1] / l) * s;
+      z += (g[2] / l) * s;
+    }
+    scalp.push(x, y, z);
+  }
+  if (!scalp.length) return null;
+  roots = Float32Array.from(scalp);
+
+  // 1. the scalp layer: the asset's own coverage, 2 mm thick, so no skin shows
+  const step = Math.max(1, Math.floor(roots.length / 3 / 1600));
+  for (let v = 0; v < roots.length / 3; v += step) stamp(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2], 0.0028);
+
+  // 2. strands
+  const count = Math.min(st.count, Math.floor(roots.length / 3));
+  const rootStep = Math.max(1, Math.floor(roots.length / 3 / count));
+  let strand = 0;
+  for (let v = 0; v < roots.length / 3; v += rootStep) {
+    const r0 = hash3(v, 1), r1 = hash3(v, 2), r2 = hash3(v, 3);
+    let px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
+    // outward from the skull centre, jittered so locks do not comb in rows
+    let dx = px - centre[0], dy = py - centre[1], dz = pz - centre[2];
+    const l = Math.hypot(dx, dy, dz) || 1;
+    dx /= l; dy /= l; dz /= l;
+    dx += (r0 - 0.5) * 0.4; dz += (r1 - 0.5) * 0.4;
+    const segs = 16;
+    const radius = st.radius * (0.85 + 0.3 * r2);
+    for (let s = 0; s < segs; s++) {
+      const t = s / segs;
+      // gravity, then the style's kink
+      dy -= st.droop * 0.55;
+      const wave = st.wave * 0.5;
+      dx += (hash3(v, s + 11) - 0.5) * wave;
+      dy += (hash3(v, s + 23) - 0.5) * wave * 0.5;
+      dz += (hash3(v, s + 37) - 0.5) * wave;
+      const n = Math.hypot(dx, dy, dz) || 1;
+      const sx = px, sy = py, sz = pz;
+      px += (dx / n) * (len / segs);
+      py += (dy / n) * (len / segs);
+      pz += (dz / n) * (len / segs);
+      // stamp along the whole segment, or a lock thins into disconnected dots
+      for (let u = 0; u <= 1.001; u += 0.25) {
+        const qx = sx + (px - sx) * u, qy = sy + (py - sy) * u, qz = sz + (pz - sz) * u;
+        // A face is not a place hair grows. Locks that would cross the face are
+        // left out, which is what gives a fringe that frames the face instead
+        // of a curtain drawn over it.
+        const inFace = qz > head[2] + 0.004 && Math.abs(qx - head[0]) < 0.082 && qy < head[1] + 0.085 && qy > head[1] - 0.19;
+        if (!inFace) stamp(qx, qy, qz, radius * (1 - 0.45 * t));
+      }
+    }
+    strand++;
+  }
+  if (!strand) return null;
+  return fieldFromVoxels(inside, dims, origin, h);
 }
 
 /* -------------------------------- regions ------------------------------- */
@@ -432,11 +588,15 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       break;
     }
     case "hair": {
-      // Hair assets are open card surfaces: shell them into a volume with
-      // real thickness rather than pretending they enclose a solid.
-      // 8 mm: at FIELD_H this is 2.7 cells, so the shell cannot self-cancel.
-      const f = proxyField(`hair:${spec.hair.style}`, h);
-      shape = f ? fieldShellShape(f, Math.max(0.008, 0.008 * spec.hair.volume), spec.materials.hair) : null;
+      // Real strands, not a shell. The CC0 asset supplies the hairstyle's
+      // coverage and its hairline; the volume is grown as strands from the
+      // scalp and rasterised into a density grid, so the surface has separate
+      // locks with gaps between them instead of one helmet.
+      const mesh = current!.proxies[`hair:${spec.hair.style}`];
+      const cap = proxyField(`hair:${spec.hair.style}`, h);
+      if (!mesh || !cap) { shape = null; break; }
+      const f = strandHairField(spec, cap, mesh.positions);
+      shape = f ? fieldShape(f, spec.materials.hair) : null;
       break;
     }
   }

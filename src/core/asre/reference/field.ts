@@ -304,6 +304,74 @@ export function fieldFromMesh(positions: Float32Array, indices: Uint32Array, h: 
  */
 const OUTSIDE = 1e3;
 
+/**
+ * Signed distance field of a voxel occupancy grid.
+ *
+ * Hair is built the other way round from the body: thousands of strands are
+ * rasterised into a grid (fast, one write per covered cell), and the surface
+ * is extracted from the distance transform of that grid. Six-neighbour BFS is
+ * enough here — meshing only reads crossings, and normals come from the
+ * gradient of the interpolated field.
+ */
+export function fieldFromVoxels(inside: Uint8Array, dims: [number, number, number], origin: V3, h: number, band = 4): SdfField {
+  const [nx, ny, nz] = dims;
+  const n = nx * ny * nz;
+  const INF = 1e9;
+  const dIn = new Int32Array(n).fill(INF);
+  const dOut = new Int32Array(n).fill(INF);
+  const qIn = new Int32Array(n);
+  const qOut = new Int32Array(n);
+  let hi = 0, ho = 0;
+  const at = (i: number, j: number, k: number) => (k * ny + j) * nx + i;
+  for (let k = 0; k < nz; k++)
+    for (let j = 0; j < ny; j++)
+      for (let i = 0; i < nx; i++) {
+        const q = at(i, j, k);
+        const s = inside[q];
+        let edge = false;
+        for (let a = 0; a < 6 && !edge; a++) {
+          const ni = i + (a === 0 ? 1 : a === 1 ? -1 : 0);
+          const nj = j + (a === 2 ? 1 : a === 3 ? -1 : 0);
+          const nk = k + (a === 4 ? 1 : a === 5 ? -1 : 0);
+          if (ni < 0 || nj < 0 || nk < 0 || ni >= nx || nj >= ny || nk >= nz) { edge = true; break; }
+          if (inside[at(ni, nj, nk)] !== s) edge = true;
+        }
+        if (!edge) continue;
+        // distances in CELLS: an Int32Array would truncate 0.0025 m to zero
+        if (s) { dIn[q] = 1; qIn[hi++] = q; } else { dOut[q] = 1; qOut[ho++] = q; }
+      }
+  // Each flood must stay on its own side: a distance transform that leaks
+  // across the surface is no distance at all, and the extracted field then has
+  // no interior (the first strand build came out completely bald because of it).
+  const flood = (dist: Int32Array, queue: Int32Array, head: number, tail: number, state: number) => {
+    while (head < tail) {
+      const q = queue[head++];
+      const i = q % nx, j = Math.floor(q / nx) % ny, k = Math.floor(q / (nx * ny));
+      const nd = dist[q] + 1;
+      for (let a = 0; a < 6; a++) {
+        const ni = i + (a === 0 ? 1 : a === 1 ? -1 : 0);
+        const nj = j + (a === 2 ? 1 : a === 3 ? -1 : 0);
+        const nk = k + (a === 4 ? 1 : a === 5 ? -1 : 0);
+        if (ni < 0 || nj < 0 || nk < 0 || ni >= nx || nj >= ny || nk >= nz) continue;
+        const q2 = at(ni, nj, nk);
+        if (inside[q2] !== state || dist[q2] <= nd) continue;
+        dist[q2] = nd;
+        queue[tail++] = q2;
+      }
+    }
+  };
+  flood(dIn, qIn, 0, hi, 1);
+  flood(dOut, qOut, 0, ho, 0);
+  const cap = band * h;
+  const values = new Float32Array(n);
+  for (let q = 0; q < n; q++) {
+    const d = inside[q] ? dIn[q] : dOut[q];
+    const mag = d >= INF ? cap : Math.min(band, d) * h;
+    values[q] = inside[q] ? -mag : mag;
+  }
+  return { h, origin, dims, values, lo: [origin[0] - h / 2, origin[1] - h / 2, origin[2] - h / 2], hi: [origin[0] + (nx - 0.5) * h, origin[1] + (ny - 0.5) * h, origin[2] + (nz - 0.5) * h], band };
+}
+
 /** Trilinear lookup inside the grid; outside it, "outside the solid". */
 export function fieldSdf(f: SdfField): Sdf {
   const [nx, ny, nz] = f.dims;

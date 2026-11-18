@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-18T06:08:13.351Z",
+ "generatedAt": "2026-11-18T07:41:40.925Z",
  "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference",
  "size": 640,
  "samples": 28,
@@ -9,15 +9,15 @@
    "kind": "full",
    "view": "front",
    "png": "reference-base-front.png",
-   "triangles": 1273680,
-   "seconds": 5.56,
+   "triangles": 873504,
+   "seconds": 4.53,
    "camera": {
     "center": [
-     0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
+     0.009904786944389343,
+     -0.10815457999706268,
+     0.8461967706680298
     ],
-    "radius": 1.0062667688311213
+    "radius": 1.0127062838336212
    }
   },
   {
@@ -25,15 +25,15 @@
    "kind": "full",
    "view": "side",
    "png": "reference-base-side.png",
-   "triangles": 1273680,
-   "seconds": 5.2,
+   "triangles": 873504,
+   "seconds": 4.25,
    "camera": {
     "center": [
-     0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
+     0.009904786944389343,
+     -0.10815457999706268,
+     0.8461967706680298
     ],
-    "radius": 1.0062667688311213
+    "radius": 1.0127062838336212
    }
   },
   {
@@ -41,15 +41,15 @@
    "kind": "full",
    "view": "back",
    "png": "reference-base-back.png",
-   "triangles": 1273680,
-   "seconds": 5.76,
+   "triangles": 873504,
+   "seconds": 4.26,
    "camera": {
     "center": [
-     0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
+     0.009904786944389343,
+     -0.10815457999706268,
+     0.8461967706680298
     ],
-    "radius": 1.0062667688311213
+    "radius": 1.0127062838336212
    }
   },
   {
@@ -57,37 +57,38 @@
    "kind": "full",
    "view": "three-quarter",
    "png": "reference-base-three-quarter.png",
-   "triangles": 1273680,
-   "seconds": 5.87,
+   "triangles": 873504,
+   "seconds": 4.86,
    "camera": {
     "center": [
-     0.010309755802154541,
-     -0.11783832311630249,
-     0.8623548746109009
+     0.009904786944389343,
+     -0.10815457999706268,
+     0.8461967706680298
     ],
-    "radius": 1.0062667688311213
+    "radius": 1.0127062838336212
    }
+  },
+  {
+   "label": "reference-base",
+   "kind": "face",
+   "view": "front",
+   "png": "reference-base-face-front.png",
+   "triangles": 873504,
+   "seconds": 3.79,
+   "focused": [
+    "head",
+    "face"
+   ]
   },
   {
    "label": "reference-base",
    "kind": "hands",
    "view": "front",
    "png": "reference-base-hands-front.png",
-   "triangles": 1273680,
-   "seconds": 4.54,
+   "triangles": 873504,
+   "seconds": 3.17,
    "focused": [
     "hands"
-   ]
-  },
-  {
-   "label": "reference-base",
-   "kind": "feet",
-   "view": "front",
-   "png": "reference-base-feet-front.png",
-   "triangles": 1273680,
-   "seconds": 3.73,
-   "focused": [
-    "feet"
    ]
   }
  ]

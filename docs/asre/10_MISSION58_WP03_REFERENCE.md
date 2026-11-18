@@ -245,3 +245,38 @@ duplication is gone), IoU stays **1.000000**, build 45.0 s.
 Still true and still reported: the shells follow the CC0 assets, which are
 fitted garments, so folds are the asset's own rather than simulated; there are
 no seams, no cloth simulation and no separate material per garment yet.
+
+## WP04.4 — hair as strands
+
+The hair was a 7 mm closed shell around the CC0 hair card: geometrically valid
+and visually a helmet. It is now grown.
+
+`strandHairField` (`src/core/asre/reference/provider.ts`) takes every vertex of
+the hairstyle's own card that lies on the **scalp** (above the ears, behind the
+brow — the rest of the card is the length of the hairstyle hanging in air, and
+projecting that onto the skin grew a curtain over the face on a first attempt),
+projects it onto the skin along the head's distance gradient, and grows a lock
+from it: outward from the skull, pulled down by the style's droop, kinked by its
+wave, tapering as it falls. Locks are stamped into a 2.5 mm occupancy grid and
+the surface is the distance transform of that grid (`fieldFromVoxels`), which is
+the only way thousands of separate locks can share one mesh. A scalp layer
+2.8 mm thick, from the same card coverage, keeps skin from showing between
+locks. A face keep-out volume makes the fringe frame the face instead of hanging
+through it.
+
+Twelve styles are parameterised (length, droop, wave, lock count, thickness):
+buzz, pixie, bob, lob, long-straight, long-wavy, ponytail, high-ponytail, afro,
+braids, top-knot, double-buns.
+
+Two bugs found and fixed by measurement rather than by staring:
+
+- the density field's distance transform stored distances in **metres inside an
+  `Int32Array`**, so 0.0025 truncated to 0 and the extracted field had no
+  interior at all — the first strand build was completely bald;
+- each BFS pass flooded across the inside/outside boundary, which destroys a
+  distance transform. It is now restricted to its own side.
+
+Honest state: the locks are visible, separate and geometrically real, but they
+are uniform thickness, straight-cut at the fringe, with no clumping, frizz,
+flyaways or shading variation — the next honest step is per-lock variation and
+a proper anisotropic hair material, not more geometry.
