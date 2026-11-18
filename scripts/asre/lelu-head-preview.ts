@@ -14,6 +14,7 @@ import { leluCanon, leluTargets, LELU_FACE_TARGETS, LELU_IDENTITY } from "../../
 import { withChanges } from "../../src/core/asre/character/CharacterSpec.ts";
 import { writeGlb } from "../../src/core/asre/gltf/GlbWriter.ts";
 import { loadReference } from "./cc0-anatomy.ts";
+import { bodySurface, BODY_LABEL, faceLandmarks } from "../../src/core/asre/reference/provider.ts";
 
 const arg = (n: string, d: string) => {
   const i = process.argv.indexOf(`--${n}`);
@@ -27,4 +28,12 @@ const t0 = performance.now();
 loadReference({ height: spec.body.height, targets: spec.anatomy.targets, hairStyles: [spec.hair.style], eyes: true });
 const b = buildCharacter(spec, new ComponentCache(), DEFAULT_LATTICE, ["head", "face", "neck"]);
 writeFileSync(arg("out", "head.glb"), writeGlb(glbParts(b, spec), { compactColors: true }));
+// skull crown above the pupil line, in IOD (geometry: the face detector cannot see it)
+{
+  const sf = bodySurface(spec), lm = faceLandmarks(spec);
+  const eyeY = (lm.eyes[0].center[1] + lm.eyes[1].center[1]) / 2, iod = Math.abs(lm.eyes[0].center[0] - lm.eyes[1].center[0]);
+  let top = -Infinity;
+  for (let t = 0; t < sf.labels.length; t++) if (sf.labels[t] === BODY_LABEL.head) for (let k = 0; k < 3; k++) top = Math.max(top, sf.positions[3 * sf.indices[3 * t + k] + 1]);
+  console.log(`CROWN ${((top - eyeY) / iod).toFixed(4)}`);
+}
 console.log(`head preview in ${((performance.now() - t0) / 1000).toFixed(1)} s`);

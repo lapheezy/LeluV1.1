@@ -46,6 +46,7 @@ PARAMS = {
     "lower_lip": (["mouth/mouth-lowerlip-height-incr"], ["mouth/mouth-lowerlip-height-decr"], 0.0),
     "head_width": (["head/head-scale-horiz-incr"], ["head/head-scale-horiz-decr"], 0.0),
     "head_height": (["head/head-scale-vert-incr"], ["head/head-scale-vert-decr"], 0.0),
+    "head_round": (["head/head-round"], ["head/head-oval"], 0.3),
     "cheek_bones": (["cheek/l-cheek-bones-incr", "cheek/r-cheek-bones-incr"], ["cheek/l-cheek-bones-decr", "cheek/r-cheek-bones-decr"], 0.5),
     "chin_width": (["chin/chin-width-incr"], ["chin/chin-width-decr"], 0.0),
     "jaw_width": (["chin/chin-bones-incr"], ["chin/chin-bones-decr"], 0.0),
@@ -54,7 +55,6 @@ PARAMS = {
 }
 # identity targets that are not fitted (shape, not proportion): kept as they are
 FIXED = [
-    "targets/head/head-round.target@0.3",
     "targets/eyes/l-eye-corner2-down.target@0.2",
     "targets/eyes/r-eye-corner2-down.target@0.2",
     "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
@@ -83,7 +83,8 @@ def evaluate(w, tag, a, ref):
     json.dump(targets_for(w), open(tf, "w"), indent=0)
     glb = os.path.join(d, "head.glb")
     env = dict(os.environ, NODE_OPTIONS="--max-old-space-size=8000")
-    subprocess.run(["tsx", "scripts/asre/lelu-head-preview.ts", "--targets", tf, "--out", glb], cwd=ROOT, check=True, env=env, capture_output=True)
+    pv = subprocess.run(["tsx", "scripts/asre/lelu-head-preview.ts", "--targets", tf, "--out", glb], cwd=ROOT, check=True, env=env, capture_output=True, text=True)
+    crown = float([l for l in pv.stdout.splitlines() if l.startswith("CROWN")][0].split()[1])
     js = ("import('./scripts/asre/render.mjs').then(m=>m.renderViews({glb:process.argv[1],outDir:process.argv[2],views:['front'],prefix:'head-ortho-',"
           "resolution:[640,640],samples:16,camera:{center:[0,-0.1,1.555],radius:0.13},ortho:true,hide:['hair','accessories.head'],lighting:'neutral',materials:'classes',denoise:true,viewTransform:'AgX'}))")
     subprocess.run(["node", "-e", js, glb, d], cwd=ROOT, check=True, capture_output=True)
@@ -93,6 +94,7 @@ def evaluate(w, tag, a, ref):
         return None
     pts, _, _ = res
     metrics, _ = lm.measure({k: pts[i] for k, i in lm.LM.items()})
+    metrics["crown_above_pupils"] = crown
     z = np.array([(metrics[k] - ref[k]["mean"]) / max(ref[k]["std"], abs(ref[k]["mean"]) * 0.01) for k in KEYS])
     json.dump({"weights": dict(zip(NAMES, map(float, w))), "metrics": metrics, "z": dict(zip(KEYS, map(float, z)))}, open(os.path.join(d, "eval.json"), "w"), indent=1)
     return z
@@ -110,6 +112,11 @@ def main():
     ap.add_argument("--only", help="comma-separated parameters to fit; the rest are held")
     a = ap.parse_args()
     ref = json.load(open(os.path.join(ROOT, "artifacts/lelu/wp04/reference-landmarks/landmarks.json")))["aggregate"]
+    # The skull vault is not visible to the face detector. Her references show
+    # the HAIR crown at 2.15 +- 0.03 IOD above the pupils (lelu-silhouette.py,
+    # ref01/ref10/ref17); with ~0.1 IOD of sleek hair over the crown (an
+    # assumption, covered by the wider std) the skull crown target is:
+    ref["crown_above_pupils"] = {"mean": 2.05, "std": 0.08, "n": 3, "definition": "skull top above the pupil line / IOD (geometry)"}
     KEYS = list(ref)
     w0 = np.array([PARAMS[n][2] for n in NAMES])
     if a.start:

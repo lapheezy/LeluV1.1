@@ -47,22 +47,23 @@ const TARGETS = {
 /*
  * FITTED (WP04): these weights were solved, not chosen. scripts/asre/lelu-fit-face.py
  * measured 25 landmark metrics on orthographic renders of her head and fitted
- * 18 signed CC0 morph parameters to the mean of her six independent frontal
- * references (Gauss-Newton, Tikhonov to the start, bounds +-1). Pass 1 (all
- * parameters): RMS z 4.60 -> 1.45. Pass 2, after her brows and lips were
- * painted in her own landmark units (lips, brows, mouth, chin, aperture,
- * forehead only): 1.20 -> 0.81. Parameters: {"eye_spacing": 0.639, "eye_scale": -0.104, "eye_open": 0.565, "eye_tilt": 0.482, "brow_height": 0.589, "nose_width": -0.862, "nose_length": -1.0, "nose_flare": -0.164, "mouth_width": 0.603, "upper_lip": 1.0, "lower_lip": 0.143, "head_width": -1.0, "head_height": -1.0, "cheek_bones": 1.0, "chin_width": -0.931, "jaw_width": 0.498, "chin_height": 0.152, "forehead_height": 1.0}
+ * signed CC0 morph parameters to the mean of her six independent frontal
+ * references (Gauss-Newton, Tikhonov to the start, bounds +-1).
+ *   pass 1, all parameters:                              RMS z 4.60 -> 1.45
+ *   pass 2, brows/lips painted in her landmark units:    RMS z 1.20 -> 0.81
+ *   pass 3, + skull crown (2.05 +- 0.08 IOD over the
+ *           pupils, from her hair crown less sleek hair):  crown 2.39 -> 2.13 IOD
+ * Parameters: {"eye_spacing": 0.876, "eye_scale": -0.104, "eye_open": 0.565, "eye_tilt": 0.482, "brow_height": 0.589, "nose_width": -0.862, "nose_length": -1.0, "nose_flare": -0.164, "mouth_width": 0.603, "upper_lip": 1.0, "lower_lip": 0.143, "head_width": -1.0, "head_height": -1.0, "head_round": 0.495, "cheek_bones": 0.793, "chin_width": -0.931, "jaw_width": 0.498, "chin_height": 0.197, "forehead_height": 0.753}
  */
 export const LELU_FACE_TARGETS = [
-  "targets/head/head-round.target@0.3",
   "targets/eyes/l-eye-corner2-down.target@0.2",
   "targets/eyes/r-eye-corner2-down.target@0.2",
   "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
   "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
   "targets/mouth/mouth-cupidsbow-incr.target@0.6",
   "targets/nose/nose-point-width-incr.target@0.25",
-  "targets/eyes/l-eye-trans-out.target@0.6386",
-  "targets/eyes/r-eye-trans-out.target@0.6386",
+  "targets/eyes/l-eye-trans-out.target@0.8758",
+  "targets/eyes/r-eye-trans-out.target@0.8758",
   "targets/eyes/l-eye-scale-decr.target@0.1036",
   "targets/eyes/r-eye-scale-decr.target@0.1036",
   "targets/eyes/l-eye-height2-incr.target@0.5649",
@@ -78,12 +79,13 @@ export const LELU_FACE_TARGETS = [
   "targets/mouth/mouth-lowerlip-height-incr.target@0.1434",
   "targets/head/head-scale-horiz-decr.target@1.0000",
   "targets/head/head-scale-vert-decr.target@1.0000",
-  "targets/cheek/l-cheek-bones-incr.target@1.0000",
-  "targets/cheek/r-cheek-bones-incr.target@1.0000",
+  "targets/head/head-round.target@0.4947",
+  "targets/cheek/l-cheek-bones-incr.target@0.7933",
+  "targets/cheek/r-cheek-bones-incr.target@0.7933",
   "targets/chin/chin-width-decr.target@0.9310",
   "targets/chin/chin-bones-incr.target@0.4976",
-  "targets/chin/chin-height-incr.target@0.1523",
-  "targets/forehead/forehead-scale-vert-incr.target@1.0000",
+  "targets/chin/chin-height-incr.target@0.1975",
+  "targets/forehead/forehead-scale-vert-incr.target@0.7526",
 ];
 
 /**
