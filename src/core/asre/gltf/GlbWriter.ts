@@ -40,10 +40,18 @@ export interface GlbOptions {
   generator?: string;
   /** Scene-level extras (e.g. character id, snapshot id). */
   extras?: Record<string, unknown>;
+  /**
+   * Vertex colours as normalized UNSIGNED_SHORT (glTF 2.0 §3.7.2.1) instead
+   * of float: half the bytes, 16-bit precision (no banding in linear darks).
+   * A strand-hair character is ~1 M vertices; this keeps its GLB under the
+   * size a git host accepts.
+   */
+  compactColors?: boolean;
 }
 
 const FLOAT = 5126;
 const UINT32 = 5125;
+const UINT16 = 5123;
 const ARRAY_BUFFER = 34962;
 const ELEMENT_ARRAY_BUFFER = 34963;
 
@@ -101,7 +109,15 @@ export function writeGlb(parts: GlbPart[], options: GlbOptions = {}): Uint8Array
     const positions = zup ? zUpToYUp(mesh.positions) : mesh.positions;
     const attributes: Record<string, number> = { POSITION: vec(positions, "VEC3", true) };
     if (mesh.normals) attributes.NORMAL = vec(zup ? zUpToYUp(mesh.normals) : mesh.normals, "VEC3", false);
-    if (mesh.colors) attributes.COLOR_0 = vec(mesh.colors, "VEC4", false);
+    if (mesh.colors) {
+      if (options.compactColors) {
+        const q = new Uint16Array(mesh.colors.length);
+        for (let i = 0; i < q.length; i++) q[i] = Math.round(Math.max(0, Math.min(1, mesh.colors[i])) * 65535);
+        const view = push(new Uint8Array(q.buffer), ARRAY_BUFFER);
+        accessors.push({ bufferView: view, componentType: UINT16, normalized: true, count: q.length / 4, type: "VEC4" });
+        attributes.COLOR_0 = accessors.length - 1;
+      } else attributes.COLOR_0 = vec(mesh.colors, "VEC4", false);
+    }
     const iv = push(new Uint8Array(mesh.indices.buffer, mesh.indices.byteOffset, mesh.indices.byteLength), ELEMENT_ARRAY_BUFFER);
     accessors.push({ bufferView: iv, componentType: UINT32, count: mesh.indices.length, type: "SCALAR" });
     const primitive: Record<string, unknown> = { attributes, indices: accessors.length - 1, mode: 4 };

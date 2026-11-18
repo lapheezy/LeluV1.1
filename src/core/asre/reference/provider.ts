@@ -30,7 +30,8 @@ import { cross, skin, sub, unit } from "./skin.ts";
 import type { BonePose, Rig } from "./skin.ts";
 import { extractSubmesh, loopSubdivide, smoothNormals } from "./surface.ts";
 import type { Mesh } from "../volume/mesh.ts";
-import { buildWardrobe, type Wardrobe } from "./wardrobe.ts";
+import { buildWardrobe, MAT, type Wardrobe } from "./wardrobe.ts";
+import { growCurls, LELU_CURLS, type Curls } from "./hair.ts";
 
 export interface RefProxy {
   /** Mesh in metres, placed on the body by its `.mhclo` mapping. */
@@ -251,6 +252,79 @@ function hash3(i: number, j: number, k = 0): number {
  * tapering capsules into an occupancy grid; the SDF is the distance transform
  * of that grid, which is what makes separate locks possible at all.
  */
+/**
+ * Scalp roots for a hairstyle: every hair-card vertex that lies over the
+ * scalp, projected onto her skin along the head's own distance gradient,
+ * with the outward normal there. The card floats a centimetre above the
+ * skull, so growing from it directly left locks hanging in the air.
+ */
+let scalpCache: { key: string; roots: Float32Array; normals: Float32Array } | null = null;
+export function scalpRoots(spec: CharacterSpec): { roots: Float32Array; normals: Float32Array } | null {
+  const mesh = current?.proxies[`hair:${spec.hair.style}`];
+  if (!mesh) return null;
+  const key = `${current!.digest}|${spec.hair.style}`;
+  if (scalpCache?.key === key) return scalpCache;
+  const head = J("joint-head");
+  const headField = fieldSdf(headSdf());
+  const card = mesh.positions;
+  const out: number[] = [], nor: number[] = [];
+  const eps = 0.002;
+  const grad = (x: number, y: number, z: number): V3 => unit([headField(x + eps, y, z) - headField(x - eps, y, z), headField(x, y + eps, z) - headField(x, y - eps, z), headField(x, y, z + eps) - headField(x, y, z - eps)]);
+  const step = Math.max(1, Math.floor(card.length / 3 / 2400));
+  for (let v = 0; v < card.length / 3; v += step) {
+    let x = card[3 * v], y = card[3 * v + 1], z = card[3 * v + 2];
+    if (y < head[1] - 0.09) continue;
+    if (z > head[2] + 0.015 && y < head[1] + 0.085) continue;
+    for (let it = 0; it < 10; it++) {
+      const d = headField(x, y, z);
+      if (Math.abs(d) < 0.001) break;
+      const g = grad(x, y, z);
+      const st = Math.max(-0.004, Math.min(0.004, -d));
+      x += g[0] * st;
+      y += g[1] * st;
+      z += g[2] * st;
+    }
+    out.push(x, y, z);
+    nor.push(...grad(x, y, z));
+  }
+  scalpCache = { key, roots: Float32Array.from(out), normals: Float32Array.from(nor) };
+  return scalpCache;
+}
+
+/** Is (x, y, z) on her scalp, under the hair? A 1 cm hash of the roots. */
+let scalpHash: { key: string; cells: Set<string> } | null = null;
+function onScalp(spec: CharacterSpec, x: number, y: number, z: number): boolean {
+  const r = scalpRoots(spec);
+  if (!r) return false;
+  const key = `${current!.digest}|${spec.hair.style}`;
+  if (scalpHash?.key !== key) {
+    const cells = new Set<string>();
+    for (let i = 0; i < r.roots.length; i += 3) cells.add(`${Math.round(r.roots[i] / 0.006)},${Math.round(r.roots[i + 1] / 0.006)},${Math.round(r.roots[i + 2] / 0.006)}`);
+    scalpHash = { key, cells };
+  }
+  // any root within a cell of this point: the scalp is continuous, the roots are samples
+  const i = Math.round(x / 0.006), j = Math.round(y / 0.006), k = Math.round(z / 0.006);
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) if (scalpHash.cells.has(`${i + a},${j + b},${k + c}`)) return true;
+  return false;
+}
+
+let curlCache: { key: string; c: Curls } | null = null;
+/** Her curls, grown as strands (hair.ts). */
+export function leluCurls(spec: CharacterSpec): Curls | null {
+  const r = scalpRoots(spec);
+  if (!r) return null;
+  const key = `${current!.digest}|${spec.hair.style}|${spec.hair.length}|${spec.hair.volume}`;
+  if (curlCache?.key === key) return curlCache.c;
+  const st = { ...LELU_CURLS, length: LELU_CURLS.length * Math.max(0.4, spec.hair.length), spread: LELU_CURLS.spread * spec.hair.volume };
+  const c = growCurls(
+    { roots: r.roots, normals: r.normals, head: J("joint-head"), body: fieldSdf(bodyField("body", 0, [], null)), colors: { base: spec.materials.hair, rose: L.hairRose, berry: [0.4, 0.07, 0.17] } },
+    st,
+    MAT.hair,
+  );
+  curlCache = { key, c };
+  return c;
+}
+
 function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array): SdfField | null {
   void roots;
   const st = HAIR_STYLE[spec.hair.style] ?? HAIR_STYLE.bob;
@@ -815,7 +889,7 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
         // mouth, brow line) is in world space, so the paint has to be evaluated
         // back in world space or none of her marks land anywhere.
         color: isLelu(spec)
-          ? (x, y, z) => leluFaceColour(x + anchor[0], y + anchor[1], z + anchor[2], skinC, hairC)
+          ? (x, y, z) => (onScalp(spec, x + anchor[0], y + anchor[1], z + anchor[2]) ? hairC : leluFaceColour(x + anchor[0], y + anchor[1], z + anchor[2], skinC, hairC))
           : (x, y, z) => (m.lips(x, y, z) < 0 ? [0.44, 0.19, 0.17] : m.brows(x, y, z) < 0 ? hairC : skinC),
       };
       break;
@@ -1038,6 +1112,15 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
       // coverage and its hairline; the volume is grown as strands from the
       // scalp and rasterised into a density grid, so the surface has separate
       // locks with gaps between them instead of one helmet.
+      if (isLelu(spec)) {
+        const c = leluCurls(spec);
+        if (!c) { shape = null; break; }
+        // the mesh lives in the component's frame; the field is moved below
+        const m = c.mesh, P = new Float32Array(m.positions.length);
+        for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) P[i + a] = m.positions[i + a] - anchor[a];
+        shape = { f: c.f, lo: c.lo, hi: c.hi, color: () => spec.materials.hair, mesh: { ...m, positions: P } };
+        break;
+      }
       const mesh = current!.proxies[`hair:${spec.hair.style}`];
       const cap = proxyField(`hair:${spec.hair.style}`, h);
       if (!mesh || !cap) { shape = null; break; }

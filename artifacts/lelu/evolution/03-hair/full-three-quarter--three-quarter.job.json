@@ -1,0 +1,23 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m3/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/03-hair/full-three-quarter--three-quarter.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "three-quarter",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 1
+ },
+ "ground": true,
+ "view_transform": "AgX"
+}

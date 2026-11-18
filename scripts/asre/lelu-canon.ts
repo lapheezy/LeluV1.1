@@ -49,7 +49,7 @@ const ms = performance.now() - t0;
 const parts = glbParts(build, spec);
 let tris = 0;
 for (const p of parts) tris += p.mesh.indices.length / 3;
-const glb = writeGlb(parts, { generator: "LÉLU canonical avatar — ASRE" });
+const glb = writeGlb(parts, { generator: "LÉLU canonical avatar — ASRE", compactColors: true });
 writeFileSync(join(outDir, "lelu-canon.glb"), glb);
 
 const report = {

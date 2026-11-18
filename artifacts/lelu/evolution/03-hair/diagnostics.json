@@ -1,0 +1,238 @@
+{
+ "character": "lelu-canonical",
+ "referenceDigest": "0883b24ef7a9655f",
+ "buildMs": 51410,
+ "triangles": 2650156,
+ "components": {
+  "torso": {
+   "triangles": 8998,
+   "vertices": 4881,
+   "boundaryEdges": 760,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 3.13,
+    "median": 4.86,
+    "p95": 6.41
+   }
+  },
+  "pelvis": {
+   "triangles": 41028,
+   "vertices": 20945,
+   "boundaryEdges": 858,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 1.26,
+    "median": 5.25,
+    "p95": 8.87
+   }
+  },
+  "neck": {
+   "triangles": 9024,
+   "vertices": 4764,
+   "boundaryEdges": 504,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 2.46,
+    "median": 4.83,
+    "p95": 8.18
+   }
+  },
+  "head": {
+   "triangles": 137338,
+   "vertices": 68789,
+   "boundaryEdges": 238,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.31,
+    "median": 1.1,
+    "p95": 4.42
+   }
+  },
+  "face": {
+   "triangles": 2536,
+   "vertices": 1283,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 6,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.65,
+    "median": 1.77,
+    "p95": 2.48
+   }
+  },
+  "hair": {
+   "triangles": 1544280,
+   "vertices": 774660,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 3.8,
+    "median": 5.97,
+    "p95": 7.88
+   }
+  },
+  "arms": {
+   "triangles": 23936,
+   "vertices": 12404,
+   "boundaryEdges": 876,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 2.01,
+    "median": 4.33,
+    "p95": 8.06
+   }
+  },
+  "hands": {
+   "triangles": 104808,
+   "vertices": 52510,
+   "boundaryEdges": 208,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.48,
+    "median": 1.08,
+    "p95": 2.79
+   }
+  },
+  "legs": {
+   "triangles": 34806,
+   "vertices": 17603,
+   "boundaryEdges": 402,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 3.17,
+    "median": 6.38,
+    "p95": 12.01
+   }
+  },
+  "feet": {
+   "triangles": 68158,
+   "vertices": 34170,
+   "boundaryEdges": 178,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.45,
+    "median": 1.43,
+    "p95": 5.5
+   }
+  },
+  "clothing.top": {
+   "triangles": 65528,
+   "vertices": 32840,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 2,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.48,
+    "median": 3.85,
+    "p95": 7.29
+   }
+  },
+  "clothing.bottom": {
+   "triangles": 263196,
+   "vertices": 131590,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 34,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.5,
+    "median": 2.01,
+    "p95": 10.53
+   }
+  },
+  "clothing.shoes": {
+   "triangles": 339996,
+   "vertices": 170124,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 52,
+   "degenerate": 50,
+   "edgeMm": {
+    "p5": 0.41,
+    "median": 1.6,
+    "p95": 5.22
+   }
+  },
+  "accessories.head": {
+   "triangles": 2636,
+   "vertices": 1287,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 42,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.48,
+    "median": 2.24,
+    "p95": 3.21
+   }
+  },
+  "accessories.body": {
+   "triangles": 3888,
+   "vertices": 1932,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 4,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 2.26,
+    "median": 4.3,
+    "p95": 5.36
+   }
+  },
+  "skin (welded union)": {
+   "triangles": 428096,
+   "vertices": 216066,
+   "boundaryEdges": 0,
+   "nonManifoldEdges": 0,
+   "degenerate": 0,
+   "edgeMm": {
+    "p5": 0.43,
+    "median": 1.61,
+    "p95": 7.61
+   }
+  }
+ },
+ "coverage": {
+  "bust": {
+   "vertices": 1528,
+   "covered": 1528,
+   "percent": 100
+  },
+  "pelvis-front": {
+   "vertices": 1879,
+   "covered": 1879,
+   "percent": 100
+  },
+  "crotch": {
+   "vertices": 1062,
+   "covered": 1062,
+   "percent": 100
+  },
+  "seat": {
+   "vertices": 1638,
+   "covered": 1638,
+   "percent": 100
+  },
+  "thighs": {
+   "vertices": 3783,
+   "covered": 3783,
+   "percent": 100
+  },
+  "shins": {
+   "vertices": 3028,
+   "covered": 3028,
+   "percent": 100
+  }
+ },
+ "occupancy": {
+  "componentCells": 476093,
+  "wholeCells": 476093,
+  "intersection": 476093,
+  "iou": 1
+ }
+}
