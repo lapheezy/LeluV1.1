@@ -883,6 +883,62 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
               return id === "clothing.top" ? L.corset : L.cargo;
             }
           : null;
+      if (isLelu(spec)) {
+        // HER wardrobe, not the CC0 suit recoloured. Each garment is its own
+        // closed solid built as a shell around HER body at its own stand-off,
+        // so the silhouette is hers: a strapless corset from underbust to high
+        // hip, loose cargo tubes per leg, and platform boots with a sole.
+        const bodySd = fieldSdf(bodyField("body", h, [], null));
+        const shY = J("joint-l-shoulder")[1], pelY = J("joint-pelvis")[1], ank = J("joint-l-ankle");
+        const cloth = (gap: number, t: number, mask: Sdf): Shape => ({
+          f: (x, y, z) => Math.max(Math.abs(bodySd(x, y, z) - gap - t / 2) - t / 2, mask(x, y, z)),
+          lo: [-0.30, -0.05, -0.28],
+          hi: [0.30, shY + 0.02, 0.28],
+          color: clothPaint ?? (() => color),
+        });
+        if (id === "clothing.top") {
+          // corset: underbust to high hip, hugging her own torso
+          // strapless: no sleeve stubs where the shell rides onto her arms
+          shape = cloth(0.006, 0.010, (x, y) => Math.max(Math.max(pelY + 0.02 - y, y - (shY - 0.03)), Math.abs(x) - 0.125));
+        } else if (id === "clothing.bottom") {
+          // cargo: a tube per leg, relaxed, from the waist to the boot top
+          const legMask = (side: 0 | 1): Sdf => {
+            const l = SIDE(side);
+            const hip = J(`joint-${l}-upper-leg`), ankle = J(`joint-${l}-ankle`);
+            // loose fit: a cargo leg hangs well clear of the shin, and the
+            // mask has to be wider than the limb or it clips the trouser away
+            return around(hip, ankle, 0.145);
+          };
+          shape = cloth(0.02, 0.012, (x, y, z) =>
+            Math.max(Math.max(ank[1] + 0.05 - y, y - (pelY + 0.06)), Math.min(legMask(0)(x, y, z), legMask(1)(x, y, z))),
+          );
+        } else {
+          // platform boots: shaft around the ankle plus a chunky sole slab
+          const parts: Shape[] = [];
+          for (const side of [0, 1] as const) {
+            const l = SIDE(side);
+            const a = J(`joint-${l}-ankle`);
+            const sx = a[0] > 0 ? 1 : -1;
+            const shaft = cloth(0.014, 0.012, (x, y, _z) =>
+              Math.max(Math.max(-0.01 - y, y - (a[1] + 0.24)), Math.min(-x * sx + 0.02, Math.abs(x) - 0.20)),
+            );
+            const soleC: V3 = [a[0], 0.016, a[2] + 0.055];
+            const sole: Shape = {
+              f: (x, y, z) => {
+                const qx = Math.abs(x - soleC[0]) - 0.048, qy = Math.abs(y - soleC[1]) - 0.017, qz = Math.abs(z - soleC[2]) - 0.105;
+                const ox = Math.max(qx, 0), oy = Math.max(qy, 0), oz = Math.max(qz, 0);
+                return Math.hypot(ox, oy, oz) + Math.min(Math.max(qx, qy, qz), 0);
+              },
+              lo: [soleC[0] - 0.048, 0, soleC[2] - 0.105],
+              hi: [soleC[0] + 0.048, 0.033, soleC[2] + 0.105],
+              color: () => L.copper,
+            };
+            parts.push(union(shaft, sole));
+          }
+          shape = group(...parts);
+        }
+        break;
+      }
       const garmentMesh = current!.proxies[name];
       if (!garmentMesh) { shape = null; break; }
       // A thin shell self-cancels on the sampling lattice (two surfaces inside

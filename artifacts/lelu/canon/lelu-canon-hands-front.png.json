@@ -1,0 +1,47 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon/lelu-canon-hands-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": [
+  "hands"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.01195843517780304,
+   -0.23855312168598175,
+   1.038572072982788
+  ],
+  "radius": 0.5153049447417808
+ },
+ "triangles": 1373776,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4906481206417084,
+   -0.3256304860115051,
+   0.9654737710952759
+  ],
+  "max": [
+   0.5145649909973145,
+   -0.15147575736045837,
+   1.1116702556610107
+  ]
+ },
+ "render_seconds": 4.24,
+ "blender": "4.2.23 LTS"
+}

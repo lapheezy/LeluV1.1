@@ -1,0 +1,47 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/lelu/canon/lelu-canon-feet-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": [
+  "feet"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   2.2202730178833008e-06,
+   -0.06990347057580948,
+   0.07445482909679413
+  ],
+  "radius": 0.30020432986091783
+ },
+ "triangles": 1373776,
+ "bounds_blender_zup": {
+  "min": [
+   -0.27090755105018616,
+   -0.19080843031406403,
+   0.028492728248238564
+  ],
+  "max": [
+   0.2709119915962219,
+   0.05100148543715477,
+   0.12041693180799484
+  ]
+ },
+ "render_seconds": 3.98,
+ "blender": "4.2.23 LTS"
+}

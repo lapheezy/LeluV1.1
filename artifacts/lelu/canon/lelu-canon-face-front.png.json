@@ -31,7 +31,7 @@
   ],
   "radius": 0.3623601505981346
  },
- "triangles": 1373164,
+ "triangles": 1373776,
  "bounds_blender_zup": {
   "min": [
    -0.17675000429153442,
@@ -44,6 +44,6 @@
    1.7067160606384277
   ]
  },
- "render_seconds": 6.37,
+ "render_seconds": 4.81,
  "blender": "4.2.23 LTS"
 }
