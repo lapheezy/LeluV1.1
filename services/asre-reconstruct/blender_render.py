@@ -42,6 +42,13 @@ meshes = [o for o in scene.objects if o.type == "MESH"]
 if not meshes:
     raise SystemExit("no mesh objects imported")
 
+# "hide": component names to leave out (e.g. hair, to measure the bare head)
+for name in job.get("hide", []):
+    for o in list(meshes):
+        if o.name == name or o.name.split(".")[0] == name:
+            bpy.data.objects.remove(o, do_unlink=True)
+            meshes.remove(o)
+
 # Material classes (job "materials": "classes"): LÉLU writes a material class
 # into the vertex-colour alpha (skin 1, cloth .5, satin .45, leather .8,
 # rubber .7, metal .9, gem .35, hair .25, gloss .6 — reference/wardrobe.ts MAT).
@@ -156,6 +163,11 @@ cam.rotation_euler = (center - cam.location).to_track_quat("-Z", "Y").to_euler()
 cam_data.clip_start = dist / 100
 cam_data.clip_end = dist * 10
 scene.camera = cam
+if job.get("ortho"):
+    # orthographic: no perspective foreshortening, so proportions measured on
+    # the image are proportions of the model
+    cam_data.type = "ORTHO"
+    cam_data.ortho_scale = radius * 2
 
 def light(name, kind, energy, loc, size_=1.0):
     ld = bpy.data.lights.new(name, kind)
@@ -168,9 +180,20 @@ def light(name, kind, energy, loc, size_=1.0):
     scene.collection.objects.link(lo_)
 
 s = radius
-light("key", "AREA", 400 * s * s, center + Vector((2.5, -3, 3)) * s, 2 * s)
-light("fill", "AREA", 120 * s * s, center + Vector((-3, -2, 1)) * s, 3 * s)
-light("rim", "AREA", 200 * s * s, center + Vector((0, 3, 2.5)) * s, 2 * s)
+lighting = job.get("lighting", "studio")
+if lighting == "neutral":
+    # even, frontal, low-contrast: for measurement and colour judgement
+    light("front", "AREA", 260 * s * s, center + Vector((0, -3.2, 0.6)) * s, 4 * s)
+    light("left", "AREA", 110 * s * s, center + Vector((-3, -1.5, 0.5)) * s, 4 * s)
+    light("right", "AREA", 110 * s * s, center + Vector((3, -1.5, 0.5)) * s, 4 * s)
+elif lighting == "warm":
+    # alternate: a warm low key from one side and a cool rim, as in her references
+    ld_key = light("key", "AREA", 520 * s * s, center + Vector((-2.8, -2.2, 0.8)) * s, 1.5 * s)
+    light("rim", "AREA", 380 * s * s, center + Vector((2.5, 2.5, 1.8)) * s, 1.2 * s)
+else:
+    light("key", "AREA", 400 * s * s, center + Vector((2.5, -3, 3)) * s, 2 * s)
+    light("fill", "AREA", 120 * s * s, center + Vector((-3, -2, 1)) * s, 3 * s)
+    light("rim", "AREA", 200 * s * s, center + Vector((0, 3, 2.5)) * s, 2 * s)
 
 if job.get("ground"):
     mesh = bpy.data.meshes.new("ground")

@@ -70,6 +70,12 @@ export async function renderViews({
   denoise = false,
   /** Wireframe edge width in pixels. */
   wirePx,
+  /** Orthographic camera. */
+  ortho = false,
+  /** Components to leave out of the render. */
+  hide,
+  /** "studio" | "neutral" | "warm". */
+  lighting,
   timeoutMs = 600_000,
 }) {
   mkdirSync(outDir, { recursive: true });
@@ -92,6 +98,9 @@ export async function renderViews({
       ...(materials ? { materials } : {}),
       ...(denoise ? { denoise: true } : {}),
       ...(wirePx ? { wire_px: wirePx } : {}),
+      ...(ortho ? { ortho: true } : {}),
+      ...(hide ? { hide } : {}),
+      ...(lighting ? { lighting } : {}),
     };
     const jobFile = path.join(outDir, `${stem}.job.json`);
     writeFileSync(jobFile, JSON.stringify(job, null, 1));
