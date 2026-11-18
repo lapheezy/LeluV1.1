@@ -1,0 +1,143 @@
+{
+ "ok": true,
+ "timeline": {
+  "character": "wp7-lelu",
+  "head": "v0006",
+  "snapshots": [
+   {
+    "version": "v0001",
+    "parent": null,
+    "snapshot": "snap-v0001",
+    "label": "created",
+    "operation": "create",
+    "cells": 348894,
+    "added": 348894,
+    "removed": 0,
+    "changed": 0,
+    "contentHash": "859af664bb55384caf921c6aab90a5d09edfbe466e25be6cfdf41c62506b589f",
+    "replaced": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "evidence": "GENERATED",
+    "meanConfidence": 1
+   },
+   {
+    "version": "v0002",
+    "parent": "v0001",
+    "snapshot": "snap-v0002",
+    "label": "WP7 hair",
+    "operation": "edit",
+    "cells": 408944,
+    "added": 69144,
+    "removed": 9094,
+    "changed": 58486,
+    "contentHash": "72e1a52548dafded6b925fa8af8ef754e586d5032377b5770a8d0b07af095f00",
+    "replaced": [
+     "hair"
+    ],
+    "evidence": "GENERATED",
+    "meanConfidence": 1
+   },
+   {
+    "version": "v0003",
+    "parent": "v0002",
+    "snapshot": "snap-v0003",
+    "label": "WP7 clothing",
+    "operation": "edit",
+    "cells": 448320,
+    "added": 39376,
+    "removed": 0,
+    "changed": 148972,
+    "contentHash": "0ac4f42e27b0982ee7b1f2b47f7b5941fda4ad8b4ed1ed15338ef3b752ea7ca2",
+    "replaced": [
+     "clothing.top"
+    ],
+    "evidence": "GENERATED",
+    "meanConfidence": 1
+   },
+   {
+    "version": "v0004",
+    "parent": "v0003",
+    "snapshot": "snap-v0004",
+    "label": "WP7 body",
+    "operation": "edit",
+    "cells": 482696,
+    "added": 88326,
+    "removed": 53950,
+    "changed": 350184,
+    "contentHash": "0f393667e0be40fefe7ccc94f8f0d066cd13393e22cf08c932ebb78e9abd7607",
+    "replaced": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes"
+    ],
+    "evidence": "GENERATED",
+    "meanConfidence": 1
+   },
+   {
+    "version": "v0005",
+    "parent": "v0004",
+    "snapshot": "snap-v0005",
+    "label": "WP7 material",
+    "operation": "edit",
+    "cells": 482696,
+    "added": 0,
+    "removed": 0,
+    "changed": 89744,
+    "contentHash": "f4e1c869beed72c1ea0136719cf444f9f6d8938abc8c21a32107cbc6ec27d1b7",
+    "replaced": [],
+    "evidence": "GENERATED",
+    "meanConfidence": 1
+   },
+   {
+    "version": "v0006",
+    "parent": "v0005",
+    "snapshot": "snap-v0006",
+    "label": "WP7 pose",
+    "operation": "edit",
+    "cells": 484573,
+    "added": 42711,
+    "removed": 40834,
+    "changed": 340000,
+    "contentHash": "21b08e4e249ef447c27066b5439752e685b2ea53b206111d4e00f3e0d5508d81",
+    "replaced": [
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes"
+    ],
+    "evidence": "GENERATED",
+    "meanConfidence": 1
+   }
+  ],
+  "headReplayVerified": true,
+  "confidence": "constant 1.0: a procedural character is GENERATED, there is no observation to be uncertain about"
+ }
+}

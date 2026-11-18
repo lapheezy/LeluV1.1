@@ -1,0 +1,161 @@
+{
+ "reused": false,
+ "job": {
+  "id": "fj_mwlfj6uq_abeb1f",
+  "character": "asre_reconstructions",
+  "kind": "blender",
+  "purpose": "Blender export of fj_mwlfiyyk_1e63d7: glb, obj, stl, blend, editable project kept apart from the runtime copy",
+  "request": {
+   "operation": "export",
+   "source": "fj_mwlfiyyk_1e63d7",
+   "sourceSha256": "1749f7d76522997e24d64ea60ab8cbea100e150b1fa87be4b8493b65be7c9be0",
+   "script": "419e4ca14ad8e71e",
+   "options": {
+    "formats": [
+     "glb",
+     "obj",
+     "stl",
+     "blend"
+    ],
+    "targetTris": 30000,
+    "render": {
+     "size": 512,
+     "samples": 12
+    }
+   },
+   "parentJobId": "fj_mwlfiyyk_1e63d7",
+   "runner": "blender"
+  },
+  "requestKey": "ae0e1de89ae1553bc3fe3ff6bad6900851a8dab236d9ae5a18fe7d182b28db50",
+  "estimatedCredits": 0,
+  "status": "SUCCEEDED",
+  "meshyTaskId": null,
+  "progress": 100,
+  "consumedCredits": 0,
+  "error": null,
+  "identityLock": null,
+  "createdAt": 1794964521148,
+  "updatedAt": 1794964524148,
+  "submittedAt": 1794964521148,
+  "finishedAt": 1794964524146,
+  "output": {
+   "dir": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk",
+   "files": [
+    {
+     "role": "source-project",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/editable.blend",
+     "bytes": 1670800,
+     "sha256": "bb712721f80ac96a583ed85f189a9a43d1681b4390989124522d2a02a8609233"
+    },
+    {
+     "role": "preview",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/render.png",
+     "bytes": 360294,
+     "sha256": "bddb672956647c51a42c2622d0bb46f620f0ff8f2a3848481e53899a9f9b64bf"
+    },
+    {
+     "role": "blender-export-report",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/report.json",
+     "bytes": 1549,
+     "sha256": "272ca647c20f0f58ac8703f04267f9f6ea31fda23ecdbbad988d1064c316e388"
+    },
+    {
+     "role": "model-runtime",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/runtime.glb",
+     "bytes": 381768,
+     "sha256": "f1761afe8a801958751eb9319fcee26932aee46358d19b479eb7cd6a8e622c69"
+    },
+    {
+     "role": "material",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/source.mtl",
+     "bytes": 268,
+     "sha256": "b72fae7f2c47827f7b04290b4e0a6990e8a64aa1be4cd4a131c59c2a8410090c"
+    },
+    {
+     "role": "model-obj",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/source.obj",
+     "bytes": 881977,
+     "sha256": "25a8057a1a394eff498bd9f60c10dab5116c928afc29cda81bd2320e3f6cf8f0"
+    },
+    {
+     "role": "model-stl",
+     "file": "characters/asre_reconstructions/meshes/v002_export_mwlfiyyk/source.stl",
+     "bytes": 793084,
+     "sha256": "fe778cf390f58a599224dc7d5b904c0fd02309918a43cdc1c91eb4c54e1598bc"
+    }
+   ]
+  },
+  "validation": {
+   "ok": true,
+   "problems": [],
+   "warnings": [],
+   "bytes": 381768,
+   "generator": "Khronos glTF Blender I/O v4.2.83",
+   "geometry": {
+    "meshes": 1,
+    "primitives": 1,
+    "vertices": 7930,
+    "triangles": 15860,
+    "bounds": {
+     "min": [
+      -0.28125,
+      0.0052083334885537624,
+      -0.171875
+     ],
+     "max": [
+      0.28125,
+      1,
+      0.171875
+     ],
+     "size": [
+      0.5625,
+      0.9947916665114462,
+      0.34375
+     ]
+    },
+    "dracoCompressed": false
+   },
+   "surface": {
+    "materials": 1,
+    "textures": 0,
+    "images": 0,
+    "baseColorTextured": false,
+    "pbrMaps": false
+   },
+   "rig": {
+    "skins": 0,
+    "joints": 0,
+    "humanoidBonesFound": [],
+    "humanoidBonesMissing": [
+     "hips",
+     "spine",
+     "neck",
+     "head",
+     "leftUpperArm",
+     "rightUpperArm",
+     "leftForearm",
+     "rightForearm",
+     "leftHand",
+     "rightHand",
+     "leftUpperLeg",
+     "rightUpperLeg",
+     "leftLowerLeg",
+     "rightLowerLeg",
+     "leftFoot",
+     "rightFoot"
+    ],
+    "weightValidity": null,
+    "skinnedVertices": 0
+   },
+   "motion": {
+    "clips": []
+   },
+   "verdict": {
+    "meshValid": true,
+    "textured": false,
+    "rigValid": false,
+    "animated": false
+   }
+  }
+ }
+}

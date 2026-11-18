@@ -6,7 +6,10 @@ LÉLU ASRE — headless Blender render of one or more GLB files.
 job.json:
     {"inputs": ["a.glb", ...], "output": "out.png", "resolution": [640, 640],
      "samples": 16, "view": "three-quarter" | "front" | "side" | "back",
-     "background": [0.06, 0.06, 0.08]}
+     "background": [0.06, 0.06, 0.08], "wireframe": false}
+
+wireframe=true replaces each surface with its mesh edges, so a render shows the
+actual triangulation (used by Mission 5 WP07 for geometry inspection evidence).
 
 Cycles on the CPU: no GPU or display needed. The camera is framed from the
 imported geometry's real bounding box, so a render that shows the object
@@ -73,6 +76,22 @@ light("key", "AREA", 400 * s * s, center + Vector((2.5, -3, 3)) * s, 2 * s)
 light("fill", "AREA", 120 * s * s, center + Vector((-3, -2, 1)) * s, 3 * s)
 light("rim", "AREA", 200 * s * s, center + Vector((0, 3, 2.5)) * s, 2 * s)
 
+if job.get("wireframe"):
+    wire_mat = bpy.data.materials.new("wire-mat")
+    wire_mat.use_nodes = True
+    bsdf_w = wire_mat.node_tree.nodes.get("Principled BSDF")
+    if bsdf_w is not None:
+        bsdf_w.inputs["Base Color"].default_value = (0.45, 0.8, 1.0, 1.0)
+        if "Emission Color" in bsdf_w.inputs:
+            bsdf_w.inputs["Emission Color"].default_value = (0.35, 0.75, 1.0, 1.0)
+            bsdf_w.inputs["Emission Strength"].default_value = 1.5
+    for o in meshes:
+        mod = o.modifiers.new("wireframe", "WIREFRAME")
+        mod.thickness = max(size.length * 0.0018, 1e-4)
+        mod.use_replace = True
+        o.data.materials.clear()
+        o.data.materials.append(wire_mat)
+
 world = bpy.data.worlds.new("w")
 world.use_nodes = True
 bg = job.get("background", [0.06, 0.06, 0.08])
@@ -97,6 +116,7 @@ for o in meshes:
     tris += len(o.data.loop_triangles)
 json.dump({
     "output": job["output"],
+    "wireframe": bool(job.get("wireframe")),
     "objects": [o.name for o in meshes],
     "triangles": tris,
     "bounds_blender_zup": {"min": list(lo), "max": list(hi)},

@@ -1,0 +1,22 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/B-multi-observation/renders/side.png",
+ "wireframe": false,
+ "objects": [
+  "reconstruction"
+ ],
+ "triangles": 17092,
+ "bounds_blender_zup": {
+  "min": [
+   -0.28125,
+   -0.171875,
+   0.01990327425301075
+  ],
+  "max": [
+   0.28125,
+   0.15625,
+   1.0
+  ]
+ },
+ "render_seconds": 0.71,
+ "blender": "4.2.23 LTS"
+}

@@ -15,8 +15,18 @@
 | WP02 Forge intake / edit / export | VERIFIED (real Blender round trip) | `6feaf3d` |
 | WP04 persistent identity | VERIFIED | `5b97aac` |
 | WP05 temporal | VERIFIED (timeline memory cost noted) | `489ccae` |
-| WP03 Spatial Studio UI | see `git log` (this commit) | |
-| WP06–WP09 | NOT STARTED at time of writing | |
+| WP03 Spatial Studio UI | VERIFIED | `f113e2a` |
+| WP06 agent tools | VERIFIED | `a0c1240` |
+| WP07 end-to-end creation | VERIFIED (A/B/C/D; TripoSR engine unexercised, in-app walkthrough blocked) | this commit |
+| WP08 performance / quality | NOT STARTED | — |
+| WP09 final acceptance | NOT STARTED | — |
+
+WP07 record: `docs/asre/06_MISSION5_WP07_E2E.md`. Evidence: `artifacts/mission5/WP07/`.
+Reproduce: start vite with `LELU_ASRE_ROOT`/`FORGE_ASSET_ROOT` pointing at scratch dirs and
+`LELU_TOOLS` at the Blender toolchain, then
+`node scripts/asre/wp7-e2e.mjs --only A,B,C,D` and
+`node scripts/asre/wp7-slices.mjs artifacts/mission5/WP07/A-image-to-3d/02-slices.json artifacts/mission5/WP07/A-image-to-3d/renders`.
+Blender headless here needs the X libraries on `LD_LIBRARY_PATH` (see the WP07 record).
 
 Order note: WP04/WP05 (server) were built before WP03 so the UI binds to real endpoints.
 

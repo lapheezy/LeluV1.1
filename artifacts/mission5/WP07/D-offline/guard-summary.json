@@ -1,0 +1,6 @@
+{
+ "guard": "offline-guard.mjs",
+ "policy": "only loopback/unix sockets allowed; every other TCP connect, DNS lookup and fetch is refused and counted",
+ "blockedAttempts": [],
+ "passed": true
+}

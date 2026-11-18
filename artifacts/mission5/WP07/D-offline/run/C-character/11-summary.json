@@ -1,0 +1,528 @@
+{
+ "status": "VERIFIED",
+ "characterId": "wp7-lelu",
+ "cacheState": "cold: the first hair edit built new geometry",
+ "firstVersion": "v0001",
+ "head": "v0007",
+ "versions": [
+  "v0001",
+  "v0002",
+  "v0003",
+  "v0004",
+  "v0005",
+  "v0006",
+  "v0007"
+ ],
+ "edits": [
+  {
+   "step": "hair",
+   "patch": {
+    "hair": {
+     "style": "afro",
+     "volume": 1.3
+    }
+   },
+   "from": "v0001",
+   "version": "v0002",
+   "regenerated": [
+    "hair"
+   ],
+   "recolored": [],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "triangles": 310768,
+   "meshValid": true,
+   "geometryDiff": {
+    "iou": 0.812844765308417,
+    "change": "deformation",
+    "added": 69144,
+    "removed": 9094,
+    "cellsA": 348894,
+    "cellsB": 408944,
+    "centroidShift": [
+     0.000033249319528749766,
+     18.40593968811234,
+     -0.7005813340252445
+    ]
+   },
+   "evidence": "GENERATED",
+   "renders": [
+    {
+     "view": "front",
+     "wireframe": false,
+     "png": "C-character/renders/hair-front.png",
+     "triangles": 310768,
+     "render_seconds": 1.18
+    },
+    {
+     "view": "three-quarter",
+     "wireframe": false,
+     "png": "C-character/renders/hair-three-quarter.png",
+     "triangles": 310768,
+     "render_seconds": 1.2
+    }
+   ]
+  },
+  {
+   "step": "clothing",
+   "patch": {
+    "clothing": {
+     "top": "jacket",
+     "bottom": "pants"
+    }
+   },
+   "from": "v0002",
+   "version": "v0003",
+   "regenerated": [
+    "clothing.top"
+   ],
+   "recolored": [],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "triangles": 334688,
+   "meshValid": true,
+   "geometryDiff": {
+    "iou": 0.9121698786581014,
+    "change": "expansion",
+    "added": 39376,
+    "removed": 0,
+    "cellsA": 408944,
+    "cellsB": 448320,
+    "centroidShift": [
+     0.000016967065363360234,
+     1.067642237625222,
+     0.10528039547146761
+    ]
+   },
+   "evidence": "GENERATED",
+   "renders": [
+    {
+     "view": "front",
+     "wireframe": false,
+     "png": "C-character/renders/clothing-front.png",
+     "triangles": 334688,
+     "render_seconds": 1.31
+    },
+    {
+     "view": "three-quarter",
+     "wireframe": false,
+     "png": "C-character/renders/clothing-three-quarter.png",
+     "triangles": 334688,
+     "render_seconds": 1.15
+    }
+   ]
+  },
+  {
+   "step": "body",
+   "patch": {
+    "body": {
+     "height": 1.78,
+     "build": 1.05
+    }
+   },
+   "from": "v0003",
+   "version": "v0004",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "recolored": [],
+   "reused": [
+    "head",
+    "face",
+    "hair",
+    "accessories.head"
+   ],
+   "triangles": 355796,
+   "meshValid": true,
+   "geometryDiff": {
+    "iou": 0.7348792313741275,
+    "change": "deformation",
+    "added": 88326,
+    "removed": 53950,
+    "cellsA": 448320,
+    "cellsB": 482696,
+    "centroidShift": [
+     0.000033266305280221786,
+     6.457211712570341,
+     0.04173170498606282
+    ]
+   },
+   "evidence": "GENERATED",
+   "renders": [
+    {
+     "view": "front",
+     "wireframe": false,
+     "png": "C-character/renders/body-front.png",
+     "triangles": 355796,
+     "render_seconds": 1.31
+    },
+    {
+     "view": "three-quarter",
+     "wireframe": false,
+     "png": "C-character/renders/body-three-quarter.png",
+     "triangles": 355796,
+     "render_seconds": 1.33
+    }
+   ]
+  },
+  {
+   "step": "material",
+   "patch": {
+    "materials": {
+     "hair": [
+      0.55,
+      0.25,
+      0.75
+     ]
+    }
+   },
+   "from": "v0004",
+   "version": "v0005",
+   "regenerated": [],
+   "recolored": [
+    "face",
+    "hair"
+   ],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "triangles": 355796,
+   "meshValid": true,
+   "geometryDiff": {
+    "iou": 1,
+    "change": "unchanged",
+    "added": 0,
+    "removed": 0,
+    "cellsA": 482696,
+    "cellsB": 482696,
+    "centroidShift": [
+     0,
+     0,
+     0
+    ]
+   },
+   "evidence": "GENERATED",
+   "renders": [
+    {
+     "view": "front",
+     "wireframe": false,
+     "png": "C-character/renders/material-front.png",
+     "triangles": 355796,
+     "render_seconds": 1.31
+    },
+    {
+     "view": "three-quarter",
+     "wireframe": false,
+     "png": "C-character/renders/material-three-quarter.png",
+     "triangles": 355796,
+     "render_seconds": 1.09
+    }
+   ]
+  },
+  {
+   "step": "pose",
+   "patch": {
+    "pose": "wave"
+   },
+   "from": "v0005",
+   "version": "v0006",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "recolored": [],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "triangles": 361784,
+   "meshValid": true,
+   "geometryDiff": {
+    "iou": 0.8409899373247787,
+    "change": "deformation",
+    "added": 42711,
+    "removed": 40834,
+    "cellsA": 482696,
+    "cellsB": 484573,
+    "centroidShift": [
+     -0.7533317615473152,
+     5.834289453744191,
+     0.3512362119417105
+    ]
+   },
+   "evidence": "GENERATED",
+   "renders": [
+    {
+     "view": "front",
+     "wireframe": false,
+     "png": "C-character/renders/pose-front.png",
+     "triangles": 361784,
+     "render_seconds": 1.24
+    },
+    {
+     "view": "three-quarter",
+     "wireframe": false,
+     "png": "C-character/renders/pose-three-quarter.png",
+     "triangles": 361784,
+     "render_seconds": 1.11
+    }
+   ]
+  }
+ ],
+ "finalRenders": {
+  "version": "v0006",
+  "label": "final",
+  "triangles": 361784,
+  "meshValid": true,
+  "bytes": 11592976,
+  "glb": {
+   "file": "C-character/glb/final-v0006.glb",
+   "bytes": 11592976,
+   "sha256": "849f219a687718c2a5abb2f999bab5334fdefc0db37c13c92a406d1f6a7d90cc"
+  },
+  "renders": [
+   {
+    "view": "front",
+    "wireframe": false,
+    "png": "C-character/renders/final-front.png",
+    "triangles": 361784,
+    "render_seconds": 1.05
+   },
+   {
+    "view": "side",
+    "wireframe": false,
+    "png": "C-character/renders/final-side.png",
+    "triangles": 361784,
+    "render_seconds": 0.97
+   },
+   {
+    "view": "back",
+    "wireframe": false,
+    "png": "C-character/renders/final-back.png",
+    "triangles": 361784,
+    "render_seconds": 1.23
+   },
+   {
+    "view": "three-quarter",
+    "wireframe": false,
+    "png": "C-character/renders/final-three-quarter.png",
+    "triangles": 361784,
+    "render_seconds": 1.09
+   }
+  ]
+ },
+ "wireframe": [
+  {
+   "view": "three-quarter",
+   "wireframe": true,
+   "png": "C-character/renders/final-three-quarter-wireframe.png",
+   "triangles": 361784,
+   "render_seconds": 11.2
+  }
+ ],
+ "timelineSteps": null,
+ "immutability": {
+  "ok": true,
+  "problems": []
+ },
+ "compareV1Head": {
+  "a": "v0001",
+  "b": "v0006",
+  "specChanges": [
+   "body.height",
+   "body.build",
+   "hair.style",
+   "hair.volume",
+   "clothing.top",
+   "materials.hair",
+   "pose"
+  ],
+  "components": [
+   {
+    "id": "torso",
+    "change": "geometry",
+    "trianglesBefore": 34720,
+    "trianglesAfter": 37376
+   },
+   {
+    "id": "pelvis",
+    "change": "geometry",
+    "trianglesBefore": 22340,
+    "trianglesAfter": 23760
+   },
+   {
+    "id": "neck",
+    "change": "geometry",
+    "trianglesBefore": 6940,
+    "trianglesAfter": 7780
+   },
+   {
+    "id": "head",
+    "change": "moved",
+    "trianglesBefore": 11304,
+    "trianglesAfter": 11304
+   },
+   {
+    "id": "face",
+    "change": "moved",
+    "trianglesBefore": 900,
+    "trianglesAfter": 900
+   },
+   {
+    "id": "hair",
+    "change": "geometry",
+    "trianglesBefore": 27184,
+    "trianglesAfter": 30648
+   },
+   {
+    "id": "arms",
+    "change": "geometry",
+    "trianglesBefore": 23960,
+    "trianglesAfter": 27584
+   },
+   {
+    "id": "hands",
+    "change": "geometry",
+    "trianglesBefore": 6296,
+    "trianglesAfter": 6768
+   },
+   {
+    "id": "legs",
+    "change": "geometry",
+    "trianglesBefore": 43856,
+    "trianglesAfter": 48184
+   },
+   {
+    "id": "feet",
+    "change": "geometry",
+    "trianglesBefore": 9360,
+    "trianglesAfter": 9384
+   },
+   {
+    "id": "clothing.top",
+    "change": "geometry",
+    "trianglesBefore": 42656,
+    "trianglesAfter": 75448
+   },
+   {
+    "id": "clothing.bottom",
+    "change": "geometry",
+    "trianglesBefore": 63300,
+    "trianglesAfter": 68136
+   },
+   {
+    "id": "clothing.shoes",
+    "change": "geometry",
+    "trianglesBefore": 14488,
+    "trianglesAfter": 14512
+   },
+   {
+    "id": "accessories.head",
+    "change": "same",
+    "trianglesBefore": 0,
+    "trianglesAfter": 0
+   },
+   {
+    "id": "accessories.body",
+    "change": "same",
+    "trianglesBefore": 0,
+    "trianglesAfter": 0
+   }
+  ],
+  "geometry": {
+   "iou": 0.5695704084246049,
+   "change": "deformation",
+   "added": 182122,
+   "removed": 46443,
+   "cellsA": 348894,
+   "cellsB": 484573,
+   "centroidShift": [
+    -0.7532482788571429,
+    31.765083092052095,
+    -0.20233302162600353
+   ]
+  },
+  "triangles": {
+   "a": 307304,
+   "b": 361784
+  },
+  "evidence": "both versions are GENERATED (procedural): nothing in them was observed"
+ },
+ "restore": {
+  "from": "v0001",
+  "groups": [
+   "hair"
+  ],
+  "newVersion": "v0007"
+ },
+ "undoRedo": {
+  "headAfterUndo": "v0006",
+  "headAfterRedo": "v0007"
+ },
+ "export": {
+  "forgeJobId": "fj_mwlfl0yp_49e587",
+  "reused": false
+ },
+ "durationMs": 85714
+}

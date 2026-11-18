@@ -1,0 +1,34 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/C-character/renders/body-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "triangles": 355796,
+ "bounds_blender_zup": {
+  "min": [
+   -0.3559645116329193,
+   -0.21976034343242645,
+   -0.042991314083337784
+  ],
+  "max": [
+   0.3559645116329193,
+   0.19478964805603027,
+   1.8792896270751953
+  ]
+ },
+ "render_seconds": 1.26,
+ "blender": "4.2.23 LTS"
+}

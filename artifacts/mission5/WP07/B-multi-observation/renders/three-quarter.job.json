@@ -1,0 +1,13 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/B-multi-observation/refined.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/B-multi-observation/renders/three-quarter.png",
+ "resolution": [
+  512,
+  512
+ ],
+ "samples": 16,
+ "view": "three-quarter",
+ "wireframe": false
+}

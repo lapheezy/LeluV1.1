@@ -1,0 +1,9 @@
+[
+ {
+  "view": "side",
+  "wireframe": false,
+  "png": "B-multi-observation/observation-input/derived-side.png",
+  "triangles": 15860,
+  "render_seconds": 0.51
+ }
+]

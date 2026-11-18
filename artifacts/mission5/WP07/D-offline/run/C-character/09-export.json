@@ -1,0 +1,168 @@
+{
+ "ok": true,
+ "forgeJobId": "fj_mwlfl0yp_49e587",
+ "reused": false,
+ "character": {
+  "id": "wp7-lelu",
+  "name": "WP07 LÉLU",
+  "leluLook": "gothic",
+  "createdAt": 1794964524218,
+  "head": "v0007",
+  "redo": [],
+  "versions": [
+   "v0001",
+   "v0002",
+   "v0003",
+   "v0004",
+   "v0005",
+   "v0006",
+   "v0007"
+  ],
+  "exports": {
+   "v0007": "fj_mwlfl0yp_49e587"
+  }
+ },
+ "versions": [
+  {
+   "id": "v0001",
+   "parentId": null,
+   "label": "created",
+   "createdAt": 1794964527126,
+   "operation": "create",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "recolored": [],
+   "reused": 0,
+   "buildMs": 2141,
+   "triangles": 307304,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0002",
+   "parentId": "v0001",
+   "label": "WP7 hair",
+   "createdAt": 1794964534146,
+   "operation": "edit",
+   "regenerated": [
+    "hair"
+   ],
+   "recolored": [],
+   "reused": 14,
+   "buildMs": 81,
+   "triangles": 310768,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0003",
+   "parentId": "v0002",
+   "label": "WP7 clothing",
+   "createdAt": 1794964541001,
+   "operation": "edit",
+   "regenerated": [
+    "clothing.top"
+   ],
+   "recolored": [],
+   "reused": 14,
+   "buildMs": 1097,
+   "triangles": 334688,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0004",
+   "parentId": "v0003",
+   "label": "WP7 body",
+   "createdAt": 1794964549679,
+   "operation": "edit",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "recolored": [],
+   "reused": 4,
+   "buildMs": 2704,
+   "triangles": 355796,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0005",
+   "parentId": "v0004",
+   "label": "WP7 material",
+   "createdAt": 1794964556135,
+   "operation": "edit",
+   "regenerated": [],
+   "recolored": [
+    "face",
+    "hair"
+   ],
+   "reused": 13,
+   "buildMs": 15,
+   "triangles": 355796,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0006",
+   "parentId": "v0005",
+   "label": "WP7 pose",
+   "createdAt": 1794964565900,
+   "operation": "edit",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "recolored": [],
+   "reused": 8,
+   "buildMs": 3929,
+   "triangles": 361784,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0007",
+   "parentId": "v0006",
+   "label": "restore hair from v0001",
+   "createdAt": 1794964605873,
+   "operation": "restore",
+   "regenerated": [],
+   "recolored": [],
+   "reused": 15,
+   "buildMs": 1,
+   "triangles": 358320,
+   "isHead": true,
+   "exportedAs": "fj_mwlfl0yp_49e587"
+  }
+ ]
+}

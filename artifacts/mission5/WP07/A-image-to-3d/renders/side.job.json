@@ -1,0 +1,13 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/A-image-to-3d/model.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/A-image-to-3d/renders/side.png",
+ "resolution": [
+  512,
+  512
+ ],
+ "samples": 16,
+ "view": "side",
+ "wireframe": false
+}

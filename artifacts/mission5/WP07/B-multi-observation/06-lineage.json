@@ -1,0 +1,136 @@
+{
+ "ok": true,
+ "lineage": [
+  {
+   "id": "ab705891-a9f",
+   "kind": "reconstruct",
+   "state": "succeeded",
+   "views": [
+    "front"
+   ],
+   "added": null,
+   "evidence": {
+    "OBSERVED": 1405,
+    "INFERRED": 9155,
+    "INTERPOLATED": 0,
+    "GENERATED": 10560,
+    "UNKNOWN": 0
+   },
+   "meanConfidence": 0.5239488636365239,
+   "cells": 21120,
+   "observation": null,
+   "snapshots": 1,
+   "forgeJobId": "fj_mwlfbovz_f7d751",
+   "finishedAt": 1794964174276
+  },
+  {
+   "id": "bb5fbf27-57d",
+   "kind": "observe",
+   "state": "succeeded",
+   "views": [
+    "front",
+    "left"
+   ],
+   "added": "left",
+   "evidence": {
+    "OBSERVED": 2061,
+    "INFERRED": 8488,
+    "INTERPOLATED": 0,
+    "GENERATED": 8916,
+    "UNKNOWN": 0
+   },
+   "meanConfidence": 0.5464713074751182,
+   "cells": 19465,
+   "observation": {
+    "view": "left",
+    "duplicate": false,
+    "resurfaced": {
+     "stripped": 57,
+     "attached": 57
+    },
+    "newCells": 114,
+    "reinforcedCells": 863,
+    "conflicts": 1986,
+    "carved": 1769,
+    "contradictions": 217,
+    "preservedCells": 4063,
+    "unaffectedVerified": true,
+    "evidenceBefore": {
+     "OBSERVED": 1405,
+     "INFERRED": 9155,
+     "INTERPOLATED": 0,
+     "GENERATED": 10560,
+     "UNKNOWN": 0
+    },
+    "evidenceAfter": {
+     "OBSERVED": 2061,
+     "INFERRED": 8488,
+     "INTERPOLATED": 0,
+     "GENERATED": 8916,
+     "UNKNOWN": 0
+    },
+    "meanConfidenceBefore": 0.5239488636365239,
+    "meanConfidenceAfter": 0.5464713074751182,
+    "iouWithPrevious": 0.9113214655740793
+   },
+   "snapshots": 4,
+   "forgeJobId": "fj_mwlfbtf2_d67247",
+   "finishedAt": 1794964180146
+  },
+  {
+   "id": "8c200d29-0b2",
+   "kind": "observe",
+   "state": "succeeded",
+   "views": [
+    "front",
+    "left",
+    "back"
+   ],
+   "added": "back",
+   "evidence": {
+    "OBSERVED": 3165,
+    "INFERRED": 8162,
+    "INTERPOLATED": 0,
+    "GENERATED": 7574,
+    "UNKNOWN": 0
+   },
+   "meanConfidence": 0.5796002327920579,
+   "cells": 18901,
+   "observation": {
+    "view": "back",
+    "duplicate": false,
+    "resurfaced": {
+     "stripped": 0,
+     "attached": 0
+    },
+    "newCells": 0,
+    "reinforcedCells": 1326,
+    "conflicts": 653,
+    "carved": 564,
+    "contradictions": 89,
+    "preservedCells": 8500,
+    "unaffectedVerified": true,
+    "evidenceBefore": {
+     "OBSERVED": 2061,
+     "INFERRED": 8488,
+     "INTERPOLATED": 0,
+     "GENERATED": 8916,
+     "UNKNOWN": 0
+    },
+    "evidenceAfter": {
+     "OBSERVED": 3165,
+     "INFERRED": 8162,
+     "INTERPOLATED": 0,
+     "GENERATED": 7574,
+     "UNKNOWN": 0
+    },
+    "meanConfidenceBefore": 0.5464713074751182,
+    "meanConfidenceAfter": 0.5796002327920579,
+    "iouWithPrevious": 0.9710249165168251
+   },
+   "snapshots": 5,
+   "forgeJobId": "fj_mwlfbu26_9fdae3",
+   "finishedAt": 1794964180978
+  }
+ ]
+}

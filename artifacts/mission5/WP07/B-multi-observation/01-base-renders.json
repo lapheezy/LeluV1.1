@@ -1,0 +1,23 @@
+[
+ {
+  "view": "front",
+  "wireframe": false,
+  "png": "B-multi-observation/renders/front.png",
+  "triangles": 15860,
+  "render_seconds": 0.65
+ },
+ {
+  "view": "side",
+  "wireframe": false,
+  "png": "B-multi-observation/renders/side.png",
+  "triangles": 15860,
+  "render_seconds": 0.56
+ },
+ {
+  "view": "three-quarter",
+  "wireframe": false,
+  "png": "B-multi-observation/renders/three-quarter.png",
+  "triangles": 15860,
+  "render_seconds": 0.66
+ }
+]
