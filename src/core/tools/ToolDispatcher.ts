@@ -39,6 +39,7 @@ import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistr
 import { studioToolExecutors } from "../studio/StudioToolExecutors";
 import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { ASRE_EXECUTORS } from "../asre/AsreTools";
+import { FOUNDRY_EXECUTORS } from "../asre/foundry/FoundryTools";
 import { WORLD_EXECUTORS } from "../world/WorldTools";
 import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
 import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
@@ -2645,7 +2646,7 @@ const EXECUTORS: ToolExecutor[] = [
 ];
 
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...ASRE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...ASRE_EXECUTORS, ...FOUNDRY_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 // Mission 8's executors are additive: an id Claude already owns keeps its

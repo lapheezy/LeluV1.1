@@ -1,0 +1,563 @@
+{
+ "subject": "lelu",
+ "source": "artifacts/lelu2/m23/youth/metrics-youth.json",
+ "shots": [
+  {
+   "id": "face-close-up",
+   "index": 1,
+   "title": "Face close-up",
+   "proves": "the face's own proportions at portrait scale",
+   "view": "front",
+   "focus": [
+    "head",
+    "face",
+    "hair"
+   ],
+   "camera": {
+    "center": [
+     0,
+     -0.1,
+     1.5288
+    ],
+    "radius": 0.145
+   },
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 64,
+   "lens": 135,
+   "ground": false,
+   "reference": "lelu-facial-expressions/lelu-facial-expression-01.png",
+   "benchmark": 1,
+   "plan": {
+    "task": {
+     "id": "render:face-close-up",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "eyes",
+   "index": 2,
+   "title": "Eyes and eyelids",
+   "proves": "eye placement, aperture and iris colour",
+   "view": "front",
+   "focus": [
+    "head",
+    "face"
+   ],
+   "camera": {
+    "center": [
+     0,
+     -0.1,
+     1.5784
+    ],
+    "radius": 0.07
+   },
+   "resolution": [
+    768,
+    768
+   ],
+   "samples": 64,
+   "lens": 200,
+   "ground": false,
+   "reference": "lelu-facial-expressions/lelu-facial-expression-02.png",
+   "benchmark": 2,
+   "plan": {
+    "task": {
+     "id": "render:eyes",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "nose-lips",
+   "index": 3,
+   "title": "Nose and lips",
+   "proves": "alar width, philtrum and lip construction",
+   "view": "front",
+   "focus": [
+    "head",
+    "face"
+   ],
+   "camera": {
+    "center": [
+     0,
+     -0.1,
+     1.5583
+    ],
+    "radius": 0.07
+   },
+   "resolution": [
+    768,
+    768
+   ],
+   "samples": 64,
+   "lens": 180,
+   "ground": false,
+   "reference": "lelu-facial-expressions/lelu-facial-expression-01.png",
+   "benchmark": 3,
+   "plan": {
+    "task": {
+     "id": "render:nose-lips",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "hairline",
+   "index": 4,
+   "title": "Hairline and baby hairs",
+   "proves": "where hair actually meets the forehead, and the front strand roots",
+   "view": "front",
+   "focus": [
+    "head",
+    "face",
+    "hair"
+   ],
+   "camera": {
+    "center": [
+     0,
+     -0.1,
+     1.6247
+    ],
+    "radius": 0.095
+   },
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 64,
+   "lens": 150,
+   "ground": false,
+   "reference": "lelu-facial-expressions/lelu-facial-expression-02.png",
+   "benchmark": 4,
+   "plan": {
+    "task": {
+     "id": "render:hairline",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "curl-detail",
+   "index": 5,
+   "title": "Individual curl structure",
+   "proves": "ringlet geometry at strand scale",
+   "view": "three-quarter",
+   "focus": [
+    "hair"
+   ],
+   "camera": {
+    "center": [
+     0.09,
+     -0.06,
+     1.5238
+    ],
+    "radius": 0.075
+   },
+   "resolution": [
+    768,
+    768
+   ],
+   "samples": 64,
+   "lens": 135,
+   "ground": false,
+   "reference": "lelu-hair/lelu-hair-07.png",
+   "benchmark": 5,
+   "plan": {
+    "task": {
+     "id": "render:curl-detail",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "hair-full",
+   "index": 6,
+   "title": "Full hairstyle",
+   "proves": "the whole mass: length, silhouette, fall",
+   "view": "three-quarter",
+   "focus": [
+    "head",
+    "hair"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": false,
+   "reference": "lelu-hair/lelu-hair-07.png",
+   "benchmark": 6,
+   "plan": {
+    "task": {
+     "id": "render:hair-full",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "jewelry",
+   "index": 7,
+   "title": "Jewelry close-up",
+   "proves": "the headpiece and ornaments are geometry with metallic materials",
+   "view": "front",
+   "focus": [
+    "accessories.head"
+   ],
+   "camera": null,
+   "resolution": [
+    768,
+    768
+   ],
+   "samples": 64,
+   "ground": false,
+   "environment": true,
+   "reference": "lelu-hair/lelu-hair-04.png",
+   "benchmark": 7,
+   "plan": {
+    "task": {
+     "id": "render:jewelry",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "portrait-front",
+   "index": 8,
+   "title": "Front portrait",
+   "proves": "the complete head as seen head-on",
+   "view": "front",
+   "focus": [
+    "head",
+    "face",
+    "hair",
+    "neck"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": false,
+   "reference": "lelu-facial-expressions/lelu-facial-expression-01.png",
+   "benchmark": 8,
+   "plan": {
+    "task": {
+     "id": "render:portrait-front",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "portrait-three-quarter",
+   "index": 9,
+   "title": "Three-quarter portrait",
+   "proves": "the same head from the angle a viewer actually sees",
+   "view": "three-quarter",
+   "focus": [
+    "head",
+    "face",
+    "hair",
+    "neck"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": false,
+   "reference": "lelu-facial-expressions/lelu-facial-expression-03.png",
+   "benchmark": 9,
+   "plan": {
+    "task": {
+     "id": "render:portrait-three-quarter",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "profile",
+   "index": 10,
+   "title": "Side profile",
+   "proves": "nose projection, chin, jaw angle and skull depth",
+   "view": "side",
+   "focus": [
+    "head",
+    "face",
+    "hair"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": false,
+   "reference": "lelu-anatomy/lelu-anatomy-01.png",
+   "benchmark": 10,
+   "plan": {
+    "task": {
+     "id": "render:profile",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "rear",
+   "index": 11,
+   "title": "Rear view",
+   "proves": "the back of the hairstyle and the skull's coverage",
+   "view": "back",
+   "focus": [
+    "head",
+    "hair"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": false,
+   "reference": "lelu-hair/lelu-hair-07.png",
+   "benchmark": 11,
+   "plan": {
+    "task": {
+     "id": "render:rear",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "upper-body",
+   "index": 12,
+   "title": "Full upper body",
+   "proves": "neck, shoulders and the head-to-body transition",
+   "view": "front",
+   "focus": [
+    "head",
+    "face",
+    "hair",
+    "neck",
+    "torso",
+    "arms"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": true,
+   "reference": "lelu-anatomy/lelu-anatomy-05.png",
+   "benchmark": 12,
+   "plan": {
+    "task": {
+     "id": "render:upper-body",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  },
+  {
+   "id": "full-body",
+   "index": 13,
+   "title": "Full-body character",
+   "proves": "the complete figure, head to feet",
+   "view": "front",
+   "focus": [
+    "head",
+    "face",
+    "hair",
+    "neck",
+    "torso",
+    "pelvis",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "camera": null,
+   "resolution": [
+    1024,
+    1024
+   ],
+   "samples": 48,
+   "ground": true,
+   "reference": "lelu-anatomy/lelu-anatomy-07.png",
+   "benchmark": 13,
+   "plan": {
+    "task": {
+     "id": "render:full-body",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   }
+  }
+ ]
+}

@@ -37,6 +37,7 @@ import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
 import { registerAsreTools } from "./asre/AsreTools";
+import { registerFoundryTools } from "./asre/foundry/FoundryTools";
 import { registerWorldTools } from "./world/WorldTools";
 import { registerAgenticTools } from "./agentic/AgenticTools";
 import { registerInterfaceTools } from "./interface/InterfaceTools";
@@ -195,6 +196,8 @@ export default class Bootstrap {
       registerForgeTools();
       // ASRE: local, zero-spend reconstruction and the persistent component character
       registerAsreTools();
+      // Character Foundry: reference intelligence, versions, Cycles renders (local, zero spend)
+      registerFoundryTools();
       registerWorldTools();
       // Capability ledger (server authority shared by every session/device):
       // applies its cached snapshot, then hydrates. Loaded lazily — no

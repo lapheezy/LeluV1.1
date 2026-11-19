@@ -1,0 +1,111 @@
+{
+ "hardware": {
+  "platform": "linux",
+  "arch": "x64",
+  "cpuCount": 8,
+  "cpuModel": "19/01",
+  "totalRamGb": 16.8,
+  "freeDiskGb": 34,
+  "gpu": null,
+  "cuda": null,
+  "rocm": false,
+  "blender": {
+   "binary": "/workspace/homes/6d861f98cd849b149484323e/lelu-tools/blender-4.2.23-linux-x64/blender",
+   "version": "Blender 4.2.23 LTS"
+  },
+  "python": "Python 3.12.3",
+  "node": "v26.13.0",
+  "evidence": [
+   "node:os cpus=8 platform=linux/x64",
+   "no /proc/driver/nvidia, /dev/kfd, /opt/rocm or /dev/dri/renderD128 — no usable GPU",
+   "Blender at /workspace/homes/6d861f98cd849b149484323e/lelu-tools/blender-4.2.23-linux-x64/blender"
+  ],
+  "probedAt": "2026-11-19T10:44:34.305Z"
+ },
+ "summary": "8 vCPU 19/01, 16.8 GB RAM, 34 GB free, no GPU, Blender Blender 4.2.23 LTS, Python 3.12.3",
+ "audit": {
+  "total": 14,
+  "adopt": 2,
+  "optional": 2,
+  "reject": 10,
+  "commercialOk": [
+   "blender-cycles",
+   "pci-fr",
+   "triposr",
+   "colmap",
+   "meshroom",
+   "nerfstudio"
+  ],
+  "restricted": [
+   "idol",
+   "pshuman",
+   "sam-3d-body",
+   "sapiens2",
+   "openmvs",
+   "sugar",
+   "stable-fast-3d"
+  ],
+  "unlicensed": [
+   "humannova"
+  ],
+  "gated": [
+   "idol",
+   "sam-3d-body",
+   "stable-fast-3d"
+  ],
+  "violations": []
+ },
+ "brief": {
+  "adopted": [
+   "Blender 4.2 LTS + Cycles (CPU): free, local, no account, no runtime network",
+   "PCI-FR 2.3.1 (this repository): the only engine here that preserves HER measured identity"
+  ],
+  "optional": [
+   "TripoSR: MIT code and weights make it legally safe",
+   "COLMAP: legally clean and CPU-capable"
+  ],
+  "rejected": [
+   {
+    "id": "humannova",
+    "why": "requirement 6/7: a repository without a LICENSE file grants no rights, and 'open source' cannot be assumed"
+   },
+   {
+    "id": "idol",
+    "why": "account requirement violates Part I (no mandatory accounts)"
+   },
+   {
+    "id": "pshuman",
+    "why": "hardware requirement is an order of magnitude beyond this machine"
+   },
+   {
+    "id": "sam-3d-body",
+    "why": "gated checkpoint violates the no-account preference and cannot be fetched offline"
+   },
+   {
+    "id": "sapiens2",
+    "why": "not a standalone generator (the mission says so and the docs agree)"
+   },
+   {
+    "id": "meshroom",
+    "why": "CUDA-bound MVS on a machine with no GPU"
+   },
+   {
+    "id": "nerfstudio",
+    "why": "CUDA-only training"
+   },
+   {
+    "id": "openmvs",
+    "why": "AGPL-3.0 is incompatible with shipping it inside LÉLU without opening the combined work"
+   },
+   {
+    "id": "sugar",
+    "why": "research-only licence"
+   },
+   {
+    "id": "stable-fast-3d",
+    "why": "gated account + restricted licence + no GPU"
+   }
+  ]
+ },
+ "blenderScript": "/workspace/chats/6d861f98cd849b149484323e/lelu2/scripts/blender/lelu_foundry_render.py"
+}

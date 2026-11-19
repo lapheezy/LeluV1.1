@@ -1,0 +1,3343 @@
+{
+ "generatedAt": "2026-11-19T11:07:46.372Z",
+ "project": "lelu",
+ "version": "v0002",
+ "hardware": {
+  "platform": "linux",
+  "arch": "x64",
+  "cpuCount": 8,
+  "cpuModel": "19/01",
+  "totalRamGb": 16.8,
+  "freeDiskGb": 33,
+  "gpu": null,
+  "cuda": null,
+  "rocm": false,
+  "blender": {
+   "binary": "/workspace/homes/6d861f98cd849b149484323e/lelu-tools/blender-4.2.23-linux-x64/blender",
+   "version": "Blender 4.2.23 LTS"
+  },
+  "python": "Python 3.12.3",
+  "node": "v26.13.0",
+  "evidence": [
+   "node:os cpus=8 platform=linux/x64",
+   "no /proc/driver/nvidia, /dev/kfd, /opt/rocm or /dev/dri/renderD128 — no usable GPU",
+   "Blender at /workspace/homes/6d861f98cd849b149484323e/lelu-tools/blender-4.2.23-linux-x64/blender"
+  ],
+  "probedAt": "2026-11-19T11:02:46.326Z"
+ },
+ "blender": "/workspace/homes/6d861f98cd849b149484323e/lelu-tools/blender-4.2.23-linux-x64/blender",
+ "metricsSource": "artifacts/lelu2/m23/youth/metrics-youth.json",
+ "model": "artifacts/lelu2/m23/youth/lelu2-m23-youth.glb",
+ "shots": [
+  {
+   "shot": "face-close-up",
+   "title": "Face close-up",
+   "proves": "the face's own proportions at portrait scale",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/face-close-up.png",
+   "seconds": 37.56,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:face-close-up",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.5288000106811523
+    ],
+    "radius": 0.145,
+    "lens_mm": 135,
+    "distance_m": 1.1629515262898966
+   },
+   "render": {
+    "shot": "face-close-up",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/face-close-up.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "face",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0,
+      -0.10000000149011612,
+      1.5288000106811523
+     ],
+     "radius": 0.145,
+     "lens_mm": 135,
+     "distance_m": 1.1629515262898966
+    },
+    "framing": "explicit",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 36.99,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "face-close-up",
+     "view": "front",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.7726812169674399,
+     "excess": 0.13673083769203384,
+     "missing": 0.09058794534052633,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.2058,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.00 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-facial-expressions/lelu-facial-expression-01.png"
+  },
+  {
+   "shot": "eyes",
+   "title": "Eyes and eyelids",
+   "proves": "eye placement, aperture and iris colour",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/eyes.png",
+   "seconds": 21.95,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:eyes",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.5784000158309937
+    ],
+    "radius": 0.07,
+    "lens_mm": 200,
+    "distance_m": 0.8277767102155682
+   },
+   "render": {
+    "shot": "eyes",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/eyes.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "face"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0,
+      -0.10000000149011612,
+      1.5784000158309937
+     ],
+     "radius": 0.07,
+     "lens_mm": 200,
+     "distance_m": 0.8277767102155682
+    },
+    "framing": "explicit",
+    "bounds_blender_zup": {
+     "min": [
+      -0.08603402972221375,
+      -0.24150000512599945,
+      1.4345166683197021
+     ],
+     "max": [
+      0.08595362305641174,
+      0.039221130311489105,
+      1.6991435289382935
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      768,
+      768
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 21.37,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "eyes",
+     "view": "front",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.8326153342785473,
+     "excess": 0.12738575635292834,
+     "missing": 0.03999890936852438,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.4834,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "close",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close"
+    ]
+   },
+   "reference": "lelu-facial-expressions/lelu-facial-expression-02.png"
+  },
+  {
+   "shot": "nose-lips",
+   "title": "Nose and lips",
+   "proves": "alar width, philtrum and lip construction",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/nose-lips.png",
+   "seconds": 22.33,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:nose-lips",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.5583000183105469
+    ],
+    "radius": 0.07,
+    "lens_mm": 180,
+    "distance_m": 0.74570077108717
+   },
+   "render": {
+    "shot": "nose-lips",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/nose-lips.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "face"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0,
+      -0.10000000149011612,
+      1.5583000183105469
+     ],
+     "radius": 0.07,
+     "lens_mm": 180,
+     "distance_m": 0.74570077108717
+    },
+    "framing": "explicit",
+    "bounds_blender_zup": {
+     "min": [
+      -0.08603402972221375,
+      -0.24150000512599945,
+      1.4345166683197021
+     ],
+     "max": [
+      0.08595362305641174,
+      0.039221130311489105,
+      1.6991435289382935
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      768,
+      768
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 21.85,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "nose-lips",
+     "view": "front",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.81563651248465,
+     "excess": 0.1397462136717151,
+     "missing": 0.044617273843634876,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.4389,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.00 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-facial-expressions/lelu-facial-expression-01.png"
+  },
+  {
+   "shot": "hairline",
+   "title": "Hairline and baby hairs",
+   "proves": "where hair actually meets the forehead, and the front strand roots",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/hairline.png",
+   "seconds": 30.71,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:hairline",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.6246999502182007
+    ],
+    "radius": 0.095,
+    "lens_mm": 150,
+    "distance_m": 0.8451870706798847
+   },
+   "render": {
+    "shot": "hairline",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/hairline.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "face",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0,
+      -0.10000000149011612,
+      1.6246999502182007
+     ],
+     "radius": 0.095,
+     "lens_mm": 150,
+     "distance_m": 0.8451870706798847
+    },
+    "framing": "explicit",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 30.27,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "hairline",
+     "view": "front",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.7475783943523231,
+     "excess": 0.12428172713840092,
+     "missing": 0.12813987850927597,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.2602,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.08 vs reference 0.75 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-facial-expressions/lelu-facial-expression-02.png"
+  },
+  {
+   "shot": "curl-detail",
+   "title": "Individual curl structure",
+   "proves": "ringlet geometry at strand scale",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/curl-detail.png",
+   "seconds": 22.72,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:curl-detail",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.09000000357627869,
+     -0.05999999865889549,
+     1.523800015449524
+    ],
+    "radius": 0.075,
+    "lens_mm": 135,
+    "distance_m": 0.6015266515292568
+   },
+   "render": {
+    "shot": "curl-detail",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/curl-detail.png",
+    "view": "three-quarter",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.09000000357627869,
+      -0.05999999865889549,
+      1.523800015449524
+     ],
+     "radius": 0.075,
+     "lens_mm": 135,
+     "distance_m": 0.6015266515292568
+    },
+    "framing": "explicit",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.2154385894536972,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      768,
+      768
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 22.25,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "curl-detail",
+     "view": "three-quarter",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0,
+     "excess": 0,
+     "missing": 0,
+     "usable": false,
+     "note": "mask coverage 99.4% / 55.7% — the background was not separable, so the silhouette is not measured"
+    },
+    "colourDistance": null,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "mask coverage 99.4% / 55.7% — the background was not separable, so the silhouette is not measured",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.00 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-hair/lelu-hair-07.png"
+  },
+  {
+   "shot": "hair-full",
+   "title": "Full hairstyle",
+   "proves": "the whole mass: length, silhouette, fall",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/hair-full.png",
+   "seconds": 19.21,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:hair-full",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "render": {
+    "shot": "hair-full",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/hair-full.png",
+    "view": "three-quarter",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.0004821270704269409,
+      0.00009249895811080933,
+      1.4473623037338257
+     ],
+     "radius": 0.4494813524688876,
+     "lens_mm": 70,
+     "distance_m": 1.913139432678783
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 18.65,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "hair-full",
+     "view": "three-quarter",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.4201204603733079,
+     "excess": 0.12603613811199238,
+     "missing": 0.45384340151469976,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.419,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.07 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-hair/lelu-hair-07.png"
+  },
+  {
+   "shot": "jewelry",
+   "title": "Jewelry close-up",
+   "proves": "the headpiece and ornaments are geometry with metallic materials",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/jewelry.png",
+   "seconds": 19.63,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:jewelry",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0,
+     -0.04907458275556564,
+     1.5824611186981201
+    ],
+    "radius": 0.13534896484788744,
+    "lens_mm": 70,
+    "distance_m": 0.5760893981484392
+   },
+   "render": {
+    "shot": "jewelry",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/jewelry.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "accessories.head"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0,
+      -0.04907458275556564,
+      1.5824611186981201
+     ],
+     "radius": 0.13534896484788744,
+     "lens_mm": 70,
+     "distance_m": 0.5760893981484392
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.09201518446207047,
+      -0.11311826854944229,
+      1.506626009941101
+     ],
+     "max": [
+      0.09201518446207047,
+      0.014969103038311005,
+      1.6582961082458496
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      768,
+      768
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 18.97,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "jewelry",
+     "view": "front",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.6609592770034843,
+     "excess": 0.20949477351916376,
+     "missing": 0.12954594947735193,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.1747,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.06 vs reference 0.75 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-hair/lelu-hair-04.png"
+  },
+  {
+   "shot": "portrait-front",
+   "title": "Front portrait",
+   "proves": "the complete head as seen head-on",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/portrait-front.png",
+   "seconds": 16.52,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:portrait-front",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "render": {
+    "shot": "portrait-front",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/portrait-front.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "neck",
+     "head",
+     "face",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.0004821270704269409,
+      0.00009249895811080933,
+      1.4473623037338257
+     ],
+     "radius": 0.4494813524688876,
+     "lens_mm": 70,
+     "distance_m": 1.913139432678783
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 16.06,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "portrait-front",
+     "view": "front",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.40332045648904485,
+     "excess": 0.07039013889298458,
+     "missing": 0.5262894046179706,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.317,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.30 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-facial-expressions/lelu-facial-expression-01.png"
+  },
+  {
+   "shot": "portrait-three-quarter",
+   "title": "Three-quarter portrait",
+   "proves": "the same head from the angle a viewer actually sees",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/portrait-three-quarter.png",
+   "seconds": 15.34,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:portrait-three-quarter",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "render": {
+    "shot": "portrait-three-quarter",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/portrait-three-quarter.png",
+    "view": "three-quarter",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "neck",
+     "head",
+     "face",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.0004821270704269409,
+      0.00009249895811080933,
+      1.4473623037338257
+     ],
+     "radius": 0.4494813524688876,
+     "lens_mm": 70,
+     "distance_m": 1.913139432678783
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 14.89,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "portrait-three-quarter",
+     "view": "three-quarter",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.46284568905414825,
+     "excess": 0.06925400883104811,
+     "missing": 0.4679003021148036,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.3854,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.07 vs reference 0.75 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-facial-expressions/lelu-facial-expression-03.png"
+  },
+  {
+   "shot": "profile",
+   "title": "Side profile",
+   "proves": "nose projection, chin, jaw angle and skull depth",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/profile.png",
+   "seconds": 12.84,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:profile",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "render": {
+    "shot": "profile",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/profile.png",
+    "view": "side",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "face",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.0004821270704269409,
+      0.00009249895811080933,
+      1.4473623037338257
+     ],
+     "radius": 0.4494813524688876,
+     "lens_mm": 70,
+     "distance_m": 1.913139432678783
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 12.39,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "profile",
+     "view": "side",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.5284826444486661,
+     "excess": 0.008223193204331425,
+     "missing": 0.4632941623470025,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.2246,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "differs",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close"
+    ]
+   },
+   "reference": "lelu-anatomy/lelu-anatomy-01.png"
+  },
+  {
+   "shot": "rear",
+   "title": "Rear view",
+   "proves": "the back of the hairstyle and the skull's coverage",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/rear.png",
+   "seconds": 15.21,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:rear",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "render": {
+    "shot": "rear",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/rear.png",
+    "view": "back",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "head",
+     "hair"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.0004821270704269409,
+      0.00009249895811080933,
+      1.4473623037338257
+     ],
+     "radius": 0.4494813524688876,
+     "lens_mm": 70,
+     "distance_m": 1.913139432678783
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.2732996344566345,
+      -0.24150000512599945,
+      1.1852362155914307
+     ],
+     "max": [
+      0.2742638885974884,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 14.75,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "rear",
+     "view": "back",
+     "ground": false
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.4017952881345547,
+     "excess": 0.10201893324346681,
+     "missing": 0.4961857786219785,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.1398,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.14 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-hair/lelu-hair-07.png"
+  },
+  {
+   "shot": "upper-body",
+   "title": "Full upper body",
+   "proves": "neck, shoulders and the head-to-body transition",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/upper-body.png",
+   "seconds": 18.49,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:upper-body",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     -4.023313522338867e-7,
+     0.00009249895811080933,
+     1.3907101154327393
+    ],
+    "radius": 0.5969280562611871,
+    "lens_mm": 70,
+    "distance_m": 2.540720758787483
+   },
+   "render": {
+    "shot": "upper-body",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/upper-body.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "torso",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      -4.023313522338867e-7,
+      0.00009249895811080933,
+      1.3907101154327393
+     ],
+     "radius": 0.5969280562611871,
+     "lens_mm": 70,
+     "distance_m": 2.540720758787483
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.4430992305278778,
+      -0.24150000512599945,
+      1.0719318389892578
+     ],
+     "max": [
+      0.44309842586517334,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 18,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "upper-body",
+     "view": "front",
+     "ground": true
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.8274617305395723,
+     "excess": 0.0027684290522201715,
+     "missing": 0.16976984040820758,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.5648,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.34 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   },
+   "reference": "lelu-anatomy/lelu-anatomy-05.png"
+  },
+  {
+   "shot": "full-body",
+   "title": "Full-body character",
+   "proves": "the complete figure, head to feet",
+   "ok": true,
+   "png": "artifacts/foundry/benchmark/full-body.png",
+   "seconds": 15.86,
+   "error": null,
+   "plan": {
+    "task": {
+     "id": "render:full-body",
+     "need": "cpu",
+     "ramGb": 2,
+     "minutes": 2
+    },
+    "backend": "cpu",
+    "threads": 7,
+    "resolutionScale": 1,
+    "samples": 64,
+    "timeoutMs": 180000,
+    "degraded": false,
+    "reasons": [
+     "needs cpu, which this machine provides directly"
+    ],
+    "alternative": null
+   },
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.04197274148464203,
+     0.8542441725730896
+    ],
+    "radius": 1.0317547025515603,
+    "lens_mm": 70,
+    "distance_m": 4.391484975875141
+   },
+   "render": {
+    "shot": "full-body",
+    "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/full-body.png",
+    "view": "front",
+    "objects": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focused": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "focus_missing": [],
+    "triangles": 1289906,
+    "materials_applied": [
+     "torso: skin SSS (scale 12 mm)",
+     "pelvis: skin SSS (scale 12 mm)",
+     "neck: skin SSS (scale 12 mm)",
+     "head: skin SSS (scale 12 mm)",
+     "face: skin SSS (scale 12 mm)",
+     "hair: hair gloss + anisotropy",
+     "arms: skin SSS (scale 12 mm)",
+     "hands: skin SSS (scale 12 mm)",
+     "legs: skin SSS (scale 12 mm)",
+     "feet: skin SSS (scale 12 mm)"
+    ],
+    "warnings": [],
+    "camera_blender_zup": {
+     "center": [
+      0.01195843517780304,
+      -0.04197274148464203,
+      0.8542441725730896
+     ],
+     "radius": 1.0317547025515603,
+     "lens_mm": 70,
+     "distance_m": 4.391484975875141
+    },
+    "framing": "measured-bounds",
+    "bounds_blender_zup": {
+     "min": [
+      -0.4906481206417084,
+      -0.3256304860115051,
+      -0.0010000000474974513
+     ],
+     "max": [
+      0.5145649909973145,
+      0.24168500304222107,
+      1.7094883918762207
+     ]
+    },
+    "render": {
+     "engine": "CYCLES",
+     "device": "CPU",
+     "samples": 32,
+     "threads": 7,
+     "resolution": [
+      1024,
+      1024
+     ],
+     "denoise": true,
+     "view_transform": "AgX"
+    },
+    "render_seconds": 15.24,
+    "blender": "4.2.23 LTS",
+    "job": {
+     "shot": "full-body",
+     "view": "front",
+     "ground": true
+    }
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.6827088159149748,
+     "excess": 0.0014715901348957624,
+     "missing": 0.31581959395012943,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.5835,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "differs",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close"
+    ]
+   },
+   "reference": "lelu-anatomy/lelu-anatomy-07.png"
+  }
+ ],
+ "rendered": 13,
+ "failed": 0
+}

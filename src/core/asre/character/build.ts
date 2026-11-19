@@ -260,6 +260,18 @@ export function plan(spec: CharacterSpec, lattice = DEFAULT_LATTICE): BuildPlan 
   return { spec, sk, keys: componentKeys(spec, sk), geometryKeys: componentKeys(neutralMaterials(spec), sk) };
 }
 
+/**
+ * A stable 0..1 hash on a 30 mm cell. Her highlights live in CLUMPS — whole
+ * curls take the same hue (leluIdentity: "black curls with rose-magenta
+ * highlights") — so the colour must be a function of position at that scale,
+ * not of the vertex index.
+ */
+function clumpAt(x: number, y: number, z: number): number {
+  let h = Math.imul(Math.floor(x / 0.03), 374761393) ^ Math.imul(Math.floor(y / 0.03), 668265263) ^ Math.imul(Math.floor(z / 0.03), 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
 /** World-space tube mesh → the component's local frame, with hair vertex colours. */
 function tubeLocalMesh(world: Mesh, anchor: Vec3, h: number, colour: [number, number, number]): Mesh {
   const positions = new Float32Array(world.positions.length);
@@ -270,8 +282,20 @@ function tubeLocalMesh(world: Mesh, anchor: Vec3, h: number, colour: [number, nu
   }
   const vertexCount = positions.length / 3;
   const colors = new Float32Array(vertexCount * 4);
-  const rgb = [srgbToLinear(colour[0]), srgbToLinear(colour[1]), srgbToLinear(colour[2])];
-  for (let v = 0; v < vertexCount; v++) colors.set([rgb[0], rgb[1], rgb[2], 1], 4 * v);
+  const ROSE: [number, number, number] = [0.55, 0.16, 0.3]; // LELU_COLOURS.hairRose
+  const BURGUNDY: [number, number, number] = [0.42, 0.13, 0.24];
+  const linear = (c: [number, number, number]) => [srgbToLinear(c[0]), srgbToLinear(c[1]), srgbToLinear(c[2])] as const;
+  const base = linear(colour);
+  const rose = linear(ROSE);
+  const burgundy = linear(BURGUNDY);
+  for (let v = 0; v < vertexCount; v++) {
+    const wx = world.positions[3 * v] + anchor[0] * h;
+    const wy = world.positions[3 * v + 1] + anchor[1] * h;
+    const wz = world.positions[3 * v + 2] + anchor[2] * h;
+    const roll = clumpAt(wx, wy, wz);
+    const c = roll > 0.88 ? burgundy : roll > 0.78 ? rose : base;
+    colors.set([c[0], c[1], c[2], 1], 4 * v);
+  }
   const mesh: Mesh = { positions, indices: world.indices, colors };
   mesh.normals = vertexNormals(mesh);
   return mesh;

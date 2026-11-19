@@ -1,0 +1,561 @@
+{
+ "verifiedOn": "2026-11-19",
+ "technologies": [
+  {
+   "id": "blender-cycles",
+   "name": "Blender 4.2 LTS + Cycles (CPU)",
+   "repository": "https://projects.blender.org/blender/blender",
+   "role": "production renderer: geometry, shaders, Cycles, export",
+   "codeLicense": "GPL-2.0-or-later (the application)",
+   "weightsLicense": "n/a — no model weights",
+   "inherited": [
+    "OpenImageDenoise (Apache-2.0) ships inside Cycles"
+   ],
+   "commercial": "yes",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "optional; CPU Cycles is a supported backend",
+   "ram": "~2 GB for a 1.3 M-triangle character at 1024²",
+   "cpuFallback": "tested here: Cycles CPU rendered the 1.29 M-triangle LÉLU build in 6.02 s at 512²/16 samples",
+   "install": "reproduced",
+   "quality": "physically based path tracing with subsurface scattering; the renders in artifacts/foundry/benchmark are Cycles CPU",
+   "failures": [
+    "CPU render time scales with samples; a 1024²/64-sample close-up is tens of seconds, not one",
+    "Blender's own GPL does not extend to images it renders or models it exports"
+   ],
+   "integration": "scripts/blender/lelu_foundry_render.py, launched as a child process with a timeout",
+   "decision": "adopt",
+   "reasons": [
+    "free, local, no account, no runtime network",
+    "GPL applies to the application we run, not to rendered output",
+    "CPU path measured on this machine"
+   ],
+   "sources": [
+    "https://www.blender.org/about/license/"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "pci-fr",
+   "name": "PCI-FR 2.3.1 (this repository)",
+   "repository": "local: src/core/asre/{character,reference,hair,gltf}",
+   "role": "reference-driven component/human reconstruction and persistent identity",
+   "codeLicense": "project licence (this repository)",
+   "weightsLicense": "none — procedural, reference-measured geometry",
+   "inherited": [
+    "the 39 photographs are the user's own references, read-only"
+   ],
+   "commercial": "yes",
+   "account": false,
+   "internet": "none",
+   "gpu": "none",
+   "ram": "~1.5 GB during a build (measured: 58.7 s full character build)",
+   "cpuFallback": "this is the CPU path",
+   "install": "reproduced",
+   "quality": "measured: 1 289 906 triangles, jaw 98.7 mm against the sheet's 96 mm, 149 baby strands with 100 % hairline coverage; the forehead defect is documented, not hidden",
+   "failures": [
+    "component-based, so it cannot invent anatomy the references do not show",
+    "the main hair curtain still starts above the rooted fringe (report 2.3.1 §1)"
+   ],
+   "integration": "npm run m23:youth → GLB → the Foundry project store → Cycles",
+   "decision": "adopt",
+   "reasons": [
+    "the only engine here that preserves HER measured identity",
+    "zero spend, zero account, zero network",
+    "its own diagnostics are the validation input"
+   ],
+   "sources": [
+    "artifacts/lelu2/m231/report-2.3.1.md"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "triposr",
+   "name": "TripoSR",
+   "repository": "https://github.com/VAST-AI-Research/TripoSR",
+   "role": "optional generic single-image prop reconstruction (never the canonical human engine)",
+   "codeLicense": "MIT",
+   "weightsLicense": "MIT (stabilityai/TripoSR model card)",
+   "inherited": [
+    "trained on Objaverse renders; the released weights are MIT"
+   ],
+   "commercial": "yes",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "CUDA recommended; a CPU worker exists in services/asre-reconstruct",
+   "ram": "~4 GB CPU worker",
+   "cpuFallback": "documented CPU worker in this repository; not timed in this pass",
+   "install": "untested",
+   "quality": "coarse single-image geometry; fine for props, not a face",
+   "failures": [
+    "single view invents the back of the head",
+    "no rig, no eyelids, no hair"
+   ],
+   "integration": "existing ASRE engine \"triposr\" behind the same job ledger",
+   "decision": "optional",
+   "reasons": [
+    "MIT code and weights make it legally safe",
+    "the mission forbids it as the canonical human reconstruction engine"
+   ],
+   "sources": [
+    "https://huggingface.co/stabilityai/TripoSR"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "humannova",
+   "name": "HumanNOVA",
+   "repository": "https://github.com/HumanNOVA/HumanNOVA",
+   "role": "single-image photorealistic full-body avatar (triplane)",
+   "codeLicense": "none — the repository has no LICENSE file (GitHub API: license null)",
+   "weightsLicense": "unstated; distributed as an external asset archive",
+   "inherited": [
+    "tokenizer/HMR components borrowed from other projects; unlicensed as redistributed"
+   ],
+   "commercial": "unknown",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "CUDA 12.1 setup script; run.py falls back to CPU only in code",
+   "ram": "not documented",
+   "cpuFallback": "the CLI accepts cpu, but the pipeline uses CUDA-only kernels in practice; untested",
+   "install": "not-attempted",
+   "quality": "CVPR 2026 highlight; paper reports sub-second feed-forward avatars",
+   "failures": [
+    "no licence = no grant to use, modify or redistribute",
+    "checkpoint delivered as an external link with no separate terms"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "requirement 6/7: a repository without a LICENSE file grants no rights, and 'open source' cannot be assumed",
+    "no GPU on this machine; the setup targets CUDA 12.1"
+   ],
+   "sources": [
+    "https://github.com/HumanNOVA/HumanNOVA",
+    "https://api.github.com/repos/HumanNOVA/HumanNOVA"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "idol",
+   "name": "IDOL",
+   "repository": "https://github.com/yiyuzhuang/IDOL",
+   "role": "single-image photorealistic human (Gaussian avatar) + editing",
+   "codeLicense": "MIT",
+   "weightsLicense": "IDOL checkpoint on Hugging Face; SMPL-X/FLAME templates are downloaded separately",
+   "inherited": [
+    "SMPL-X: academic research only (commercial via Meshcapade)",
+    "FLAME: research licence",
+    "HuGe100K dataset: DeepFashion images may not be redistributed or commercially exploited"
+   ],
+   "commercial": "no",
+   "account": true,
+   "internet": "download-only",
+   "gpu": "NVIDIA CUDA 11.8, 24 GB VRAM recommended",
+   "ram": "≥ 15 GB storage; RAM undocumented",
+   "cpuFallback": "none documented",
+   "install": "not-attempted",
+   "quality": "1K Gaussian avatars, editable; research demonstrations only",
+   "failures": [
+    "registration on the SMPL-X and FLAME sites is mandatory",
+    "the SMPL-X licence forbids commercial use and redistribution",
+    "24 GB VRAM unavailable here"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "account requirement violates Part I (no mandatory accounts)",
+    "SMPL-X/FLAME make every output non-commercial",
+    "no GPU"
+   ],
+   "sources": [
+    "https://github.com/yiyuzhuang/IDOL",
+    "https://smpl-x.is.tue.mpg.de/modellicense.html"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "pshuman",
+   "name": "PSHuman",
+   "repository": "https://github.com/pengHTYX/PSHuman",
+   "role": "cross-scale multiview diffusion human reconstruction",
+   "codeLicense": "MIT",
+   "weightsLicense": "CC BY 4.0 (reported), with an SMPL-free variant",
+   "inherited": [
+    "SMPL-X templates for the conditioned variant"
+   ],
+   "commercial": "restricted",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "768-resolution model needs > 40 GB VRAM (authors' FAQ)",
+   "ram": "undocumented; large",
+   "cpuFallback": "none",
+   "install": "not-attempted",
+   "quality": "detailed clothed humans; users report weak proportions and memory failures",
+   "failures": [
+    "does not fit a 24 GB card, let alone this CPU-only machine",
+    "multiview diffusion invents views rather than measuring them"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "hardware requirement is an order of magnitude beyond this machine",
+    "the mission explicitly forbids making it a default dependency"
+   ],
+   "sources": [
+    "https://github.com/pengHTYX/PSHuman",
+    "https://otoy.studio/guides/run-pshuman-without-a-gpu"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "sam-3d-body",
+   "name": "SAM 3D Body",
+   "repository": "https://github.com/facebookresearch/sam-3d-body",
+   "role": "promptable full-body mesh from one image",
+   "codeLicense": "MIT",
+   "weightsLicense": "SAM License (custom Meta terms, not OSI-approved)",
+   "inherited": [
+    "MHR parametric body model"
+   ],
+   "commercial": "restricted",
+   "account": true,
+   "internet": "download-only",
+   "gpu": "CUDA unconditionally: the estimator moves its batch to the GPU without checking",
+   "ram": "undocumented",
+   "cpuFallback": "none — a CPU-only machine raises rather than falling back (independent report)",
+   "install": "not-attempted",
+   "quality": "strong pose and shape; body only, no identity-level face",
+   "failures": [
+    "Hugging Face access must be requested and approved",
+    "no CPU path",
+    "custom weight licence needs review before commercial use"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "gated checkpoint violates the no-account preference and cannot be fetched offline",
+    "no GPU path here"
+   ],
+   "sources": [
+    "https://github.com/facebookresearch/sam-3d-body/blob/main/INSTALL.md",
+    "https://www.libreyolo.com/docs/models/sam-3d-body"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "sapiens2",
+   "name": "Sapiens2",
+   "repository": "https://github.com/facebookresearch/sapiens2",
+   "role": "human vision foundation: pose, segmentation, normals, point maps, matting",
+   "codeLicense": "custom Meta Sapiens licence (not OSI-approved)",
+   "weightsLicense": "same custom licence",
+   "inherited": [
+    "1B pretrained on human images; training-data terms not restated per checkpoint"
+   ],
+   "commercial": "restricted",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "ViT 0.4B–5B; CUDA practical, CPU prohibitive",
+   "ram": "model-size dependent (5B checkpoint)",
+   "cpuFallback": "technically possible, not practical",
+   "install": "not-attempted",
+   "quality": "excellent 2D/2.5D human analysis; it is NOT a character generator",
+   "failures": [
+    "cannot produce an editable character mesh",
+    "custom licence needs legal review",
+    "compute far beyond this machine"
+   ],
+   "integration": "none; could later feed landmarks into PCI-FR",
+   "decision": "reject",
+   "reasons": [
+    "not a standalone generator (the mission says so and the docs agree)",
+    "custom licence + compute"
+   ],
+   "sources": [
+    "https://github.com/facebookresearch/sapiens2/blob/main/LICENSE.md"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "colmap",
+   "name": "COLMAP",
+   "repository": "https://github.com/colmap/colmap",
+   "role": "SfM/MVS: camera calibration and dense multi-view geometry",
+   "codeLicense": "BSD-3-Clause",
+   "weightsLicense": "n/a",
+   "inherited": [
+    "third-party deps (Ceres, PoseLib, SIFT GPU) separately licensed"
+   ],
+   "commercial": "yes",
+   "account": false,
+   "internet": "none",
+   "gpu": "optional; CPU SfM/MVS supported (CUDA speeds up dense stereo)",
+   "ram": "several GB for a dense reconstruction",
+   "cpuFallback": "documented and widely used",
+   "install": "untested",
+   "quality": "the reference implementation for multi-view geometry",
+   "failures": [
+    "needs many calibrated views of ONE static subject; the 39 references are different hairstyles and expressions, not a capture set"
+   ],
+   "integration": "optional CLI behind the Foundry's acquisition step",
+   "decision": "optional",
+   "reasons": [
+    "legally clean and CPU-capable",
+    "no suitable capture set exists, so nothing was claimed"
+   ],
+   "sources": [
+    "https://colmap.github.io/license.html"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "meshroom",
+   "name": "Meshroom / AliceVision",
+   "repository": "https://github.com/alicevision/Meshroom",
+   "role": "photogrammetry to textured mesh",
+   "codeLicense": "MPL-2.0",
+   "weightsLicense": "n/a",
+   "inherited": [
+    "Qt/PySide6 (LGPL-3.0)"
+   ],
+   "commercial": "yes",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "the full MVS depth-map step requires an NVIDIA CUDA GPU",
+   "ram": "8–16 GB for a dense scene",
+   "cpuFallback": "partial; the MVS stage is CUDA-bound",
+   "install": "not-attempted",
+   "quality": "good textured meshes from capture sets",
+   "failures": [
+    "CUDA requirement",
+    "photogrammetry cannot recover hair or eyelids from these references"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "CUDA-bound MVS on a machine with no GPU",
+    "wrong tool for a single-subject stylised character"
+   ],
+   "sources": [
+    "https://github.com/alicevision/AliceVision/blob/develop/COPYING.md"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "nerfstudio",
+   "name": "Nerfstudio",
+   "repository": "https://github.com/nerfstudio-project/nerfstudio",
+   "role": "NeRF / Gaussian-splatting appearance reconstruction",
+   "codeLicense": "Apache-2.0",
+   "weightsLicense": "n/a (trained per scene)",
+   "inherited": [
+    "tiny-cuda-nn, nerfacc, gsplat: CUDA extensions"
+   ],
+   "commercial": "yes",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "CUDA GPU required for training",
+   "ram": "6–24 GB VRAM depending on method",
+   "cpuFallback": "none practical",
+   "install": "not-attempted",
+   "quality": "photoreal appearance, not an editable mesh",
+   "failures": [
+    "an appearance representation is not riggable geometry (the mission warns about exactly this)",
+    "no GPU"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "CUDA-only training",
+    "cannot yield the editable, riggable character the Foundry needs"
+   ],
+   "sources": [
+    "https://docs.nerf.studio/"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "openmvs",
+   "name": "OpenMVS",
+   "repository": "https://github.com/cdcseacave/openMVS",
+   "role": "dense reconstruction and texturing",
+   "codeLicense": "AGPL-3.0",
+   "weightsLicense": "n/a",
+   "inherited": [
+    "AGPL propagates to the combined work if linked into a service"
+   ],
+   "commercial": "restricted",
+   "account": false,
+   "internet": "none",
+   "gpu": "optional CUDA",
+   "ram": "4–16 GB",
+   "cpuFallback": "documented",
+   "install": "not-attempted",
+   "quality": "solid dense meshes",
+   "failures": [
+    "AGPL-3.0 distribution obligations for a hosted product",
+    "same capture-set problem as COLMAP"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "AGPL-3.0 is incompatible with shipping it inside LÉLU without opening the combined work"
+   ],
+   "sources": [
+    "https://github.com/cdcseacave/openMVS"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "sugar",
+   "name": "SuGaR",
+   "repository": "https://github.com/Anttwo/SuGaR",
+   "role": "Gaussian splatting to surface mesh",
+   "codeLicense": "Inria/MPII Gaussian-Splatting licence — research and evaluation only",
+   "weightsLicense": "same",
+   "inherited": [
+    "gaussian-splatting (Inria/MPII), CUDA rasteriser"
+   ],
+   "commercial": "no",
+   "account": false,
+   "internet": "download-only",
+   "gpu": "CUDA, 24 GB recommended",
+   "ram": "16 GB+",
+   "cpuFallback": "none",
+   "install": "not-attempted",
+   "quality": "fast surface extraction from splats",
+   "failures": [
+    "licence grants non-commercial research use only",
+    "needs a splat capture and a GPU"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "research-only licence",
+    "no GPU, no capture"
+   ],
+   "sources": [
+    "https://github.com/Anttwo/SuGaR/blob/main/LICENSE.md"
+   ],
+   "verifiedOn": "2026-11-19"
+  },
+  {
+   "id": "stable-fast-3d",
+   "name": "Stable Fast 3D",
+   "repository": "https://github.com/Stability-AI/stable-fast-3d",
+   "role": "optional prop reconstruction with UVs",
+   "codeLicense": "Stability AI Community License",
+   "weightsLicense": "Stability AI Community License (gated on Hugging Face)",
+   "inherited": [
+    "trained on Objaverse and internal data"
+   ],
+   "commercial": "restricted",
+   "account": true,
+   "internet": "download-only",
+   "gpu": "CUDA, ~7 GB VRAM",
+   "ram": "8 GB+",
+   "cpuFallback": "none official",
+   "install": "not-attempted",
+   "quality": "good props, not humans",
+   "failures": [
+    "gated weights need a Hugging Face account",
+    "community licence has revenue and use restrictions"
+   ],
+   "integration": "none",
+   "decision": "reject",
+   "reasons": [
+    "gated account + restricted licence + no GPU",
+    "TripoSR already covers props under MIT"
+   ],
+   "sources": [
+    "https://github.com/Stability-AI/stable-fast-3d"
+   ],
+   "verifiedOn": "2026-11-19"
+  }
+ ],
+ "audit": {
+  "total": 14,
+  "adopt": 2,
+  "optional": 2,
+  "reject": 10,
+  "commercialOk": [
+   "blender-cycles",
+   "pci-fr",
+   "triposr",
+   "colmap",
+   "meshroom",
+   "nerfstudio"
+  ],
+  "restricted": [
+   "idol",
+   "pshuman",
+   "sam-3d-body",
+   "sapiens2",
+   "openmvs",
+   "sugar",
+   "stable-fast-3d"
+  ],
+  "unlicensed": [
+   "humannova"
+  ],
+  "gated": [
+   "idol",
+   "sam-3d-body",
+   "stable-fast-3d"
+  ],
+  "violations": []
+ },
+ "brief": {
+  "adopted": [
+   "Blender 4.2 LTS + Cycles (CPU): free, local, no account, no runtime network",
+   "PCI-FR 2.3.1 (this repository): the only engine here that preserves HER measured identity"
+  ],
+  "optional": [
+   "TripoSR: MIT code and weights make it legally safe",
+   "COLMAP: legally clean and CPU-capable"
+  ],
+  "rejected": [
+   {
+    "id": "humannova",
+    "why": "requirement 6/7: a repository without a LICENSE file grants no rights, and 'open source' cannot be assumed"
+   },
+   {
+    "id": "idol",
+    "why": "account requirement violates Part I (no mandatory accounts)"
+   },
+   {
+    "id": "pshuman",
+    "why": "hardware requirement is an order of magnitude beyond this machine"
+   },
+   {
+    "id": "sam-3d-body",
+    "why": "gated checkpoint violates the no-account preference and cannot be fetched offline"
+   },
+   {
+    "id": "sapiens2",
+    "why": "not a standalone generator (the mission says so and the docs agree)"
+   },
+   {
+    "id": "meshroom",
+    "why": "CUDA-bound MVS on a machine with no GPU"
+   },
+   {
+    "id": "nerfstudio",
+    "why": "CUDA-only training"
+   },
+   {
+    "id": "openmvs",
+    "why": "AGPL-3.0 is incompatible with shipping it inside LÉLU without opening the combined work"
+   },
+   {
+    "id": "sugar",
+    "why": "research-only licence"
+   },
+   {
+    "id": "stable-fast-3d",
+    "why": "gated account + restricted licence + no GPU"
+   }
+  ]
+ }
+}

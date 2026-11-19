@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/m23/youth/lelu2-m23-youth.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/portrait-front.png",
+ "shot": "portrait-front",
+ "view": "front",
+ "focus": [
+  "head",
+  "face",
+  "hair",
+  "neck"
+ ],
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 32,
+ "threads": 7,
+ "ground": false,
+ "materials": true
+}

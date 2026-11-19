@@ -1,0 +1,83 @@
+{
+ "shot": "eyes",
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/eyes.png",
+ "view": "front",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": [
+  "head",
+  "face"
+ ],
+ "focus_missing": [],
+ "triangles": 1289906,
+ "materials_applied": [
+  "torso: skin SSS (scale 12 mm)",
+  "pelvis: skin SSS (scale 12 mm)",
+  "neck: skin SSS (scale 12 mm)",
+  "head: skin SSS (scale 12 mm)",
+  "face: skin SSS (scale 12 mm)",
+  "hair: hair gloss + anisotropy",
+  "arms: skin SSS (scale 12 mm)",
+  "hands: skin SSS (scale 12 mm)",
+  "legs: skin SSS (scale 12 mm)",
+  "feet: skin SSS (scale 12 mm)"
+ ],
+ "warnings": [],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.10000000149011612,
+   1.5784000158309937
+  ],
+  "radius": 0.07,
+  "lens_mm": 200.0,
+  "distance_m": 0.8277767102155682
+ },
+ "framing": "explicit",
+ "bounds_blender_zup": {
+  "min": [
+   -0.08603402972221375,
+   -0.24150000512599945,
+   1.4345166683197021
+  ],
+  "max": [
+   0.08595362305641174,
+   0.039221130311489105,
+   1.6991435289382935
+  ]
+ },
+ "render": {
+  "engine": "CYCLES",
+  "device": "CPU",
+  "samples": 32,
+  "threads": 7,
+  "resolution": [
+   768,
+   768
+  ],
+  "denoise": true,
+  "view_transform": "AgX"
+ },
+ "render_seconds": 21.37,
+ "blender": "4.2.23 LTS",
+ "job": {
+  "shot": "eyes",
+  "view": "front",
+  "ground": false
+ }
+}
