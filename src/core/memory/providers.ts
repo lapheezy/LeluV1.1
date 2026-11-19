@@ -57,12 +57,17 @@ export class LocalMemoryProvider implements MemoryProvider {
 
   async persist(candidate: MemoryCandidate): Promise<void> {
     try {
+      // Attribution is part of the memory, not a comment beside it: the
+      // caller supplied it so a later reader can tell who found this out.
       await this.brain.learn(
         candidate.prompt,
         candidate.response,
         candidate.category ?? "conversation",
         [],
-        candidate.metadata ?? {},
+        {
+          ...(candidate.metadata ?? {}),
+          ...(candidate.attribution ? { attribution: candidate.attribution } : {}),
+        },
       );
     } catch (error) {
       console.warn("[LocalMemoryProvider] learn failed:", error);

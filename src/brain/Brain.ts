@@ -247,17 +247,22 @@ export default class Brain {
       "general",
 
 
-    _keywords:
+    keywords:
       string[] = [],
 
 
-    _context:
+    context:
       Record<string, unknown> = {},
 
   ):
     Promise<ResponsePattern | undefined> {
 
 
+    // Provenance is not decoration: MemoryBridge, agent delegation and
+    // knowledge ingestion each compute where a memory came from and whether
+    // the work behind it was observed. Dropping it here made every stored
+    // fact look identical, so it is handed to the ONE memory engine that
+    // already owns persistence.
     const memories =
 
       await this.memoryEngine.learn(
@@ -265,6 +270,13 @@ export default class Brain {
         prompt,
 
         response,
+
+        {
+          ...(typeof context.source === "string" ? { source: context.source } : {}),
+          ...(typeof context.attribution === "string" ? { attribution: context.attribution } : {}),
+          keywords,
+          context,
+        },
 
       );
 
@@ -528,6 +540,7 @@ export default class Brain {
   public async rememberSystem(
     summary: string,
     keywords: string[],
+    provenance: Record<string, unknown> = {},
   ): Promise<void> {
 
     await this.persistLayer(
@@ -536,6 +549,7 @@ export default class Brain {
       "system",
       "general",
       0.5,
+      provenance,
     );
 
   }
@@ -553,6 +567,7 @@ export default class Brain {
   public async rememberKnowledge(
     summary: string,
     keywords: string[],
+    provenance: Record<string, unknown> = {},
   ): Promise<void> {
 
     await this.persistLayer(
@@ -561,6 +576,7 @@ export default class Brain {
       "knowledge",
       "general",
       0.5,
+      provenance,
     );
 
   }
@@ -573,6 +589,7 @@ export default class Brain {
     memoryType: "system" | "knowledge",
     category: string,
     importance: number,
+    provenance: Record<string, unknown> = {},
   ): Promise<void> {
 
     const existing =
@@ -643,6 +660,10 @@ export default class Brain {
 
         durable:
           true,
+
+        // Who supplied it, and on what evidence. The caller's fields win
+        // over the category default, because only the caller knows them.
+        ...provenance,
 
       },
 

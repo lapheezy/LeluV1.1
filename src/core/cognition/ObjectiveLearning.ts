@@ -210,6 +210,18 @@ export default class ObjectiveLearning {
         "system",
         `LESSON (${lesson.kind}, confidence ${lesson.confidence.toFixed(2)}): ${lesson.lesson}`,
         ["lesson", lesson.kind, ...lesson.topic.split(" ").slice(0, 4)],
+        {
+          // Provenance for the student of the lesson: which lesson, from
+          // which objective, at what measured confidence.
+          source: "objective-learning",
+          attribution: `lesson ${lesson.id} from objective ${objective.id}`,
+          lessonId: lesson.id,
+          lessonKind: lesson.kind,
+          topic: lesson.topic,
+          confidence: lesson.confidence,
+          observations: lesson.observations,
+          objectiveId: objective.id,
+        },
       );
       lesson.persistedDurably = stored === true;
 

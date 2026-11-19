@@ -32,6 +32,34 @@ const DURABILITY_THRESHOLD = 0.5;
 const CORRECTION_MARKERS =
   /(actually|no longer|not anymore|changed|instead|correction|update|never mind|scrap that|forget that|didn't|doesn't|wasn't|isn't|not really|actually i|i changed|i no longer)/i;
 
+/**
+ * Where a memory came from, and whether the work behind it was observed.
+ *
+ * The caller (MemoryBridge, an agent, knowledge ingestion) already knows
+ * this; before it was passed here, `Brain.learn` accepted it and dropped
+ * it, so a remembered claim could not be told apart from a recorded fact
+ * once it was stored. Provenance is carried on the pattern, next to the
+ * fact it describes.
+ */
+export interface LearnProvenance {
+  /** Who supplied the memory (`lelu-chat`, `research`, `agent:<name>`). */
+  source?: string;
+  /** Human-readable attribution, when the source names one. */
+  attribution?: string;
+  /** Keywords the caller already extracted, used for matching as well. */
+  keywords?: string[];
+  /** Extra provenance fields (executionVerified, redactedActionClaims, …). */
+  context?: Record<string, unknown>;
+}
+
+/** Provenance as it is stored: the caller's fields, never invented ones. */
+function provenanceFields(provenance: LearnProvenance): Record<string, unknown> {
+  const fields: Record<string, unknown> = { ...(provenance.context ?? {}) };
+  if (provenance.source) fields.source = provenance.source;
+  if (provenance.attribution) fields.attribution = provenance.attribution;
+  return fields;
+}
+
 export default class MemoryEngine {
   constructor(
     private readonly memory: PatternMemory,
@@ -41,13 +69,26 @@ export default class MemoryEngine {
    * Learn and consolidate memory. Returns the patterns that were
    * persisted or reinforced; [] means nothing durable was said.
    */
-  public async learn(prompt: string, response: string): Promise<ResponsePattern[]> {
+  public async learn(
+    prompt: string,
+    response: string,
+    provenance: LearnProvenance = {},
+  ): Promise<ResponsePattern[]> {
     const text = prompt.trim();
     if (text.length < 2) {
       return [];
     }
 
     const candidates = new MemoryExtractor().extract(text, response);
+    // Keywords the caller already extracted belong with the fact, and must
+    // still match it on a later recall. They are added to the candidate the
+    // extractor produced rather than replacing what it found.
+    const supplied = provenance.keywords ?? [];
+    if (supplied.length > 0) {
+      for (const candidate of candidates) {
+        candidate.keywords = [...new Set([...candidate.keywords, ...supplied])];
+      }
+    }
 
     // Selective writing: pure conversational filler (importance below
     // the durability gate) stays in the session's ConversationEngine
@@ -67,7 +108,7 @@ export default class MemoryEngine {
       const now = Date.now();
 
       if (!existing) {
-        const pattern = await this.create(candidate, text, now);
+        const pattern = await this.create(candidate, text, now, provenance);
         persisted.push(pattern);
         continue;
       }
@@ -79,19 +120,19 @@ export default class MemoryEngine {
 
       if (contentOverlap >= 0.6) {
         // Same fact restated → REINFORCE.
-        await this.reinforce(existing, candidate.keywords, now);
+        await this.reinforce(existing, candidate.keywords, now, provenance);
         persisted.push(existing);
       } else if (isCorrection && (contentOverlap >= 0.33 || promptOverlap >= 0.33 || keywordOverlap >= 1)) {
         // Newer statement contradicts/updates the old one → SUPERSEDE.
-        await this.supersede(existing, candidate, now);
+        await this.supersede(existing, candidate, now, provenance);
         persisted.push(existing);
       } else if (contentOverlap >= 0.33 || promptOverlap >= 0.33) {
         // Related but distinct → MERGE keywords, keep the fuller content.
-        await this.merge(existing, candidate, now);
+        await this.merge(existing, candidate, now, provenance);
         persisted.push(existing);
       } else {
         // Genuinely different fact → CREATE.
-        const pattern = await this.create(candidate, text, now);
+        const pattern = await this.create(candidate, text, now, provenance);
         persisted.push(pattern);
       }
     }
@@ -114,23 +155,33 @@ export default class MemoryEngine {
     // words with it.
     const memories = await this.memory.search(prompt || content);
 
+    // A correction is about an EXISTING fact, and the wording that corrects
+    // it rarely lands in the same category: measured, "my studio … rose
+    // gold" is extracted as `general` and "actually … platinum now" as
+    // `experience`, so a same-category requirement made the correction a
+    // SECOND competing fact instead of a supersession. Corrections are
+    // therefore allowed to reach across categories — but only with two
+    // shared keywords, so a single common word cannot merge an unrelated
+    // memory by accident.
+    const isCorrection = CORRECTION_MARKERS.test(prompt);
+
     for (const memory of memories) {
-      if (memory.category !== category) {
+      if (memory.id === "lelu-identity-foundation") {
         continue;
       }
-      if (memory.id === "lelu-identity-foundation") {
+      const sameCategory = memory.category === category;
+      if (!sameCategory && !isCorrection) {
         continue;
       }
 
       const contentOverlap = this.overlap(memory.response, content);
       const promptOverlap = this.overlap(memory.response, prompt);
       const keywordOverlap = keywords.filter((word) => memory.keywords.includes(word)).length;
-      const isCorrection = CORRECTION_MARKERS.test(prompt);
 
       if (
         contentOverlap >= 0.33 ||
         promptOverlap >= 0.33 ||
-        (isCorrection && keywordOverlap >= 1)
+        (isCorrection && keywordOverlap >= (sameCategory ? 1 : 2))
       ) {
         return memory;
       }
@@ -143,10 +194,16 @@ export default class MemoryEngine {
    * REINFORCE: same fact stated again — strengthen confidence,
    * merge in any new keywords, refresh the timestamp.
    */
-  private async reinforce(existing: ResponsePattern, keywords: string[], now: number): Promise<void> {
+  private async reinforce(
+    existing: ResponsePattern,
+    keywords: string[],
+    now: number,
+    provenance: LearnProvenance,
+  ): Promise<void> {
     existing.successfulUses += 1;
     existing.confidence = existing.successfulUses / Math.max(1, existing.successfulUses + existing.failedUses);
     existing.keywords = [...new Set([...existing.keywords, ...keywords])];
+    existing.context = { ...existing.context, ...provenanceFields(provenance) };
     existing.updatedAt = now;
     await this.memory.update(existing);
   }
@@ -160,6 +217,7 @@ export default class MemoryEngine {
     existing: ResponsePattern,
     incoming: { content: string; keywords: string[]; importance: number },
     now: number,
+    provenance: LearnProvenance = {},
   ): Promise<void> {
     const history = Array.isArray(existing.context?.history) ? (existing.context.history as string[]) : [];
     const previous = existing.response;
@@ -179,6 +237,7 @@ export default class MemoryEngine {
     existing.importance = Math.max(existing.importance, incoming.importance);
     existing.context = {
       ...existing.context,
+      ...provenanceFields(provenance),
       history: history.slice(-8),
       corrected: now,
     };
@@ -196,12 +255,14 @@ export default class MemoryEngine {
     existing: ResponsePattern,
     incoming: { content: string; keywords: string[]; importance: number },
     now: number,
+    provenance: LearnProvenance = {},
   ): Promise<void> {
     if (incoming.content.length > existing.response.length) {
       existing.response = incoming.content;
     }
     existing.keywords = [...new Set([...existing.keywords, ...incoming.keywords])];
     existing.importance = Math.max(existing.importance, incoming.importance);
+    existing.context = { ...existing.context, ...provenanceFields(provenance) };
     existing.successfulUses += 1;
     existing.updatedAt = now;
     await this.memory.update(existing);
@@ -214,6 +275,7 @@ export default class MemoryEngine {
     candidate: { category: string; content: string; keywords: string[]; importance: number; memoryType?: string },
     prompt: string,
     now: number,
+    provenance: LearnProvenance = {},
   ): Promise<ResponsePattern> {
     const pattern: ResponsePattern = {
       id: crypto.randomUUID(),
@@ -226,6 +288,9 @@ export default class MemoryEngine {
         source: "memory-engine",
         memoryCategory: candidate.category,
         consolidated: now,
+        // The caller's provenance wins over the default source: it is the
+        // only record of where the fact came from.
+        ...provenanceFields(provenance),
       },
       memoryType: (candidate.memoryType ?? "user") as ResponsePattern["memoryType"],
       importance: candidate.importance,

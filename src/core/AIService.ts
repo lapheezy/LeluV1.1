@@ -1471,15 +1471,16 @@ export default class AIService {
     kind: "knowledge" | "system",
     summary: string,
     keywords: string[],
+    provenance: Record<string, unknown> = {},
   ): Promise<boolean> {
     if (!this.initialized) {
       return false;
     }
     try {
       if (kind === "system") {
-        await this.runtime.brain.rememberSystem(summary, keywords);
+        await this.runtime.brain.rememberSystem(summary, keywords, provenance);
       } else {
-        await this.runtime.brain.rememberKnowledge(summary, keywords);
+        await this.runtime.brain.rememberKnowledge(summary, keywords, provenance);
       }
       return true;
     } catch {
