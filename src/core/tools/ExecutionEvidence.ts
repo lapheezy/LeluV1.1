@@ -31,6 +31,35 @@ export type ExecutionOutcome = "succeeded" | "failed" | "timed-out" | "refused" 
 
 export type ApprovalState = "not-required" | "approved" | "refused";
 
+/**
+ * The mission, work package and code revision a piece of work belongs to.
+ *
+ * The app cannot infer these: a browser tab has no repository, branch or
+ * commit. A runner that DOES know them (a mission harness, CI, a developer
+ * tool) declares the scope once; every execution record produced while it is
+ * set carries it, so the work can be reconstructed against the code that
+ * caused it. With no scope set the field is simply absent — never guessed.
+ */
+export interface MissionScope {
+  id: string;
+  workPackage?: string;
+  repo?: string;
+  branch?: string;
+  commit?: string;
+}
+
+let missionScope: MissionScope | null = null;
+
+/** Declare (or clear) the mission this runtime is executing work for. */
+export function setMissionScope(scope: MissionScope | null): void {
+  missionScope = scope ? { ...scope } : null;
+}
+
+/** The declared scope, copied so a caller cannot mutate the record. */
+export function currentMissionScope(): MissionScope | null {
+  return missionScope ? { ...missionScope } : null;
+}
+
 export interface ExecutionRecord {
   /** Stable across every stage of ONE invocation. */
   executionId: string;
@@ -52,6 +81,8 @@ export interface ExecutionRecord {
   durationMs?: number;
   /** Redacted, truncated reason for a refusal or failure. Never arguments. */
   reason?: string;
+  /** Mission/revision scope, when the runner declared one. */
+  mission?: MissionScope;
 }
 
 let sequence = 0;
@@ -104,6 +135,11 @@ export function formatExecutionLine(record: ExecutionRecord): string {
   if (record.outcome) parts.push(`outcome=${record.outcome}`);
   if (typeof record.durationMs === "number") parts.push(`durationMs=${Math.round(record.durationMs)}`);
   if (record.reason) parts.push(`reason="${redactExecutionText(record.reason)}"`);
+  if (record.mission) {
+    parts.push(`mission=${record.mission.id.slice(0, 40)}`);
+    if (record.mission.workPackage) parts.push(`wp=${record.mission.workPackage.slice(0, 40)}`);
+    if (record.mission.commit) parts.push(`commit=${record.mission.commit.slice(0, 12)}`);
+  }
   return `[execution] ${parts.join(" ")}`;
 }
 
@@ -140,6 +176,15 @@ export function isExecutionRecord(value: unknown): value is ExecutionRecord {
  * is the copy that outlives the tab.
  */
 export function sanitizeExecutionRecord(record: ExecutionRecord): ExecutionRecord {
+  const mission = record.mission && typeof record.mission.id === "string" && record.mission.id.trim()
+    ? {
+        id: record.mission.id.slice(0, 120),
+        ...(typeof record.mission.workPackage === "string" ? { workPackage: record.mission.workPackage.slice(0, 80) } : {}),
+        ...(typeof record.mission.repo === "string" ? { repo: record.mission.repo.slice(0, 160) } : {}),
+        ...(typeof record.mission.branch === "string" ? { branch: record.mission.branch.slice(0, 160) } : {}),
+        ...(typeof record.mission.commit === "string" ? { commit: record.mission.commit.slice(0, 64) } : {}),
+      }
+    : undefined;
   return {
     executionId: record.executionId,
     taskId: record.taskId.slice(0, 120),
@@ -154,5 +199,6 @@ export function sanitizeExecutionRecord(record: ExecutionRecord): ExecutionRecor
     ...(typeof record.finishedAt === "number" ? { finishedAt: record.finishedAt } : {}),
     ...(typeof record.durationMs === "number" ? { durationMs: Math.min(Math.max(0, record.durationMs), 86_400_000) } : {}),
     ...(record.reason ? { reason: redactExecutionText(String(record.reason)) } : {}),
+    ...(mission ? { mission } : {}),
   };
 }

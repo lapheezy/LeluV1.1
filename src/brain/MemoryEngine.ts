@@ -52,6 +52,16 @@ export interface LearnProvenance {
   context?: Record<string, unknown>;
 }
 
+/**
+ * Is this statement phrased as a correction?
+ *
+ * Exported so the knowledge path (`Brain.persistLayer`) applies the same rule
+ * the conversation path does, instead of a second regex that could drift.
+ */
+export function looksLikeCorrection(text: string): boolean {
+  return CORRECTION_MARKERS.test(text);
+}
+
 /** Provenance as it is stored: the caller's fields, never invented ones. */
 function provenanceFields(provenance: LearnProvenance): Record<string, unknown> {
   const fields: Record<string, unknown> = { ...(provenance.context ?? {}) };

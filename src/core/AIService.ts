@@ -523,7 +523,17 @@ export default class AIService {
     prompt: string,
     media?: MediaAttachment[],
     context?: string,
-    options?: { forceIntent?: AIIntent; conversationId?: string },
+    options?: {
+      forceIntent?: AIIntent;
+      conversationId?: string;
+      /**
+       * How a spoken turn became text, when it did. Passed by the voice
+       * engine; preserved on the memory so a later reader can tell a
+       * recognised sentence from a typed one, and knows which engine said
+       * what. Confidence is only present when the engine reported one.
+       */
+      transcript?: { source: string; confidence?: number; final: boolean; at: number };
+    },
   ): Promise<AIResponse> {
     const message = prompt.trim();
 
@@ -893,7 +903,21 @@ export default class AIService {
       void (async () => {
         try {
           // Memory consolidation ALWAYS runs — online or offline.
-          await this.memory.learn(message, response.text, taskId);
+          await this.memory.learn(
+            message,
+            response.text,
+            taskId,
+            options?.transcript
+              ? {
+                  transcriptSource: options.transcript.source,
+                  transcriptFinal: options.transcript.final,
+                  transcriptAt: options.transcript.at,
+                  ...(typeof options.transcript.confidence === "number"
+                    ? { transcriptConfidence: options.transcript.confidence }
+                    : {}),
+                }
+              : undefined,
+          );
           // Refresh active memories now that this turn is recorded.
           await conversation.refresh(message);
 

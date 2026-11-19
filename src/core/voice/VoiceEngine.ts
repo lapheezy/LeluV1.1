@@ -182,6 +182,24 @@ export interface VoiceState {
   turnFailure?: (VoiceTurnFailure & { at: number }) | null;
 }
 
+/**
+ * How a spoken sentence became text.
+ *
+ * Source and confidence are recorded because they are facts about the turn,
+ * not decoration: a later reader must be able to tell browser recognition
+ * from Whisper from the LiveKit agent, and must not be shown a confidence the
+ * engine never produced. `confidence` is therefore optional and only ever set
+ * from a value the recogniser actually returned.
+ */
+export interface TranscriptProvenance {
+  source: "browser-recognition" | "groq-whisper" | "elevenlabs-scribe" | "livekit-agent";
+  /** 0–1, only when the recognition engine reported one. */
+  confidence?: number;
+  /** Whether this was a final transcript or a partial one. */
+  final: boolean;
+  at: number;
+}
+
 export interface VoiceTurn {
   id: string;
   user: string;
@@ -189,6 +207,8 @@ export interface VoiceTurn {
   timestamp: number;
   /** Set when the turn ended in a failure rather than an answer. */
   failure?: VoiceTurnFailure | null;
+  /** Which recogniser produced `user`, and whether it gave a confidence. */
+  transcript?: TranscriptProvenance;
 }
 
 /** How far the text-to-speech pipeline actually got for the last
@@ -750,7 +770,11 @@ class VoiceEngine {
     switch (message.type) {
       case "transcript":
         this.emitInterim("");
-        void this.handleUserSpeech(message.text);
+        void this.handleUserSpeech(message.text, {
+          source: "livekit-agent",
+          final: true,
+          at: Date.now(),
+        });
         break;
       case "user_speaking":
         if (this.livekitSpeaking) this.bargeIns += 1;
@@ -984,14 +1008,22 @@ class VoiceEngine {
       recognition.interimResults = true;
       recognition.lang = "en-US";
 
-      recognition.onresult = (event: { resultIndex: number; results: Array<{ isFinal: boolean; 0: { transcript: string } }> }) => {
+      recognition.onresult = (event: {
+        resultIndex: number;
+        results: Array<{ isFinal: boolean; 0: { transcript: string; confidence?: number } }>;
+      }) => {
         let interimText = "";
         let finalText = "";
+        let finalConfidence: number | undefined;
 
         for (let i = event.resultIndex; i < event.results.length; i += 1) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             finalText += transcript;
+            // Chrome reports a confidence here; some engines report 0 or
+            // omit it. Only a real reported value is kept.
+            const reported = event.results[i][0].confidence;
+            if (typeof reported === "number" && reported > 0) finalConfidence = reported;
           } else {
             interimText += transcript;
           }
@@ -1020,7 +1052,12 @@ class VoiceEngine {
         if (finalText.trim()) {
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           this.emitInterim("");
-          this.handleUserSpeech(finalText.trim());
+          this.handleUserSpeech(finalText.trim(), {
+            source: "browser-recognition",
+            final: true,
+            at: Date.now(),
+            ...(finalConfidence !== undefined ? { confidence: finalConfidence } : {}),
+          });
         }
       };
 
@@ -1236,13 +1273,20 @@ class VoiceEngine {
    * Groq Whisper only when ElevenLabs fails TECHNICALLY. A spent budget is
    * rethrown: it is not a reason to spend on a different transcriber.
    */
-  private async transcribeUtterance(chunk: Blob): Promise<string> {
+  private async transcribeUtterance(
+    chunk: Blob,
+  ): Promise<{ text: string; provenance: TranscriptProvenance }> {
     const started = Date.now();
     if (await elevenLabsSttReady()) {
       try {
         const text = await transcribeWithElevenLabs(chunk);
         this.lastTranscription = { engine: "elevenlabs", ms: Date.now() - started, at: Date.now() };
-        return text;
+        // Scribe's current response shape carries no per-turn confidence, so
+        // none is invented here.
+        return {
+          text,
+          provenance: { source: "elevenlabs-scribe", final: true, at: Date.now() },
+        };
       } catch (error) {
         if (error instanceof BudgetExhaustedError) throw error;
         console.warn("[VoiceEngine] ElevenLabs transcription failed; using Whisper.", (error as Error).message);
@@ -1250,7 +1294,10 @@ class VoiceEngine {
     }
     const text = await transcribeViaWhisper(chunk);
     this.lastTranscription = { engine: "whisper", ms: Date.now() - started, at: Date.now() };
-    return text;
+    return {
+      text,
+      provenance: { source: "groq-whisper", final: true, at: Date.now() },
+    };
   }
 
   private stopWhisperFallback(): void {
@@ -1294,7 +1341,7 @@ class VoiceEngine {
       // While she speaks or thinks, the phase is hers to show, not ours.
       const busy = this.isSpeaking() || (this._turn !== null && this._turn.response === null);
       if (!busy) this.updateState({ ...this._state, phase: "processing" });
-      const transcript = await this.transcribeUtterance(chunk);
+      const { text: transcript, provenance } = await this.transcribeUtterance(chunk);
 
       if (!this.whisperFallbackActive || !this._state.active) return;
 
@@ -1312,7 +1359,7 @@ class VoiceEngine {
           this.cancelSpeech();
           this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
         }
-        this.handleUserSpeech(heard);
+        this.handleUserSpeech(heard, provenance);
         // Keep listening through her thinking and speaking.
         again = true;
       } else {
@@ -1630,7 +1677,7 @@ class VoiceEngine {
    * User Speech Handling
    * --------------------------------------------------------- */
 
-  private async handleUserSpeech(text: string): Promise<void> {
+  private async handleUserSpeech(text: string, transcript?: TranscriptProvenance): Promise<void> {
     // The mic stays open while LÉLU is speaking (real barge-in support),
     // which means it can hear her own TTS output and misreport it as new
     // user speech. Catch that here, once, before it becomes a fake turn
@@ -1660,7 +1707,13 @@ class VoiceEngine {
     }
 
     const turnId = crypto.randomUUID();
-    this._turn = { id: turnId, user: text, response: null, timestamp: Date.now() };
+    this._turn = {
+      id: turnId,
+      user: text,
+      response: null,
+      timestamp: Date.now(),
+      ...(transcript ? { transcript } : {}),
+    };
     this.emitTurn(this._turn);
     this.updateState({ ...this._state, phase: "processing" });
 
@@ -1681,7 +1734,19 @@ class VoiceEngine {
       const { captureCapabilityDecision } = await import("../acquisition/CapabilityLedgerClient");
       const decision = await captureCapabilityDecision(text, "spoken").catch(() => null);
       const note = [consent?.note, decision?.note].filter(Boolean).join("\n\n") || undefined;
-      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, note, conversationId ? { conversationId } : undefined);
+      // The conversation and the transcript's provenance travel with the
+      // turn: memory consolidation records which recogniser produced the
+      // words, so a later reader can tell speech from typing.
+      const chatOptions = {
+        ...(conversationId ? { conversationId } : {}),
+        ...(transcript ? { transcript } : {}),
+      };
+      const response = await ai.chat(
+        text,
+        seen.length > 0 ? seen : undefined,
+        note,
+        Object.keys(chatOptions).length > 0 ? chatOptions : undefined,
+      );
 
       if (this._turn?.id === turnId) {
         // A failure notice is not her answer: it is shown in the
