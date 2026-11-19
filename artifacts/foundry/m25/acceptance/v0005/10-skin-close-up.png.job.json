@@ -1,0 +1,25 @@
+{
+ "input": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+ "view": [
+  0.25,
+  -1,
+  0.05
+ ],
+ "camera": {
+  "center": [
+   0.028,
+   -0.094,
+   1.568
+  ],
+  "radius": 0.032,
+  "lens": 135
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 64,
+ "lighting": "neutral-studio",
+ "seed": 0,
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/acceptance/v0005/10-skin-close-up.png"
+}

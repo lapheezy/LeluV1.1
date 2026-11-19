@@ -1,0 +1,741 @@
+{
+ "versions": {
+  "v0003": {
+   "file": "leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+   "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce"
+  },
+  "v0004": {
+   "file": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+   "sha256": "6b9bccbe3591a3eecdf624e2965e83490182213f3c7f8dab0bd6e106f5594b18"
+  },
+  "v0005": {
+   "file": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+   "sha256": "1170e1ff52414be0786e2f280d1717023be26907b135b4e8ec83cfed4207e0ee"
+  }
+ },
+ "summary": {
+  "technical": {
+   "PASS": 23,
+   "FAIL": 4,
+   "NOT MEASURABLE": 1
+  },
+  "perceptual": {
+   "PASS": 3,
+   "FAIL": 0,
+   "NOT MEASURABLE": 2
+  }
+ },
+ "technical": [
+  {
+   "metric": "degenerate triangles (zero-area + collapsed), all objects",
+   "value": {
+    "char1": 0,
+    "eye_patch_l": 0,
+    "eye_patch_r": 0,
+    "lelu_hair": 0,
+    "lelu_hair_ringlets": 0,
+    "lelu_hair_strands": 0,
+    "lelu_mouth": 0,
+    "lelu_scalp": 0,
+    "lelu_teeth": 0
+   },
+   "threshold": "0",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "duplicate faces",
+   "value": {
+    "char1": 0,
+    "eye_patch_l": 0,
+    "eye_patch_r": 0,
+    "lelu_hair": 0,
+    "lelu_hair_ringlets": 0,
+    "lelu_hair_strands": 0,
+    "lelu_mouth": 0,
+    "lelu_scalp": 0,
+    "lelu_teeth": 0
+   },
+   "threshold": "0",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "loop normals inverted against their face",
+   "value": {
+    "char1": 0,
+    "eye_patch_l": 0,
+    "eye_patch_r": 0,
+    "lelu_hair": 0,
+    "lelu_hair_ringlets": 8,
+    "lelu_hair_strands": 0,
+    "lelu_mouth": 0,
+    "lelu_scalp": 0,
+    "lelu_teeth": 0
+   },
+   "threshold": "0",
+   "verdict": "FAIL"
+  },
+  {
+   "metric": "flat-shaded triangle share (faceted shading) on soup meshes",
+   "value": {
+    "char1": {
+     "v0004": 0.2874,
+     "v0005": 0.0433
+    },
+    "lelu_hair": {
+     "v0004": 0.2259,
+     "v0005": 0.0062
+    },
+    "lelu_scalp": {
+     "v0004": 0.2005,
+     "v0005": 0.1089
+    }
+   },
+   "threshold": "v0005 < v0004 on every soup mesh",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "share of shared positions with >30\u00b0 normal spread (shading creases)",
+   "value": {
+    "char1": {
+     "v0004": 0.8814,
+     "v0005": 0.7927
+    },
+    "lelu_hair": {
+     "v0004": 0.8051,
+     "v0005": 0.3705
+    },
+    "lelu_scalp": {
+     "v0004": 0.5807,
+     "v0005": 0.5078
+    }
+   },
+   "threshold": "v0005 < v0004",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "median dihedral on the welded graph (surface crumple), degrees",
+   "value": {
+    "char1": {
+     "v0004": 36.64004,
+     "v0005": 34.97486
+    },
+    "lelu_hair": {
+     "v0004": 31.94739,
+     "v0005": 25.14238
+    }
+   },
+   "threshold": "v0005 < v0004",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "shoulder/back/chest crumple residual: share of char1 triangles bending > 45\u00b0",
+   "value": {
+    "shoulders": {
+     "v0004": 0.611,
+     "v0005": 0.5613
+    },
+    "upperBack": {
+     "v0004": 0.5616,
+     "v0005": 0.5153
+    },
+    "upperChest": {
+     "v0004": 0.4555,
+     "v0005": 0.4104
+    }
+   },
+   "threshold": "every region < 0.30",
+   "verdict": "FAIL",
+   "note": "the folds are real low-resolution geometry pinned by UV seams; the localised repair reduces them, a retopology is required to remove them"
+  },
+  {
+   "metric": "ringlet mesh: boundary edges per triangle (open tubes only at root/tip)",
+   "value": 0.0192,
+   "threshold": "< 0.05",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "ringlet mesh: non-manifold edges",
+   "value": 0,
+   "threshold": "0",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "bones identical v0004 \u2192 v0005",
+   "value": {
+    "v0004": 24,
+    "v0005": 24,
+    "identical": true
+   },
+   "threshold": "identical",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "unweighted vertices, every skinned mesh",
+   "value": {
+    "char1": 0,
+    "eye_patch_l": 0,
+    "eye_patch_r": 0,
+    "lelu_hair": 0,
+    "lelu_hair_ringlets": 0,
+    "lelu_hair_strands": 0,
+    "lelu_mouth": 0,
+    "lelu_scalp": 0,
+    "lelu_teeth": 0
+   },
+   "threshold": "0",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "max influences per vertex",
+   "value": {
+    "char1": 4,
+    "eye_patch_l": 1,
+    "eye_patch_r": 1,
+    "lelu_hair": 4,
+    "lelu_hair_ringlets": 2,
+    "lelu_hair_strands": 2,
+    "lelu_mouth": 1,
+    "lelu_scalp": 4,
+    "lelu_teeth": 1
+   },
+   "threshold": "\u2264 4",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "vertex groups on char1",
+   "value": 24,
+   "threshold": "24",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "shape-key names preserved",
+   "value": {
+    "char1": true,
+    "eye_patch_l": true,
+    "eye_patch_r": true,
+    "lelu_hair": true,
+    "lelu_mouth": true,
+    "lelu_scalp": true,
+    "lelu_teeth": true
+   },
+   "threshold": "identical",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "shape-key delta error after repair (max over all keys, matched vertices)",
+   "value": 0.0002,
+   "threshold": "< 0.05 mm",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "walk clip (v021 motion.glb) loaded and played on v0005; bones moved per frame",
+   "value": [
+    22,
+    22,
+    22
+   ],
+   "threshold": "> 0 on every frame",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "curl diameter p10\u2013p90 (mm)",
+   "value": [
+    9.079,
+    12.695
+   ],
+   "threshold": "inside 6\u201314 mm",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "curl continuity: max turn of the ringlet fall axis, p90 (deg)",
+   "value": 39.382,
+   "threshold": "< 60\u00b0",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "ringlet\u2013ringlet intersection (point share)",
+   "value": 0.2067,
+   "threshold": "< 0.10",
+   "verdict": "FAIL",
+   "note": "clumped curls touch in real hair; this bounds interpenetration, it does not forbid contact"
+  },
+  {
+   "metric": "ringlet\u2013skin contact (vertex proxy, point share)",
+   "value": 0.0018,
+   "threshold": "< 0.02",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "crown coverage: hair share of hair + visible scalp, back-top view",
+   "value": {
+    "v0004-back-top": 0.9262,
+    "v0005-back-top": 0.9672
+   },
+   "threshold": "v0005 \u2265 0.95 and \u2265 v0004",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "hair silhouette (front/back hair pixels) v0005 vs v0004",
+   "value": {
+    "v0004-back": 31200,
+    "v0004-front": 18140,
+    "v0005-back": 48188,
+    "v0005-front": 26233
+   },
+   "threshold": "v0005 \u2265 0.9 \u00d7 v0004 (volume preserved)",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "texture resolution (v0005)",
+   "value": {
+    "eye_patch_l_tex": [
+     121,
+     83
+    ],
+    "eye_patch_r_tex": [
+     121,
+     78
+    ],
+    "m25_body_basecolor": [
+     2048,
+     2048
+    ],
+    "m25_body_metalrough": [
+     2048,
+     2048
+    ],
+    "m25_head_basecolor": [
+     4096,
+     4096
+    ],
+    "m25_head_metalrough": [
+     4096,
+     4096
+    ],
+    "normal": [
+     2048,
+     2048
+    ],
+    "normal.001": [
+     4096,
+     4096
+    ]
+   },
+   "threshold": "head \u2265 4096\u00b2, body \u2265 2048\u00b2",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "eye texture resolution",
+   "value": {
+    "eye_patch_l_tex": [
+     121,
+     83
+    ],
+    "eye_patch_r_tex": [
+     121,
+     78
+    ]
+   },
+   "threshold": "\u2265 256 px wide",
+   "verdict": "FAIL",
+   "note": "not enlarged: no source with more eye detail exists (sockets under the patches are empty; photographs carry ~64\u201384 px per eye)"
+  },
+  {
+   "metric": "UV stretch",
+   "value": "UVs not written by the M25 build (no UV operation); M24 measurement stands: p99/median 4.0",
+   "threshold": "unchanged",
+   "verdict": "NOT MEASURABLE",
+   "note": "not re-measured in M25"
+  },
+  {
+   "metric": "views rendered for both versions",
+   "value": 15,
+   "threshold": "15",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "samples per acceptance render",
+   "value": [
+    64
+   ],
+   "threshold": "\u2265 64",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "render noise: per-image RMS between two seeds / \u221a2 (8-bit levels)",
+   "value": 1.459,
+   "threshold": "< 3.0",
+   "verdict": "PASS"
+  }
+ ],
+ "perceptual": [
+  {
+   "metric": "skin colour \u0394E2000 vs photograph median, neutral studio front face",
+   "value": {
+    "photoMedianLab": [
+     44.86,
+     34.11,
+     32.56
+    ],
+    "v0004": {
+     "lab": [
+      50.78,
+      17.17,
+      25.08
+     ],
+     "dE2000": 10.23
+    },
+    "v0005": {
+     "lab": [
+      44.32,
+      26.49,
+      27.12
+     ],
+     "dE2000": 3.38
+    },
+    "m24-render": {
+     "lab": [
+      80.28,
+      12.89,
+      14.39
+     ],
+     "dE2000": 32.16
+    }
+   },
+   "threshold": "v0005 \u2264 6",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "skin colour \u0394E2000 under neutral, soft-frontal and directional lighting (v0005)",
+   "value": {
+    "lighting/v0004/front-face-directional-key.png": {
+     "lab": [
+      51.49,
+      16.97,
+      23.16
+     ],
+     "dE2000": 10.61
+    },
+    "lighting/v0004/front-face-neutral-studio.png": {
+     "lab": [
+      50.64,
+      17.36,
+      25.47
+     ],
+     "dE2000": 10.09
+    },
+    "lighting/v0004/front-face-soft-frontal.png": {
+     "lab": [
+      50.74,
+      21.14,
+      26.89
+     ],
+     "dE2000": 8.45
+    },
+    "lighting/v0004/front-face-warm-environment.png": {
+     "lab": [
+      52.83,
+      22.34,
+      35.31
+     ],
+     "dE2000": 11.11
+    },
+    "lighting/v0005/front-face-directional-key.png": {
+     "lab": [
+      45.95,
+      26.36,
+      29.27
+     ],
+     "dE2000": 3.63
+    },
+    "lighting/v0005/front-face-neutral-studio.png": {
+     "lab": [
+      44.72,
+      26.51,
+      26.49
+     ],
+     "dE2000": 3.41
+    },
+    "lighting/v0005/front-face-soft-frontal.png": {
+     "lab": [
+      44.6,
+      31.61,
+      34.57
+     ],
+     "dE2000": 2.18
+    },
+    "lighting/v0005/front-face-warm-environment.png": {
+     "lab": [
+      44.91,
+      32.13,
+      42.77
+     ],
+     "dE2000": 5.84
+    }
+   },
+   "threshold": "each \u2264 10",
+   "verdict": "PASS",
+   "note": "warm-environment is reported but not thresholded: a warm light is meant to shift colour"
+  },
+  {
+   "metric": "facial landmark ratios vs photograph median (scale-free), max |deviation|",
+   "value": {
+    "ipd/faceWidth": 5.6,
+    "mouthWidth/faceWidth": 1.52,
+    "mouthWidth/ipd": -4.14,
+    "noseWidth/ipd": 1.97,
+    "eyeWidth/ipd": -3.49,
+    "eyeToMouth/ipd": -4.51,
+    "eyeToChin/ipd": -4.82,
+    "jawWidth/faceWidth": -0.78,
+    "lipHeight/mouthWidth": 7.19
+   },
+   "threshold": "every ratio within \u00b18 %",
+   "verdict": "PASS"
+  },
+  {
+   "metric": "pixel RMS change v0004 \u2192 v0005 per view (8-bit)",
+   "value": {
+    "01-front-face": 19.07,
+    "02-three-quarter-face": 17.12,
+    "03-left-profile": 22.56,
+    "04-right-profile": 23.61,
+    "05-full-body-front": 6.71,
+    "06-full-body-rear": 7.21,
+    "07-hairline": 15.99,
+    "08-crown": 17.73,
+    "09-ringlet-close-up": 26.33,
+    "10-skin-close-up": 16.09,
+    "11-eye-close-up": 14.89,
+    "12-lip-close-up": 17.01,
+    "13-shoulder-chest": 16.17,
+    "14-clothing-close-up": 14.08,
+    "15-jewelry-close-up": 16.69
+   },
+   "threshold": "reported, not thresholded",
+   "verdict": "NOT MEASURABLE",
+   "note": "a change is not an improvement; the rendered pairs are the evidence"
+  },
+  {
+   "metric": "photographic resemblance (overall)",
+   "value": null,
+   "threshold": "human judgement on the rendered pairs",
+   "verdict": "NOT MEASURABLE",
+   "note": "no metric decides identity; see M25-VISUAL-FIDELITY-RECONSTRUCTION.md for the reviewed verdict per view"
+  }
+ ],
+ "coverage": {
+  "v0004-back-top": {
+   "hairPx": 122749,
+   "skinBodyPx": 9780,
+   "hairShareOfSubject": 0.9262
+  },
+  "v0004-back": {
+   "hairPx": 31200,
+   "skinBodyPx": 3177,
+   "hairShareOfSubject": 0.9076
+  },
+  "v0004-front": {
+   "hairPx": 18140,
+   "skinBodyPx": 11994,
+   "hairShareOfSubject": 0.602
+  },
+  "v0005-back-top": {
+   "hairPx": 143686,
+   "skinBodyPx": 4879,
+   "hairShareOfSubject": 0.9672
+  },
+  "v0005-back": {
+   "hairPx": 48188,
+   "skinBodyPx": 2215,
+   "hairShareOfSubject": 0.9561
+  },
+  "v0005-front": {
+   "hairPx": 26233,
+   "skinBodyPx": 11744,
+   "hairShareOfSubject": 0.6908
+  }
+ },
+ "renderTimes": {
+  "01-front-face": {
+   "v0004": {
+    "seconds": 77.24,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 101.46,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "02-three-quarter-face": {
+   "v0004": {
+    "seconds": 64.35,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 88.08,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "03-left-profile": {
+   "v0004": {
+    "seconds": 59.06,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 74.09,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "04-right-profile": {
+   "v0004": {
+    "seconds": 60.23,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 77.17,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "05-full-body-front": {
+   "v0004": {
+    "seconds": 43.4,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 60.04,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "06-full-body-rear": {
+   "v0004": {
+    "seconds": 45.97,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 61.53,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "07-hairline": {
+   "v0004": {
+    "seconds": 69.44,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 98.39,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "08-crown": {
+   "v0004": {
+    "seconds": 60.13,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 74.59,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "09-ringlet-close-up": {
+   "v0004": {
+    "seconds": 89.15,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 114.02,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "10-skin-close-up": {
+   "v0004": {
+    "seconds": 82.94,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 131.26,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "11-eye-close-up": {
+   "v0004": {
+    "seconds": 77.5,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 132.12,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "12-lip-close-up": {
+   "v0004": {
+    "seconds": 82.47,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 139.8,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "13-shoulder-chest": {
+   "v0004": {
+    "seconds": 64.45,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 92.78,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "14-clothing-close-up": {
+   "v0004": {
+    "seconds": 63.38,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 92.69,
+    "samples": 64,
+    "triangles": 604591
+   }
+  },
+  "15-jewelry-close-up": {
+   "v0004": {
+    "seconds": 88.98,
+    "samples": 64,
+    "triangles": 224233
+   },
+   "v0005": {
+    "seconds": 135.69,
+    "samples": 64,
+    "triangles": 604591
+   }
+  }
+ }
+}

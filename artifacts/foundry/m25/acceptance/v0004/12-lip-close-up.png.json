@@ -1,0 +1,51 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/acceptance/v0004/12-lip-close-up.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.10000000149011612,
+   1.5460000038146973
+  ],
+  "radius": 0.03,
+  "lens": 135.0,
+  "distance": 0.22699118925632333,
+  "location": [
+   0.0,
+   -0.3262682855129242,
+   1.5641014575958252
+  ]
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 64,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0524776205420494,
+  "exposureEV": -2.547720745067061
+ },
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "triangles": 224233,
+ "materialsApplied": [],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 82.47,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

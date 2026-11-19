@@ -1,0 +1,180 @@
+{
+ "photographs": {
+  "median": [
+   44.86,
+   34.11,
+   32.56
+  ],
+  "method": "landmark-located cheek/forehead/chin patches, brightest 20 % dropped, CIELAB D65"
+ },
+ "renders": {
+  "v0004": {
+   "lab": [
+    50.78,
+    17.17,
+    25.08
+   ],
+   "dE2000": 10.23
+  },
+  "v0005": {
+   "lab": [
+    44.32,
+    26.49,
+    27.12
+   ],
+   "dE2000": 3.38
+  },
+  "m24-render": {
+   "lab": [
+    80.28,
+    12.89,
+    14.39
+   ],
+   "dE2000": 32.16
+  }
+ },
+ "lighting": {
+  "lighting/v0004/front-face-directional-key.png": {
+   "lab": [
+    51.49,
+    16.97,
+    23.16
+   ],
+   "dE2000": 10.61
+  },
+  "lighting/v0004/front-face-neutral-studio.png": {
+   "lab": [
+    50.64,
+    17.36,
+    25.47
+   ],
+   "dE2000": 10.09
+  },
+  "lighting/v0004/front-face-soft-frontal.png": {
+   "lab": [
+    50.74,
+    21.14,
+    26.89
+   ],
+   "dE2000": 8.45
+  },
+  "lighting/v0004/front-face-warm-environment.png": {
+   "lab": [
+    52.83,
+    22.34,
+    35.31
+   ],
+   "dE2000": 11.11
+  },
+  "lighting/v0005/front-face-directional-key.png": {
+   "lab": [
+    45.95,
+    26.36,
+    29.27
+   ],
+   "dE2000": 3.63
+  },
+  "lighting/v0005/front-face-neutral-studio.png": {
+   "lab": [
+    44.72,
+    26.51,
+    26.49
+   ],
+   "dE2000": 3.41
+  },
+  "lighting/v0005/front-face-soft-frontal.png": {
+   "lab": [
+    44.6,
+    31.61,
+    34.57
+   ],
+   "dE2000": 2.18
+  },
+  "lighting/v0005/front-face-warm-environment.png": {
+   "lab": [
+    44.91,
+    32.13,
+    42.77
+   ],
+   "dE2000": 5.84
+  }
+ },
+ "texture": {
+  "head": {
+   "size": [
+    4096,
+    4096
+   ],
+   "skinTexels": 587410,
+   "hairTexels": 13132413,
+   "metalTexelsUntouched": 653343,
+   "skinLabMedianBefore": [
+    42.93,
+    16.2,
+    22.62
+   ],
+   "skinLabMedianAfter": [
+    37.77,
+    28.2,
+    30.62
+   ],
+   "before": {
+    "skinMetallicMean": 0.04452405124902725,
+    "skinRoughnessP10": 0.44705885648727417,
+    "hairMetallicMean": 0.03596295416355133,
+    "hairRoughnessP10": 0.7019608020782471
+   },
+   "after": {
+    "skinMetallicMean": 0.0,
+    "skinRoughnessP10": 0.47999998927116394,
+    "hairMetallicMean": 0.0
+   }
+  },
+  "body": {
+   "size": [
+    2048,
+    2048
+   ],
+   "skinTexels": 497136,
+   "hairTexels": 179857,
+   "metalTexelsUntouched": 332721,
+   "skinLabMedianBefore": [
+    27.82,
+    10.26,
+    12.41
+   ],
+   "skinLabMedianAfter": [
+    24.48,
+    22.26,
+    20.41
+   ],
+   "before": {
+    "skinMetallicMean": 0.07918107509613037,
+    "skinRoughnessP10": 0.7882353663444519,
+    "hairMetallicMean": 0.030590252950787544,
+    "hairRoughnessP10": 0.9450981020927429
+   },
+   "after": {
+    "skinMetallicMean": 0.0,
+    "skinRoughnessP10": 0.7882353663444519,
+    "hairMetallicMean": 0.0
+   }
+  }
+ },
+ "transform": {
+  "L": 0.88,
+  "a": 1.0,
+  "b": 1.0,
+  "da": 12.0,
+  "db": 8.0
+ },
+ "subsurface": "Cycles-only: m25_skin_* get random-walk-skin SSS weight 0.18, scale 4 mm at render time (glTF cannot carry SSS)",
+ "identityFeaturesPreserved": [
+  "freckles and star marks (texture untouched except colour transform)",
+  "winged eyeliner (eye patches untouched)",
+  "berry lips (lips texels metallic 0; roughness left glossy)",
+  "septum and facial jewellery (metal texels untouched)",
+  "forehead ornament markings (texture untouched)"
+ ],
+ "verdict": "PASS"
+}

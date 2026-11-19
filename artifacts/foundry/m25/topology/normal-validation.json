@@ -1,0 +1,355 @@
+{
+ "v0004": {
+  "char1": {
+   "flatShadedTriangles": 11256,
+   "flatShadedShare": 0.2874,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 2e-05,
+    "p10": 9e-05,
+    "p50": 2.30872,
+    "p90": 14.91905,
+    "p99": 27.10235
+   },
+   "sharedPositions": 18372,
+   "positionsWithNormalSpreadOver30deg": 16193,
+   "hardShareOfShared": 0.8814,
+   "hasCustomNormals": true
+  },
+  "eye_patch_l": {
+   "flatShadedTriangles": 1026,
+   "flatShadedShare": 1.0,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.23595,
+    "p10": 0.26605,
+    "p50": 0.30468,
+    "p90": 0.32262,
+    "p99": 0.35357
+   },
+   "sharedPositions": 558,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  },
+  "eye_patch_r": {
+   "flatShadedTriangles": 1026,
+   "flatShadedShare": 1.0,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.25497,
+    "p10": 0.27106,
+    "p50": 0.29787,
+    "p90": 0.31337,
+    "p99": 0.34094
+   },
+   "sharedPositions": 558,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  },
+  "lelu_hair": {
+   "flatShadedTriangles": 36516,
+   "flatShadedShare": 0.2259,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 9e-05,
+    "p10": 0.00059,
+    "p50": 3.64565,
+    "p90": 16.09383,
+    "p99": 28.93487
+   },
+   "sharedPositions": 81433,
+   "positionsWithNormalSpreadOver30deg": 65558,
+   "hardShareOfShared": 0.8051,
+   "hasCustomNormals": true
+  },
+  "lelu_mouth": {
+   "flatShadedTriangles": 166,
+   "flatShadedShare": 0.4511,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.0,
+    "p10": 0.00013,
+    "p50": 1.55786,
+    "p90": 12.26698,
+    "p99": 28.73716
+   },
+   "sharedPositions": 214,
+   "positionsWithNormalSpreadOver30deg": 3,
+   "hardShareOfShared": 0.014,
+   "hasCustomNormals": true
+  },
+  "lelu_scalp": {
+   "flatShadedTriangles": 4186,
+   "flatShadedShare": 0.2005,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.0001,
+    "p10": 0.00074,
+    "p50": 3.34066,
+    "p90": 14.93824,
+    "p99": 27.90773
+   },
+   "sharedPositions": 13700,
+   "positionsWithNormalSpreadOver30deg": 7956,
+   "hardShareOfShared": 0.5807,
+   "hasCustomNormals": true
+  },
+  "lelu_teeth": {
+   "flatShadedTriangles": 46,
+   "flatShadedShare": 0.5,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.00048,
+    "p10": 0.00126,
+    "p50": 0.84086,
+    "p90": 11.49173,
+    "p99": 26.18082
+   },
+   "sharedPositions": 70,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  }
+ },
+ "v0005": {
+  "char1": {
+   "flatShadedTriangles": 1696,
+   "flatShadedShare": 0.0433,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 4e-05,
+    "p10": 0.00048,
+    "p50": 9.89361,
+    "p90": 24.3005,
+    "p99": 41.57627
+   },
+   "sharedPositions": 18372,
+   "positionsWithNormalSpreadOver30deg": 14563,
+   "hardShareOfShared": 0.7927,
+   "hasCustomNormals": true
+  },
+  "eye_patch_l": {
+   "flatShadedTriangles": 1026,
+   "flatShadedShare": 1.0,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.2325,
+    "p10": 0.26445,
+    "p50": 0.30423,
+    "p90": 0.32497,
+    "p99": 0.35683
+   },
+   "sharedPositions": 558,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  },
+  "eye_patch_r": {
+   "flatShadedTriangles": 1026,
+   "flatShadedShare": 1.0,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.24946,
+    "p10": 0.26882,
+    "p50": 0.2976,
+    "p90": 0.31629,
+    "p99": 0.34443
+   },
+   "sharedPositions": 558,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  },
+  "lelu_hair": {
+   "flatShadedTriangles": 1004,
+   "flatShadedShare": 0.0062,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.00106,
+    "p10": 4.88044,
+    "p50": 17.97104,
+    "p90": 39.83589,
+    "p99": 58.83109
+   },
+   "sharedPositions": 81434,
+   "positionsWithNormalSpreadOver30deg": 30173,
+   "hardShareOfShared": 0.3705,
+   "hasCustomNormals": true
+  },
+  "lelu_hair_ringlets": {
+   "flatShadedTriangles": 0,
+   "flatShadedShare": 0.0,
+   "invertedLoopNormals": 8,
+   "loopVsFaceDeviationDeg": {
+    "p1": 21.73601,
+    "p10": 26.2432,
+    "p50": 32.14267,
+    "p90": 36.31505,
+    "p99": 40.2649
+   },
+   "sharedPositions": 163650,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  },
+  "lelu_hair_strands": {
+   "flatShadedTriangles": 0,
+   "flatShadedShare": 0.0,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 36.71384,
+    "p10": 49.12459,
+    "p50": 60.58244,
+    "p90": 74.23881,
+    "p99": 82.24896
+   },
+   "sharedPositions": 31053,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  },
+  "lelu_mouth": {
+   "flatShadedTriangles": 164,
+   "flatShadedShare": 0.4457,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.0,
+    "p10": 0.00022,
+    "p50": 1.55849,
+    "p90": 12.26696,
+    "p99": 28.73641
+   },
+   "sharedPositions": 214,
+   "positionsWithNormalSpreadOver30deg": 3,
+   "hardShareOfShared": 0.014,
+   "hasCustomNormals": true
+  },
+  "lelu_scalp": {
+   "flatShadedTriangles": 2274,
+   "flatShadedShare": 0.1089,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.00012,
+    "p10": 0.00103,
+    "p50": 7.66781,
+    "p90": 23.29557,
+    "p99": 37.54496
+   },
+   "sharedPositions": 13698,
+   "positionsWithNormalSpreadOver30deg": 6956,
+   "hardShareOfShared": 0.5078,
+   "hasCustomNormals": true
+  },
+  "lelu_teeth": {
+   "flatShadedTriangles": 46,
+   "flatShadedShare": 0.5,
+   "invertedLoopNormals": 0,
+   "loopVsFaceDeviationDeg": {
+    "p1": 0.0006,
+    "p10": 0.00179,
+    "p50": 0.84606,
+    "p90": 11.49498,
+    "p99": 26.17929
+   },
+   "sharedPositions": 70,
+   "positionsWithNormalSpreadOver30deg": 0,
+   "hardShareOfShared": 0.0,
+   "hasCustomNormals": true
+  }
+ },
+ "rebuild": {
+  "char1": {
+   "limitDegByClass": {
+    "skin": 50,
+    "fabric": 40,
+    "metal": 30,
+    "hair": 80
+   },
+   "corners": 117498,
+   "cornerVsFaceDeviationDegMedian": 9.896,
+   "flatCornersShare": 0.1462
+  },
+  "lelu_scalp": {
+   "limitDegByClass": {
+    "skin": 50,
+    "lips": 45,
+    "metal": 30,
+    "flower": 55,
+    "hair": 75
+   },
+   "corners": 62646,
+   "cornerVsFaceDeviationDegMedian": 7.671,
+   "flatCornersShare": 0.2471
+  },
+  "lelu_hair": {
+   "limitDegByClass": {
+    "hair": 80,
+    "metal": 30,
+    "flower": 55,
+    "lips": 45,
+    "face": 45
+   },
+   "corners": 485019,
+   "cornerVsFaceDeviationDegMedian": 17.975,
+   "flatCornersShare": 0.0328
+  }
+ },
+ "checks": {
+  "loop normals inverted against their face": {
+   "metric": "loop normals inverted against their face",
+   "value": {
+    "char1": 0,
+    "eye_patch_l": 0,
+    "eye_patch_r": 0,
+    "lelu_hair": 0,
+    "lelu_hair_ringlets": 8,
+    "lelu_hair_strands": 0,
+    "lelu_mouth": 0,
+    "lelu_scalp": 0,
+    "lelu_teeth": 0
+   },
+   "threshold": "0",
+   "verdict": "FAIL"
+  },
+  "flat-shaded triangle share (faceted shading) on soup meshes": {
+   "metric": "flat-shaded triangle share (faceted shading) on soup meshes",
+   "value": {
+    "char1": {
+     "v0004": 0.2874,
+     "v0005": 0.0433
+    },
+    "lelu_hair": {
+     "v0004": 0.2259,
+     "v0005": 0.0062
+    },
+    "lelu_scalp": {
+     "v0004": 0.2005,
+     "v0005": 0.1089
+    }
+   },
+   "threshold": "v0005 < v0004 on every soup mesh",
+   "verdict": "PASS"
+  },
+  "share of shared positions with >30° normal spread (shading creases)": {
+   "metric": "share of shared positions with >30° normal spread (shading creases)",
+   "value": {
+    "char1": {
+     "v0004": 0.8814,
+     "v0005": 0.7927
+    },
+    "lelu_hair": {
+     "v0004": 0.8051,
+     "v0005": 0.3705
+    },
+    "lelu_scalp": {
+     "v0004": 0.5807,
+     "v0005": 0.5078
+    }
+   },
+   "threshold": "v0005 < v0004",
+   "verdict": "PASS"
+  }
+ }
+}

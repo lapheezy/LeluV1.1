@@ -1,0 +1,41 @@
+# npx tsc -b --force
+exit 0 (0 errors)
+
+# foundry tests
+✔ v0003 and v0004 are byte-identical to their registered checksums (259.833749ms)
+✔ v0005 is registered as a child of v0004 with the bytes that were built (95.242218ms)
+✔ validation scores technical and perceptual metrics separately with the three allowed verdicts (2.751771ms)
+✔ all fifteen acceptance views exist as separate images for both versions at ≥ 64 samples (1.815173ms)
+✔ rig regression: no unweighted vertex, at most four influences, shape keys and deltas preserved (0.458606ms)
+✔ every required M25 deliverable exists (0.220499ms)
+✔ the licence matrix refuses the engines the mission's rules forbid (1.227804ms)
+✔ HumanNOVA is rejected for having no licence at all (0.314529ms)
+✔ a GPU-only engine is never chosen on a machine without a GPU (0.223643ms)
+✔ the brief names adopted, optional and refused engines (0.146786ms)
+✔ a GPU task on a CPU-only machine is refused, with an alternative (0.225092ms)
+✔ a CPU render gets a bounded plan, never an unlimited one (0.131055ms)
+✔ insufficient VRAM is refused rather than attempted (0.144041ms)
+✔ the reference library accounts for all 39 files and the five sheets (0.977046ms)
+✔ every benchmark shot is declared, unique and points at a real reference (1.102858ms)
+✔ a comparison reports the achieved hairline, not the target it was derived from (0.479875ms)
+✔ silhouette IoU is 1 for a mask against itself and low for a displaced one (26.28139ms)
+✔ colour distance is zero for identical histograms and positive otherwise (1.451438ms)
+✔ a render comparison carries the hair agreement and the caveats (7.760852ms)
+✔ versions are immutable, restorable and hash-verified (5.725927ms)
+✔ the pipeline will not validate a run that was never rendered or compared (0.520987ms)
+✔ a full run validates, and a correction without a re-render does not (0.401369ms)
+✔ chat sentences map to the right Foundry operation and shots (3.231531ms)
+✔ the Foundry tools and their executors share ids, and the render script is on disk (0.193429ms)
+✔ the GLB inspector reads geometry, morphology and texture size from the binary (1.582368ms)
+✖ the three sources are ordered per component, not per source (3.902986ms)
+✔ reconciliation preserves the owned character and marks every verdict unapplied (0.822274ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 26
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 537.512872
+✖ failing tests:
+✖ the three sources are ordered per component, not per source (3.902986ms)

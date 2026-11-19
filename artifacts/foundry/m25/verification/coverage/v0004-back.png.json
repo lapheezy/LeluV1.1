@@ -1,0 +1,51 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/verification/coverage/v0004-back.png",
+ "view": "back",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   1.399999976158142
+  ],
+  "radius": 0.36,
+  "lens": 85.0,
+  "distance": 1.7376996288196644,
+  "location": [
+   0.0,
+   1.7290756702423096,
+   1.572907567024231
+  ]
+ },
+ "resolution": [
+  512,
+  512
+ ],
+ "samples": 64,
+ "adaptiveThreshold": 0.01,
+ "denoise": null,
+ "seed": 0,
+ "viewTransform": "Standard",
+ "look": "None",
+ "greyCard": {
+  "linearValue": null,
+  "exposureEV": 0.0
+ },
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "triangles": 224233,
+ "materialsApplied": [],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 4.57,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

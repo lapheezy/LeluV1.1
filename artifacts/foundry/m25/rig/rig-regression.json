@@ -1,0 +1,612 @@
+{
+ "bones": {
+  "v0004": 24,
+  "v0005": 24,
+  "identical": true
+ },
+ "objects": {
+  "char1": {
+   "v0005": {
+    "vertices": 102395,
+    "triangles": 39166,
+    "unweighted": 0,
+    "maxInfluences": 4,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 83133,
+    "triangles": 39166,
+    "unweighted": 0,
+    "maxInfluences": 4,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "matching": {
+    "method": "uv x1000 + position",
+    "exactUvShare": 1.0
+   },
+   "basisMatch": {
+    "medianMm": 0.0003,
+    "p99Mm": 7.0089,
+    "maxMm": 14.9997
+   },
+   "shapeKeyDeltas": {}
+  },
+  "eye_patch_l": {
+   "v0005": {
+    "vertices": 2052,
+    "triangles": 1026,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 2052,
+    "triangles": 1026,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "matching": {
+    "method": "uv x1000 + position",
+    "exactUvShare": 1.0
+   },
+   "basisMatch": {
+    "medianMm": 0.0003,
+    "p99Mm": 0.0005,
+    "maxMm": 0.0005
+   },
+   "shapeKeyDeltas": {
+    "eyeBlinkLeft": {
+     "movingVertices": 1160,
+     "maxDeltaMm": 6.048,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    },
+    "eyeBlinkRight": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeWideLeft": {
+     "movingVertices": 588,
+     "maxDeltaMm": 1.878,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    },
+    "eyeWideRight": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "jawOpen": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileLeft": {
+     "movingVertices": 86,
+     "maxDeltaMm": 0.07,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    },
+    "mouthSmileRight": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownLeft": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownRight": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browInnerUp": {
+     "movingVertices": 105,
+     "maxDeltaMm": 0.388,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownLeft": {
+     "movingVertices": 191,
+     "maxDeltaMm": 0.27,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    },
+    "browDownRight": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    }
+   }
+  },
+  "eye_patch_r": {
+   "v0005": {
+    "vertices": 2052,
+    "triangles": 1026,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 2052,
+    "triangles": 1026,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "matching": {
+    "method": "uv x1000 + position",
+    "exactUvShare": 1.0
+   },
+   "basisMatch": {
+    "medianMm": 0.0003,
+    "p99Mm": 0.0005,
+    "maxMm": 0.0005
+   },
+   "shapeKeyDeltas": {
+    "eyeBlinkLeft": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeBlinkRight": {
+     "movingVertices": 1264,
+     "maxDeltaMm": 6.18,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    },
+    "eyeWideLeft": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeWideRight": {
+     "movingVertices": 666,
+     "maxDeltaMm": 1.925,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    },
+    "jawOpen": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileLeft": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileRight": {
+     "movingVertices": 38,
+     "maxDeltaMm": 0.032,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownLeft": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownRight": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browInnerUp": {
+     "movingVertices": 59,
+     "maxDeltaMm": 0.177,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownLeft": {
+     "movingVertices": 0,
+     "maxDeltaMm": 0.0,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownRight": {
+     "movingVertices": 212,
+     "maxDeltaMm": 0.265,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0002
+    }
+   }
+  },
+  "lelu_hair": {
+   "v0005": {
+    "vertices": 369274,
+    "triangles": 161673,
+    "unweighted": 0,
+    "maxInfluences": 4,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 322215,
+    "triangles": 161673,
+    "unweighted": 0,
+    "maxInfluences": 4,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "matching": {
+    "method": "uv x1000 + position",
+    "exactUvShare": 1.0
+   },
+   "basisMatch": {
+    "medianMm": 0.9198,
+    "p99Mm": 3.4485,
+    "maxMm": 6.0006
+   },
+   "shapeKeyDeltas": {
+    "eyeBlinkLeft": {
+     "movingVertices": 1814,
+     "maxDeltaMm": 6.043,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeBlinkRight": {
+     "movingVertices": 2293,
+     "maxDeltaMm": 6.142,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeWideLeft": {
+     "movingVertices": 642,
+     "maxDeltaMm": 1.878,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeWideRight": {
+     "movingVertices": 945,
+     "maxDeltaMm": 1.904,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "jawOpen": {
+     "movingVertices": 14425,
+     "maxDeltaMm": 5.416,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileLeft": {
+     "movingVertices": 5123,
+     "maxDeltaMm": 3.831,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileRight": {
+     "movingVertices": 5493,
+     "maxDeltaMm": 3.852,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownLeft": {
+     "movingVertices": 3142,
+     "maxDeltaMm": 2.771,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownRight": {
+     "movingVertices": 2882,
+     "maxDeltaMm": 2.786,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browInnerUp": {
+     "movingVertices": 2671,
+     "maxDeltaMm": 2.367,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownLeft": {
+     "movingVertices": 1957,
+     "maxDeltaMm": 2.165,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownRight": {
+     "movingVertices": 1826,
+     "maxDeltaMm": 2.179,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    }
+   }
+  },
+  "lelu_hair_ringlets": {
+   "v0005": {
+    "vertices": 163650,
+    "triangles": 321144,
+    "unweighted": 0,
+    "maxInfluences": 2,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24
+  },
+  "lelu_hair_strands": {
+   "v0005": {
+    "vertices": 31053,
+    "triangles": 59214,
+    "unweighted": 0,
+    "maxInfluences": 2,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24
+  },
+  "lelu_mouth": {
+   "v0005": {
+    "vertices": 748,
+    "triangles": 368,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 725,
+    "triangles": 368,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "basisMatch": {
+    "medianMm": 0.0003,
+    "p99Mm": 0.0003,
+    "maxMm": 0.0003
+   },
+   "shapeKeyDeltas": {}
+  },
+  "lelu_scalp": {
+   "v0005": {
+    "vertices": 49366,
+    "triangles": 20882,
+    "unweighted": 0,
+    "maxInfluences": 4,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 42605,
+    "triangles": 20882,
+    "unweighted": 0,
+    "maxInfluences": 4,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "matching": {
+    "method": "uv x1000 + position",
+    "exactUvShare": 1.0
+   },
+   "basisMatch": {
+    "medianMm": 0.0003,
+    "p99Mm": 0.0008,
+    "maxMm": 0.0009
+   },
+   "shapeKeyDeltas": {
+    "eyeBlinkLeft": {
+     "movingVertices": 69,
+     "maxDeltaMm": 6.043,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeBlinkRight": {
+     "movingVertices": 68,
+     "maxDeltaMm": 5.847,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeWideLeft": {
+     "movingVertices": 35,
+     "maxDeltaMm": 1.878,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "eyeWideRight": {
+     "movingVertices": 49,
+     "maxDeltaMm": 1.776,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "jawOpen": {
+     "movingVertices": 819,
+     "maxDeltaMm": 5.416,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileLeft": {
+     "movingVertices": 300,
+     "maxDeltaMm": 3.844,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthSmileRight": {
+     "movingVertices": 278,
+     "maxDeltaMm": 3.852,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownLeft": {
+     "movingVertices": 270,
+     "maxDeltaMm": 2.78,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "mouthFrownRight": {
+     "movingVertices": 217,
+     "maxDeltaMm": 2.786,
+     "deltaErrorMaxMm": 0.0,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browInnerUp": {
+     "movingVertices": 64,
+     "maxDeltaMm": 1.657,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownLeft": {
+     "movingVertices": 37,
+     "maxDeltaMm": 1.979,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    },
+    "browDownRight": {
+     "movingVertices": 96,
+     "maxDeltaMm": 2.032,
+     "deltaErrorMaxMm": 0.0002,
+     "deltaErrorP99Mm": 0.0
+    }
+   }
+  },
+  "lelu_teeth": {
+   "v0005": {
+    "vertices": 209,
+    "triangles": 92,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ],
+    "armatureModifier": true
+   },
+   "vertexGroups": 24,
+   "v0004": {
+    "vertices": 201,
+    "triangles": 92,
+    "unweighted": 0,
+    "maxInfluences": 1,
+    "weightSumRange": [
+     1.0,
+     1.0
+    ]
+   },
+   "shapeKeysIdentical": true,
+   "basisMatch": {
+    "medianMm": 0.0003,
+    "p99Mm": 0.0003,
+    "maxMm": 0.0003
+   },
+   "shapeKeyDeltas": {}
+  }
+ },
+ "walkClip": [
+  {
+   "frame": 1,
+   "bonesMoved": 22,
+   "action": "walk",
+   "frameRange": [
+    0.8000000715255737,
+    24.0
+   ],
+   "render": "artifacts/foundry/m25/rig/renders/walk-f01.png"
+  },
+  {
+   "frame": 12,
+   "bonesMoved": 22,
+   "action": "walk",
+   "frameRange": [
+    0.8000000715255737,
+    24.0
+   ],
+   "render": "artifacts/foundry/m25/rig/renders/walk-f12.png"
+  },
+  {
+   "frame": 24,
+   "bonesMoved": 22,
+   "action": "walk",
+   "frameRange": [
+    0.8000000715255737,
+    24.0
+   ],
+   "render": "artifacts/foundry/m25/rig/renders/walk-f24.png"
+  }
+ ],
+ "shapeKeyRenders": [
+  "artifacts/foundry/m25/rig/renders/shape-blink.png",
+  "artifacts/foundry/m25/rig/renders/shape-eyeWide-browUp.png",
+  "artifacts/foundry/m25/rig/renders/shape-frown-browDown.png",
+  "artifacts/foundry/m25/rig/renders/shape-jawOpen-smile.png",
+  "artifacts/foundry/m25/rig/renders/shape-neutral.png"
+ ],
+ "shapeKeyRenderDiffRms": {
+  "shape-blink.png": 2.617,
+  "shape-eyeWide-browUp.png": 1.297,
+  "shape-frown-browDown.png": 2.165,
+  "shape-jawOpen-smile.png": 4.896,
+  "shape-neutral.png": 0.0
+ }
+}

@@ -1,0 +1,231 @@
+{
+ "method": "per-triangle classification from the asset's own albedo + metallicRoughness maps (scripts/blender/lelu_m25_common.py classify) plus welded-graph dihedral; rendered as flat colour maps",
+ "images": [
+  "visual-defect-map/classes-v0004-back.png",
+  "visual-defect-map/classes-v0004-face.png",
+  "visual-defect-map/classes-v0004-front.png",
+  "visual-defect-map/crumple-v0004-back.png",
+  "visual-defect-map/crumple-v0004-face.png",
+  "visual-defect-map/crumple-v0004-front.png"
+ ],
+ "colours": {
+  "skin": [
+   0.9,
+   0.55,
+   0.3
+  ],
+  "hair": [
+   0.02,
+   0.02,
+   0.02
+  ],
+  "metal": [
+   1.0,
+   0.85,
+   0.0
+  ],
+  "fabric": [
+   0.1,
+   0.45,
+   0.15
+  ],
+  "flower": [
+   1.0,
+   0.2,
+   0.6
+  ],
+  "lips": [
+   0.8,
+   0.0,
+   0.1
+  ],
+  "other": [
+   0.3,
+   0.3,
+   1.0
+  ],
+  "eye": [
+   1,
+   1,
+   1
+  ],
+  "crumpled": [
+   1.0,
+   0.0,
+   0.0
+  ]
+ },
+ "triangleClasses": {
+  "char1": {
+   "fabric": 12299,
+   "hair": 4231,
+   "metal": 7247,
+   "skin": 15389
+  },
+  "eye_patch_l": {
+   "eye": 1026
+  },
+  "eye_patch_r": {
+   "eye": 1026
+  },
+  "lelu_hair": {
+   "flower": 883,
+   "hair": 156721,
+   "lips": 785,
+   "metal": 3284
+  },
+  "lelu_mouth": {
+   "other": 368
+  },
+  "lelu_scalp": {
+   "flower": 3011,
+   "hair": 501,
+   "lips": 57,
+   "metal": 3464,
+   "skin": 13849
+  },
+  "lelu_teeth": {
+   "other": 92
+  }
+ },
+ "regions": {
+  "shoulders": {
+   "triangles": 6624,
+   "hairDarkAlbedoShare": 0.3146,
+   "meanEdgeMm": 12.72,
+   "triangleMeanDihedralDeg": {
+    "p1": 7.48085,
+    "p10": 24.14106,
+    "p50": 51.66734,
+    "p90": 84.29946,
+    "p99": 115.90106
+   },
+   "dihedralOver45Share": 0.611,
+   "flatShadedShare": 0.3758,
+   "metallicMean": 0.1202,
+   "roughnessMean": 0.8965
+  },
+  "upperChest": {
+   "triangles": 1103,
+   "hairDarkAlbedoShare": 0.204,
+   "meanEdgeMm": 16.582,
+   "triangleMeanDihedralDeg": {
+    "p1": 6.91692,
+    "p10": 15.63224,
+    "p50": 42.45849,
+    "p90": 76.76969,
+    "p99": 110.22957
+   },
+   "dihedralOver45Share": 0.4555,
+   "flatShadedShare": 0.2811,
+   "metallicMean": 0.3446,
+   "roughnessMean": 0.7428
+  },
+  "neck": {
+   "triangles": 480,
+   "hairDarkAlbedoShare": 0.6646,
+   "meanEdgeMm": 14.153,
+   "triangleMeanDihedralDeg": {
+    "p1": 7.77756,
+    "p10": 19.5612,
+    "p50": 42.41549,
+    "p90": 80.74651,
+    "p99": 118.85579
+   },
+   "dihedralOver45Share": 0.4611,
+   "flatShadedShare": 0.2938,
+   "metallicMean": 0.1101,
+   "roughnessMean": 0.898
+  },
+  "upperBack": {
+   "triangles": 9143,
+   "hairDarkAlbedoShare": 0.5092,
+   "meanEdgeMm": 13.384,
+   "triangleMeanDihedralDeg": {
+    "p1": 9.09514,
+    "p10": 23.56015,
+    "p50": 48.90138,
+    "p90": 81.89709,
+    "p99": 114.52121
+   },
+   "dihedralOver45Share": 0.5616,
+   "flatShadedShare": 0.3554,
+   "metallicMean": 0.1116,
+   "roughnessMean": 0.9006
+  },
+  "arms": {
+   "triangles": 2087,
+   "hairDarkAlbedoShare": 0.2108,
+   "meanEdgeMm": 17.826,
+   "triangleMeanDihedralDeg": {
+    "p1": 8.53867,
+    "p10": 19.71216,
+    "p50": 42.96894,
+    "p90": 72.54794,
+    "p99": 108.83901
+   },
+   "dihedralOver45Share": 0.4612,
+   "flatShadedShare": 0.2717,
+   "metallicMean": 0.4387,
+   "roughnessMean": 0.6909
+  }
+ },
+ "responsibleComponents": {
+  "D01": {
+   "region": "hair (lelu_hair) — close-ups",
+   "causes": [
+    "A",
+    "B",
+    "C",
+    "H"
+   ]
+  },
+  "D02": {
+   "region": "shoulders, upper back, upper chest (char1)",
+   "causes": [
+    "A",
+    "B"
+   ]
+  },
+  "D03": {
+   "region": "face skin",
+   "causes": [
+    "F",
+    "H",
+    "D"
+   ]
+  },
+  "D04": {
+   "region": "face skin",
+   "causes": [
+    "C"
+   ]
+  },
+  "D05": {
+   "region": "eyes",
+   "causes": [
+    "D"
+   ]
+  },
+  "D06": {
+   "region": "face proportions",
+   "causes": [
+    "registration"
+   ]
+  },
+  "D07": {
+   "region": "lips",
+   "causes": [
+    "D",
+    "E"
+   ]
+  },
+  "D08": {
+   "region": "clothing (char1)",
+   "causes": [
+    "C",
+    "D"
+   ]
+  }
+ }
+}

@@ -1,0 +1,202 @@
+{
+ "baseline": {
+  "branch": "experiment/lelu-2-golden-geometry",
+  "commit": "d4667d785e928a9e30d79b7d91522fbe775a2f45"
+ },
+ "immutable": {
+  "v0003": {
+   "file": "leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+   "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+   "registered": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce"
+  },
+  "v0004": {
+   "file": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+   "sha256": "6b9bccbe3591a3eecdf624e2965e83490182213f3c7f8dab0bd6e106f5594b18",
+   "registered": "6b9bccbe3591a3eecdf624e2965e83490182213f3c7f8dab0bd6e106f5594b18"
+  },
+  "pciFr": {
+   "note": "PCI-FR geometry builds are not committed as GLBs on this branch (gitignored); every tracked PCI-FR / lelu2 artefact is digested here and git shows no change since the M24 commit",
+   "files": 156,
+   "manifestSha256": "35a35c4a4a2598f9c07f2acebbc159022c5c7cc47f8626232fc5871a37ab66c7",
+   "changedSinceM24": []
+  },
+  "photographs": {
+   "files": [
+    {
+     "file": "artifacts/lelu2/m231/reference/centre-part.png",
+     "sha256": "4d46a1d671aebbae86dbe8eba3105247243bcaa4af624528055f41f03a10597b"
+    },
+    {
+     "file": "artifacts/lelu2/m231/reference/face-front.png",
+     "sha256": "428b0df6aefa4f4647c77a2389d5eef4aedd7fae9f80af6db6a6eaaab3d7ab55"
+    },
+    {
+     "file": "artifacts/lelu2/m231/reference/hairline-brows.png",
+     "sha256": "cba6978e7211d10b51dc9161acf22192c73ebe295c3eec723bbde710a314c545"
+    },
+    {
+     "file": "artifacts/lelu2/m231/reference/hairline-spec.png",
+     "sha256": "239e96ff630970bf10bdf81f9f087727f626d4168e627bb7a09df6f6c0bd271b"
+    },
+    {
+     "file": "artifacts/lelu2/m231/reference/landmark-sheet.png",
+     "sha256": "695e9a8417ed205f5b980963c1953a9b9e62d89cb1ebf14811ee06e3e60456f9"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/accessories-hands-forearm-armor.png",
+     "sha256": "7a028aac11f661a0562151c4a9b1524762622844b4495b5ca9dcf33938fba9ce"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/accessories-signature-pendant.png",
+     "sha256": "3d48cb99275c6ae52817f9dc8dc825e92db2c9ef1952654ae6049074376e000d"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/body-back-apose-hood.png",
+     "sha256": "a38d91a9cb8e125728392dd3ebaa00e246998da32e10f6d9fc11d967f4197364"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/body-front-apose-hood.png",
+     "sha256": "26601d19f5b5967247f54ab4cf9b052b9594c3157ef4a3da13622461c78c146f"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/body-front-neutral-nohood.png",
+     "sha256": "1da6e4599cc034dd11ea64a247f554276bdda826deca81a0327c107c99234dca"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/body-left-profile-hood.png",
+     "sha256": "b08bce3348256091ddcb203a5ca8522ace5b322958ab7db275971ee7e550dbb7"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/body-three-quarter-hood.png",
+     "sha256": "2119badfe3373adb11b876f4e9076ff1efc1f98901038834e216908af62d32b6"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/clothing-cargo-pants-boots.png",
+     "sha256": "5b2a49ed0e628d7514018ff983ed648242930027282cb88d0a2eedf33cb7d2f0"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/clothing-corset-top.png",
+     "sha256": "6640b21a6623b7cb9ce910a7aad6c7a8ea4792a7f17d366d52aa97bf60491bc1"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/clothing-platform-boots.png",
+     "sha256": "df3c6c36a1e8f96e054915415e51159a6a54d33c43329616aeb62511ebdef519"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/clothing-shoulder-armor.png",
+     "sha256": "3fa8f3bf833b5e5950a8c69a40ac8ff52c58d124f9d2875e51b07bd091f471a3"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/clothing-waist-harness.png",
+     "sha256": "26894b792ef709687360da9dc70a4547351f1e2e7ca036ac341e3729e1c02a82"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/face-front-closeup-alt.png",
+     "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/face-front-closeup.png",
+     "sha256": "c6b728fdab5a809c96d6750a30633ed76bc208b49144a35b595e05c22215526d"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/hair-back.png",
+     "sha256": "bec0f68f49ed752e21597b251cc95909ca6265197e454288a8f93bff746f5355"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref01_front_fullbody_A.png",
+     "sha256": "1da6e4599cc034dd11ea64a247f554276bdda826deca81a0327c107c99234dca"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref02_hip_harness_detail_A.png",
+     "sha256": "26894b792ef709687360da9dc70a4547351f1e2e7ca036ac341e3729e1c02a82"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref03_boots_detail_A.png",
+     "sha256": "df3c6c36a1e8f96e054915415e51159a6a54d33c43329616aeb62511ebdef519"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref04_hands_jewelry.png",
+     "sha256": "7a028aac11f661a0562151c4a9b1524762622844b4495b5ca9dcf33938fba9ce"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref05_lower_body_A.png",
+     "sha256": "5b2a49ed0e628d7514018ff983ed648242930027282cb88d0a2eedf33cb7d2f0"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref06_torso_corset_A.png",
+     "sha256": "6640b21a6623b7cb9ce910a7aad6c7a8ea4792a7f17d366d52aa97bf60491bc1"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref07_signature_pendant.png",
+     "sha256": "3d48cb99275c6ae52817f9dc8dc825e92db2c9ef1952654ae6049074376e000d"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref08_face_upper_body.png",
+     "sha256": "c6b728fdab5a809c96d6750a30633ed76bc208b49144a35b595e05c22215526d"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref09_back_upper_body.png",
+     "sha256": "bec0f68f49ed752e21597b251cc95909ca6265197e454288a8f93bff746f5355"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref10_face_primary.png",
+     "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref11_front_apose_B.png",
+     "sha256": "1e01242a0a2729614e8d97da418077df3279daab8a08daee6b01a1e056ba6f02"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref12_left_side_hooded_B.png",
+     "sha256": "b08bce3348256091ddcb203a5ca8522ace5b322958ab7db275971ee7e550dbb7"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref13_three_quarter_hooded_B.png",
+     "sha256": "2119badfe3373adb11b876f4e9076ff1efc1f98901038834e216908af62d32b6"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref14_front_apose_hooded_B.png",
+     "sha256": "26601d19f5b5967247f54ab4cf9b052b9594c3157ef4a3da13622461c78c146f"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref15_head_turnaround_sheet.png",
+     "sha256": "a2d06edaa67c04c6985c43ef233fad8231aee34f889fdcd4a5a0f33df2966fe4"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref16_shoulder_armor_detail.png",
+     "sha256": "3fa8f3bf833b5e5950a8c69a40ac8ff52c58d124f9d2875e51b07bd091f471a3"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref17_head_front_unhooded.png",
+     "sha256": "553e2be37f15267a23e2a13ab1753c5a479e73b83a31f4bd68c6fa6da24183a2"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref18_head_profile_a_unhooded.png",
+     "sha256": "2634a5214a92a3ef81130a134f120b8831798f9a055ca1afe9a623db8c49023a"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref19_head_back_unhooded.png",
+     "sha256": "0505e3cf42e68a8aeff4be51b55bdc906dbbe4704d2c2261803c5af4722993b1"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/references/ref20_head_profile_b_unhooded.png",
+     "sha256": "a29484f8ab1a57a7b1576b47e66c7974498814bbd0f31aac0c1048cdec08dc50"
+    }
+   ],
+   "changedSinceM24": []
+  }
+ },
+ "new": {
+  "v0005": {
+   "file": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+   "sha256": "1170e1ff52414be0786e2f280d1717023be26907b135b4e8ec83cfed4207e0ee",
+   "bytes": 53137492
+  },
+  "textures": [
+   "m25_head_basecolor",
+   "m25_head_metalrough",
+   "m25_body_basecolor",
+   "m25_body_metalrough"
+  ]
+ }
+}

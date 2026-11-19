@@ -1,0 +1,104 @@
+{
+ "weldPerformed": false,
+ "verticesMovedBy": {
+  "char1.hairCape": {
+   "iterations": 12,
+   "lambda": 0.5,
+   "mu": -0.53,
+   "movableTriangles": 4231,
+   "clampMm": 15.0,
+   "clampedPositions": 3,
+   "movedPositions": 576,
+   "pinnedPositions": 2921,
+   "displacementMm": {
+    "mean": 5.08,
+    "p90": 8.178,
+    "max": 15.0
+   },
+   "meanDihedralDeg": {
+    "before": 44.32,
+    "after": 40.69
+   }
+  },
+  "char1.shoulderCrumple": {
+   "iterations": 6,
+   "lambda": 0.5,
+   "mu": -0.53,
+   "movableTriangles": 7451,
+   "clampMm": 8.0,
+   "clampedPositions": 65,
+   "movedPositions": 911,
+   "pinnedPositions": 4793,
+   "displacementMm": {
+    "mean": 4.517,
+    "p90": 7.269,
+    "max": 8.0
+   },
+   "meanDihedralDeg": {
+    "before": 48.13,
+    "after": 44.44
+   }
+  },
+  "lelu_hair.foundation": {
+   "iterations": 4,
+   "lambda": 0.5,
+   "mu": -0.53,
+   "movableTriangles": 153421,
+   "clampMm": 6.0,
+   "clampedPositions": 240,
+   "movedPositions": 76047,
+   "pinnedPositions": 4356,
+   "displacementMm": {
+    "mean": 1.19,
+    "p90": 2.097,
+    "max": 6.0
+   },
+   "faceZoneTrianglesPinned": 3300,
+   "meanDihedralDeg": {
+    "before": 34.67,
+    "after": 29.05
+   }
+  }
+ },
+ "normalsRebuilt": {
+  "char1": {
+   "limitDegByClass": {
+    "skin": 50,
+    "fabric": 40,
+    "metal": 30,
+    "hair": 80
+   },
+   "corners": 117498,
+   "cornerVsFaceDeviationDegMedian": 9.896,
+   "flatCornersShare": 0.1462
+  },
+  "lelu_scalp": {
+   "limitDegByClass": {
+    "skin": 50,
+    "lips": 45,
+    "metal": 30,
+    "flower": 55,
+    "hair": 75
+   },
+   "corners": 62646,
+   "cornerVsFaceDeviationDegMedian": 7.671,
+   "flatCornersShare": 0.2471
+  },
+  "lelu_hair": {
+   "limitDegByClass": {
+    "hair": 80,
+    "metal": 30,
+    "flower": 55,
+    "lips": 45,
+    "face": 45
+   },
+   "corners": 485019,
+   "cornerVsFaceDeviationDegMedian": 17.975,
+   "flatCornersShare": 0.0328
+  }
+ },
+ "uvsChanged": false,
+ "materialSlotsAdded": true,
+ "shapeKeyPolicy": "every key block moved by the basis displacement, so deltas are unchanged (verified in rig/rig-regression.json)",
+ "reversible": "v0004 is preserved byte-for-byte; every step is parameterised in build-job.json"
+}

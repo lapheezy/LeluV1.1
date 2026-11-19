@@ -1,0 +1,61 @@
+{
+ "method": "measured on the ringlet centre lines written by the build (the polylines that were meshed): curl radius = median distance of the centre line from its fall axis (root fifth excluded), continuity = largest turn between consecutive ~12 mm segments of the fall axis, strand intersection = centre-line points of different ringlets closer than the sum of their clump radii, skin contact = centre-line points within half a clump radius of a skin/body vertex (vertex proxy, not a surface test)",
+ "ringlets": 516,
+ "curlRadiusMm": {
+  "n": 470,
+  "p10": 4.539,
+  "p50": 5.472,
+  "p90": 6.347,
+  "min": 3.286,
+  "max": 6.965
+ },
+ "curlDiameterMm": {
+  "n": 470,
+  "p10": 9.079,
+  "p50": 10.943,
+  "p90": 12.695,
+  "min": 6.573,
+  "max": 13.929
+ },
+ "pitchMm": {
+  "n": 470,
+  "p10": 10.436,
+  "p50": 12.753,
+  "p90": 15.368,
+  "min": 10.001,
+  "max": 15.993
+ },
+ "clumpRadiusMm": {
+  "n": 470,
+  "p10": 1.366,
+  "p50": 1.653,
+  "p90": 1.928,
+  "min": 1.301,
+  "max": 1.999
+ },
+ "axisLengthMm": {
+  "n": 470,
+  "p10": 20.88,
+  "p50": 55.0,
+  "p90": 132.4,
+  "min": 13.3,
+  "max": 221.5
+ },
+ "maxTurnDeg": {
+  "n": 470,
+  "p10": 0.0,
+  "p50": 23.09,
+  "p90": 39.382,
+  "min": 0.0,
+  "max": 180.0
+ },
+ "strandIntersectionPointShare": 0.2067,
+ "skinContactPointShare": 0.0018,
+ "reference": {
+  "source": "hair photographs: defined ringlets roughly 1.5\u20133 IPD-normalised units; target band 6\u201314 mm diameter",
+  "targetDiameterMm": [
+   6,
+   14
+  ]
+ }
+}

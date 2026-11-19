@@ -1,0 +1,228 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "inputSha256": "6b9bccbe3591a3eecdf624e2965e83490182213f3c7f8dab0bd6e106f5594b18",
+ "steps": {
+  "classification": {
+   "char1": {
+    "fabric": 12299,
+    "hair": 4231,
+    "metal": 7247,
+    "skin": 15389
+   },
+   "lelu_hair": {
+    "flower": 883,
+    "hair": 156721,
+    "lips": 785,
+    "metal": 3284
+   },
+   "lelu_scalp": {
+    "flower": 3011,
+    "hair": 501,
+    "lips": 57,
+    "metal": 3464,
+    "skin": 13849
+   }
+  },
+  "textures": {
+   "head": {
+    "size": [
+     4096,
+     4096
+    ],
+    "skinTexels": 587410,
+    "hairTexels": 13132413,
+    "metalTexelsUntouched": 653343,
+    "skinLabMedianBefore": [
+     42.93,
+     16.2,
+     22.62
+    ],
+    "skinLabMedianAfter": [
+     37.77,
+     28.2,
+     30.62
+    ],
+    "before": {
+     "skinMetallicMean": 0.04452405124902725,
+     "skinRoughnessP10": 0.44705885648727417,
+     "hairMetallicMean": 0.03596295416355133,
+     "hairRoughnessP10": 0.7019608020782471
+    },
+    "after": {
+     "skinMetallicMean": 0.0,
+     "skinRoughnessP10": 0.47999998927116394,
+     "hairMetallicMean": 0.0
+    }
+   },
+   "body": {
+    "size": [
+     2048,
+     2048
+    ],
+    "skinTexels": 497136,
+    "hairTexels": 179857,
+    "metalTexelsUntouched": 332721,
+    "skinLabMedianBefore": [
+     27.82,
+     10.26,
+     12.41
+    ],
+    "skinLabMedianAfter": [
+     24.48,
+     22.26,
+     20.41
+    ],
+    "before": {
+     "skinMetallicMean": 0.07918107509613037,
+     "skinRoughnessP10": 0.7882353663444519,
+     "hairMetallicMean": 0.030590252950787544,
+     "hairRoughnessP10": 0.9450981020927429
+    },
+    "after": {
+     "skinMetallicMean": 0.0,
+     "skinRoughnessP10": 0.7882353663444519,
+     "hairMetallicMean": 0.0
+    }
+   }
+  },
+  "geometry": {
+   "char1.hairCape": {
+    "iterations": 12,
+    "lambda": 0.5,
+    "mu": -0.53,
+    "movableTriangles": 4231,
+    "clampMm": 15.0,
+    "clampedPositions": 3,
+    "movedPositions": 576,
+    "pinnedPositions": 2921,
+    "displacementMm": {
+     "mean": 5.08,
+     "p90": 8.178,
+     "max": 15.0
+    },
+    "meanDihedralDeg": {
+     "before": 44.32,
+     "after": 40.69
+    }
+   },
+   "char1.shoulderCrumple": {
+    "iterations": 6,
+    "lambda": 0.5,
+    "mu": -0.53,
+    "movableTriangles": 7451,
+    "clampMm": 8.0,
+    "clampedPositions": 65,
+    "movedPositions": 911,
+    "pinnedPositions": 4793,
+    "displacementMm": {
+     "mean": 4.517,
+     "p90": 7.269,
+     "max": 8.0
+    },
+    "meanDihedralDeg": {
+     "before": 48.13,
+     "after": 44.44
+    }
+   },
+   "lelu_hair.foundation": {
+    "iterations": 4,
+    "lambda": 0.5,
+    "mu": -0.53,
+    "movableTriangles": 153421,
+    "clampMm": 6.0,
+    "clampedPositions": 240,
+    "movedPositions": 76047,
+    "pinnedPositions": 4356,
+    "displacementMm": {
+     "mean": 1.19,
+     "p90": 2.097,
+     "max": 6.0
+    },
+    "faceZoneTrianglesPinned": 3300,
+    "meanDihedralDeg": {
+     "before": 34.67,
+     "after": 29.05
+    }
+   }
+  },
+  "normals": {
+   "char1": {
+    "limitDegByClass": {
+     "skin": 50,
+     "fabric": 40,
+     "metal": 30,
+     "hair": 80
+    },
+    "corners": 117498,
+    "cornerVsFaceDeviationDegMedian": 9.896,
+    "flatCornersShare": 0.1462
+   },
+   "lelu_scalp": {
+    "limitDegByClass": {
+     "skin": 50,
+     "lips": 45,
+     "metal": 30,
+     "flower": 55,
+     "hair": 75
+    },
+    "corners": 62646,
+    "cornerVsFaceDeviationDegMedian": 7.671,
+    "flatCornersShare": 0.2471
+   },
+   "lelu_hair": {
+    "limitDegByClass": {
+     "hair": 80,
+     "metal": 30,
+     "flower": 55,
+     "lips": 45,
+     "face": 45
+    },
+    "corners": 485019,
+    "cornerVsFaceDeviationDegMedian": 17.975,
+    "flatCornersShare": 0.0328
+   }
+  },
+  "hair": {
+   "primary": {
+    "strands": 513,
+    "vertices": 163650,
+    "triangles": 321144,
+    "strandLengthMm": {
+     "p10": 26.0,
+     "p50": 122.5,
+     "p90": 302.2
+    }
+   },
+   "secondary": {
+    "strands": 482,
+    "vertices": 31053,
+    "triangles": 59214,
+    "strandLengthMm": {
+     "p10": 27.1,
+     "p50": 55.7,
+     "p90": 95.3
+    }
+   },
+   "babyHairs": 48,
+   "flyaways": 434,
+   "ringlets": 516,
+   "rootsRejected": 1073,
+   "truncatedAtFace": 10
+  }
+ },
+ "output": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+ "outputSha256": "1170e1ff52414be0786e2f280d1717023be26907b135b4e8ec83cfed4207e0ee",
+ "outputBytes": 53137492,
+ "seconds": 79.0,
+ "blender": "4.5.9 LTS",
+ "job": {
+  "skin": {
+   "L": 0.88,
+   "a": 1.0,
+   "b": 1.0,
+   "da": 12.0,
+   "db": 8.0
+  },
+  "seed": 25
+ }
+}

@@ -199,6 +199,41 @@ function cmdM24Ingest() {
   for (const v of listVersions(STORE, projectId)) console.log(`  ${v.id} ${v.label}`);
 }
 
+function cmdM25Ingest() {
+  const glb = path.join(ARTIFACTS, "m25/assets/lelu-m25-visual-fidelity.glb");
+  const build = path.join(ARTIFACTS, "m25/hair/build-report.json");
+  if (!existsSync(glb) || !existsSync(build)) throw new Error("run scripts/blender/lelu_m25_build.py first");
+  const report = JSON.parse(readFileSync(build, "utf8")) as { inputSha256: string; steps: Record<string, unknown> };
+  // The project already exists (v0001–v0004); ensureProject() would demand the
+  // PCI-FR build that v0001 was imported from, which this ingest does not need.
+  const projectId = "lelu";
+  if (!listProjects(STORE).some((p) => p.id === projectId)) throw new Error("project lelu is not in the store");
+  const parent = listVersions(STORE, projectId).find((v) => v.id === "v0004");
+  if (!parent || parent.model.sha256 !== report.inputSha256) throw new Error("v0005 must be built from the registered v0004 bytes");
+  const inspection = inspectGlb(glb);
+  const existing = listVersions(STORE, projectId).find((v) => v.model.sha256 === inspection.sha256);
+  const version = existing ?? addVersion(STORE, projectId, {
+    sourceGlb: glb,
+    label: "M25 v0005 — visual fidelity: calibrated materials, repaired normals, hybrid ringlet hair",
+    operation: "deform",
+    triangles: inspection.counts.triangles,
+    spec: {
+      source: "meshy",
+      parent: "v0004",
+      parentSha256: report.inputSha256,
+      change: "texel-level skin/hair material repair, CIELAB skin calibration against the photographs, custom normals, localised Taubin repair of crumpled shells, new ringlet + strand hair layers",
+      steps: report.steps,
+    },
+    notes: [
+      "v0003 and v0004 are untouched; this version is the only file the M25 build wrote",
+      "no weld, no global smoothing, no UV change; shape-key deltas preserved (artifacts/foundry/m25/rig/rig-regression.json)",
+      "acceptance renders and PASS/FAIL table: artifacts/foundry/m25/verification/validation.json",
+    ],
+  });
+  console.log(`${existing ? "already" : "registered"} ${version.id} ${version.model.sha256.slice(0, 16)} (${inspection.counts.triangles} tris)`);
+  for (const v of listVersions(STORE, projectId)) console.log(`  ${v.id} ${v.label}`);
+}
+
 function cmdReconcile() {
   const inspection = existsSync(MESHY_MODEL) ? inspectGlb(MESHY_MODEL) : null;
   const result = reconcile({ inspection, metrics: metrics(), hair: hair(), meshyRenders: "artifacts/foundry/meshy/renders", foundryRenders: "artifacts/foundry/benchmark" });
@@ -405,6 +440,9 @@ switch (command) {
     break;
   case "m24-ingest":
     cmdM24Ingest();
+    break;
+  case "m25-ingest":
+    cmdM25Ingest();
     break;
   case "meshy-ingest":
     cmdMeshyIngest();

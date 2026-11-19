@@ -1,0 +1,711 @@
+{
+ "v0004": {
+  "char1": {
+   "name": "char1",
+   "vertices": 83133,
+   "triangles": 39166,
+   "uniquePositions": 18470,
+   "weldRatio": 4.501,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 4.28889,
+     "p10": 10.41507,
+     "p50": 25.57422,
+     "p90": 45.1324,
+     "p99": 55.11596
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 824,
+    "manifoldEdges": 57039,
+    "nonManifoldEdges": 718,
+    "windingInconsistentEdges": 18,
+    "dihedralDeg": {
+     "p1": 0.67363,
+     "p10": 6.48262,
+     "p50": 36.64004,
+     "p90": 100.81215,
+     "p99": 154.61357
+    },
+    "dihedralOver60Share": 0.2963,
+    "components": 87,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 7.0,
+     "p90": 60.0,
+     "p99": 5394.12
+    },
+    "largestComponent": 37522
+   }
+  },
+  "eye_patch_l": {
+   "name": "eye_patch_l",
+   "vertices": 2052,
+   "triangles": 1026,
+   "uniquePositions": 560,
+   "weldRatio": 3.664,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 37.18806,
+     "p10": 38.26312,
+     "p50": 39.4334,
+     "p90": 40.12128,
+     "p99": 40.65652
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 92,
+    "manifoldEdges": 1493,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.47169,
+     "p10": 0.52168,
+     "p50": 0.61368,
+     "p90": 1.4157,
+     "p99": 1.44328
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 1026.0,
+     "p10": 1026.0,
+     "p50": 1026.0,
+     "p90": 1026.0,
+     "p99": 1026.0
+    },
+    "largestComponent": 1026
+   }
+  },
+  "eye_patch_r": {
+   "name": "eye_patch_r",
+   "vertices": 2052,
+   "triangles": 1026,
+   "uniquePositions": 560,
+   "weldRatio": 3.664,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 34.07782,
+     "p10": 35.94621,
+     "p50": 38.79212,
+     "p90": 39.62073,
+     "p99": 39.9699
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 92,
+    "manifoldEdges": 1493,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.53286,
+     "p10": 0.58352,
+     "p50": 1.44838,
+     "p90": 2.14179,
+     "p99": 2.18145
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 1026.0,
+     "p10": 1026.0,
+     "p50": 1026.0,
+     "p90": 1026.0,
+     "p99": 1026.0
+    },
+    "largestComponent": 1026
+   }
+  },
+  "lelu_hair": {
+   "name": "lelu_hair",
+   "vertices": 322215,
+   "triangles": 161673,
+   "uniquePositions": 83717,
+   "weldRatio": 3.849,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 4.47933,
+     "p10": 10.71349,
+     "p50": 25.83964,
+     "p90": 45.26448,
+     "p99": 55.3074
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 20013,
+    "manifoldEdges": 229600,
+    "nonManifoldEdges": 1674,
+    "windingInconsistentEdges": 66,
+    "dihedralDeg": {
+     "p1": 0.36291,
+     "p10": 5.91563,
+     "p50": 31.94739,
+     "p90": 89.0933,
+     "p99": 149.42124
+    },
+    "dihedralOver60Share": 0.2383,
+    "components": 1079,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 2.0,
+     "p90": 17.0,
+     "p99": 110.76
+    },
+    "largestComponent": 138726
+   }
+  },
+  "lelu_mouth": {
+   "name": "lelu_mouth",
+   "vertices": 725,
+   "triangles": 368,
+   "uniquePositions": 216,
+   "weldRatio": 3.356,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 21.67114,
+     "p10": 31.53344,
+     "p50": 33.37851,
+     "p90": 40.65445,
+     "p99": 47.4364
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 62,
+    "manifoldEdges": 521,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 6.33022,
+     "p90": 25.51894,
+     "p99": 43.28842
+    },
+    "dihedralOver60Share": 0.0038,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 368.0,
+     "p10": 368.0,
+     "p50": 368.0,
+     "p90": 368.0,
+     "p99": 368.0
+    },
+    "largestComponent": 368
+   }
+  },
+  "lelu_scalp": {
+   "name": "lelu_scalp",
+   "vertices": 42605,
+   "triangles": 20882,
+   "uniquePositions": 18775,
+   "weldRatio": 2.269,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 4.02264,
+     "p10": 9.95947,
+     "p50": 25.43639,
+     "p90": 45.12823,
+     "p99": 55.3822
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 16215,
+    "manifoldEdges": 22968,
+    "nonManifoldEdges": 145,
+    "windingInconsistentEdges": 28,
+    "dihedralDeg": {
+     "p1": 0.00139,
+     "p10": 3.62963,
+     "p50": 26.15641,
+     "p90": 83.74665,
+     "p99": 144.59056
+    },
+    "dihedralOver60Share": 0.2036,
+    "components": 2532,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 1.0,
+     "p90": 8.0,
+     "p99": 96.83
+    },
+    "largestComponent": 2590
+   }
+  },
+  "lelu_teeth": {
+   "name": "lelu_teeth",
+   "vertices": 201,
+   "triangles": 92,
+   "uniquePositions": 72,
+   "weldRatio": 2.792,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 25.38909,
+     "p10": 25.45136,
+     "p50": 31.33689,
+     "p90": 32.22872,
+     "p99": 37.7895
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 50,
+    "manifoldEdges": 113,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 2.97622,
+     "p90": 27.13009,
+     "p99": 49.50276
+    },
+    "dihedralOver60Share": 0.0088,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 92.0,
+     "p10": 92.0,
+     "p50": 92.0,
+     "p90": 92.0,
+     "p99": 92.0
+    },
+    "largestComponent": 92
+   }
+  }
+ },
+ "v0005": {
+  "char1": {
+   "name": "char1",
+   "vertices": 102395,
+   "triangles": 39166,
+   "uniquePositions": 18470,
+   "weldRatio": 5.544,
+   "isTriangleSoup": true,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 9,
+    "minAngleDeg": {
+     "p1": 3.97737,
+     "p10": 10.10934,
+     "p50": 25.37881,
+     "p90": 45.04797,
+     "p99": 55.13972
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 824,
+    "manifoldEdges": 57039,
+    "nonManifoldEdges": 718,
+    "windingInconsistentEdges": 18,
+    "dihedralDeg": {
+     "p1": 0.62895,
+     "p10": 6.10493,
+     "p50": 34.97486,
+     "p90": 100.7259,
+     "p99": 157.51342
+    },
+    "dihedralOver60Share": 0.2816,
+    "components": 84,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 7.0,
+     "p90": 58.8,
+     "p99": 6521.49
+    },
+    "largestComponent": 37561
+   }
+  },
+  "eye_patch_l": {
+   "name": "eye_patch_l",
+   "vertices": 2052,
+   "triangles": 1026,
+   "uniquePositions": 560,
+   "weldRatio": 3.664,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 37.18798,
+     "p10": 38.26312,
+     "p50": 39.43345,
+     "p90": 40.12122,
+     "p99": 40.65224
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 92,
+    "manifoldEdges": 1493,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.47312,
+     "p10": 0.52201,
+     "p50": 0.61347,
+     "p90": 1.41564,
+     "p99": 1.44326
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 1026.0,
+     "p10": 1026.0,
+     "p50": 1026.0,
+     "p90": 1026.0,
+     "p99": 1026.0
+    },
+    "largestComponent": 1026
+   }
+  },
+  "eye_patch_r": {
+   "name": "eye_patch_r",
+   "vertices": 2052,
+   "triangles": 1026,
+   "uniquePositions": 560,
+   "weldRatio": 3.664,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 34.07783,
+     "p10": 35.94618,
+     "p50": 38.79212,
+     "p90": 39.61939,
+     "p99": 39.96994
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 92,
+    "manifoldEdges": 1493,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.53271,
+     "p10": 0.58307,
+     "p50": 1.44838,
+     "p90": 2.14141,
+     "p99": 2.18154
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 1026.0,
+     "p10": 1026.0,
+     "p50": 1026.0,
+     "p90": 1026.0,
+     "p99": 1026.0
+    },
+    "largestComponent": 1026
+   }
+  },
+  "lelu_hair": {
+   "name": "lelu_hair",
+   "vertices": 369274,
+   "triangles": 161673,
+   "uniquePositions": 83718,
+   "weldRatio": 4.411,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 54,
+    "minAngleDeg": {
+     "p1": 5.46296,
+     "p10": 14.10977,
+     "p50": 30.39479,
+     "p90": 47.47993,
+     "p99": 56.10141
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 20013,
+    "manifoldEdges": 229600,
+    "nonManifoldEdges": 1674,
+    "windingInconsistentEdges": 66,
+    "dihedralDeg": {
+     "p1": 0.24007,
+     "p10": 4.18083,
+     "p50": 25.14238,
+     "p90": 80.3979,
+     "p99": 144.33151
+    },
+    "dihedralOver60Share": 0.1806,
+    "components": 1079,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 2.0,
+     "p90": 17.0,
+     "p99": 110.76
+    },
+    "largestComponent": 138708
+   }
+  },
+  "lelu_hair_ringlets": {
+   "name": "lelu_hair_ringlets",
+   "vertices": 163650,
+   "triangles": 321144,
+   "uniquePositions": 163650,
+   "weldRatio": 1.0,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 12.45821,
+     "p10": 22.35049,
+     "p50": 28.95234,
+     "p90": 39.51257,
+     "p99": 45.96866
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 6156,
+    "manifoldEdges": 478638,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.16629,
+     "p10": 1.63227,
+     "p50": 20.37102,
+     "p90": 61.97946,
+     "p99": 65.15758
+    },
+    "dihedralOver60Share": 0.1797,
+    "components": 513,
+    "componentTriangles": {
+     "p1": 24.0,
+     "p10": 108.0,
+     "p50": 516.0,
+     "p90": 1293.6,
+     "p99": 2341.92
+    },
+    "largestComponent": 3060
+   }
+  },
+  "lelu_hair_strands": {
+   "name": "lelu_hair_strands",
+   "vertices": 31053,
+   "triangles": 59214,
+   "uniquePositions": 31053,
+   "weldRatio": 1.0,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 2.56702,
+     "p10": 5.40909,
+     "p50": 7.49098,
+     "p90": 9.37257,
+     "p99": 10.56207
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 2892,
+    "manifoldEdges": 87375,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.20428,
+     "p10": 2.99047,
+     "p50": 34.9498,
+     "p90": 123.65241,
+     "p99": 133.03501
+    },
+    "dihedralOver60Share": 0.3497,
+    "components": 482,
+    "componentTriangles": {
+     "p1": 24.0,
+     "p10": 54.0,
+     "p50": 114.0,
+     "p90": 203.4,
+     "p99": 270.0
+    },
+    "largestComponent": 312
+   }
+  },
+  "lelu_mouth": {
+   "name": "lelu_mouth",
+   "vertices": 748,
+   "triangles": 368,
+   "uniquePositions": 216,
+   "weldRatio": 3.463,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 21.67114,
+     "p10": 31.53343,
+     "p50": 33.37855,
+     "p90": 40.65446,
+     "p99": 47.43641
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 62,
+    "manifoldEdges": 521,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 6.32996,
+     "p90": 25.51887,
+     "p99": 43.28843
+    },
+    "dihedralOver60Share": 0.0038,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 368.0,
+     "p10": 368.0,
+     "p50": 368.0,
+     "p90": 368.0,
+     "p99": 368.0
+    },
+    "largestComponent": 368
+   }
+  },
+  "lelu_scalp": {
+   "name": "lelu_scalp",
+   "vertices": 49366,
+   "triangles": 20882,
+   "uniquePositions": 18777,
+   "weldRatio": 2.629,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 4.02272,
+     "p10": 9.9595,
+     "p50": 25.4364,
+     "p90": 45.12824,
+     "p99": 55.38207
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 16217,
+    "manifoldEdges": 22967,
+    "nonManifoldEdges": 145,
+    "windingInconsistentEdges": 28,
+    "dihedralDeg": {
+     "p1": 0.00148,
+     "p10": 3.629,
+     "p50": 26.1586,
+     "p90": 83.74918,
+     "p99": 144.59195
+    },
+    "dihedralOver60Share": 0.2036,
+    "components": 2532,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 1.0,
+     "p90": 8.9,
+     "p99": 96.83
+    },
+    "largestComponent": 2590
+   }
+  },
+  "lelu_teeth": {
+   "name": "lelu_teeth",
+   "vertices": 209,
+   "triangles": 92,
+   "uniquePositions": 72,
+   "weldRatio": 2.903,
+   "isTriangleSoup": false,
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 25.38898,
+     "p10": 25.45138,
+     "p50": 31.33689,
+     "p90": 32.22885,
+     "p99": 37.78947
+    }
+   },
+   "duplicateFaces": 0,
+   "weldedGraph": {
+    "boundaryEdges": 50,
+    "manifoldEdges": 113,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 2.97622,
+     "p90": 27.13026,
+     "p99": 49.50266
+    },
+    "dihedralOver60Share": 0.0088,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 92.0,
+     "p10": 92.0,
+     "p50": 92.0,
+     "p90": 92.0,
+     "p99": 92.0
+    },
+    "largestComponent": 92
+   }
+  }
+ },
+ "verdict": "v0004 has no degenerate, duplicate or inverted geometry; the crystalline look is real folded geometry (char1 shoulders, hair ribbons) drawn with per-face normals and exposed by an over-bright renderer. The head was NOT welded."
+}
