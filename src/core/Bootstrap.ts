@@ -194,6 +194,9 @@ export default class Bootstrap {
       registerEarthTools();
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
+      // Her wardrobe: one director for every outfit change (chat, tools, herself),
+      // and the autopilot that lets her change on her own by occasion.
+      void import("./avatar/OutfitAutopilot").then((m) => m.startOutfitAutopilot()).catch(() => undefined);
       // ASRE: local, zero-spend reconstruction and the persistent component character
       registerAsreTools();
       // Character Foundry: reference intelligence, versions, Cycles renders (local, zero spend)

@@ -15,12 +15,23 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BLENDER = os.environ.get("LELU_BLENDER_BIN", os.path.expanduser("~/lelu-tools/blender-4.5.9-linux-x64/blender"))
 A = "leluverse/assets/characters/lelu_character/"
-LOOKS = {
-    "camo_repaired": A + "meshes/v014_look_camo_repaired/lelu.glb",
-    "bronze_velocity": A + "meshes/v025_look_bronze_velocity/lelu.glb",
-    "rose_gold_sovereign": A + "meshes/v026_look_rose_gold_sovereign/lelu.glb",
-    "home_laidback3": A + "meshes/v027_look_home_laidback3/lelu.glb",
-}
+def _active_looks():
+    """Every approved look and its current file, read from her own manifest (never hard-coded)."""
+    man = json.load(open(os.path.join(ROOT, A, "manifests/character.json")))
+    led = json.load(open(os.path.join(ROOT, A, "generation_logs/jobs.json")))
+    jobs = led if isinstance(led, list) else led.get("jobs", list(led.values()))
+    out = {}
+    for slot, job_id in man.get("active", {}).items():
+        if not slot.startswith("look:"):
+            continue
+        job = next((x for x in jobs if x.get("id") == job_id), None)
+        f = next((x for x in ((job or {}).get("output") or {}).get("files", []) if x.get("role") == "model"), None)
+        if f and os.path.exists(os.path.join(ROOT, "leluverse/assets", f["file"])):
+            out[slot[5:]] = "leluverse/assets/" + f["file"]
+    return out
+
+
+LOOKS = _active_looks()
 CLIP = {"walk": A + "animations/v021_animation_01a193c7/motion.glb", "sit": A + "animations/v024_animation_01a193c7/motion.glb",
         "arms": A + "animations/v004_animation_01a193c7/motion.glb"}
 FULL = {"center": [0, 0, 0.88], "radius": 0.92, "lens": 70}

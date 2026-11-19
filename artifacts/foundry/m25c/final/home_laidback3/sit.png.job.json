@@ -1,5 +1,5 @@
 {
- "input": "leluverse/assets/characters/lelu_character/meshes/v027_look_home_laidback3/lelu.glb",
+ "input": "leluverse/assets/characters/lelu_character/meshes/v030_look_home_laidback3/lelu.glb",
  "output": "/home/user/LeluV1.1/artifacts/foundry/m25c/final/home_laidback3/sit.png",
  "view": "three-quarter",
  "camera": {

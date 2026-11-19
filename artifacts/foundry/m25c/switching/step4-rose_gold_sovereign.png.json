@@ -1,0 +1,55 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/meshes/v029_look_rose_gold_sovereign/lelu.glb",
+ "output": "artifacts/foundry/m25c/switching/step4-rose_gold_sovereign.png",
+ "view": "three-quarter",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   0.8799999952316284
+  ],
+  "radius": 0.92,
+  "lens": 70.0,
+  "distance": 3.694170248805609,
+  "location": [
+   2.148358106613159,
+   -2.983830451965332,
+   1.238059639930725
+  ]
+ },
+ "resolution": [
+  640,
+  960
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.2291911749376192,
+  "exposureEV": -2.771640502485072
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign",
+  "rose_gold_bag"
+ ],
+ "triangles": 111871,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 12.12,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}
