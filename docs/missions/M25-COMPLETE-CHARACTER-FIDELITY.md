@@ -70,7 +70,7 @@ Meshy jobs: `scripts/foundry/m25c_meshy.py` (submit / i2i / rig / wait), key fro
 
 Authorised by the user: rebuild the coat and catsuit from the full-length photographs, build Home/Laidback 3,
 match each look's hair to its reference. Spent: 27 (A-pose fronts) + 27 (turnarounds) + 105 (three 3D builds) +
-15 (three rigs) + 70 (two handbags, multi-image 35 each) = **244 credits** (balance before: 2,779).
+15 (three rigs) + 70 (two handbags, multi-image 35 each) = 244 by the price table; the account balance actually fell 2,779 → 2,560, so **219 credits** were charged.
 
 | look | file | what changed |
 | --- | --- | --- |
