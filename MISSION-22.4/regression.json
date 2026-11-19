@@ -1,0 +1,43 @@
+{
+  "mission": "LÉLU 22.4 — regression",
+  "executedAt": "2026-11-19",
+  "command": "npm test",
+  "totals": { "tests": 2378, "pass": 2368, "fail": 2, "cancelled": 0, "duration_ms": 239138 },
+  "m22_3_baseline": { "tests": 2376, "pass": 2366, "fail": 2 },
+  "delta": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "explanation": "the two new regression tests added by this mission (checkpoint purge on memory deletion; own-turn exclusion and title word boundaries)"
+  },
+  "known_failures": [
+    { "test": "tests/genesis-interface.test.tsx", "symptom": "CSS-export pipeline", "status": "pre-existing (also failing at the M22.3 baseline)" },
+    { "test": "tests/sandbox-security.test.ts — network: TCP, UDP, DNS and fetch all fail", "symptom": "environment network probe", "status": "pre-existing (also failing at the M22.3 baseline)" }
+  ],
+  "new_failures": [],
+  "focused_suites": {
+    "files": ["tests/live-agent.test.ts", "tests/context-sovereignty.test.ts"],
+    "tests": 64,
+    "pass": 64,
+    "fail": 0
+  },
+  "typecheck": {
+    "command": "npx tsc -p tsconfig.app.json --noEmit",
+    "new_errors": 0,
+    "pre_existing": [
+      "src/core/perception/FeatureUnderstanding.ts(455,20) TS18047",
+      "src/core/perception/FeatureUnderstanding.ts(455,20) TS2365"
+    ]
+  },
+  "coverage_areas": [
+    "M22 memory sovereignty tests — pass",
+    "M22.1 hardening tests — pass",
+    "M22.2 context elimination tests — pass",
+    "M22.3 scene-flag tests (tests/scene-test-mode.test.ts) — pass",
+    "workspace and project isolation — pass",
+    "ContextAuthorization — pass",
+    "provider payload and request budget — pass",
+    "deletion and retention (existing) — pass, plus the new checkpoint purge test"
+  ],
+  "log": "/tmp/m224-full2.log (not committed; counts above are the summary lines)"
+}

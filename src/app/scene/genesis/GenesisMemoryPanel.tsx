@@ -7,9 +7,11 @@
  *
  * Brain.recallAll() already returns every stored ResponsePattern
  * (see brain/Brain.ts, brain/PatternMemory.ts) — this panel is
- * the first UI surface for it. Read-only: browsing memory here
- * never mutates it, matching GenesisDiagnosticsPanel's approach
- * to the Engine Runtime.
+ * the first UI surface for it. Browsing never mutates it. The one
+ * mutation is the user deleting a single memory, which goes through
+ * the existing authoritative path (AIService.forgetMemory →
+ * Brain.forgetMemory → store record + cognitive observation +
+ * graph node). There is no second deletion subsystem here.
  *
  * Follows AIService.getInstance() directly, the same pattern
  * GenesisChat and GenesisBridge already use, rather than routing
@@ -59,6 +61,9 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("all");
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +87,31 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
     // since a completed exchange is the most common moment new
     // memories are written.
   }, [state.messages.length]);
+
+  /**
+   * Delete one memory through the ONE existing path, then re-read the store
+   * so the list reflects what is actually left rather than what we assumed.
+   */
+  async function forgetMemory(id: string) {
+    setDeleting(id);
+    setNotice("");
+    try {
+      const result = await ai.forgetMemory(id);
+      const rows = await ai.getMemories(300);
+      setMemories(rows);
+      setNotice(
+        result.removed
+          ? "Memory deleted. It is removed from the store and will not be recalled again."
+          : "That memory was already gone.",
+      );
+    } catch (error) {
+      console.error("[GenesisMemoryPanel] delete failed", error);
+      setNotice("Could not delete that memory — nothing was removed.");
+    } finally {
+      setDeleting(null);
+      setPendingDelete(null);
+    }
+  }
 
   const categories = useMemo(() => {
     const set = new Set(memories.map((memory) => memory.category));
@@ -146,6 +176,12 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
         ))}
       </div>
 
+      {notice ? (
+        <div role="status" style={{ fontSize: 12, opacity: 0.8, marginBottom: 10, color: genesisTheme.status.ok }}>
+          {notice}
+        </div>
+      ) : null}
+
       {loading ? (
         <div style={{ fontSize: 12, opacity: 0.6 }}>Reading memory store…</div>
       ) : filtered.length === 0 ? (
@@ -186,6 +222,62 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
               </div>
               <div style={{ fontSize: 12, opacity: 0.65, overflowWrap: "anywhere" }}>
                 {memory.response}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                {pendingDelete === memory.id ? (
+                  <>
+                    <span style={{ fontSize: 11, opacity: 0.8, marginRight: "auto" }}>Delete this memory?</span>
+                    <button
+                      type="button"
+                      onClick={() => void forgetMemory(memory.id)}
+                      disabled={deleting === memory.id}
+                      style={{
+                        border: "1px solid rgba(248, 113, 113, 0.55)",
+                        borderRadius: genesisTheme.radius.pill,
+                        background: "rgba(248, 113, 113, 0.18)",
+                        color: "white",
+                        padding: "3px 10px",
+                        fontSize: 11,
+                        cursor: deleting === memory.id ? "default" : "pointer",
+                      }}
+                    >
+                      {deleting === memory.id ? "Deleting…" : "Confirm delete"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDelete(null)}
+                      style={{
+                        border: genesisTheme.glass.borderSoft,
+                        borderRadius: genesisTheme.radius.pill,
+                        background: "rgba(255,255,255,0.04)",
+                        color: "white",
+                        padding: "3px 10px",
+                        fontSize: 11,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPendingDelete(memory.id)}
+                    aria-label={`Delete memory: ${memory.prompt.slice(0, 60)}`}
+                    style={{
+                      marginLeft: "auto",
+                      border: genesisTheme.glass.borderSoft,
+                      borderRadius: genesisTheme.radius.pill,
+                      background: "rgba(255,255,255,0.04)",
+                      color: "rgba(248, 113, 113, 0.9)",
+                      padding: "3px 10px",
+                      fontSize: 11,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}

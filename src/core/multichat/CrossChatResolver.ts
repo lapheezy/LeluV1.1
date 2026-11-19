@@ -29,8 +29,8 @@
  * ==========================================================
  */
 
-import MultiChatStore, { tokenizeText, type ChatConversation, type ConversationSearchHit } from "./MultiChatStore";
-import { CHAT_WORDS, readAuthorization } from "./ChatConsent";
+import MultiChatStore, { tokenizeText, type ChatConversation, type ChatMessage, type ConversationSearchHit } from "./MultiChatStore";
+import { CHAT_WORDS, containsTitle, readAuthorization } from "./ChatConsent";
 
 export interface CrossChatHit extends ConversationSearchHit {
   score: number;
@@ -171,13 +171,25 @@ export default class CrossChatResolver {
     const blocks: string[] = [];
     const related: Array<{ conversationId: string; title: string; overlap: number }> = [];
 
+    // THIS TURN'S OWN WORDS ARE NOT RESEARCH FROM ANOTHER CHAT.
+    //
+    // A message sent while a new conversation is being registered could be
+    // found in another chat record and handed back to the model as research
+    // "from the chat “…”" — the user's own question, labelled as another
+    // chat's material, and counted as "1 other chat used" in the activity
+    // card (M22.3 observed the badge, M22.4 traced it here). The same text is
+    // never a cross-chat source.
+    const ownText = (query ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+    const isOwnTurn = (message: ChatMessage) =>
+      ownText.length > 0 && message.text.replace(/\s+/g, " ").trim().toLowerCase() === ownText;
+
     // Who may be read this turn: linked / same project, or what the USER
     // said here — they named the chat, or said yes to LÉLU asking about
     // it (multichat/ChatConsent, the same rule as the chats.* tools).
     // "My other chat" with no name allows only the best-matching one.
     const scoreOf = (conversation: ChatConversation) =>
       conversation.messages
-        .filter((message) => message.text.trim().length > 0)
+        .filter((message) => message.text.trim().length > 0 && !isOwnTurn(message))
         .map((message) => ({
           message,
           overlap: tokenizeText(message.text).filter((token) => qTokens.has(token)).length,
@@ -192,9 +204,7 @@ export default class CrossChatResolver {
     // When the message contains one chat's FULL title, that is the chat
     // meant; others that only share some of its words are not.
     // The longest such title wins: "Research" is inside "Video research".
-    const contained = others.filter(
-      (conversation) => conversation.title.trim().length >= 4 && (query ?? "").toLowerCase().includes(conversation.title.trim().toLowerCase()),
-    );
+    const contained = others.filter((conversation) => containsTitle(query ?? "", conversation.title));
     const fullyNamed = new Set(
       contained
         .filter((conversation) => !contained.some((other) => other !== conversation && other.title.length > conversation.title.length && other.title.toLowerCase().includes(conversation.title.trim().toLowerCase())))
@@ -218,12 +228,14 @@ export default class CrossChatResolver {
       // The messages that bear on the question; when none share a word,
       // the latest answer (the user linked this chat on purpose).
       let picked = scored
-        .filter((item) => item.overlap > 0)
+        .filter((item) => item.overlap > 0 && !isOwnTurn(item.message))
         .sort((x, y) => y.overlap - x.overlap || (y.message.role === "assistant" ? 1 : 0) - (x.message.role === "assistant" ? 1 : 0) || y.message.timestamp - x.message.timestamp)
         .slice(0, MAX_MESSAGES_PER_CHAT)
         .map((item) => item.message);
       if (picked.length === 0) {
-        const latest = [...conversation.messages].reverse().find((message) => message.role === "assistant" && message.text.trim().length > 40);
+        const latest = [...conversation.messages]
+          .reverse()
+          .find((message) => message.role === "assistant" && message.text.trim().length > 40 && !isOwnTurn(message));
         picked = latest ? [latest] : [];
       }
       if (picked.length === 0) continue;

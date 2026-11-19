@@ -41,6 +41,9 @@ import CognitiveCore
 import CognitiveTrace
   from "../core/cognition/CognitiveTrace";
 
+import ProjectStore
+  from "../core/projects/ProjectStore";
+
 import type ResponsePattern
   from "./ResponsePattern";
 
@@ -329,14 +332,32 @@ export default class Brain {
    * cognitive observation derived from it. There is no second index to keep
    * in step — this IS the one memory system (M22.1, WP06).
    */
-  public async forgetMemory(id: string): Promise<{ removed: boolean; nodes: number }> {
+  public async forgetMemory(id: string): Promise<{ removed: boolean; nodes: number; checkpoints: number }> {
+    // Read the record first: after removal there is nothing left to find the
+    // derived representations by. A project checkpoint can quote the same
+    // statement (Orchestrator persisted the turn's request as work state),
+    // and CognitiveContext re-injects checkpoints into later prompts — so a
+    // deleted memory that only left the store was still reaching the model.
+    const pattern = await this.memory.get(id);
     const removed = await this.memory.remove(id);
     const nodes = this.cognitionRuntime.forgetMemory(id);
+    const scraps = [pattern?.prompt, pattern?.response]
+      .flatMap((text) => (typeof text === "string" ? [text, ...text.split(/(?<=[.!?])\s+/)] : []))
+      .map((text) => text.trim())
+      .filter((text) => text.length >= 24);
+    let checkpoints = 0;
+    try {
+      const projects = ProjectStore.getInstance();
+      for (const scrap of new Set(scraps)) checkpoints += projects.forgetText(scrap);
+    } catch (error) {
+      console.warn("[Brain] checkpoint cleanup after memory deletion failed (contained)", error);
+    }
     CognitiveTrace.getInstance().record("MEMORY_WRITE", `forgot memory ${id.slice(0, 8)}${removed ? "" : " (already absent)"}`, {
       removed,
       nodesRemoved: nodes,
+      checkpointsChanged: checkpoints,
     });
-    return { removed, nodes };
+    return { removed, nodes, checkpoints };
   }
 
   /**

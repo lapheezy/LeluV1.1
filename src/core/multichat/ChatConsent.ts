@@ -54,11 +54,35 @@ function lastAssistantText(current: ChatConversation): string {
   return [...current.messages].reverse().find((message) => message.role === "assistant")?.text ?? "";
 }
 
+/**
+ * Is `title` present in `text` as whole words?
+ *
+ * A plain includes() matched a title inside an unrelated word: a chat titled
+ * “What is my workshop access phrase? A” was "named" by the question "What is
+ * my workshop access phrase? Answer in one short line." because the title's
+ * trailing "A" is the first letter of "Answer" (M22.4). A title only names a
+ * chat when it ends where a word ends.
+ */
+export function containsTitle(text: string, title: string): boolean {
+  const haystack = text.toLowerCase();
+  const needle = title.trim().toLowerCase();
+  if (needle.length < 4) return false;
+  const word = /[a-z0-9]/;
+  let at = haystack.indexOf(needle);
+  while (at >= 0) {
+    const before = haystack[at - 1] ?? "";
+    const after = haystack[at + needle.length] ?? "";
+    if (!word.test(before) && !word.test(after)) return true;
+    at = haystack.indexOf(needle, at + 1);
+  }
+  return false;
+}
+
 /** Does this text name the chat — its title, or enough of its distinctive words? */
 export function namesChat(text: string, target: ChatConversation): boolean {
   const lower = text.toLowerCase();
   const title = target.title.trim().toLowerCase();
-  if (title.length >= 4 && lower.includes(title)) return true;
+  if (containsTitle(lower, title)) return true;
   // "chat" names no chat in particular — every default title is "New chat".
   const titleTokens = [...new Set(tokenizeText(target.title))].filter((token) => token.length >= 4 && !CHAT_WORDS.has(token));
   if (titleTokens.length === 0) return false;

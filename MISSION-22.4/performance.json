@@ -1,0 +1,37 @@
+{
+  "mission": "LÉLU 22.4 — deletion propagation and context-construction overhead",
+  "iterations": 20,
+  "environment": "Node + tsx, the real Brain/CognitiveContext modules, in-memory IndexedDB + localStorage shims",
+  "delete_ms": {
+    "mean": 0.1,
+    "median": 0.06,
+    "max": 0.89,
+    "samples": [
+      0.89,
+      0.07,
+      0.11,
+      0.1,
+      0.1,
+      0.07,
+      0.05,
+      0.07,
+      0.08,
+      0.08,
+      0.04,
+      0.04,
+      0.04,
+      0.04,
+      0.04,
+      0.04,
+      0.04,
+      0.06,
+      0.04,
+      0.04
+    ]
+  },
+  "context_build_ms": {
+    "mean": 1.27,
+    "median": 0.53,
+    "max": 8.12
+  }
+}

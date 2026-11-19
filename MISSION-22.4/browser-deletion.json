@@ -1,0 +1,121 @@
+{
+  "mission": "LÉLU 22.4 — deleting a memory through the real Memory panel",
+  "executedAt": "2026-11-19",
+  "surface": "GenesisChat + the real Memory panel, ?scene=off (development only), signed in as “continue without an account”",
+  "provider": "same-origin /api/model broker; OpenRouter attempted first (HTTP 429, free-model daily limit), Groq openai/gpt-oss-120b answered (HTTP 200)",
+  "method": "window.fetch wrapped in the page before each turn; every request body parsed and classified by where the phrase occurs, so a transcript quote is not confused with memory-derived context",
+  "run_1_before_fix": {
+    "purpose": "Establish the deletion path through the UI and capture what the next real request carries",
+    "memory": {
+      "statement": "Please remember this: my workshop access phrase is COPPER-LANTERN-77.",
+      "listed_in_panel": true,
+      "panel_row": "User's workshop access phrase is COPPER-LANTERN-77. (learned in the chat “Please remember this: my workshop ac”)",
+      "confidence": "100%"
+    },
+    "provider_request_before_deletion": {
+      "conversation": "fresh conversation asking “What is my workshop access phrase?”",
+      "requests": 1,
+      "status": 200,
+      "payload_chars": 32337,
+      "phrase_occurrences": 2,
+      "phrase_in_project_checkpoint": true,
+      "phrase_in_research_from_other_chats": false,
+      "note": "The memory record itself was not what carried the phrase: an Orchestrator project checkpoint did, and the model answered by asking whether to read the source chat."
+    },
+    "deletion": {
+      "action": "row Delete → “Delete this memory?” → Confirm delete",
+      "confirmation_shown": true,
+      "notice": "Memory deleted. It is removed from the store and will not be recalled again.",
+      "listing_after": "No memories match this search.",
+      "store_count_before": 13,
+      "store_count_after": 15,
+      "count_note": "The total grows independently: background self-study keeps writing new memories. The filtered listing is what the deleted row left."
+    },
+    "provider_request_after_deletion": {
+      "conversation": "another brand-new conversation, same question",
+      "requests": 1,
+      "status": 200,
+      "payload_chars": 33086,
+      "phrase_occurrences": 1,
+      "phrase_in_project_checkpoint": true,
+      "phrase_in_research_from_other_chats": false,
+      "reply": "COPPER-LANTERN-77",
+      "verdict": "FAIL — the record was gone, a durable project checkpoint still quoted it, and the reply repeated it"
+    },
+    "what_this_found": [
+      "Orchestrator.persistCheckpointFromRequest() copied every answered turn's request into a project checkpoint; CognitiveContext re-injects checkpoints into later prompts.",
+      "CrossChatResolver labelled the user's own question as research “from the chat” that was created for it, which is what the “1 other chat used” badge counted."
+    ]
+  },
+  "run_2_after_fix": {
+    "purpose": "The same browser flow on the repaired code",
+    "code_changes": [
+      "an answered turn no longer writes a project checkpoint (only a planned task, which has real resumable state, does)",
+      "Brain.forgetMemory also purges checkpoint fields that quote the deleted memory",
+      "CrossChatResolver never takes this turn's own words as another chat's research",
+      "a title only names a chat on word boundaries (“…? A” no longer matches “…? Answer”)"
+    ],
+    "memory": {
+      "statement": "Please remember this: the spare key is under SILVER-KETTLE-42.",
+      "listed_in_panel": true,
+      "panel_row": "Spare key is under SILVER-KETTLE-42. (learned in the chat “Please remember this: the spare key ”)",
+      "confidence": "90%"
+    },
+    "deletion": {
+      "action": "row Delete → “Delete this memory?” → Confirm delete",
+      "confirmation_shown": true,
+      "notice": "Memory deleted. It is removed from the store and will not be recalled again.",
+      "listing_after": "No memories match this search.",
+      "store_count_before": 27,
+      "store_count_after": 26
+    },
+    "provider_request_after_deletion": {
+      "conversation": "brand-new conversation asking “Where is the spare key? Answer in one short line if you know.”",
+      "requests": 2,
+      "statuses": [413, 200],
+      "payload_chars": [32628, 25288],
+      "phrase_occurrences": [0, 0],
+      "phrase_in_project_checkpoint": false,
+      "research_from_other_chats_present": false,
+      "related_chats_present": true,
+      "badge": "Web research · 1 search",
+      "reply": "I don’t know where the spare key is.",
+      "verdict": "PASS"
+    },
+    "after_full_reload": {
+      "reload": "page reloaded; transcripts and conversations restored from the store",
+      "conversation": "another brand-new conversation asking “Where is the spare key?”",
+      "requests": 2,
+      "statuses": [429, 200],
+      "providers": ["openrouter", "groq"],
+      "payload_chars": [25534, 25482],
+      "phrase_occurrences": [0, 0],
+      "research_from_other_chats_present": false,
+      "activity": [
+        "Related, not used (not linked): “Remind me where the spare key is, in”, “Where is the spare key? Answer in on”",
+        "Checked memory — nothing related",
+        "Searching Where is the spare key",
+        "OpenRouter didn't answer — trying the next model"
+      ],
+      "badge": "Web research · 1 search · 1 issue",
+      "reply": "I don’t have the spare-key location in this chat. Would you like me to pull in the earlier “Remind me where the spare key is…” conversation to see what was noted?",
+      "verdict": "PASS — no stale snapshot or cache reintroduced the deleted phrase; the earlier chat is offered, not used"
+    }
+  },
+  "scoping": {
+    "deleted": "one memory record (the row the user chose)",
+    "not_deleted": [
+      "the conversation transcript (deleting a memory is not deleting a chat)",
+      "other memory records (26 remained in run 2; the unrelated check in the unit test asserts a neighbouring checkpoint and memory survive)"
+    ],
+    "legacy_residue": "Project checkpoints written by the pre-fix build (the COPPER-LANTERN one) still quote that turn until they are removed; the new purge runs when a memory is deleted, and no new checkpoint is written for an answered turn. The post-reload request still contained COPPER once, from that legacy checkpoint — recorded here rather than hidden."
+  },
+  "screenshots": [
+    "MISSION-22.4/screenshots/01-memory-panel-before-deletion.png",
+    "MISSION-22.4/screenshots/02-memory-panel-after-deletion.png",
+    "MISSION-22.4/screenshots/03-silver-memory-before-deletion.png",
+    "MISSION-22.4/screenshots/04-silver-memory-after-deletion.png",
+    "MISSION-22.4/screenshots/05-post-reload-no-recall.png"
+  ],
+  "redaction": "Only booleans, counts, statuses and short excerpts are recorded. Request bodies carry the system prompt and tool schemas and are not committed; no key or header is stored."
+}

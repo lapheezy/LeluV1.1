@@ -243,6 +243,33 @@ test("W: deleting a memory or a conversation removes its observations", async ()
   assert.deepEqual((brain as any).cognition.workspaceItems("core", scope("chat-a")), []);
 });
 
+test("W: deleting a memory also removes a project checkpoint that quotes it", async () => {
+  // A checkpoint is durable project state, and CognitiveContext re-injects it
+  // into later prompts. Orchestrator used to write the turn's own request into
+  // one, so a statement deleted from memory kept reaching the model from here
+  // (M22.4, found in a real browser request).
+  const { default: ProjectStore } = await import("../src/core/projects/ProjectStore");
+  const brain = new Brain();
+  const statement = "My workshop access phrase is COPPER-LANTERN-77.";
+  const learned = await brain.learn(statement, "Noted.", "conversation", [], {
+    source: "lelu-chat",
+    originSeed: { userId: USER_A, conversationId: "chat-checkpoint", sessionId: currentSessionId(), sourceType: "user-said" },
+  });
+  assert.ok(learned);
+
+  const projects = ProjectStore.getInstance();
+  const quoting = projects.create({ name: "Quoting checkpoint", description: "test" });
+  projects.checkpoint(quoting.id, { status: "active", summary: statement, completed: [], pending: [], blockers: [], nextAction: null });
+  const unrelated = projects.create({ name: "Unrelated checkpoint", description: "test" });
+  projects.checkpoint(unrelated.id, { status: "active", summary: "Ship the pricing page by Friday.", completed: [], pending: [], blockers: [], nextAction: "send the draft" });
+
+  const result = await brain.forgetMemory(learned!.id);
+  assert.equal(result.removed, true);
+  assert.ok(result.checkpoints >= 1, "the checkpoint that quoted it was cleaned");
+  assert.equal(projects.get(quoting.id)?.checkpoint, undefined, "nothing is left to re-inject");
+  assert.match(projects.get(unrelated.id)!.checkpoint!.summary, /pricing page/, "an unrelated checkpoint is untouched");
+});
+
 test("W: deleting one observation leaves the rest of the workspace intact", () => {
   const manager = new WorkspaceManager();
   manager.create("core", "Lélu Core");

@@ -295,6 +295,54 @@ export default class ProjectStore {
     return this.update(id, { checkpoint: { ...checkpoint, updatedAt: Date.now() } });
   }
 
+  /**
+   * Remove one forgotten statement from durable project checkpoints.
+   *
+   * A checkpoint's summary is the turn's own request (Orchestrator), and the
+   * whole checkpoint is re-injected into later prompts by CognitiveContext.
+   * So a statement the user deleted from memory was still reaching the model
+   * from here. This removes exactly the fields that quote the forgotten text
+   * and drops a checkpoint left with nothing in it; no other project state,
+   * checkpoint or memory is touched. Returns how many checkpoints changed.
+   */
+  public forgetText(text: string): number {
+    const needle = text.replace(/\s+/g, " ").trim().toLowerCase();
+    if (!needle) return 0;
+    const quotes = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase().includes(needle);
+    let changed = 0;
+    for (const project of this.list()) {
+      const checkpoint = project.checkpoint;
+      if (!checkpoint) continue;
+      const next: ProjectCheckpoint = {
+        ...checkpoint,
+        summary: quotes(checkpoint.summary) ? "" : checkpoint.summary,
+        completed: checkpoint.completed.filter((entry) => !quotes(entry)),
+        pending: checkpoint.pending.filter((entry) => !quotes(entry)),
+        blockers: checkpoint.blockers.filter((entry) => !quotes(entry)),
+        nextAction: checkpoint.nextAction && quotes(checkpoint.nextAction) ? null : checkpoint.nextAction,
+      };
+      const emptied =
+        !next.summary.trim() &&
+        next.completed.length === 0 &&
+        next.pending.length === 0 &&
+        next.blockers.length === 0 &&
+        !next.nextAction;
+      if (
+        emptied === false &&
+        next.summary === checkpoint.summary &&
+        next.completed.length === checkpoint.completed.length &&
+        next.pending.length === checkpoint.pending.length &&
+        next.blockers.length === checkpoint.blockers.length &&
+        next.nextAction === checkpoint.nextAction
+      ) {
+        continue;
+      }
+      this.update(project.id, { checkpoint: emptied ? undefined : next });
+      changed += 1;
+    }
+    return changed;
+  }
+
   /** Case-insensitive lookup by (partial) name — "tampa news" → project. */
   public findByName(name: string): LeluProject | undefined {
     const needle = name.trim().toLowerCase();

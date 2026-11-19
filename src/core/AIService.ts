@@ -1116,6 +1116,19 @@ export default class AIService {
     return this.runtime.brain.forgetConversation(conversationId);
   }
 
+  /**
+   * The user deleted ONE memory from the Memory panel. This is the same
+   * authoritative path the brain already used (store record + cognitive
+   * observation + graph node); the panel is only a caller of it. Deleting a
+   * conversation is forgetConversation — this never touches anything else.
+   */
+  public async forgetMemory(id: string): Promise<{ removed: boolean; nodes: number; checkpoints: number }> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return this.runtime.brain.forgetMemory(id);
+  }
+
   public async delegate(
     agent: LeluAgent,
     task: string,
