@@ -394,7 +394,17 @@ Rules:
       );
   }
 
-  public async learn(prompt: string, response: string, taskId?: string): Promise<void> {
+  public async learn(
+    prompt: string,
+    response: string,
+    taskId?: string,
+    /**
+     * Provenance the turn itself knows and memory cannot reconstruct: how a
+     * spoken sentence became text, and whether a recogniser supplied a
+     * confidence. Merged into the stored context, never invented here.
+     */
+    provenance: Record<string, unknown> = {},
+  ): Promise<void> {
     // "Remember this for this chat": the user scoped it to that chat. It
     // stays in that conversation's own history and is not made a
     // long-term fact every other chat would be handed.
@@ -436,6 +446,7 @@ Rules:
       // recorded action from a reported one.
       executionVerified: verified,
       ...(redactedClaims > 0 ? { redactedActionClaims: redactedClaims } : {}),
+      ...provenance,
     });
 
     CognitiveTrace.getInstance().record(

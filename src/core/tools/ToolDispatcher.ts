@@ -33,7 +33,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import { ToolTimeoutError, toolTimeoutMs, withDeadline } from "./ToolDeadline";
 import ExecutionTelemetry from "./ExecutionTelemetry";
 import ExecutionLedger, { isSideEffecting } from "./ExecutionLedger";
-import { newExecutionId, withReason, type ExecutionPath, type ExecutionRecord } from "./ExecutionEvidence";
+import { currentMissionScope, newExecutionId, withReason, type ExecutionPath, type ExecutionRecord } from "./ExecutionEvidence";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistry";
 import { studioToolExecutors } from "../studio/StudioToolExecutors";
@@ -2806,6 +2806,7 @@ export async function dispatchToolCall(
   // One identity for this invocation, shared by every stage below.
   const path: ExecutionPath = options.path ?? "unknown";
   const startedAt = Date.now();
+  const mission = currentMissionScope();
   const execution = {
     executionId: newExecutionId(path, taskId),
     taskId,
@@ -2813,6 +2814,8 @@ export async function dispatchToolCall(
     tool: id,
     ...(call.name !== id ? { requestedName: call.name } : {}),
     ...(options.stepId ? { stepId: options.stepId } : {}),
+    // Only when a runner declared it: this app has no repository context.
+    ...(mission ? { mission } : {}),
   };
   const evidence = (
     record: Omit<ExecutionRecord, "executionId" | "taskId" | "path" | "tool" | "stepId" | "requestedName">,

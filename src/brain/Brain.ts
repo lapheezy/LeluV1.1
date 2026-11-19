@@ -10,8 +10,7 @@
 import PatternMemory
   from "./PatternMemory";
 
-import MemoryEngine
-  from "./MemoryEngine";
+import MemoryEngine, { looksLikeCorrection } from "./MemoryEngine";
 
 import OfflineComposer
   from "./OfflineComposer";
@@ -59,6 +58,55 @@ import type {
 
 
 
+
+/**
+ * The existing knowledge item a new write corrects, if any.
+ *
+ * Pure and exported so the selection rule can be tested without a store.
+ *
+ * It is deliberately narrow. Knowledge is not merged just because two items
+ * share words: a supersession requires the write to be phrased as a
+ * correction (or to carry `supersedes: true`), the SAME memory type and
+ * category, and either two shared keywords or the same explicit
+ * `supersedesKey`. Unrelated facts are therefore added alongside the old one,
+ * and the identity seed is never replaced.
+ */
+export function findKnowledgeToSupersede(
+  candidates: ResponsePattern[],
+  incoming: {
+    content: string;
+    keywords: string[];
+    memoryType: "system" | "knowledge";
+    category: string;
+    provenance?: Record<string, unknown>;
+  },
+): ResponsePattern | undefined {
+  const provenance = incoming.provenance ?? {};
+  const explicit = provenance.supersedes === true;
+  const key = typeof provenance.supersedesKey === "string" ? provenance.supersedesKey : undefined;
+  if (!explicit && !key && !looksLikeCorrection(incoming.content)) return undefined;
+
+  const incomingKeywords = new Set(
+    incoming.keywords.map((word) => word.toLowerCase()).filter((word) => word.length > 2),
+  );
+
+  let best: { pattern: ResponsePattern; overlap: number } | null = null;
+  for (const pattern of candidates) {
+    if (pattern.id === "lelu-identity-foundation") continue;
+    if (pattern.memoryType !== incoming.memoryType) continue;
+    if (pattern.category !== incoming.category) continue;
+    if (pattern.response === incoming.content) continue;
+
+    const patternKeywords = new Set(pattern.keywords.map((word) => word.toLowerCase()));
+    const overlap = [...incomingKeywords].filter((word) => patternKeywords.has(word)).length;
+    const keyMatches = key !== undefined && pattern.context?.supersedesKey === key;
+
+    if (!keyMatches && overlap < 2) continue;
+    if (!best || overlap > best.overlap) best = { pattern, overlap };
+  }
+
+  return best?.pattern;
+}
 
 export default class Brain {
 
@@ -592,10 +640,19 @@ export default class Brain {
     provenance: Record<string, unknown> = {},
   ): Promise<void> {
 
-    const existing =
+    const searched =
       await this.memory.search(
         keywords.join(" ") || content,
       );
+
+    // Supersession needs the candidates the CONTENT reaches, not only those
+    // the keyword list reaches: a correction is about an existing fact, and
+    // its own keywords are often new words.
+    const byContent = content.trim() ? await this.memory.search(content) : [];
+    const existing = [
+      ...searched,
+      ...byContent.filter((pattern) => !searched.some((seen) => seen.id === pattern.id)),
+    ];
 
 
 
@@ -621,6 +678,45 @@ export default class Brain {
 
     const now =
       Date.now();
+
+    // CORRECTION, NOT ACCUMULATION.
+    //
+    // Knowledge used to be append-only: a corrected discovery became a second
+    // durable item beside the stale one, and both were retrievable. A newer
+    // knowledge item now supersedes the one it corrects, keeping the old text
+    // in `context.history` and never erasing unrelated items. It only does so
+    // when the write is explicitly a correction or carries a shared
+    // `supersedesKey`, so two unrelated discoveries that happen to share a
+    // word are not merged.
+    const superseded = findKnowledgeToSupersede(existing, {
+      content,
+      keywords,
+      memoryType,
+      category,
+      provenance,
+    });
+
+    if (superseded) {
+      const history = Array.isArray(superseded.context?.history)
+        ? (superseded.context.history as string[])
+        : [];
+      history.push(superseded.response);
+      superseded.response = content;
+      superseded.prompt = content.slice(0, 120);
+      superseded.keywords = [...new Set([...superseded.keywords, ...keywords])];
+      superseded.importance = Math.max(superseded.importance, importance);
+      superseded.context = {
+        ...superseded.context,
+        ...provenance,
+        history: history.slice(-8),
+        corrected: now,
+      };
+      superseded.confidence = 1;
+      superseded.successfulUses += 1;
+      superseded.updatedAt = now;
+      await this.memory.update(superseded);
+      return;
+    }
 
 
 

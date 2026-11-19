@@ -120,6 +120,18 @@ const PROVENANCE_OF: Record<string, Provenance> = {
 const number = (value: unknown): number | null => (typeof value === "number" && Number.isFinite(value) ? value : null);
 
 /**
+ * A measurement that is genuinely a number.
+ *
+ * `measurements` is a mixed bag by design (counts, ratios, labels, nulls), so
+ * comparing a field directly is a type error and — worse — would coerce a
+ * missing value to 0 or a label to NaN. Callers that reason numerically ask
+ * this, and decide for themselves what an absent measurement means.
+ */
+function numericMeasurement(feature: FeatureObservation | undefined, key: string): number | null {
+  return number(feature?.measurements[key]);
+}
+
+/**
  * Read one `*.features.json` produced by the perception engine.
  *
  * The file is grouped by feature name; this flattens it into observations so
@@ -452,7 +464,12 @@ export function missingInformation(observation: FeatureObservationSet): Array<{ 
   if (!has("jewelry")) out.push({ component: "jewelry", need: "an accessory photograph, or a pose that does not occlude the piece" });
   if (!has("garment")) out.push({ component: "garment", need: "a torso view; the garment must not be covered by hair or arms" });
   const landmarks = observation.features.find((feature) => feature.id === "landmarks");
-  if (landmarks && landmarks.measurements.count < 468) out.push({ component: "face", need: "iris landmarks are missing; gaze cannot be reconstructed" });
+  // An absent count is treated as zero, exactly as the previous comparison
+  // did (`null < 468` is true): a landmark feature with no measured count is
+  // not evidence that the gaze can be reconstructed.
+  if (landmarks && (numericMeasurement(landmarks, "count") ?? 0) < 468) {
+    out.push({ component: "face", need: "iris landmarks are missing; gaze cannot be reconstructed" });
+  }
   return out;
 }
 
@@ -464,7 +481,7 @@ export function recommendStrategy(observation: FeatureObservationSet): Array<{ c
     out.push({
       component: "face",
       strategy: "fit the learned shape model, then build a textured landmark mesh with a parametric depth prior",
-      because: `${face.find((f) => f.id === "landmarks")?.measurements.count ?? 0} landmarks and ${face.find((f) => f.id === "proportions")?.measurements.count ?? 0} proportions are available`,
+      because: `${numericMeasurement(face.find((f) => f.id === "landmarks"), "count") ?? 0} landmarks and ${numericMeasurement(face.find((f) => f.id === "proportions"), "count") ?? 0} proportions are available`,
     });
   }
   const strands = featuresOf(observation, "baby_hair");
