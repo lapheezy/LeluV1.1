@@ -1,0 +1,57 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look4-bronze_velocity.glb",
+ "output": "artifacts/foundry/m25c/v4/catsuit-hair2-head.png",
+ "view": "right",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   1.5499999523162842
+  ],
+  "radius": 0.2,
+  "lens": 85.0,
+  "distance": 0.9653886826775915,
+  "location": [
+   -0.9641841650009155,
+   0.0,
+   1.5982091426849365
+  ]
+ },
+ "resolution": [
+  768,
+  1024
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0417649174729984,
+  "exposureEV": -2.5329609470819983
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_forehead_patch",
+  "lelu_hair",
+  "lelu_hair_coils",
+  "lelu_hairstyle",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_bronze_velocity"
+ ],
+ "triangles": 1464147,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 28.83,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

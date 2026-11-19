@@ -59,7 +59,7 @@ for o in list(bpy.data.objects):
             o.animation_data_clear()
 rig = next(o for o in bpy.data.objects if o.type == "ARMATURE")
 body = bpy.data.objects[job["body"]]
-for nm in ("lelu_hair_ringlets", "lelu_hair_strands", "lelu_hairstyle", "lelu_hair_coils", "lelu_hair_jewels"):
+for nm in ("lelu_hair_ringlets", "lelu_hair_strands", "lelu_hairstyle", "lelu_hair_coils", "lelu_hair_jewels", "lelu_hair_filler", "lelu_forehead_patch"):
     if nm in bpy.data.objects:
         bpy.data.objects.remove(bpy.data.objects[nm], do_unlink=True)
 
@@ -128,6 +128,222 @@ if cap is not None:
     tb.to_mesh(cap.data)
     tb.free()
     R["capFacesTrimmed"] = int(trim.sum())
+
+HC_pre = np.array([0.0, -0.012, 1.585]) + OFF
+# jewellery this look does NOT have in its photographs (e.g. the camo look's forehead
+# headpiece): metal triangles in the given boxes (her coordinates) are removed
+for box in st.get("dropJewelBoxes", []):
+    for nm in ("lelu_hair", "lelu_scalp"):
+        o = bpy.data.objects.get(nm)
+        if o is None:
+            continue
+        JA = C.mesh_arrays(o)
+        jt = C.triangle_texture(o, JA)
+        jq = JA["wco"][JA["tv"]].mean(1) - OFF
+        mr = jt.get("mr")
+        metal = mr[:, 2] >= 0.35 if mr is not None else np.zeros(len(jq), bool)
+        jh, jsat, jval = C.hsv(jt["albedo"][:, :3])
+        shiny = metal | ((jval > 0.55) & (jsat < 0.35))  # silver/crystal parts
+        inb = np.all([(jq[:, i] >= box["min"][i]) & (jq[:, i] <= box["max"][i]) for i in range(3)], axis=0)
+        skin_like = (jh >= 4) & (jh <= 42) & (jsat >= 0.2) & (jsat <= 0.85) & (jval >= 0.25)
+        sel = inb & (shiny | (~skin_like if box.get("allNonSkin") else False))
+        if sel.any():
+            # Do not delete (her face has no skin under the jewel: deleting leaves a hole).
+            # Press the jewel's vertices radially onto the sphere her surrounding forehead
+            # lies on, and give its faces the UV of nearby forehead skin, so it becomes skin.
+            me_ = o.data
+            Mw = np.array(o.matrix_world)
+            Mi = np.linalg.inv(Mw)
+            tri_sel = np.nonzero(sel)[0]
+            jverts = np.unique(JA["tv"][tri_sel])
+            skin_tri = inb & ~sel & skin_like
+            if not skin_tri.any():
+                skin_tri = ~sel & skin_like
+            sv = np.unique(JA["tv"][skin_tri])
+            radius = float(np.median(np.linalg.norm(JA["wco"][sv] - HC_pre, axis=1)))
+            co = np.empty(len(me_.vertices) * 3, np.float32)
+            me_.vertices.foreach_get("co", co)
+            co = co.reshape(-1, 3).astype(float)
+            w = JA["wco"][jverts]
+            d = w - HC_pre
+            # local depth: inverse-distance mean radius of the 12 nearest skin vertices by direction
+            sd = JA["wco"][sv] - HC_pre
+            sr = np.linalg.norm(sd, axis=1)
+            sdn = sd / sr[:, None]
+            dn = d / np.linalg.norm(d, axis=1, keepdims=True)
+            ang = np.arccos(np.clip(dn @ sdn.T, -1, 1))
+            k12 = np.argsort(ang, axis=1)[:, :12]
+            wk = 1.0 / (np.take_along_axis(ang, k12, 1) + 1e-3) ** 2
+            r_loc = (wk * sr[k12]).sum(1) / wk.sum(1)
+            w_new = HC_pre + dn * (r_loc + 0.0004)[:, None]
+            co[jverts] = w_new @ Mi[:3, :3].T + Mi[:3, 3]
+            me_.vertices.foreach_set("co", co.astype(np.float32).reshape(-1))
+            # UV: a forehead skin texel above the jewel (inside the box, highest skin triangles)
+            # the skin right next to the jewel (closest skin-coloured triangles to its centre)
+            sc_ = jq[skin_tri]
+            jc = jq[tri_sel].mean(0)
+            near_ = np.argsort(np.linalg.norm(sc_[:, [0, 2]] - jc[[0, 2]], axis=1))[:8]
+            uv_skin = np.median(JA["uv"][JA["tl"][np.nonzero(skin_tri)[0][near_]]].reshape(-1, 2), 0)
+            uvd = np.empty(len(me_.loops) * 2, np.float32)
+            me_.uv_layers.active.data.foreach_get("uv", uvd)
+            uvd = uvd.reshape(-1, 2)
+            uvd[JA["tl"][tri_sel].reshape(-1)] = uv_skin
+            me_.uv_layers.active.data.foreach_set("uv", uvd.reshape(-1))
+            # normals of the pressed loops: radial, like the forehead
+            cur = np.array([tuple(cn.vector) for cn in me_.corner_normals])
+            nrm_ = d / np.linalg.norm(d, axis=1, keepdims=True)
+            nrm_l = nrm_ @ Mw[:3, :3]
+            nrm_l /= np.linalg.norm(nrm_l, axis=1, keepdims=True)
+            lookup = dict(zip(jverts.tolist(), nrm_l))
+            for li in JA["tl"][tri_sel].reshape(-1):
+                cur[li] = lookup[me_.loops[li].vertex_index]
+            me_.normals_split_custom_set(cur.tolist())
+            # and her skin material (they were on the metal "head detail" material)
+            skin_slot = next((k for k, ms in enumerate(o.material_slots) if ms.material and "skin" in ms.material.name), None)
+            if skin_slot is not None:
+                mi = np.empty(len(me_.polygons), np.int32)
+                me_.polygons.foreach_get("material_index", mi)
+                mi[np.unique(JA["tp"][tri_sel])] = skin_slot
+                me_.polygons.foreach_set("material_index", mi)
+            me_.update()
+        R.setdefault("jewelsPressedFlat", {})[f'{box.get("name","box")}:{nm}'] = int(sel.sum())
+
+# holes her original face mesh has under a removed jewel: found by casting rays from the
+# front — where the first hit lies far behind the forehead, there is no skin — and closed by
+# a small cap tucked 0.4 mm under the forehead sphere, textured with her own forehead skin.
+for box in [b for b in st.get("dropJewelBoxes", []) if b.get("allNonSkin")]:
+    so = bpy.data.objects["lelu_scalp"]
+    SA_ = C.mesh_arrays(so)
+    sbvh = BVHTree.FromPolygons(SA_["wco"][SA_["tv"]].reshape(-1, 3).tolist(), np.arange(len(SA_["tv"]) * 3).reshape(-1, 3).tolist())
+    holes, surf_r = [], []
+    for x in np.arange(box["min"][0] - 0.006, box["max"][0] + 0.006, 0.0015):
+        for z in np.arange(box["min"][2] - 0.004, box["max"][2], 0.0015):
+            o_ = Vector((x + OFF[0], -0.4 + OFF[1], z + OFF[2]))
+            hit = sbvh.ray_cast(o_, Vector((0, 1, 0)), 1.0)
+            if hit[0] is None or hit[0].y - OFF[1] > -0.05:  # nothing, or only the back of the head
+                holes.append([x, z])
+            else:
+                surf_r.append((x, z, np.linalg.norm(np.array(hit[0]) - HC_pre)))
+    if not holes:
+        continue
+    holes = np.array(holes)
+    # only the hole where the jewel was: samples within 14 mm of the jewel's centre, below the hairline
+    jc_ = np.array(box.get("centre", [0.0, 1.645]))
+    holes = holes[(np.linalg.norm(holes - jc_, axis=1) < 0.014) & (holes[:, 1] < float(box.get("hairlineZ", 1.668)))]
+    if len(holes) == 0:
+        continue
+    cx, cz = holes.mean(0)
+    rad = float(np.max(np.linalg.norm(holes - [cx, cz], axis=1))) + 0.003
+    sr_ = np.array(surf_r)
+    ring_r = sr_[np.linalg.norm(sr_[:, :2] - [cx, cz], axis=1) < rad + 0.006, 2] if len(sr_) else np.array([])
+    # just behind the skin that rims the hole (10th percentile of its radius, less 0.6 mm)
+    rr = float(np.percentile(ring_r, 10)) - 0.0006 if len(ring_r) else float(np.median(sr_[:, 2])) - 0.0006
+    # cap: polar grid on the sphere of radius rr, around the direction to the hole centre
+    centre_dir = np.array([cx, -0.2, cz]) + OFF - HC_pre
+    yfront = None
+    hit = sbvh.ray_cast(Vector((cx + OFF[0], -0.4 + OFF[1], cz + OFF[2])), Vector((0, 1, 0)), 1.0)
+    cdir = np.array([cx, -np.sqrt(max(rr ** 2 - cx ** 2 - (cz - 1.585) ** 2, 1e-6)) - 0.012, cz - 1.585])
+    cdir /= np.linalg.norm(cdir)
+    u_ = np.cross(cdir, [0, 0, 1.0]); u_ /= np.linalg.norm(u_)
+    v_ = np.cross(cdir, u_)
+    verts, faces = [HC_pre + cdir * rr], []
+    ring_n, rings = 16, 4
+    for ri in range(1, rings + 1):
+        a = rad / rr * ri / rings
+        for k in range(ring_n):
+            t = 2 * np.pi * k / ring_n
+            d_ = cdir * np.cos(a) + (u_ * np.cos(t) + v_ * np.sin(t)) * np.sin(a)
+            verts.append(HC_pre + d_ * rr)
+    for k in range(ring_n):
+        faces.append((0, 1 + k, 1 + (k + 1) % ring_n))
+    for ri in range(1, rings):
+        b0, b1 = 1 + (ri - 1) * ring_n, 1 + ri * ring_n
+        for k in range(ring_n):
+            faces.append((b0 + k, b1 + k, b1 + (k + 1) % ring_n, b0 + (k + 1) % ring_n))
+    Mi_ = np.linalg.inv(np.array(so.matrix_world))
+    V_ = np.array(verts) @ Mi_[:3, :3].T + Mi_[:3, 3]
+    pm = bpy.data.meshes.new("lelu_forehead_patch")
+    pm.from_pydata(V_.tolist(), [], faces)
+    pm.update()
+    uvl = pm.uv_layers.new()
+    # forehead skin texel just above the hole
+    sq = SA_["wco"][SA_["tv"]].mean(1) - OFF
+    near = np.argsort(np.linalg.norm(sq[:, [0, 2]] - [cx, cz - rad - 0.004], axis=1))[:6]
+    uvs = np.median(SA_["uv"][SA_["tl"][near]].reshape(-1, 2), 0)
+    for l in uvl.data:
+        l.uv = uvs
+    for poly in pm.polygons:
+        poly.use_smooth = True
+    # its own skin material, coloured with the median albedo of her forehead skin around the hole
+    stex = C.triangle_texture(so, SA_)
+    sh_, ss_, sv_ = C.hsv(stex["albedo"][:, :3])
+    ring_ = (np.linalg.norm(sq[:, [0, 2]] - [cx, cz], axis=1) < rad + 0.012) & (sh_ >= 4) & (sh_ <= 42) & (ss_ >= 0.2) & (sv_ >= 0.25)
+    srgb = np.median(stex["albedo"][ring_, :3], 0) if ring_.any() else np.array([0.55, 0.36, 0.27])
+    lin = np.where(srgb <= 0.04045, srgb / 12.92, ((srgb + 0.055) / 1.055) ** 2.4)
+    skin_mat = bpy.data.materials.new("m25c_skin_forehead_patch")
+    skin_mat.use_nodes = True
+    pp_ = skin_mat.node_tree.nodes["Principled BSDF"]
+    pp_.inputs["Base Color"].default_value = (*lin, 1)
+    pp_.inputs["Roughness"].default_value = 0.5
+    pm.materials.append(skin_mat)
+    po = bpy.data.objects.new("lelu_forehead_patch", pm)
+    bpy.context.scene.collection.objects.link(po)
+    po.parent = rig
+    po.matrix_world = so.matrix_world.copy()
+    po.vertex_groups.new(name="Head").add(list(range(len(verts))), 1.0, "REPLACE")
+    po.modifiers.new("Armature", "ARMATURE").object = rig
+    R.setdefault("holePatches", []).append({"skinSrgb": [round(float(x), 3) for x in srgb], "centreHerXZ": [round(float(cx), 4), round(float(cz), 4)], "radiusMm": round(rad * 1000, 1), "patchRadiusFromCentreMm": round(rr * 1000, 2), "rimRadiusP10Mm": round(float(np.percentile(ring_r, 10)) * 1000, 2) if len(ring_r) else None, "holeSamples": len(holes)})
+
+# paint the removed jewellery out of her face texture: inside the UV footprint of the
+# boxes, pixels that are not skin (the painted jewel, chain line, highlights) are inpainted
+# from the skin around them (OpenCV Telea). A new packed image; the original is untouched.
+inpaint_boxes = st.get("inpaintBoxes", [])
+if inpaint_boxes:
+    import cv2
+    from PIL import Image as _I, ImageDraw as _D
+    so = bpy.data.objects["lelu_scalp"]
+    mat_ = so.material_slots[0].material
+    node = C.find_image(mat_, "Base Color")
+    img = node.image
+    w_, h_ = img.size
+    px = np.empty(w_ * h_ * 4, np.float32)
+    img.pixels.foreach_get(px)
+    px = px.reshape(h_, w_, 4)
+    region = _I.new("L", (w_, h_), 0)
+    dr = _D.Draw(region)
+    for nm in ("lelu_scalp", "lelu_hair"):
+        o = bpy.data.objects.get(nm)
+        if o is None:
+            continue
+        IA = C.mesh_arrays(o)
+        iq = IA["wco"][IA["tv"]].mean(1) - OFF
+        for box in inpaint_boxes:
+            inb = np.all([(iq[:, i] >= box["min"][i]) & (iq[:, i] <= box["max"][i]) for i in range(3)], axis=0)
+            for tri in IA["uv"][IA["tl"][inb]]:
+                if np.ptp(tri[:, 0]) > 0.03 or np.ptp(tri[:, 1]) > 0.03:
+                    continue  # straddles a seam: its outline would span the whole texture
+                dr.polygon([(u % 1 * w_, (1 - v % 1) * h_) for u, v in tri], fill=255)
+    reg = np.asarray(region)[::-1] > 0
+    rgb = px[..., :3]
+    hh, ss, vv = C.hsv(rgb.reshape(-1, 3))
+    skin = ((hh >= 4) & (hh <= 42) & (ss >= 0.2) & (ss <= 0.85) & (vv >= 0.25) & (vv <= 0.9)).reshape(h_, w_)
+    mask = (reg & ~skin).astype(np.uint8) * 255
+    mask = cv2.dilate(mask, np.ones((5, 5), np.uint8))
+    mask &= (reg.astype(np.uint8) * 255)
+    img8 = np.clip(rgb[::-1] * 255, 0, 255).astype(np.uint8)
+    out = cv2.inpaint(img8, mask[::-1].copy(), 9, cv2.INPAINT_TELEA)[::-1].astype(np.float32) / 255
+    px[..., :3] = out
+    new = bpy.data.images.new(img.name + "_" + job["body"], w_, h_, alpha=True)
+    new.pixels.foreach_set(px.reshape(-1))
+    new.pack()
+    # every material that shows this texture (head detail AND skin) gets the repainted copy
+    for m_ in bpy.data.materials:
+        if m_.use_nodes:
+            for n_ in m_.node_tree.nodes:
+                if n_.type == "TEX_IMAGE" and n_.image == img:
+                    n_.image = new
+    R["inpaintedPixels"] = int((mask > 0).sum())
+    R["inpaintRegionPixels"] = int(reg.sum())
 
 # ------------------------------------------------ 2. colliders and her head
 def world_tris(o):
@@ -290,7 +506,7 @@ def tube(center, radius, sides, taper=0.5):
 
 # ------------------------------------------------ 3. locks
 mm = lambda v: float(v) / 1000
-items, coils, axes = [], [], []
+items, coils, axes, fillers = [], [], [], []
 lens = []
 for k, root in enumerate(roots):
     R_c = mm(rng.uniform(*st["curlRadiusMm"]))
@@ -299,11 +515,20 @@ for k, root in enumerate(roots):
     q = her(root)
     front = abs(q[0]) > 0.05 and q[1] < 0.01 and rng.random() < float(st.get("frontShare", 0.18))
     end_z = rng.uniform(*st["endZ"]) + OFF[2] * 0
-    vol = mm(float(st.get("volumeMm", 0)) * rng.random())
+    filler = rng.random() < float(st.get("fillerShare", 0.0))
+    vol = mm(float(st.get("volumeMm", 0)) * (rng.random() * 0.45 if filler else 0.45 + 0.55 * rng.random()))
+    if filler:
+        R_c, r_l = mm(1.5), mm(rng.uniform(*st.get("fillerRadiusMm", [4.5, 6.0])))
     axis = grow(root, R_c + r_l + 0.003, end_z, front, vol)
     if len(axis) < 5:
         continue
     axis = smooth(resample(axis, 0.004), 12)
+    if filler:
+        centre = resample(axis, 0.005)
+        if centre is None:
+            continue
+        fillers.append((centre, r_l, "hair"))
+        continue
     centre = helix(axis, R_c, pitch, rng.uniform(0, 2 * np.pi), float(st.get("rootRelaxMm", 25)) / 1000, mm(st.get("sampleMm", 1.8)))
     if centre is None:
         continue
@@ -343,6 +568,24 @@ if cs:
             wire = helix(axis, mm(5.5), mm(6), 0.0, 0.0, 0.0008)
             coils.append((wire, mm(1.0), "copper"))
             coil_count += 1
+
+# big open copper coils over the crown, running front to back on sections of hair (photo)
+cc = st.get("crownCoils")
+if cc:
+    for k in range(int(cc["count"])):
+        x = float(np.linspace(-cc.get("spreadX", 0.045), cc.get("spreadX", 0.045), int(cc["count"]))[k])
+        y0 = float(rng.uniform(*cc.get("startY", [-0.06, -0.02])))
+        path = []
+        for t in np.linspace(0, 1, 30):
+            q = np.array([x * (1 + 0.3 * t), y0 + t * float(cc.get("lengthMm", 70)) / 1000, 0.0])
+            d_ = np.array([q[0], q[1] + 0.012, 0.11])
+            d_ /= np.linalg.norm(d_)
+            hit = hb.ray_cast(Vector(HC + d_ * 0.3), Vector(-d_), 0.3)
+            r_s = (np.linalg.norm(np.array(hit[0]) - HC) if hit[0] is not None else 0.1) + mm(cc["radiusMm"]) * 0.6
+            path.append(HC + d_ * r_s)
+        wire = helix(np.array(path), mm(cc["radiusMm"]), mm(cc["pitchMm"]), rng.uniform(0, 6.28), 0.0, 0.0008)
+        coils.append((wire, mm(cc["wireMm"]), "copper"))
+        coil_count += 1
 
 # gold cuffs on locks near the crown
 cuffs = []
@@ -483,6 +726,8 @@ def build(name, parts, sides, mats, extra=None):
 
 
 R["hairstyle"] = build("lelu_hairstyle", items, int(st.get("sides", 4)), ["hair", "highlight"])
+if fillers:
+    R["hairFiller"] = build("lelu_hair_filler", fillers, 4, ["hair"])
 R["locks"] = len(items)
 R["coilsMesh"] = build("lelu_hair_coils", coils + cuffs, 6, ["copper", "gold"])
 if jewels_v:
