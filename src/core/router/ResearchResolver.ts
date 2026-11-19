@@ -363,6 +363,18 @@ export default class ResearchResolver {
           .map((result) => `${result.title}: ${result.content}`)
           .join(" | ")}`.slice(0, 600),
         query.split(/\s+/).filter((word) => word.length > 3),
+        {
+          // A retrieval that really ran, with the sources it came from.
+          // Without this the memory said "research" and nothing else, so a
+          // later reader could not tell it from an agent's guess.
+          source: "research-live-retrieval",
+          attribution: `live retrieval from ${selected.map((provider) => provider.name).join(" + ")}`,
+          query,
+          resultCount: results.length,
+          sources: results.slice(0, 3).map((result) => result.url ?? result.source),
+          retrievedAt,
+          executionVerified: true,
+        },
       );
     } catch (error) {
       context.logger.error("ResearchResolver", "Failed to persist knowledge memory.", {
