@@ -1,5 +1,5 @@
 {
- "input": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+ "input": "artifacts/foundry/m25c/steps/s0-build.glb",
  "clearanceMm": 2.5,
  "objects": {
   "lelu_mouth": {
@@ -27,5 +27,5 @@
   "specular": 0.15
  },
  "output": "artifacts/foundry/m25c/steps/s1-mouth.glb",
- "outputSha256": "00e0fff7653d28149c6be244f6f7133154121b22cae15d76ea494152ca446057"
+ "outputSha256": "bb7043d9e4cc36aaa0b4f0b336dcba2a5a5e10d3f7fb61938c68553dbdb51861"
 }

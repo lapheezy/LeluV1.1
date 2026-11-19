@@ -648,12 +648,45 @@ def truncate_face(c, margin):
     return (c[:k] if k >= 8 else None), True
 
 
+# Accessories (jewellery and flowers, classified from the asset's own maps) must stay
+# visible: a ringlet or fibre is cut where its centre line first comes within
+# `accessoryClearance` (+ its own radius) of an accessory triangle. 0 disables.
+acc_clear = float(job.get("accessoryClearance", 0.0))
+acc_tree = None
+if acc_clear > 0:
+    acc_pts = []
+    for nm in ("lelu_hair", "lelu_scalp", "char1"):
+        cen_ = A[nm]["wco"][A[nm]["tv"]].mean(1)
+        sel_ = np.isin(CLS[nm], ["metal", "flower"])
+        if nm == "char1":
+            sel_ &= cen_[:, 2] > 1.10
+        acc_pts.append(cen_[sel_])
+    acc_pts = np.concatenate(acc_pts)
+    acc_tree = KDTree(len(acc_pts))
+    for i_, q_ in enumerate(acc_pts):
+        acc_tree.insert(Vector(q_), i_)
+    acc_tree.balance()
+
+
+def truncate_accessory(c, margin):
+    if acc_tree is None:
+        return c, False
+    for k_, q_ in enumerate(c):
+        if acc_tree.find(Vector(q_))[2] < margin:
+            return (c[:k_] if k_ >= 8 else None), True
+    return c, False
+
+
 truncated = 0
+truncated_acc = 0
 for key in ("primary", "secondary"):
     kept = []
     for c, r, kind in strands[key]:
         c2, cut = truncate_face(c, r + 0.001)
         truncated += int(cut)
+        if c2 is not None:
+            c2, cut2 = truncate_accessory(c2, r + acc_clear)
+            truncated_acc += int(cut2)
         if c2 is not None:
             kept.append((c2, r, kind))
     strands[key] = kept
@@ -736,6 +769,8 @@ hair_out["flyaways"] = len(strands["secondary"])
 hair_out["ringlets"] = len(ringlet_params)
 hair_out["rootsRejected"] = rejected_roots
 hair_out["truncatedAtFace"] = truncated
+hair_out["truncatedAtAccessory"] = truncated_acc
+hair_out["accessoryClearanceMm"] = acc_clear * 1000
 R["steps"]["hair"] = hair_out
 json.dump({"ringlets": ringlet_params}, open(os.path.join(os.path.dirname(job["report"]), "ringlet-guides.json"), "w"))
 

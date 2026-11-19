@@ -25,6 +25,9 @@ job = json.load(open(argv[0]))
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=job["input"])
 scene = bpy.context.scene
+for name in job.get("hide", []):
+    if scene.objects.get(name):
+        bpy.data.objects.remove(scene.objects[name], do_unlink=True)
 for o in list(scene.objects):
     if o.name == "Icosphere":
         bpy.data.objects.remove(o, do_unlink=True)
@@ -33,7 +36,7 @@ for o in list(scene.objects):
 
 COLORS = {"skin": (0.9, 0.55, 0.3), "hair": (0.02, 0.02, 0.02), "metal": (1.0, 0.85, 0.0), "fabric": (0.1, 0.45, 0.15),
           "flower": (1.0, 0.2, 0.6), "lips": (0.8, 0.0, 0.1), "other": (0.3, 0.3, 1.0), "eye": (1, 1, 1),
-          "crumpled": (1.0, 0.0, 0.0)}
+          "crumpled": (1.0, 0.0, 0.0), "acc": (1, 0, 0), "hairmask": (0, 1, 0), "blackmask": (0, 0, 0)}
 mats = {}
 for k, c in COLORS.items():
     m = bpy.data.materials.new("cls_" + k)
@@ -49,16 +52,34 @@ for k, c in COLORS.items():
 stats = {}
 for obj in [o for o in scene.objects if o.type == "MESH"]:
     A = C.mesh_arrays(obj)
-    if obj.name in ("char1", "lelu_hair", "lelu_scalp") and A["uv"] is not None:
+    if obj.name in ("char1", "lelu_hair", "lelu_scalp") and A["uv"] is not None and obj.material_slots:
         tex = C.triangle_texture(obj, A)
         dih = C.triangle_dihedral(A["wco"], A["tv"])
         cls = C.classify(obj, A, tex, dih)
         if job.get("crumpled"):
             cls = np.where(dih >= 45, "crumpled", cls)
+    elif obj.name.startswith("lelu_hair_"):
+        cls = np.array(["hair"] * len(A["tv"]), dtype=object)
     elif obj.name.startswith("eye_patch"):
         cls = np.array(["eye"] * len(A["tv"]), dtype=object)
     else:
         cls = np.array(["other"] * len(A["tv"]), dtype=object)
+    if job.get("dropHair") and (cls == "hair").any():
+        # baseline with every hair triangle removed: what the accessories expose on their own
+        import bmesh
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        bm.faces.ensure_lookup_table()
+        hair_polys = set(A["tp"][cls == "hair"].tolist())
+        bmesh.ops.delete(bm, geom=[bm.faces[i] for i in hair_polys], context="FACES")
+        bm.to_mesh(obj.data)
+        bm.free()
+        A = C.mesh_arrays(obj)
+        keep = cls != "hair"
+        cls = cls[keep] if len(cls[keep]) == len(A["tv"]) else np.array(["other"] * len(A["tv"]), dtype=object)
+    if job.get("palette") == "accessory":
+        # accessory visibility mask: jewellery + flowers red, all hair green, rest black
+        cls = np.where(np.isin(cls, ["metal", "flower"]), "acc", np.where(cls == "hair", "hairmask", "blackmask"))
     names, counts = np.unique(cls, return_counts=True)
     stats[obj.name] = {str(n): int(c) for n, c in zip(names, counts)}
     obj.data.materials.clear()
@@ -76,7 +97,7 @@ scene.cycles.use_denoising = False
 scene.view_settings.view_transform = "Standard"
 w = bpy.data.worlds.new("w")
 w.use_nodes = True
-w.node_tree.nodes["Background"].inputs["Color"].default_value = (0.5, 0.5, 0.55, 1)
+w.node_tree.nodes["Background"].inputs["Color"].default_value = (0, 0, 0, 1) if job.get("palette") == "accessory" else (0.5, 0.5, 0.55, 1)
 scene.world = w
 cam_d = bpy.data.cameras.new("c")
 cam = bpy.data.objects.new("c", cam_d)
