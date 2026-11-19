@@ -28,13 +28,13 @@ const LOOKS = [
   },
   {
     id: "bronze_velocity",
-    glb: "artifacts/foundry/m25c/steps/look3-bronze_velocity-bag.glb",
+    glb: "artifacts/foundry/m25c/steps/look4-bronze_velocity-bag.glb",
     purpose: "M25-complete v2 Outfit A: copper catsuit rebuilt from the full-length photograph (Meshy i2i 01a1f555-ddca/01a1f556-d3a8, multi-image 01a1f557-8601, rigging 01a1f55c-2b02) with her face and the look's own hair; lotus handbag (01a1f564-7973) on RightHand",
     parents: { previousJob: "v015_look_bronze_velocity", head: "camo_repaired", hair: "generated from the look's reference" },
   },
   {
     id: "rose_gold_sovereign",
-    glb: "artifacts/foundry/m25c/steps/look3-rose_gold_sovereign-bag.glb",
+    glb: "artifacts/foundry/m25c/steps/look4-rose_gold_sovereign-bag.glb",
     purpose: "M25-complete v2 Outfit B: copper-rose coat rebuilt from the full-length photograph (Meshy i2i 01a1f555-d652/01a1f556-cefc, multi-image 01a1f557-7acf, rigging 01a1f55c-13eb) with her face and the look's own hair; linework handbag (01a1f564-7cb3) on RightHand",
     parents: { previousJob: "v016_look_rose_gold_sovereign", head: "camo_repaired", hair: "generated from the look's reference" },
   },

@@ -1,0 +1,90 @@
+{
+ "job": {
+  "body": "look_rose_gold_sovereign",
+  "headOffset": [
+   -0.0144,
+   0.015099999999999999,
+   -0.016800000000000002
+  ],
+  "seed": 11,
+  "style": {
+   "locks": 400,
+   "rootSpacingMm": 6.5,
+   "endZ": [
+    0.98,
+    1.12
+   ],
+   "curlRadiusMm": [
+    7,
+    11
+   ],
+   "pitchMm": [
+    26,
+    38
+   ],
+   "lockRadiusMm": [
+    3.0,
+    4.2
+   ],
+   "frontShare": 0.06,
+   "highlightShare": 0.3,
+   "hairColor": [
+    0.016,
+    0.008,
+    0.005
+   ],
+   "highlightColor": [
+    0.09,
+    0.035,
+    0.015
+   ],
+   "coils": null,
+   "cuffs": 8,
+   "medallion": {
+    "side": 1,
+    "z": 1.63,
+    "y": 0.0,
+    "radiusMm": 24,
+    "x": 0.135
+   },
+   "rootRelaxMm": 45,
+   "volumeMm": 75,
+   "spread": 0.9,
+   "sampleMm": 3.0,
+   "sides": 5,
+   "capTrimY": 0.06
+  }
+ },
+ "generatedHair": {
+  "facesRemoved": 58646,
+  "fragmentsRemoved": 1453,
+  "holeFacesAdded": 88
+ },
+ "capFacesTrimmed": 39064,
+ "roots": 400,
+ "jewellery": {
+  "coils": 0,
+  "cuffs": 8,
+  "medallion": true
+ },
+ "hairstyle": {
+  "vertices": 541710,
+  "triangles": 1079420
+ },
+ "locks": 400,
+ "coilsMesh": {
+  "vertices": 336,
+  "triangles": 576
+ },
+ "jewelsMesh": {
+  "vertices": 2108,
+  "triangles": 4016
+ },
+ "lockLengthMm": {
+  "p10": 586,
+  "p50": 801,
+  "p90": 1076
+ },
+ "outputSha256": "43442269910a5c21ce4f42e643cf8cc50734cf2aa31f7f4c1735dd63dccc0b92",
+ "outputBytes": 56158144
+}

@@ -1,5 +1,5 @@
 {
- "input": "leluverse/assets/characters/lelu_character/meshes/v035_look_bronze_velocity/lelu.glb",
+ "input": "leluverse/assets/characters/lelu_character/meshes/v037_look_bronze_velocity/lelu.glb",
  "output": "/home/user/LeluV1.1/artifacts/foundry/m25c/final/bronze_velocity/sit.png",
  "view": "three-quarter",
  "camera": {
