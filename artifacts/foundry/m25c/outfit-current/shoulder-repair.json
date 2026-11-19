@@ -1,0 +1,49 @@
+{
+ "iterations": 24,
+ "clampMm": 14.0,
+ "zone": [
+  1.06,
+  1.5
+ ],
+ "fadeMm": 60.0,
+ "metalWeight": 0.25,
+ "movedPositions": 9779,
+ "displacementMm": {
+  "p50": 3.01,
+  "p90": 6.74,
+  "max": 14.0,
+  "clamped": 43
+ },
+ "regions": {
+  "shoulders": {
+   "triangles": 6626,
+   "over45Before": 0.3524,
+   "over45After": 0.2458,
+   "medianDihedralBefore": 38.93,
+   "medianDihedralAfter": 32.9
+  },
+  "upperChest": {
+   "triangles": 1102,
+   "over45Before": 0.2686,
+   "over45After": 0.2078,
+   "medianDihedralBefore": 35.29,
+   "medianDihedralAfter": 31.27
+  },
+  "upperBack": {
+   "triangles": 9135,
+   "over45Before": 0.3169,
+   "over45After": 0.2407,
+   "medianDihedralBefore": 37.59,
+   "medianDihedralAfter": 33.12
+  },
+  "arms": {
+   "triangles": 2086,
+   "over45Before": 0.3313,
+   "over45After": 0.2411,
+   "medianDihedralBefore": 37.79,
+   "medianDihedralAfter": 31.5
+  }
+ },
+ "output": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+ "outputSha256": "49f377648e5a9914c297aea9abf1a0939b56295be7b5e4e01e8c17b2c6f51663"
+}
