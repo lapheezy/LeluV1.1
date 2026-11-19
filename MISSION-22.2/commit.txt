@@ -1,0 +1,36 @@
+M22.2 — GLOBAL COGNITIVE CONTEXT ELIMINATION
+============================================
+
+Branch
+  freebuff/m22-2-global-cognitive-context-elimination
+
+Git source of truth
+  base commit            aa8b1bd
+  M22 implementation     2c3d149
+  M22.1 implementation   ceaa926
+  M22.1 HEAD / start     2d09bba
+  M22.2 implementation   bb69e0d
+  M22.2 hash record      (this commit)
+
+History was not rewritten; M22 and M22.1 commits are intact and unpushed
+before this branch, as they were.
+
+Verification at close
+  M22 tests                28/28
+  M22.1 tests              18/18
+  M22.2 tests              19/19
+  boundary batch           105/105
+  full regression          2373 tests, 2363 pass, 2 fail
+  the 2 failures           tests/genesis-interface.test.tsx (CSS export in
+                           this environment) and tests/sandbox-security.test.ts
+                           "network: TCP, UDP, DNS and fetch all fail" — both
+                           documented before M22.2 and unchanged
+  typecheck                only src/core/perception/FeatureUnderstanding.ts:455
+                           (2 pre-existing errors)
+  live concurrency         6/6
+  live workspace           3/3
+  live snapshot            5/5
+  live provider            PASS (Groq answered 2 turns; OpenRouter fell back)
+  performance              all four thresholds pass
+  browser                  NOT VERIFIED — not claimed
+  mobile                   NOT VERIFIED — no device or emulator
