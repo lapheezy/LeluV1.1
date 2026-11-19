@@ -1,0 +1,40 @@
+{
+  "mission": "LÉLU 2.3 — reload and persistence",
+  "executedAt": "2026-11-19",
+  "method": "full page reload of the same application URL (?scene=off) in the same browser profile, then reading the restored DOM and sending a new turn in each conversation",
+  "before_reload": {
+    "conversations": ["Private note: my commission is codenamed BLUE-HERON…", "Unrelated engineering question: why…"],
+    "windows": 2
+  },
+  "after_reload": {
+    "gate_shown_again": false,
+    "conversation_a_restored": true,
+    "conversation_a_transcript_restored": true,
+    "conversation_b_restored": true,
+    "conversation_b_transcript_restored": true,
+    "canvases": 0,
+    "open_windows": 2
+  },
+  "post_reload_authorization": {
+    "a_asked": "What do you remember about my commission?",
+    "a_payload_chars": 25090,
+    "a_payload_has_sensitive_fact": true,
+    "a_payload_has_grief": true,
+    "a_reply_excerpt": "Your commission is codenamed BLUE‑HERON. You mentioned it while also sharing that you’re still grieving your father, who passed away in March.",
+    "b_asked": "Does that apply to browsers too?",
+    "b_payload_chars": 3979,
+    "b_payload_has_sensitive_fact": false,
+    "b_payload_has_grief": false,
+    "b_payload_has_cross_chat_label": false
+  },
+  "timing": {
+    "reload_to_conversations_restored_ms": 13412,
+    "note": "development server, cold module graph, software renderer absent; this is a dev-server number, not a production latency claim"
+  },
+  "assertions": {
+    "reload_restores_conversation_boundaries": true,
+    "authorization_survives_reload": true,
+    "no_cross_conversation_contamination_after_reload": true
+  },
+  "not_tested": "A brand-new browser profile (fresh IndexedDB) was not exercised in this run; only reload within the same profile. Stated rather than implied."
+}

@@ -1,0 +1,32 @@
+{
+  "mission": "LÉLU 2.3 — concurrency and identity",
+  "executedAt": "2026-11-19",
+  "browser_level": {
+    "arrangement": "two conversation windows open simultaneously in the same session; both submit turns and both are answered without closing the other",
+    "result": "PASS — A and B each kept their own transcript, their own reply, and their own context; neither request contained the other's material",
+    "shared_state_checked": [
+      "conversation window identity (each window bound to its own conversation id)",
+      "provider payload (no crossover)",
+      "memory retrieval (A's fact only in A)",
+      "UI badge (“Using other chats”) did not correspond to any foreign text in the payload"
+    ]
+  },
+  "automated_level": {
+    "script": "scripts/context-sovereignty-live.ts",
+    "result": "concurrency 6/6",
+    "checks": [
+      "A's grief does not enter B",
+      "B's deploy fact stays in B",
+      "A's durable project is labelled in B, never presented as current",
+      "B keeps its own project",
+      "another user sees neither project",
+      "no conversation's material is reassigned"
+    ]
+  },
+  "not_exercised": [
+    "a conversation switch while a provider response is still streaming, driven through the UI",
+    "two distinct signed-in cloud identities in one browser (Supabase is not configured in this environment; the session is anonymous, and the cloud sync control reports it is off)",
+    "deleting an observation while another window is generating"
+  ],
+  "honesty": "The browser-level concurrency evidence is two live windows, not a stress harness. The reusable harness is the automated 6/6 script; neither result is presented as the other."
+}

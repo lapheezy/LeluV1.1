@@ -1,0 +1,35 @@
+{
+  "mission": "LÉLU 2.3 — workspace and project boundaries in the browser",
+  "executedAt": "2026-11-19",
+  "surface": "Home → Active Workspaces panel, and the cognitive snapshot inside the provider request",
+  "workspace_labels": {
+    "observed": ["General 0 items", "Engineering 0 items", "Jewelry 1 item", "Fashion 0 items"],
+    "claim": "the overview lists names and item COUNTS; no observation text is rendered in the overview",
+    "matches_policy": true
+  },
+  "workspace_text": {
+    "path": "conversation A's memory became a workspace observation; the text is only quoted in A's own turns",
+    "b_payload_workspace_text": false
+  },
+  "projects": {
+    "payload_project_names_in_b": [],
+    "note": "no durable project was created during this run, so the labelled-foreign-project path was not re-exercised in the browser; it is covered by tests/context-sovereignty.test.ts (X group) and the live snapshot harness (5/5)"
+  },
+  "checkpoints": {
+    "b_payload_checkpoints": false
+  },
+  "self_model_projects": {
+    "b_payload_self_model_projects": false
+  },
+  "anonymous_identity": {
+    "test": "the session continued without an account, so the browser turn has no cloud identity",
+    "result": "the turn still answered, and no owned project or foreign material appeared; ownership checks reject an owner mismatch rather than accepting an absent identity (M22.2; automated coverage in tests/context-sovereignty.test.ts and tests/memory-hardening.test.ts)",
+    "browser_level_assertion": "no owned content was injected for the anonymous session"
+  },
+  "not_exercised_in_browser": [
+    "creating a project and seeing it labelled in a second conversation",
+    "project checkpoint rendering across conversations",
+    "unattributed legacy observation display in the workspace panel"
+  ],
+  "covered_by_automated_tests": "workspace scopes, unattributed observations, project visibility, labels and checkpoints — tests/context-sovereignty.test.ts W/X groups"
+}

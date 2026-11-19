@@ -1,0 +1,22 @@
+{
+  "mission": "LÉLU 2.3 — deletion and supersession",
+  "executedAt": "2026-11-19",
+  "browser_level": {
+    "status": "NOT VERIFIED",
+    "reason": "The acceptance run did not delete a memory or an observation through the Memory panel. The panel was not opened and no delete action was performed, so no browser claim is made.",
+    "attempted": false
+  },
+  "automated_level": {
+    "status": "PASS",
+    "tests": [
+      "deleting a memory removes its workspace observation and the text no longer appears in itemsFor",
+      "deleting a conversation removes every observation filed in it",
+      "deleting one observation leaves the rest of the workspace intact (WorkspaceManager.forgetObservation)",
+      "a superseded observation is removed and cannot be quoted as current fact (WorkspaceManager.supersede)",
+      "session-scope observations are unreadable from another session"
+    ],
+    "source": "tests/context-sovereignty.test.ts, group W (9/9)",
+    "documentation": "MISSION-22.2/deletion-validation.json"
+  },
+  "gap": "A browser-level deletion pass remains outstanding: open Memory, delete the BLUE-HERON memory, ask conversation A again, and confirm the token is absent from the following provider request. The automated path covers the same store and workspace APIs, but the UI action is not proven."
+}

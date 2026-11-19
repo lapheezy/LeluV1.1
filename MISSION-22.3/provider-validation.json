@@ -1,0 +1,39 @@
+{
+  "mission": "LÉLU 2.3 — provider validation",
+  "executedAt": "2026-11-19",
+  "path": "browser → GenesisChat → AIService.chat → same-origin broker → provider",
+  "providers": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "reached": true,
+      "requests_observed": 9,
+      "successful_http_200": 9,
+      "test_turns": 4,
+      "context_authorization": "PASS — A's turn carried A's material; B's turns carried none of it",
+      "payload_leakage": "PASS — no sensitive token from A in any B request",
+      "fallback_behaviour": "not needed",
+      "failures": "none observed in these turns",
+      "evidence": "MISSION-22.3/conversation-isolation.json, MISSION-22.3/reload-persistence.json"
+    },
+    {
+      "provider": "openrouter",
+      "model": null,
+      "reached": false,
+      "requests_observed": 0,
+      "test_turns": 0,
+      "context_authorization": "NOT VERIFIED",
+      "payload_leakage": "NOT VERIFIED",
+      "fallback_behaviour": "no OpenRouter attempt appeared in this session; M22.2 observed an OpenRouter failure followed by the Groq fallback",
+      "failures": "not exercised — no request reached OpenRouter, so no result is claimed either way",
+      "evidence": "captured request URLs contained only /api/model/groq/chat/completions"
+    },
+    {
+      "provider": "anthropic",
+      "reached": false,
+      "note": "not authorized and not attempted"
+    }
+  ],
+  "redaction": "Provider keys never enter the page: the model broker runs server-side. No key, token or authorization header is recorded in this mission.",
+  "limitation": "Payload bodies include the system prompt and tool schemas; only booleans, lengths and two short assistant sentences are committed."
+}
