@@ -169,6 +169,36 @@ function cmdMeshyIngest() {
   for (const v of listVersions(STORE, projectId)) console.log(`  ${v.id} ${v.label}`);
 }
 
+function cmdM24Ingest() {
+  const split = path.join(ARTIFACTS, "m24/assets/lelu-m24-hair-split.glb");
+  if (!existsSync(split)) throw new Error("run scripts/blender/lelu_m24_hairsplit.py first");
+  const { projectId } = ensureProject();
+  const splitInspection = inspectGlb(split);
+  const existing = listVersions(STORE, projectId).find((v) => v.model.sha256 === splitInspection.sha256);
+  const version = existing ?? addVersion(STORE, projectId, {
+    sourceGlb: split,
+    label: "M24 v0004 — hair separated from scalp (geometry unchanged)",
+    operation: "deform",
+    triangles: splitInspection.counts.triangles,
+    spec: {
+      source: "meshy",
+      parent: "v0003",
+      parentSha256: "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+      change: "lelu_head split into lelu_hair + lelu_scalp by per-triangle base-colour classification",
+      movedVertices: 0,
+      objects: ["char1", "lelu_scalp", "lelu_hair", "eye_patch_l", "eye_patch_r", "lelu_mouth", "lelu_teeth"],
+      triangles: { hair: 162364, scalp: 20191 },
+    },
+    notes: [
+      "the split is lossless: the union of lelu_hair and lelu_scalp is the original lelu_head triangle for triangle",
+      "appearance check: 1024² face close-up, pixel RMS 2.03/255 against the v0003 render",
+      "no vertex was moved, welded or smoothed; shape keys and vertex groups were carried by Blender's separate operator",
+    ],
+  });
+  console.log(`${existing ? "already" : "registered"} ${version.id} ${version.model.sha256.slice(0, 16)} (${splitInspection.counts.triangles} tris)`);
+  for (const v of listVersions(STORE, projectId)) console.log(`  ${v.id} ${v.label}`);
+}
+
 function cmdReconcile() {
   const inspection = existsSync(MESHY_MODEL) ? inspectGlb(MESHY_MODEL) : null;
   const result = reconcile({ inspection, metrics: metrics(), hair: hair(), meshyRenders: "artifacts/foundry/meshy/renders", foundryRenders: "artifacts/foundry/benchmark" });
@@ -275,10 +305,11 @@ async function renderShots(ids: string[], samples?: number) {
   return { projectId, versionId, results, hardware };
 }
 
-async function renderMeshy(ids: string[], samples?: number) {
+async function renderMeshy(ids: string[], samples?: number, model?: string) {
   const hardware = probeHardware();
   const all = planShots((metrics() ?? {}) as never);
-  const outDir = path.join(ARTIFACTS, "meshy/renders");
+  const glb = model ? path.resolve(ROOT, model) : MESHY_MODEL;
+  const outDir = path.join(ARTIFACTS, model ? "m24/renders" : "meshy/renders");
   mkdirSync(outDir, { recursive: true });
   const results = [];
   for (const id of ids) {
@@ -298,12 +329,12 @@ async function renderMeshy(ids: string[], samples?: number) {
     console.log(`… meshy ${shot.id} (${shot.view}, ${shot.resolution.join("×")}, ${samples ? Math.min(samples, shot.samples) : shot.samples} samples)`);
     // materials:false keeps the Meshy PBR textures exactly as shipped — the
     // comparison is about geometry and texture, not about the foundry's shaders.
-    const render = await renderFoundryShot({ glb: MESHY_MODEL, outDir, shot: identical, plan, sampleCap: samples, materials: false, restPose: true, exclude: ["Icosphere"] });
+    const render = await renderFoundryShot({ glb, outDir, shot: identical, plan, sampleCap: samples, materials: false, restPose: true, exclude: ["Icosphere"] });
     if (render.ok && render.png) console.log(`  ok ${render.seconds}s → ${path.relative(ROOT, render.png)}`);
     else console.log(`  FAILED ${render.error}`);
     results.push({ shot: shot.id, ok: render.ok, png: render.png ? path.relative(ROOT, render.png) : null, seconds: render.seconds, error: render.error, camera: render.report?.camera_blender_zup ?? null, triangles: render.report?.triangles ?? null, render: render.report });
   }
-  const file = write("meshy/renders.json", { generatedAt: new Date().toISOString(), model: path.relative(ROOT, MESHY_MODEL), sha256: sha256(readFileSync(MESHY_MODEL)), materials: "as shipped (no foundry shader pass)", restPose: true, results });
+  const file = write(model ? "m24/renders.json" : "meshy/renders.json", { generatedAt: new Date().toISOString(), model: path.relative(ROOT, glb), sha256: sha256(readFileSync(glb)), materials: "as shipped (no foundry shader pass)", restPose: true, results });
   console.log(`\n${results.filter((r) => r.ok).length} rendered, ${results.filter((r) => !r.ok).length} failed. Wrote ${path.relative(ROOT, file)}`);
   return results;
 }
@@ -372,6 +403,9 @@ switch (command) {
   case "reconcile":
     cmdReconcile();
     break;
+  case "m24-ingest":
+    cmdM24Ingest();
+    break;
   case "meshy-ingest":
     cmdMeshyIngest();
     break;
@@ -388,7 +422,7 @@ switch (command) {
     await cmdBenchmark(arg("samples") ? Number(arg("samples")) : undefined, arg("only"));
     break;
   case "meshy-render":
-    await renderMeshy((arg("shots") ?? "face-close-up,portrait-front,profile").split(","), arg("samples") ? Number(arg("samples")) : undefined);
+    await renderMeshy((arg("shots") ?? "face-close-up,portrait-front,profile").split(","), arg("samples") ? Number(arg("samples")) : undefined, arg("model"));
     break;
   case "chat":
     chat(rest.join(" ") || arg("message") || "");

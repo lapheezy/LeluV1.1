@@ -1,0 +1,129 @@
+{
+ "input": "/workspace/chats/6d861f98cd849b149484323e/leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "method": "per-triangle base-colour sampling at the UV centroid; two-means luminance split; mesh.separate(SELECTED). No vertex moved.",
+ "textureSource": {
+  "image": "Image_0.001",
+  "width": 4096,
+  "height": 4096
+ },
+ "luminanceCut": 0.24949,
+ "renderedClassification": {
+  "hairTriangles": 162364,
+  "scalpTriangles": 20191,
+  "hairAreaMm2": 1149442.3,
+  "scalpAreaMm2": 221958.5,
+  "hairShareOfSurface": 83.82
+ },
+ "hairline": {
+  "method": "lowest 1st-percentile vertex of lelu_hair inside |x|<60 mm, y<-50 mm, z>1.45 m",
+  "samples": 11260,
+  "hairlineHeightMm": 1516.22,
+  "aboveEyeLineMm": -76.63,
+  "photographTargetMm": 87.68,
+  "verdict": "outside",
+  "deltaMm": -164.31
+ },
+ "objects": [
+  {
+   "name": "char1",
+   "triangles": 39166,
+   "vertexGroups": 24,
+   "shapeKeys": []
+  },
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "vertexGroups": 24,
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ]
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "vertexGroups": 24,
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ]
+  },
+  {
+   "name": "lelu_hair",
+   "triangles": 161673,
+   "vertexGroups": 24,
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ]
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "vertexGroups": 24,
+   "shapeKeys": []
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "vertexGroups": 24,
+   "shapeKeys": []
+  },
+  {
+   "name": "lelu_scalp",
+   "triangles": 20882,
+   "vertexGroups": 24,
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ]
+  },
+  {
+   "name": "Icosphere",
+   "triangles": 80,
+   "vertexGroups": 0,
+   "shapeKeys": []
+  }
+ ]
+}

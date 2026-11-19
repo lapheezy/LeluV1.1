@@ -1,0 +1,37 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/assets/lelu-m24-hair-split.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/renders/upper-body.png",
+ "shot": "upper-body",
+ "view": "front",
+ "focus": [
+  "head",
+  "face",
+  "hair",
+  "neck",
+  "torso",
+  "arms"
+ ],
+ "camera": {
+  "center": [
+   -4.023313522338867e-7,
+   0.00009249895811080933,
+   1.3907101154327393
+  ],
+  "radius": 0.5969280562611871
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 24,
+ "threads": 7,
+ "ground": true,
+ "lens": 70,
+ "materials": false,
+ "rest_pose": true,
+ "exclude": [
+  "Icosphere"
+ ]
+}

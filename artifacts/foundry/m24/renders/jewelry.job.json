@@ -1,0 +1,33 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/assets/lelu-m24-hair-split.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/renders/jewelry.png",
+ "shot": "jewelry",
+ "view": "front",
+ "focus": [
+  "accessories.head"
+ ],
+ "camera": {
+  "center": [
+   0,
+   -0.04907458275556564,
+   1.5824611186981201
+  ],
+  "radius": 0.13534896484788744
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 24,
+ "threads": 7,
+ "ground": false,
+ "environment": true,
+ "lens": 70,
+ "materials": false,
+ "rest_pose": true,
+ "exclude": [
+  "Icosphere"
+ ]
+}

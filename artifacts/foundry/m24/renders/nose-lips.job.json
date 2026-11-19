@@ -1,0 +1,33 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/assets/lelu-m24-hair-split.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/renders/nose-lips.png",
+ "shot": "nose-lips",
+ "view": "front",
+ "focus": [
+  "head",
+  "face"
+ ],
+ "camera": {
+  "center": [
+   0,
+   -0.10000000149011612,
+   1.5583000183105469
+  ],
+  "radius": 0.07
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 24,
+ "threads": 7,
+ "ground": false,
+ "lens": 180,
+ "materials": false,
+ "rest_pose": true,
+ "exclude": [
+  "Icosphere"
+ ]
+}

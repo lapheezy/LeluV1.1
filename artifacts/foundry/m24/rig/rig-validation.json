@@ -1,0 +1,97 @@
+{
+ "armature": {
+  "name": "Armature",
+  "bones": 24,
+  "boneNames": [
+   "Hips",
+   "LeftUpLeg",
+   "LeftLeg",
+   "LeftFoot",
+   "LeftToeBase",
+   "RightUpLeg",
+   "RightLeg",
+   "RightFoot",
+   "RightToeBase",
+   "Spine02",
+   "Spine01",
+   "Spine",
+   "LeftShoulder",
+   "LeftArm",
+   "LeftForeArm",
+   "LeftHand",
+   "neck",
+   "Head",
+   "head_end",
+   "headfront",
+   "RightShoulder",
+   "RightArm",
+   "RightForeArm",
+   "RightHand"
+  ],
+  "root": "Hips",
+  "shapeKeyDrivers": "none beyond the exported keys"
+ },
+ "weights": {
+  "mesh": "char1",
+  "vertices": 83133,
+  "unweighted": 0,
+  "unweightedPct": 0.0,
+  "maxInfluences": 4,
+  "vertexGroups": 24,
+  "armatureModifier": true
+ },
+ "clips": [
+  {
+   "name": "Armature|clip0|baselayer_Armature",
+   "frames": [
+    0,
+    0
+   ],
+   "fcurves": 240
+  }
+ ],
+ "shapeKeys": {
+  "eye_patch_l": [
+   "eyeBlinkLeft",
+   "eyeBlinkRight",
+   "eyeWideLeft",
+   "eyeWideRight",
+   "jawOpen",
+   "mouthSmileLeft",
+   "mouthSmileRight",
+   "mouthFrownLeft",
+   "mouthFrownRight",
+   "browInnerUp",
+   "browDownLeft",
+   "browDownRight"
+  ],
+  "eye_patch_r": [
+   "eyeBlinkLeft",
+   "eyeBlinkRight",
+   "eyeWideLeft",
+   "eyeWideRight",
+   "jawOpen",
+   "mouthSmileLeft",
+   "mouthSmileRight",
+   "mouthFrownLeft",
+   "mouthFrownRight",
+   "browInnerUp",
+   "browDownLeft",
+   "browDownRight"
+  ],
+  "lelu_head": [
+   "eyeBlinkLeft",
+   "eyeBlinkRight",
+   "eyeWideLeft",
+   "eyeWideRight",
+   "jawOpen",
+   "mouthSmileLeft",
+   "mouthSmileRight",
+   "mouthFrownLeft",
+   "mouthFrownRight",
+   "browInnerUp",
+   "browDownLeft",
+   "browDownRight"
+  ]
+ }
+}

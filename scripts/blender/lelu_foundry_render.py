@@ -172,6 +172,18 @@ if job.get("materials", True):
                 set_input(node, "Sheen Roughness", 0.6)
                 applied.append(f"{obj.name}: fabric sheen")
 
+# ------------------------------------------------- animation and shape keys
+# A rig test is only evidence if the rig is actually evaluated. `pose_frame`
+# leaves the clip bound and jumps to that frame; `shape_keys` sets key values.
+if job.get("pose_frame") is not None:
+    scene.frame_set(int(job["pose_frame"]))
+if job.get("shape_keys"):
+    for name, value in job["shape_keys"].items():
+        for obj in meshes:
+            keys = obj.data.shape_keys
+            if keys and name in keys.key_blocks:
+                keys.key_blocks[name].value = float(value)
+
 # ------------------------------------------------------------------ framing
 
 def bbox(objects):

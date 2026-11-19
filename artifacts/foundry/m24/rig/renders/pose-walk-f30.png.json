@@ -1,0 +1,73 @@
+{
+ "shot": "upper-body",
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/rig/renders/pose-walk-f30.png",
+ "view": "front",
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "Icosphere"
+ ],
+ "focused": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "Icosphere"
+ ],
+ "focus_missing": [],
+ "triangles": 224313,
+ "materials_applied": [],
+ "warnings": [
+  "focus objects not found; framing the whole model: "
+ ],
+ "camera_blender_zup": {
+  "center": [
+   -4.023313522338867e-07,
+   9.249895811080933e-05,
+   1.3907101154327393
+  ],
+  "radius": 0.5969280562611871,
+  "lens_mm": 70.0,
+  "distance_m": 2.540720758787483
+ },
+ "framing": "explicit",
+ "bounds_blender_zup": {
+  "min": [
+   -0.9510578513145447,
+   -0.9999999403953552,
+   -1.0
+  ],
+  "max": [
+   0.9510578513145447,
+   0.9999999403953552,
+   1.7185028791427612
+  ]
+ },
+ "render": {
+  "engine": "CYCLES",
+  "device": "CPU",
+  "samples": 16,
+  "threads": 7,
+  "resolution": [
+   640,
+   640
+  ],
+  "denoise": true,
+  "view_transform": "AgX"
+ },
+ "render_seconds": 6.22,
+ "blender": "4.2.23 LTS",
+ "job": {
+  "shot": "upper-body",
+  "view": "front",
+  "ground": false
+ }
+}

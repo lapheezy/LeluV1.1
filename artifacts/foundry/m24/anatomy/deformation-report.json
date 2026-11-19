@@ -1,0 +1,81 @@
+{
+ "source": "/workspace/chats/6d861f98cd849b149484323e/leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+ "summary": "4 proposed corrections, 0 applied",
+ "policy": "a proposal is not a change: every entry carries applied=false until a new version proves otherwise",
+ "measuredDefects": [
+  {
+   "feature": "interpupillary",
+   "measured": 51.17,
+   "reference": 63.0,
+   "status": "outside"
+  },
+  {
+   "feature": "mouth width",
+   "measured": 31.13,
+   "reference": 50.4,
+   "status": "outside"
+  },
+  {
+   "feature": "exposed forehead",
+   "measured": -76.63,
+   "reference": 87.68,
+   "status": "outside"
+  },
+  {
+   "feature": "calf vs thigh",
+   "measured": 433.79,
+   "reference": 370.65,
+   "status": "outside"
+  }
+ ],
+ "proposals": [
+  {
+   "id": "D1",
+   "component": "face.eye_spacing",
+   "defect": "interpupillary distance measured at 51.17 mm",
+   "reference": "specification sheet: 63.00 mm",
+   "deltaMm": -11.83,
+   "target": "the eye patches move outward along the measured face surface until the pupil centres are 63 mm apart",
+   "method": "translate each eye patch along the eye-line tangent and re-fit the lid seam; shape keys move with the patches because they are per-vertex displacement fields",
+   "risk": "the lid opening is painted into the head texture, so moving the patches without repainting opens a seam",
+   "verification": "re-measure the patch centroids, render eyes at 1024\u00b2, compare to expression-02",
+   "applied": false
+  },
+  {
+   "id": "D2",
+   "component": "face.mouth_width",
+   "defect": "mouth mesh width 31.13 mm",
+   "reference": "specification sheet: 50.40 mm",
+   "deltaMm": -19.27,
+   "target": "widen the mouth mesh and the lip seam to 50.4 mm without moving the philtrum",
+   "method": "scale the mouth cavity mesh on X about its centre and re-seat it behind the lip seam; the lip line itself is texture, so a repaint is part of the job",
+   "risk": "a wider cavity without a wider painted lip reads as a hole",
+   "verification": "render nose-lips, measure the cavity width, compare to expression-01",
+   "applied": false
+  },
+  {
+   "id": "D3",
+   "component": "hair.front_volume",
+   "defect": "lowest front hair sits 76.63 mm BELOW the eye line",
+   "reference": "specification sheet: 87.68 mm of exposed forehead above the eye line",
+   "deltaMm": -164.31,
+   "target": "lift the front curl mass so the forehead is exposed to 87.68 mm above the eye line",
+   "method": "select hair triangles inside the forehead band and displace along +Z with a falloff, preserving curl shape; the hair is a separate object in v0004 so this is now a local edit",
+   "risk": "lifting the fringe uncovers the painted scalp under it, which is currently never seen",
+   "verification": "re-measure the lowest front hair, render face-close-up and hairline, compare to expression-02",
+   "applied": false
+  },
+  {
+   "id": "D4",
+   "component": "rig.lower_leg",
+   "defect": "calf segment (433.79 mm) is longer than the thigh (370.65 mm)",
+   "reference": "human proportions: the calf is shorter than the thigh in every adult reference",
+   "deltaMm": 63.14,
+   "target": "confirm or correct the knee pivot so the two segments match the photographs",
+   "method": "inspect the LeftLeg bone's rest positions against the mesh knee, then either move the pivot or accept it as a stylised choice",
+   "risk": "moving a knee pivot invalidates the 31 clips authored against it",
+   "verification": "pose the leg, render profile, re-measure the segment",
+   "applied": false
+  }
+ ]
+}

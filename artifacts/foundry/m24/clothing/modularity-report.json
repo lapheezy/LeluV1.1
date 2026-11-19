@@ -1,0 +1,42 @@
+{
+ "currentParts": [
+  {
+   "part": "body + outfit + boots",
+   "object": "char1",
+   "triangles": 39166,
+   "separable": "no: one mesh, one material"
+  },
+  {
+   "part": "hair + head accessories",
+   "object": "lelu_hair",
+   "triangles": 162364,
+   "separable": "yes since v0004"
+  },
+  {
+   "part": "scalp / face skin",
+   "object": "lelu_scalp",
+   "triangles": 20191,
+   "separable": "yes since v0004"
+  },
+  {
+   "part": "eyes",
+   "object": "eye_patch_l / eye_patch_r",
+   "triangles": 2052,
+   "separable": "yes (separate objects since v0003)"
+  },
+  {
+   "part": "mouth and teeth",
+   "object": "lelu_mouth / lelu_teeth",
+   "triangles": 460,
+   "separable": "yes"
+  }
+ ],
+ "assessment": {
+  "clothingSeparableNow": false,
+  "accessoriesSeparableNow": "with the hair, as one object",
+  "why": "clothing shares Material_0 with the skin and is fused into char1; only albedo or a UV island split can separate it",
+  "methodForNextPass": "per-triangle base-colour classification of char1 (same two-means method that split the hair), then a garment UV set so a swapped outfit can carry its own map",
+  "wardrobeReadiness": "not ready: a swapped garment would currently require repainting the body texture"
+ },
+ "preserved": "outfit, boots, choker, tattoo and jewellery textures were not altered"
+}

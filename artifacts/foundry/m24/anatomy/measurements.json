@@ -1,0 +1,373 @@
+{
+ "source": "/workspace/chats/6d861f98cd849b149484323e/leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+ "blender": "4.2.23 LTS",
+ "units": "millimetres unless the key ends in _m",
+ "method": "bone pivots for segment lengths, vertex extents for widths/depths, eye-patch centroids for interpupillary distance",
+ "bones": {
+  "Hips": {
+   "headMm": [
+    -3.78,
+    -3.59,
+    1001.85
+   ],
+   "tailMm": [
+    58.51,
+    -218.08,
+    11989.84
+   ],
+   "parent": null
+  },
+  "LeftUpLeg": {
+   "headMm": [
+    101.74,
+    -3.59,
+    910.79
+   ],
+   "tailMm": [
+    5029.05,
+    -4769.59,
+    -35514.71
+   ],
+   "parent": "Hips"
+  },
+  "LeftLeg": {
+   "headMm": [
+    151.01,
+    -51.25,
+    546.53
+   ],
+   "tailMm": [
+    528.43,
+    16683.79,
+    -39472.53
+   ],
+   "parent": "LeftUpLeg"
+  },
+  "LeftFoot": {
+   "headMm": [
+    154.79,
+    116.1,
+    146.35
+   ],
+   "tailMm": [
+    1423.68,
+    -14609.75,
+    -13213.07
+   ],
+   "parent": "LeftLeg"
+  },
+  "LeftToeBase": {
+   "headMm": [
+    167.48,
+    -31.16,
+    12.76
+   ],
+   "tailMm": [
+    919.81,
+    -19940.17,
+    12.77
+   ],
+   "parent": "LeftFoot"
+  },
+  "RightUpLeg": {
+   "headMm": [
+    -116.24,
+    -3.59,
+    910.04
+   ],
+   "tailMm": [
+    -5481.59,
+    -4769.87,
+    -35818.98
+   ],
+   "parent": "Hips"
+  },
+  "RightLeg": {
+   "headMm": [
+    -169.9,
+    -51.25,
+    542.75
+   ],
+   "tailMm": [
+    -169.9,
+    3676.67,
+    -38720.12
+   ],
+   "parent": "RightUpLeg"
+  },
+  "RightFoot": {
+   "headMm": [
+    -169.9,
+    -13.97,
+    150.12
+   ],
+   "tailMm": [
+    -396.57,
+    -8812.83,
+    -9983.74
+   ],
+   "parent": "RightLeg"
+  },
+  "RightToeBase": {
+   "headMm": [
+    -172.16,
+    -101.96,
+    48.78
+   ],
+   "tailMm": [
+    1242.12,
+    -13449.85,
+    48.79
+   ],
+   "parent": "RightFoot"
+  },
+  "Spine02": {
+   "headMm": [
+    -3.15,
+    -5.73,
+    1111.73
+   ],
+   "tailMm": [
+    59.14,
+    -220.23,
+    12100.09
+   ],
+   "parent": "Hips"
+  },
+  "Spine01": {
+   "headMm": [
+    -2.53,
+    -7.88,
+    1221.62
+   ],
+   "tailMm": [
+    61.65,
+    -228.87,
+    12542.51
+   ],
+   "parent": "Spine02"
+  },
+  "Spine": {
+   "headMm": [
+    -1.89,
+    -10.09,
+    1334.83
+   ],
+   "tailMm": [
+    55.04,
+    -92.53,
+    5638.43
+   ],
+   "parent": "Spine01"
+  },
+  "LeftShoulder": {
+   "headMm": [
+    30.96,
+    -9.12,
+    1365.8
+   ],
+   "tailMm": [
+    12790.97,
+    2938.65,
+    1365.8
+   ],
+   "parent": "Spine"
+  },
+  "LeftArm": {
+   "headMm": [
+    158.56,
+    20.36,
+    1365.8
+   ],
+   "tailMm": [
+    6576.34,
+    1569.39,
+    -17887.96
+   ],
+   "parent": "LeftShoulder"
+  },
+  "LeftForeArm": {
+   "headMm": [
+    222.74,
+    35.85,
+    1173.27
+   ],
+   "tailMm": [
+    12304.11,
+    -6251.16,
+    -15438.64
+   ],
+   "parent": "LeftArm"
+  },
+  "LeftHand": {
+   "headMm": [
+    343.55,
+    -27.02,
+    1007.14
+   ],
+   "tailMm": [
+    10933.7,
+    -3609.61,
+    -17335.58
+   ],
+   "parent": "LeftForeArm"
+  },
+  "neck": {
+   "headMm": [
+    -0.94,
+    -11.46,
+    1406.54
+   ],
+   "tailMm": [
+    92.96,
+    -147.45,
+    8505.39
+   ],
+   "parent": "Spine"
+  },
+  "Head": {
+   "headMm": [
+    0.0,
+    -12.82,
+    1477.53
+   ],
+   "tailMm": [
+    397.52,
+    -580.67,
+    6062.31
+   ],
+   "parent": "neck"
+  },
+  "head_end": {
+   "headMm": [
+    21.49,
+    -43.52,
+    1725.39
+   ],
+   "tailMm": [
+    419.02,
+    -611.37,
+    6310.18
+   ],
+   "parent": "Head"
+  },
+  "headfront": {
+   "headMm": [
+    0.0,
+    -59.19,
+    1477.53
+   ],
+   "tailMm": [
+    0.0,
+    -4696.08,
+    1477.53
+   ],
+   "parent": "Head"
+  },
+  "RightShoulder": {
+   "headMm": [
+    -31.71,
+    -12.13,
+    1365.8
+   ],
+   "tailMm": [
+    -12339.7,
+    3134.04,
+    1365.8
+   ],
+   "parent": "Spine"
+  },
+  "RightArm": {
+   "headMm": [
+    -154.79,
+    19.33,
+    1365.8
+   ],
+   "tailMm": [
+    -8083.29,
+    1285.39,
+    -18643.52
+   ],
+   "parent": "RightShoulder"
+  },
+  "RightForeArm": {
+   "headMm": [
+    -234.07,
+    31.99,
+    1165.71
+   ],
+   "tailMm": [
+    -12692.63,
+    -5723.14,
+    -14690.95
+   ],
+   "parent": "RightArm"
+  },
+  "RightHand": {
+   "headMm": [
+    -358.66,
+    -25.56,
+    1007.14
+   ],
+   "tailMm": [
+    -8770.43,
+    -3911.34,
+    -17805.45
+   ],
+   "parent": "RightForeArm"
+  }
+ },
+ "measurements": {
+  "stature_m": 1.4719,
+  "shoulderWidthMm": 313.35,
+  "hipWidthMm": 217.99,
+  "upperArmMm": 203.54,
+  "forearmMm": 214.81,
+  "thighMm": 370.65,
+  "calfMm": 433.79,
+  "neckMm": 71.01,
+  "headToNeckMm": 250.68,
+  "spineMm": 109.9,
+  "elbowHeightMm": 1173.27,
+  "wristHeightMm": 1007.14,
+  "crotchHeightMm": 1001.85,
+  "interpupillaryMm": 51.17,
+  "eyeHeightMm": 1592.85,
+  "eyeSurfaceMm": {
+   "left": [
+    0.023,
+    -0.091,
+    1.5933
+   ],
+   "right": [
+    -0.0281,
+    -0.091,
+    1.5924
+   ]
+  },
+  "mouthWidthMm": 31.13,
+  "mouthHeightMm": 18.09,
+  "mouthCentreZ": 1546.65,
+  "bodyBounds": {
+   "min": [
+    -0.4488,
+    -0.2089,
+    -0.0
+   ],
+   "max": [
+    0.4488,
+    0.2089,
+    1.4719
+   ]
+  },
+  "faceWidthAtEyeMm": 257.68,
+  "faceDepthAtEyeMm": 235.91,
+  "vertexCount": 355437
+ },
+ "notMeasured": [
+  "skull height without hair (hair is fused into the head mesh: see hair analysis)",
+  "nose width and projection (no landmark geometry, and the texture cannot be measured as geometry)",
+  "finger lengths (hand shells are fused and too small to segment reliably)",
+  "bust/waist/pelvis girth (no cross-section tool in this pass; widths only)"
+ ]
+}

@@ -1,0 +1,136 @@
+{
+ "method": "union-find over mesh edges; a shell is one connected component",
+ "shells": {
+  "total": 86228,
+  "vertices": 355437,
+  "sizeHistogram": {
+   "0-10 mm": 64170,
+   "10-20 mm": 18435,
+   "100-110 mm": 2,
+   "110-120 mm": 1,
+   "130-140 mm": 1,
+   "140-150 mm": 2,
+   "20-30 mm": 2730,
+   "30-40 mm": 588,
+   "40-50 mm": 166,
+   "50-60 mm": 74,
+   "60-70 mm": 39,
+   "70-80 mm": 14,
+   "80-90 mm": 5,
+   "90-100 mm": 1
+  },
+  "sizeMm": {
+   "p10": 3.11,
+   "median": 6.58,
+   "p90": 14.91,
+   "max": 148.7
+  },
+  "verticesPerShell": {
+   "median": 3,
+   "p90": 6,
+   "max": 253
+  },
+  "smallShells": {
+   "maxDiagMm": 60,
+   "count": 86163,
+   "vertices": 353610
+  },
+  "largeShells": {
+   "count": 65,
+   "vertices": 1827
+  },
+  "largest": [
+   {
+    "vertices": 253,
+    "sizeMm": [
+     36.42,
+     17.77,
+     48.46
+    ],
+    "centreMm": [
+     -16.71,
+     -95.92,
+     1562.83
+    ],
+    "diagMm": 63.17,
+    "topMm": 1587.06,
+    "bottomMm": 1538.6
+   },
+   {
+    "vertices": 218,
+    "sizeMm": [
+     21.06,
+     15.0,
+     11.88
+    ],
+    "centreMm": [
+     -8.1,
+     -96.56,
+     1543.15
+    ],
+    "diagMm": 28.46,
+    "topMm": 1549.09,
+    "bottomMm": 1537.2
+   },
+   {
+    "vertices": 202,
+    "sizeMm": [
+     17.26,
+     12.57,
+     11.96
+    ],
+    "centreMm": [
+     6.37,
+     -97.78,
+     1543.18
+    ],
+    "diagMm": 24.47,
+    "topMm": 1549.16,
+    "bottomMm": 1537.2
+   },
+   {
+    "vertices": 104,
+    "sizeMm": [
+     17.94,
+     8.91,
+     12.92
+    ],
+    "centreMm": [
+     5.81,
+     -100.01,
+     1556.22
+    ],
+    "diagMm": 23.84,
+    "topMm": 1562.68,
+    "bottomMm": 1549.76
+   },
+   {
+    "vertices": 87,
+    "sizeMm": [
+     47.52,
+     37.45,
+     21.87
+    ],
+    "centreMm": [
+     -26.62,
+     -4.15,
+     1698.39
+    ],
+    "diagMm": 64.33,
+    "topMm": 1709.33,
+    "bottomMm": 1687.45
+   }
+  ]
+ },
+ "hairline": {
+  "frontShells": 7120,
+  "highestFrontTopMm": 1718.33,
+  "eyeHeightMm": 1592.85,
+  "aboveEyeLineMm": 125.48,
+  "note": "measured on the highest shell whose centre is within 80 mm of the midline and in front of the face; the photographs' target is 87.68 mm"
+ },
+ "coverage": {
+  "headMeshHeightMm": 734.67,
+  "lowestShellMm": 983.83
+ }
+}

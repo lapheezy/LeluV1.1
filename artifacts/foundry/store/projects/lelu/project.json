@@ -3,11 +3,12 @@
  "name": "LÉLU",
  "subject": "lelu-canonical",
  "createdAt": "2026-11-19T10:44:34.865Z",
- "head": "v0003",
+ "head": "v0004",
  "versions": [
   "v0001",
   "v0002",
-  "v0003"
+  "v0003",
+  "v0004"
  ],
  "redo": [],
  "settings": {}

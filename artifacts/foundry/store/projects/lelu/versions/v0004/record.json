@@ -1,0 +1,42 @@
+{
+ "id": "v0004",
+ "projectId": "lelu",
+ "label": "M24 v0004 — hair separated from scalp (geometry unchanged)",
+ "createdAt": "2026-11-19T13:50:12.360Z",
+ "parentId": "v0003",
+ "operation": "deform",
+ "spec": {
+  "source": "meshy",
+  "parent": "v0003",
+  "parentSha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+  "change": "lelu_head split into lelu_hair + lelu_scalp by per-triangle base-colour classification",
+  "movedVertices": 0,
+  "objects": [
+   "char1",
+   "lelu_scalp",
+   "lelu_hair",
+   "eye_patch_l",
+   "eye_patch_r",
+   "lelu_mouth",
+   "lelu_teeth"
+  ],
+  "triangles": {
+   "hair": 162364,
+   "scalp": 20191
+  }
+ },
+ "model": {
+  "file": "versions/v0004/model.glb",
+  "sha256": "6b9bccbe3591a3eecdf624e2965e83490182213f3c7f8dab0bd6e106f5594b18",
+  "bytes": 102886260
+ },
+ "triangles": 224233,
+ "validation": null,
+ "renders": [],
+ "exports": [],
+ "notes": [
+  "the split is lossless: the union of lelu_hair and lelu_scalp is the original lelu_head triangle for triangle",
+  "appearance check: 1024² face close-up, pixel RMS 2.03/255 against the v0003 render",
+  "no vertex was moved, welded or smoothed; shape keys and vertex groups were carried by Blender's separate operator"
+ ]
+}
