@@ -1,0 +1,45 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/meshes/v011_multi-image-to-3d_bronze_velocity/model.glb",
+ "output": "artifacts/foundry/m25c/outfit-a/raw-front.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "radius": 1.0,
+  "lens": 70.0,
+  "distance": 4.0154024443539225,
+  "location": [
+   0.0,
+   -4.002614498138428,
+   0.3202091455459595
+  ]
+ },
+ "resolution": [
+  768,
+  1152
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0220255744126108,
+  "exposureEV": -2.5053624859940653
+ },
+ "objects": [
+  "Mesh_0"
+ ],
+ "triangles": 92841,
+ "materialsApplied": [],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 11.04,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}
