@@ -25,6 +25,7 @@
  */
 
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createSelfJournalApi } from "./plugins/selfJournalApi.ts";
 import { createVoiceApi } from "./plugins/voiceApi.ts";
 import { createLivekitApi } from "./plugins/livekitApi.ts";
 import { createVoxApi } from "./plugins/voxApi.ts";
@@ -456,6 +457,7 @@ const nekoApi = createNekoApi((key) => process.env[key]);
 
 createEngineerApi(createNodeEngineerAdapter("node-server")).attach(middlewares);
 createSelfViewApi().attach(middlewares);
+createSelfJournalApi().attach(middlewares);
 // Intelligence integrations: real service probes, real OPA decisions and
 // real security scans. Mounted HERE as well as in Vite dev, so the deployed
 // runtime is not a lesser version of the development one.

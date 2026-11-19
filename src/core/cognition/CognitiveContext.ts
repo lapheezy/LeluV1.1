@@ -18,6 +18,7 @@
 import AgentEventBus from "../agent/AgentEvents";
 import { ownerForTask } from "../multichat/TurnOwnership";
 import SelfModel from "./SelfModel";
+import SelfChangeAwareness from "./SelfChangeAwareness";
 import type { SelfModelState } from "./SelfModel";
 import ProjectStore from "../projects/ProjectStore";
 import type { LeluProject } from "../projects/ProjectStore";
@@ -217,6 +218,8 @@ export interface CognitiveContextSnapshot {
    * studio records, not from a summary a model wrote about itself.
    */
   studioWork: string;
+  /** What was changed in her (git + journal) and what she is wearing, first person. */
+  selfChanges: string;
 
   /** Live protected actions waiting for a human decision. */
   studioApprovals: string;
@@ -377,6 +380,7 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     // same records the Studio window shows, so a chat answer about a
     // project cannot disagree with the panel.
     studioWork: describeStudioWork(),
+    selfChanges: (() => { try { return SelfChangeAwareness.getInstance().contextText(); } catch { return ""; } })(),
     studioApprovals: pendingStudioApprovals(),
     checkpoints,
     recentErrors,
@@ -571,6 +575,9 @@ Capabilities: ${ctx.self.capabilities.join(", ")}
 ${ctx.self.projects.length > 0 ? `Projects: ${ctx.self.projects.join(", ")}` : ""}
 ${ctx.self.goals.length > 0 ? `Goals: ${ctx.self.goals.join(", ")}` : ""}
 ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", ")}` : ""}`);
+
+  // What has been changed in her, by whom and why — so she knows her own history.
+  if (ctx.selfChanges) sections.push(`## HOW I HAVE BEEN CHANGED\n${ctx.selfChanges}`);
 
   // Active projects
   if (ctx.projects.length > 0) {

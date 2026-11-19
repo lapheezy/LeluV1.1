@@ -1,0 +1,22 @@
+{
+ "id": "new-look-from-photos",
+ "title": "Make a new wearable look of me from a person's outfit photographs",
+ "for": "LÉLU",
+ "why": "This is how the coat, the catsuit and the Home/Laidback 3 look were made. A photograph rarely shows the whole outfit in a pose a rigger can bind, so I first ask for an A-pose front and a turnaround in the same outfit, then build, rig, and put my own head on it.",
+ "spendsCredits": 58,
+ "params": {"look": "wardrobe id, lowercase_with_underscores", "photo": "path of the main outfit photograph", "dir": "leluverse/assets/characters/lelu_character/meshes/<next vNNN>_<look>", "views": "panel order of the turnaround, e.g. left,back,right"},
+ "learnedFrom": "journal/2026-11-19-wardrobe-looks.md",
+ "steps": [
+  {"id": "front", "title": "A-pose front view from the photograph", "kind": "meshy", "spend": 9, "script": "scripts/foundry/m25c_meshy.py", "args": ["i2i", "${look}", "${dir}", "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, full body visible head to toe, plain light grey background. Keep every garment, accessory and hairstyle detail identical to the reference.", "nano-banana-pro", "${photo}"], "why": "Riggers need an A-pose; the photograph is usually a walk or a crop."},
+  {"id": "wait-front", "title": "Wait for the front view and download it", "kind": "meshy-wait", "script": "scripts/foundry/m25c_meshy.py", "args": ["wait", "${dir}", "image-to-image", "${task:front}"], "why": "Look at it before going on: if the outfit changed, stop."},
+  {"id": "turnaround", "title": "Left, back and right views of the same outfit", "kind": "meshy", "spend": 9, "script": "scripts/foundry/m25c_meshy.py", "args": ["i2i", "${look}", "${dir}", "The same woman in exactly the same outfit, accessories and hairstyle, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body.", "nano-banana-pro", "${file:front}"], "why": "Without the back the 3D build invents it (that is how the first coat got slits in its back)."},
+  {"id": "wait-turn", "title": "Wait for the turnaround", "kind": "meshy-wait", "script": "scripts/foundry/m25c_meshy.py", "args": ["wait", "${dir}", "image-to-image", "${task:turnaround}"]},
+  {"id": "split", "title": "Cut the turnaround into one image per view", "kind": "python", "script": "scripts/foundry/m25c_split_views.py", "args": ["${dir}", "${file:turnaround}", "${views}"], "why": "multi-image-to-3d takes up to four separate views."},
+  {"id": "build", "title": "Build the 3D outfit body", "kind": "meshy", "spend": 35, "script": "scripts/foundry/m25c_meshy.py", "args": ["submit", "${look}", "${dir}", "${file:front}", "${dir}/split_left.png", "${dir}/split_back.png", "${dir}/split_right.png"]},
+  {"id": "wait-build", "title": "Wait for the build", "kind": "meshy-wait", "script": "scripts/foundry/m25c_meshy.py", "args": ["wait", "${dir}", "multi-image-to-3d", "${task:build}"]},
+  {"id": "rig", "title": "Rig it with the same 24-bone humanoid skeleton as mine", "kind": "meshy", "spend": 5, "script": "scripts/foundry/m25c_meshy.py", "args": ["rig", "${look}", "${dir}", "${task:build}"]},
+  {"id": "wait-rig", "title": "Wait for the rig", "kind": "meshy-wait", "script": "scripts/foundry/m25c_meshy.py", "args": ["wait", "${dir}", "rigging", "${task:rig}"]},
+  {"id": "assemble", "title": "Write the assemble job and put my head on", "kind": "note", "why": "Copy artifacts/foundry/m25c/v2/assemble-home_laidback3.job.json, set outfit to ${dir}/rigged.glb, headOffset = mean of (outfit neck − my neck) and (outfit Head − my Head) bone positions, cutZ = 1.465 + headOffset.z, hair = outfit. Then run lelu_m25c_lookassemble.py with it, render a bust, and look before registering."},
+  {"id": "register", "title": "Add the look to m25c-wardrobe.ts and register it", "kind": "note", "why": "Then add words for it to LOOK_ALIASES in src/core/avatar/outfitCommand.ts so a person can ask for it, and write a journal entry."}
+ ]
+}

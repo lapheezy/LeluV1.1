@@ -25,7 +25,22 @@ function glbJson(file: string): any {
   return JSON.parse(b.subarray(20, 20 + len).toString("utf8"));
 }
 
-const LOOKS = { camo_repaired: "v014_look_camo_repaired", bronze_velocity: "v015_look_bronze_velocity", rose_gold_sovereign: "v016_look_rose_gold_sovereign" };
+const EXPECTED_LOOKS = ["camo_repaired", "bronze_velocity", "rose_gold_sovereign", "home_laidback3"];
+
+/** The file each look points at, read from her manifest — never hard-coded. */
+function activeLooks(): Record<string, { dir: string; file: string; sha256: string; jobId: string; job: any }> {
+  const manifest = json(path.join(C, "manifests/character.json"));
+  const ledger = json(path.join(C, "generation_logs/jobs.json"));
+  const jobs: any[] = Array.isArray(ledger) ? ledger : ledger.jobs ?? Object.values(ledger);
+  const out: Record<string, any> = {};
+  for (const look of EXPECTED_LOOKS) {
+    const jobId = manifest.active[`look:${look}`];
+    const job = jobs.find((j) => j.id === jobId);
+    const f = job?.output?.files.find((x: any) => x.role === "model");
+    out[look] = { jobId, job, file: f?.file, sha256: f?.sha256, dir: f ? path.basename(path.dirname(f.file)) : "" };
+  }
+  return out;
+}
 
 test("v0003, v0004 and v0005 are untouched", () => {
   assert.equal(sha(path.join(C, "rig/v005_faceshapes_mvwaqbim/lelu.glb")), "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce");
@@ -33,37 +48,32 @@ test("v0003, v0004 and v0005 are untouched", () => {
   assert.equal(sha(path.join(ROOT, "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb")), "1170e1ff52414be0786e2f280d1717023be26907b135b4e8ec83cfed4207e0ee");
 });
 
-test("each new look is an approved look slot whose job points at the bytes on disk", () => {
-  const manifest = json(path.join(C, "manifests/character.json"));
-  const ledger = json(path.join(C, "generation_logs/jobs.json"));
-  const jobs: any[] = Array.isArray(ledger) ? ledger : ledger.jobs ?? Object.values(ledger);
-  for (const [look, dir] of Object.entries(LOOKS)) {
-    const jobId = manifest.active[`look:${look}`];
-    assert.ok(jobId, `look:${look} approved`);
-    const job = jobs.find((j) => j.id === jobId);
-    assert.ok(job && job.status === "SUCCEEDED" && job.validation?.verdict?.meshValid && job.validation?.verdict?.rigValid, `${look} job valid`);
-    const file = job.output.files.find((f: any) => f.role === "model");
-    assert.equal(file.file, `characters/lelu_character/meshes/${dir}/lelu.glb`);
-    assert.equal(sha(path.join(A, file.file)), file.sha256, `${look} bytes match the job record`);
-    assert.ok(file.bytes < 100 * 1024 * 1024);
+test("each look is an approved look slot whose job points at the bytes on disk", () => {
+  for (const [look, a] of Object.entries(activeLooks())) {
+    assert.ok(a.jobId, `look:${look} approved`);
+    assert.ok(a.job && a.job.status === "SUCCEEDED" && a.job.validation?.verdict?.meshValid && a.job.validation?.verdict?.rigValid, `${look} job valid`);
+    assert.match(a.file, /^characters\/lelu_character\/meshes\/v\d{3}_look_/);
+    assert.equal(sha(path.join(A, a.file)), a.sha256, `${look} bytes match the job record`);
+    assert.ok(readFileSync(path.join(A, a.file)).length < 100 * 1024 * 1024);
   }
 });
 
 test("every look wears LÉLU's own head with her 12 face shapes on one 24-joint skeleton", () => {
-  for (const dir of Object.values(LOOKS)) {
-    const g = glbJson(path.join(C, "meshes", dir, "lelu.glb"));
+  for (const { dir, file } of Object.values(activeLooks())) {
+    const g = glbJson(path.join(A, file));
     assert.equal(g.skins.length, 1, `${dir}: one skeleton`);
     assert.equal(g.skins[0].joints.length, 24, `${dir}: 24 joints`);
     const names = g.nodes.map((n: any) => n.name);
-    for (const part of ["lelu_scalp", "lelu_hair", "lelu_hair_ringlets", "eye_patch_l", "eye_patch_r", "lelu_mouth"]) assert.ok(names.includes(part), `${dir}: ${part}`);
+    for (const part of ["lelu_scalp", "lelu_hair", "eye_patch_l", "eye_patch_r", "lelu_mouth"]) assert.ok(names.includes(part), `${dir}: ${part}`);
     const scalp = g.meshes.find((m: any) => g.nodes.some((n: any) => n.name === "lelu_scalp" && g.meshes[n.mesh] === m));
     assert.equal(scalp.primitives[0].targets.length, 12, `${dir}: face shape keys`);
   }
 });
 
-test("Outfit A's handbag is its own node", () => {
-  const g = glbJson(path.join(C, "meshes", LOOKS.bronze_velocity, "lelu.glb"));
-  assert.ok(g.nodes.some((n: any) => n.name === "bronze_bag"));
+test("the coat and catsuit handbags are their own nodes", () => {
+  const looks = activeLooks();
+  assert.ok(glbJson(path.join(A, looks.bronze_velocity.file)).nodes.some((n: any) => n.name === "bronze_lotus_bag"));
+  assert.ok(glbJson(path.join(A, looks.rose_gold_sovereign.file)).nodes.some((n: any) => n.name === "rose_gold_bag"));
 });
 
 test("paid Meshy jobs record their authorisation and the checksum of every file kept", () => {

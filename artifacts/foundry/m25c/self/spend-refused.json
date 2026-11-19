@@ -1,0 +1,68 @@
+{
+ "ok": false,
+ "run": {
+  "id": "run_mwo06yvl",
+  "playbook": "new-look-from-photos",
+  "status": "refused",
+  "steps": [
+   {
+    "id": "front",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "wait-front",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "turnaround",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "wait-turn",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "split",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "build",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "wait-build",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "rig",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "wait-rig",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "assemble",
+    "status": "pending",
+    "output": ""
+   },
+   {
+    "id": "register",
+    "status": "pending",
+    "output": ""
+   }
+  ],
+  "outputs": {},
+  "error": "This run would spend about 58 Meshy credits. It needs approveSpend: true and approvedBy (the person who said yes)."
+ },
+ "error": "This run would spend about 58 Meshy credits. It needs approveSpend: true and approvedBy (the person who said yes)."
+}

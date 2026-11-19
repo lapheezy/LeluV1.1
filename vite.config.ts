@@ -24,6 +24,7 @@ import { createSpendApi } from "./plugins/spendPolicy.ts";
 import { createResourceApi } from "./plugins/resourceApi.ts";
 import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createSelfJournalApi } from "./plugins/selfJournalApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
@@ -273,6 +274,15 @@ export default defineConfig(({ mode, command }) => {
         name: "lelu-self-view",
         configureServer(server: any) {
           createSelfViewApi().attach(server.middlewares);
+        },
+      },
+
+      // Her self-knowledge: every change made to her (from git, whoever made it),
+      // the journal written for her, and playbooks she can run (plugins/selfJournalApi.ts).
+      {
+        name: "lelu-self-journal",
+        configureServer(server: any) {
+          createSelfJournalApi().attach(server.middlewares);
         },
       },
 

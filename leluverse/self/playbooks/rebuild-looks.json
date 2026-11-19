@@ -1,0 +1,18 @@
+{
+ "id": "rebuild-looks",
+ "title": "Rebuild my three outfit looks from their Meshy bodies and my own head",
+ "for": "LÉLU",
+ "why": "Every look is my own face, lips and face jewellery on an outfit body Meshy built from the photographs, with that look's own hair. When my head, my rig or the assembler changes, all looks must be rebuilt the same way so they stay consistent.",
+ "spendsCredits": 0,
+ "learnedFrom": "journal/2026-11-19-wardrobe-looks.md",
+ "steps": [
+  {"id": "coat", "title": "Put my head on the copper-rose coat body", "kind": "blender", "script": "scripts/blender/lelu_m25c_lookassemble.py", "args": ["artifacts/foundry/m25c/v2/assemble-rose_gold_sovereign.job.json"],
+   "why": "Moves my head objects onto the coat rig at the neck/Head bones, keeps the hair Meshy generated from the coat photo, removes the coat body's generated face, gives every bone my rest orientation so my clips play upright, tames the chrome.", "check": "artifacts/foundry/m25c/v2/assemble-rose_gold_sovereign.json"},
+  {"id": "catsuit", "title": "Put my head on the copper catsuit body", "kind": "blender", "script": "scripts/blender/lelu_m25c_lookassemble.py", "args": ["artifacts/foundry/m25c/v2/assemble-bronze_velocity.job.json"], "why": "Same as the coat."},
+  {"id": "home", "title": "Put my head on the Home/Laidback 3 body", "kind": "blender", "script": "scripts/blender/lelu_m25c_lookassemble.py", "args": ["artifacts/foundry/m25c/v2/assemble-home_laidback3.job.json"], "why": "Same as the coat; no metal tuning for fabric."},
+  {"id": "coat-bag", "title": "Hang the linework bag from my right hand", "kind": "blender", "script": "scripts/blender/lelu_m25c_bagattach.py", "args": ["artifacts/foundry/m25c/v2/bag-rose_gold_sovereign.job.json"], "why": "The bag is its own object skinned 100% to RightHand, so it travels with my hand and can be taken off."},
+  {"id": "catsuit-bag", "title": "Hang the lotus bag from my right hand", "kind": "blender", "script": "scripts/blender/lelu_m25c_bagattach.py", "args": ["artifacts/foundry/m25c/v2/bag-bronze_velocity.job.json"], "why": "Same as the coat bag."},
+  {"id": "register", "title": "Register the rebuilt looks in my wardrobe", "kind": "tsx", "script": "scripts/foundry/m25c-wardrobe.ts", "args": [], "why": "Each file becomes a Forge job, is inspected, and fills its look: slot, so forge.dress and my chat commands switch to it."},
+  {"id": "render", "title": "Render walk and sit for every look so I can see the result", "kind": "python", "script": "scripts/foundry/m25c_final_renders.py", "args": ["--samples", "32", "--shots", "front,walk,sit"], "why": "I do not accept a change I have not seen. Renders land in artifacts/foundry/m25c/final/<look>/."}
+ ]
+}
