@@ -358,9 +358,10 @@ the two pre-existing environmental failures above. Detailed record: `MISSION-22/
 
 - Branch: `freebuff/4fe6237b54885c7ced31f590`
 - Base commit: `aa8b1bd`
-- Commit: recorded in `MISSION-22/commit.txt` (implementation) — the working tree also contains the
-  prior mission's uncommitted 2.0/2.1 work, which this mission builds on and which is committed with it.
-  Nothing was pushed.
+- Implementation commit: **`2c3d149`** — "Add memory sovereignty to Lélu's memory pipeline". It carries
+  this report, all 2.2 code, tests, scripts and artifacts, together with the prior mission's 2.0/2.1 work
+  that this mission extends (it was uncommitted on the branch and cannot be separated from it).
+  A follow-up commit records `MISSION-22/commit.txt` with the exact hashes. Nothing was pushed.
 
 Reproduction instructions: `MISSION-22/acceptance/README.md`.
 
