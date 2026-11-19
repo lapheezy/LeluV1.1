@@ -1,0 +1,40 @@
+ "before": "hooded",
+ "looks": [
+  {
+   "id": "hooded",
+   "file": "characters/lelu_character/rig/v006_rigging_01a195df/rigged.glb",
+   "meshValid": true
+  },
+  {
+   "id": "camo_repaired",
+   "file": "characters/lelu_character/meshes/v014_look_camo_repaired/lelu.glb",
+   "meshValid": true
+  },
+  {
+   "id": "bronze_velocity",
+   "file": "characters/lelu_character/meshes/v015_look_bronze_velocity/lelu.glb",
+   "meshValid": true
+  },
+  {
+   "id": "rose_gold_sovereign",
+   "file": "characters/lelu_character/meshes/v016_look_rose_gold_sovereign/lelu.glb",
+   "meshValid": true
+  }
+ ],
+ "switched": [
+  {
+   "asked": "camo_repaired",
+   "current": "camo_repaired"
+  },
+  {
+   "asked": "bronze_velocity",
+   "current": "bronze_velocity"
+  },
+  {
+   "asked": "rose_gold_sovereign",
+   "current": "rose_gold_sovereign"
+  }
+ ],
+ "unknownRefused": "No approved look \"not_a_look\" for lelu_character.",
+ "restored": "hooded"
+}

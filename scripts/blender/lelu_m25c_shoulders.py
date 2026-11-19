@@ -46,11 +46,14 @@ for o in list(bpy.data.objects):
         if o.animation_data:
             o.animation_data_clear()
 
-body = bpy.data.objects["char1"]
+body = bpy.data.objects[job.get("object", "char1")]
 A = C.mesh_arrays(body)
-tex = C.triangle_texture(body, A)
 dih = C.triangle_dihedral(A["wco"], A["tv"])
-cls = C.classify(body, A, tex, dih)
+if job.get("classify", True):
+    tex = C.triangle_texture(body, A)
+    cls = C.classify(body, A, tex, dih)
+else:
+    cls = np.array(["fabric"] * len(A["tv"]), dtype=object)
 wid = C.weld_ids(A["wco"])
 nw = int(wid.max()) + 1
 wt = wid[A["tv"]]
@@ -101,7 +104,7 @@ neww = new @ M[:3, :3].T + M[:3, 3]
 dih2 = C.triangle_dihedral(neww, A["tv"])
 
 cen = A["wco"][A["tv"]].mean(1)
-regions = {"shoulders": (cen[:, 2] > 1.30) & (cen[:, 2] < 1.47) & (np.abs(cen[:, 0]) > 0.08),
+regions = job.get("regionsOverride") and {k: (cen[:, 2] > v[0]) & (cen[:, 2] < v[1]) for k, v in job["regionsOverride"].items()} or {"shoulders": (cen[:, 2] > 1.30) & (cen[:, 2] < 1.47) & (np.abs(cen[:, 0]) > 0.08),
            "upperChest": (cen[:, 2] > 1.22) & (cen[:, 2] < 1.40) & (np.abs(cen[:, 0]) <= 0.12) & (cen[:, 1] < 0),
            "upperBack": (cen[:, 2] > 1.20) & (cen[:, 2] < 1.47) & (cen[:, 1] > 0.02),
            "arms": (np.abs(cen[:, 0]) > 0.2) & (cen[:, 2] > 0.95) & (cen[:, 2] < 1.40)}

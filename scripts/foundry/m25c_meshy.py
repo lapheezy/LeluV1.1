@@ -2,6 +2,7 @@
 LÉLU M25 Complete — authorised Meshy jobs for the two new looks (user approved in-session).
 
     python3 scripts/foundry/m25c_meshy.py submit <look> <outDir> <img> [<img> ...]   # multi-image-to-3d
+    python3 scripts/foundry/m25c_meshy.py i2i    <look> <outDir> <prompt> <model> <img> [...]  # image-to-image
     python3 scripts/foundry/m25c_meshy.py rig    <look> <outDir> <task_id>            # rigging of that task
     python3 scripts/foundry/m25c_meshy.py wait   <outDir> <kind> <task_id>            # poll + download
 
@@ -25,7 +26,8 @@ from PIL import Image
 
 API = os.environ.get("MESHY_API_URL", "https://api.meshy.ai").rstrip("/")
 KEY = os.environ["MESHY_API_KEY"].strip()
-PATHS = {"multi-image-to-3d": "/openapi/v1/multi-image-to-3d", "rigging": "/openapi/v1/rigging"}
+PATHS = {"multi-image-to-3d": "/openapi/v1/multi-image-to-3d", "rigging": "/openapi/v1/rigging",
+         "image-to-image": "/openapi/v1/image-to-image"}
 
 
 def call(method, path, body=None):
@@ -71,6 +73,17 @@ def submit(look, out, images):
     print("TASK", res.get("result"))
 
 
+def i2i(look, out, prompt, images, model="nano-banana-pro", multi=False):
+    os.makedirs(out, exist_ok=True)
+    body = {"ai_model": model, "prompt": prompt, "reference_image_urls": [data_uri(i) for i in images],
+            "generate_multi_view": multi, "remove_background": True}
+    res = call("POST", PATHS["image-to-image"], body)
+    save(out, {"look": look, "kind": "image-to-image", "task": res.get("result"), "submittedAt": time.time(),
+               "request": {k: v for k, v in body.items() if k != "reference_image_urls"},
+               "images": [{"file": i, "sha256": sha(i)} for i in images]})
+    print("TASK", res.get("result"))
+
+
 def rig(look, out, task):
     res = call("POST", PATHS["rigging"], {"input_task_id": task, "height_meters": 1.72})
     save(out, {"look": look, "kind": "rigging", "task": res.get("result"), "input_task_id": task, "submittedAt": time.time(),
@@ -96,6 +109,9 @@ def wait(out, kind, task):
                     urls[f"texture_{i}_{k}.png"] = v
             if t.get("thumbnail_url"):
                 urls["preview.png"] = t["thumbnail_url"]
+        elif kind == "image-to-image":
+            for i, u in enumerate(t.get("image_urls") or []):
+                urls[f"view_{task[:8]}_{i}.png"] = u
         else:
             r = t.get("result") or {}
             for k, v in (r.get("rigged_character_glb_url") and {"rigged.glb": r["rigged_character_glb_url"]} or {}).items():
@@ -116,6 +132,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     if cmd == "submit":
         submit(sys.argv[2], sys.argv[3], sys.argv[4:])
+    elif cmd == "i2i":
+        i2i(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[6:], model=sys.argv[5])
     elif cmd == "rig":
         rig(sys.argv[2], sys.argv[3], sys.argv[4])
     elif cmd == "wait":

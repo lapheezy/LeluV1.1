@@ -33,7 +33,10 @@
     "animation:sit_talk": "fj_mvx4n7fz_ff51bd",
     "animation:sit_thumbs_up": "fj_mvx4n7uz_fdc107",
     "animation:strut": "fj_mvx4n8a3_64adf1",
-    "look:hooded": "fj_mvxh0elc_01b3ea"
+    "look:hooded": "fj_mvxh0elc_01b3ea",
+    "look:camo_repaired": "fj_mwnxaavo_4b3cd7",
+    "look:bronze_velocity": "fj_mwnxab95_031ac5",
+    "look:rose_gold_sovereign": "fj_mwnxabmc_42d1c9"
   },
   "history": [
     {
@@ -281,6 +284,24 @@
       "jobId": "fj_mvxg0q5l_10c652",
       "replacedBy": "fj_mvxh0elc_01b3ea",
       "at": 1793515872726
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": null,
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795115275184
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": null,
+      "replacedBy": "fj_mwnxab95_031ac5",
+      "at": 1795115275625
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": null,
+      "replacedBy": "fj_mwnxabmc_42d1c9",
+      "at": 1795115276088
     }
   ],
   "currentLook": "hooded"

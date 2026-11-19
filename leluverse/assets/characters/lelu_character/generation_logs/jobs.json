@@ -7082,5 +7082,334 @@
         "animated": true
       }
     }
+  },
+  {
+    "id": "fj_mwnxaavo_4b3cd7",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "M25-complete: the original Meshy outfit (corset, camo, cargo, boots) with mouth cavity seated, lip surface smoothed, ringlets kept off jewellery, shoulders unfolded",
+    "request": {
+      "look": "camo_repaired",
+      "source": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+      "foundryVersion": "v0005",
+      "meshyRig": "fj_mvwaqbim_55226d"
+    },
+    "requestKey": "m25c-look:camo_repaired:49f377648e5a9914",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1795115274900,
+    "updatedAt": 1795115275180,
+    "submittedAt": 1795115274900,
+    "finishedAt": 1795115274900,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v014_look_camo_repaired",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/meshes/v014_look_camo_repaired/lelu.glb",
+          "bytes": 45536368,
+          "sha256": "49f377648e5a9914c297aea9abf1a0939b56295be7b5e4e01e8c17b2c6f51663"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 45536368,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 9,
+        "primitives": 14,
+        "vertices": 616977,
+        "triangles": 370279,
+        "bounds": {
+          "min": [
+            -0.4487794041633606,
+            5.347573619474133e-7,
+            -0.20894138514995575
+          ],
+          "max": [
+            0.4487794041633606,
+            1.727739930152893,
+            0.20893873274326324
+          ],
+          "size": [
+            0.8975588083267212,
+            1.7277393953955311,
+            0.417880117893219
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 13,
+        "textures": 20,
+        "images": 8,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 616977
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": false
+      }
+    }
+  },
+  {
+    "id": "fj_mwnxab95_031ac5",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "M25-complete Outfit A: copper exosculpt catsuit (Meshy multi-image 01a1f513 + rigging 01a1f519) worn with LÉLU's own head; handbag a separate RightHand object",
+    "request": {
+      "look": "bronze_velocity",
+      "source": "artifacts/foundry/m25c/steps/look-bronze_velocity-bag.glb",
+      "meshyTasks": [
+        "01a1f513-b64d-7005-ace7-4b019ca9aee6",
+        "01a1f519-f5fa-71e6-937c-2c70e8c88f4e"
+      ],
+      "head": "camo_repaired"
+    },
+    "requestKey": "m25c-look:bronze_velocity:25c0ac662b74fb47",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1795115275385,
+    "updatedAt": 1795115275623,
+    "submittedAt": 1795115275385,
+    "finishedAt": 1795115275385,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v015_look_bronze_velocity",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/meshes/v015_look_bronze_velocity/lelu.glb",
+          "bytes": 48309740,
+          "sha256": "25c0ac662b74fb479ed9c68cf6b123076eaf6c691e8eba9c71cd2e2774311cd0"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 48309740,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 10,
+        "primitives": 13,
+        "vertices": 618443,
+        "triangles": 400351,
+        "bounds": {
+          "min": [
+            -0.3762875199317932,
+            -3.4922689451377664e-7,
+            -0.19958949089050293
+          ],
+          "max": [
+            0.3762875199317932,
+            1.7246716022491455,
+            0.19189701974391937
+          ],
+          "size": [
+            0.7525750398635864,
+            1.72467195147604,
+            0.3914865106344223
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 11,
+        "textures": 14,
+        "images": 8,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 618443
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": false
+      }
+    }
+  },
+  {
+    "id": "fj_mwnxabmc_42d1c9",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "M25-complete Outfit B: copper-rose tailored coat (Meshy image-to-image 01a1f527/01a1f528, multi-image 01a1f529, rigging 01a1f52e) worn with LÉLU's own head; skirt unfolded",
+    "request": {
+      "look": "rose_gold_sovereign",
+      "source": "artifacts/foundry/m25c/steps/look-rose_gold_sovereign-unfold.glb",
+      "meshyTasks": [
+        "01a1f527-94b1-71dc-98f9-b9426adc3164",
+        "01a1f528-8190-721d-9035-eea6c9618b26",
+        "01a1f529-837a-75b2-af99-98c9183ca6c0",
+        "01a1f52e-c467-76fd-aced-07accb6bb9f7"
+      ],
+      "head": "camo_repaired"
+    },
+    "requestKey": "m25c-look:rose_gold_sovereign:f3431370ccc423ae",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1795115275860,
+    "updatedAt": 1795115276085,
+    "submittedAt": 1795115275860,
+    "finishedAt": 1795115275860,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v016_look_rose_gold_sovereign",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/meshes/v016_look_rose_gold_sovereign/lelu.glb",
+          "bytes": 50572216,
+          "sha256": "f3431370ccc423ae4cd07f2417471fe9d8b5eb146863e0f4acea948919c097e0"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 50572216,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 9,
+        "primitives": 12,
+        "vertices": 662546,
+        "triangles": 395270,
+        "bounds": {
+          "min": [
+            -0.4148183763027191,
+            0.005234515760093927,
+            -0.19350604712963104
+          ],
+          "max": [
+            0.41649118065834045,
+            1.7246406078338623,
+            0.1929686814546585
+          ],
+          "size": [
+            0.8313095569610596,
+            1.7194060920737684,
+            0.38647472858428955
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 11,
+        "textures": 14,
+        "images": 8,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 662546
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": false
+      }
+    }
   }
 ]

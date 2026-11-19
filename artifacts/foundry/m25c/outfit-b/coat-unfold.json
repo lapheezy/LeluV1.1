@@ -1,0 +1,35 @@
+{
+ "iterations": 30,
+ "clampMm": 18.0,
+ "zone": [
+  0.02,
+  1.1
+ ],
+ "fadeMm": 80.0,
+ "metalWeight": 0.25,
+ "movedPositions": 10603,
+ "displacementMm": {
+  "p50": 4.58,
+  "p90": 13.02,
+  "max": 18.0,
+  "clamped": 495
+ },
+ "regions": {
+  "skirt": {
+   "triangles": 14012,
+   "over45Before": 0.1993,
+   "over45After": 0.0844,
+   "medianDihedralBefore": 27.42,
+   "medianDihedralAfter": 15.89
+  },
+  "bodice": {
+   "triangles": 47246,
+   "over45Before": 0.336,
+   "over45After": 0.3242,
+   "medianDihedralBefore": 37.75,
+   "medianDihedralAfter": 37.02
+  }
+ },
+ "output": "artifacts/foundry/m25c/steps/look-rose_gold_sovereign-unfold.glb",
+ "outputSha256": "f3431370ccc423ae4cd07f2417471fe9d8b5eb146863e0f4acea948919c097e0"
+}

@@ -64,6 +64,12 @@ heads = [o for o in lelu if o.type == "MESH" and o.name.split(".")[0] in
 h_o = o_rig.matrix_world @ o_rig.data.bones["Head"].head_local
 h_l = l_rig.matrix_world @ l_rig.data.bones["Head"].head_local
 offset = h_o - h_l
+if job.get("headOffset"):
+    # the rigger can misplace the Head bone (it did for the coat: 11 cm forward of
+    # the neck); then the offset is measured on the generated face instead
+    report["headBoneOffsetIgnoredMm"] = [round(x * 1000, 2) for x in offset]
+    offset = Vector(job["headOffset"])
+    report["headOffsetSource"] = job.get("headOffsetSource", "explicit")
 report["headOffsetMm"] = [round(x * 1000, 2) for x in offset]
 for o in heads:
     mw = o.matrix_world.copy()

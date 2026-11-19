@@ -1,0 +1,110 @@
+{
+ "jobs": [
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "image-to-image",
+   "task": "01a1f527-94b1-71dc-98f9-b9426adc3164",
+   "submittedAt": 1795114376.0586085,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body front view of the same woman in the same outfit, standing straight in a relaxed A-pose with arms slightly away from the body, plain light grey background. Outfit: a floor-length copper-rose metallic tailored coat-dress with structured shoulders and tailored lapels, long fitted sleeves with cuffs, a fitted torso, a wide copper jeweled belt with an oval rose-quartz centrepiece at the waist, below the belt long flowing overlapping copper-rose coat panels falling to the floor, fine flower-of-life geometric gold linework over the whole coat, copper strappy platform heel boots, layered copper necklaces and choker, large copper hoop earrings, long curly black hair. Keep every design detail of the reference photographs.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/14-b33a77bd.png",
+     "sha256": "6994b51f48e50ef2a8b59e539d1e11a9cf85617bf0a7cca8c92e117294167f7c"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/13-b42561ae.png",
+     "sha256": "5d461b3fded458df6cebe4bbca43fc5e731179a16ea8d08c7cb49d6c59591b5c"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/15-91645b30.png",
+     "sha256": "fdbea07894d7e15bfbde671f8306feb44bff38572f36408cffdd13107b61a32e"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/07-5357e968.png",
+     "sha256": "56e0289428c7b59e70ca409bab83886d09477c36017157b23741b56e61818a7c"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f527-94b1-71dc-98f9-b9426adc3164",
+   "finished": 1795114421.355811,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f527-94b1-71dc-98f9-b9426adc3164",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body front view of the same woman in the same outfit, standing straight in a relaxed A-pose with arms slightly away from the body, plain light grey background. Outfit: a floor-length copper-rose metallic tailored coat-dress with structured shoulders and tailored lapels, long fitted sleeves with cuffs, a fitted torso, a wide copper jeweled belt with an oval rose-quartz centrepiece at the waist, below the belt long flowing overlapping copper-rose coat panels falling to the floor, fine flower-of-life geometric gold linework over the whole coat, copper strappy platform heel boots, layered copper necklaces and choker, large copper hoop earrings, long curly black hair. Keep every design detail of the reference photographs.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795114375692,
+    "started_at": 1795114375712,
+    "finished_at": 1795114414818,
+    "expires_at": 1795373614818,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f527-94b1-71dc-98f9-b9426adc3164_0.png?Expires=1795373614&Signature=F63Mx93RiXW1g2GROZ1pf1NThF7xBiucSz6-pr0mMOOWXB5vnBTZFkoha5cDFn8fx7KRfmpUYYBEYA2cT9WuyCkX1HUU9mzbF4SCwCtxFsruS52tfAMXHrP-t2JsxYc6GPp9u3tZckXp9bepBm~cWlFBKusFfEM2QdIzHki5J1CREYmWUB-1L5S3hmXKs88DvTlujflQb~HRfIRvfKULrT6EQyWXz7dJOnQ9I50UOR350mHgl1nQ~05PBSec3WYW05P9ab3QRUKU1ViiNvdi7L-b8Rxy6LgscIBxPLEZSsn-f5p7N~g0pRAkG4eQYg6PhSuf9A5Lh-wtpBDwK2NQUw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f527_0.png",
+     "bytes": 584813,
+     "sha256": "2f68fe62f2fc8686c849ff1fe4c88d7f40a3ca568f1a38f6e2f3815058dff12e"
+    }
+   ]
+  },
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "image-to-image",
+   "task": "01a1f528-8190-721d-9035-eea6c9618b26",
+   "submittedAt": 1795114435.8717282,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same floor-length copper-rose tailored coat-dress, same belt, boots, jewellery and hair, standing in the same A-pose on a plain background. Show the outfit from the other sides so it can be built in 3D: keep every design detail identical.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v012_image-to-image_rose_gold_sovereign/view_0.png",
+     "sha256": "2f68fe62f2fc8686c849ff1fe4c88d7f40a3ca568f1a38f6e2f3815058dff12e"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f528-8190-721d-9035-eea6c9618b26",
+   "finished": 1795114482.13867,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f528-8190-721d-9035-eea6c9618b26",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same floor-length copper-rose tailored coat-dress, same belt, boots, jewellery and hair, standing in the same A-pose on a plain background. Show the outfit from the other sides so it can be built in 3D: keep every design detail identical.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795114435715,
+    "started_at": 1795114435724,
+    "finished_at": 1795114471342,
+    "expires_at": 1795373671342,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f528-8190-721d-9035-eea6c9618b26_0.png?Expires=1795373671&Signature=Zo9FUnGuHtc8NfdjoBT0qDGDAIDC~1wOfZgEHvV81zDQ3HuMIB6pgUKcbrMxPatMFrWOCAvbP2mIqKEE5NyGGLwymazn8zf79rbi~tjGpd0MFl6Kwl-Yb2HyO5VmFo2UOqGt7VbDu67ZxMOnMo1GXVyWBDo1NYAm6O1REYZLKq~RK4meCH2Yh-PT8TuZsaPBNIuhKen8OoJrYHACFICZhMkCBiSfPRy9~7rqWsafXec6Ejy4XtCw5o6hy11EvcqzUwdwtXqrYYdCgrDdZVirmZ1Ak2trcZNrbj5O3dA1Y2rWYy9QcPtFbAcuK0vOJFaFJJ7pUnbCunliYlRQYpA~kA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f528_0.png",
+     "bytes": 1288646,
+     "sha256": "bd8c5c4cbd1497d464458dc9660c209bd67edafa08bb7d89ec84505e65707de1"
+    }
+   ]
+  }
+ ]
+}

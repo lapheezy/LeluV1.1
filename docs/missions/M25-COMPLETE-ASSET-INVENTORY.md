@@ -41,7 +41,10 @@ committed (they lived on the machine that ran the jobs), and none is on any bran
 | fj_mvxg5592_36c413 | Blender export of the hooded look | runtime GLB, blend | `meshes/v010_export_mvxg0q5l/runtime.glb` (73300543b4c2) | 16,330,272 |
 | fj_mvxfbqf8 / fj_mvxfem6f | Blender exports of fj_mvx5ruga | full-character export (blend, glb 26.7 MB) | `meshes/v003_export_mvx5ruga/runtime.glb` (7d12a378a573) | 26,720,528 |
 
-Status: **missing, recoverable**. To restore them, copy the `meshes/v003…v010` folders from the machine that ran
+| fj_mvxh0elc_01b3ea | rigging of the hooded look | **approved look `hooded` in `manifests/character.json`** | `rig/v006_rigging_01a195df/rigged.glb` (6848796da04e) | 18,768,960 |
+
+Status: **missing, recoverable**. The `hooded` look is the current look in her manifest, but its file
+is not here, so selecting it fails on this machine until the folder is restored. To restore them, copy the `meshes/v003…v010` folders from the machine that ran
 the Forge (paths relative to `leluverse/assets/`) into this repository. The checksums above verify them. None
 was regenerated: the mission forbids paid generation, and regenerating would replace an original with an
 approximation.
@@ -87,3 +90,14 @@ None of these is a Meshy outfit for the canonical rig. They are listed so nobody
 * `plugins/forgeStore.ts`: wardrobe items (`manifests/wardrobe.json`), slots and bone-following placements.
 * `plugins/wardrobeInventory.ts` + `leluverse/assets/wardrobe/inventory.json`: looks and their parts.
 * `tests/forge-wardrobe.test.ts`, `tests/forge-wardrobe-inventory.test.ts`.
+
+## 7. M25-complete additions (this mission)
+
+| look / asset | path | made from |
+| --- | --- | --- |
+| `look:camo_repaired` | `meshes/v014_look_camo_repaired/lelu.glb` | v0005 + mouth, jewellery-visibility and shoulder repairs |
+| `look:bronze_velocity` (Outfit A) | `meshes/v015_look_bronze_velocity/lelu.glb` | Meshy `v011_multi-image-to-3d_bronze_velocity` (rigged) + her head; separate `bronze_bag` |
+| `look:rose_gold_sovereign` (Outfit B) | `meshes/v016_look_rose_gold_sovereign/lelu.glb` | Meshy `v012` image-to-image views + `v013` multi-image (rigged) + her head |
+
+Paid generation for these two looks was authorised by the user in-session. Spent: 35 + 5 (A), 9 + 9 + 35 + 5 (B)
+= 98 credits, per the Forge price table. Every request and file checksum is in each folder's `provenance.json`.
