@@ -42,6 +42,68 @@
  */
 import type { Sdf, V3 } from "./sdf.ts";
 
+/**
+ * THE 39-PHOTOGRAPH LANDMARK SET (M23.1)
+ *
+ * `lelu-hair-14.png` in the committed collection is not a photograph: it is the
+ * annotated landmark sheet that ships with the photographs, carrying her facial
+ * landmark coordinates normalised to the face box, a calibrated millimetre table
+ * and the derived ratios. It supersedes the hand-read ref10 table below wherever
+ * the two disagree, because it is a measurement of the same face at a stated
+ * normalisation rather than a reading off a grid.
+ *
+ * Source: leluverse/assets/characters/lelu_character/references/lelu-hair/lelu-hair-14.png
+ * (branch integration/m16-3-wp05-reconciliation).
+ *
+ *   landmark              normalised (x, y)        millimetres
+ *   left eye centre       0.342, 0.468             eye width 31.5
+ *   right eye centre      0.658, 0.468             interpupillary 63.0
+ *   nose tip              0.500, 0.596             nose width 37.8
+ *   mouth centre          0.500, 0.713             mouth width 50.4
+ *   chin point            0.500, 0.948             jaw width 96.0
+ *   left brow peak        0.286, 0.367             face width 142.0
+ *   right brow peak       0.714, 0.367             face length 176.0
+ *   left cheekbone        0.231, 0.577
+ *   right cheekbone       0.769, 0.577
+ *   hairline centre       0.500, 0.061
+ *
+ * derived: eye 0.222 · nose 0.266 · mouth 0.355 · jaw 0.676 of face width,
+ *          face length 1.239 × face width.
+ *
+ * Everything downstream is expressed in ONE unit — the eye→chin span — because
+ * that is the only span both a photograph and the mesh can supply. On the sheet
+ * eye→chin is (0.948 − 0.468) × 176 mm = 84.5 mm, so each ratio below is a
+ * normalised landmark difference over 0.48.
+ */
+export const REFERENCE_231 = {
+  source: "leluverse/assets/characters/lelu_character/references/lelu-hair/lelu-hair-14.png",
+  method: "annotated landmark sheet shipped with the 39 photographs; normalised coordinates and calibrated mm read from the sheet itself",
+  normalized: {
+    leftEye: [0.342, 0.468],
+    rightEye: [0.658, 0.468],
+    noseTip: [0.5, 0.596],
+    mouthCentre: [0.5, 0.713],
+    chin: [0.5, 0.948],
+    leftBrowPeak: [0.286, 0.367],
+    rightBrowPeak: [0.714, 0.367],
+    leftCheekbone: [0.231, 0.577],
+    rightCheekbone: [0.769, 0.577],
+    hairlineCentre: [0.5, 0.061],
+  },
+  mm: { faceWidth: 142, faceLength: 176, eyeWidth: 31.5, interpupillary: 63, noseWidth: 37.8, mouthWidth: 50.4, jawWidth: 96 },
+  /** Of face width. */
+  widthRatios: { eye: 0.222, nose: 0.266, mouth: 0.355, jaw: 0.676 },
+  faceLengthPerWidth: 1.239,
+  /** Landmark height above (+) or below (−) the eye line, in eye→chin spans. */
+  heights: {
+    hairline: (0.468 - 0.061) / 0.48,
+    browPeak: (0.468 - 0.367) / 0.48,
+    cheekbone: (0.577 - 0.468) / 0.48 * -1,
+    noseTip: (0.596 - 0.468) / 0.48 * -1,
+    mouth: (0.713 - 0.468) / 0.48 * -1,
+  },
+} as const;
+
 /** The reference's measured ratios (see the table above). */
 export const REFERENCE_FACE = {
   source: "leluverse/assets/characters/lelu_character/references/ref10_face_primary.png",
@@ -88,23 +150,34 @@ export interface YouthParams {
  */
 export const DEFAULT_YOUTH: YouthParams = {
   lowerFaceCompression: 0.085,
-  jawNarrowing: 0.05,
-  cheekFullnessMm: 2.4,
+  /**
+   * 0.145, not 0.05. The landmark sheet puts the jaw at 0.676 of face width; her
+   * mesh measured 0.792 — a 17 mm jaw on a 144 mm face that every render shows as
+   * a mask-like lower face. This is the largest single identity error in 2.3.
+   */
+  jawNarrowing: 0.3,
+  cheekFullnessMm: 2.8,
   chinRoundnessMm: 2.2,
   lipFullnessMm: 1.4,
 };
 
 /** Paint-scale changes that go with the shape (thresholds, not new geometry). */
 export const YOUTH_PAINT = {
-  /** Brow arch raised by this fraction of the interpupillary span. */
-  browLiftSpan: 0.235,
-  /** Brow thickness as a fraction of the span (was 0.058). */
-  browThicknessSpan: 0.049,
-  /** Lip ellipse semi-axes as fractions of the span (was 0.46 / 0.20). */
-  lipWidthSpan: 0.5,
-  lipHeightSpan: 0.23,
+  /**
+   * Brow peak above the eye line: REFERENCE_231.heights.browPeak = 0.210 of the
+   * eye→chin span. Her eye→chin is 1.68 interpupillary spans, so a fraction of
+   * the span is 0.210 × 1.68 = 0.353 … but her brow sits over her eye, and the
+   * peak is measured at the arch, 0.72 of the way out, not at the medial end.
+   * 0.30 is the medial height that puts the arch at 0.21 of eye→chin.
+   */
+  browLiftSpan: 0.3,
+  /** Medial brow half-thickness as a fraction of the span. */
+  browThicknessSpan: 0.056,
+  /** Mouth half-width: 0.355 of face width on 0.222 eye:face … 0.415 of the span. */
+  lipWidthSpan: 0.415,
+  lipHeightSpan: 0.21,
   /** Eye aperture scaled by this factor (was 1.0). */
-  apertureScale: 1.08,
+  apertureScale: 1.15,
 } as const;
 
 /** Her face's own landmarks, in world metres, from the rig she is built on. */

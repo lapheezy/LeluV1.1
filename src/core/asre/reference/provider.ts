@@ -27,7 +27,7 @@ import { isLelu, LELU_COLOURS as L } from "../character/leluIdentity.ts";
 import { conicalCurl, nearestNeighbourStats, selectSphericalEvenSubset } from "../../geometry/golden/index.ts";
 import { bundleTubes, setHairRootPoints, hairTubeBuild, resetTubeDiagnostics, TUBE_LOD, tubeDiagnostics, type StrandSpec } from "../hair/tubes.ts";
 import { growBabyHair, babyHairState } from "../hair/baby.ts";
-import { landmarksFromJoints, recordYouth, youthDiagnostics, youthWarp, YOUTH_PAINT, type YouthLandmarks } from "../character/youth.ts";
+import { landmarksFromJoints, recordYouth, youthDiagnostics, youthWarp, YOUTH_PAINT, REFERENCE_231, type YouthLandmarks } from "../character/youth.ts";
 import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
@@ -582,6 +582,16 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
       landmarks: {
         centre: { x: centre[0], y: centre[1], z: centre[2] },
         hairlineFrontY: Number.isFinite(yFront) ? yFront : yHi,
+        // WP01: the hairline is not the scalp cloud's lowest front root, it is the
+        // line the photographs put on her face — 0.848 eye→chin spans above the
+        // eye line. The difference is reported, not smoothed away.
+        // `chinY - eyeY` is NEGATIVE — the chin is below the eye line — so the
+        // first version's Math.max(0.05, …) collapsed the span to 50 mm and put
+        // the "photographic" hairline 42 mm above her eyes. The span is the
+        // absolute difference; the hairline is above the eyes, the chin below.
+        hairlineReferenceY:
+          eyeL[1] + Math.abs(youthLandmarks().chinY - eyeL[1]) * REFERENCE_231.heights.hairline,
+        surfaceZ: (x: number, y: number) => skinZ(x, y),
         hairlineY: yLo,
         browY: eyeL[1] + eyeSpan * (youthEnabled ? YOUTH_PAINT.browLiftSpan : 0.2),
         eyes: [
@@ -776,6 +786,16 @@ const EYE_HALF_W = 0.0165, EYE_HALF_H = 0.0052;
 const EYE_GLOBE_R = 0.012;
 
 /**
+ * Hazel-green, not grey.
+ *
+ * The facial reference sheet reads her iris as olive-hazel behind a dark limbal
+ * ring (mean sampled colour ≈ #4a5222 in the lit part of the iris). 2.3 painted
+ * the palette's `iris`, which rendered as a pale grey slit in every render — the
+ * single most "not her" feature of her face.
+ */
+const IRIS_HAZEL: Rgb = [0.2, 0.225, 0.1];
+
+/**
  * Her eyeball: a single globe whose pupil, iris, limbal ring and sclera are
  * decided by the direction from its centre, plus the cornea's catchlight.
  *
@@ -792,7 +812,7 @@ function leluEyeball(c: V3, skinFront: number): Shape {
       const vy = (y - c[1]) / R, vz = (z - c[2]) / R;
       const cos = vz; // forward is +z
       if (cos > 0.986) return L.pupil;
-      if (cos > 0.868) return L.iris;
+      if (cos > 0.868) return IRIS_HAZEL;
       if (cos > 0.851) return L.irisRing;
       // sclera: warm off-white, shaded under the upper lid
       const shade = Math.max(0, Math.min(1, (vy + 0.45) / 1.2));
@@ -891,10 +911,13 @@ function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb):
 
   // The youth pass moves three paint thresholds with the shape: a higher, thinner
   // brow and a mouth widened toward the reference's mouth : eye-span ratio.
-  const browArchSpan = youthEnabled ? YOUTH_PAINT.browLiftSpan : 0.2;
-  const browThickSpan = youthEnabled ? YOUTH_PAINT.browThicknessSpan : 0.058;
-  const lipWidthSpan = youthEnabled ? YOUTH_PAINT.lipWidthSpan : 0.46;
-  const lipHeightSpan = youthEnabled ? YOUTH_PAINT.lipHeightSpan : 0.2;
+  // The paint corrections are not part of the youth pass: they bring her lips and
+  // brows onto the landmark sheet's proportions in BOTH builds, so the youth
+  // comparison still isolates the shape change and neither build stays wrong.
+  const browArchSpan = YOUTH_PAINT.browLiftSpan;
+  const browThickSpan = YOUTH_PAINT.browThicknessSpan;
+  const lipWidthSpan = YOUTH_PAINT.lipWidthSpan;
+  const lipHeightSpan = YOUTH_PAINT.lipHeightSpan;
 
   // lips: fuller lower lip, defined cupid's bow.
   //
@@ -921,18 +944,22 @@ function leluFaceColour(x: number, y: number, z: number, skin: Rgb, hairC: Rgb):
     }
   }
 
-  // brows: full, dark, softly arched, tapering into a clean tail. The arch is a
-  // curve, not an ellipse: an elliptical brow reads as a smudge above the eye.
+  // brows: two separate tapering arches with her own asymmetry.
   //
-  // Three things stop a brow reading as a painted bar: a gap at the midline (or
-  // the two brows join into one), a rise toward the tail (a flat brow reads
-  // stern), and a thickness that falls off toward both ends.
+  // The landmark sheet puts each peak at 0.286 / 0.714 of face width and 0.21
+  // eye→chin spans above the eye line, medial ends thick over the inner canthus,
+  // tails tapering to a point past the outer canthus. 2.3 painted one bar: its
+  // arch was a constant plus a linear tilt and its thickness fell only 62 % at
+  // the ends, so the two brows met in the middle and never tapered away.
   for (const e of [eL, eR]) {
-    const u = (x - e[0]) / (span * 0.54);
-    const fromCentre = Math.abs(x - mouth[0]);
-    if (Math.abs(u) < 1 && fromCentre > span * 0.15) {
-      const arch = e[1] + span * (browArchSpan + 0.05 * (1 - u * u) + 0.045 * u * Math.sign(e[0] || 1));
-      const th = span * browThickSpan * (1 - 0.62 * u * u);
+    const browSide = Math.sign(e[0] - mouth[0]) || 1; // +1 = her right
+    const w = ((x - e[0]) / (span * 0.54)) * browSide; // −1 medial … +1 tail
+    if (w > -0.85 && w < 1.05 && Math.abs(x - mouth[0]) > span * 0.17) {
+      // Arch: rises from the medial end, peaks 0.45 of the way out, falls to the tail.
+      const arch = e[1] + span * browArchSpan * (0.86 + 0.42 * (1 - ((w - 0.45) / 0.62) ** 2));
+      // Thickness: thick medially, a point at the tail; her left brow is thinner.
+      const thin = browSide > 0 ? 1 : 0.92;
+      const th = span * browThickSpan * thin * (1 - 0.28 * w) * (1 - 0.62 * Math.max(0, w - 0.25));
       if (Math.abs(y - arch) < th) return hairC;
     }
   }

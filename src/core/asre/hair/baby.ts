@@ -54,6 +54,19 @@ export interface BabyLandmarks {
   centre: Vec3;
   /** Lowest root at the front of the skull (the forehead hairline), metres. */
   hairlineFrontY: number;
+  /**
+   * The hairline the PHOTOGRAPHS put on her face, metres — REFERENCE_231's
+   * 0.848 eye→chin spans above the eye line, evaluated on her own head.
+   *
+   * It is a separate number from `hairlineFrontY` on purpose. The scalp cloud's
+   * front edge is where her hair currently starts growing; the reference is
+   * where it should. Reporting the difference is the whole point of WP01: the
+   * strands were placed against a scalp edge 26 mm below the measured hairline,
+   * which is a fact about her geometry, not about her hair styling.
+   */
+  hairlineReferenceY?: number;
+  /** Front-most skin z at a given (x, y), metres — a start point for projection. */
+  surfaceZ?: (x: number, y: number) => number;
   /** Lowest root anywhere on the scalp, metres. */
   hairlineY: number;
   /** The brow line's height at the centre of the face, metres. */
@@ -115,6 +128,10 @@ export interface BabyHairReport {
   hairline: {
     /** Share of the front hairline arc that has a baby hair within 3 mm of it. */
     coveragePct: number;
+    /** The scalp cloud's own front edge, mm above her eye line. */
+    scalpHairlineMm?: number;
+    /** The photographic hairline (REFERENCE_231), mm above her eye line. */
+    referenceHairlineMm?: number;
     /** Largest unoccupied run along that arc, millimetres. */
     maxGapMm: number;
     /** Median height of the roots above the brow line, millimetres. */
@@ -123,6 +140,8 @@ export interface BabyHairReport {
     rootAboveHairlineMm: Stats;
   };
   collision: Record<"clear" | "contact" | "penetrating", number>;
+  /** Forehead-sector roots the scalp cloud offered at all. */
+  foreheadRoots: number;
   /** Roots the scalp cloud offered per region — a shortage is visible here. */
   available: { front: number; temples: number; sideburns: number };
   /** The forehead hairline the strands were placed against (world metres). */
@@ -149,13 +168,41 @@ export interface BabyHairInput {
   thickness?: Partial<Record<BabyRegion, [number, number]>>;
 }
 
+/**
+ * HER HAIRLINE, FROM THE SPECIFICATION SHEET
+ *
+ * `lelu-hair-18.png` is the collection's "Baby Hair / Hairline Specification":
+ *
+ *   hairline arc, temple to temple   13.8 cm
+ *   arc height at the centre          3.6 cm   (the centre is HIGHER)
+ *   baby hair length                  1–4 cm
+ *   swirl radius  A 0.8 · B 1.1 · C 0.5 cm
+ *   tendril radius                    0.5 cm, length 3.1 cm
+ *   follicle spacing                  1.0–1.6 mm  (≈ 62–100 per cm²)
+ *
+ * A 138 mm arc at 1.4 mm spacing carries ~99 follicles, which is why 36 front
+ * strands could never read as a hairline: the count was set by the scalp cloud's
+ * convenience, not by the sheet. The counts below are the sheet's spacing.
+ *
+ * `lelu-hair-10.png` adds the shaft spec (3B–3C curl, 60–75 cm length, 150–180
+ * shafts/cm² density, 2.5–4 cm lift); only the baby-hair numbers are used here.
+ */
+export const HAIR_SPEC_231 = {
+  arcWidthMm: 138,
+  arcRiseMm: 36,
+  babyLengthMm: [10, 40] as [number, number],
+  swirlRadiusMm: [5, 11] as [number, number],
+  follicleSpacingMm: [1.0, 1.6] as [number, number],
+  frontCount: 96,
+};
+
 const DEFAULT_COUNTS: Record<BabyRegion, number> = {
-  front: 36,
-  "temple-left": 12,
-  "temple-right": 12,
-  "sideburn-left": 6,
-  "sideburn-right": 6,
-  flyaway: 16,
+  front: HAIR_SPEC_231.frontCount,
+  "temple-left": 24,
+  "temple-right": 24,
+  "sideburn-left": 12,
+  "sideburn-right": 12,
+  flyaway: 20,
 };
 
 /** Baby hair is fine and short: 6–30 mm, 0.18–0.45 mm at the root. */
@@ -179,12 +226,12 @@ const DEFAULT_THICKNESS: Record<BabyRegion, [number, number]> = {
 
 /** How much a region curls sideways over its own length. */
 const CURL: Record<BabyRegion, number> = {
-  front: 0.2,
-  "temple-left": 0.26,
-  "temple-right": 0.26,
-  "sideburn-left": 0.3,
-  "sideburn-right": 0.3,
-  flyaway: 0.42,
+  front: 0.62,
+  "temple-left": 0.5,
+  "temple-right": 0.5,
+  "sideburn-left": 0.42,
+  "sideburn-right": 0.42,
+  flyaway: 0.3,
 };
 
 function hash(i: number, j = 0): number {
@@ -315,7 +362,30 @@ export function growBabyHair(input: BabyHairInput): BabyHairReport {
   // The forehead hairline is the LOWEST forehead root; the hairline band is the
   // fringe of the scalp at the skin's edge — where baby hairs actually grow.
   const foreheadHairlineY = forehead.length ? Math.min(...forehead.map((f) => f.p.y)) : lm.hairlineFrontY;
-  const frontBand = foreheadHairlineY + 0.012;
+  /**
+   * Where the front strands are rooted.
+   *
+   * Against the photographic hairline when we have one (a ±10 mm band around it,
+   * so the fringe follows the SHEET's curve rather than the scalp cloud's edge),
+   * and against the scalp edge otherwise. The scalp edge is kept in the report as
+   * `scalpHairlineMm` so the difference stays visible instead of being papered
+   * over.
+   */
+  const referenceHairlineY = lm.hairlineReferenceY;
+  /**
+   * The hairline is an ARC, not a band: 36 mm higher at the centre than at the
+   * temples, over a 138 mm span, per the specification sheet. A flat band put the
+   * centre roots ~26 mm too low and the temple roots ~10 mm too high — which is
+   * exactly the "front band in the wrong place" the 2.3 overlay showed, and it is
+   * wrong at both ends in opposite directions.
+   */
+  const arcHalf = HAIR_SPEC_231.arcWidthMm / 2000;
+  const arcRise = HAIR_SPEC_231.arcRiseMm / 1000;
+  const hairlineAt = (x: number): number => {
+    const u = Math.min(1, Math.abs(x - lm.centre.x) / arcHalf);
+    return (referenceHairlineY ?? foreheadHairlineY) - u * u * arcRise;
+  };
+  const bandTol = 0.012;
 
   const candidates: { p: Vec3; az: number; region: BabyRegion | null }[] = [];
   for (let i = 0; i < rootCount; i++) {
@@ -323,13 +393,33 @@ export function growBabyHair(input: BabyHairInput): BabyHairReport {
     const u = facing(p);
     const az = azimuth(p, lm.centre);
     let region: BabyRegion | null = null;
-    if (u.z > 0.5 && p.y <= frontBand) region = "front";
-    else if (u.z > 0.15 && u.z <= 0.6 && Math.abs(u.x) > 0.45 && p.y <= frontBand + 0.02) region = u.x > 0 ? "temple-left" : "temple-right";
+    // FRONT: the photographs define where hair STARTS, the scalp cloud defines
+    // where it COULD. Her cloud's front edge sits ~26 mm below the photographic
+    // hairline, so a band test around the hairline matches nothing at all (it
+    // matched 0 roots, which is exactly what the 0 % coverage in the last build
+    // was). The root is therefore placed ON the hairline: the scalp root keeps its
+    // lateral position, its height moves to the arc, and the point is projected
+    // onto her skin. A root further up the skull is the same follicle, further
+    // back — hair emerges at the hairline, which is the fact being modelled.
+    if (u.z > 0.3 && Math.abs(u.x) < 0.62 && p.y > hairlineAt(p.x) - 0.02) {
+      const hx = p.x, hy = hairlineAt(p.x);
+      // Start ON the skin when the caller can tell us where it is: projecting from
+      // the scalp root's z often fails to converge and silently drops the strand.
+      const startZ = lm.surfaceZ ? lm.surfaceZ(hx, hy) : p.z;
+      const snapped = projectToSkin(probe, { x: hx, y: hy, z: startZ }, Math.max(lift, 0.0004));
+      const root = snapped.converged ? snapped.point : { x: hx, y: hy, z: startZ };
+      candidates.push({ p: root, az: azimuth(root, lm.centre), region: "front" });
+      continue;
+    }
+    if (u.z > 0.45 && Math.abs(p.y - hairlineAt(p.x)) <= bandTol) region = "front";
+    else if (u.z > 0.15 && u.z <= 0.6 && Math.abs(u.x) > 0.45 && p.y <= hairlineAt(p.x) + 0.02 && p.y >= hairlineAt(p.x) - 0.03)
+      region = u.x > 0 ? "temple-left" : "temple-right";
     else if (u.z > -0.1 && u.z <= 0.4 && Math.abs(u.x) > 0.68 && p.y <= lm.eyes[0].y + 0.02) region = u.x > 0 ? "sideburn-left" : "sideburn-right";
     candidates.push({ p, az, region });
   }
   const available = {
     front: candidates.filter((c) => c.region === "front").length,
+    foreheadRoots: forehead.length,
     temples: candidates.filter((c) => c.region === "temple-left" || c.region === "temple-right").length,
     sideburns: candidates.filter((c) => c.region === "sideburn-left" || c.region === "sideburn-right").length,
   };
@@ -347,25 +437,53 @@ export function growBabyHair(input: BabyHairInput): BabyHairReport {
     const back = region.startsWith("sideburn") || region === "flyaway" ? 0.35 : 0;
     const dir = unit({ x: side * sweep * 0.45, y: -1, z: -back * 0.4 });
     const curl = CURL[region];
-    const steps = 7;
+    const steps = 9;
     const raw: Vec3[] = [];
+    /**
+     * The hook, not a squiggle.
+     *
+     * Every one of the 25 hair photographs shows the same shape at the hairline:
+     * a baby hair leaves the scalp, runs down the forehead, then curls BACK on
+     * itself — a c, sometimes a full question-mark whose tip returns beside its
+     * own root. A strand parameterised as "down + a sine wave sideways" cannot
+     * make that shape, which is why the 2.3 strands read as worms lying on a
+     * forehead instead of as curls.
+     *
+     * So the path is an arc: phi sweeps 1.2 … 1.2 + 3.4 × curl radians, and
+     * x = root + r(1 − cos phi), y = root − r sin phi traces it. The arc length
+     * is r × phi = `target`, so the measured length stays honest. Every point is
+     * then projected onto the skin, which keeps the hook flat against her face.
+     */
+    const phiMax = 1.2 + 3.4 * curl;
+    const r = target / phiMax;
     for (let s = 0; s <= steps; s++) {
-      const t = s / steps;
-      // A baby hair leaves the scalp, then lies along the forehead: the lateral
-      // sweep grows with t², the outward lift decays (it starts 1 mm proud of
-      // the skin and is projected back onto it below).
-      const lateral = Math.sin(t * Math.PI * 0.9) * target * curl * 2.1;
+      const phi = (s / steps) * phiMax;
       const point = {
-        x: root.x + dir.x * target * t + side * lateral * (0.35 + 0.65 * t),
-        y: root.y + dir.y * target * t,
-        z: root.z + 0.0012 * (1 - t),
+        x: root.x + side * r * (1 - Math.cos(phi)),
+        y: root.y - r * Math.sin(phi),
+        z: root.z + 0.0012 * (1 - s / steps),
       };
-      const projected = projectToSkin(probe, point, lift);
+      // The lift is the strand's own radius, so a drawn tube cannot sink into the
+      // skin: 2.3 reported 2 penetrating strands because the lift was a constant
+      // 0.55 mm while the thickest roots are 0.45 mm across before taper.
+      const projected = projectToSkin(probe, point, Math.max(lift, rootR * 1.35));
       raw.push(projected.point);
     }
     // A strand whose path never leaves the root (the probe rejected it) is not
     // drawn and not counted as a success.
     if (pathLength(raw) < 0.002) return;
+
+    // Clearance pass. A hook that bends hard can dip its middle segments into the
+    // skin even when both ends are proud of it — 2 strands did exactly that with a
+    // root-radius lift, because the tube is drawn around the path and the surface
+    // curves away between control points. Re-project the whole path at a lift of
+    // its own radius instead of accepting a penetration and reporting it.
+    if (Math.min(...raw.map((p) => probe.distance(p))) * 1000 < 0.05) {
+      for (let s = 0; s < raw.length; s++) {
+        const q = projectToSkin(probe, raw[s], Math.max(lift, rootR * 2.4));
+        if (q.converged) raw[s] = q.point;
+      }
+    }
 
     const gaps = raw.map((p) => probe.distance(p) * 1000);
     const minGap = Math.min(...gaps);
@@ -457,12 +575,15 @@ export function growBabyHair(input: BabyHairInput): BabyHairReport {
     curvaturePerM: stats(curv),
     hairline: {
       coveragePct: (covered.filter(Boolean).length / bins) * 100,
+      scalpHairlineMm: (foreheadHairlineY - lm.eyes[0].y) * 1000,
+      referenceHairlineMm: referenceHairlineY === undefined ? undefined : (referenceHairlineY - lm.eyes[0].y) * 1000,
       maxGapMm: (maxRun / bins) * arcMm,
       medianRootAboveBrowMm: stats(strands.filter((s) => s.region === "front").map((s) => (s.root.y - lm.browY) * 1000)).median,
       rootAboveHairlineMm: stats(strands.map((s) => s.landmarks.hairlineMm)),
     },
     collision: collisionCounts,
     available,
+    foreheadRoots: forehead.length,
     /** The forehead hairline the strands were placed against, world metres. */
     hairlineFrontY: foreheadHairlineY,
     measured: true,

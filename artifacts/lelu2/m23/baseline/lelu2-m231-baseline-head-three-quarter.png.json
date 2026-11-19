@@ -1,0 +1,34 @@
+{
+ "output": "artifacts/lelu2/m23/baseline/lelu2-m231-baseline-head-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "head",
+  "face",
+  "hair",
+  "accessories.head"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0004821270704269409,
+   9.250640869140625e-05,
+   1.4514811038970947
+  ],
+  "radius": 0.44709189343308614
+ },
+ "triangles": 499216,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2732996344566345,
+   -0.24149999022483826,
+   1.1934738159179688
+  ],
+  "max": [
+   0.2742638885974884,
+   0.24168500304222107,
+   1.7094883918762207
+  ]
+ },
+ "render_seconds": 7.06,
+ "blender": "4.2.23 LTS"
+}

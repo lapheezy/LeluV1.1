@@ -71,10 +71,14 @@ describe("LÉLU 2.3 — youth pass", () => {
     // The cheek pad is centred at the cheekbone, 34 % of the way from the eye
     // line down to the chin — sampling anywhere else measures a faded edge.
     const cheekY = lm.eyeY - (lm.eyeY - lm.chinY) * 0.34;
-    const cheekBall = ball([0, cheekY, 0.06], 0.06);
+    // Sample AT the cheekbone, not on the midline: the pad is lateral (centred on
+    // lm.cheekX · 0.8 after M23.1's stronger jaw pinch), so a midline sample
+    // measures the faded edge of the pad and of the jaw narrowing at once.
+    const cheekX = lm.cheekX * 0.8;
+    const cheekBall = ball([cheekX, cheekY, 0.06], 0.06);
     const warpedCheek = youthWarp(cheekBall, lm);
-    const before = frontSurface(cheekBall, cheekY, 0.046);
-    const after = frontSurface(warpedCheek, cheekY, 0.046);
+    const before = frontSurface(cheekBall, cheekY, cheekX);
+    const after = frontSurface(warpedCheek, cheekY, cheekX);
     // The nominal pad is 2.4 mm; the front gate trims it at the cheek's own depth,
     // so the guard is direction and locality, and the magnitude it reports.
     assert.ok(after > before + 0.0003, `cheek pushed forward ${((after - before) * 1000).toFixed(2)} mm`);
@@ -180,7 +184,10 @@ describe("LÉLU 2.3 — baby hair", () => {
 
   it("measures the hairline it was placed against", () => {
     assert.ok(report.hairlineFrontY > babyLm.browY);
-    assert.ok(report.hairline.rootAboveHairlineMm.median >= 0);
+    // The hairline is an ARC (36 mm higher at the centre than at the temples), so
+    // the median root sits BELOW the centre-line hairline by construction — a
+    // "median above the hairline ≥ 0" assertion only held for the flat band.
+    assert.ok(report.hairline.rootAboveHairlineMm.median > -37, "roots follow the arc, not a flat band");
     assert.ok(report.hairline.coveragePct > 0);
     assert.ok(report.available.front + report.available.temples + report.available.sideburns > 0);
   });
