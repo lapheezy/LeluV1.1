@@ -1,0 +1,162 @@
+{
+ "jobs": [
+  {
+   "look": "bronze_velocity",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f557-8601-7352-b771-fc092f0ec46d",
+   "submittedAt": 1795117519.2053714,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 90000,
+    "image_enhancement": false,
+    "pose_mode": "a-pose"
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v018_image-to-image_bronze_velocity_v2/view_01a1f555_0.png",
+     "sha256": "f384ae52b5226c1d7ad7a964cd0a34d9b784f7899455531a2fa67c35c11eb41b"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v018_image-to-image_bronze_velocity_v2/split_left.png",
+     "sha256": "c60942a85cdcbcc4d82a9627d6b5de3cd932488b074661b642c23a9dcf36c4f1"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v018_image-to-image_bronze_velocity_v2/split_back.png",
+     "sha256": "b69aaa1dfdd60a72b426cc615f356c2f76eb158a35d8a934cbb73c0a8f0db231"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v018_image-to-image_bronze_velocity_v2/split_right.png",
+     "sha256": "8a0f33e79dca10b67b5f2ae496fcbd82e1684161088e39bf036e669473da86cd"
+    }
+   ],
+   "authorisation": "user approved paid Meshy for the two new looks in-session"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f557-8601-7352-b771-fc092f0ec46d",
+   "finished": 1795117814.4682217,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f557-8601-7352-b771-fc092f0ec46d",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795117518774,
+    "progress": 100,
+    "started_at": 1795117518785,
+    "finished_at": 1795117798082,
+    "expires_at": 1795376998082,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f557-8601-7352-b771-fc092f0ec46d/output/model.glb?Expires=1795376998&Signature=LTd9~VHDSq2ACQN7l5MVpAxrpHKlFHeANfsqGjYq-K1ZYUbMMhnd6NQgIk9FxdpQEY4E~4b8lefqBAgyEvS-HdOCg9H21iP9wvGxA3B1gaNK~CARAuxyHY8LOVLwchCcF114IiIALEc5Av5QHw-bQsUDVlUyqUTNzoSS36CIV2CetrrVwkQ~VULyv5x3uUuRZX7EQbUNoFiqTyr7P9Unjqx6fDBMP1vEVs5UJotDIyOXNBcy~MY4s9-e67blx9rCfhvV~UEJG5aYcMhzlCFm6XEi~tKaD9joIp-HC2-drub5xyOOoduf~QcJl0aq84RQYLa6T5kc8girdX0GuFd6QA__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 22031892,
+     "sha256": "6eee1b22c1daee75a3918e0552bbb1356dc574488fa06685a83b29e43d4e1645"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 19655948,
+     "sha256": "a37d16f9e3afa806582ddc2f3ef023481431e17f41e0c709e09631553e2e6de3"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 4709119,
+     "sha256": "e91721848a88e109f2a69853dd0ba78ae10b11c7cc1696b27e2afa7a6ea99043"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 3476426,
+     "sha256": "ecb782da9c7f194d9a7232489bccf4521729bd00f8ff15d2ea9d404cdeb2c279"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 3385277,
+     "sha256": "5961f62259ce8b32965a94a84c141b6e02f1b2c32cc39164339a3cf8febb7eb7"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 8098988,
+     "sha256": "27b0a2fc88e4519c57530e288266405a4e936571974c5dda2286c3a620098422"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 86708,
+     "sha256": "a59a8a0f7d6b5db79c4bd946ed6874cfaa5569ec4d17d53e9b573dc71e92a717"
+    }
+   ]
+  },
+  {
+   "look": "bronze_velocity",
+   "kind": "rigging",
+   "task": "01a1f55c-2b02-7118-9b25-f80eb2836b1c",
+   "input_task_id": "01a1f557-8601-7352-b771-fc092f0ec46d",
+   "submittedAt": 1795117824.4085405,
+   "request": {
+    "input_task_id": "01a1f557-8601-7352-b771-fc092f0ec46d",
+    "height_meters": 1.72
+   }
+  },
+  {
+   "kind": "rigging",
+   "task": "01a1f55c-2b02-7118-9b25-f80eb2836b1c",
+   "finished": 1795117881.9410257,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f55c-2b02-7118-9b25-f80eb2836b1c",
+    "type": "rig",
+    "name": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795117824350,
+    "progress": 100,
+    "started_at": 1795117824360,
+    "finished_at": 1795117871270,
+    "expires_at": 1795377071270,
+    "task_error": null,
+    "consumed_credits": 5
+   },
+   "files": [
+    {
+     "file": "rigged.glb",
+     "bytes": 28848880,
+     "sha256": "9f1c13140665f3ecac7f649581eefa63c927d289d8e7a1389be4999bd2221218"
+    },
+    {
+     "file": "anim_walking_glb_url.glb",
+     "bytes": 28828988,
+     "sha256": "d0dcd084e6c9a78270711dd8404e5de9dcece3e5ee0afe1c5293b86eea9477e5"
+    },
+    {
+     "file": "anim_walking_armature_glb_url.glb",
+     "bytes": 90128,
+     "sha256": "5387012e45d95b9f73adf5c00fd5d7c43f1e86b06b6f57c95a28bc59e144d73f"
+    },
+    {
+     "file": "anim_running_glb_url.glb",
+     "bytes": 28818352,
+     "sha256": "fde8b0c1620c836d6d2f8b049ee5c37befc721c50d6dac7400398d7ceab8d8c9"
+    },
+    {
+     "file": "anim_running_armature_glb_url.glb",
+     "bytes": 79480,
+     "sha256": "784c3adf7d26f6ce993211456661cb99403a7269819458ecf411ecb6973d1684"
+    }
+   ]
+  }
+ ]
+}

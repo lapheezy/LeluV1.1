@@ -1,0 +1,84 @@
+{
+ "job": {
+  "outfit": "leluverse/assets/characters/lelu_character/meshes/v022_multi-image-to-3d_home_laidback3/rigged.glb",
+  "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+  "output": "artifacts/foundry/m25c/steps/look2-home_laidback3.glb",
+  "report": "artifacts/foundry/m25c/v2/assemble-home_laidback3.json",
+  "cutZ": 1.41,
+  "lookId": "home_laidback3",
+  "hair": "outfit",
+  "skinClearMm": 6,
+  "material": {
+   "metallicScale": 1.0,
+   "roughnessFloor": 0.0
+  },
+  "headOffset": [
+   -0.004,
+   -0.006,
+   -0.055
+  ],
+  "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig"
+ },
+ "headBoneOffsetIgnoredMm": [
+  -3.71,
+  -2.84,
+  -47.6
+ ],
+ "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig",
+ "headOffsetMm": [
+  -4.0,
+  -6.0,
+  -55.0
+ ],
+ "leluHairFacesRemoved": 159718,
+ "leluScalpFacesRemoved": 14848,
+ "hairMode": "outfit",
+ "outfitFacesRemovedAboveCut": 15375,
+ "outfitFacesBefore": 92911,
+ "material": {
+  "metallicMeanBefore": 0.0054,
+  "roughnessP10Before": 0.5373,
+  "metallicMeanAfter": 0.0054,
+  "roughnessFloor": 0.0,
+  "metallicScale": 1.0,
+  "packedMR": true
+ },
+ "objects": [
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair",
+   "triangles": 1955,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_scalp",
+   "triangles": 6034,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "shapeKeys": 0
+  },
+  {
+   "name": "look_home_laidback3",
+   "triangles": 77536,
+   "shapeKeys": 0
+  }
+ ],
+ "outputSha256": "93c2264b77f0aeeb43f6faa349e210c2be04ffd1f7e09523fcd7e79972b5e22a"
+}

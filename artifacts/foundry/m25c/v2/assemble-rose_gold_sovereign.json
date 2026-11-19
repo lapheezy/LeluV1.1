@@ -1,0 +1,85 @@
+{
+ "job": {
+  "outfit": "leluverse/assets/characters/lelu_character/meshes/v020_multi-image-to-3d_rose_gold_sovereign_v2/rigged.glb",
+  "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+  "output": "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign.glb",
+  "report": "artifacts/foundry/m25c/v2/assemble-rose_gold_sovereign.json",
+  "cutZ": 1.482,
+  "lookId": "rose_gold_sovereign",
+  "hair": "outfit",
+  "skinClearMm": 9,
+  "material": {
+   "metallicScale": 0.55,
+   "roughnessFloor": 0.32
+  },
+  "headOffset": [
+   -0.007,
+   -0.132,
+   0.017
+  ],
+  "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig",
+  "lightClearMm": 40
+ },
+ "headBoneOffsetIgnoredMm": [
+  -6.65,
+  -143.64,
+  28.39
+ ],
+ "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig",
+ "headOffsetMm": [
+  -7.0,
+  -132.0,
+  17.0
+ ],
+ "leluHairFacesRemoved": 159718,
+ "leluScalpFacesRemoved": 14848,
+ "hairMode": "outfit",
+ "outfitFacesRemovedAboveCut": 8493,
+ "outfitFacesBefore": 90876,
+ "material": {
+  "metallicMeanBefore": 0.4184,
+  "roughnessP10Before": 0.3333,
+  "metallicMeanAfter": 0.2301,
+  "roughnessFloor": 0.32,
+  "metallicScale": 0.55,
+  "packedMR": true
+ },
+ "objects": [
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair",
+   "triangles": 1955,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_scalp",
+   "triangles": 6034,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "shapeKeys": 0
+  },
+  {
+   "name": "look_rose_gold_sovereign",
+   "triangles": 82383,
+   "shapeKeys": 0
+  }
+ ],
+ "outputSha256": "994227263d5553e074e0e37b1fc098cb38fae1d89cb6c76218484a82b03834d7"
+}

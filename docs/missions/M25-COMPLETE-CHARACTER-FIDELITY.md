@@ -65,3 +65,23 @@ npx tsx scripts/foundry/m25c-wardrobe.ts
 python3 scripts/foundry/m25c_final_renders.py --samples 48
 ```
 Meshy jobs: `scripts/foundry/m25c_meshy.py` (submit / i2i / rig / wait), key from `MESHY_API_KEY`.
+
+## Round 2 (after the user's second reference batch)
+
+Authorised by the user: rebuild the coat and catsuit from the full-length photographs, build Home/Laidback 3,
+match each look's hair to its reference. Spent: 27 (A-pose fronts) + 27 (turnarounds) + 105 (three 3D builds) +
+15 (three rigs) + 70 (two handbags, multi-image 35 each) = **244 credits** (balance before: 2,779).
+
+| look | file | what changed |
+| --- | --- | --- |
+| `look:rose_gold_sovereign` | `meshes/v026_look_rose_gold_sovereign/lelu.glb` | rebuilt from the real full-length coat photograph: pointed side panels, front slit, closed back; linework handbag on RightHand |
+| `look:bronze_velocity` | `meshes/v025_look_bronze_velocity/lelu.glb` | rebuilt from the full-length catsuit photograph: ankh belt, pointed boots; lotus handbag on RightHand |
+| `look:home_laidback3` | `meshes/v027_look_home_laidback3/lelu.glb` | new: open hoodie, crop top, printed sweats, slippers |
+
+Hair: `lelu_m25c_lookassemble.py` `"hair": "outfit"` keeps her face, lips and face jewellery (hoops, forehead jewel,
+septum) and the hair Meshy generated from that look's reference; the camo roses and the chains that hung inside
+her old hair are removed; generated face fragments within 6 mm (any) / 20–40 mm (light-coloured) of her skin are cut.
+
+Open: on the coat, her head tips back in walk/sit (that rig's neck bone orientation differs from the rig her clips
+were authored for); small copper flecks at the neckline; the v1 coat/catsuit builds stay in the job ledger, the
+look slots now point at v2. Room: waiting for the user's room photographs.

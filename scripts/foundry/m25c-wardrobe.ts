@@ -28,15 +28,21 @@ const LOOKS = [
   },
   {
     id: "bronze_velocity",
-    glb: "artifacts/foundry/m25c/steps/look-bronze_velocity-bag.glb",
-    purpose: "M25-complete Outfit A: copper exosculpt catsuit (Meshy multi-image 01a1f513 + rigging 01a1f519) worn with LÉLU's own head; handbag a separate RightHand object",
-    parents: { meshyTasks: ["01a1f513-b64d-7005-ace7-4b019ca9aee6", "01a1f519-f5fa-71e6-937c-2c70e8c88f4e"], head: "camo_repaired" },
+    glb: "artifacts/foundry/m25c/steps/look2-bronze_velocity-bag.glb",
+    purpose: "M25-complete v2 Outfit A: copper catsuit rebuilt from the full-length photograph (Meshy i2i 01a1f555-ddca/01a1f556-d3a8, multi-image 01a1f557-8601, rigging 01a1f55c-2b02) with her face and the look's own hair; lotus handbag (01a1f564-7973) on RightHand",
+    parents: { previousJob: "v015_look_bronze_velocity", head: "camo_repaired", hair: "generated from the look's reference" },
   },
   {
     id: "rose_gold_sovereign",
-    glb: "artifacts/foundry/m25c/steps/look-rose_gold_sovereign-unfold.glb",
-    purpose: "M25-complete Outfit B: copper-rose tailored coat (Meshy image-to-image 01a1f527/01a1f528, multi-image 01a1f529, rigging 01a1f52e) worn with LÉLU's own head; skirt unfolded",
-    parents: { meshyTasks: ["01a1f527-94b1-71dc-98f9-b9426adc3164", "01a1f528-8190-721d-9035-eea6c9618b26", "01a1f529-837a-75b2-af99-98c9183ca6c0", "01a1f52e-c467-76fd-aced-07accb6bb9f7"], head: "camo_repaired" },
+    glb: "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign-bag.glb",
+    purpose: "M25-complete v2 Outfit B: copper-rose coat rebuilt from the full-length photograph (Meshy i2i 01a1f555-d652/01a1f556-cefc, multi-image 01a1f557-7acf, rigging 01a1f55c-13eb) with her face and the look's own hair; linework handbag (01a1f564-7cb3) on RightHand",
+    parents: { previousJob: "v016_look_rose_gold_sovereign", head: "camo_repaired", hair: "generated from the look's reference" },
+  },
+  {
+    id: "home_laidback3",
+    glb: "artifacts/foundry/m25c/steps/look2-home_laidback3.glb",
+    purpose: "M25-complete Home / Laidback 3: hoodie, crop top, printed sweats, slippers from the user's turnaround sheets (Meshy i2i 01a1f555-e3fc/01a1f556-d8f4, multi-image 01a1f557-92e7, rigging 01a1f55c-3ab4) with her face and the look's own hair",
+    parents: { head: "camo_repaired", hair: "generated from the look's reference" },
   },
 ];
 

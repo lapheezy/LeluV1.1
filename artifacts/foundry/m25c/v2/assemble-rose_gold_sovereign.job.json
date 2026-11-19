@@ -1,0 +1,21 @@
+{
+ "outfit": "leluverse/assets/characters/lelu_character/meshes/v020_multi-image-to-3d_rose_gold_sovereign_v2/rigged.glb",
+ "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+ "output": "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign.glb",
+ "report": "artifacts/foundry/m25c/v2/assemble-rose_gold_sovereign.json",
+ "cutZ": 1.482,
+ "lookId": "rose_gold_sovereign",
+ "hair": "outfit",
+ "skinClearMm": 9,
+ "material": {
+  "metallicScale": 0.55,
+  "roughnessFloor": 0.32
+ },
+ "headOffset": [
+  -0.007,
+  -0.132,
+  0.017
+ ],
+ "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig",
+ "lightClearMm": 40
+}

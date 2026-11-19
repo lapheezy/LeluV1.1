@@ -17,8 +17,9 @@ BLENDER = os.environ.get("LELU_BLENDER_BIN", os.path.expanduser("~/lelu-tools/bl
 A = "leluverse/assets/characters/lelu_character/"
 LOOKS = {
     "camo_repaired": A + "meshes/v014_look_camo_repaired/lelu.glb",
-    "bronze_velocity": A + "meshes/v015_look_bronze_velocity/lelu.glb",
-    "rose_gold_sovereign": A + "meshes/v016_look_rose_gold_sovereign/lelu.glb",
+    "bronze_velocity": A + "meshes/v025_look_bronze_velocity/lelu.glb",
+    "rose_gold_sovereign": A + "meshes/v026_look_rose_gold_sovereign/lelu.glb",
+    "home_laidback3": A + "meshes/v027_look_home_laidback3/lelu.glb",
 }
 CLIP = {"walk": A + "animations/v021_animation_01a193c7/motion.glb", "sit": A + "animations/v024_animation_01a193c7/motion.glb",
         "arms": A + "animations/v004_animation_01a193c7/motion.glb"}

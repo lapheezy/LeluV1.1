@@ -1,0 +1,20 @@
+{
+ "outfit": "leluverse/assets/characters/lelu_character/meshes/v022_multi-image-to-3d_home_laidback3/rigged.glb",
+ "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+ "output": "artifacts/foundry/m25c/steps/look2-home_laidback3.glb",
+ "report": "artifacts/foundry/m25c/v2/assemble-home_laidback3.json",
+ "cutZ": 1.41,
+ "lookId": "home_laidback3",
+ "hair": "outfit",
+ "skinClearMm": 6,
+ "material": {
+  "metallicScale": 1.0,
+  "roughnessFloor": 0.0
+ },
+ "headOffset": [
+  -0.004,
+  -0.006,
+  -0.055
+ ],
+ "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig"
+}

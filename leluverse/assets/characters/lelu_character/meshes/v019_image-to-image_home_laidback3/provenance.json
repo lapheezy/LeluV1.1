@@ -1,0 +1,102 @@
+{
+ "jobs": [
+  {
+   "look": "home_laidback3",
+   "kind": "image-to-image",
+   "task": "01a1f555-e3fc-7167-972d-63db7208f6d4",
+   "submittedAt": 1795117411.5586689,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms held slightly away from the body, legs slightly apart, feet flat, full body visible head to toe, plain light grey studio background, even lighting. Keep every garment, accessory, boot, handbag, jewellery and hairstyle detail identical to the reference. Oversized beige hoodie worn open off the shoulders, white ribbed crop top, wide beige sweatpants with dark tribal and star prints, beige plush slippers, gold hoops, layered necklaces with black oval pendant, septum ring, shoulder-length black curls, arm and torso tattoos.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/10-home-laidback3-sheet.png",
+     "sha256": "a9befa68e2f23ed5e4393fd911b55b9d9cc3cadc4aa840b608fe4e9d878ec680"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/09-home3-turnaround.png",
+     "sha256": "b8eedd2746460c325b9db9e33a81532c0a09d7df1ab56ca040fa25d805a70e59"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f555-e3fc-7167-972d-63db7208f6d4",
+   "finished": 1795117460.1318579,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f555-e3fc-7167-972d-63db7208f6d4",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms held slightly away from the body, legs slightly apart, feet flat, full body visible head to toe, plain light grey studio background, even lighting. Keep every garment, accessory, boot, handbag, jewellery and hairstyle detail identical to the reference. Oversized beige hoodie worn open off the shoulders, white ribbed crop top, wide beige sweatpants with dark tribal and star prints, beige plush slippers, gold hoops, layered necklaces with black oval pendant, septum ring, shoulder-length black curls, arm and torso tattoos.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795117411139,
+    "started_at": 1795117411153,
+    "finished_at": 1795117445083,
+    "expires_at": 1795376645083,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f555-e3fc-7167-972d-63db7208f6d4_0.png?Expires=1795376645&Signature=j9H9s3XqIe-4YxsCZZ-xgMgaR2A1CPAn7F3ZWrY2GtUlPKHPPwtBUaEvgZNmFXObO2yAYVR~rXzYquygLWwf1LqEKGRkNVmY-20k-so2H-BegeccKjL~-L69JIQESNsX2ZARFujSwqgqaYHq0FCjr6uDZHkPhfaleLlZNHw8nV4teaHXSvgsyIb8LVzRDZTuWQ8ZJEWIFIIOXeBeJm6N643k5sL~e5BpDpavk5wq6p2cv58E0iOBDp3K7Q4mg98Tmc-~qcpvdS3hZVr4EpKWdlCWTYy7~AE9n69x~HkWM2obZXbfeJtuRqOZ7mbm7wWPGe-mnt-ThJH6MeFNYSWmnw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f555_0.png",
+     "bytes": 522118,
+     "sha256": "b175113b031f3f539ffd8dbb6128f1c3d985f1288fdd54d65e7bb08f64fd6aec"
+    }
+   ]
+  },
+  {
+   "look": "home_laidback3",
+   "kind": "image-to-image",
+   "task": "01a1f556-d8f4-71da-b791-0f0ff961c4be",
+   "submittedAt": 1795117473.2240205,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same outfit, accessories, boots, handbag, jewellery and hairstyle, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body head to toe, so the outfit can be built in 3D. Keep every design detail identical.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v019_image-to-image_home_laidback3/view_01a1f555_0.png",
+     "sha256": "b175113b031f3f539ffd8dbb6128f1c3d985f1288fdd54d65e7bb08f64fd6aec"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f556-d8f4-71da-b791-0f0ff961c4be",
+   "finished": 1795117500.9693127,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f556-d8f4-71da-b791-0f0ff961c4be",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same outfit, accessories, boots, handbag, jewellery and hairstyle, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body head to toe, so the outfit can be built in 3D. Keep every design detail identical.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795117473097,
+    "started_at": 1795117473108,
+    "finished_at": 1795117493985,
+    "expires_at": 1795376693985,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f556-d8f4-71da-b791-0f0ff961c4be_0.png?Expires=1795376693&Signature=ScAnk36bvKUVuxvPeDvTRsGZWq96eQ09OeeJKC2W0xtAm~xYp942in3Vq5bKhN7TjXQa6v~nIxRJjABBRc04UOrngiGaW-tBZ7mvFoC07EMSkZnKcZJmcsYFdmSsiswuC3bGyBrFPuNzzdtAIwRcFDIacgYQ1BSz90NxtvDO9XanVY~jemDi~Kwo1T4v7q8e7NtO-eRZB8r3MjEVPYS2FK0qLQ5RzRsXQMovnd6U2Hnh7gDYAga2uabf3dA5LWzQ-M4~aumFpnWHDcQj6WTUZCmpi7e3PoV~glf8hRR3rmI28f1ZdpFSBqyBd0HdQTqynQEdOj2LUpMl5Q36SAG5BQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f556_0.png",
+     "bytes": 1162194,
+     "sha256": "ce2022ffa195a310eb4bd40e8cc5de40104b56c5af5668a1efa4ef9f30b6d673"
+    }
+   ]
+  }
+ ]
+}

@@ -63,8 +63,10 @@ def save(out, record):
 def submit(look, out, images):
     os.makedirs(out, exist_ok=True)
     body = {"ai_model": "meshy-7.1", "should_texture": True, "enable_pbr": True, "texture_resolution": "2k", "should_remesh": True,
-            "topology": "triangle", "target_polycount": 90000, "image_enhancement": False, "pose_mode": "a-pose",
+            "topology": "triangle", "target_polycount": int(os.environ.get("M25C_POLY", 90000)), "image_enhancement": False,
             "image_urls": [data_uri(i) for i in images]}
+    if os.environ.get("M25C_PROP") != "1":
+        body["pose_mode"] = "a-pose"  # characters only; props keep their own shape
     res = call("POST", PATHS["multi-image-to-3d"], body)
     rec = {"look": look, "kind": "multi-image-to-3d", "task": res.get("result"), "submittedAt": time.time(),
            "request": {k: v for k, v in body.items() if k != "image_urls"},
