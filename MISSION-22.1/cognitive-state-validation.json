@@ -1,0 +1,56 @@
+{
+  "mission": "LÉLU 2.2.1 — cognitive state sovereignty",
+  "executedAt": "2026-11-19",
+  "components": [
+    {
+      "component": "cognitive knowledge graph (observation nodes)",
+      "before": "nodes carried no conversation; state() returned them all",
+      "after": "node.data.conversationId on write; state(conversationId) filters; unattributed nodes are never shown",
+      "evidence": ["tests K (state refuses unattributed and foreign nodes)", "MISSION-22 live probe F-04"]
+    },
+    {
+      "component": "recent knowledge nodes rendering",
+      "after": "built from the scoped state() only — a chat cannot see another's nodes through context",
+      "evidence": "MISSION-22 group A test; MISSION-22.1 K"
+    },
+    {
+      "component": "entity associations / connections",
+      "state": "edges carry no conversation id; they are only returned alongside a node set and are not rendered into context",
+      "risk": "low",
+      "note": "if edges are ever rendered, they must be filtered by their endpoint nodes' scope"
+    },
+    {
+      "component": "workspace labels",
+      "before": "CognitiveCore.observe() adds every observation's text to the \"core\" workspace",
+      "after": "context renders workspace NAMES only, never labels; labels are not used to build context",
+      "risk": "low but real: the label store still holds conversation text in memory",
+      "recommended": "scope workspace labels by conversation in the next pass"
+    },
+    {
+      "component": "emotional state",
+      "finding": "no persisted mood/affect state exists; EmotionAppraisal is computed per turn from the current message and the linguistic profile",
+      "verdict": "a historical emotional observation cannot become the current emotional state, because there is no stored emotional state to become",
+      "evidence": "appraise() call graph; MISSION-22.1 K"
+    },
+    {
+      "component": "agent-generated knowledge",
+      "after": "nodes carry conversationId from the agent run's scope; agent insights are sourceType agent-reported, scope derived",
+      "evidence": "tests I"
+    },
+    {
+      "component": "background cognition",
+      "finding": "curiosity/self-study goals call memory.recall through the same scoped engine with no conversation id → historical material only, never current-conversation authority",
+      "evidence": "execution log: curiosity-* → memory.recall; scopeFor(undefined) yields conversationId null"
+    }
+  ],
+  "concurrency": {
+    "tested": true,
+    "evidence": "test K state() under two conversations; test L concurrent writes"
+  },
+  "acceptance": {
+    "nodes_scoped": true,
+    "unattributed_hidden": true,
+    "historical_emotion_not_current": true,
+    "workspace_labels_scoped": false
+  }
+}

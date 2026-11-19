@@ -78,12 +78,40 @@ export default class CognitionRuntime {
 
 
 
+  /** Delete one conversation's observations from the graph (WP06). */
+  public forgetConversation(
+    conversationId:
+      string,
+  ):
+    number {
+
+    return this.core.forgetConversation(
+      conversationId,
+    );
+  }
+
+  /** Delete the nodes derived from one memory. */
+  public forgetMemory(
+    memoryId:
+      string,
+  ):
+    number {
+
+    return this.core.forgetMemory(
+      memoryId,
+    );
+  }
+
   public observe(
 
     text:
       string,
 
     conversationId?:
+      string,
+
+    /** The memory this observation came with, so deletion can propagate. */
+    memoryId?:
       string,
 
   ):
@@ -95,6 +123,8 @@ export default class CognitionRuntime {
       text,
 
       conversationId,
+
+      memoryId,
 
     );
 

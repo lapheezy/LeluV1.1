@@ -1388,15 +1388,23 @@ ${updated ? describeArtifact(updated, 1500) : ""}`,
       },
       required: ["action"],
     },
-    run: async (args) => {
+    run: async (args, context) => {
       const { default: ProjectStore } = await import("../projects/ProjectStore");
+      const { currentSessionId } = await import("../memory/MemorySovereignty");
       const store = ProjectStore.getInstance();
       const action = str(args, "action") || "list";
 
       if (action === "create") {
         const name = str(args, "name");
         if (!name) return { ok: false, content: "Creating a project requires a name." };
-        const project = store.create({ name, description: "" });
+        const project = store.create(
+          { name, description: "" },
+          // The chat that asked for it is the project's origin (M22.1).
+          {
+            conversationId: context?.request?.conversationId ?? null,
+            sessionId: currentSessionId(),
+          },
+        );
         const objective = str(args, "objective");
         if (objective) store.update(project.id, { objective });
         return { ok: true, content: `Created project "${name}" (${project.id}).`, data: project };

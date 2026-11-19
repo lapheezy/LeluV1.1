@@ -1,0 +1,39 @@
+{
+  "mission": "LÉLU 2.2.1 — legacy shared-window audit",
+  "auditedAt": "2026-11-19",
+  "what_it_was": "AIService.chat built history as `priorTurns ?? (hasConversationId && storeHasChats ? [] : brain.getConversation().modelMessages())`. MemoryBridge.threadContext returned the same shared window whenever the request had no conversationId. Both were implicit: a fallback expressed as a `??` with a condition beside it.",
+  "replacement": {
+    "file": "src/core/memory/SharedWindowAdapter.ts",
+    "contract": "the only code that may return the brain's shared window",
+    "cases": [
+      { "input": "known conversation id", "result": "that conversation's turns", "source": "conversation" },
+      { "input": "unknown conversation id, chats exist", "result": "no history", "source": "none" },
+      { "input": "unknown conversation id, no chats (first run)", "result": "shared window", "source": "shared-legacy" },
+      { "input": "no id, chats exist", "result": "no history", "source": "none" },
+      { "input": "no id, no chats", "result": "shared window", "source": "shared-legacy" }
+    ],
+    "trace": "every non-conversation source records a TASK_CONTEXT entry with its reason"
+  },
+  "callers_audited": [
+    { "caller": "AIService.chat", "before": "implicit shared fallback", "after": "resolveTurnHistory()" },
+    { "caller": "MemoryBridge.threadContext", "before": "returned the shared window when the id was absent", "after": "builds the thread from the request's own turns; no id = no shared window" },
+    { "caller": "AIService.forgetConversation", "before": "nonexistent", "after": "purges the conversation's session material and graph nodes" }
+  ],
+  "identity_resolution": {
+    "explicit_valid_id": "operates in that conversation",
+    "explicit_invalid_id": "no history, no memory authority (rejected)",
+    "missing_id": "no history; memory is treated as historical, ownerless material",
+    "unknown_ownership": "rejected at the memory boundary",
+    "session_mismatch": "session-scoped records are rejected"
+  },
+  "residual_risks": [
+    "The brain's rolling window is still WRITTEN by every turn (it is the offline composer's working state). It is no longer READ for turn history; the adapter is the single reader and only on a true first run.",
+    "Headless callers that pass no conversation id now get no transcript history; that is the intended, explicit behaviour rather than a silent inheritance."
+  ],
+  "acceptance": {
+    "no_silent_shared_window": true,
+    "explicit_compatibility_adapter": true,
+    "invalid_identity_rejected": true,
+    "tests": "J (4 cases)"
+  }
+}

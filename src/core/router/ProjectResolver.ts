@@ -19,6 +19,7 @@
  */
 
 import type RouterContext from "./RouterContext";
+import { currentSessionId } from "../memory/MemorySovereignty";
 import type { ProviderResult } from "./RouterResults";
 import ProjectStore, { type LeluProject } from "../projects/ProjectStore";
 import ProjectExecutor, { type ProjectExecutionOutcome } from "../projects/ProjectExecutor";
@@ -285,7 +286,14 @@ export default class ProjectResolver {
     const objective = decision.objective ?? prompt.trim();
     const frequency = this.extractFrequency(text);
 
-    const project = this.store.create({ name, description: objective });
+    // The conversation that asked for it is its origin (M22.1, WP01).
+    const project = this.store.create(
+      { name, description: objective },
+      {
+        conversationId: context.request?.conversationId ?? null,
+        sessionId: currentSessionId(),
+      },
+    );
     const attributeText = decision.attributes
       ? Object.entries(decision.attributes).map(([key, value]) => `${key}: ${value}`).join("; ")
       : "";

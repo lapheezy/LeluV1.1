@@ -1,0 +1,29 @@
+{
+  "mission": "LÉLU 2.2.1 — agent memory sovereignty audit",
+  "auditedAt": "2026-11-19",
+  "method": "read every agent entry point and every path that assembles an agent request; no agent was recreated",
+  "surfaces": [
+    { "file": "src/core/agents/Shaman.ts", "role": "route + dispatch", "change": "DispatchRequest carries the turn scope; dispatch and resume pass it to AgentRunner" },
+    { "file": "src/core/agents/AgentRunner.ts", "role": "the one runner", "change": "scope in AgentRunOptions; persisted on AgentTask.scope; project contents authorized against it; consolidate() keeps it" },
+    { "file": "src/core/AIService.ts#delegate", "role": "the one runtime call for agents", "change": "request.conversationId set from the scope, so MemoryBridge.enrich runs inside the conversation; memory.learn records sourceType agent-reported" },
+    { "file": "src/core/agents/AgentTypes.ts", "role": "agent/task model", "change": "AgentTaskScope { userId, conversationId, sessionId }, AgentTask.scope" },
+    { "file": "src/core/agents/AgentStore.ts", "role": "persistence", "change": "no schema change needed — recordTask spreads the task, so scope persists and survives a reload" }
+  ],
+  "findings": [
+    { "id": "A-01", "severity": "high", "finding": "An agent request had no conversationId, so memory recall for agents ran with no identity — the exact condition that made the shared window reachable.", "fixed": true, "evidence": "request.conversationId set; test I" },
+    { "id": "A-02", "severity": "high", "finding": "An agent's report was stored as if the user had said it.", "fixed": true, "evidence": "learn(..., { sourceType: \"agent-reported\" }) and originSeed scope derived in consolidate(); test I" },
+    { "id": "A-03", "severity": "medium", "finding": "Project contents were pasted into an agent request with no ownership or scope check.", "fixed": true, "evidence": "contextFor(projectId, access)" },
+    { "id": "A-04", "severity": "medium", "finding": "A resumed task would have run without the original scope (or with none), potentially reading different memories than the original run.", "fixed": true, "evidence": "AgentTask.scope persisted; resume copies it" },
+    { "id": "A-05", "severity": "low", "finding": "AIService.delegate still composes a global cognitive snapshot (buildCognitiveContext) for the agent's system context.", "fixed": false, "policy": "it contains runtime/self state, not conversation transcripts; recorded as residual so the next mission can scope it deliberately rather than silently." }
+  ],
+  "concurrency": {
+    "tested": true,
+    "evidence": "test L — concurrent writes from two users stay separated; each task carries its own scope, so parallel runs cannot overwrite one another's identity"
+  },
+  "acceptance": {
+    "agent_context_conversation_aware": true,
+    "agent_writes_attributed": true,
+    "no_emotional_inheritance": true,
+    "scope_survives_resume": true
+  }
+}

@@ -388,6 +388,45 @@ export default class PatternMemory {
 
 
 
+  /**
+   * Remove the memories written in one conversation (M22.1, WP06).
+   *
+   * Durable user facts survive unless `keepPersistent: false` is asked for:
+   * deleting a chat removes its transcript and its session material, not
+   * everything it ever taught her. Origin survives on what remains, so a
+   * fact that outlives its chat still says where it came from.
+   */
+  public async forgetByConversation(
+    conversationId: string,
+    options: { keepPersistent?: boolean } = {},
+  ):
+    Promise<number> {
+
+    const doomed = [...this.patterns.values()].filter((pattern) => {
+      const origin = (pattern.context as
+        | { origin?: { originatingConversationId?: string | null; scope?: string } }
+        | undefined)?.origin;
+      if (!origin || origin.originatingConversationId !== conversationId) return false;
+      // Scope, not `persistence`: an ordinary turn's memory is recorded as
+      // current-conversation, which is durable but still belongs to the chat.
+      // Only facts explicitly stored as persistent-user outlive their chat.
+      if ((options.keepPersistent ?? true) && origin.scope === "persistent-user") return false;
+      return true;
+    });
+
+    for (const pattern of doomed) {
+      this.patterns.delete(pattern.id);
+      await this.store.delete(pattern.id);
+    }
+
+    return doomed.length;
+  }
+
+  /** The stored record for an id, without reading it out of the store. */
+  public getById(id: string): ResponsePattern | undefined {
+    return this.patterns.get(id);
+  }
+
   public async clear():
     Promise<void> {
 

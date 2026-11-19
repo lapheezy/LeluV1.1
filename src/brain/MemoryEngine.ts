@@ -164,8 +164,12 @@ export default class MemoryEngine {
     existing.successfulUses += 1;
     existing.confidence = existing.successfulUses / Math.max(1, existing.successfulUses + existing.failedUses);
     existing.keywords = [...new Set([...existing.keywords, ...keywords])];
-    existing.updatedAt = now;
-    this.touchOrigin(existing, now);
+    // Strictly monotonic: a reinforcement in the same millisecond as the
+    // write must still be later than it, or chronology (and the correction
+    // test) depends on clock granularity.
+    const stamp = Math.max(now, existing.updatedAt + 1);
+    existing.updatedAt = stamp;
+    this.touchOrigin(existing, stamp);
     await this.memory.update(existing);
   }
 
@@ -214,8 +218,9 @@ export default class MemoryEngine {
     };
     existing.successfulUses += 1;
     existing.confidence = 1;
-    existing.updatedAt = now;
-    this.touchOrigin(existing, now);
+    const stamp = Math.max(now, existing.updatedAt + 1);
+    existing.updatedAt = stamp;
+    this.touchOrigin(existing, stamp);
     await this.memory.update(existing);
   }
 

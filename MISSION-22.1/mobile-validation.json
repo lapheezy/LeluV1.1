@@ -1,0 +1,36 @@
+{
+  "mission": "LÉLU 2.2.1 — mobile validation",
+  "executedAt": "2026-11-19",
+  "status": "NOT VERIFIED",
+  "reason": "no physical device, emulator or mobile browser is available in this environment, and the repository has no built native project",
+  "repositoryFacts": {
+    "capacitorConfig": "capacitor.config.ts present",
+    "androidProject": "absent",
+    "iosProject": "absent",
+    "mobileAdaptationsInCode": [
+      "GenesisCore persists the workspace across three backends (localStorage → sessionStorage → window.name) explicitly for mobile tab minimize/reload",
+      "GenesisChat exposes a phone-expanded layout and a floating chat"
+    ]
+  },
+  "codeLevelFindings": [
+    {
+      "finding": "workspace persistence is designed for mobile backgrounding (three fallbacks, read fresh at mount)",
+      "implication": "conversation identity and transcript should survive minimize/resume — but this is a design property, not evidence"
+    },
+    {
+      "finding": "conversation switching and creation go through MultiChatStore, the same store the desktop uses",
+      "implication": "no separate mobile context path exists to isolate"
+    }
+  ],
+  "testsOutstanding": [
+    "install the native shell on a physical device",
+    "create a conversation, background the app, resume: transcript and active chat unchanged",
+    "create two conversations, switch between them, background/resume: no message appears in the wrong chat",
+    "kill and relaunch: session restoration and historical recall with its origin label",
+    "concurrent conversations on a throttled connection: no cross-conversation content in replies"
+  ],
+  "acceptance": {
+    "mobile_conversation_isolation_verified": false,
+    "claimed": false
+  }
+}

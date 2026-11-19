@@ -1,0 +1,75 @@
+{
+  "mission": "LÉLU 2.2.1 — cross-user validation",
+  "executedAt": "2026-11-19T15:06:56.435Z",
+  "kind": "synthetic two-user execution (fixtures, no real user data)",
+  "users": {
+    "a": {
+      "id": "fixture-user-a",
+      "conversations": [
+        "31ddd755-db80-4018-94ef-c2117a02d06b",
+        "6cb24cb2-910a-4978-b34d-741ee6e93333"
+      ],
+      "memories": [
+        "bed5aaba-429c-4f05-b596-431513a6c6c4",
+        "099ec188-0553-468b-8ea6-8bf1e8b6bc14"
+      ],
+      "project": "2ad198d1-b9d4-4139-9160-fad54ad767f5"
+    },
+    "b": {
+      "id": "fixture-user-b",
+      "conversations": [
+        "837a3c8d-3457-4f69-98f8-8a3c6c69cbb4"
+      ],
+      "project": "5e968688-cb57-4b16-9c58-daf9704ff904"
+    }
+  },
+  "checks": [
+    {
+      "name": "B asks a semantically similar question to A's loss",
+      "passed": true,
+      "evidence": {
+        "griefInContext": false,
+        "memoriesRecalled": 0
+      }
+    },
+    {
+      "name": "A's persistent fact never reaches B",
+      "passed": true,
+      "evidence": {
+        "factInContext": false
+      }
+    },
+    {
+      "name": "A's project contents never reach B",
+      "passed": true,
+      "evidence": {
+        "projectAInContext": false
+      }
+    },
+    {
+      "name": "B's own project remains available to B",
+      "passed": true,
+      "evidence": {
+        "projectBInContext": true
+      }
+    },
+    {
+      "name": "A still recalls their own history (isolation is not amnesia)",
+      "passed": true,
+      "evidence": {
+        "factInContext": true,
+        "memoriesRecalled": 1
+      }
+    },
+    {
+      "name": "A's durable project is stated as started in another chat",
+      "passed": true,
+      "evidence": {
+        "projectLabel": true,
+        "historicalLabel": true,
+        "memories": 1
+      }
+    }
+  ],
+  "isolationPass": true
+}

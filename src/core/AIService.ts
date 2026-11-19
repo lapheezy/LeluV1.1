@@ -32,7 +32,9 @@ import { fitPlannerPrompt } from "./agentic/PlannerContextBudget";
 import type { AIIntent } from "./router/AIIntent";
 import type { ReasoningResult } from "./reasoning/ReasoningEngine";
 import type { Plan } from "./planning/PlanningEngine";
-import type { LeluAgent } from "./agents/AgentTypes";
+import type { LeluAgent, AgentTaskScope } from "./agents/AgentTypes";
+import { currentSessionId } from "./memory/MemorySovereignty";
+import { resolveTurnHistory } from "./memory/SharedWindowAdapter";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
 import Shaman from "./agents/Shaman";
@@ -646,6 +648,13 @@ export default class AIService {
           delegatedBy: "lelu",
           // Attribute the agent's work to THIS cognitive turn.
           parentTaskId: taskId,
+          // …and to THIS conversation. Without it the agent read memory with
+          // no identity and could be handed the legacy shared window.
+          scope: {
+            userId: this.memory.scopeFor(options?.conversationId, delegation.task).userId,
+            conversationId: options?.conversationId ?? null,
+            sessionId: currentSessionId(),
+          },
         });
         const response: AIResponse =
           result.ok && result.response
@@ -787,9 +796,22 @@ export default class AIService {
           return false;
         }
       })();
-      const priorTurns =
-        perChatTurns ??
-        (options?.conversationId && storeHasChats ? [] : conversation.modelMessages());
+      // The ONE place history may come from is the explicit adapter: it
+      // names its source, and the only way to reach the shared window is a
+      // first run with no chats at all. There is no implicit `?? shared`.
+      const history = resolveTurnHistory({
+        conversationId: options?.conversationId,
+        perChatTurns,
+        storeHasChats,
+        sharedWindow: () => conversation.modelMessages(),
+      });
+      const priorTurns = history.turns;
+      if (history.source !== "conversation") {
+        CognitiveTrace.getInstance().record("TASK_CONTEXT", `history: ${history.source} — ${history.reason}`, {
+          source: history.source,
+          conversationId: options?.conversationId ?? null,
+        });
+      }
       conversation.record("user", message);
 
       // TWO controllers, by design, combined at the request: one per
@@ -1080,10 +1102,24 @@ export default class AIService {
    * orchestration primitive LÉLU uses to hand work to specialists —
    * chat, agents, and creative tools all share the same architecture.
    */
+  /**
+   * A conversation was deleted: purge its session memories and the cognitive
+   * observations made in it. Durable user facts survive, with their origin
+   * intact — deleting a chat is not a request to forget the user (WP06).
+   */
+  public async forgetConversation(conversationId: string): Promise<{ memories: number; nodes: number }> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return this.runtime.brain.forgetConversation(conversationId);
+  }
+
   public async delegate(
     agent: LeluAgent,
     task: string,
     projectContext?: string,
+    /** The turn this agent runs inside (M22.1). */
+    scope?: AgentTaskScope,
   ): Promise<AIResponse> {
     const message = task.trim();
     const events = AgentEventBus.getInstance();
@@ -1117,6 +1153,7 @@ export default class AIService {
       ],
       prompt: message,
       timestamp: Number(taskId),
+      ...(scope?.conversationId ? { conversationId: scope.conversationId } : {}),
       ...(() => {
         const parts: string[] = [];
         if (projectContext?.trim()) parts.push(projectContext.trim());
@@ -1156,7 +1193,11 @@ export default class AIService {
       // A read-only agent never writes; a read-write agent learns the
       // same way the main dialogue does (through the ONE memory path).
       if (agent.permissions.canWriteMemory && agent.memoryAccess === "read-write") {
-        await this.memory.learn(message, response.text, taskId, request.conversationId);
+        // An agent's report is DERIVED material about its own work, never the
+        // user's words; it is stored with that provenance and the run's scope.
+        await this.memory.learn(message, response.text, taskId, request.conversationId, {
+          sourceType: "agent-reported",
+        });
       }
 
       // LÉLU always remembers that the agent worked, so cognition can

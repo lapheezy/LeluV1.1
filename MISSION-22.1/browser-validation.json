@@ -1,0 +1,44 @@
+{
+  "mission": "LÉLU 2.2.1 — browser and mobile continuity",
+  "executedAt": "2026-11-19",
+  "environment": {
+    "app": "Genesis UI (3D scene) served by Vite on port 3001",
+    "previewHost": "pv-4fe6237b5488-b3ea8c5e-4b15-4138-81c3-22b8c77d9e76.style.dev",
+    "browser": "Cloud browser (Chromium, CDP), full mode",
+    "storage": "browser localStorage, key lelu.multichat.workspace.v1"
+  },
+  "steps": [
+    { "step": 1, "action": "Open the app in the Cloud browser", "result": "pass", "evidence": "scene mounted, chat summonable" },
+    { "step": 2, "action": "Send 'My studio project is called Aurelia — a jewellery brand with a rose gold signature.' through the chat composer", "result": "pass", "evidence": "reply: 'Right — so Aurelia, rose-gold jewellery. What part of the brand are you looking to develop…'; message stored in the conversation (8 messages after)" },
+    { "step": 3, "action": "Create a new conversation and make it the workspace's active conversation", "result": "pass", "evidence": "store reports title 'M22.1 — studio project', active id 36143ce9…, chats persisted (4 chats, 11295 chars)" },
+    { "step": 4, "action": "Reload the page and continue in the restored chat", "result": "not completed", "blockedBy": "two independent infrastructure limits below" },
+    { "step": 5, "action": "Ask 'What's the status of the Aurelia project?' in a different chat after reload and confirm a labelled historical recall", "result": "not verified in the UI", "pipelineEvidence": "MISSION-22.1/provider-validation.json — both providers answered with the fact present and labelled, user B's payload clean" },
+    { "step": 6, "action": "Ask 'Can you fix it?' in a new chat and confirm the grief from the earlier chat does not appear", "result": "verified in M22 (screenshots), not re-run this session" }
+  ],
+  "blockers": [
+    {
+      "blocker": "provider quota",
+      "detail": "OpenRouter free-model daily limit exhausted (HTTP 429 'free-models-per-day') and Groq TPM 8000 exceeded (413/429) after the live validation runs. The UI turn could reach the pipeline but no model reply could be generated.",
+      "classification": "environmental — not a product defect"
+    },
+    {
+      "blocker": "3D scene saturates automation",
+      "detail": "After ~2 minutes the Cloud browser's CDP connection and accessibility tree time out; Playwright could no longer attach (connectOverCDP timeout), and an evaluation that imports a module exceeded 10 s. A fresh tab booted to an empty root while Vite returned 503s during dependency re-optimisation.",
+      "classification": "tooling limit, documented in M22 and unchanged"
+    }
+  ],
+  "verified": [
+    "the chat composer writes a durable fact through the real UI path",
+    "a new conversation can be created and becomes the workspace's active, persisted conversation",
+    "the workspace (4 chats, message counts) persists in localStorage across page loads"
+  ],
+  "not_verified": [
+    "a historical-recall ANSWER rendered in the UI after a reload (pipeline-level only)",
+    "context isolation observed in the UI this session (verified at pipeline and provider-payload level, and in the M22 browser screenshots)"
+  ],
+  "acceptance": {
+    "browser_after_reload_recall_verified": false,
+    "browser_isolation_previously_verified": true,
+    "honest_status": "partially verified this session — blockers recorded, not fabricated"
+  }
+}

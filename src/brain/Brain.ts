@@ -290,6 +290,10 @@ export default class Brain {
 
       seed.conversationId ?? undefined,
 
+      // Linked to the durable memory, when one was written, so deleting that
+      // memory also removes this observation (M22.1, WP06).
+      memories[0]?.id,
+
     );
 
 
@@ -318,6 +322,41 @@ export default class Brain {
 
     return undefined;
 
+  }
+
+  /**
+   * Delete one memory everywhere it can still be read: the store, and the
+   * cognitive observation derived from it. There is no second index to keep
+   * in step — this IS the one memory system (M22.1, WP06).
+   */
+  public async forgetMemory(id: string): Promise<{ removed: boolean; nodes: number }> {
+    const removed = await this.memory.remove(id);
+    const nodes = this.cognitionRuntime.forgetMemory(id);
+    CognitiveTrace.getInstance().record("MEMORY_WRITE", `forgot memory ${id.slice(0, 8)}${removed ? "" : " (already absent)"}`, {
+      removed,
+      nodesRemoved: nodes,
+    });
+    return { removed, nodes };
+  }
+
+  /**
+   * Delete a conversation's material. Session memories and graph nodes go;
+   * durable user facts stay, with their origin intact, because deleting a
+   * chat is not a request to forget the user.
+   */
+  public async forgetConversation(
+    conversationId: string,
+    options: { keepPersistent?: boolean } = {},
+  ): Promise<{ memories: number; nodes: number }> {
+    const memories = await this.memory.forgetByConversation(conversationId, options);
+    const nodes = this.cognitionRuntime.forgetConversation(conversationId);
+    CognitiveTrace.getInstance().record("MEMORY_WRITE", `forgot conversation ${conversationId.slice(0, 8)}: ${memories} memory(ies), ${nodes} node(s)`, {
+      conversationId,
+      memories,
+      nodes,
+      keepPersistent: options.keepPersistent ?? true,
+    });
+    return { memories, nodes };
   }
 
 

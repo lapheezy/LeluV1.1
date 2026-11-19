@@ -16,7 +16,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import AgentStore from "./AgentStore";
 import ProjectStore from "../projects/ProjectStore";
 import type { AIResponse } from "../../providers/AIProvider";
-import type { DelegatorId } from "./AgentTypes";
+import type { DelegatorId, AgentTaskScope } from "./AgentTypes";
 import { executiveOf } from "./ExecutiveOwnership";
 
 import { AgentDepthGuard, BUDGET_LIMITS } from "../memory/CognitiveBudget";
@@ -53,6 +53,12 @@ export interface AgentRunOptions {
   executive?: string;
   /** Why this agent was chosen (SHAMAN's routeReason). */
   routeReason?: string;
+  /**
+   * The turn this run belongs to (M22.1). Without it an agent reads memory
+   * with no conversation identity, which is exactly the condition that made
+   * the legacy shared window reachable.
+   */
+  scope?: AgentTaskScope;
 }
 
 export default class AgentRunner {
@@ -118,7 +124,17 @@ export default class AgentRunner {
     }
 
     const resolvedProject = projectId ?? agent.projectId ?? undefined;
-    const projectContext = resolvedProject ? this.projects.contextFor(resolvedProject) : undefined;
+    // Project CONTENTS are authorized against the run's scope: another user's
+    // project, or a conversation-local project from a different chat, yields
+    // nothing rather than being pasted into the agent's request.
+    const access = options.scope
+      ? {
+          userId: options.scope.userId,
+          conversationId: options.scope.conversationId,
+          sessionId: options.scope.sessionId,
+        }
+      : undefined;
+    const projectContext = resolvedProject ? this.projects.contextFor(resolvedProject, access) : undefined;
 
     const taskRecord = this.store.recordTask(agentId, {
       label: task,
@@ -130,6 +146,7 @@ export default class AgentRunner {
       // restart with the task and the Cosmos can draw it in its galaxy.
       executive: options.executive ?? executiveOf(agent),
       ...(options.routeReason ? { routeReason: options.routeReason } : {}),
+      ...(options.scope ? { scope: options.scope } : {}),
     });
     if (options.resumedFrom) {
       // Link the original to its continuation; its own status and error are
@@ -152,7 +169,7 @@ export default class AgentRunner {
     });
 
     try {
-      const response = await this.ai.delegate(agent, task, projectContext);
+      const response = await this.ai.delegate(agent, task, projectContext, options.scope);
       const execution = this.store.recordExecution(agentId, {
         taskId: taskRecord.id,
         prompt: task,
@@ -185,7 +202,7 @@ export default class AgentRunner {
       // deduplication decides whether it is new, reinforces something known,
       // or supersedes it. Offering is best-effort: an agent that did useful
       // work has not failed because memory was busy.
-      void this.consolidate(agent.name, task, response.text);
+      void this.consolidate(agent.name, task, response.text, options.scope);
 
       // LÉLU speaks first only because an agent actually finished (§12). The
       // taskId is the evidence; announce() will not deliver without a real
@@ -253,6 +270,9 @@ export default class AgentRunner {
       ...(target !== agentId ? { resumedFromAgent: agentId } : {}),
       ...(original.executive ? { executive: original.executive } : {}),
       ...(handoff.routeReason ? { routeReason: handoff.routeReason } : {}),
+      // The scope travels with the task, so a resumed run is not given a
+      // fresh identity that could see different memories than the original.
+      ...(original.scope ? { scope: original.scope } : {}),
     });
   }
 
@@ -263,7 +283,12 @@ export default class AgentRunner {
    * sentence boundary. An agent's full output belongs in its execution record,
    * not in the memory LÉLU carries into every future conversation.
    */
-  private async consolidate(agentName: string, task: string, result: string): Promise<void> {
+  private async consolidate(
+    agentName: string,
+    task: string,
+    result: string,
+    scope?: AgentTaskScope,
+  ): Promise<void> {
     const text = result?.trim() ?? "";
     if (text.length < 40) return; // nothing an agent said that briefly is durable
 
@@ -290,6 +315,13 @@ export default class AgentRunner {
             sourceType: "agent-reported" as const,
             scope: "derived" as const,
             confidence: 0.6,
+            ...(scope
+              ? {
+                  userId: scope.userId,
+                  conversationId: scope.conversationId,
+                  sessionId: scope.sessionId,
+                }
+              : {}),
           },
         },
       });

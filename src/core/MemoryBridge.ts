@@ -21,6 +21,14 @@ import type { AIRequest } from "../providers/AIProvider";
 import type ResponsePattern from "../brain/ResponsePattern";
 import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
+import {
+  decideProject,
+  projectAccessFor,
+  projectContextNote,
+  projectLabel,
+  type ProjectAccess,
+  type ProjectDecisionRecord,
+} from "./projects/ProjectSovereignty";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
 import { fitContext } from "./memory/CognitiveBudget";
@@ -221,6 +229,7 @@ export default class MemoryBridge {
       reflection,
       conversation,
       cognition,
+      scope,
     );
     const context = [
       provenanceNote,
@@ -394,7 +403,10 @@ Rules:
   private threadContext(request: AIRequest) {
     const shared = this.brain.getConversation().context();
     const id = request.conversationId;
-    if (!id) return shared;
+    // NO IDENTITY, NO SHARED WINDOW. This used to return the brain's window
+    // for an id-less caller, which holds whichever chat spoke last. The thread
+    // is now built from this request's own turns and message.
+    if (!id) return this.threadFromRequest(request);
     try {
       const chat = MultiChatStore.getInstance().get(id);
       if (!chat) {
@@ -403,16 +415,7 @@ Rules:
         // whichever chat spoke last, and using it here is exactly how one
         // conversation's topic became another's context. Build the thread
         // from what this request itself carries instead.
-        const ownLines = (request.messages ?? [])
-          .filter((message) => message.role === "user" && typeof message.content === "string" && message.content.trim())
-          .map((message) => message.content);
-        const lastUser = ownLines.at(-1) ?? request.prompt;
-        const topicWord = lastUser.replace(/[^a-zA-Z0-9\s]/g, "").split(/\s+/).find((word) => word.length > 4);
-        return {
-          lastTopic: topicWord || "general",
-          recentMessages: ownLines.slice(-20),
-          messageCount: ownLines.length + 1,
-        };
+        return this.threadFromRequest(request);
       }
       const userLines = chat.messages.filter((message) => message.role === "user" && message.text.trim()).map((message) => message.text);
       const lastUser = userLines.at(-1) ?? request.prompt;
@@ -428,6 +431,20 @@ Rules:
     }
   }
 
+  /** A thread derived only from this request — used when no chat is known. */
+  private threadFromRequest(request: AIRequest) {
+    const ownLines = (request.messages ?? [])
+      .filter((message) => message.role === "user" && typeof message.content === "string" && message.content.trim())
+      .map((message) => message.content as string);
+    const lastUser = ownLines.at(-1) ?? request.prompt;
+    const topicWord = lastUser.replace(/[^a-zA-Z0-9\s]/g, "").split(/\s+/).find((word) => word.length > 4);
+    return {
+      lastTopic: topicWord || "general",
+      recentMessages: ownLines.slice(-20),
+      messageCount: ownLines.length + 1,
+    };
+  }
+
   private buildContext(
     synthesized: {
       context: string;
@@ -439,6 +456,7 @@ Rules:
     reflection: any,
     conversation: any,
     cognition: any,
+    scope: MemoryScopeContext,
   ): string {
     const sections: string[] = [];
 
@@ -463,7 +481,12 @@ Rules:
 
     // REAL project + agent context from the persistent stores — LÉLU
     // knows what work exists and which specialists are available.
-    const projectContext = this.formatProjects();
+    //
+    // PROJECT SOVEREIGNTY (2.2.1). The registry used to be rendered whole: a
+    // project created in another chat, or belonging to another user, appeared
+    // as current work. Ownership and session isolation now refuse it before
+    // formatting, and a durable project started elsewhere is stated as such.
+    const projectContext = this.formatProjects(projectAccessFor(scope));
     if (projectContext) {
       sections.push(`## Projects\n${projectContext}`);
     }
@@ -502,21 +525,34 @@ Rules:
     return output.join("\n");
   }
 
-  /** Active projects with real content, newest first, capped. */
-  private formatProjects(): string {
-    const projects = ProjectStore.getInstance()
-      .list()
-      .filter((project) => project.status === "active" && project.items.length > 0)
-      .slice(0, 4);
-    if (projects.length === 0) {
-      return "";
+  /** Active projects this turn may see, newest first, capped and labelled. */
+  private formatProjects(access: ProjectAccess): string {
+    const decisions: ProjectDecisionRecord[] = [];
+    const lines: string[] = [];
+    for (const project of ProjectStore.getInstance().list()) {
+      if (project.status !== "active" || project.items.length === 0) continue;
+      const decision = decideProject(project, access);
+      decisions.push(decision);
+      if (decision.decision === "REJECT" || decision.decision === "DEFER") continue;
+      if (lines.length >= 4) continue;
+      const kinds = [...new Set(project.items.map((item) => item.kind))].join(", ");
+      const label = projectLabel(project, access.conversationId);
+      lines.push(
+        `- ${label ? `${label} ` : ""}${project.name}${project.description ? ` — ${project.description}` : ""} (${project.items.length} item(s): ${kinds})`,
+      );
     }
-    return projects
-      .map((project) => {
-        const kinds = [...new Set(project.items.map((item) => item.kind))].join(", ");
-        return `- ${project.name}${project.description ? ` — ${project.description}` : ""} (${project.items.length} item(s): ${kinds})`;
-      })
-      .join("\n");
+
+    if (decisions.length > 0) {
+      CognitiveTrace.getInstance().record(
+        "TASK_CONTEXT",
+        `projects: ${decisions.map((decision) => `${decision.projectId.slice(0, 8)}=${decision.decision}`).join(", ")}`,
+        { decisions },
+      );
+    }
+
+    if (lines.length === 0) return "";
+    const note = projectContextNote(decisions);
+    return [lines.join("\n"), note].filter((part) => part.trim().length > 0).join("\n");
   }
 
   /** Runnable agents, so LÉLU knows her specialists. */
@@ -571,7 +607,14 @@ Rules:
       );
   }
 
-  public async learn(prompt: string, response: string, taskId?: string, conversationId?: string): Promise<void> {
+  public async learn(
+    prompt: string,
+    response: string,
+    taskId?: string,
+    conversationId?: string,
+    /** Who produced this exchange. An agent's report is not the user's words. */
+    options: { sourceType?: "user-said" | "agent-reported" | "derived" } = {},
+  ): Promise<void> {
     // LANGUAGE EVIDENCE, from the exchange that just happened.
     //
     // The observer reads the user's own words (their vocabulary, explicit
@@ -643,7 +686,7 @@ Rules:
         conversationId: conversationId ?? null,
         sessionId: currentSessionId(),
         conversationTitle,
-        sourceType: "user-said" as const,
+        sourceType: options.sourceType ?? "user-said",
       },
     });
 

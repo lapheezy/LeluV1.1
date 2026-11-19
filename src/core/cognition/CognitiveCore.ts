@@ -212,6 +212,11 @@ export default class CognitiveCore {
     conversationId?:
       string,
 
+    /** The memory this observation was derived from, when it came with one.
+     *  Deleting that memory removes this node too (M22.1, WP06). */
+    memoryId?:
+      string,
+
   ):
     void {
 
@@ -246,6 +251,9 @@ export default class CognitiveCore {
         ...(conversationId
           ? { conversationId }
           : {}),
+        ...(memoryId
+          ? { memoryId }
+          : {}),
       },
 
 
@@ -267,6 +275,34 @@ export default class CognitiveCore {
 
     );
 
+  }
+
+  /**
+   * Drop every observation made in a conversation. Used when a conversation
+   * is deleted: a graph node is content, and content outliving its chat is
+   * the leak 2.2 removed from the memory store now removed here too.
+   */
+  public forgetConversation(
+    conversationId:
+      string,
+  ):
+    number {
+
+    return this.graph.purge(
+      (node) => node.data?.conversationId === conversationId,
+    );
+  }
+
+  /** Drop nodes derived from one deleted memory. */
+  public forgetMemory(
+    memoryId:
+      string,
+  ):
+    number {
+
+    return this.graph.purge(
+      (node) => node.data?.memoryId === memoryId,
+    );
   }
 
 

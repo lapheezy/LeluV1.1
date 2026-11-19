@@ -43,6 +43,7 @@ import {
 
 
 import EventBus from "../../../core/EventBus";
+import AIService from "../../../core/AIService";
 
 import EngineRuntime from "./engines/EngineRuntime";
 
@@ -1720,6 +1721,13 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
           const nextActiveId = multiChat.remove(id);
+
+          // DELETION PROPAGATES (M22.1, WP06). The transcript is gone; its
+          // session memories and graph observations go with it, or the chat
+          // would still be readable through recall after being deleted.
+          void AIService.getInstance().forgetConversation(id).catch((error) => {
+            console.warn("[Lélu] conversation purge failed (contained)", error);
+          });
 
 
           setState(current=>{
