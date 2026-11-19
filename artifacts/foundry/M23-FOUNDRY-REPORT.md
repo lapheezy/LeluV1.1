@@ -1,4 +1,13 @@
-# M23 — LÉLU Photorealistic Character Foundry: what was built, where it lives, what it proves
+# M23 — LÉLU Photorealistic Character Foundry
+
+> **Superseded in part.** This report treats the CC0 parametric mesh as LÉLU's
+> starting point. The project also owns a finished Meshy character
+> (`leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb`),
+> which the Foundry did not look for. See `M23-MESHY-INTEGRATION.md`: identity now
+> comes from the Meshy asset and the photographs, and the CC0 build is demoted to
+> an anatomical scaffold. Everything below about the renderer, comparison,
+> versioning and tests still holds; the "starting point" framing does not.
+: what was built, where it lives, what it proves
 
 Branch: `experiment/lelu-2-golden-geometry` (worktree `lelu2/`). Baseline character
 build: 2.3.1 (`artifacts/lelu2/m231/report-2.3.1.md`).

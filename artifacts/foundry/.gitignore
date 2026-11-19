@@ -8,3 +8,5 @@ _smoke/
 *.pid
 store/**/model.glb
 store/**/renders/
+# 125 MB of Blender project, regenerated in ~20 s by lelu_meshy_verify.py
+meshy/*.blend

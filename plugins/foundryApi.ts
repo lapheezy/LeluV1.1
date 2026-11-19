@@ -30,6 +30,7 @@ import { inflateSync } from "node:zlib";
 import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from "./modelApi.ts";
 import { planExecution, probeHardware, summariseHardware, type HardwareProfile } from "../src/core/asre/foundry/capabilities.ts";
 import { TECHNOLOGIES, auditLicences, chooseEngine, technologyBrief } from "../src/core/asre/foundry/technologies.ts";
+import { locateSources } from "../src/core/asre/foundry/sources.ts";
 import { buildReferenceLibrary, describeLibrary, type ReferenceManifest } from "../src/core/asre/foundry/references.ts";
 import { planShots, shotById } from "../src/core/asre/foundry/shots.ts";
 import { addVersion, createProject, listProjects, listVersions, modelPath, readProject, readVersion, recordExport, recordRender, restoreVersion, verifyProject } from "../src/core/asre/foundry/project.ts";
@@ -322,6 +323,33 @@ export function createFoundryApi(readEnv: EnvReader, options: FoundryApiOptions 
         return send(res, { ok: true, library: lib, summary: describeLibrary(lib) });
       }
       if (method === "GET" && parts[0] === "shots") return send(res, { ok: true, shots: shots(), metrics: metricsPath });
+      // The three sources, and the owned Meshy character they are ordered around.
+      if (method === "GET" && parts[0] === "sources") {
+        return send(res, { ok: true, ...locateSources({ root: cwd, workspace: path.resolve(cwd, "..") }) });
+      }
+      if (method === "GET" && parts[0] === "meshy") {
+        const dir = path.join(path.dirname(root), "meshy");
+        const read = (name: string) => {
+          const file = path.join(dir, name);
+          return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null;
+        };
+        const provenance = path.resolve(cwd, "../leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb");
+        return send(res, {
+          ok: true,
+          found: existsSync(provenance),
+          location: path.relative(path.resolve(cwd, ".."), provenance),
+          inspection: read("inspection.json"),
+          blender: read("blender.json"),
+          reconciliation: read("reconciliation.json"),
+          renders: read("renders.json"),
+        });
+      }
+      if (method === "GET" && parts[0] === "reconcile") {
+        const dir = path.join(path.dirname(root), "meshy");
+        const stored = path.join(dir, "reconciliation.json");
+        if (existsSync(stored)) return send(res, { ok: true, ...JSON.parse(readFileSync(stored, "utf8")) });
+        return send(res, { ok: false, error: "run: npx tsx scripts/foundry/run.ts reconcile" }, 404);
+      }
       if (parts[0] === "projects") {
         if (!parts[1]) {
           if (method === "GET") return send(res, { ok: true, projects: listProjects(root), root });

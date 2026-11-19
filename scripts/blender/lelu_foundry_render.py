@@ -54,6 +54,26 @@ scene = bpy.context.scene
 for path in job["inputs"]:
     bpy.ops.import_scene.gltf(filepath=path)
 
+# A Meshy asset ships with its auto-rig's clip bound to the armature. Benchmark
+# cameras are framed on the rest pose, so clear the animation and put every
+# armature in REST position; otherwise frame 0 of a walk clip is what renders.
+if job.get("rest_pose"):
+    for o in scene.objects:
+        if o.type == "ARMATURE":
+            o.data.pose_position = "REST"
+        if o.animation_data:
+            o.animation_data_clear()
+    for action in list(bpy.data.actions):
+        bpy.data.actions.remove(action)
+
+# A stray object (the Meshy asset carries a 1-metre icosphere at the origin)
+# must not decide the framing of a character shot. It is removed from the scene,
+# not hidden, so it cannot be rendered either.
+for name in job.get("exclude") or []:
+    obj = scene.objects.get(name)
+    if obj is not None:
+        bpy.data.objects.remove(obj, do_unlink=True)
+
 meshes = [o for o in scene.objects if o.type == "MESH"]
 if not meshes:
     raise SystemExit("no mesh objects imported")

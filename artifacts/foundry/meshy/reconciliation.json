@@ -1,0 +1,296 @@
+{
+ "generatedAt": "2026-11-19T12:43:08.742Z",
+ "basis": {
+  "meshySha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+  "meshyTriangles": 224233,
+  "meshyJoints": 24,
+  "meshyShapeKeys": 36,
+  "cc0Landmarks": [
+   {
+    "feature": "jaw width",
+    "measured": 98.65,
+    "reference": 96,
+    "unit": "mm",
+    "delta": 2.65,
+    "tolerance": 4,
+    "status": "within",
+    "consequence": "a wider jaw reads as a different person"
+   },
+   {
+    "feature": "jaw / cheek",
+    "measured": 0.67,
+    "reference": 0.68,
+    "unit": "ratio",
+    "delta": -0.01,
+    "tolerance": 0.04,
+    "status": "within",
+    "consequence": "the face's taper"
+   },
+   {
+    "feature": "chin / jaw",
+    "measured": 0.47,
+    "reference": 0.45,
+    "unit": "ratio",
+    "delta": 0.02,
+    "tolerance": 0.04,
+    "status": "within",
+    "consequence": "square versus tapered chin"
+   },
+   {
+    "feature": "mouth width",
+    "measured": null,
+    "reference": 50.4,
+    "unit": "mm",
+    "delta": null,
+    "tolerance": 3,
+    "status": "not-measured",
+    "consequence": "lip width against the iris; this build does not measure it"
+   },
+   {
+    "feature": "nose width",
+    "measured": null,
+    "reference": 37.8,
+    "unit": "mm",
+    "delta": null,
+    "tolerance": 3,
+    "status": "not-measured",
+    "consequence": "alar definition; this build does not measure it"
+   },
+   {
+    "feature": "interpupillary",
+    "measured": 61.75,
+    "reference": 63,
+    "unit": "mm",
+    "delta": -1.25,
+    "tolerance": 3,
+    "status": "within",
+    "consequence": "eye spacing"
+   },
+   {
+    "feature": "hairline above eye line",
+    "measured": 52.38,
+    "reference": 87.68,
+    "unit": "mm",
+    "delta": -35.3,
+    "tolerance": 8,
+    "status": "outside",
+    "consequence": "forehead height, the most visible hair defect"
+   }
+  ],
+  "cc0Hair": [
+   {
+    "feature": "front strands",
+    "measured": 149,
+    "spec": 96,
+    "unit": "strands",
+    "status": "within"
+   },
+   {
+    "feature": "hairline coverage",
+    "measured": 100,
+    "spec": 100,
+    "unit": "%",
+    "status": "within"
+   },
+   {
+    "feature": "root thickness (min)",
+    "measured": 0.16150341919623315,
+    "spec": 0.1,
+    "unit": "mm",
+    "status": "outside"
+   },
+   {
+    "feature": "root thickness (max)",
+    "measured": 0.44898136035073544,
+    "spec": 0.12,
+    "unit": "mm",
+    "status": "outside"
+   },
+   {
+    "feature": "strand length (min)",
+    "measured": 5.799625120972145,
+    "spec": 5.8,
+    "unit": "mm",
+    "status": "within"
+   },
+   {
+    "feature": "strand length (max)",
+    "measured": 33.90143490677999,
+    "spec": 33.9,
+    "unit": "mm",
+    "status": "within"
+   }
+  ]
+ },
+ "verdicts": [
+  {
+   "component": "face.shape",
+   "priority": 1,
+   "authority": "photographs",
+   "meshy": "a 182,555-triangle head mesh with a 4096² skin texture, a 478-landmark eye projection and twelve ARKit keys; the face is one closed surface",
+   "cc0": "a 57,232-triangle parametric head with painted vertex-colour features; four of seven measured landmarks inside tolerance",
+   "photographs": "the reference face: oval, high cheekbones, tapered jaw, full lips, winged liner, defined cupid's bow",
+   "decision": "preserve",
+   "reason": "the Meshy head is the only geometry that carries her features at all; the concise evidence is the two face close-ups side by side — the CC0 build paints brows and lips as blobs, the Meshy head carries them as texture and geometry",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/face-close-up.png",
+    "artifacts/foundry/benchmark/face-close-up.png"
+   ],
+   "applied": false,
+   "correction": "keep; the correction that belongs here is texture resolution on the nose and chin, not new geometry"
+  },
+  {
+   "component": "hairline",
+   "priority": 2,
+   "authority": "photographs",
+   "meshy": "hair starts at the measured hairline with baby hairs across the forehead; the hairline shape is part of the texture and the hair mass",
+   "cc0": "measured 52.38 mm above the eye line against the photographs' 87.68 mm (-35.3 mm) — the bald forehead visible in the render",
+   "photographs": "87.68 mm above the eye line, centre part, dense curls framing the face",
+   "decision": "preserve",
+   "reason": "this is the defect the CC0 pass could not fix and the Meshy asset does not have: its hair begins on the measured hairline instead of 35 mm below it",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/face-close-up.png",
+    "artifacts/foundry/benchmark/hairline.png"
+   ],
+   "applied": false,
+   "correction": null
+  },
+  {
+   "component": "face.eyes",
+   "priority": 3,
+   "authority": "photographs",
+   "meshy": "two separate eye-patch meshes (1,026 triangles each) with their own materials and 12 shared blink/wide keys; iris, liner and lashes are painted at 4096²",
+   "cc0": "a bright sclera and a small dark iris; the lid aperture reads as a doll's eye",
+   "photographs": "almond eyes, warm brown iris, winged liner, long lashes, slightly upturned outer corners",
+   "decision": "preserve",
+   "reason": "the Meshy eyes are the same eye patches the app already blinks; nothing in the CC0 build is better",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/face-close-up.png",
+    "artifacts/foundry/benchmark/eyes.png"
+   ],
+   "applied": false,
+   "correction": "the eye patches can be rebuilt independently — they are already separate primitives with their own materials"
+  },
+  {
+   "component": "head.proportions",
+   "priority": 4,
+   "authority": "photographs",
+   "meshy": "head is a separate 182k mesh joined at the choker line; 1.719 m total height with the rig's own head bone",
+   "cc0": "head measured against her landmarks: interpupillary 61.75 mm (ref 63), jaw 98.65 mm (ref 96)",
+   "photographs": "interpupillary 63 mm, jaw 96 mm, jaw/cheek 0.676",
+   "decision": "deform",
+   "reason": "the Meshy head is right in identity and the CC0 head is right in a few measured proportions; a scale/translation pass on the Meshy head is cheaper and safer than rebuilding identity from the CC0 head",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/portrait-front.png",
+    "artifacts/foundry/benchmark/portrait-front.png"
+   ],
+   "applied": false,
+   "correction": "fit the Meshy head to the measured interpupillary distance and jaw width; re-measure after the fit, do not assume it"
+  },
+  {
+   "component": "body.proportions",
+   "priority": 5,
+   "authority": "meshy",
+   "meshy": "39,166-triangle body, 1.719 m, 24 joints, A-pose, the body the app's 31 clips animate",
+   "cc0": "1.29 M triangle parametric body with a wider A-pose and no rig",
+   "photographs": "her build, shoulder and hip widths from the specification sheets",
+   "decision": "preserve",
+   "reason": "the Meshy body is the one the animations were authored for; replacing it would invalidate every clip",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/portrait-front.png",
+    "artifacts/foundry/meshy/renders/profile.png"
+   ],
+   "applied": false,
+   "correction": null
+  },
+  {
+   "component": "clothing",
+   "priority": 6,
+   "authority": "photographs",
+   "meshy": "a fitted outfit (top, cargo trousers, boots, choker) with baked PBR textures at 2048²/4096²",
+   "cc0": "a fitted corset with a painted motif and loose cap-sleeve loops that read as detached geometry",
+   "photographs": "her cargo silhouette, choker, boots and jewellery in the look sheets",
+   "decision": "preserve",
+   "reason": "the Meshy outfit is coherent, textured and attached to the rig; the CC0 garment reads as paint over polygons",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/portrait-front.png",
+    "artifacts/foundry/meshy/renders/rear.png",
+    "artifacts/foundry/benchmark/full-body.png"
+   ],
+   "applied": false,
+   "correction": "clothing is fused into the body primitive; separating it is the WP05 separation task, not a rebuild"
+  },
+  {
+   "component": "jewelry",
+   "priority": 7,
+   "authority": "photographs",
+   "meshy": "septum ring, hoops, rose headpiece with the quartz jewel, chain and rings — geometry plus texture, visible in the close-up",
+   "cc0": "a thin wire inside the hair that reads as a dark line, plus procedural body pieces",
+   "photographs": "rose-quartz jewel at the hairline, crystal drop between the brows, septum ring, large hoops",
+   "decision": "preserve",
+   "reason": "the CC0 jewellery is the weakest part of that build; the Meshy asset already has the pieces the photographs show",
+   "evidence": [
+    "artifacts/foundry/meshy/renders/face-close-up.png",
+    "artifacts/foundry/benchmark/jewelry.png"
+   ],
+   "applied": false,
+   "correction": null
+  },
+  {
+   "component": "rig",
+   "priority": 8,
+   "authority": "meshy",
+   "meshy": "24 joints, 36 morph-target entries over 3 meshes, 31 external clips authored against this rig",
+   "cc0": "no armature and no shape keys",
+   "photographs": "not measurable from photographs",
+   "decision": "preserve",
+   "reason": "one rig, one identity: the animations and the app's expression system target this skeleton",
+   "evidence": [
+    "artifacts/foundry/meshy/inspection.json"
+   ],
+   "applied": false,
+   "correction": null
+  },
+  {
+   "component": "topology",
+   "priority": 9,
+   "authority": "meshy",
+   "meshy": "6 primitives / 224233 triangles: body 39166, head 182555, two eye patches, mouth 368, teeth 92",
+   "cc0": "15 named components, already separable, but the identity is wrong",
+   "photographs": "not measurable from photographs",
+   "decision": "deform",
+   "reason": "the head and eyes are already separate; hair, clothing and skin share the body and head primitives, so those are the ones that need a separation pass before they can be controlled independently",
+   "evidence": [
+    "artifacts/foundry/meshy/inspection.json"
+   ],
+   "applied": false,
+   "correction": "separate hair / clothing / skin within the body and head meshes while preserving the original file and the head's shape keys"
+  },
+  {
+   "component": "anatomy.scaffold",
+   "priority": 10,
+   "authority": "cc0",
+   "meshy": "not needed for scaffold: the rig exists",
+   "cc0": "the parametric anatomy with measured landmark targets",
+   "photographs": "the anatomy sheets",
+   "decision": "supplement",
+   "reason": "kept only as a measurement scaffold and comparison model; it must not author identity",
+   "evidence": [
+    "artifacts/foundry/benchmark/full-body.png"
+   ],
+   "applied": false,
+   "correction": null
+  }
+ ],
+ "counts": {
+  "preserve": 7,
+  "deform": 2,
+  "rebuild": 0,
+  "supplement": 1
+ },
+ "notes": [
+  "render paths in this file are relative to lelu2/: artifacts/foundry/meshy/renders for the Meshy asset, artifacts/foundry/benchmark for the CC0 build",
+  "not one verdict on this page has been applied: `applied: false` everywhere means the asset is unchanged and the corrections are the next pass",
+  "a preserved component is not a claim of photorealism — the Meshy asset is stylised, and its face reads as painted"
+ ]
+}

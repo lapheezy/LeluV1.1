@@ -29,6 +29,9 @@ import { foundryBlender, renderFoundryShot } from "../../src/core/asre/foundry/r
 import { bboxOf, compareRenderToReference, maskFromImage, type RenderComparison } from "../../src/core/asre/foundry/compare.ts";
 import { decodePng, type RgbaImage } from "../../src/core/asre/image/png.ts";
 import { interpretFoundryIntent, shotsForIntent } from "../../src/core/asre/foundry/intents.ts";
+import { inspectGlb, summariseInspection } from "../../src/core/asre/foundry/meshy.ts";
+import { describeSources, locateSources } from "../../src/core/asre/foundry/sources.ts";
+import { reconcile } from "../../src/core/asre/foundry/reconcile.ts";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ARTIFACTS = path.join(ROOT, "artifacts/foundry");
@@ -39,6 +42,8 @@ const MANIFEST = path.join(ROOT, "artifacts/lelu2/m231/reference-measurements.js
 const REFERENCES = path.join(ROOT, "reference-39");
 const MODEL = path.join(ROOT, "artifacts/lelu2/m23/youth/lelu2-m23-youth-head.glb");
 const FULL_MODEL = path.join(ROOT, "artifacts/lelu2/m23/youth/lelu2-m23-youth.glb");
+/** The LÉLU character the project already owns (Meshy body + rig + head swap). */
+const MESHY_MODEL = path.resolve(ROOT, "../leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb");
 
 const arg = (name: string, fallback?: string) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -127,6 +132,76 @@ function cmdTechnologies() {
   console.log(`Wrote ${path.relative(ROOT, file)}`);
 }
 
+function cmdSources() {
+  const set = locateSources({ root: ROOT, workspace: path.resolve(ROOT, "..") });
+  const file = write("sources.json", set);
+  console.log(describeSources(set));
+  for (const c of set.conflicts) console.log(`\nconflict ${c.component} (${c.between.join(" vs ")}): ${c.resolution}`);
+  console.log(`\nWrote ${path.relative(ROOT, file)}`);
+}
+
+function cmdMeshyIngest() {
+  if (!existsSync(MESHY_MODEL)) throw new Error(`the Meshy character is not at ${MESHY_MODEL}`);
+  const { projectId } = ensureProject();
+  const inspection = inspectGlb(MESHY_MODEL);
+  const existing = listVersions(STORE, projectId).find((v) => v.model.sha256 === inspection.sha256);
+  const version = existing ?? addVersion(STORE, projectId, {
+    sourceGlb: MESHY_MODEL,
+    label: "Meshy LÉLU baseline (the owned character, bytes unchanged)",
+    operation: "import",
+    triangles: inspection.counts.triangles,
+    spec: {
+      source: "meshy",
+      authority: { identity: "photographs", geometry: "meshy", scaffold: "cc0" },
+      heightM: inspection.heightM,
+      joints: inspection.counts.joints,
+      morphTargets: inspection.counts.morphTargets,
+      textures: inspection.textures.map((t) => `${t.width}x${t.height} ${t.mimeType}`),
+      provenance: "fj_mvvfg2o3_ebd9c0 body → fj_mvvnf4v9_1ded97 rig → fj_mvvnvqa1_b5672e head → fj_mvwaqbim_55226d head swap",
+    },
+    notes: [
+      `immutable baseline: ${inspection.sha256}`,
+      "the original file in leluverse/ is never written by the Foundry; corrections become new versions",
+      "renders of this version keep the shipped PBR textures (materials:false) so the comparison is about the asset",
+    ],
+  });
+  console.log(`${existing ? "already present as" : "ingested as"} ${version.id} (${version.model.sha256.slice(0, 16)}) in ${projectId}`);
+  for (const v of listVersions(STORE, projectId)) console.log(`  ${v.id} ${v.label}`);
+}
+
+function cmdReconcile() {
+  const inspection = existsSync(MESHY_MODEL) ? inspectGlb(MESHY_MODEL) : null;
+  const result = reconcile({ inspection, metrics: metrics(), hair: hair(), meshyRenders: "artifacts/foundry/meshy/renders", foundryRenders: "artifacts/foundry/benchmark" });
+  const file = write("meshy/reconciliation.json", result);
+  for (const v of result.verdicts) console.log(`${String(v.priority).padStart(2)} ${v.component.padEnd(18)} ${v.decision.padEnd(10)} authority=${v.authority.padEnd(12)} applied=${v.applied}`);
+  console.log(`\n${result.counts.preserve} preserve, ${result.counts.deform} deform, ${result.counts.rebuild} rebuild, ${result.counts.supplement} supplement. Wrote ${path.relative(ROOT, file)}`);
+}
+
+function cmdMeshy() {
+  if (!existsSync(MESHY_MODEL)) throw new Error(`the Meshy character is not at ${MESHY_MODEL}`);
+  const inspection = inspectGlb(MESHY_MODEL);
+  const provenance = [
+    path.resolve(path.dirname(MESHY_MODEL), "../v001_rigging_01a18f4e/provenance.json"),
+    path.resolve(path.dirname(MESHY_MODEL), "report.json"),
+  ].filter((f) => existsSync(f));
+  const file = write("meshy/inspection.json", {
+    inspectedAt: new Date().toISOString(),
+    relative: path.relative(path.resolve(ROOT, ".."), MESHY_MODEL),
+    inspection,
+    provenance: provenance.map((f) => ({ file: path.relative(path.resolve(ROOT, ".."), f), content: JSON.parse(readFileSync(f, "utf8")) })),
+    siblingVersions: ["v004_headswap_mvvnvqa1", "v002_headswap_mvvnvqa1", "v003_headswap_mvvnvqa1"].map((d) => {
+      const glb = path.resolve(path.dirname(MESHY_MODEL), "..", d, "lelu.glb");
+      return existsSync(glb) ? { dir: d, bytes: readFileSync(glb).length, sha256: sha256(readFileSync(glb)) } : null;
+    }).filter(Boolean),
+  });
+  console.log(summariseInspection(inspection));
+  console.log(`sha256 ${inspection.sha256}`);
+  console.log(`textures: ${inspection.textures.map((t) => `${t.width}×${t.height} ${t.mimeType} ${(t.bytes / 1024).toFixed(0)} KB`).join(", ") || "none"}`);
+  console.log(`materials: ${inspection.materials.join(", ") || "none"}`);
+  console.log(`clips: ${inspection.animations.length}, joints: ${inspection.counts.joints}, shape keys: ${inspection.counts.morphTargets}`);
+  console.log(`Wrote ${path.relative(ROOT, file)}`);
+}
+
 function cmdReferences() {
   const manifest = JSON.parse(readFileSync(MANIFEST, "utf8")) as ReferenceManifest;
   const library = buildReferenceLibrary(manifest);
@@ -200,6 +275,39 @@ async function renderShots(ids: string[], samples?: number) {
   return { projectId, versionId, results, hardware };
 }
 
+async function renderMeshy(ids: string[], samples?: number) {
+  const hardware = probeHardware();
+  const all = planShots((metrics() ?? {}) as never);
+  const outDir = path.join(ARTIFACTS, "meshy/renders");
+  mkdirSync(outDir, { recursive: true });
+  const results = [];
+  for (const id of ids) {
+    const shot = shotById(all, id);
+    if (!shot) throw new Error(`no shot "${id}"`);
+    const plan = planExecution({ id: `render:${shot.id}`, need: "cpu", ramGb: 3, minutes: 4 }, hardware);
+    // WP07: identical camera and lighting. The CC0 benchmark's own camera is
+    // read back from its render report and forced onto this asset, so a framing
+    // difference can never be mistaken for a geometry difference.
+    const cc0Report = path.join(ARTIFACTS, `benchmark/${shot.id}.png.json`);
+    let identical = shot;
+    if (existsSync(cc0Report)) {
+      const report = JSON.parse(readFileSync(cc0Report, "utf8")) as { camera_blender_zup?: { center: number[]; radius: number; lens_mm?: number } };
+      const cam = report.camera_blender_zup;
+      if (cam) identical = { ...shot, camera: { center: cam.center as [number, number, number], radius: cam.radius }, lens: cam.lens_mm ?? shot.lens };
+    }
+    console.log(`… meshy ${shot.id} (${shot.view}, ${shot.resolution.join("×")}, ${samples ? Math.min(samples, shot.samples) : shot.samples} samples)`);
+    // materials:false keeps the Meshy PBR textures exactly as shipped — the
+    // comparison is about geometry and texture, not about the foundry's shaders.
+    const render = await renderFoundryShot({ glb: MESHY_MODEL, outDir, shot: identical, plan, sampleCap: samples, materials: false, restPose: true, exclude: ["Icosphere"] });
+    if (render.ok && render.png) console.log(`  ok ${render.seconds}s → ${path.relative(ROOT, render.png)}`);
+    else console.log(`  FAILED ${render.error}`);
+    results.push({ shot: shot.id, ok: render.ok, png: render.png ? path.relative(ROOT, render.png) : null, seconds: render.seconds, error: render.error, camera: render.report?.camera_blender_zup ?? null, triangles: render.report?.triangles ?? null, render: render.report });
+  }
+  const file = write("meshy/renders.json", { generatedAt: new Date().toISOString(), model: path.relative(ROOT, MESHY_MODEL), sha256: sha256(readFileSync(MESHY_MODEL)), materials: "as shipped (no foundry shader pass)", restPose: true, results });
+  console.log(`\n${results.filter((r) => r.ok).length} rendered, ${results.filter((r) => !r.ok).length} failed. Wrote ${path.relative(ROOT, file)}`);
+  return results;
+}
+
 async function cmdBenchmark(samples?: number, only?: string) {
   const ids = only ? only.split(",") : planShots((metrics() ?? {}) as never).map((s) => s.id);
   const run = await renderShots(ids, samples);
@@ -255,6 +363,18 @@ switch (command) {
   case "references":
     cmdReferences();
     break;
+  case "meshy":
+    cmdMeshy();
+    break;
+  case "sources":
+    cmdSources();
+    break;
+  case "reconcile":
+    cmdReconcile();
+    break;
+  case "meshy-ingest":
+    cmdMeshyIngest();
+    break;
   case "plan":
     cmdPlan();
     break;
@@ -267,6 +387,9 @@ switch (command) {
   case "benchmark":
     await cmdBenchmark(arg("samples") ? Number(arg("samples")) : undefined, arg("only"));
     break;
+  case "meshy-render":
+    await renderMeshy((arg("shots") ?? "face-close-up,portrait-front,profile").split(","), arg("samples") ? Number(arg("samples")) : undefined);
+    break;
   case "chat":
     chat(rest.join(" ") || arg("message") || "");
     break;
@@ -277,6 +400,6 @@ switch (command) {
     console.log(modelPath(STORE, rest[0] ?? "lelu").file);
     break;
   default:
-    console.log("usage: status | technologies | references | plan | render --shots a,b [--samples n] | benchmark [--only id] [--samples n] | verify | projects | model | chat \"…\"");
+    console.log("usage: status | technologies | references | meshy | meshy-ingest | sources | reconcile | plan | render --shots a,b [--samples n] | benchmark [--only id] [--samples n] | verify | projects | model | chat \"…\"");
     if (command) process.exitCode = 2;
 }

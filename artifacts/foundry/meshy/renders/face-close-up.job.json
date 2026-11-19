@@ -1,0 +1,31 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/meshy/renders/face-close-up.png",
+ "shot": "face-close-up",
+ "view": "front",
+ "focus": [
+  "head",
+  "face",
+  "hair"
+ ],
+ "camera": {
+  "center": [
+   0,
+   -0.1,
+   1.5288
+  ],
+  "radius": 0.145
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 32,
+ "threads": 7,
+ "ground": false,
+ "lens": 135,
+ "materials": false,
+ "rest_pose": true
+}

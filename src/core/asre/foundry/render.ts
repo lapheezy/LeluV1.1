@@ -55,6 +55,10 @@ export interface RenderShotRequest {
   env?: NodeJS.ProcessEnv;
   timeoutMs?: number;
   materials?: boolean;
+  /** Evaluate the armature at rest instead of the imported clip's frame 0. */
+  restPose?: boolean;
+  /** Object names to delete before framing — stray objects in an imported asset. */
+  exclude?: string[];
   /** Cap samples (a quick proof render at the cost of noise). */
   sampleCap?: number;
 }
@@ -94,6 +98,8 @@ export async function renderFoundryShot(req: RenderShotRequest): Promise<ShotRen
     ...(shot.environment ? { environment: true } : {}),
     ...(shot.lens ? { lens: shot.lens } : {}),
     materials: req.materials ?? true,
+    ...(req.restPose ? { rest_pose: true } : {}),
+    ...(req.exclude?.length ? { exclude: req.exclude } : {}),
   };
   const jobFile = path.join(outDir, `${shot.id}.job.json`);
   writeFileSync(jobFile, JSON.stringify(job, null, 1));

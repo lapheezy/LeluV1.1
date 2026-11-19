@@ -8,7 +8,7 @@
  * run that was never rendered.
  */
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -23,6 +23,9 @@ import { interpretFoundryIntent, shotsForIntent } from "../src/core/asre/foundry
 import { FOUNDRY_TOOLS, FOUNDRY_EXECUTORS } from "../src/core/asre/foundry/FoundryTools";
 import type { RgbaImage } from "../src/core/asre/image/png";
 import { FOUNDRY_RENDER_SCRIPT } from "../src/core/asre/foundry/render";
+import { inspectGlb } from "../src/core/asre/foundry/meshy";
+import { authorityFor, locateSources } from "../src/core/asre/foundry/sources";
+import { reconcile } from "../src/core/asre/foundry/reconcile";
 
 const ROOT = process.cwd();
 const metrics = JSON.parse(readFileSync(path.join(ROOT, "artifacts/lelu2/m23/youth/metrics-youth.json"), "utf8")) as Record<string, unknown>;
@@ -284,4 +287,86 @@ test("the Foundry tools and their executors share ids, and the render script is 
   assert.equal(FOUNDRY_TOOLS.length, 5);
   assert.ok(existsSync(FOUNDRY_RENDER_SCRIPT), `missing render script at ${FOUNDRY_RENDER_SCRIPT}`);
   for (const tool of FOUNDRY_TOOLS) assert.ok(tool.executionRoute, `${tool.id} has no execution route`);
+});
+
+// ---------------------------------------------------------------- Meshy sources
+
+function syntheticGlb(): string {
+  const json = {
+    asset: { version: "2.0", generator: "synthetic-test" },
+    nodes: [{ name: "head" }],
+    meshes: [{ name: "head", primitives: [{ attributes: { POSITION: 0, TEXCOORD_0: 1 }, indices: 2, material: 0, targets: [{}] }], weights: [0], extras: { targetNames: ["jawOpen"] } }],
+    materials: [{ name: "skin" }],
+    images: [{ bufferView: 0, mimeType: "image/png" }],
+    textures: [{ source: 0 }],
+    bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: 24 }],
+    accessors: [
+      { componentType: 5126, count: 3, type: "VEC3", min: [0, 0, 0], max: [1, 2, 0.5] },
+      { componentType: 5126, count: 6, type: "VEC2" },
+      { componentType: 5123, count: 3, type: "SCALAR" },
+    ],
+  };
+  const jsonChunk = Buffer.from(JSON.stringify(json), "utf8");
+  const pad = (n: number) => Buffer.alloc((4 - (n % 4)) % 4, 0x20);
+  const jsonBytes = Buffer.concat([jsonChunk, pad(jsonChunk.length)]);
+  // A real 1x1 PNG signature so the size reader has something honest to parse.
+  const png = Buffer.from("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c6300010000050001", "hex");
+  const pngBytes = Buffer.concat([png, Buffer.alloc((4 - (png.length % 4)) % 4, 0)]);
+  const header = Buffer.alloc(12);
+  header.write("glTF", 0, "ascii");
+  header.writeUInt32LE(2, 4);
+  header.writeUInt32LE(12 + 8 + jsonBytes.length + 8 + pngBytes.length, 8);
+  const chunk = (data: Buffer, type: string) => {
+    const head = Buffer.alloc(8);
+    head.writeUInt32LE(data.length, 0);
+    head.write(type, 4, "ascii");
+    return Buffer.concat([head, data]);
+  };
+  const file = path.join(tmpdir(), `foundry-synthetic-${process.pid}.glb`);
+  writeFileSync(file, Buffer.concat([header, chunk(jsonBytes, "JSON"), chunk(pngBytes, "BIN\0")]));
+  return file;
+}
+
+test("the GLB inspector reads geometry, morphology and texture size from the binary", () => {
+  const file = syntheticGlb();
+  const inspection = inspectGlb(file);
+  assert.equal(inspection.gltfVersion, "2.0");
+  assert.equal(inspection.counts.vertices, 3);
+  assert.equal(inspection.counts.triangles, 1);
+  assert.equal(inspection.counts.morphTargets, 1);
+  assert.equal(inspection.counts.materials, 1);
+  assert.deepEqual(inspection.uvSets, ["TEXCOORD_0"]);
+  assert.equal(inspection.heightM, 2);
+  assert.equal(inspection.textures[0]!.width, 1);
+  assert.equal(inspection.textures[0]!.height, 1);
+  assert.match(inspection.sha256, /^[0-9a-f]{64}$/);
+  assert.equal(inspection.morphTargets[0]!.names[0], "jawOpen");
+  unlinkSync(file);
+});
+
+test("the three sources are ordered per component, not per source", () => {
+  const set = locateSources({ root: ROOT, workspace: path.resolve(ROOT, "..") });
+  assert.deepEqual(set.precedence, ["photographs", "meshy", "cc0"]);
+  assert.equal(set.sources.length, 3);
+  assert.equal(authorityFor("hairline"), "photographs");
+  assert.equal(authorityFor("rig"), "meshy");
+  assert.equal(authorityFor("anatomy.scaffold"), "cc0");
+  const meshy = set.sources.find((s) => s.id === "meshy")!;
+  assert.ok(meshy.usable, meshy.blockedReason ?? "meshy must be found");
+  assert.match(meshy.sha256 ?? "", /^[0-9a-f]{64}$/);
+  // The CC0 model may never author a face or hair component.
+  const cc0 = set.sources.find((s) => s.id === "cc0")!;
+  for (const component of ["face.shape", "hairline", "jewelry"]) assert.ok(cc0.mustNotAuthor.includes(component));
+});
+
+test("reconciliation preserves the owned character and marks every verdict unapplied", () => {
+  const file = syntheticGlb();
+  const inspection = inspectGlb(file);
+  const result = reconcile({ inspection, metrics: null, hair: null, meshyRenders: "m", foundryRenders: "f" });
+  unlinkSync(file);
+  assert.equal(result.verdicts.length, 10);
+  assert.ok(result.verdicts.every((v) => v.applied === false), "no verdict may claim a change that was not made");
+  assert.equal(result.verdicts.find((v) => v.component === "face.shape")!.decision, "preserve");
+  assert.equal(result.verdicts.find((v) => v.component === "anatomy.scaffold")!.decision, "supplement");
+  assert.equal(result.counts.preserve + result.counts.deform + result.counts.rebuild + result.counts.supplement, 10);
 });

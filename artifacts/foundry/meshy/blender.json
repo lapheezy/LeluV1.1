@@ -1,0 +1,425 @@
+{
+ "input": "/workspace/chats/6d861f98cd849b149484323e/leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+ "blender": "4.2.23 LTS",
+ "objects": [
+  {
+   "name": "char1",
+   "triangles": 39166,
+   "vertices": 83133,
+   "materials": [
+    "Material_0"
+   ],
+   "uvLayers": [
+    "UVMap"
+   ],
+   "shapeKeys": [],
+   "parent": "Armature",
+   "modifiers": [
+    "ARMATURE"
+   ],
+   "bounds_zup_m": {
+    "min": [
+     -0.44877922534942627,
+     -0.20893867313861847,
+     -3.6523567814583657e-07
+    ],
+    "max": [
+     0.44877952337265015,
+     0.20894227921962738,
+     1.4719407558441162
+    ],
+    "height": 1.4719411210797944
+   },
+   "looseParts": {
+    "count": 22149,
+    "largestVertices": [
+     54,
+     51,
+     50,
+     41,
+     40,
+     35,
+     35,
+     34,
+     32,
+     32
+    ],
+    "totalVertices": 83133
+   }
+  },
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "vertices": 2052,
+   "materials": [
+    "eye_patch_l_mat"
+   ],
+   "uvLayers": [
+    "UVMap"
+   ],
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ],
+   "parent": "Armature",
+   "modifiers": [
+    "ARMATURE"
+   ],
+   "bounds_zup_m": {
+    "min": [
+     0.0074362680315971375,
+     -0.09682230651378632,
+     1.5842467546463013
+    ],
+    "max": [
+     0.038598544895648956,
+     -0.08943454176187515,
+     1.6023411750793457
+    ],
+    "height": 0.018094420433044434
+   },
+   "looseParts": {
+    "count": 513,
+    "largestVertices": [
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4
+    ],
+    "totalVertices": 2052
+   }
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "vertices": 2052,
+   "materials": [
+    "eye_patch_r_mat"
+   ],
+   "uvLayers": [
+    "UVMap"
+   ],
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ],
+   "parent": "Armature",
+   "modifiers": [
+    "ARMATURE"
+   ],
+   "bounds_zup_m": {
+    "min": [
+     -0.04319717362523079,
+     -0.09693071991205215,
+     1.583662986755371
+    ],
+    "max": [
+     -0.013098002411425114,
+     -0.08943568170070648,
+     1.601139783859253
+    ],
+    "height": 0.017476797103881836
+   },
+   "looseParts": {
+    "count": 513,
+    "largestVertices": [
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4,
+     4
+    ],
+    "totalVertices": 2052
+   }
+  },
+  {
+   "name": "lelu_head",
+   "triangles": 182555,
+   "vertices": 355437,
+   "materials": [
+    "Material_0.001"
+   ],
+   "uvLayers": [
+    "UVMap"
+   ],
+   "shapeKeys": [
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ],
+   "parent": "Armature",
+   "modifiers": [
+    "ARMATURE"
+   ],
+   "bounds_zup_m": {
+    "min": [
+     -0.19901926815509796,
+     -0.13579538464546204,
+     0.9838254451751709
+    ],
+    "max": [
+     0.19301025569438934,
+     0.1302434355020523,
+     1.7185001373291016
+    ],
+    "height": 0.7346746921539307
+   },
+   "looseParts": {
+    "count": 86228,
+    "largestVertices": [
+     253,
+     218,
+     202,
+     104,
+     87,
+     84,
+     84,
+     73,
+     67,
+     65
+    ],
+    "totalVertices": 355437
+   }
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "vertices": 684,
+   "materials": [
+    "lelu_mouth"
+   ],
+   "uvLayers": [],
+   "shapeKeys": [],
+   "parent": "Armature",
+   "modifiers": [
+    "ARMATURE"
+   ],
+   "bounds_zup_m": {
+    "min": [
+     -0.017293628305196762,
+     -0.10161421447992325,
+     1.5376046895980835
+    ],
+    "max": [
+     0.013833658769726753,
+     -0.08929906040430069,
+     1.555694580078125
+    ],
+    "height": 0.018089890480041504
+   },
+   "looseParts": {
+    "count": 158,
+    "largestVertices": [
+     10,
+     8,
+     8,
+     8,
+     6,
+     6,
+     6,
+     6,
+     6,
+     6
+    ],
+    "totalVertices": 684
+   }
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "vertices": 163,
+   "materials": [
+    "lelu_teeth"
+   ],
+   "uvLayers": [],
+   "shapeKeys": [],
+   "parent": "Armature",
+   "modifiers": [
+    "ARMATURE"
+   ],
+   "bounds_zup_m": {
+    "min": [
+     -0.008835124783217907,
+     -0.10218397527933121,
+     1.546924114227295
+    ],
+    "max": [
+     0.005375157576054335,
+     -0.10106420516967773,
+     1.5494440793991089
+    ],
+    "height": 0.002519965171813965
+   },
+   "looseParts": {
+    "count": 35,
+    "largestVertices": [
+     8,
+     8,
+     8,
+     7,
+     6,
+     6,
+     6,
+     6,
+     4,
+     4
+    ],
+    "totalVertices": 163
+   }
+  },
+  {
+   "name": "Icosphere",
+   "triangles": 80,
+   "vertices": 42,
+   "materials": [],
+   "uvLayers": [
+    "UVMap"
+   ],
+   "shapeKeys": [],
+   "parent": null,
+   "modifiers": [],
+   "bounds_zup_m": {
+    "min": [
+     -0.9510578513145447,
+     -0.9999999403953552,
+     -1.0
+    ],
+    "max": [
+     0.9510578513145447,
+     0.9999999403953552,
+     1.0
+    ],
+    "height": 2.0
+   },
+   "looseParts": {
+    "count": 1,
+    "largestVertices": [
+     42
+    ],
+    "totalVertices": 42
+   }
+  }
+ ],
+ "armatures": [
+  {
+   "name": "Armature",
+   "bones": 24,
+   "boneNames": [
+    "Hips",
+    "LeftUpLeg",
+    "LeftLeg",
+    "LeftFoot",
+    "LeftToeBase",
+    "RightUpLeg",
+    "RightLeg",
+    "RightFoot",
+    "RightToeBase",
+    "Spine02",
+    "Spine01",
+    "Spine",
+    "LeftShoulder",
+    "LeftArm",
+    "LeftForeArm",
+    "LeftHand",
+    "neck",
+    "Head",
+    "head_end",
+    "headfront",
+    "RightShoulder",
+    "RightArm",
+    "RightForeArm",
+    "RightHand"
+   ],
+   "actions": [
+    "Armature|clip0|baselayer_Armature"
+   ],
+   "posePosition": "POSE"
+  }
+ ],
+ "summary": {
+  "objects": 7,
+  "triangles": 224313,
+  "materials": [
+   "Material_0",
+   "Material_0.001",
+   "eye_patch_l_mat",
+   "eye_patch_r_mat",
+   "lelu_mouth",
+   "lelu_teeth"
+  ],
+  "shapeKeys": [
+   "browDownLeft",
+   "browDownRight",
+   "browInnerUp",
+   "eyeBlinkLeft",
+   "eyeBlinkRight",
+   "eyeWideLeft",
+   "eyeWideRight",
+   "jawOpen",
+   "mouthFrownLeft",
+   "mouthFrownRight",
+   "mouthSmileLeft",
+   "mouthSmileRight"
+  ],
+  "bones": 24,
+  "heightM": 1.7185001373291016,
+  "headHeightM": 0.7346746921539307,
+  "headToBodyRatio": 0.4275092426211641,
+  "headToBodyBasis": "head object height / total model height, both from world-space bounds",
+  "loosePartsPerMesh": {
+   "char1": 22149,
+   "eye_patch_l": 513,
+   "eye_patch_r": 513,
+   "lelu_head": 86228,
+   "lelu_mouth": 158,
+   "lelu_teeth": 35,
+   "Icosphere": 1
+  },
+  "separability": {
+   "head": "separate object",
+   "hair": "fused into the head/body meshes (no hair object, no hair material)",
+   "clothing": "fused into the body mesh (one material per mesh, no garment objects)"
+  },
+  "bodyObject": "lelu_head"
+ }
+}
