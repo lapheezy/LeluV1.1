@@ -1,0 +1,60 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look-bronze_velocity-bag.glb",
+ "output": "artifacts/foundry/m25c/outfit-a/bag-hips.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   -0.10000000149011612,
+   -0.05000000074505806,
+   0.7200000286102295
+  ],
+  "radius": 0.3,
+  "lens": 70.0,
+  "distance": 1.2046207333061767,
+  "location": [
+   -0.10000000149011612,
+   -1.2507842779159546,
+   0.8160627484321594
+  ]
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.022242916540967,
+  "exposureEV": -2.5056692543205594
+ },
+ "objects": [
+  "bronze_bag",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_ringlets",
+  "lelu_hair_strands",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_bronze_velocity"
+ ],
+ "triangles": 400351,
+ "materialsApplied": [
+  "m25_hair_curl: anisotropy (Cycles extension)",
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_highlight: anisotropy (Cycles extension)",
+  "m25_hair_strand: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 14.96,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}
