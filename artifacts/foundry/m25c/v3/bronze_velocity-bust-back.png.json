@@ -1,0 +1,55 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look3-bronze_velocity-bag.glb",
+ "output": "artifacts/foundry/m25c/v3/bronze_velocity-bust-back.png",
+ "view": "back",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.019999999552965164,
+   1.399999976158142
+  ],
+  "radius": 0.36,
+  "lens": 85.0,
+  "distance": 1.7376996288196644,
+  "location": [
+   0.0,
+   1.7490756511688232,
+   1.572907567024231
+  ]
+ },
+ "resolution": [
+  640,
+  640
+ ],
+ "samples": 24,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.7959624595112271,
+  "exposureEV": -3.318688382485514
+ },
+ "objects": [
+  "bronze_lotus_bag",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_bronze_velocity"
+ ],
+ "triangles": 202995,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 10.51,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

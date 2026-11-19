@@ -1,0 +1,16 @@
+{
+ "outfit": "leluverse/assets/characters/lelu_character/meshes/v033_multi-image-to-3d_bronze_velocity_v3/rigged.glb",
+ "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+ "output": "artifacts/foundry/m25c/steps/look3-bronze_velocity.glb",
+ "report": "artifacts/foundry/m25c/v3/assemble-bronze_velocity.json",
+ "cutZ": "auto",
+ "lookId": "bronze_velocity",
+ "hair": "outfit",
+ "skinClearMm": 6,
+ "material": {
+  "metallicScale": 0.55,
+  "roughnessFloor": 0.32
+ },
+ "headOffset": "auto",
+ "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig"
+}

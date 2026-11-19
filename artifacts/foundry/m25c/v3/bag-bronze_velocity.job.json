@@ -1,0 +1,10 @@
+{
+ "look": "artifacts/foundry/m25c/steps/look3-bronze_velocity.glb",
+ "bag": "leluverse/assets/characters/lelu_character/meshes/v023_image-to-3d_bronze_lotus_bag/model.glb",
+ "output": "artifacts/foundry/m25c/steps/look3-bronze_velocity-bag.glb",
+ "report": "artifacts/foundry/m25c/v3/bag-bronze_velocity.json",
+ "name": "bronze_lotus_bag",
+ "heightM": 0.26,
+ "hand": "RightHand",
+ "handleDrop": 0.025
+}

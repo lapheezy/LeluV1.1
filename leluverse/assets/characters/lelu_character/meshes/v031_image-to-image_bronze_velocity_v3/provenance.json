@@ -1,0 +1,114 @@
+{
+ "jobs": [
+  {
+   "look": "bronze_velocity",
+   "kind": "image-to-image",
+   "task": "01a1f583-7bad-7615-897a-c79353aa8763",
+   "submittedAt": 1795120398.8510911,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms slightly away from the body, full body head to toe, plain light grey background. Body proportions exactly as in the photographs: slim waist, natural hips and thighs, long legs - do not exaggerate the hips, thighs or bust. HAIR exactly as in the photographs: very long waist-length dark brown-black spiral curls, half-up at the crown, with many shiny copper wire spiral coils wrapped around separate curl sections from crown to the ends, copper coil curl at the temple, sleek edges with swirled baby hairs. Outfit: copper catsuit with red and light-blue side stripes, raised copper piping, copper coil arm rings, rose-quartz ankh belt, layered copper collar, copper spiral-wrapped open-toe stiletto platform boots up to the knee, copper lotus handbag in her right hand.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/01-catsuit-front.png",
+     "sha256": "6f61219c8adec6b3a27c778c4aa93fed4e6d2bed47a189eb6e4f688e0e31d51c"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/02-catsuit-hair-profile.png",
+     "sha256": "de671e64496825f20e96eb2e473e050686094c9a3c17c6ed42294076ae5dbe7f"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/04-catsuit-back.png",
+     "sha256": "f7af00ceb325ca0081216c4bc36d2fb3deec41998b48d8cb49e6177ce9186c7f"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f583-7bad-7615-897a-c79353aa8763",
+   "finished": 1795120428.6174574,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f583-7bad-7615-897a-c79353aa8763",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms slightly away from the body, full body head to toe, plain light grey background. Body proportions exactly as in the photographs: slim waist, natural hips and thighs, long legs - do not exaggerate the hips, thighs or bust. HAIR exactly as in the photographs: very long waist-length dark brown-black spiral curls, half-up at the crown, with many shiny copper wire spiral coils wrapped around separate curl sections from crown to the ends, copper coil curl at the temple, sleek edges with swirled baby hairs. Outfit: copper catsuit with red and light-blue side stripes, raised copper piping, copper coil arm rings, rose-quartz ankh belt, layered copper collar, copper spiral-wrapped open-toe stiletto platform boots up to the knee, copper lotus handbag in her right hand.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795120398523,
+    "started_at": 1795120398541,
+    "finished_at": 1795120425656,
+    "expires_at": 1795379625656,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f583-7bad-7615-897a-c79353aa8763_0.png?Expires=1795379625&Signature=qVHmJV36zQuYe9WxCe6FUjV27vuN8FGFeVKUF79qK7GPwG6f4RMes8FkXB1hE~KdpB-WIIOZ52s1Q2lnxWn1cR1RIXAU87BEblU-gqtsEFpO2Nt8Ggr-ryF8migtEKh4G6SY6k5RE7HVEka~MlQbmsDrfH6GXGBfsqzG0y0zG3aYdo9Cn0C0MiSbYm4ZehMMssTndSY9n19G~mbEyxP4dGkN56pkLtjHEx0wscBhgBNoUERX08VxQEBNf7C3x4tqHeAfgDmieCQptBB0ktB9edn6IXewSHiK9TYlnan-R7mqJVtLW5bQLWkQ6MJs6w6vjF2sqKJ8RDxzbLOT-l251g__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f583_0.png",
+     "bytes": 492757,
+     "sha256": "43dd8c41ae5ca657edca4de39610759d322fd544aec9d6ed9dcdfc93a192121e"
+    }
+   ]
+  },
+  {
+   "look": "bronze_velocity",
+   "kind": "image-to-image",
+   "task": "01a1f584-1e91-7026-ab41-340673827927",
+   "submittedAt": 1795120440.402456,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same outfit, hairstyle with copper coils, spiral boots and body proportions, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body. The side stripes on the arms and legs are bright RED and LIGHT SKY-BLUE as in the reference photographs. Keep her waist-length coiled curls exactly as in the photographs.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v031_image-to-image_bronze_velocity_v3/view_01a1f583_0.png",
+     "sha256": "43dd8c41ae5ca657edca4de39610759d322fd544aec9d6ed9dcdfc93a192121e"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/04-catsuit-back.png",
+     "sha256": "f7af00ceb325ca0081216c4bc36d2fb3deec41998b48d8cb49e6177ce9186c7f"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/02-catsuit-hair-profile.png",
+     "sha256": "de671e64496825f20e96eb2e473e050686094c9a3c17c6ed42294076ae5dbe7f"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f584-1e91-7026-ab41-340673827927",
+   "finished": 1795120490.0268016,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f584-1e91-7026-ab41-340673827927",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same outfit, hairstyle with copper coils, spiral boots and body proportions, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body. The side stripes on the arms and legs are bright RED and LIGHT SKY-BLUE as in the reference photographs. Keep her waist-length coiled curls exactly as in the photographs.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795120440125,
+    "started_at": 1795120440144,
+    "finished_at": 1795120486279,
+    "expires_at": 1795379686279,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f584-1e91-7026-ab41-340673827927_0.png?Expires=1795379686&Signature=FnJPDlZkiP4~ZEv4OqFU4EQT89tkSggtOajHvq~lhN~XSNHIoqCuQ-5aQrUSL-C~RUYIA2mjnpBwWpKPW~rCtBY251ibM96jNYVy8Ro94SYM4VfR5ZwsZ4cq8BhSa0EyShCtq43oYbgdMtWqwxmmI00qSZLnzbZoC6fWhKQ068rK40xyeJeDJkgyTqqBPvOpGkr04cdXBVyoIPRkwxKt4ZrnFvyauqIxQ6oayK-UZVkx8pYpRO2OVKeJZEDg0mVZMCGp5k3fVho0skZGlokFrUJpOpsP1gabiOnoktA2AFUOuprtDv0Mt5Iv1rwRpnxrJst0mIDAQJA3uNDbXW~FBA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f584_0.png",
+     "bytes": 945632,
+     "sha256": "e6997ab222087f87f54af2011974fd56f814e4a4f09c6882179c6121867f3c56"
+    }
+   ]
+  }
+ ]
+}

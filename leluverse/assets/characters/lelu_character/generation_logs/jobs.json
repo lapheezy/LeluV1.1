@@ -8057,5 +8057,221 @@
         "animated": false
       }
     }
+  },
+  {
+    "id": "fj_mwo12ycy_5a84f5",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "M25-complete v2 Outfit A: copper catsuit rebuilt from the full-length photograph (Meshy i2i 01a1f555-ddca/01a1f556-d3a8, multi-image 01a1f557-8601, rigging 01a1f55c-2b02) with her face and the look's own hair; lotus handbag (01a1f564-7973) on RightHand",
+    "request": {
+      "look": "bronze_velocity",
+      "source": "artifacts/foundry/m25c/steps/look3-bronze_velocity-bag.glb",
+      "previousJob": "v015_look_bronze_velocity",
+      "head": "camo_repaired",
+      "hair": "generated from the look's reference"
+    },
+    "requestKey": "m25c-look:bronze_velocity:8a68353a4fccaaf6",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1795121650546,
+    "updatedAt": 1795121650772,
+    "submittedAt": 1795121650546,
+    "finishedAt": 1795121650546,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v035_look_bronze_velocity",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/meshes/v035_look_bronze_velocity/lelu.glb",
+          "bytes": 40109716,
+          "sha256": "8a68353a4fccaaf650aa06ef33a2b7332c21fcb164339a1b7be11b8b74c28535"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 40109716,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 8,
+        "primitives": 10,
+        "vertices": 409619,
+        "triangles": 193354,
+        "bounds": {
+          "min": [
+            -0.4826815724372864,
+            1.8405989621328445e-8,
+            -0.3280641436576843
+          ],
+          "max": [
+            0.48268112540245056,
+            1.7200006246566772,
+            0.3280644118785858
+          ],
+          "size": [
+            0.9653626978397369,
+            1.7200006062506876,
+            0.6561285555362701
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 9,
+        "textures": 17,
+        "images": 11,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 409619
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": false
+      }
+    }
+  },
+  {
+    "id": "fj_mwo12yp5_a969e1",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "M25-complete v2 Outfit B: copper-rose coat rebuilt from the full-length photograph (Meshy i2i 01a1f555-d652/01a1f556-cefc, multi-image 01a1f557-7acf, rigging 01a1f55c-13eb) with her face and the look's own hair; linework handbag (01a1f564-7cb3) on RightHand",
+    "request": {
+      "look": "rose_gold_sovereign",
+      "source": "artifacts/foundry/m25c/steps/look3-rose_gold_sovereign-bag.glb",
+      "previousJob": "v016_look_rose_gold_sovereign",
+      "head": "camo_repaired",
+      "hair": "generated from the look's reference"
+    },
+    "requestKey": "m25c-look:rose_gold_sovereign:d238cd11f8b9f2a2",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1795121650985,
+    "updatedAt": 1795121651116,
+    "submittedAt": 1795121650985,
+    "finishedAt": 1795121650985,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v036_look_rose_gold_sovereign",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/meshes/v036_look_rose_gold_sovereign/lelu.glb",
+          "bytes": 37561588,
+          "sha256": "d238cd11f8b9f2a22ab44a97fa75e89cb76e79937c91a38bf3137a98cee68fa4"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 37561588,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 8,
+        "primitives": 10,
+        "vertices": 375641,
+        "triangles": 177215,
+        "bounds": {
+          "min": [
+            -0.37544772028923035,
+            -5.863545027295913e-8,
+            -0.22295710444450378
+          ],
+          "max": [
+            0.3752744495868683,
+            1.7093064785003662,
+            0.22296005487442017
+          ],
+          "size": [
+            0.7507221698760986,
+            1.7093065371358165,
+            0.44591715931892395
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 9,
+        "textures": 17,
+        "images": 11,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 375641
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": false
+      }
+    }
   }
 ]

@@ -30,7 +30,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 
 job = json.load(open(sys.argv[sys.argv.index("--") + 1]))
-cut = float(job.get("cutZ", 1.465))
+cut = float(job["cutZ"]) if job.get("cutZ") not in (None, "auto") else 1.465
 bpy.ops.wm.read_factory_settings(use_empty=True)
 report = {"job": job}
 
@@ -101,6 +101,16 @@ if job.get("alignBones", True):
 h_o = o_rig.matrix_world @ o_rig.data.bones["Head"].head_local
 h_l = l_rig.matrix_world @ l_rig.data.bones["Head"].head_local
 offset = h_o - h_l
+if job.get("headOffset") == "auto":
+    # mean of the neck- and Head-bone offsets between the outfit rig and hers (what was
+    # worked out by hand for each look in round 2, now computed every time)
+    n_o = o_rig.matrix_world @ o_rig.data.bones["neck"].head_local
+    n_l = l_rig.matrix_world @ l_rig.data.bones["neck"].head_local
+    job["headOffset"] = [round(((h_o - h_l)[i] + (n_o - n_l)[i]) / 2, 4) for i in range(3)]
+    job["headOffsetSource"] = "auto: mean of the neck- and Head-bone offsets"
+    if job.get("cutZ") == "auto":
+        job["cutZ"] = round(1.465 + job["headOffset"][2], 4)
+    cut = float(job["cutZ"])
 if job.get("headOffset"):
     # the rigger can misplace the Head bone (it did for the coat: 11 cm forward of
     # the neck); then the offset is measured on the generated face instead
@@ -157,8 +167,18 @@ if hair_mode == "outfit":
     hb.faces.ensure_lookup_table()
     # head jewellery only (hoops, forehead, septum, lips); the chains that hung
     # inside the old hair below the neck would float over the new outfit
-    drop = set(HA["tp"][[(c not in keep_cls) or (z < cut) or (c == "metal" and not face_jewel(c3))
-                         for c, z, c3 in zip(hcls, hz, hc)]].tolist())
+    in_face_box = C.in_face(hc)
+
+    def keep_hair(i, c, z, c3):
+        if c == "hair":
+            # the cap: the top and back of her old hair stays as a closed, dark skull under
+            # the new hair (removing it left her head hollow - visible in profile and from behind);
+            # its long hanging ends and the fringe over her face go
+            # the front edge of the cap (above the forehead) read as a black slab in front views
+            return c3[2] > 1.53 and not in_face_box[i] and not (c3[1] < float(job.get("capFrontY", -0.03)) and abs(c3[0]) < 0.09)
+        return c in keep_cls and z >= cut and not (c == "metal" and not face_jewel(c3))
+
+    drop = set(HA["tp"][[not keep_hair(i, c, z, c3) for i, (c, z, c3) in enumerate(zip(hcls, hz, hc))]].tolist())
     report["leluHairFacesRemoved"] = len(drop)
     bmesh.ops.delete(hb, geom=[hb.faces[i] for i in drop], context="FACES")
     hb.to_mesh(hobj.data)
@@ -185,7 +205,9 @@ if hair_mode == "outfit":
     keepmask = [i not in sdrop for i in SA["tp"]]
     SA["tv"] = SA["tv"][keepmask]
     scls = scls[keepmask]
-    skin_sel = [c in ("skin", "lips") for c in scls]
+    # only her FACE skin decides where generated hair is cut (front half of the head)
+    face_side = (SA["wco"][SA["tv"]].mean(1) - off_np)[:, 1] < -0.02
+    skin_sel = [c in ("skin", "lips") and f for c, f in zip(scls, face_side)]
     tri = SA["wco"][SA["tv"]][skin_sel]
     bvh = BVHTree.FromPolygons(tri.reshape(-1, 3).tolist(), [[3 * i, 3 * i + 1, 3 * i + 2] for i in range(len(tri))])
     clear = float(job.get("skinClearMm", 6)) / 1000
@@ -205,9 +227,12 @@ if hair_mode == "outfit":
         if c.z <= cut:
             continue
         loc, nrm, _, dist = bvh.find_nearest(c, 0.5)
-        inside = loc is not None and (c - loc).dot(nrm) < 0 and dist < 0.08
+        inside = loc is not None and (c - loc).dot(nrm) < 0 and dist < 0.03
         near = loc is not None and (dist < clear or (dist < light_clear and not poly_dark.get(f.index, True)))
-        face_front = abs(c.x - offset.x) < 0.065 and c.y - offset.y < -0.045 and 1.49 + offset.z < c.z < 1.67 + offset.z
+        # everything the generated hair grows in front of her ears (its own hairline across her
+        # forehead, sideburns over her cheeks) hides her face: cut it; hair starts behind her hairline
+        face_front = (abs(c.x - offset.x) < float(job.get("frontCutHalfWidth", 0.10)) and c.y - offset.y < float(job.get("frontCutY", -0.035))
+                      and 1.49 + offset.z < c.z < 1.78 + offset.z)
         if inside or near or face_front:
             kill.append(f)
 else:
