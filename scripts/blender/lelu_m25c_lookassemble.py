@@ -21,6 +21,7 @@ so copper reads as metal with depth and the fabric parts stop being mirrors.
 """
 import hashlib
 import json
+import math
 import sys
 
 import bpy
@@ -60,6 +61,42 @@ l_rig = next(o for o in lelu if o.type == "ARMATURE")
 l_rig.data.pose_position = "REST"
 heads = [o for o in lelu if o.type == "MESH" and o.name.split(".")[0] in
          ("lelu_hair", "lelu_scalp", "lelu_hair_ringlets", "lelu_hair_strands", "eye_patch_l", "eye_patch_r", "lelu_mouth", "lelu_teeth")]
+
+# ------------------------------------------------ canonical bone orientation
+# Her clips (walk, sit, idle…) store bone rotations relative to HER rig's rest
+# orientations. A Meshy rig of another body has its joints in the right places but
+# its bones can point elsewhere (the coat's neck/Head pointed 15–20° off), so the
+# same clip tipped her head back. Each outfit bone keeps its own joint position and
+# length but takes LÉLU's rest direction and roll. In rest pose nothing moves (pose
+# is identity), so the mesh is untouched; only the bind matrices change.
+if job.get("alignBones", True):
+    def edit_data(rig):
+        bpy.context.view_layer.objects.active = rig
+        for o in bpy.data.objects:
+            o.select_set(o is rig)
+        bpy.ops.object.mode_set(mode="EDIT")
+        d = {b.name: ((b.tail - b.head).normalized(), b.roll, b.matrix.copy()) for b in rig.data.edit_bones}
+        bpy.ops.object.mode_set(mode="OBJECT")
+        return d
+    assert all(abs(a - b) < 1e-6 for ra, rb in zip(o_rig.matrix_world, l_rig.matrix_world) for a, b in zip(ra, rb)), "rig object transforms differ"
+    canon = edit_data(l_rig)
+    bpy.context.view_layer.objects.active = o_rig
+    for o in bpy.data.objects:
+        o.select_set(o is o_rig)
+    bpy.ops.object.mode_set(mode="EDIT")
+    aligned = {}
+    for b in o_rig.data.edit_bones:
+        if b.name not in canon:
+            continue
+        before = (b.tail - b.head).normalized()
+        direction, roll, mat = canon[b.name]
+        length = b.length
+        b.use_connect = False
+        b.tail = b.head + direction * length
+        b.align_roll(mat.to_3x3() @ Vector((0, 0, 1)))
+        aligned[b.name] = round(math.degrees(before.angle(direction)), 2)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    report["boneDirectionChangeDeg"] = aligned
 
 h_o = o_rig.matrix_world @ o_rig.data.bones["Head"].head_local
 h_l = l_rig.matrix_world @ l_rig.data.bones["Head"].head_local

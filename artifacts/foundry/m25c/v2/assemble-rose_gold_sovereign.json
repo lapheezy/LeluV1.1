@@ -20,6 +20,32 @@
   "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig",
   "lightClearMm": 40
  },
+ "boneDirectionChangeDeg": {
+  "Hips": 6.35,
+  "Spine02": 6.35,
+  "Spine01": 6.35,
+  "Spine": 14.52,
+  "neck": 13.48,
+  "Head": 49.34,
+  "head_end": 49.34,
+  "headfront": 5.56,
+  "LeftShoulder": 16.47,
+  "LeftArm": 4.53,
+  "LeftForeArm": 8.09,
+  "LeftHand": 12.49,
+  "RightShoulder": 20.35,
+  "RightArm": 5.2,
+  "RightForeArm": 10.79,
+  "RightHand": 14.7,
+  "LeftUpLeg": 6.47,
+  "LeftLeg": 12.65,
+  "LeftFoot": 57.41,
+  "LeftToeBase": 78.9,
+  "RightUpLeg": 6.04,
+  "RightLeg": 31.17,
+  "RightFoot": 40.11,
+  "RightToeBase": 12.15
+ },
  "headBoneOffsetIgnoredMm": [
   -6.65,
   -143.64,
@@ -81,5 +107,5 @@
    "shapeKeys": 0
   }
  ],
- "outputSha256": "994227263d5553e074e0e37b1fc098cb38fae1d89cb6c76218484a82b03834d7"
+ "outputSha256": "9dcf4af7eed1e634f2d8a7965be993755ec6a369dbe2e849196067c3756e3cb4"
 }
