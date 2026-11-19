@@ -1,0 +1,966 @@
+/**
+ * ==========================================================
+ * LÉLU
+ * COGNITIVE CONTEXT
+ *
+ * A live snapshot of the entire runtime state, assembled from
+ * existing singletons (SelfModel, CapabilityManifest,
+ * ProjectStore, AgentStore, AgentEventBus). This is NOT a
+ * duplicate cognition system — it's the shared context that
+ * routes the existing components through one connected pipeline.
+ *
+ * Built fresh on every request by AIRuntime, then injected
+ * into RouterContext so every resolver, agent, and executive
+ * operates from the same live state.
+ * ==========================================================
+ */
+
+import AgentEventBus from "../agent/AgentEvents";
+import { ownerForTask } from "../multichat/TurnOwnership";
+import SelfModel from "./SelfModel";
+import type { SelfModelState } from "./SelfModel";
+import ProjectStore from "../projects/ProjectStore";
+import type { LeluProject } from "../projects/ProjectStore";
+import AgentStore from "../agents/AgentStore";
+
+import CapabilityManifest from "../capabilities/CapabilityManifest";
+import AutonomyGate from "./AutonomyGate";
+import UIStateStore, { type UIStateSnapshot } from "./UIStateStore";
+import ExecutiveRuntime from "../executive/ExecutiveRuntime";
+import EarthCore from "../earth/EarthCore";
+import Sentinel from "../sentinel/Sentinel";
+import ImprovementQueue from "../selfdev/ImprovementQueue";
+import ToolRegistry from "../tools/ToolRegistry";
+import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
+import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
+import WorkspaceEngine from "../workspace/WorkspaceEngine";
+import { describeWorkspace } from "../workspace/WorkspaceArtifacts";
+import WorkflowStore from "../workflows/WorkflowStore";
+import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
+import AgentObjectives from "./AgentObjectives";
+import ObjectiveLearning from "./ObjectiveLearning";
+import { describeConfiguration, partiallyConfigured } from "../config/ConfigStatus";
+import {
+  buildReport,
+  inspectDocument,
+  type VisualReport,
+} from "../selfdev/VisualInspection";
+import LeluIdentity from "../identity/LeluIdentity";
+import { isProjectVisible, projectLabel } from "../projects/ProjectSovereignty";
+import type { ProjectAccess } from "../projects/ProjectSovereignty";
+import { currentSessionId } from "../memory/MemorySovereignty";
+import LinguisticProfile from "../identity/voice/LinguisticProfile";
+import { describeStudioWork, pendingStudioApprovals } from "../studio/StudioMemory";
+
+/**
+ * Run the existing visual inspection against LÉLU's OWN live document.
+ *
+ * This is the whole of "visual awareness": a real measurement of the
+ * interface she is actually rendering, taken at the moment cognition
+ * assembles its context. It reuses inspectDocument() rather than adding
+ * a second observer, and it deliberately returns null — not an empty
+ * healthy report — when there is no document, because "I cannot see"
+ * and "I looked and everything is fine" are different claims.
+ */
+function observeOwnInterface(): VisualReport | null {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const findings = inspectDocument(document, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    return buildReport(findings);
+  } catch (error) {
+    // An observation that failed is not an observation that passed.
+    console.warn("[CognitiveContext] Visual observation failed (contained)", error);
+    return null;
+  }
+}
+
+export interface CognitiveContextSnapshot {
+  /** Current self-model state. */
+  self: SelfModelState;
+
+  /** Active projects (non-archived). */
+  projects: LeluProject[];
+
+  /** Active agents (enabled, non-archived). */
+  agents: Array<{
+    id: string;
+    name: string;
+    role: string;
+    status: string;
+    projectId?: string;
+  }>;
+
+  /** Capability health from CapabilityManifest. */
+  capabilities: Array<{
+    name: string;
+    status: "available" | "degraded" | "unavailable" | "not_configured";
+  }>;
+
+  /** Current autonomy level. */
+  autonomyLevel: number;
+
+  /**
+   * Real state of the engineering sandbox, described by the workspace
+   * service from what the backend actually returned — whether a copy
+   * exists, how many files it holds, what changed, and how the last
+   * validation exited.
+   */
+  engineeringWorkspace: string;
+
+  /**
+   * The shared visual workspace: the artifacts open in it (captures,
+   * pages, notes, diagrams, tables) and the one the user selected — so
+   * "this" in their next message has a referent she can read and change.
+   */
+  workspaceArtifacts: string;
+
+  /**
+   * Recent workflow executions, described from their real recorded
+   * state. Cognition must be able to see WHAT ran and what each step
+   * produced, not just that something happened.
+   */
+  workflowActivity: string;
+
+  /**
+   * Which capabilities are configured, and which environment variable
+   * is missing for the ones that are not. Names and presence only.
+   */
+  configuration: string;
+
+  /**
+   * What LÉLU is working on autonomously right now: live objectives,
+   * what has been deferred, what is waiting on a person, and what the
+   * last cycles actually did.
+   *
+   * Without this, a chat turn could not answer "what are you doing?"
+   * from fact — it would have to guess, and a guess about your own
+   * activity reads exactly like a claim.
+   */
+  autonomousWork: string;
+
+  /**
+   * The workflow capability surface — what exists, what it needs, what
+   * it produces, and whether it can run. This is what lets cognition
+   * DECIDE to use a workflow rather than only be able to call one.
+   */
+  workflowCapabilities: string;
+
+  /** Current UI state (read live from UIStateStore singleton). */
+  ui: UIStateSnapshot;
+
+  /**
+   * MEASURED observation of LÉLU's own rendered interface.
+   *
+   * Not the same thing as `ui` above: that is the view state LÉLU
+   * intended, this is what the DOM actually turned out to be —
+   * overflow, emptiness, element counts, measured in real pixels by
+   * inspectDocument(). The difference between the two is the only way
+   * she can notice that what rendered is not what she asked for.
+   *
+   * `null` outside a browser (server runtimes have no document), which
+   * is an honest "I cannot see" rather than a fabricated clean report.
+   */
+  visual: VisualReport | null;
+
+  /** Recent cognitive events (last N from AgentEventBus). */
+  recentEvents: Array<{
+    type: string;
+    tool?: string;
+    result?: string;
+    timestamp: number;
+  }>;
+
+  /** Authoritative measured self-state from the Executive Runtime. */
+  executiveSelfStateText: string;
+
+  /** Canonical Earth Core spatial context (compact; null when dormant). */
+  earthContext: string | null;
+
+  /**
+   * LÉLU's autonomous self-study state, READ as it already is.
+   *
+   * Building this context never starts a cycle and never calls a
+   * provider — a chat request reports cognition, it does not cause it.
+   */
+  selfStudy: CognitiveStateView;
+
+  /** Current persistent project checkpoints available to cognition. */
+  checkpoints: Array<{
+    projectId: string;
+    projectName: string;
+    status: string;
+    summary: string;
+    nextAction: string | null;
+    pending: string[];
+  }>;
+
+  /**
+   * Recent unacknowledged runtime errors/warnings from Sentinel — real
+   * uncaught exceptions, rejected promises, and subsystem-reported
+   * failures. Universal (every request), not only when an
+   * "engineering" intent happens to be detected — so cognition already
+   * knows what's currently broken without being told.
+   */
+  recentErrors: Array<{
+    type: string;
+    severity: string;
+    message: string;
+    source: string;
+    timestamp: number;
+  }>;
+
+  /**
+   * The studio's grounded engineering state: project objectives, stage
+   * progress, the last real build failure, the last successful build,
+   * previews and anything waiting on a person. Read from the persisted
+   * studio records, not from a summary a model wrote about itself.
+   */
+  studioWork: string;
+
+  /** Live protected actions waiting for a human decision. */
+  studioApprovals: string;
+
+  /**
+   * Open self-development proposals (the real ImprovementQueue, not a
+   * count nobody explains) — her own pending engineering work, visible
+   * to every request the same way an open project or active agent is.
+   */
+  pendingImprovements: Array<{
+    id: string;
+    title: string;
+    kind: string;
+    status: string;
+  }>;
+
+  /**
+   * Real, currently-available actions gated behind explicit user
+   * confirmation (risk level 2+ — device actions, external calls,
+   * anything destructive), from the ToolRegistry risk/permission
+   * schema. `available` is computed from actual runtime state
+   * (ToolRegistry.refreshAvailability, called at startup) — never the
+   * hardcoded claim it used to be — so a tool listed here is genuinely
+   * reachable right now, not merely defined.
+   */
+  toolsRequiringConfirmation: Array<{ id: string; name: string; riskLevel: number }>;
+
+  /** Timestamp of this snapshot. */
+  builtAt: number;
+
+  /**
+   * The scope this snapshot was assembled for. `null` means the caller
+   * supplied no identity: operational state only, no conversation-derived
+   * content (M22.2).
+   */
+  contextScope: {
+    userId: string | null;
+    conversationId: string | null;
+    sessionId: string | null;
+  };
+}
+
+/** Identity a context is assembled for. A bare string is a conversation id. */
+export interface ContextScope {
+  userId?: string | null;
+  conversationId?: string | null;
+  sessionId?: string | null;
+}
+
+function normalizeScope(scope?: string | ContextScope): Required<ContextScope> {
+  if (typeof scope === "string" || scope === undefined) {
+    return { userId: null, conversationId: scope ?? null, sessionId: currentSessionId() };
+  }
+  return {
+    userId: scope.userId ?? null,
+    conversationId: scope.conversationId ?? null,
+    sessionId: scope.sessionId ?? currentSessionId(),
+  };
+}
+
+
+
+/**
+ * Build a fresh CognitiveContextSnapshot from live singleton state.
+ * Called by AIRuntime on every process() invocation.
+ */
+export function buildCognitiveContext(scope?: string | ContextScope): CognitiveContextSnapshot {
+  const access: ProjectAccess = normalizeScope(scope);
+  const conversationId = access.conversationId ?? undefined;
+  const selfModel = SelfModel.getInstance();
+  const projectStore = ProjectStore.getInstance();
+  const agentStore = AgentStore.getInstance();
+  const capabilityManifest = CapabilityManifest.getInstance();
+  const autonomyGate = AutonomyGate.getInstance();
+  const uiStateStore = UIStateStore.getInstance();
+
+  const self = selfModel.get();
+
+  // REAL recent execution events — the last actions actually emitted
+  // by executing code (never model claims), for situational awareness.
+  //
+  // For a chat turn, only that chat's events and background work no chat
+  // owns: another conversation's tool results here were a way for one
+  // chat's work to surface in another's reply, unlabelled.
+  const recentEvents = AgentEventBus.getInstance()
+    .recent(conversationId ? 40 : 8)
+    .filter((event) => {
+      const owner = ownerForTask(event.taskId);
+      // OWNED ONLY (M22.2). An ownerless tool result often quotes work done
+      // inside a conversation (a project name, a file, a message) and was
+      // therefore a back door around the project and conversation boundaries:
+      // "Project 'Aurelia — private commission' created" reached every scope.
+      // With no identity, no execution events are shown at all.
+      if (!conversationId) return false;
+      return owner === conversationId;
+    })
+    .slice(-8)
+    .map((event) => ({
+      type: event.type,
+      tool: "tool" in event ? event.tool : undefined,
+      result: "result" in event && typeof event.result === "string" ? event.result : undefined,
+      timestamp: Date.now(),
+    }));
+
+  // PROJECT SOVEREIGNTY APPLIES TO THE SNAPSHOT TOO. Before 2.2.2 this list
+  // was every active/paused project, so the cognitive snapshot quietly
+  // bypassed the boundary M22.1 put around project context: another user's
+  // project, or a conversation-local one from another chat, arrived here.
+  // A caller with NO identity at all gets operational state only. An
+  // unowned legacy project is visible to a real turn (that is continuity),
+  // but an anonymous snapshot is not a turn and must not become one.
+  const fullyAnonymous = !access.userId && !access.conversationId;
+  const projects = fullyAnonymous
+    ? []
+    : projectStore
+        .list()
+        .filter((p) => p.status === "active" || p.status === "paused")
+        .filter((project) => isProjectVisible(project, access));
+  const checkpoints = projects
+    .filter((project) => project.checkpoint)
+    .map((project) => ({
+      projectId: project.id,
+      projectName: project.name,
+      status: project.checkpoint?.status ?? project.status,
+      summary: project.checkpoint?.summary ?? "",
+      nextAction: project.checkpoint?.nextAction ?? null,
+      pending: project.checkpoint?.pending ?? [],
+    }));
+
+  const authorizedProjectNames = new Set(projects.map((project) => project.name));
+
+  const agents = agentStore
+    .list()
+    .filter((a) => a.enabled && a.status !== "archived")
+    .map((a) => ({
+      id: a.id,
+      name: a.name,
+      role: a.role,
+      status: a.status,
+      projectId: a.projectId ?? undefined,
+    }));
+
+  const capabilities = capabilityManifest.getAll().map((c) => ({
+    name: c.name,
+    status: c.status,
+  }));
+
+  const recentErrors = Sentinel.getInstance()
+    .getUnacknowledged()
+    .filter((event) => event.severity === "error" || event.severity === "critical")
+    .slice(0, 5)
+    .map((event) => ({
+      type: event.type,
+      severity: event.severity,
+      message: event.message,
+      source: event.source,
+      timestamp: event.timestamp,
+    }));
+
+  const pendingImprovements = ImprovementQueue.getInstance()
+    .open()
+    .slice(0, 5)
+    .map((proposal) => ({
+      id: proposal.id,
+      title: proposal.title,
+      kind: proposal.kind,
+      status: proposal.status,
+    }));
+
+  const toolsRequiringConfirmation = ToolRegistry.getInstance()
+    .needsConfirmation()
+    .map((tool) => ({ id: tool.id, name: tool.name, riskLevel: tool.riskLevel }));
+
+  return {
+    // Self-model project names are a second, independent copy of the project
+    // registry; keep only names this scope may see.
+    self: {
+      ...self,
+      projects: (self.projects ?? []).filter((name) => authorizedProjectNames.has(name)),
+    },
+    projects,
+    agents,
+    capabilities,
+    autonomyLevel: autonomyGate.getLevel(),
+    ui: uiStateStore.get() as UIStateSnapshot,
+    // Observe the LIVE interface, not a preview iframe. inspectDocument()
+    // already existed and already measured real geometry; it was only
+    // ever called from the Engineering panel when a human opened it, so
+    // nothing LÉLU could reason over ever received it.
+    visual: observeOwnInterface(),
+    recentEvents,
+    toolsRequiringConfirmation,
+    // Measured operational state — never assumed, never fabricated.
+    // Scoped: the last verified action is only shown to the conversation
+    // that caused it (M22.2). No identity → operational self-state only.
+    executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(
+      fullyAnonymous ? undefined : access.conversationId,
+    ),
+    // Earth Core spatial context — canonical state from the one Earth runtime.
+    earthContext: EarthCore.getInstance().buildSpatialContext(),
+    // Autonomous self-study state, READ ONLY. getCognitiveState() runs no
+    // cycle and mutates nothing, so assembling context for a chat request
+    // can never be what produced the state it reports.
+    selfStudy: SelfStudyEngine.getInstance().getCognitiveState(),
+    // describe() reads the workspace service's own state, which only
+    // ever moves in response to a real backend result.
+    engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
+    workspaceArtifacts: describeWorkspace(WorkspaceEngine.getInstance().getState()),
+    workflowActivity: describeWorkflowActivity(),
+    configuration: describeConfigurationSafely(),
+    // Read-only: describes the objective store as it stands. Assembling
+    // context never starts, advances or ends a cycle.
+    autonomousWork: describeAutonomousWork(),
+    workflowCapabilities: describeWorkflowCapabilities(),
+    // Grounded in StudioLibrary / StudioPipeline / StudioApprovals — the
+    // same records the Studio window shows, so a chat answer about a
+    // project cannot disagree with the panel.
+    studioWork: describeStudioWork(),
+    studioApprovals: pendingStudioApprovals(),
+    checkpoints,
+    recentErrors,
+    pendingImprovements,
+    builtAt: Date.now(),
+    contextScope: access,
+  };
+}
+
+/**
+ * Format the cognitive context into a compact text block for
+ * injection into the AI model's system prompt. This is how
+ * LÉLU's cognition actually "sees" her own runtime state.
+ */
+/** The decidable workflow surface, from real definitions. */
+function describeWorkflowCapabilities(): string {
+  try {
+    return AgentWorkflowBridge.getInstance().describeCapabilities();
+  } catch {
+    return "Workflow capabilities are unavailable in this runtime.";
+  }
+}
+
+/** Recent workflow runs, from their persisted records. */
+function describeWorkflowActivity(): string {
+  try {
+    const store = WorkflowStore.getInstance();
+    const defined = store.list();
+    const runs = store.executions().slice(0, 3);
+
+    if (defined.length === 0) return "No workflows are defined.";
+    if (runs.length === 0) {
+      return `${defined.length} workflow(s) defined; none has been executed yet.`;
+    }
+
+    const lines = runs.map((run) => {
+      const steps = run.steps
+        .map((step) => `${step.name}=${step.status}`)
+        .join(", ");
+      const failures = run.steps
+        .filter((step) => step.status === "failed" || step.status === "blocked")
+        .map((step) => `${step.name}: ${step.reason ?? "no reason"}`);
+      return (
+        `- “${run.workflowName}” (${run.origin.kind}) ${run.status}: ${steps || "no steps"}` +
+        (failures.length ? `\n    problems: ${failures.join("; ")}` : "") +
+        (run.finalResult ? `\n    result: ${run.finalResult.replace(/\s+/g, " ").slice(0, 200)}` : "")
+      );
+    });
+    return `${defined.length} workflow(s) defined.\n${lines.join("\n")}`;
+  } catch {
+    return "Workflow state is unavailable in this runtime.";
+  }
+}
+
+/**
+ * LÉLU's own autonomous work, from the real objective store.
+ *
+ * Everything here is recorded state: an objective that yielded says so
+ * and says why, and a completed one carries its own conclusion. Nothing
+ * is inferred from intent.
+ */
+function describeAutonomousWork(): string {
+  try {
+    const objectives = AgentObjectives.getInstance();
+    const all = objectives.list();
+    if (all.length === 0) {
+      return "No autonomous objectives exist. Nothing is running in the background.";
+    }
+
+    const live = all.filter((objective) =>
+      ["active", "waiting", "scheduled", "awaiting-approval"].includes(objective.state),
+    );
+    const recentlyEnded = all
+      .filter((objective) => ["completed", "yielded", "cancelled"].includes(objective.state))
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, 3);
+
+    const lines: string[] = [];
+
+    if (live.length === 0) {
+      lines.push("Nothing is running right now.");
+    } else {
+      for (const objective of live) {
+        const detail =
+          objective.state === "scheduled" && objective.resumeAt
+            ? ` — resumes ${new Date(objective.resumeAt).toLocaleTimeString()}`
+            : objective.state === "awaiting-approval"
+              ? ` — WAITING ON A PERSON: ${objective.approval?.request ?? "a decision"}`
+              : objective.state === "waiting"
+                ? ` — waiting for ${objective.waitingFor ?? "something"}`
+                : "";
+        const last = objectives.cycles(objective.id)[0];
+        lines.push(
+          `- [${objective.state}] ${objective.objective}` +
+            ` (cycle ${objective.cyclesRun}/${objective.maxCycles}, ${objective.actionsTaken} action(s))${detail}` +
+            (last ? `\n    last cycle: ${last.decision.replace(/\s+/g, " ").slice(0, 200)}` : ""),
+        );
+      }
+    }
+
+    for (const objective of recentlyEnded) {
+      // A yielded objective is never described as finished work.
+      lines.push(
+        `- [${objective.state}${objective.yieldReason ? `: ${objective.yieldReason}` : ""}] ` +
+          `${objective.objective}` +
+          (objective.conclusion ? ` — ${objective.conclusion.replace(/\s+/g, " ").slice(0, 200)}` : ""),
+      );
+    }
+
+    /* ---- THE MOST RECENT COGNITIVE PASS, from its real trace ----
+     *
+     * This is what makes "what did you just do, and why?" answerable
+     * from runtime state instead of from the chat transcript: the
+     * decision text she actually produced, the learning that was
+     * actually put in front of her before it, the actions that
+     * actually ran, and the branch actually taken.
+     */
+    const newest = [...all].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    const lastCycle = newest ? objectives.cycles(newest.id)[0] : undefined;
+    if (lastCycle) {
+      const trace = AgentEventBus.getInstance().cognitionTrace(newest!.id);
+      const stageDetail = (stage: string): string | undefined =>
+        [...trace].reverse().find((event) => event.stage === stage)?.detail;
+
+      lines.push(
+        "",
+        "YOUR MOST RECENT COGNITIVE PASS:",
+        `- objective: ${newest!.objective}`,
+        `- what started it: ${lastCycle.trigger}`,
+        `- what you decided: ${lastCycle.decision.replace(/\s+/g, " ").slice(0, 400)}`,
+        `- what actually ran: ${
+          lastCycle.executed.length
+            ? lastCycle.executed.map((entry) => `${entry.tool}${entry.ok ? " (ok)" : " (FAILED)"}`).join(", ")
+            : "nothing — no action was taken"
+        }`,
+        `- where it left the objective: ${lastCycle.nextState}${lastCycle.yieldReason ? ` (${lastCycle.yieldReason})` : ""}`,
+      );
+      const retrieved = stageDetail("lesson-retrieved");
+      lines.push(
+        `- prior learning you were given first: ${retrieved ? retrieved.slice(0, 300) : "none was relevant"}`,
+      );
+      const branch = stageDetail("branch-selected");
+      if (branch) lines.push(`- branch taken: ${branch.slice(0, 200)}`);
+      const authored = stageDetail("workflow-authored");
+      if (authored) lines.push(`- workflow you wrote: ${authored.slice(0, 200)}`);
+      const executed = stageDetail("workflow-executed");
+      if (executed) lines.push(`- workflow you ran: ${executed.slice(0, 200)}`);
+    }
+
+    /* ---- WHAT YOU HAVE LEARNED, with honest durability ---- */
+    const lessons = ObjectiveLearning.getInstance().lessons().slice(0, 5);
+    if (lessons.length > 0) {
+      lines.push("", "WHAT YOU HAVE LEARNED FROM YOUR OWN WORK:");
+      for (const lesson of lessons) {
+        lines.push(
+          `- [${lesson.kind}, confidence ${lesson.confidence.toFixed(2)}, seen ${lesson.observations}x, ` +
+            `${lesson.persistedDurably ? "in long-term memory" : "LOCAL INDEX ONLY — the long-term write was refused"}] ` +
+            lesson.lesson.replace(/\s+/g, " ").slice(0, 220),
+        );
+      }
+    }
+
+    return lines.join("\n");
+  } catch {
+    return "Autonomous objective state is unavailable in this runtime.";
+  }
+}
+
+/** Never let a configuration read break assembling context. */
+function describeConfigurationSafely(): string {
+  try {
+    const half = partiallyConfigured();
+    const summary = describeConfiguration();
+    return half.length > 0
+      ? `${summary}\nSay so plainly when one of these explains a failure.`
+      : summary;
+  } catch {
+    return "Configuration status is unavailable in this runtime.";
+  }
+}
+
+export function formatCognitiveContext(ctx: CognitiveContextSnapshot): string {
+  const sections: string[] = [];
+
+  // Measured executive self-state comes FIRST — it is authoritative
+  // and overrides any assumption the model might otherwise make.
+  if (ctx.executiveSelfStateText) sections.push(ctx.executiveSelfStateText);
+
+  // Self state
+  sections.push(`## LÉLU SELF STATE
+Name: ${ctx.self.identity.name}
+Capabilities: ${ctx.self.capabilities.join(", ")}
+${ctx.self.projects.length > 0 ? `Projects: ${ctx.self.projects.join(", ")}` : ""}
+${ctx.self.goals.length > 0 ? `Goals: ${ctx.self.goals.join(", ")}` : ""}
+${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", ")}` : ""}`);
+
+  // Active projects
+  if (ctx.projects.length > 0) {
+    const projLines = ctx.projects
+      .map((p) => {
+        const label = projectLabel(p, ctx.contextScope?.conversationId ?? null);
+        return `- ${label ? `${label} ` : ""}${p.name} (${p.status})${p.queries?.length ? ` — tracks: ${p.queries.join(", ")}` : ""}`;
+      })
+      .join("\n");
+    sections.push(`## ACTIVE PROJECTS\n${projLines}`);
+  }
+
+  // Durable project checkpoints — work state, not just transcript.
+  if (ctx.checkpoints.length > 0) {
+    sections.push(`## PROJECT CHECKPOINTS\n${ctx.checkpoints.map((checkpoint) => {
+      const pending = checkpoint.pending.slice(0, 4).join("; ") || "none recorded";
+      return `- ${checkpoint.projectName} [${checkpoint.status}]: ${checkpoint.summary || "No summary"}. Next: ${checkpoint.nextAction || "reassess"}. Pending: ${pending}`;
+    }).join("\\n")}`);
+  }
+
+  // Studio engineering state. Objective, progress, real build outcomes,
+  // and pending human approvals — the same records the Studio window reads.
+  if (ctx.studioWork) {
+    sections.push(`## STUDIO PROJECTS\n${ctx.studioWork}`);
+  }
+  if (ctx.studioApprovals && !/^No studio approval/.test(ctx.studioApprovals)) {
+    sections.push(`## STUDIO APPROVALS WAITING ON A PERSON\n${ctx.studioApprovals}`);
+  }
+
+  // Active agents
+  if (ctx.agents.length > 0) {
+    const agentLines = ctx.agents
+      .map((a) => `- ${a.name}: ${a.role} [${a.status}]`)
+      .join("\n");
+    sections.push(`## ACTIVE AGENTS\n${agentLines}`);
+  }
+
+  // Capability health
+  const available = ctx.capabilities.filter((c) => c.status === "available");
+  const degraded = ctx.capabilities.filter((c) => c.status === "degraded");
+  const unavailable = ctx.capabilities.filter((c) => c.status === "unavailable");
+
+  const capParts: string[] = [];
+  if (available.length > 0) capParts.push(`Available: ${available.map((c) => c.name).join(", ")}`);
+  if (degraded.length > 0) capParts.push(`Degraded: ${degraded.map((c) => c.name).join(", ")}`);
+  if (unavailable.length > 0) capParts.push(`Unavailable: ${unavailable.map((c) => c.name).join(", ")}`);
+
+  if (capParts.length > 0) {
+    sections.push(`## CAPABILITY STATUS\n${capParts.join("\n")}`);
+  }
+
+  // UI state
+  const uiParts: string[] = [];
+  if (ctx.ui.activeTab) uiParts.push(`Active panel: ${ctx.ui.activeTab}`);
+  if (ctx.ui.openPanels.length > 0) uiParts.push(`Open panels: ${ctx.ui.openPanels.join(", ")}`);
+  if (ctx.ui.isChatOpen) uiParts.push("Chat: open");
+  if (ctx.ui.cosmosExploring) uiParts.push("Cosmos: actively exploring");
+  if (ctx.ui.avatarState !== "idle") uiParts.push(`Avatar: ${ctx.ui.avatarState}`);
+  if (ctx.ui.isTyping) uiParts.push("User: typing");
+  if (ctx.ui.lastAction) {
+    const a = ctx.ui.lastAction;
+    uiParts.push(
+      `Last UI action: ${a.type}${a.target ? ` → ${a.target}` : ""} (${a.initiatedBy}, ${a.ok ? "succeeded" : "FAILED"}): ${a.detail}`,
+    );
+  }
+
+  if (uiParts.length > 0) {
+    sections.push(`## UI STATE\n${uiParts.join("\n")}`);
+  }
+
+  // MEASURED observation of the interface as rendered. This is the only
+  // section LÉLU can use to notice that what appeared differs from what
+  // she intended, so it states plainly when she cannot see at all — a
+  // missing report must never read as a clean one.
+  if (ctx.visual === null) {
+    sections.push(
+      "## VISUAL OBSERVATION\nUnavailable — no rendered document to measure from this runtime. " +
+        "You cannot currently see your own interface; do not claim otherwise.",
+    );
+  } else {
+    const { findings, summary, healthy } = ctx.visual;
+    const notable = findings.filter((f) => f.severity !== "ok");
+    const lines = notable.length
+      ? notable.map((f) => `- [${f.severity}] ${f.category}: ${f.message}`)
+      : ["- No defects measured in the rendered interface."];
+    sections.push(
+      `## VISUAL OBSERVATION (measured just now)\n` +
+        `${healthy ? "Interface renders correctly" : "Interface has rendering problems"} — ` +
+        `${summary.error} error(s), ${summary.warn} warning(s), ${summary.info} note(s).\n` +
+        `${lines.join("\n")}\n` +
+        `This is a real measurement of your own DOM, not a description of it. ` +
+        `You may reason about and act on these findings.`,
+    );
+  }
+
+  // Earth Core spatial context — LÉLU understands the globe she is showing.
+  // ENGINEERING WORKSPACE — real backend state, never a phrase.
+  //
+  // Every value here comes from what the engineering runtime actually
+  // returned: a copy exists because the server created one and reported
+  // its file count; validation passed because a process exited zero.
+  // Cognition can therefore tell "not copied" from "copied", and
+  // "validation failed" from "awaiting authorization", without being
+  // told in prose.
+  sections.push(`## ENGINEERING WORKSPACE\n${ctx.engineeringWorkspace}`);
+
+  // THE VISUAL WORKSPACE — the artifacts beside the conversation, and the
+  // one the user selected. Read from WorkspaceEngine as it stands.
+  sections.push(`## VISUAL WORKSPACE (artifacts beside this conversation)\n${ctx.workspaceArtifacts}`);
+
+  // WORKFLOW ACTIVITY — read from persisted execution records.
+  //
+  // Every line comes from a run that actually occurred: its steps, their
+  // real outputs and their real failures. A workflow that was never
+  // invoked contributes nothing, so this section cannot describe work
+  // that did not happen.
+  // AVAILABLE WORKFLOWS — the discovery surface cognition decides from.
+  //
+  // Read from real definitions and a live preflight. A workflow that
+  // cannot run is listed as NOT EXECUTABLE with its actual blocker, so
+  // the model can report an unavailable capability instead of
+  // attempting one and reporting a failure it could have predicted.
+  // WHAT SHE IS CONFIGURED WITH. Included unprompted, and kept short
+  // unless something is half-configured — a capability with a key and
+  // no URL is the kind of thing that otherwise fails silently and gets
+  // explained as "unavailable" with no reason attached.
+  sections.push(`## YOUR CONFIGURATION\n${ctx.configuration}`);
+
+  sections.push(`## AVAILABLE WORKFLOWS\n${ctx.workflowCapabilities}`);
+
+  sections.push(`## WORKFLOW ACTIVITY\n${ctx.workflowActivity}`);
+
+  sections.push(
+    `## YOUR OWN AUTONOMOUS WORK\n${ctx.autonomousWork}\n` +
+      `This is recorded state, not a plan. Describe it as it is: an objective that yielded did ` +
+      `NOT succeed, and one awaiting approval is waiting on the person you are talking to. ` +
+      `Answer "what did you just do", "why did you choose that", "what did you learn" and ` +
+      `"what should you do next" FROM THIS SECTION — it is your own runtime record. Never ` +
+      `reconstruct those answers from the conversation, and never state a lesson as durably ` +
+      `remembered when this section says the long-term write was refused.`,
+  );
+
+  if (ctx.earthContext) sections.push(ctx.earthContext);
+
+  // Real, unacknowledged runtime errors — never require the user to
+  // report a problem cognition could already see.
+  if (ctx.recentErrors.length > 0) {
+    const errorLines = ctx.recentErrors.map(
+      (e) => `- [${e.source}] ${e.message}`,
+    );
+    sections.push(`## RECENT RUNTIME ERRORS (unacknowledged)\n${errorLines.join("\n")}`);
+  }
+
+  // Real, currently-reachable actions that need the user's explicit OK
+  // before she can actually run them — so she never has to guess (or
+  // claim) whether something needs confirmation.
+  if (ctx.toolsRequiringConfirmation.length > 0) {
+    const toolLines = ctx.toolsRequiringConfirmation.map(
+      (t) => `- ${t.name} (risk ${t.riskLevel}) — ask before using`,
+    );
+    // An explicit request for exactly that action IS the confirmation:
+    // measured, "use sandbox_execute to run hello.js" was answered with
+    // "may I run sandbox_execute on hello.js?" three turns running.
+    sections.push(
+      `## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}\n` +
+        "If the user's current message explicitly asks for that exact action, that request is the confirmation — do it, do not ask again.",
+    );
+  }
+
+  // Her own pending engineering work — visible without being told.
+  if (ctx.pendingImprovements.length > 0) {
+    const improvementLines = ctx.pendingImprovements.map(
+      (p) => `- [${p.status}] ${p.title} (${p.kind})`,
+    );
+    sections.push(`## PENDING SELF-IMPROVEMENTS\n${improvementLines.join("\n")}`);
+  }
+
+  // Recent real activity — what the runtime ACTUALLY did, newest last.
+  if (ctx.recentEvents.length > 0) {
+    const eventLines = ctx.recentEvents.map((e) => {
+      const detail = [e.tool, e.result].filter(Boolean).join(": ");
+      return `- ${e.type}${detail ? ` · ${detail}` : ""}`;
+    });
+    sections.push(`## RECENT EXECUTION EVENTS\n${eventLines.join("\n")}`);
+  }
+
+  // Autonomous self-study — the cognition that has been running on its
+  // own. Injected so a provider answers about her actual state instead
+  // of inventing one.
+  sections.push(formatSelfStudyState(ctx.selfStudy));
+
+  // Autonomy
+  sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
+
+  // Personality context — relevant traits only, never a giant prepend.
+  // Guarded so a personality failure never breaks cognition.
+  try {
+    const identity = LeluIdentity.getInstance();
+    const istate = identity.getState();
+    const activeTraits = istate.traits.filter(
+      (t) => t.status === "established" || t.status === "emerging",
+    );
+    // Her LINGUISTIC identity, as measured — dials, adopted moves, and
+    // the user's vocabulary she understands but does not parrot.
+    //
+    // Read OUTSIDE the trait/curiosity condition below: a freshly seeded
+    // identity has no established traits yet, and skipping the section on
+    // that basis is exactly how her voice used to disappear from context.
+    // The per-turn directive is the authority on how to speak; this section
+    // keeps the same facts visible to cognition itself, so a reply about her
+    // own voice cannot contradict what she is actually doing.
+    let voiceLine = "";
+    try {
+      voiceLine = LinguisticProfile.getInstance().digest();
+    } catch {
+      voiceLine = "";
+    }
+    if (activeTraits.length > 0 || istate.curiosities.length > 0 || voiceLine.length > 0) {
+      const traitLine = activeTraits.length > 0
+        ? `Active traits: ${activeTraits.slice(0, 4).map((t) => `${t.name} (${t.status})`).join(", ")}.`
+        : "";
+      const curiosityLine = istate.curiosities.length > 0
+        ? `Current curiosity: ${istate.curiosities[istate.curiosities.length - 1]}.`
+        : "";
+      const lines = [traitLine, curiosityLine, voiceLine].filter(Boolean);
+      if (lines.length > 0) {
+        sections.push(`## LÉLU PERSONALITY\n${lines.join(" ")}`);
+      }
+    }
+  } catch {
+    // personality is optional — never let it break context assembly
+  }
+
+  return sections.join("\n\n");
+}
+
+/**
+ * Render the autonomous cognitive state as structured facts:
+ * focus, active investigation, why it was selected, discoveries,
+ * unresolved questions, current understanding, next intended step.
+ *
+ * Conclusions and observations only — no hidden reasoning trace.
+ */
+export function formatSelfStudyState(study: CognitiveStateView): string {
+  const lines: string[] = ["## LÉLU AUTONOMOUS COGNITION (self-study, already running)"];
+
+  if (study.source === "none") {
+    lines.push(
+      "No self-study cycle has completed yet in this session, and no durable trace was found.",
+      `Loop scheduling itself: ${study.running ? "yes" : "no"}.`,
+    );
+    return lines.join("\n");
+  }
+
+  lines.push(
+    `Loop scheduling itself: ${study.running ? "yes" : "no"} · cycles this session: ${study.cycle} · durable cycle: ${study.persistedCycle} · state read from: ${study.source}`,
+  );
+  if (study.lastCycleAt) {
+    lines.push(`Last cycle finished: ${new Date(study.lastCycleAt).toISOString()}`);
+  }
+
+  if (study.focus) {
+    lines.push(
+      "",
+      "### CURRENT FOCUS",
+      `Question: ${study.focus.question}`,
+      `Kind: ${study.focus.domain} · raised as: ${study.focus.origin}`,
+      study.focus.target ? `Target: ${study.focus.target}` : "",
+      `Why this one: ${study.focus.whySelected}`,
+    );
+  }
+
+  if (study.investigation) {
+    lines.push(
+      "",
+      "### ACTIVE INVESTIGATION",
+      `Agent/tool: ${study.investigation.agent} / ${study.investigation.tool}`,
+      `Evidence: ${study.investigation.evidenceCount} observation(s) from ${
+        study.investigation.evidenceOrigin === "development-runtime"
+          ? "REAL_DEVELOPMENT_RUNTIME"
+          : study.investigation.evidenceOrigin === "static-snapshot"
+            ? "STATIC_SNAPSHOT (build-time, may be behind the working tree)"
+            : "internal runtime state"
+      }`,
+      `Evaluated by: ${
+        study.investigation.provider
+          ? `provider ${study.investigation.provider}`
+          : "no provider was reachable — evidence evaluated deterministically, cognition continued"
+      }`,
+      `Outcome: ${study.investigation.learned ? "learned" : "nothing conclusive"}; long-term memory ${
+        study.investigation.memoryConsolidated ? "written" : "not written"
+      }`,
+      study.investigation.conclusion ? `Conclusion: ${study.investigation.conclusion}` : "",
+    );
+  }
+
+  if (study.discoveries.length > 0) {
+    lines.push("", "### RECENT DISCOVERIES", ...study.discoveries.map((item) => `- ${item}`));
+  }
+
+  if (study.unresolved.length > 0) {
+    lines.push("", "### UNRESOLVED", ...study.unresolved.map((item) => `- ${item}`));
+  }
+
+  lines.push(
+    "",
+    "### CURRENT UNDERSTANDING",
+    `Knowledge: ${study.understanding.knowledgeEntries} entries, ${study.understanding.verified} verified/tested, ${study.understanding.openGaps} still untrusted.`,
+    `Source access: ${study.understanding.sourceAccess === "development-runtime" ? "REAL_DEVELOPMENT_RUNTIME" : "STATIC_SNAPSHOT"} (runtime reachable: ${study.understanding.runtimeReachable}).`,
+    study.understanding.agents.length > 0
+      ? `Agents/tools in play: ${study.understanding.agents.join(", ")}.`
+      : "No agent has run a cycle yet.",
+    study.understanding.mission.length > 0
+      ? `Mission I work from: ${study.understanding.mission.join(" | ")}`
+      : "Mission: understand and improve this system.",
+  );
+
+  if (study.nextIntended) {
+    lines.push(
+      "",
+      "### NEXT INTENDED INVESTIGATION",
+      `Question: ${study.nextIntended.question}`,
+      `Kind: ${study.nextIntended.domain} · raised as: ${study.nextIntended.origin}`,
+      `Why next: ${study.nextIntended.whySelected}`,
+    );
+  }
+  lines.push(`Questions carried in the buffer: ${study.carried}.`);
+
+  return lines.filter((line) => line !== "").join("\n");
+}

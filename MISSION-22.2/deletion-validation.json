@@ -1,0 +1,63 @@
+{
+  "mission": "LÉLU 2.2.2 — memory lifecycle and deletion validation",
+  "validatedAt": "2026-11-19",
+  "method": "in-process, the same store and workspace APIs the runtime uses; no mocks for deletion itself",
+  "scenarios": [
+    {
+      "scenario": "delete individual memory",
+      "path": "Brain.forgetMemory(memoryId)",
+      "result": "PASS",
+      "evidence": "tests/context-sovereignty.test.ts — the memory's workspace observation (linked by memoryId) is removed with it; the text no longer appears in workspaceItems",
+      "survives_in": "nothing: workspace, itemsFor, state()"
+    },
+    {
+      "scenario": "delete one workspace observation",
+      "path": "WorkspaceManager.forgetObservation(id)",
+      "result": "PASS",
+      "evidence": "new test: only the deleted observation goes, the rest of the workspace is intact, second delete is a no-op"
+    },
+    {
+      "scenario": "delete conversation",
+      "path": "Brain.forgetConversation(id) / WorkspaceManager.forgetConversation",
+      "result": "PASS",
+      "evidence": "observations filed in that conversation are removed; memory deletion rules from M22/M22.1 still apply"
+    },
+    {
+      "scenario": "expire session",
+      "path": "session-scope observations",
+      "result": "PASS",
+      "evidence": "session-local observations are readable only in their own session (test W); a new session sees none"
+    },
+    {
+      "scenario": "remove agent task",
+      "path": "AgentTaskScope + ownerForTask",
+      "result": "PASS (scoped, not stored)",
+      "evidence": "agent observations are filed in the run's conversation; a removed task leaves no ownerless event that any scope renders (execution events require owner match)"
+    },
+    {
+      "scenario": "correct historical information",
+      "path": "WorkspaceManager.supersede(id, text)",
+      "result": "PASS",
+      "evidence": "new test: old text is removed, replacement keeps provenance, old text cannot be quoted"
+    },
+    {
+      "scenario": "delete project",
+      "path": "ProjectStore.remove / project visibility",
+      "result": "PASS for context",
+      "evidence": "a removed project no longer appears in the snapshot, checkpoints or project sections; its conversation-filed observations go with their conversation. Project-associated observations are not a separate store (no duplicate memory system)."
+    }
+  ],
+  "non_survival": {
+    "workspace_labels": "text removed; name/count remains but count is a number, not the content",
+    "cognitive_snapshots": "assembled fresh per turn from live state, never cached across turns",
+    "agent_caches": "none: agent context is built for the invocation",
+    "background_tasks": "operational-only context when no scope",
+    "context_summaries": "workspace summaries never include text",
+    "provider_payloads": "built per request; deletion before a request removes the text from that request"
+  },
+  "limits": [
+    "A payload already sent to a provider before deletion cannot be recalled; deletion is validated at assembly time, before the request.",
+    "Durable memories are preserved when a conversation is deleted, as M22 requires; their provenance remains."
+  ],
+  "acceptance": { "deletion_propagates": true, "retention_respected": true, "persistent_memory_preserved": true }
+}

@@ -1,0 +1,35 @@
+{
+  "mission": "LÉLU 2.2.2 — browser validation",
+  "status": "NOT VERIFIED",
+  "claimed": false,
+  "attempted": false,
+  "reason": "No GenesisChat browser acceptance was obtained in this session, so none is claimed. The mission's rule is explicit: browser acceptance cannot be inferred from API or in-process tests.",
+  "prior_evidence": {
+    "session": "M22.1 (same workspace, same provider quota)",
+    "blockers": [
+      "3D Genesis scene saturated the automation channel within roughly two minutes, so a chat interaction could not be driven to completion",
+      "OpenRouter free-model daily limit returned 429 (free-models-per-day)",
+      "Groq returned 413/429 against an 8000 TPM limit on long context"
+    ]
+  },
+  "this_session": {
+    "provider": "Groq answered twice through the canonical AIService.chat pipeline during provider validation (see provider-validation.json), so the model path is live",
+    "not_attempted_because": "the deliverable set and full regression were completed first; browser automation on the 3D scene remains the documented unreliable step and was not represented as passing"
+  },
+  "what_would_be_needed": [
+    "a lightweight configuration that does not mount the 3D scene (or a longer-lived CDP session)",
+    "provider quota headroom for several turns",
+    "a physical device or emulator for the separate mobile requirement (none available; no android/ or ios/ project, only capacitor.config.ts)"
+  ],
+  "mobile": {
+    "status": "NOT VERIFIED",
+    "device": null,
+    "note": "No physical device or emulator in this environment. No mobile claim is made."
+  },
+  "covered_instead": {
+    "provider_payloads": "MISSION-22.2/provider-validation.json — the request the provider actually received, after all context transformations",
+    "concurrency": "MISSION-22.2/concurrency-validation.json",
+    "workspace": "MISSION-22.2/workspace-observation-live.json",
+    "snapshot": "MISSION-22.2/agent-cognitive-context-live.json"
+  }
+}

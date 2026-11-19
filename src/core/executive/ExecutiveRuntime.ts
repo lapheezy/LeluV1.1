@@ -27,6 +27,7 @@ import UIStateStore from "../cognition/UIStateStore";
 import SelfModel from "../cognition/SelfModel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
 import KvStore from "../storage/KvStore";
+import { ownerForTask } from "../multichat/TurnOwnership";
 import { backgroundInterval, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import {
   runDiagnostics,
@@ -50,6 +51,12 @@ export interface VerifiedAction {
   execution: string;
   observation: string;
   verified: boolean;
+  /**
+   * The conversation whose work produced this action. A tool result can quote
+   * a project, a file or a message, so it is that conversation's content —
+   * not global runtime state (M22.2).
+   */
+  conversationId?: string | null;
 }
 
 export interface Issue {
@@ -268,6 +275,7 @@ class ExecutiveRuntimeImpl {
           execution: `${event.tool} executed`,
           observation: event.result ? String(event.result).slice(0, 160) : "result received",
           verified: true,
+          conversationId: ownerForTask(event.taskId),
         });
         break;
       }
@@ -288,6 +296,7 @@ class ExecutiveRuntimeImpl {
             ? "tool results observed for this task"
             : "NO tool result was ever observed for this task",
           verified: gotResult,
+          conversationId: ownerForTask(event.taskId),
         });
         if (!gotResult) {
           this.raiseIssue("warning", "Verification", `“${event.label}” completed without any observable tool result.`);
@@ -641,7 +650,7 @@ class ExecutiveRuntimeImpl {
    * Compact text block injected into cognition so answers about
    * "what are you doing" come from REAL measured state.
    */
-  public getSelfStateText(): string {
+  public getSelfStateText(conversationId?: string | null): string {
     const s = this.state;
     const lines: string[] = ["## LÉLU EXECUTIVE SELF STATE (measured, authoritative)"];
     lines.push(`Mode: ${s.currentMode}${s.ambientBehavior ? ` (${s.ambientBehavior})` : ""}`);
@@ -655,7 +664,15 @@ class ExecutiveRuntimeImpl {
     if ((s.pendingApprovals ?? 0) > 0) {
       lines.push(`Waiting on your approval: ${s.pendingApprovals} pending consent point${s.pendingApprovals === 1 ? "" : "s"}.`);
     }
-    if (s.lastAction) {
+    // The last action is only shown in the conversation that caused it. A
+    // tool result that names a project is that project's content; before
+    // 2.2.2 it was rendered into every scope's self-state, including an
+    // anonymous one ("Project “X” created"). No identity → no last action.
+    const lastActionVisible =
+      Boolean(s.lastAction) &&
+      Boolean(conversationId) &&
+      s.lastAction?.conversationId === conversationId;
+    if (s.lastAction && lastActionVisible) {
       lines.push(
         `Last action: ${s.lastAction.intent} → ${s.lastAction.execution} → ${s.lastAction.observation} [${
           s.lastAction.verified ? "VERIFIED" : "UNVERIFIED"

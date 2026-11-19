@@ -1,0 +1,73 @@
+{
+  "mission": "LÉLU 2.2.2 — agent cognitive context audit",
+  "auditedAt": "2026-11-19",
+  "function": "src/core/cognition/CognitiveContext.ts#buildCognitiveContext",
+  "why_it_was_global": "it assembled one snapshot from live singletons and ignored the caller except for a conversation id used only to filter recent events; projects, checkpoints, self-model project names, execution events and the executive last-action were all install-wide",
+  "callers_audited": [
+    { "caller": "AIRuntime.process (chat)", "scope": "conversation id from the request", "fixed": true },
+    { "caller": "AIRuntime.process (second path)", "scope": "conversation id from the request", "fixed": true },
+    { "caller": "AIRuntime.toolContext (background curiosity / task executor)", "scope": "optional { conversationId }; no identity → operational only", "fixed": true },
+    { "caller": "AIService.chat (SELF_CONTEXT injection)", "scope": "full MemoryScopeContext (user, conversation, session)", "fixed": true },
+    { "caller": "AIService.delegate (agent requests)", "scope": "the AgentTaskScope; no scope → operational only", "fixed": true }
+  ],
+  "findings": [
+    {
+      "id": "G-01",
+      "severity": "high",
+      "finding": "The snapshot listed every active/paused project and its checkpoint, bypassing the M22.1 project boundary entirely. Another user's project and a conversation-local project both arrived.",
+      "fixed": true,
+      "evidence": "isProjectVisible applied in the snapshot; formatCognitiveContext labels a project from another chat; tests X"
+    },
+    {
+      "id": "G-02",
+      "severity": "high",
+      "finding": "Recent execution events included ownerless tool results, so \"Project X created\" from one conversation appeared in every scope, including anonymous snapshots.",
+      "fixed": true,
+      "evidence": "only events owned by the requesting conversation are included; none without an identity"
+    },
+    {
+      "id": "G-03",
+      "severity": "medium",
+      "finding": "The executive \"last action\" carried a tool result (a project name, a file, a message) into every scope.",
+      "fixed": true,
+      "evidence": "VerifiedAction records its owning conversation; getSelfStateText(conversationId) shows it only there"
+    },
+    {
+      "id": "G-04",
+      "severity": "medium",
+      "finding": "SelfModel.state.projects is a second copy of project names, unscreened.",
+      "fixed": true,
+      "evidence": "filtered to names the scope is authorized to see"
+    },
+    {
+      "id": "G-05",
+      "severity": "low",
+      "finding": "Agent requests with no scope received the full global snapshot by calling buildCognitiveContext() with no argument.",
+      "fixed": true,
+      "evidence": "delegate passes its AgentTaskScope; absent scope yields operational state only"
+    }
+  ],
+  "invocation_identity": {
+    "userId": "from the turn scope (MemoryScopeContext / AgentTaskScope)",
+    "conversationId": "from the turn scope",
+    "sessionId": "from the same",
+    "agentId": "already the runner's argument; the request carries the agent's own system prompt",
+    "taskId": "the agent task / cognitive turn id",
+    "authorization": "project visibility, event ownership, last-action ownership"
+  },
+  "rejected": "a snapshot with no identity no longer includes projects, checkpoints, execution events or a last action. The builder does not fall back to global state.",
+  "evidence": {
+    "tests": "group X — 5/5",
+    "live": "MISSION-22.2/agent-cognitive-context-live.json — 5/5; provider payloads in provider-validation.json"
+  },
+  "residual": [
+    "Self-model fields other than project names (knows, goals, discoveries) are durable self-knowledge and are shown; they are not conversation content.",
+    "Capabilities, UI, configuration, Earth/executive telemetry are operational state, shared by design and carry no user content."
+  ],
+  "acceptance": {
+    "buildCognitiveContext_scope_aware": true,
+    "agent_snapshots_isolated": true,
+    "all_callers_audited": true,
+    "no_silent_global_fallback": true
+  }
+}

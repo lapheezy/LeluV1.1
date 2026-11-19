@@ -46,6 +46,9 @@ import {
   type VisualReport,
 } from "../selfdev/VisualInspection";
 import LeluIdentity from "../identity/LeluIdentity";
+import { isProjectVisible, projectLabel } from "../projects/ProjectSovereignty";
+import type { ProjectAccess } from "../projects/ProjectSovereignty";
+import { currentSessionId } from "../memory/MemorySovereignty";
 import LinguisticProfile from "../identity/voice/LinguisticProfile";
 import { describeStudioWork, pendingStudioApprovals } from "../studio/StudioMemory";
 
@@ -247,6 +250,35 @@ export interface CognitiveContextSnapshot {
 
   /** Timestamp of this snapshot. */
   builtAt: number;
+
+  /**
+   * The scope this snapshot was assembled for. `null` means the caller
+   * supplied no identity: operational state only, no conversation-derived
+   * content (M22.2).
+   */
+  contextScope: {
+    userId: string | null;
+    conversationId: string | null;
+    sessionId: string | null;
+  };
+}
+
+/** Identity a context is assembled for. A bare string is a conversation id. */
+export interface ContextScope {
+  userId?: string | null;
+  conversationId?: string | null;
+  sessionId?: string | null;
+}
+
+function normalizeScope(scope?: string | ContextScope): Required<ContextScope> {
+  if (typeof scope === "string" || scope === undefined) {
+    return { userId: null, conversationId: scope ?? null, sessionId: currentSessionId() };
+  }
+  return {
+    userId: scope.userId ?? null,
+    conversationId: scope.conversationId ?? null,
+    sessionId: scope.sessionId ?? currentSessionId(),
+  };
 }
 
 
@@ -255,7 +287,9 @@ export interface CognitiveContextSnapshot {
  * Build a fresh CognitiveContextSnapshot from live singleton state.
  * Called by AIRuntime on every process() invocation.
  */
-export function buildCognitiveContext(conversationId?: string): CognitiveContextSnapshot {
+export function buildCognitiveContext(scope?: string | ContextScope): CognitiveContextSnapshot {
+  const access: ProjectAccess = normalizeScope(scope);
+  const conversationId = access.conversationId ?? undefined;
   const selfModel = SelfModel.getInstance();
   const projectStore = ProjectStore.getInstance();
   const agentStore = AgentStore.getInstance();
@@ -274,9 +308,14 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
   const recentEvents = AgentEventBus.getInstance()
     .recent(conversationId ? 40 : 8)
     .filter((event) => {
-      if (!conversationId) return true;
       const owner = ownerForTask(event.taskId);
-      return owner === null || owner === conversationId;
+      // OWNED ONLY (M22.2). An ownerless tool result often quotes work done
+      // inside a conversation (a project name, a file, a message) and was
+      // therefore a back door around the project and conversation boundaries:
+      // "Project 'Aurelia — private commission' created" reached every scope.
+      // With no identity, no execution events are shown at all.
+      if (!conversationId) return false;
+      return owner === conversationId;
     })
     .slice(-8)
     .map((event) => ({
@@ -286,9 +325,20 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
       timestamp: Date.now(),
     }));
 
-  const projects = projectStore
-    .list()
-    .filter((p) => p.status === "active" || p.status === "paused");
+  // PROJECT SOVEREIGNTY APPLIES TO THE SNAPSHOT TOO. Before 2.2.2 this list
+  // was every active/paused project, so the cognitive snapshot quietly
+  // bypassed the boundary M22.1 put around project context: another user's
+  // project, or a conversation-local one from another chat, arrived here.
+  // A caller with NO identity at all gets operational state only. An
+  // unowned legacy project is visible to a real turn (that is continuity),
+  // but an anonymous snapshot is not a turn and must not become one.
+  const fullyAnonymous = !access.userId && !access.conversationId;
+  const projects = fullyAnonymous
+    ? []
+    : projectStore
+        .list()
+        .filter((p) => p.status === "active" || p.status === "paused")
+        .filter((project) => isProjectVisible(project, access));
   const checkpoints = projects
     .filter((project) => project.checkpoint)
     .map((project) => ({
@@ -299,6 +349,8 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
       nextAction: project.checkpoint?.nextAction ?? null,
       pending: project.checkpoint?.pending ?? [],
     }));
+
+  const authorizedProjectNames = new Set(projects.map((project) => project.name));
 
   const agents = agentStore
     .list()
@@ -343,7 +395,12 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     .map((tool) => ({ id: tool.id, name: tool.name, riskLevel: tool.riskLevel }));
 
   return {
-    self,
+    // Self-model project names are a second, independent copy of the project
+    // registry; keep only names this scope may see.
+    self: {
+      ...self,
+      projects: (self.projects ?? []).filter((name) => authorizedProjectNames.has(name)),
+    },
     projects,
     agents,
     capabilities,
@@ -357,7 +414,11 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     recentEvents,
     toolsRequiringConfirmation,
     // Measured operational state — never assumed, never fabricated.
-    executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
+    // Scoped: the last verified action is only shown to the conversation
+    // that caused it (M22.2). No identity → operational self-state only.
+    executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(
+      fullyAnonymous ? undefined : access.conversationId,
+    ),
     // Earth Core spatial context — canonical state from the one Earth runtime.
     earthContext: EarthCore.getInstance().buildSpatialContext(),
     // Autonomous self-study state, READ ONLY. getCognitiveState() runs no
@@ -383,6 +444,7 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     recentErrors,
     pendingImprovements,
     builtAt: Date.now(),
+    contextScope: access,
   };
 }
 
@@ -576,7 +638,10 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // Active projects
   if (ctx.projects.length > 0) {
     const projLines = ctx.projects
-      .map((p) => `- ${p.name} (${p.status})${p.queries?.length ? ` — tracks: ${p.queries.join(", ")}` : ""}`)
+      .map((p) => {
+        const label = projectLabel(p, ctx.contextScope?.conversationId ?? null);
+        return `- ${label ? `${label} ` : ""}${p.name} (${p.status})${p.queries?.length ? ` — tracks: ${p.queries.join(", ")}` : ""}`;
+      })
       .join("\n");
     sections.push(`## ACTIVE PROJECTS\n${projLines}`);
   }

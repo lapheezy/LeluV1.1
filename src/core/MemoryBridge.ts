@@ -22,6 +22,11 @@ import type ResponsePattern from "../brain/ResponsePattern";
 import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import {
+  authorizeContextSections,
+  summarizeContextDecisions,
+  type ContextSection,
+} from "./cognition/ContextAuthorization";
+import {
   decideProject,
   projectAccessFor,
   projectContextNote,
@@ -458,24 +463,49 @@ Rules:
     cognition: any,
     scope: MemoryScopeContext,
   ): string {
-    const sections: string[] = [];
+    // THE ONE CHECKPOINT. Every section below is classified before it can
+    // enter the payload: whose material it is, which conversation made it,
+    // and whether this turn may see it. Sections assembled here are already
+    // this conversation's or authorized by their own boundary, so they are
+    // declared as such — the value is that a future section cannot be added
+    // without declaring provenance and being classified.
+    const sections: ContextSection[] = [];
+    const add = (
+      id: string,
+      kind: ContextSection["kind"],
+      text: string,
+      labelled = false,
+    ) => {
+      sections.push({
+        id,
+        kind,
+        text,
+        labelled,
+        provenance: {
+          userId: scope.userId,
+          conversationId: scope.conversationId,
+          sessionId: scope.sessionId,
+          scope: "current-conversation",
+        },
+      });
+    };
 
     if (synthesized.context) {
-      sections.push(synthesized.context);
+      add("memory", "memory", synthesized.context, /\[earlier conversation|\[inferred/.test(synthesized.context));
     }
 
     if (reflection?.summary && reflection.memories?.length) {
-      sections.push(`## Reflection\n${reflection.summary}`);
+      add("reflection", "memory", `## Reflection\n${reflection.summary}`);
     }
 
     if (conversation?.lastTopic) {
-      sections.push(`## Current Thread\nTopic: ${conversation.lastTopic}`);
+      add("thread", "session", `## Current Thread\nTopic: ${conversation.lastTopic}`);
     }
 
     if (cognition) {
       const formatted = this.formatCognition(cognition);
       if (formatted) {
-        sections.push(`## Cognitive State\n${formatted}`);
+        add("cognition", "cognitive-graph", `## Cognitive State\n${formatted}`);
       }
     }
 
@@ -488,20 +518,35 @@ Rules:
     // formatting, and a durable project started elsewhere is stated as such.
     const projectContext = this.formatProjects(projectAccessFor(scope));
     if (projectContext) {
-      sections.push(`## Projects\n${projectContext}`);
+      add("projects", "project", `## Projects\n${projectContext}`, /\[started in the chat|\[historical project/.test(projectContext));
     }
 
     const agentContext = this.formatAgents();
     if (agentContext) {
-      sections.push(`## Agents\n${agentContext}`);
+      add("agents", "agent", `## Agents\n${agentContext}`);
     }
 
     const avatarContext = this.formatAvatar();
     if (avatarContext) {
-      sections.push(`## Self\n${avatarContext}`);
+      add("self", "operational", `## Self\n${avatarContext}`);
     }
 
-    return sections.join("\n\n");
+    const authorization = authorizeContextSections(sections, {
+      userId: scope.userId,
+      conversationId: scope.conversationId,
+      sessionId: scope.sessionId,
+    });
+
+    CognitiveTrace.getInstance().record(
+      "CONTEXT_INJECTION",
+      `context authorized: ${summarizeContextDecisions(authorization.decisions)}`,
+      {
+        counts: authorization.counts,
+        sections: authorization.decisions,
+      },
+    );
+
+    return authorization.allowed.map((section) => section.text).join("\n\n");
   }
 
   private formatCognition(cognition: any): string {

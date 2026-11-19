@@ -98,7 +98,9 @@ function relationOf(origin: ProjectOrigin, access: ProjectAccess): ProjectDecisi
 export function isProjectVisible(project: LeluProject, access: ProjectAccess): boolean {
   const origin = projectOriginOf(project);
 
-  if (origin.ownerId && access.userId && origin.ownerId !== access.userId) return false;
+  // A recorded owner requires a matching identity. A turn with no user
+  // identity cannot claim someone's project merely because it asks.
+  if (origin.ownerId && origin.ownerId !== access.userId) return false;
 
   if (origin.scope === "session-local") {
     if (!origin.originatingSessionId) return false;
@@ -118,7 +120,7 @@ export function decideProject(project: LeluProject, access: ProjectAccess): Proj
   const origin = projectOriginOf(project);
   const relation = relationOf(origin, access);
 
-  if (origin.ownerId && access.userId && origin.ownerId !== access.userId) {
+  if (origin.ownerId && origin.ownerId !== access.userId) {
     return { projectId: project.id, decision: "REJECT", reason: "project belongs to another user", scope: origin.scope, relation };
   }
 

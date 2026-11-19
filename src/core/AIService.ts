@@ -710,7 +710,9 @@ export default class AIService {
       // capabilities, UI) as part of the conversation context.
       let cognitiveContextText = "";
       try {
-        const snapshot = buildCognitiveContext(options?.conversationId);
+        // Identity, not just an id: project authorization needs the owner,
+        // and the snapshot must not be assembled globally (M22.2).
+        const snapshot = buildCognitiveContext(this.memory.scopeFor(options?.conversationId, message));
         cognitiveContextText = formatCognitiveContext(snapshot);
         trace.record(
           "SELF_CONTEXT",
@@ -1158,7 +1160,18 @@ export default class AIService {
         const parts: string[] = [];
         if (projectContext?.trim()) parts.push(projectContext.trim());
         try {
-          parts.push(formatCognitiveContext(buildCognitiveContext()));
+          // The agent snapshot is built for THIS invocation, or not at all.
+          // An agent with no conversation gets operational state only; it no
+          // longer receives every project and checkpoint on the install.
+          parts.push(
+            formatCognitiveContext(
+              buildCognitiveContext(
+                scope
+                  ? { userId: scope.userId, conversationId: scope.conversationId, sessionId: scope.sessionId }
+                  : undefined,
+              ),
+            ),
+          );
         } catch { /* contained */ }
         return parts.length > 0 ? { context: parts.join("\n\n") } : {};
       })(),
@@ -1577,8 +1590,11 @@ export default class AIService {
    * pipeline uses — no duplicate provider system.
    */
   /** The runtime's own router context, for a tool call outside a turn. Null until initialized. */
-  public toolContext(prompt: string): import("./router/RouterContext").default | null {
-    return this.initialized ? this.runtime.toolContext(prompt) : null;
+  public toolContext(
+    prompt: string,
+    scope?: { conversationId?: string | null },
+  ): import("./router/RouterContext").default | null {
+    return this.initialized ? this.runtime.toolContext(prompt, scope ?? undefined) : null;
   }
 
   public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
