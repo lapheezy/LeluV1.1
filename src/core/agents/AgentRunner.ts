@@ -279,7 +279,19 @@ export default class AgentRunner {
         response: insight,
         category: "agent-insight",
         attribution: `agent ${agentName}`,
-        metadata: { agentName, task, truncated: text.length > insight.length },
+        metadata: {
+          agentName,
+          task,
+          truncated: text.length > insight.length,
+          // An agent's conclusion is a DERIVED claim about its own work, not
+          // something the user stated. Provenance says so, and retrieval will
+          // only ever surface it labelled as an inference (MemorySovereignty).
+          originSeed: {
+            sourceType: "agent-reported" as const,
+            scope: "derived" as const,
+            confidence: 0.6,
+          },
+        },
       });
     } catch (error) {
       console.warn("[AgentRunner] could not consolidate agent insight:", error);

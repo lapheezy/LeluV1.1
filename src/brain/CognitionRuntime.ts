@@ -83,6 +83,9 @@ export default class CognitionRuntime {
     text:
       string,
 
+    conversationId?:
+      string,
+
   ):
     void {
 
@@ -90,6 +93,8 @@ export default class CognitionRuntime {
     this.core.observe(
 
       text,
+
+      conversationId,
 
     );
 

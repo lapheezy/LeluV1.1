@@ -46,6 +46,7 @@ import {
   type VisualReport,
 } from "../selfdev/VisualInspection";
 import LeluIdentity from "../identity/LeluIdentity";
+import LinguisticProfile from "../identity/voice/LinguisticProfile";
 import { describeStudioWork, pendingStudioApprovals } from "../studio/StudioMemory";
 
 /**
@@ -770,14 +771,29 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     const activeTraits = istate.traits.filter(
       (t) => t.status === "established" || t.status === "emerging",
     );
-    if (activeTraits.length > 0 || istate.curiosities.length > 0) {
+    // Her LINGUISTIC identity, as measured — dials, adopted moves, and
+    // the user's vocabulary she understands but does not parrot.
+    //
+    // Read OUTSIDE the trait/curiosity condition below: a freshly seeded
+    // identity has no established traits yet, and skipping the section on
+    // that basis is exactly how her voice used to disappear from context.
+    // The per-turn directive is the authority on how to speak; this section
+    // keeps the same facts visible to cognition itself, so a reply about her
+    // own voice cannot contradict what she is actually doing.
+    let voiceLine = "";
+    try {
+      voiceLine = LinguisticProfile.getInstance().digest();
+    } catch {
+      voiceLine = "";
+    }
+    if (activeTraits.length > 0 || istate.curiosities.length > 0 || voiceLine.length > 0) {
       const traitLine = activeTraits.length > 0
         ? `Active traits: ${activeTraits.slice(0, 4).map((t) => `${t.name} (${t.status})`).join(", ")}.`
         : "";
       const curiosityLine = istate.curiosities.length > 0
         ? `Current curiosity: ${istate.curiosities[istate.curiosities.length - 1]}.`
         : "";
-      const lines = [traitLine, curiosityLine].filter(Boolean);
+      const lines = [traitLine, curiosityLine, voiceLine].filter(Boolean);
       if (lines.length > 0) {
         sections.push(`## LÉLU PERSONALITY\n${lines.join(" ")}`);
       }

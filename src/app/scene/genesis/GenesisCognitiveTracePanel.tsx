@@ -44,6 +44,7 @@ const STAGE_COLOR: Record<CognitiveStage, string> = {
   SELF_CONTEXT: "rgba(167, 139, 250, 0.95)",
   USER_CONTEXT: "rgba(167, 139, 250, 0.8)",
   TASK_CONTEXT: "rgba(167, 139, 250, 0.66)",
+  VOICE: "rgba(196, 181, 253, 0.9)",
   CONTEXT_INJECTION: "rgba(94, 234, 212, 0.95)",
   MODEL_ROUTE: "rgba(250, 204, 21, 0.9)",
   PROVIDER_ATTEMPT: "rgba(250, 204, 21, 0.75)",

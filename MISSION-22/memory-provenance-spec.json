@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "module": "src/core/memory/MemorySovereignty.ts",
+  "storage": "ResponsePattern.context.origin (JSON-serialisable, travels with the record through IndexedDB and Supabase persistence)",
+  "fields": {
+    "memoryId": { "type": "string", "required": true, "meaning": "The record this provenance describes. Checked against pattern.id; a mismatch is REJECT.", "source": "MemoryEngine.create (the generated id)" },
+    "userId": { "type": "string | null", "required": true, "meaning": "Owner. Null only for data migrated in without an owner; such memory is not claimed by anyone and is treated as historical.", "source": "UserManager.get().id at write time" },
+    "originatingConversationId": { "type": "string | null", "required": true, "meaning": "Where the information was learned. Never rewritten by a later update.", "source": "AIRequest.conversationId" },
+    "originatingSessionId": { "type": "string | null", "required": true, "meaning": "The runtime session that produced it. Session-scoped memory is refused outside this id.", "source": "MemorySovereignty.currentSessionId()" },
+    "originatingConversationTitle": { "type": "string | null", "required": false, "meaning": "Title at write time, so a later turn can name its origin honestly instead of inventing one.", "source": "MultiChatStore.get(conversationId).title" },
+    "createdAt": { "type": "number", "required": true, "meaning": "When first learned.", "source": "write clock" },
+    "updatedAt": { "type": "number", "required": true, "meaning": "When last reinforced/corrected. Advancing this never moves the origin.", "source": "MemoryEngine.touchOrigin" },
+    "scope": { "type": "enum", "required": true, "values": ["current-conversation", "historical-conversation", "persistent-user", "session", "derived"], "meaning": "What kind of memory this is, independent of where it sits relative to the current turn (that is computed from conversationId)." },
+    "sourceType": { "type": "enum", "required": true, "values": ["user-said", "lelu-observed", "agent-reported", "inferred", "external-tool"], "meaning": "How it came to LÉLU. Inferred and agent-reported material is never presented as fact." },
+    "confidence": { "type": "number 0..1", "required": true, "meaning": "Writer's confidence that this is true of the user; derived memories below 0.75 are deferred." },
+    "persistence": { "type": "enum", "required": true, "values": ["persistent", "session", "derived"], "meaning": "Whether it is meant to survive the conversation." },
+    "retention": { "type": "enum", "required": true, "values": ["durable", "session", "expires"], "meaning": "Retention class. Session memory never becomes durable by accident." }
+  },
+  "legacyRule": {
+    "condition": "record has no context.origin",
+    "classification": "scope = historical-conversation (or session for memoryType=conversation), userId = null, conversationId = null, sourceType inferred from memoryType",
+    "guarantee": "It may be recalled as something previously learned; it can never be described as said in the current conversation, and it is never deleted."
+  },
+  "sessionId": {
+    "lifetime": "one page/app runtime (module load)",
+    "why": "A restored page must not inherit the previous session's temporary material.",
+    "testSeam": "resetSessionForTests(sessionId?)"
+  },
+  "examples": {
+    "user_fact_learned_here": {
+      "userId": "primary-user",
+      "originatingConversationId": "chat-a",
+      "originatingSessionId": "session-mwnm4jy5-8ckqht",
+      "scope": "persistent-user",
+      "sourceType": "user-said",
+      "persistence": "persistent",
+      "retention": "durable"
+    },
+    "agent_conclusion": {
+      "scope": "derived",
+      "sourceType": "agent-reported",
+      "confidence": 0.6,
+      "persistence": "derived",
+      "note": "Retrieved only with RETRIEVE_WITH_CONTEXT and an [inferred] label."
+    },
+    "migrated_memory": {
+      "userId": null,
+      "originatingConversationId": null,
+      "scope": "persistent-user",
+      "sourceType": "external-tool",
+      "confidence": 0.7
+    }
+  },
+  "retrievalRelation": {
+    "this-conversation": "origin.originatingConversationId === current conversationId",
+    "other-conversation": "both present and different → any authorization is RETRIEVE_WITH_CONTEXT",
+    "unknown-conversation": "current turn has no conversationId → history only, labelled",
+    "no-conversation": "origin has none (legacy/migrated) → history only, labelled"
+  }
+}

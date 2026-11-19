@@ -207,6 +207,11 @@ export default class CognitiveCore {
     text:
       string,
 
+    /** The conversation this observation came from. Without it the node is
+     *  unattributable, and state() refuses to show it to any conversation. */
+    conversationId?:
+      string,
+
   ):
     void {
 
@@ -233,14 +238,14 @@ export default class CognitiveCore {
         text,
 
 
-      data:
-
+            data:
       {
-
         source:
-
           "conversation",
 
+        ...(conversationId
+          ? { conversationId }
+          : {}),
       },
 
 
@@ -311,10 +316,17 @@ export default class CognitiveCore {
    * Current cognitive state
    * ==========================================================
    */
-  public state():
+    public state(
+
+    /** When given, only nodes from this conversation (and unattributed
+     *  system nodes are NOT included — a node nobody can attribute must
+     *  not be shown as this conversation's context). */
+    conversationId?:
+      string,
+
+  ):
 
     {
-
       nodes: unknown[];
 
       connections: unknown[];
@@ -333,9 +345,13 @@ export default class CognitiveCore {
     return {
 
 
-      nodes:
-
-        this.graph.all(),
+            nodes:
+        (this.graph.all() as Array<{ data?: Record<string, unknown> }>)
+          .filter((node) =>
+            conversationId
+              ? node.data?.conversationId === conversationId
+              : true,
+          ),
 
 
 

@@ -159,6 +159,14 @@ export async function importBundle(
         migratedFrom: bundle.origin,
         bundleExportedAt: bundle.exportedAt,
         ...(memory.recordedAt ? { originallyRecordedAt: memory.recordedAt } : {}),
+        // Imported from outside this runtime: durable, but its provenance
+        // says external-tool and it carries no conversation of origin. It is
+        // therefore recalled as something known, never as said here.
+        originSeed: {
+          sourceType: "external-tool" as const,
+          scope: "persistent-user" as const,
+          confidence: 0.7,
+        },
       },
     };
     const { accepted: took } = await orchestrator.persist(candidate);

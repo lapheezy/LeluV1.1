@@ -15,6 +15,7 @@
 
 import type { MemoryProvider, ContextItem, MemoryCandidate } from "../memory/MemoryProvider";
 import LeluIdentity from "./LeluIdentity";
+import LinguisticProfile from "./voice/LinguisticProfile";
 import DailyRecord, { INTAKE_PREFIX } from "./DailyRecord";
 import { describeDevelopment, summarizeDevelopment } from "./DevelopmentSummary";
 
@@ -61,10 +62,21 @@ export default class PersonalityMemoryProvider implements MemoryProvider {
         ? `Current curiosity: ${state.curiosities[state.curiosities.length - 1]}.`
         : "";
 
+      // Her linguistic profile, measured — the same facts the per-turn voice
+      // directive is built from, so this provider never describes a voice
+      // that differs from the one speaking.
+      let voiceDigest = "";
+      try {
+        voiceDigest = LinguisticProfile.getInstance().digest();
+      } catch {
+        voiceDigest = "";
+      }
+
       const lines = [
         `[LÉLU Identity] Values: ${valueSummary}.`,
         traitLine,
         `Voice: ${state.communicationStyle}.`,
+        voiceDigest,
         curiosityLine,
       ].filter(Boolean);
 

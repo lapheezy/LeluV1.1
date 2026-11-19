@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "decisions": {
+    "RETRIEVE": "Authorized, relevant, and current enough to use directly.",
+    "RETRIEVE_WITH_CONTEXT": "Authorized and relevant but not from this conversation (or inferred); it may be used only with its origin stated.",
+    "DEFER": "Not retrieved for this turn: insufficient relevance, confidence, or necessity. The memory is retained, not deleted.",
+    "REJECT": "Refused outright: owner mismatch, wrong session, tampered provenance, or an unauthorized scope. Never reaches the model."
+  },
+  "thresholds": {
+    "persistentRelevance": 0.1,
+    "historicalRelevance": 0.2,
+    "sensitiveHistoricalRelevance": 0.45,
+    "derivedRelevance": 0.3,
+    "derivedConfidence": 0.75
+  },
+  "precedence": [
+    "ownership",
+    "session isolation",
+    "provenance integrity",
+    "scope",
+    "relevance",
+    "confidence"
+  ],
+  "nonNegotiable": [
+    "A conversation never silently inherits another conversation's transcript or active emotional context.",
+    "Historical information stays historical: it is never presented as something said now.",
+    "An inference is never promoted to an established fact.",
+    "Session memory never becomes persistent memory by accident.",
+    "Retrieval relevance is not authorization."
+  ],
+  "relevance": {
+    "measure": "share of the request's SUBJECT words covered by the memory, after instruction words (fix/help/can/it) are removed",
+    "why": "A request made only of instructions names nothing about the user. Lexical overlap on such a request cannot authorize history.",
+    "sensitiveSource": "deterministic lexicon (bereavement, illness, crisis) plus the 2.1 EmotionAppraisal reading at intensity >= 0.7 and unguarded"
+  },
+  "stageEnforcement": {
+    "eligibility": "PatternMemory.search -> isEligible() — owner, session and provenance-integrity checks happen before ranking",
+    "authorization": "MemoryBridge.enrich -> authorize() — scope, relevance and confidence decide RETRIEVE / RETRIEVE_WITH_CONTEXT / DEFER / REJECT",
+    "rendering": "MemorySynthesizer.formatGroup -> originLabel() — historical and inferred lines carry their origin",
+    "instruction": "memoryContextNote() — added only when labelled material is present"
+  }
+}

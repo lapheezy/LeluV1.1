@@ -19,6 +19,7 @@ import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observabil
 import AIService from "../AIService";
 import { ingest, type IngestionResult } from "./IngestionPipeline";
 import MemoryOrchestrator from "./MemoryProvider";
+import LanguageObserver from "../identity/voice/LanguageObserver";
 import { announce } from "../proactive/InitiationTriggers";
 
 export interface IngestOutcome extends IngestionResult {
@@ -89,6 +90,15 @@ export async function ingestSource(
   const accepted = new Set<string>();
 
   for (const candidate of result.candidates) {
+    // Something she READ is not evidence about how she talks. It reaches
+    // the language observer's refusal path, which records the attempt and
+    // changes nothing about her voice — external prose can never rewrite
+    // her identity.
+    try {
+      LanguageObserver.getInstance().noteExternalContent(`${candidate.prompt} ${candidate.response}`.slice(0, 400));
+    } catch {
+      // counting refusals must never block ingestion
+    }
     const { accepted: took } = await orchestrator.persist(candidate);
     took.forEach((id) => accepted.add(id));
   }

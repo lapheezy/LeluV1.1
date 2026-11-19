@@ -1,0 +1,154 @@
+{
+  "mission": "LÉLU 2.2 — memory sovereignty",
+  "capturedAt": "2026-11-19",
+  "baseCommit": "aa8b1bd",
+  "branch": "freebuff/4fe6237b54885c7ced31f590",
+  "legend": {
+    "scopeBefore": "whether the stage knew which conversation/session/user it was serving before 2.2",
+    "scopeAfter": "the same stage after 2.2"
+  },
+  "stages": [
+    {
+      "id": "S1",
+      "stage": "USER INPUT",
+      "entry": "AIService.chat",
+      "file": "src/core/AIService.ts",
+      "scopeBefore": "conversationId present in options",
+      "scopeAfter": "conversationId present in options",
+      "notes": "The id exists from the first line of the turn. It was simply not carried into memory."
+    },
+    {
+      "id": "S2",
+      "stage": "CONVERSATION RESOLUTION",
+      "entry": "priorTurnsFor + MultiChatStore",
+      "file": "src/core/AIService.ts",
+      "scopeBefore": "per-conversation, with fallback to the shared ConversationEngine window when the id was unknown",
+      "scopeAfter": "per-conversation; an unknown id with chats present receives no history rather than the shared window",
+      "defect": "F-06"
+    },
+    {
+      "id": "S3",
+      "stage": "SESSION RESOLUTION",
+      "entry": "currentSessionId",
+      "file": "src/core/memory/MemorySovereignty.ts",
+      "scopeBefore": "no runtime session identity existed",
+      "scopeAfter": "a module-scoped runtime session id, regenerated per page/app start; used to isolate session memory",
+      "defect": "F-01"
+    },
+    {
+      "id": "S4",
+      "stage": "MEMORY RETRIEVAL",
+      "entry": "Brain.recall → MemoryEngine.recall → PatternMemory.search",
+      "file": "src/brain/PatternMemory.ts",
+      "scopeBefore": "none — every record ranked by lexical overlap, confidence, importance, recency",
+      "scopeAfter": "isEligible(owner, session, provenance integrity) filters BEFORE ranking; authorization decides after",
+      "defect": "F-02"
+    },
+    {
+      "id": "S5",
+      "stage": "RETRIEVAL AUTHORIZATION",
+      "entry": "authorize / decide",
+      "file": "src/core/memory/MemorySovereignty.ts",
+      "scopeBefore": "did not exist",
+      "scopeAfter": "RETRIEVE / RETRIEVE_WITH_CONTEXT / DEFER / REJECT from scope, relevance, confidence, ownership",
+      "defect": "F-02"
+    },
+    {
+      "id": "S6",
+      "stage": "CONTEXT ASSEMBLY",
+      "entry": "MemoryBridge.enrich → buildContext",
+      "file": "src/core/MemoryBridge.ts",
+      "scopeBefore": "mixed: cognitive context was scoped, the thread fell back to a shared window, cognition nodes and memory were global",
+      "scopeAfter": "all sources scoped to request.conversationId; only authorized memories are returned; provenance note at top and bottom",
+      "defect": "F-03, F-05, F-09"
+    },
+    {
+      "id": "S7",
+      "stage": "COGNITION (knowledge graph)",
+      "entry": "CognitionRuntime.observe → CognitiveCore.observe → state",
+      "file": "src/core/cognition/CognitiveCore.ts",
+      "scopeBefore": "none — every learned turn became a global observation rendered on every turn",
+      "scopeAfter": "each node records its conversationId; state(conversationId) shows only that conversation's nodes",
+      "defect": "F-04"
+    },
+    {
+      "id": "S8",
+      "stage": "PERSONALITY / VOICE",
+      "entry": "composeVoice({ prompt, messages })",
+      "file": "src/core/identity/voice/VoiceComposer.ts",
+      "scopeBefore": "current turn only (never memory-driven)",
+      "scopeAfter": "unchanged — confirmed by test that historical grief does not alter present appraisal",
+      "notes": "This was already correct in 2.1 and is preserved deliberately."
+    },
+    {
+      "id": "S9",
+      "stage": "PROVIDER",
+      "entry": "leluSystemPrompt(request, providerId) + context",
+      "file": "src/providers/LeluSystemPrompt.ts",
+      "scopeBefore": "the request's context string, largely unlabelled",
+      "scopeAfter": "the same context plus [earlier conversation]/[inferred] labels and the provenance instruction",
+      "defect": "F-09"
+    },
+    {
+      "id": "S10",
+      "stage": "RESPONSE + CONSOLIDATION",
+      "entry": "MemoryBridge.learn → Brain.learn → MemoryEngine.learn → create",
+      "file": "src/brain/MemoryEngine.ts",
+      "scopeBefore": "wrote no origin",
+      "scopeAfter": "writes origin {userId, conversationId, sessionId, title, createdAt, scope, sourceType, confidence}",
+      "defect": "F-01, F-07"
+    },
+    {
+      "id": "S11",
+      "stage": "POST-WRITE PROFILE SYNC",
+      "entry": "Brain.recall(message, 'post-write-profile-sync')",
+      "file": "src/core/AIService.ts",
+      "scopeBefore": "unscoped recall into the user profile",
+      "scopeAfter": "scoped recall into the user profile",
+      "defect": "F-02"
+    },
+    {
+      "id": "S12",
+      "stage": "EXTERNAL / ARCHIVE PROVIDERS",
+      "entry": "MemoryOrchestrator.gather / persist",
+      "file": "src/core/memory/MemoryProvider.ts",
+      "scopeBefore": "gather had no scope parameter",
+      "scopeAfter": "gather forwards MemoryScopeContext to every provider; local provider passes it to recall; migration marks external-tool",
+      "defect": "F-02"
+    },
+    {
+      "id": "S13",
+      "stage": "CACHE",
+      "entry": "IndexedDBStore / OgArchiveProvider snapshot / PatternMemory map",
+      "file": "src/core/memory/providers.ts",
+      "scopeBefore": "archive per user; memory map global (read unscoped)",
+      "scopeAfter": "same caches; the memory map is filtered at read time by scope",
+      "notes": "No prompt→context cache exists. No cache collision found."
+    }
+  ],
+  "crossConversationPaths": [
+    { "id": "P1", "path": "long-term memory recall → synthesize → provider context", "fixed": true },
+    { "id": "P2", "path": "cognitive knowledge nodes → buildContext → provider context", "fixed": true },
+    { "id": "P3", "path": "threadContext shared-window fallback", "fixed": true },
+    { "id": "P4", "path": "AIService shared-window fallback for an unknown conversation id", "fixed": true },
+    { "id": "P5", "path": "session memory crossing runtime sessions", "fixed": true },
+    { "id": "P6", "path": "agent conclusions promoted to durable facts", "fixed": true },
+    { "id": "P7", "path": "transcript quotes in assembled context", "preExisting": true, "handledBy": "ContextProvenance.labelOtherChats (2.1)" }
+  ],
+  "residual": [
+    {
+      "id": "R1",
+      "path": "Brain.getConversation() (the shared ConversationEngine window) is still written on every turn and is still the fallback for callers that pass no conversationId.",
+      "why": "Headless/agent callers have no conversation. They are conversation-neutral by definition.",
+      "risk": "low",
+      "status": "documented, not changed"
+    },
+    {
+      "id": "R2",
+      "path": "ProjectStore / AgentStore are global by design and rendered in context without a conversation label.",
+      "why": "They are LÉLU's own registries, not user transcripts.",
+      "risk": "low",
+      "status": "out of scope for this mission; noted"
+    }
+  ]
+}

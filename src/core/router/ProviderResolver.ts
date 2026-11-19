@@ -24,6 +24,10 @@ import { reducedToolSchemas, toolSchemasForRequest } from "../tools/ToolSchemas"
 import { describeRequestBudget, fitRequestBudget, type SchemaTier } from "./RequestBudget";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
+import { stripChatbotisms } from "../identity/voice/ChatbotismFilter";
+import { checkReply } from "../identity/voice/VoiceDriftGuard";
+import LanguageProfile from "../identity/voice/LinguisticProfile";
+import VoicePerformance from "../identity/voice/VoicePerformance";
 
 
 import { inspectRequest } from "../observability/RequestIntegrity";
@@ -959,11 +963,16 @@ export default class ProviderResolver {
     }
     // Quality checkpoint: what is still below the bar is said, not hidden.
     const deficiencies = assessTurn(context.request.prompt ?? "", qualityCalls);
+    // Anti-generic transformation, BEFORE the grounding notes are appended:
+    // a stock closer at the end of the reply is exactly what this removes,
+    // and the notes are system-authored text that must survive intact.
+    const revoiced = stripChatbotisms(response.text ?? "");
     return {
       ...response,
-      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
+      text: `${revoiced.text}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
+        ...(revoiced.removed.length ? { chatbotismsRemoved: revoiced.removed } : {}),
         ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
         ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
@@ -999,10 +1008,32 @@ export default class ProviderResolver {
       throw new Error(`${provider.name} returned an invalid response.`);
     }
 
-    const text = response.text.trim();
+    // The single boundary every provider's text passes through, tools or
+    // no tools. Idempotent, code-fence aware, and auditable through
+    // metadata.chatbotismsRemoved — the same filter on every engine.
+    const revoiced = stripChatbotisms(response.text);
+    const text = (revoiced.text.trim() || response.text.trim());
 
     if (!text) {
       throw new Error(`${provider.name} returned empty response text.`);
+    }
+
+    // PERSONALITY DRIFT, measured on the finished reply. The guard never
+    // edits the text: a silent rewrite would hide the failure it exists
+    // to report. Findings travel with the response as evidence.
+    const recentReplies = (context.request.messages ?? [])
+      .filter((message) => message.role === "assistant" && typeof message.content === "string" && message.content.trim().length > 0)
+      .slice(-4)
+      .map((message) => message.content);
+    const drift = VoicePerformance.getInstance().measure("drift-check", () =>
+      checkReply({ reply: text, recentReplies, provider: provider.name }),
+    );
+    // Which of her established moves really appeared — frequency, not intent.
+    let expressionsUsed: string[] = [];
+    try {
+      expressionsUsed = LanguageProfile.getInstance().noteAdoptedUse(text);
+    } catch {
+      expressionsUsed = [];
     }
 
     return {
@@ -1016,6 +1047,10 @@ export default class ProviderResolver {
           : Date.now() - started,
       metadata: {
         ...response.metadata,
+        ...(revoiced.removed.length ? { chatbotismsRemoved: revoiced.removed } : {}),
+        ...(drift.length ? { voiceDrift: drift } : {}),
+        ...(expressionsUsed.length ? { voiceExpressionsUsed: expressionsUsed } : {}),
+        voiceProvider: provider.name,
         providerPriority: provider.priority,
       },
     };

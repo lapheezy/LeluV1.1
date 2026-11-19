@@ -17,6 +17,11 @@ import { CATEGORY_RECALL_SYNONYMS }
 import IndexedDBStore
   from "../core/memory/IndexedDBStore";
 
+import {
+  isEligible,
+  type MemoryScopeContext,
+} from "../core/memory/MemorySovereignty";
+
 import type {
   MemoryRecord,
 } from "../core/memory/MemoryStore";
@@ -432,6 +437,9 @@ export default class PatternMemory {
     prompt:
       string,
 
+    scope?:
+      MemoryScopeContext,
+
   ):
     Promise<ResponsePattern[]> {
 
@@ -533,6 +541,22 @@ export default class PatternMemory {
           pattern =>
 
             pattern.context?.searchable !== false,
+
+        )
+
+        // MEMORY SOVEREIGNTY, enforced at retrieval rather than after it.
+        // A memory that fails ownership, session isolation or provenance
+        // integrity is not a candidate at all — it cannot influence ranking,
+        // the working set, or any downstream consumer that was handed this
+        // recall. The softer relevance/authorization decision happens in
+        // MemorySovereignty.decide(), on what survives this filter.
+        .filter(
+
+          pattern =>
+
+            !scope ||
+
+            isEligible(pattern, scope),
 
         );
 

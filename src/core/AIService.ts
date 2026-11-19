@@ -609,6 +609,7 @@ export default class AIService {
             `Proactive question: ${pendingQuestion.question}`,
             `User answer: ${message}`,
             taskId,
+            options?.conversationId,
           );
         } catch (error) {
           console.error("[AIService] Proactive answer learning failed (contained)", error);
@@ -772,7 +773,23 @@ export default class AIService {
       // so a question asked in chat B arrived after chat A's unanswered
       // question — and was answered as if it were A's (measured: "two
       // paragraphs about the telescope" came back as AI-video research).
-      const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
+      // A supplied conversation id that this store does not hold is NOT an
+      // invitation to use the shared window: that window holds whichever chat
+      // spoke last, which is precisely the cross-conversation inheritance
+      // 2.2 exists to stop. With chats present, an unknown id gets no history
+      // rather than someone else's. With no chats at all (first turn, a
+      // headless caller) the shared window is still the only history there is.
+      const perChatTurns = priorTurnsFor(options?.conversationId, message);
+      const storeHasChats = (() => {
+        try {
+          return MultiChatStore.getInstance().listAll().length > 0;
+        } catch {
+          return false;
+        }
+      })();
+      const priorTurns =
+        perChatTurns ??
+        (options?.conversationId && storeHasChats ? [] : conversation.modelMessages());
       conversation.record("user", message);
 
       // TWO controllers, by design, combined at the request: one per
@@ -893,14 +910,21 @@ export default class AIService {
       void (async () => {
         try {
           // Memory consolidation ALWAYS runs — online or offline.
-          await this.memory.learn(message, response.text, taskId);
+          await this.memory.learn(message, response.text, taskId, options?.conversationId);
           // Refresh active memories now that this turn is recorded.
           await conversation.refresh(message);
 
           // Post-write profile sync: second recall so the user profile
           // picks up the fact just learned, which the pre-response recall
           // could not have seen.
-          const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
+          // Same conversation scope as the turn's own recall: the post-write
+          // profile sync must not pull another chat's facts into this user's
+          // profile either.
+          const memories = await this.runtime.brain.recall(
+            message,
+            "post-write-profile-sync",
+            this.memory.scopeFor(options?.conversationId, message),
+          );
           for (const memory of memories) {
             await this.user.learn(memory.category, memory.response);
           }
@@ -1132,7 +1156,7 @@ export default class AIService {
       // A read-only agent never writes; a read-write agent learns the
       // same way the main dialogue does (through the ONE memory path).
       if (agent.permissions.canWriteMemory && agent.memoryAccess === "read-write") {
-        await this.memory.learn(message, response.text, taskId);
+        await this.memory.learn(message, response.text, taskId, request.conversationId);
       }
 
       // LÉLU always remembers that the agent worked, so cognition can

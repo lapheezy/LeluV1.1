@@ -8,7 +8,7 @@
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth, ToolCall } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
-import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
@@ -234,7 +234,7 @@ export default class AnthropicProvider implements AIProvider {
     const history = [...contextMessages(request), ...(request.messages ?? [])];
 
 
-    const systemParts = [LELU_SYSTEM_PROMPT];
+    const systemParts = [leluSystemPrompt(request, "anthropic")];
     const turns: Array<{ role: "user" | "assistant"; content: string | Array<Record<string, unknown>> }> = [];
 
     for (const message of history) {

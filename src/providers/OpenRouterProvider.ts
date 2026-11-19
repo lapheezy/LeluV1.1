@@ -21,7 +21,7 @@ import {
   readOpenAIStream,
   isTruncating,
 } from "./openaiTools";
-import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { leluSystemPrompt } from "./LeluSystemPrompt";
 
 import { DEFAULT_OUTPUT_TOKENS } from "./AIProvider";
 import type {
@@ -256,7 +256,7 @@ export default class OpenRouterProvider implements AIProvider {
       {
         role: "system",
         content:
-          LELU_SYSTEM_PROMPT,
+          leluSystemPrompt(request, "openrouter"),
       },
       ...contextMessages(request),
       ...toOpenAIMessages(request.messages),

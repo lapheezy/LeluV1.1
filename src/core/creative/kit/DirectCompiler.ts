@@ -29,6 +29,7 @@ import { seedFrom } from "./Rng";
 import { connectorProfiles } from "../../data/PublicDataConnectors";
 import { findBuilder, describeRequest } from "./build";
 import CosmosObjectStore from "../../cosmos/objects/CosmosObjectStore";
+import { appraise } from "../../identity/voice/EmotionAppraisal";
 
 export interface DirectStep { tool: string; args: Record<string, unknown>; label: string }
 export interface DirectPlan { steps: DirectStep[]; summary: string; explicit: boolean }
@@ -144,6 +145,21 @@ export function compileDirect(prompt: string): DirectPlan | null {
   const t = prompt.trim();
   const slash = /^\/(\w+)\b\s*([\s\S]*)$/.exec(t);
   if (slash) return compileCommand(slash[1].toLowerCase(), slash[2].trim());
+
+  /**
+   * A person in distress is not issuing a UI command.
+   *
+   * Measured live: "my dad died last month and i can't focus on anything"
+   * matched the Cosmos focus rule on the word "focus" and was answered
+   * with a deterministic camera-tool error (cosmos.view.frame “anything”) —
+   * the worst possible reply to grief. Grief and being overwhelmed now
+   * fall through to the model path, where the voice directive and the
+   * comfort rules apply. Explicit "/" commands above are unaffected.
+   */
+  const reading = appraise(t);
+  if (reading.primary === "sadness" || (reading.primary === "stress" && reading.confidence >= 0.6)) {
+    return null;
+  }
   const nl = (cmd: string, rest: string): DirectPlan | null => { const plan = compileCommand(cmd, rest); return plan ? { ...plan, explicit: false } : null; };
   const verb = /\b(make|create|build|generate|construct|render|draw|design|produce|compose|assemble|give me|show me|i want|i'd like)\b/i;
   // Exporting what she built in her world (Job 3/4: world.export, world.gltf).
@@ -339,8 +355,15 @@ function cosmosPlan(t: string): DirectPlan | null {
   if (/\b(frame|fit)\s+(all|everything|them|my objects|every object)\b/i.test(t)) return one("cosmos.view.frame", "frame all", { mode: "all" }, "frame all the objects");
   if (/\b(home view|default (cosmos )?view|reset the (camera|view))\b/i.test(t)) return one("cosmos.view.frame", "home view", { mode: "home" }, "back to the home view");
   if (/\b(previous|last) (camera )?view\b|\bback to the (previous|last) view\b/i.test(t)) return one("cosmos.view.frame", "previous view", { mode: "previous" }, "the previous camera view");
-  const focus = /\b(?:frame|focus(?: on)?|zoom(?: in)? (?:on|to)|show me)\s+(?:the\s+|my\s+)?([\w\s-]{2,32})$/i.exec(t.trim());
-  if (focus && !/\b(all|everything|them|cosmos|objects?)\b/i.test(focus[1]) && (hasObjects || cosmosWords || /\b(frame|focus|zoom)\b/i.test(t))) {
+  // IMPERATIVE, not incidental: the verb must open the request. Requiring
+  // only that the word "focus" appears somewhere made any sentence about
+  // being unable to focus a camera command.
+  const focus =
+    /^(?:please\s+|can you\s+|could you\s+)?(?:frame|focus(?:\s+on)?|zoom(?:\s+in)?(?:\s+on|\s+to)?|show\s+me)\s+(?:the\s+|my\s+)?([\w\s-]{2,32})$/i.exec(t.trim());
+  // An imperative is a request whether or not anything is in the scene: the
+  // tool itself refuses an object that does not exist, and the test suite has
+  // always required "Zoom to the engine" to route locally.
+  if (focus && !/\b(all|everything|them|cosmos|objects?)\b/i.test(focus[1])) {
     return one("cosmos.view.frame", "focus", { mode: /\bzoom\b/i.test(t) ? "zoom" : "focus", object: focus[1].trim() }, `frame “${focus[1].trim()}”`);
   }
   if (/\b(show|list|what('s| is)|every object|my objects)\b/i.test(t) && /\b(cosmos|objects?|scene)\b/i.test(t)) {

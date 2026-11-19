@@ -8,7 +8,7 @@
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth, ToolCall } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
-import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveFirst } from "../core/resolveEnv";
@@ -86,7 +86,7 @@ export default class GeminiProvider implements AIProvider {
     contents: GeminiContent[];
   } {
     const history = [...contextMessages(request), ...(request.messages ?? [])];
-    const systemParts = [LELU_SYSTEM_PROMPT];
+    const systemParts = [leluSystemPrompt(request, "gemini")];
     const contents: GeminiContent[] = [];
 
     for (const message of history) {

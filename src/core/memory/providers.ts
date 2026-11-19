@@ -26,6 +26,7 @@ import type Brain from "../../brain/Brain";
 import SupabasePersistence from "../persistence/SupabasePersistence";
 import { getSupabase } from "../../og/integrations/supabase/client";
 import type { ContextItem, MemoryCandidate, MemoryProvider } from "./MemoryProvider";
+import type { MemoryScopeContext } from "./MemorySovereignty";
 
 /**
  * v1.1's in-process memory. Band 3-4: runtime short-term and persistent LÉLU
@@ -40,9 +41,12 @@ export class LocalMemoryProvider implements MemoryProvider {
     return true;
   }
 
-  async context(query: string, limit: number): Promise<ContextItem[]> {
+  async context(query: string, limit: number, scope?: MemoryScopeContext): Promise<ContextItem[]> {
     try {
-      const recalled = await this.brain.recall(query);
+      // Scope travels with the read. The store drops ineligible memories
+      // before ranking, so this provider cannot hand cognition another
+      // conversation's private context even by accident.
+      const recalled = await this.brain.recall(query, "provider", scope);
       return recalled.slice(0, limit).map((memory) => ({
         source: this.id,
         band: 4 as const,

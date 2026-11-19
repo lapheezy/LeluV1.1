@@ -20,7 +20,7 @@ import {
   toOpenAIMessages,
   trailingUserTurn,
 } from "./openaiTools";
-import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { leluSystemPrompt } from "./LeluSystemPrompt";
 
 import type {
   AIRequest,
@@ -132,7 +132,7 @@ export default class GitHubModelsProvider implements AIProvider {
       {
         role: "system",
         content:
-          LELU_SYSTEM_PROMPT,
+          leluSystemPrompt(request, "github-models"),
       },
 
       ...contextMessages(request),

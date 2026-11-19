@@ -25,7 +25,7 @@ import {
   toOpenAIMessages,
   trailingUserTurn,
 } from "./openaiTools";
-import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
@@ -108,7 +108,7 @@ export default class CerebrasProvider implements AIProvider {
     }
 
     const messages = [
-      { role: "system", content: LELU_SYSTEM_PROMPT },
+      { role: "system", content: leluSystemPrompt(request, "cerebras") },
       ...contextMessages(request),
       ...toOpenAIMessages(request.messages),
       ...trailingUserTurn(request, request.prompt),

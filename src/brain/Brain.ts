@@ -45,6 +45,10 @@ import type ResponsePattern
   from "./ResponsePattern";
 
 import type {
+  MemoryScopeContext,
+} from "../core/memory/MemorySovereignty";
+
+import type {
   Reflection,
 } from "./ReflectionEngine";
 
@@ -251,7 +255,7 @@ export default class Brain {
       string[] = [],
 
 
-    _context:
+    context:
       Record<string, unknown> = {},
 
   ):
@@ -266,15 +270,25 @@ export default class Brain {
 
         response,
 
+        context,
+
       );
 
 
 
 
 
+    // Observations belong to the conversation that produced them. The
+    // cognitive graph used to take every turn's text with no origin, and
+    // buildContext rendered the last five nodes on EVERY turn — so a loss
+    // discussed in one chat appeared in another chat's context through
+    // "Recent knowledge nodes", outside the memory pipeline entirely.
+    const seed = (context.originSeed ?? {}) as { conversationId?: string | null };
     this.cognitionRuntime.observe(
 
       `${prompt}\n${response}`,
+
+      seed.conversationId ?? undefined,
 
     );
 
@@ -344,6 +358,9 @@ export default class Brain {
     purpose:
       string = "cognition",
 
+    scope?:
+      MemoryScopeContext,
+
   ):
     Promise<ResponsePattern[]> {
 
@@ -351,6 +368,8 @@ export default class Brain {
     const memories = await this.memoryEngine.recall(
 
       prompt,
+
+      scope,
 
     );
 
@@ -362,6 +381,8 @@ export default class Brain {
       {
         purpose,
         count: memories.length,
+        conversationId: scope?.conversationId ?? null,
+        sessionId: scope?.sessionId ?? null,
         categories: memories.map((m) => m.category),
         topResponses: memories.slice(0, 3).map((m) => m.response.slice(0, 80)),
       },
@@ -502,6 +523,8 @@ export default class Brain {
         lastTopic?: string;
         recentMessages?: string[];
       };
+      /** The conversation this context is for; labels memories from others. */
+      conversationId?: string | null;
     },
   ) {
     return this.synthesizer.synthesize({
@@ -511,6 +534,7 @@ export default class Brain {
       maxMemories: options?.maxMemories,
       profile: options?.profile,
       conversation: options?.conversation,
+      conversationId: options?.conversationId,
     });
   }
 
@@ -813,12 +837,14 @@ export default class Brain {
    * Cognition state
    * ==========================================================
    */
-  public cognitiveState():
+    public cognitiveState(
+
+    conversationId?: string,
+
+  ):
 
   {
-
-    nodes:
-      unknown[];
+    nodes: unknown[];
 
 
     connections:
@@ -843,7 +869,7 @@ export default class Brain {
   } {
 
 
-    return this.cognition.state();
+    return this.cognition.state(conversationId);
 
   }
 
