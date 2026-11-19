@@ -1,0 +1,33 @@
+M22.3 — GENESISCHAT BROWSER ACCEPTANCE
+======================================
+
+Branch
+  freebuff/m22-3-genesischat-browser-acceptance
+
+Git source of truth
+  M22         2c3d149
+  M22.1       ceaa926
+  M22.1 HEAD  2d09bba
+  M22.2       bb69e0d
+  M22.2 HEAD  15528aa  (remote-verified before branching)
+  M22.3       ee0e339
+  hash record (this commit)
+
+No history was rewritten; M22.2 was not modified and was not force-pushed.
+
+Verification at close
+  M22                  28/28
+  M22.1                18/18
+  M22.2                19/19
+  M22.3 scene flag      3/3
+  boundary batch       68/68
+  full regression      2,376 tests, 2,366 pass, 2 fail
+  the 2 failures       genesis-interface CSS export; sandbox-security network
+                       test — both documented before M22.2, unchanged
+  typecheck            0 new errors (2 pre-existing FeatureUnderstanding:455)
+  browser              GenesisChat driven with ?scene=off: 0 canvases
+  conversation A/B     A's private token in A's payload only; absent from B
+  reload               both conversations restored; isolation preserved
+  provider             Groq live (9 requests, HTTP 200); OpenRouter not reached
+  browser deletion     NOT VERIFIED
+  native mobile        NOT VERIFIED (no device, emulator or native project)
