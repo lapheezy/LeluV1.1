@@ -249,4 +249,8 @@ npx tsx scripts/memory-hardening-bench.ts
 
 ## 7. Commit
 
-Recorded in `MISSION-22.1/commit.txt` after the commit is created. Nothing pushed.
+**`ceaa926`** — "Scope projects, agents and the shared window to their origin".
+It carries the 2.2.1 code, the 18 new tests, both harnesses, every audit and
+validation in `MISSION-22.1/`, and this report. `MISSION-22.1/commit.txt` records
+the hashes; the follow-up commit that writes it is the branch HEAD reported with
+the mission. Nothing pushed.

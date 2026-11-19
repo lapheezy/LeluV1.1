@@ -1,0 +1,12 @@
+MISSION 2.2.1 — MEMORY SOVEREIGNTY HARDENING
+Branch: freebuff/m22-1-memory-sovereignty-hardening
+Base:   aa8b1bd
+Predecessor: 2c3d149 (M22 implementation), a605a46 (M22 hash record)
+
+Implementation commit (code, tests, scripts, audits, validations, report):
+  ceaa926  "Scope projects, agents and the shared window to their origin"
+
+This file and the hash in the report's section 7 are the only content of the
+follow-up commit; the branch HEAD reported with this mission is that commit.
+
+Pushed: no.
