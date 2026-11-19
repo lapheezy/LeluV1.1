@@ -1,0 +1,170 @@
+{
+ "schema": "lelu.hair.metrics/2",
+ "render": "artifacts/pci-fr-2.2/hair/hair_front.png",
+ "px_per_mm": 2.732,
+ "length": {
+  "geometry_below_chin_mm": 486.8,
+  "geometry_below_chin_mean_mm": 476.4,
+  "render_full_length_below_chin_mm": 485.9,
+  "target_mm": 480.0,
+  "target_fw": 3.2,
+  "render_full_length_below_chin_fw": 3.24,
+  "pass": true
+ },
+ "curl": {
+  "spacing_px": 14.14,
+  "px_per_mm": 8.0,
+  "spacing_mm": 1.8,
+  "confidence": 0.302,
+  "measurable": false,
+  "spec_loose_diameter_mm": 13.0,
+  "spec_panel_curl_diameter_mm": [
+   18.0,
+   28.0
+  ],
+  "pass": false
+ },
+ "silhouette": {
+  "iou": 0.048,
+  "recall": 0.12,
+  "precision": 0.075,
+  "rows_compared": 75,
+  "reference_bottom_fw": -0.12,
+  "reference_clipped_by_frame": true,
+  "measurable": false,
+  "pass": false
+ },
+ "width": {
+  "rows": [
+   [
+    0.9,
+    1.6,
+    0.35
+   ],
+   [
+    0.6,
+    0.88,
+    0.57
+   ],
+   [
+    0.3,
+    0.81,
+    0.64
+   ],
+   [
+    0.15,
+    0.91,
+    0.64
+   ]
+  ],
+  "rms_fw": 0.663
+ },
+ "hairline": {
+  "rms_fw": null,
+  "overlap": 1.0,
+  "measurable": false,
+  "points_measured": 120,
+  "points_reference": 108,
+  "pass": false
+ },
+ "colour": {
+  "render": {
+   "mean_rgb": [
+    36.6,
+    19.3,
+    17.1
+   ],
+   "mean_hue": 41.7,
+   "mean_sat": 0.548,
+   "mean_val": 0.144,
+   "sat_p90": 0.718
+  },
+  "reference": {
+   "mean_rgb": [
+    50.4,
+    26.2,
+    24.1
+   ],
+   "mean_hue": 30.8,
+   "mean_sat": 0.507,
+   "mean_val": 0.198,
+   "sat_p90": 0.702
+  },
+  "delta_val": -0.054,
+  "delta_sat": 0.041,
+  "pass": true
+ },
+ "baby_hairs": {
+  "detected_on_render": 17,
+  "spirals_expected": 3,
+  "spiral_count": 6,
+  "roots": [
+   [
+    387.0,
+    313.0
+   ],
+   [
+    450.0,
+    188.0
+   ],
+   [
+    360.0,
+    395.0
+   ],
+   [
+    422.0,
+    218.0
+   ],
+   [
+    539.0,
+    391.0
+   ],
+   [
+    464.0,
+    362.0
+   ],
+   [
+    446.0,
+    354.0
+   ],
+   [
+    428.0,
+    193.0
+   ]
+  ],
+  "pass": true
+ },
+ "structure": {
+  "strands": 7800,
+  "locks": 458,
+  "roots_on_scalp_max_error_mm": 0.47,
+  "max_segment_mm": 20.86,
+  "non_finite_paths": 0,
+  "views_present": {
+   "hair_front.png": true,
+   "hair_three_quarter.png": true,
+   "hair_profile.png": true,
+   "hair_rear.png": true,
+   "hair_full_length.png": true,
+   "hair_crown.png": true,
+   "hair_curl_closeup.png": true,
+   "hair_babyhairs.png": true
+  },
+  "pass": false,
+  "view_non_background_fraction": {
+   "three_quarter": 0.608,
+   "profile": 0.496,
+   "rear": 0.625
+  },
+  "four_views_pass": true
+ },
+ "verdict": {
+  "pass": false,
+  "failing": [
+   "curl",
+   "silhouette",
+   "hairline",
+   "structure"
+  ]
+ }
+}
