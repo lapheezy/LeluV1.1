@@ -1,0 +1,27 @@
+M22.5 — HISTORICAL MEMORY RESIDUE ELIMINATION
+
+Branch:            freebuff/m22-5-historical-memory-residue
+Base:              e7521b9  (contains the M22.4 implementation 363312b and one
+                              display-copy commit for the M22.4 screenshots)
+Implementation:    42a3606  Leave proof of a deletion, then clean what still quotes it
+
+Verification at 42a3606:
+  new tests            8/8 pass (tests/memory-residue.test.ts, scenarios A–H)
+  M22.4 suites         pass (context-sovereignty, live-agent)
+  full suite           2,386 tests, 2,376 pass, 2 fail — the same two known failures
+                       (genesis-interface CSS export, sandbox-security network probe)
+  typecheck            0 new errors (2 pre-existing FeatureUnderstanding.ts:455)
+  independent script   MISSION-22.5/verify-residue.ts → verification.json (persisted-store assertions)
+  browser              MISSION-22.5/browser-evidence.json + screenshots/01..05
+  performance          migration 7.19 ms dry / 10.43 ms apply over 60 projects (180 fields);
+                       context assembly 1.62 ms mean; deletion path unchanged (not re-measured)
+
+Deliverables: docs/missions/MISSION-22.5-HISTORICAL-MEMORY-RESIDUE.md,
+residue-inventory.json, data-flow.md, browser-evidence.json, verification.json,
+regression.json, verify-residue.ts, screenshots/01..05 (+ web JPEG copies),
+src/core/memory/DeletionLedger.ts, src/core/memory/ResidueMigration.ts,
+tests/memory-residue.test.ts.
+
+Not verified: native iOS/Android; copies of memories deleted before the ledger
+existed (quarantined where the provenance shape is known, never guessed);
+automatic boot-time migration (deliberately manual).
