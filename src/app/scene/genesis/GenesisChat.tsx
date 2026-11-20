@@ -909,7 +909,10 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         // conversation so concurrent chats don't mix voice/UI streams.
         if (event.conversationId && event.conversationId !== turnConversationId) return;
         try {
-          voiceEngineRef.current.feedStreamingSpeech(event.text);
+          // OWNERSHIP: the turn that opened the stream is the only one whose
+          // deltas may be spoken. `exchangeId` names it, so a superseded
+          // turn's late deltas cannot speak over the newer question.
+          voiceEngineRef.current.feedStreamingSpeech(event.text, exchangeId);
         } catch {
           // contained
         }
@@ -927,7 +930,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         );
       });
       try {
-        voiceEngineRef.current.beginStreamingSpeech();
+        voiceEngineRef.current.beginStreamingSpeech(exchangeId);
       } catch {
         // contained
       }
@@ -1022,7 +1025,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       }
 
       try {
-        voiceEngineRef.current.finishStreamingSpeech(assistantText);
+        voiceEngineRef.current.finishStreamingSpeech(assistantText, exchangeId);
       } catch {
         // contained
       }
