@@ -102,8 +102,9 @@ Lint: 0/0 on 7 touched files.
 
 ## 12–13. Commits
 
-Implementation `3882c41…`-style detail is in `commit.txt`, with the hash-record
-commit that follows it. This document ships in the hash-record commit.
+* Implementation: **`9700a4400a2387b3d4ac93620d9ef15b387846f7`**
+* Remote ref: identical — `9700a44…` (recorded in `commit.txt`)
+* This hash-record commit follows it; `git log --oneline -2` shows both.
 
 ## 14. Does the remote branch match?
 

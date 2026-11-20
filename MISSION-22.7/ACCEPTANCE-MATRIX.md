@@ -24,7 +24,7 @@ is marked VERIFIED, because the live sequence did not run (`WP07`).
 | G16 | No plaintext deleted content in tombstones or logs | **VERIFIED** | SQL `H1` (462 bytes of tombstone rows scanned, no match); tests `J`, `L` |
 | G17 | Existing M22.5/M22.6 behaviour preserved | **VERIFIED** | residue and integrity suites pass inside the full run |
 | G18 | Full regression suite and build verified | **VERIFIED** | 2,410 tests / 2,400 pass / 2 known failures / 8 skipped; build 8.18 s; lint 0/0 |
-| G19 | Candidate commit and remote branch independently verified | **VERIFIED** | `commit.txt`: local HEAD = remote ref; M22.6 and `main` unchanged |
+| G19 | Candidate commit and remote branch independently verified | **VERIFIED** | `commit.txt`: local HEAD = remote ref = `9700a44…`; M22.6 = `21cb99d…` and `main` = `44bdd93…` unchanged |
 | G20 | No unauthorized production changes or canonical promotion | **VERIFIED** | only `lelu-v11-test` contacted, read-only; no merge, PR or deploy |
 
 ## Tally

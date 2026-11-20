@@ -1,7 +1,7 @@
 # MISSION 22.7 — Universal memory erasure and cloud deletion integrity
 
 **Branch:** `m22.7/universal-memory-erasure` · **Started at:** `21cb99d` (M22.6)
-**Candidate:** recorded in `commit.txt` · **Canonical:** untouched (`main` = `44bdd93…`)
+**Candidate:** `9700a44` — remote ref identical (`commit.txt`) · **Canonical:** untouched (`main` = `44bdd93…`)
 
 ## What this mission was for
 
