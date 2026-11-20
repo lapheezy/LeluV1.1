@@ -1,0 +1,48 @@
+## 1. json-input, output_file "-" (no --output_raw)
+stdout_bytes=2
+[2026-11-20 16:15:03.414] [piper] [info] Loaded voice in 0.289629479 second(s) [2026-11-20 16:15:03.415] [piper] [info] Initialized piper [2026-11-20 16:15:03.415] [piper] [info] Output directory: /wo
+
+## 2. growth of a real output file during synthesis of a long text
+t=25ms no_file
+t=50ms no_file
+t=75ms no_file
+t=100ms no_file
+t=125ms no_file
+t=150ms no_file
+t=175ms no_file
+t=200ms no_file
+t=225ms no_file
+t=250ms no_file
+t=275ms no_file
+t=300ms no_file
+t=325ms size=0 data_field=na
+t=350ms size=0 data_field=na
+t=375ms size=0 data_field=na
+t=400ms size=0 data_field=na
+t=425ms size=0 data_field=na
+t=450ms size=0 data_field=na
+t=475ms size=0 data_field=na
+t=500ms size=0 data_field=na
+t=525ms size=0 data_field=na
+t=550ms size=0 data_field=na
+t=575ms size=0 data_field=na
+t=600ms size=0 data_field=na
+t=625ms size=0 data_field=na
+t=650ms size=0 data_field=na
+t=675ms size=0 data_field=na
+t=700ms size=0 data_field=na
+t=725ms size=0 data_field=na
+t=750ms size=0 data_field=na
+t=775ms size=0 data_field=na
+t=800ms size=0 data_field=na
+t=825ms size=0 data_field=na
+t=850ms size=0 data_field=na
+t=875ms size=0 data_field=na
+t=900ms size=0 data_field=na
+t=925ms size=0 data_field=na
+t=950ms size=0 data_field=na
+t=975ms size=0 data_field=na
+t=1000ms size=0 data_field=na
+
+## 3. does the placeholder header start at zero?
+short_size=49964 short_data=49920

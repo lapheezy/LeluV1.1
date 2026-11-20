@@ -1,0 +1,1204 @@
+{
+  "ranAt": "2026-11-20T16:44:35.144Z",
+  "url": "http://127.0.0.1:4180/",
+  "simulatedMicrophone": "/workspace/chats/a194f0c9c3c58bfdf5946c17/.piper/fake-mic-paced.wav",
+  "physicalMicrophone": false,
+  "physicalSpeaker": false,
+  "durationSeconds": 443,
+  "turnsRequested": 30,
+  "turnsMeasured": 30,
+  "playbackTransport": "pcm16 via AudioContext (incremental); blob via HTMLAudioElement (fallback)",
+  "latency": {
+    "asr": {
+      "count": 30,
+      "min": 410,
+      "median": 468,
+      "p90": 495,
+      "max": 961
+    },
+    "transcriptToFirstTts": {
+      "count": 26,
+      "min": 27,
+      "median": 1435,
+      "p90": 2628,
+      "max": 6400
+    },
+    "transcriptToFirstAudio": {
+      "count": 26,
+      "min": 0,
+      "median": 2480,
+      "p90": 3664,
+      "max": 7786
+    }
+  },
+  "playback": {
+    "plays": 33,
+    "ended": 23,
+    "pauses": 23,
+    "sentencesSpoken": 40
+  },
+  "diagnostics": {
+    "sttSupported": true,
+    "ttsSupported": true,
+    "micAvailable": true,
+    "groqKeyAvailable": true,
+    "secureContext": true,
+    "micPermission": "granted",
+    "recognitionSupported": true,
+    "ttsAvailable": true,
+    "micStreamActive": true,
+    "recognitionActive": false,
+    "transcriptReceived": false,
+    "responseReceived": true,
+    "ttsRequested": true,
+    "audioGenerated": true,
+    "audioPlaying": false,
+    "ttsStage": "ended",
+    "streaming": false,
+    "staleStreamsDropped": 0,
+    "firstTextLatencyMs": 1395,
+    "firstAudioLatencyMs": 2819,
+    "ttsQueueDepth": 0,
+    "firstAudibleLatencyMs": 2844,
+    "audioContextState": "unknown",
+    "speakerDevices": 3,
+    "warmSynthesis": {
+      "ms": 1555,
+      "characters": null,
+      "at": 1795193029046,
+      "streaming": "warm-wav",
+      "modelLoads": 3,
+      "synthesisMs": 1213,
+      "profile": "warm",
+      "coldStart": false
+    },
+    "bargeIns": 9,
+    "fullDuplex": true
+  },
+  "turnLatency": {
+    "turnId": "14bf6f00-79f6-48b6-adef-729a7f777e84",
+    "transcriptAt": 1795193067491,
+    "firstTextAt": 1795193068886,
+    "firstAudioAt": 1795193070310,
+    "firstAudibleAt": 1795193070335
+  },
+  "turns": [
+    {
+      "index": 1,
+      "transcript": " What is the capital of Peru?",
+      "asrMs": 486,
+      "transcriptToFirstTtsMs": 3128,
+      "transcriptToFirstAudioMs": 3817,
+      "sentencesSpoken": 1,
+      "synthesisMs": 318,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 2,
+      "transcript": " Tell me one fact about the ocean.",
+      "asrMs": 478,
+      "transcriptToFirstTtsMs": 946,
+      "transcriptToFirstAudioMs": 1778,
+      "sentencesSpoken": 1,
+      "synthesisMs": 586,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 3,
+      "transcript": " What time complexity does binary search half?",
+      "asrMs": 439,
+      "transcriptToFirstTtsMs": 27,
+      "transcriptToFirstAudioMs": 1472,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1104,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 4,
+      "transcript": " To explain what an API is in one sentence.",
+      "asrMs": 462,
+      "transcriptToFirstTtsMs": 1489,
+      "transcriptToFirstAudioMs": 3136,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1535,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 5,
+      "transcript": " Name a planet with rings.",
+      "asrMs": 495,
+      "transcriptToFirstTtsMs": 1529,
+      "transcriptToFirstAudioMs": 2854,
+      "sentencesSpoken": 1,
+      "synthesisMs": 726,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 6,
+      "transcript": " What is 2 plus 2?",
+      "asrMs": 455,
+      "transcriptToFirstTtsMs": 1481,
+      "transcriptToFirstAudioMs": 2169,
+      "sentencesSpoken": 1,
+      "synthesisMs": 390,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 7,
+      "transcript": " Give me a short tip for better sleep.",
+      "asrMs": 475,
+      "transcriptToFirstTtsMs": 1000,
+      "transcriptToFirstAudioMs": 2621,
+      "sentencesSpoken": 2,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 8,
+      "transcript": " Does HTTP stand for?",
+      "asrMs": 492,
+      "transcriptToFirstTtsMs": 1865,
+      "transcriptToFirstAudioMs": 2516,
+      "sentencesSpoken": 1,
+      "synthesisMs": 317,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 9,
+      "transcript": " Who wrote Pride and Prejudice?",
+      "asrMs": 463,
+      "transcriptToFirstTtsMs": 1386,
+      "transcriptToFirstAudioMs": 1971,
+      "sentencesSpoken": 1,
+      "synthesisMs": 239,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 10,
+      "transcript": " How many sides does a hexagon half?",
+      "asrMs": 440,
+      "transcriptToFirstTtsMs": 1516,
+      "transcriptToFirstAudioMs": 2480,
+      "sentencesSpoken": 1,
+      "synthesisMs": 848,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 11,
+      "transcript": " Boiling point of water in Celsius.",
+      "asrMs": 474,
+      "transcriptToFirstTtsMs": 2783,
+      "transcriptToFirstAudioMs": 3664,
+      "sentencesSpoken": 1,
+      "synthesisMs": 761,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 12,
+      "transcript": " a name for a pet cat.",
+      "asrMs": 468,
+      "transcriptToFirstTtsMs": 999,
+      "transcriptToFirstAudioMs": 1932,
+      "sentencesSpoken": 2,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 2
+    },
+    {
+      "index": 13,
+      "transcript": " Machine learning in simple terms.",
+      "asrMs": 871,
+      "transcriptToFirstTtsMs": 2628,
+      "transcriptToFirstAudioMs": 3566,
+      "sentencesSpoken": 10,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 14,
+      "transcript": " Tell me a very short joke.",
+      "asrMs": 454,
+      "transcriptToFirstTtsMs": 979,
+      "transcriptToFirstAudioMs": 0,
+      "sentencesSpoken": 2,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 2
+    },
+    {
+      "index": 15,
+      "transcript": " What is the largest desert on Earth?",
+      "asrMs": 961,
+      "transcriptToFirstTtsMs": 1486,
+      "transcriptToFirstAudioMs": 2454,
+      "sentencesSpoken": 2,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 16,
+      "transcript": " How do you say hello in Japanese?",
+      "asrMs": 541,
+      "transcriptToFirstTtsMs": 6400,
+      "transcriptToFirstAudioMs": 7786,
+      "sentencesSpoken": 1,
+      "synthesisMs": 947,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 17,
+      "transcript": " What is the speed of light roughly?",
+      "asrMs": 467,
+      "transcriptToFirstTtsMs": 1415,
+      "transcriptToFirstAudioMs": 2970,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1159,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 18,
+      "transcript": " Recommend one fruit for breakfast.",
+      "asrMs": 450,
+      "transcriptToFirstTtsMs": null,
+      "transcriptToFirstAudioMs": null,
+      "sentencesSpoken": 0,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 19,
+      "transcript": " That is all for now.",
+      "asrMs": 452,
+      "transcriptToFirstTtsMs": null,
+      "transcriptToFirstAudioMs": null,
+      "sentencesSpoken": 0,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 20,
+      "transcript": " Hello Lélu, are you listening?",
+      "asrMs": 488,
+      "transcriptToFirstTtsMs": 1467,
+      "transcriptToFirstAudioMs": 2315,
+      "sentencesSpoken": 2,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 2
+    },
+    {
+      "index": 21,
+      "transcript": " What is the capital of Peru?",
+      "asrMs": 463,
+      "transcriptToFirstTtsMs": 1435,
+      "transcriptToFirstAudioMs": 2136,
+      "sentencesSpoken": 1,
+      "synthesisMs": 337,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 22,
+      "transcript": " One fact about the ocean.",
+      "asrMs": 470,
+      "transcriptToFirstTtsMs": 938,
+      "transcriptToFirstAudioMs": 1781,
+      "sentencesSpoken": 1,
+      "synthesisMs": 698,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 23,
+      "transcript": " What time complexity does binary search half?",
+      "asrMs": 471,
+      "transcriptToFirstTtsMs": 29,
+      "transcriptToFirstAudioMs": 1735,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1391,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 24,
+      "transcript": " Can you explain what an API is in one sentence?",
+      "asrMs": 427,
+      "transcriptToFirstTtsMs": 1324,
+      "transcriptToFirstAudioMs": 2956,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1352,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 25,
+      "transcript": " Name a planet with rings.",
+      "asrMs": 474,
+      "transcriptToFirstTtsMs": 1845,
+      "transcriptToFirstAudioMs": 2374,
+      "sentencesSpoken": 1,
+      "synthesisMs": 73,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 1
+    },
+    {
+      "index": 26,
+      "transcript": " What is 2 plus 2?",
+      "asrMs": 470,
+      "transcriptToFirstTtsMs": 2398,
+      "transcriptToFirstAudioMs": 4117,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1333,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 27,
+      "transcript": " Give me a short tip for better sleep.",
+      "asrMs": 452,
+      "transcriptToFirstTtsMs": 1008,
+      "transcriptToFirstAudioMs": 2580,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1213,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 28,
+      "transcript": " Does HTTP stand for?",
+      "asrMs": 470,
+      "transcriptToFirstTtsMs": null,
+      "transcriptToFirstAudioMs": null,
+      "sentencesSpoken": 0,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 29,
+      "transcript": " Who wrote Pride and Prejudice.",
+      "asrMs": 431,
+      "transcriptToFirstTtsMs": null,
+      "transcriptToFirstAudioMs": null,
+      "sentencesSpoken": 0,
+      "synthesisMs": null,
+      "provider": null,
+      "pausedDuringTurn": 0
+    },
+    {
+      "index": 30,
+      "transcript": " How many sides does a hexagon half?",
+      "asrMs": 410,
+      "transcriptToFirstTtsMs": 1396,
+      "transcriptToFirstAudioMs": 2819,
+      "sentencesSpoken": 1,
+      "synthesisMs": 1028,
+      "provider": "local-piper:amy-low",
+      "pausedDuringTurn": 0
+    }
+  ],
+  "media": [
+    {
+      "t": 1795192674217,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/748b8d01-d8e1-45f6-9283-21a21a39f"
+    },
+    {
+      "t": 1795192677566,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/748b8d01-d8e1-45f6-9283-21a21a39f"
+    },
+    {
+      "t": 1795192677566,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/748b8d01-d8e1-45f6-9283-21a21a39f"
+    },
+    {
+      "t": 1795192685453,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/4781d75d-564b-4d76-9498-942fccc76"
+    },
+    {
+      "t": 1795192693331,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/4781d75d-564b-4d76-9498-942fccc76"
+    },
+    {
+      "t": 1795192693331,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/4781d75d-564b-4d76-9498-942fccc76"
+    },
+    {
+      "t": 1795192698988,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/ba87300f-2154-49dd-96cd-3ea2f5056"
+    },
+    {
+      "t": 1795192715424,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/3fbcc085-4881-44a8-a593-9c5c522f2"
+    },
+    {
+      "t": 1795192728694,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/f67b53bb-04d3-432c-a10e-2fc019ea3"
+    },
+    {
+      "t": 1795192733357,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/f67b53bb-04d3-432c-a10e-2fc019ea3"
+    },
+    {
+      "t": 1795192733357,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/f67b53bb-04d3-432c-a10e-2fc019ea3"
+    },
+    {
+      "t": 1795192740729,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/a91f4173-0a99-4229-bca2-ab3a8b524"
+    },
+    {
+      "t": 1795192743569,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/a91f4173-0a99-4229-bca2-ab3a8b524"
+    },
+    {
+      "t": 1795192743569,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/a91f4173-0a99-4229-bca2-ab3a8b524"
+    },
+    {
+      "t": 1795192754912,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/e27030d2-4200-4b5a-892d-58dfefbf3"
+    },
+    {
+      "t": 1795192763822,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/e27030d2-4200-4b5a-892d-58dfefbf3"
+    },
+    {
+      "t": 1795192763823,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/3fc007cb-f6d0-4239-9db3-d8b693bb0"
+    },
+    {
+      "t": 1795192763823,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/e27030d2-4200-4b5a-892d-58dfefbf3"
+    },
+    {
+      "t": 1795192768712,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/c3e03927-c338-4900-b96b-fe49924f1"
+    },
+    {
+      "t": 1795192773243,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/c3e03927-c338-4900-b96b-fe49924f1"
+    },
+    {
+      "t": 1795192773243,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/c3e03927-c338-4900-b96b-fe49924f1"
+    },
+    {
+      "t": 1795192781582,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/83be9cb8-c13c-408f-8c91-179f67fcb"
+    },
+    {
+      "t": 1795192785713,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/83be9cb8-c13c-408f-8c91-179f67fcb"
+    },
+    {
+      "t": 1795192785713,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/83be9cb8-c13c-408f-8c91-179f67fcb"
+    },
+    {
+      "t": 1795192796046,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/830c7645-dddf-4d77-b8aa-866f31e72"
+    },
+    {
+      "t": 1795192802612,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/830c7645-dddf-4d77-b8aa-866f31e72"
+    },
+    {
+      "t": 1795192802613,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/830c7645-dddf-4d77-b8aa-866f31e72"
+    },
+    {
+      "t": 1795192811469,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/c9c2eaac-796c-458e-8765-4276d2884"
+    },
+    {
+      "t": 1795192818203,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/c9c2eaac-796c-458e-8765-4276d2884"
+    },
+    {
+      "t": 1795192818203,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/c9c2eaac-796c-458e-8765-4276d2884"
+    },
+    {
+      "t": 1795192823373,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/a1c62ee9-eaa7-4d4b-9f96-7da2c2358"
+    },
+    {
+      "t": 1795192825318,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/a1c62ee9-eaa7-4d4b-9f96-7da2c2358"
+    },
+    {
+      "t": 1795192825319,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/282e6b2d-0092-4d54-9310-3fa8f942a"
+    },
+    {
+      "t": 1795192825319,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/a1c62ee9-eaa7-4d4b-9f96-7da2c2358"
+    },
+    {
+      "t": 1795192831476,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/282e6b2d-0092-4d54-9310-3fa8f942a"
+    },
+    {
+      "t": 1795192831476,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/282e6b2d-0092-4d54-9310-3fa8f942a"
+    },
+    {
+      "t": 1795192839492,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/36becbd5-3150-45a2-90e8-d970bd5ed"
+    },
+    {
+      "t": 1795192847399,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/36becbd5-3150-45a2-90e8-d970bd5ed"
+    },
+    {
+      "t": 1795192847399,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/0d49ab89-fa83-45a4-a49f-d2f50747d"
+    },
+    {
+      "t": 1795192847399,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/36becbd5-3150-45a2-90e8-d970bd5ed"
+    },
+    {
+      "t": 1795192848784,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/0d49ab89-fa83-45a4-a49f-d2f50747d"
+    },
+    {
+      "t": 1795192848785,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/8b623488-0435-43ba-8150-c325af8ea"
+    },
+    {
+      "t": 1795192848785,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/0d49ab89-fa83-45a4-a49f-d2f50747d"
+    },
+    {
+      "t": 1795192850536,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/652468b1-9d14-4cbe-af8b-1bb9a6737"
+    },
+    {
+      "t": 1795192853846,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/652468b1-9d14-4cbe-af8b-1bb9a6737"
+    },
+    {
+      "t": 1795192853847,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/205e2671-0a83-476c-9a37-09be61302"
+    },
+    {
+      "t": 1795192853847,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/652468b1-9d14-4cbe-af8b-1bb9a6737"
+    },
+    {
+      "t": 1795192856637,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/205e2671-0a83-476c-9a37-09be61302"
+    },
+    {
+      "t": 1795192856638,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/205e2671-0a83-476c-9a37-09be61302"
+    },
+    {
+      "t": 1795192865162,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/c2f2abd4-5559-4411-afaf-be12efc14"
+    },
+    {
+      "t": 1795192870065,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/c2f2abd4-5559-4411-afaf-be12efc14"
+    },
+    {
+      "t": 1795192870066,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/29a105b2-19b5-4798-9f29-2b82b454e"
+    },
+    {
+      "t": 1795192870066,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/c2f2abd4-5559-4411-afaf-be12efc14"
+    },
+    {
+      "t": 1795192884036,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/89be4ff9-0a36-49e7-bb4d-1f890f1d3"
+    },
+    {
+      "t": 1795192892258,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/d7f8b5dd-817b-4136-98bb-28eab65bd"
+    },
+    {
+      "t": 1795192902653,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/d7f8b5dd-817b-4136-98bb-28eab65bd"
+    },
+    {
+      "t": 1795192902653,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/d7f8b5dd-817b-4136-98bb-28eab65bd"
+    },
+    {
+      "t": 1795192933198,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/204910f3-bc1a-4c13-9927-be9aa84d6"
+    },
+    {
+      "t": 1795192935573,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/204910f3-bc1a-4c13-9927-be9aa84d6"
+    },
+    {
+      "t": 1795192935573,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/057aeb88-fdb2-4d6a-9546-91ce8287b"
+    },
+    {
+      "t": 1795192935573,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/204910f3-bc1a-4c13-9927-be9aa84d6"
+    },
+    {
+      "t": 1795192937841,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/057aeb88-fdb2-4d6a-9546-91ce8287b"
+    },
+    {
+      "t": 1795192937841,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/057aeb88-fdb2-4d6a-9546-91ce8287b"
+    },
+    {
+      "t": 1795192946040,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/8db1ef48-fc0a-4787-ac38-579b3709e"
+    },
+    {
+      "t": 1795192949207,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/8db1ef48-fc0a-4787-ac38-579b3709e"
+    },
+    {
+      "t": 1795192949207,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/8db1ef48-fc0a-4787-ac38-579b3709e"
+    },
+    {
+      "t": 1795192959506,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/20a607f9-f442-47a9-8377-c5229de21"
+    },
+    {
+      "t": 1795192966187,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/20a607f9-f442-47a9-8377-c5229de21"
+    },
+    {
+      "t": 1795192966187,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/20a607f9-f442-47a9-8377-c5229de21"
+    },
+    {
+      "t": 1795192973429,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/946d9073-a165-4554-82f6-42356b83c"
+    },
+    {
+      "t": 1795192989280,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/aae4ac2e-4dba-4098-b26b-3753a16ae"
+    },
+    {
+      "t": 1795193002045,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/5f0db318-52bf-4e01-be0c-5874a2dc0"
+    },
+    {
+      "t": 1795193004273,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/5f0db318-52bf-4e01-be0c-5874a2dc0"
+    },
+    {
+      "t": 1795193004273,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/5f0db318-52bf-4e01-be0c-5874a2dc0"
+    },
+    {
+      "t": 1795193016599,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/d2c0154f-caea-4616-ada8-e65837644"
+    },
+    {
+      "t": 1795193029063,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/16290af1-f7fa-4233-b598-c30b40ff3"
+    },
+    {
+      "t": 1795193040442,
+      "event": "pause",
+      "src": "blob:http://127.0.0.1:4180/16290af1-f7fa-4233-b598-c30b40ff3"
+    },
+    {
+      "t": 1795193040442,
+      "event": "ended",
+      "src": "blob:http://127.0.0.1:4180/16290af1-f7fa-4233-b598-c30b40ff3"
+    },
+    {
+      "t": 1795193070310,
+      "event": "play",
+      "src": "blob:http://127.0.0.1:4180/86b7607b-bdef-43bb-9464-c2a817e35"
+    }
+  ],
+  "timeline": [
+    {
+      "t": 1795192632567,
+      "kind": "harness",
+      "text": "run started; simulated microphone /workspace/chats/a194f0c9c3c58bfdf5946c17/.piper/fake-mic-paced.wav; target 30 turns"
+    },
+    {
+      "t": 1795192650720,
+      "kind": "harness",
+      "text": "voice session started"
+    },
+    {
+      "t": 1795192670948,
+      "kind": "turn",
+      "text": "transcript 1"
+    },
+    {
+      "t": 1795192684165,
+      "kind": "turn",
+      "text": "transcript 2"
+    },
+    {
+      "t": 1795192698973,
+      "kind": "turn",
+      "text": "transcript 3"
+    },
+    {
+      "t": 1795192713282,
+      "kind": "turn",
+      "text": "transcript 4"
+    },
+    {
+      "t": 1795192726343,
+      "kind": "turn",
+      "text": "transcript 5"
+    },
+    {
+      "t": 1795192739552,
+      "kind": "turn",
+      "text": "transcript 6"
+    },
+    {
+      "t": 1795192753324,
+      "kind": "turn",
+      "text": "transcript 7"
+    },
+    {
+      "t": 1795192767144,
+      "kind": "turn",
+      "text": "transcript 8"
+    },
+    {
+      "t": 1795192781578,
+      "kind": "turn",
+      "text": "transcript 9"
+    },
+    {
+      "t": 1795192794550,
+      "kind": "turn",
+      "text": "transcript 10"
+    },
+    {
+      "t": 1795192808283,
+      "kind": "turn",
+      "text": "transcript 11"
+    },
+    {
+      "t": 1795192822494,
+      "kind": "turn",
+      "text": "transcript 12"
+    },
+    {
+      "t": 1795192837230,
+      "kind": "turn",
+      "text": "transcript 13"
+    },
+    {
+      "t": 1795192850535,
+      "kind": "turn",
+      "text": "transcript 14"
+    },
+    {
+      "t": 1795192863239,
+      "kind": "turn",
+      "text": "transcript 15"
+    },
+    {
+      "t": 1795192877725,
+      "kind": "turn",
+      "text": "transcript 16"
+    },
+    {
+      "t": 1795192890705,
+      "kind": "turn",
+      "text": "transcript 17"
+    },
+    {
+      "t": 1795192904925,
+      "kind": "turn",
+      "text": "transcript 18"
+    },
+    {
+      "t": 1795192917638,
+      "kind": "turn",
+      "text": "transcript 19"
+    },
+    {
+      "t": 1795192931887,
+      "kind": "turn",
+      "text": "transcript 20"
+    },
+    {
+      "t": 1795192944874,
+      "kind": "turn",
+      "text": "transcript 21"
+    },
+    {
+      "t": 1795192959506,
+      "kind": "turn",
+      "text": "transcript 22"
+    },
+    {
+      "t": 1795192972735,
+      "kind": "turn",
+      "text": "transcript 23"
+    },
+    {
+      "t": 1795192987213,
+      "kind": "turn",
+      "text": "transcript 24"
+    },
+    {
+      "t": 1795193000152,
+      "kind": "turn",
+      "text": "transcript 25"
+    },
+    {
+      "t": 1795193012960,
+      "kind": "turn",
+      "text": "transcript 26"
+    },
+    {
+      "t": 1795193028366,
+      "kind": "turn",
+      "text": "transcript 27"
+    },
+    {
+      "t": 1795193040935,
+      "kind": "turn",
+      "text": "transcript 28"
+    },
+    {
+      "t": 1795193054968,
+      "kind": "turn",
+      "text": "transcript 29"
+    },
+    {
+      "t": 1795193069767,
+      "kind": "turn",
+      "text": "transcript 30"
+    },
+    {
+      "t": 1795193073284,
+      "kind": "harness",
+      "text": "voice session ended"
+    }
+  ],
+  "console": [
+    {
+      "t": 1795192659893,
+      "level": "info",
+      "text": "[VoiceEngine] Browser recognizer heard speech but returned nothing — switching to Whisper."
+    },
+    {
+      "t": 1795192669915,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":8829,\"spoke\":true,\"ms\":10008,\"peak\":0.2779,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192683198,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12330,\"spoke\":true,\"ms\":12788,\"peak\":0.3389,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192697077,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13113,\"spoke\":true,\"ms\":13398,\"peak\":0.2884,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192707770,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10249,\"peak\":0.03,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192711825,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3709,\"spoke\":true,\"ms\":4051,\"peak\":0.2652,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192724881,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12577,\"peak\":0.3512,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192738105,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11442,\"spoke\":true,\"ms\":12243,\"peak\":0.2816,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192751816,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13061,\"spoke\":true,\"ms\":13252,\"peak\":0.4167,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192762484,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10185,\"peak\":0.2162,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192765705,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3187,\"spoke\":true,\"ms\":3217,\"peak\":0.2025,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192779149,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12382,\"spoke\":true,\"ms\":12507,\"peak\":0.3473,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192793091,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12852,\"spoke\":true,\"ms\":13475,\"peak\":0.262,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192804007,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10431,\"peak\":0.0246,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192807330,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2978,\"spoke\":true,\"ms\":3322,\"peak\":0.26,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192818208,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10401,\"peak\":0.1714,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192820973,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2508,\"spoke\":true,\"ms\":2761,\"peak\":0.2406,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192831914,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10467,\"peak\":0.3469,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192835056,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":3139,\"peak\":0.168,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192848332,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12403,\"peak\":0.2767,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192861727,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12748,\"spoke\":true,\"ms\":12935,\"peak\":0.292,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192875708,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12591,\"spoke\":true,\"ms\":12992,\"peak\":0.2867,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192888822,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12069,\"spoke\":true,\"ms\":12114,\"peak\":0.2583,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192899470,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10177,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795192902651,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2926,\"spoke\":true,\"ms\":3179,\"peak\":0.2655,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192913491,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10385,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795192916225,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2456,\"spoke\":true,\"ms\":2730,\"peak\":0.293,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192927096,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10416,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795192930378,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2717,\"spoke\":true,\"ms\":3268,\"peak\":0.2402,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192943440,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12090,\"peak\":0.2908,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192954306,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10395,\"peak\":0.0355,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192957255,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":2945,\"peak\":0.2627,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192971224,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13218,\"spoke\":true,\"ms\":13495,\"peak\":0.3304,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192981832,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10133,\"peak\":0.032,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795192985898,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3396,\"spoke\":true,\"ms\":4055,\"peak\":0.2738,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795192999187,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12225,\"spoke\":true,\"ms\":12850,\"peak\":0.3569,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795193012012,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11807,\"spoke\":true,\"ms\":12334,\"peak\":0.2922,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795193026032,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12904,\"spoke\":true,\"ms\":13539,\"peak\":0.4082,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795193036658,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10168,\"peak\":0.2595,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795193039975,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3187,\"spoke\":true,\"ms\":3315,\"peak\":0.1996,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795193050485,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10038,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795193053559,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2717,\"spoke\":true,\"ms\":3071,\"peak\":0.3511,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795193067064,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13061,\"spoke\":true,\"ms\":13069,\"peak\":0.2682,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795193073285,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5277,\"spoke\":false,\"ms\":5789,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":5016}"
+    }
+  ],
+  "runLabel": "m22.9-warm-paced"
+}

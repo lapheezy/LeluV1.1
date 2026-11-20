@@ -1,0 +1,36 @@
+{
+  "turnsMeasured": 30,
+  "durationSeconds": 443,
+  "latency": {
+    "asr": {
+      "count": 30,
+      "min": 410,
+      "median": 468,
+      "p90": 495,
+      "max": 961
+    },
+    "transcriptToFirstTts": {
+      "count": 26,
+      "min": 27,
+      "median": 1435,
+      "p90": 2628,
+      "max": 6400
+    },
+    "transcriptToFirstAudio": {
+      "count": 26,
+      "min": 0,
+      "median": 2480,
+      "p90": 3664,
+      "max": 7786
+    }
+  },
+  "playback": {
+    "plays": 33,
+    "ended": 23,
+    "pauses": 23,
+    "sentencesSpoken": 40
+  },
+  "staleStreamsDropped": 0,
+  "bargeIns": 9,
+  "firstAudioLatencyMs": 2819
+}

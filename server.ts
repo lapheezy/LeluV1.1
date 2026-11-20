@@ -26,6 +26,7 @@
 
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createVoiceApi } from "./plugins/voiceApi.ts";
+import { getPersistentPiper, shutdownPersistentPipers } from "./plugins/persistentPiper.ts";
 import { createLivekitApi } from "./plugins/livekitApi.ts";
 import { createVoxApi } from "./plugins/voxApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
@@ -596,6 +597,39 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
 
 // A preview backend outlives its parent unless it is stopped deliberately.
 server.on("close", stopAllStudioBackends);
+
+// WARM SPEECH AT BOOT (Mission 22.9, WP01).
+//
+// The voice model is 63 MB and took ~290 ms to load on every sentence in
+// M22.8. Loading it once, here, means the first sentence a visitor hears
+// is warm too. Failure is reported and not fatal: the route falls back to
+// the cold streaming path, which is still a working speaker.
+if (process.env.LELU_LOCAL_TTS_BIN && process.env.LELU_LOCAL_TTS_MODEL && process.env.LELU_PIPER_PERSISTENT !== "0") {
+  const bin = process.env.LELU_LOCAL_TTS_BIN;
+  const model = process.env.LELU_LOCAL_TTS_MODEL;
+  if (existsSync(bin) && existsSync(model)) {
+    const pool = getPersistentPiper({ bin, model });
+    void pool
+      .prewarm()
+      .then(() => {
+        const stats = pool.stats();
+        console.log(
+          `[LÉLU runtime] warm speech ready: ${stats.warmWorkers} worker(s), ${stats.modelLoads} model load(s), ` +
+            `${stats.workers.map((worker) => `${worker.profile}=${worker.medianSynthesisMs ?? "–"}ms`).join(" ")}`,
+        );
+        return undefined;
+      })
+      .catch((error: unknown) => {
+        console.warn("[LÉLU runtime] warm speech unavailable:", (error as Error).message);
+      });
+  }
+}
+
+// Never leave a 63 MB model resident after the runtime is gone.
+server.on("close", shutdownPersistentPipers);
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, () => shutdownPersistentPipers());
+}
 
 server.listen(PORT, HOST, () => {
   const aisState = aisKey ? "configured" : "not configured (AISSTREAM_API_KEY missing)";

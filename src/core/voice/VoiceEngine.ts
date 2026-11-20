@@ -18,8 +18,19 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
 import { resolveFirst } from "../resolveEnv";
-import { elevenLabsReady, forgetElevenLabsStatus, speakText, stopSpeaking, ttsQueueDepth } from "./elevenLabsTts";
+import {
+  audioContextState,
+  elevenLabsReady,
+  forgetElevenLabsStatus,
+  getLastSynthesis,
+  speakText,
+  stopSpeaking,
+  ttsQueueDepth,
+} from "./elevenLabsTts";
 import { toSpokenText } from "./spokenText";
+import { resolveSpeechDelivery } from "./speechDelivery";
+import { DEFAULT_SPEECH_PROFILE, type SpeechProfileId } from "./speechProfile";
+import LeluIdentity from "../identity/LeluIdentity";
 import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
@@ -273,6 +284,24 @@ export interface VoiceDiagnostics {
   firstAudioLatencyMs: number | null;
   /** Segments synthesised ahead of playback and still waiting. */
   ttsQueueDepth: number;
+  /** Transcript → sound the output device reported playing (M22.9). */
+  firstAudibleLatencyMs: number | null;
+  /** Whether an output context exists and in what state. */
+  audioContextState: "suspended" | "running" | "closed" | "unknown";
+  /** Output devices the browser enumerated; null means it was never asked. */
+  speakerDevices: number | null;
+  /**
+   * What the server's speech runtime reported for the last sentence — the
+   * warm worker's own numbers, read from its headers, never estimated here.
+   */
+  warmSynthesis: {
+    ms: number;
+    synthesisMs: number | null;
+    modelLoads: number | null;
+    streaming: string | null;
+    profile: string | null;
+    coldStart: boolean;
+  } | null;
   /** Times the user spoke over her and she stopped, this session. */
   bargeIns: number;
   /**
@@ -292,7 +321,14 @@ export interface TurnLatency {
   turnId: string;
   transcriptAt: number;
   firstTextAt: number | null;
+  /** Audio was handed to a player. */
   firstAudioAt: number | null;
+  /**
+   * The output device reported that sound was actually playing (M22.9).
+   * Separated from `firstAudioAt` because the two are not the same moment:
+   * a latency report that shows only the earlier one flatters the pipeline.
+   */
+  firstAudibleAt: number | null;
 }
 
 type StateListener = (state: VoiceState) => void;
@@ -466,6 +502,8 @@ class VoiceEngine {
   private turnLatency: TurnLatency | null = null;
   /** Total streamed deltas dropped as belonging to a superseded turn. */
   private staleStreamDrops = 0;
+  /** Output devices the browser reported; null until it has been asked. */
+  private speakerDevices: number | null = null;
   /** The turn that owns streamed speech right now (see beginStreamingSpeech). */
   private streamOwner: string | null = null;
 
@@ -915,6 +953,18 @@ class VoiceEngine {
         .catch(() => navigator.mediaDevices.getUserMedia({ audio: true }));
       this.mediaStream = stream;
       this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
+      // How many output devices this runtime can actually see. Zero before
+      // permission is granted is the browser hiding labels, not an absence of
+      // speakers, so this is only recorded once the mic is held. A VM with no
+      // audio hardware reports 0 — the honest answer for the hardware gate.
+      void navigator.mediaDevices
+        .enumerateDevices?.()
+        .then((devices) => {
+          this.speakerDevices = devices.filter((device) => device.kind === "audiooutput").length;
+          this.patchDiagnostics({ speakerDevices: this.speakerDevices });
+          return undefined;
+        })
+        .catch(() => undefined);
       this.updateState({
         ...this._state,
         active: true,
@@ -1742,6 +1792,34 @@ class VoiceEngine {
     });
   }
 
+  /**
+   * The output device says it is playing. Recorded separately from
+   * noteFirstAudio so the report can show both moments.
+   */
+  private noteAudible(): void {
+    const latency = this.turnLatency;
+    if (!latency || latency.firstAudibleAt !== null) return;
+    latency.firstAudibleAt = Date.now();
+    this.patchDiagnostics({ firstAudibleLatencyMs: latency.firstAudibleAt - latency.transcriptAt });
+  }
+
+  /**
+   * Which delivery this sentence gets, from the identity she has developed
+   * (speechDelivery.ts). A reply's words are decided upstream; this only
+   * decides pace, variation and the air after a sentence.
+   */
+  private deliveryFor(text: string): SpeechProfileId {
+    try {
+      const identity = LeluIdentity.getInstance().getState();
+      return resolveSpeechDelivery(text, {
+        traits: identity.traits,
+        communicationStyle: identity.communicationStyle,
+      }).profile;
+    } catch {
+      return DEFAULT_SPEECH_PROFILE;
+    }
+  }
+
   /** The last turn's measured responsiveness (transcript → text → audio). */
   getTurnLatency(): TurnLatency | null {
     return this.turnLatency;
@@ -1797,6 +1875,7 @@ class VoiceEngine {
       transcriptAt: this.lastTranscription?.at ?? Date.now(),
       firstTextAt: null,
       firstAudioAt: null,
+      firstAudibleAt: null,
     };
     this._turn = {
       id: turnId,
@@ -2022,6 +2101,7 @@ class VoiceEngine {
           this.noteFirstAudio();
           this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
         },
+        onAudible: () => this.noteAudible(),
         onEnd: () => next(),
         onFail: () => {
           // Her voice failed mid-reply: say the rest with the browser engine
@@ -2052,7 +2132,7 @@ class VoiceEngine {
           }
           next();
         },
-      });
+      }, this.deliveryFor(segment));
     };
     next();
   }
@@ -2372,7 +2452,11 @@ class VoiceEngine {
   private speakStreamSegment(segment: string): void {
     this.streamSegmentsPending += 1;
     this.chainActive = true;
-    void speakText(segment, { onStart: () => this.noteFirstAudio() }).finally(() => {
+    void speakText(
+      segment,
+      { onStart: () => this.noteFirstAudio(), onAudible: () => this.noteAudible() },
+      this.deliveryFor(segment),
+    ).finally(() => {
       this.streamSegmentsPending = Math.max(0, this.streamSegmentsPending - 1);
       if (this.streamSegmentsPending === 0) {
         this.chainActive = false;
@@ -2579,6 +2663,10 @@ class VoiceEngine {
       firstTextLatencyMs: null,
       firstAudioLatencyMs: null,
       ttsQueueDepth: ttsQueueDepth(),
+      firstAudibleLatencyMs: null,
+      audioContextState: audioContextState(),
+      speakerDevices: this.speakerDevices,
+      warmSynthesis: getLastSynthesis(),
       bargeIns: this.bargeIns,
       fullDuplex: this.whisperFallbackActive,
 

@@ -1,0 +1,52 @@
+## A. cold process per sentence (5 separate processes)
+/tmp/tmp.cWZN9jOUWr/cold-1.wav
+cold[1] 4995 ms  bytes=117548
+/tmp/tmp.cWZN9jOUWr/cold-2.wav
+cold[2] 541 ms  bytes=112428
+/tmp/tmp.cWZN9jOUWr/cold-3.wav
+cold[3] 511 ms  bytes=117036
+/tmp/tmp.cWZN9jOUWr/cold-4.wav
+cold[4] 522 ms  bytes=116012
+/tmp/tmp.cWZN9jOUWr/cold-5.wav
+cold[5] 630 ms  bytes=120620
+cold_total 7237 ms
+
+## B. one persistent --json-input process (5 sentences, WAV files)
+/tmp/tmp.cWZN9jOUWr/warm-1.wav
+/tmp/tmp.cWZN9jOUWr/warm-2.wav
+/tmp/tmp.cWZN9jOUWr/warm-3.wav
+/tmp/tmp.cWZN9jOUWr/warm-4.wav
+/tmp/tmp.cWZN9jOUWr/warm-5.wav
+warm_total_batch 1225 ms (includes process start + one model load)
+  warm[1] bytes=112940
+  warm[2] bytes=110892
+  warm[3] bytes=115500
+  warm[4] bytes=114476
+  warm[5] bytes=117548
+
+## C. one persistent --json-input process, raw PCM to stdout
+raw_concat_bytes=10
+
+## D. per-sentence WAV (same model, separate cold processes) for comparison
+/tmp/tmp.cWZN9jOUWr/single-1.wav
+single[1] pcm_bytes=66816
+/tmp/tmp.cWZN9jOUWr/single-2.wav
+single[2] pcm_bytes=79104
+/tmp/tmp.cWZN9jOUWr/single-3.wav
+single[3] pcm_bytes=71424
+/tmp/tmp.cWZN9jOUWr/single-4.wav
+single[4] pcm_bytes=75520
+/tmp/tmp.cWZN9jOUWr/single-5.wav
+single[5] pcm_bytes=78080
+sum_pcm_bytes=370944
+
+## E. WAV header of a warm request (is the data size patched at the end?)
+riff_size_field=112932
+data_size_field=112896
+file_size=112940
+
+## F. model load cost alone (first request in a warm process vs the rest)
+/tmp/tmp.cWZN9jOUWr/first.wav
+/tmp/tmp.cWZN9jOUWr/second.wav
+/tmp/tmp.cWZN9jOUWr/third.wav
+three_in_one_process_total 522 ms
