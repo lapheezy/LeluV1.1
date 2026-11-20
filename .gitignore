@@ -108,3 +108,7 @@ __pycache__/
 
 # Runtime state (spend authorizations + audit: plugins/spendPolicy.ts)
 .lelu-state/
+
+# M22.7 local runtime (downloaded runtimes, ~500 MB)
+.browser-libs/
+.piper/
