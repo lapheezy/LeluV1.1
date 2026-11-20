@@ -4,7 +4,7 @@
 **Classification:** P0 data integrity / memory governance.
 **Parent mission:** M22.5 historical memory residue.
 **Implementation baseline:** `42a3606` (M22.5 implementation), start commit `12d2407`.
-**Working branch:** `m22.6/memory-integrity-deletion-propagation`.
+**Working branch:** `m22.6/memory-integrity-deletion-propagation` (`3882c41…`).
 **Canonical branch at start:** `main` = `44bdd936892bc989b6b59fd5ecfb9502747e6a58`.
 No merge, no pull request, no canonical push was performed.
 

@@ -1,0 +1,36 @@
+M22.6 — COMMIT AND REMOTE VERIFICATION
+
+Starting point
+  start commit ............ 12d2407  "Record M22.5 mission commit hashes"
+  M22.5 implementation .... 42a3606  "Leave proof of a deletion, then clean what still quotes it"
+  M22.5 evidence commit ... 12d2407
+  canonical branch ........ main = 44bdd936892bc989b6b59fd5ecfb9502747e6a58
+  integration branch ...... integration/m16-3-wp05-reconciliation = 543da7c8...
+                            (does NOT contain M22.4/M22.5 — divergent history)
+
+Isolated branch
+  branch .................. m22.6/memory-integrity-deletion-propagation
+  created at .............. 12d2407
+
+M22.6 implementation commit
+  3882c41affd8f962b3ebbb6c06b5d39d127733ec
+  "Make forgetting automatic and stop every read path from serving a deleted memory"
+  files: 14 modified, 5 added (DeletionGuard, MemoryHealing, memory-integrity tests,
+  MISSION-22.6 evidence, docs/missions report)
+
+Remote verification (git ls-remote --heads origin, after push)
+  local  HEAD ............. 3882c41affd8f962b3ebbb6c06b5d39d127733ec
+  remote refs/heads/m22.6/memory-integrity-deletion-propagation
+                           3882c41affd8f962b3ebbb6c06b5d39d127733ec
+  result .................. MATCH
+
+Untouched, verified at the same time
+  refs/heads/freebuff/m22-5-historical-memory-residue
+                          12d24071bc318b2153ad64e6d49bb218b39c2713 (unchanged)
+  refs/heads/main          44bdd936892bc989b6b59fd5ecfb9502747e6a58 (unchanged)
+
+No merge, no pull request, no force push, no history rewrite, no canonical write.
+
+This file is updated by the hash-record commit that follows the implementation
+commit, so the commit that contains this text is the hash-record commit listed by
+`git log --oneline -2` on the branch.
