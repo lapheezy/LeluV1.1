@@ -32,6 +32,12 @@ import { resolveSpeechDelivery } from "./speechDelivery";
 import { DEFAULT_SPEECH_PROFILE, type SpeechProfileId } from "./speechProfile";
 import LeluIdentity from "../identity/LeluIdentity";
 import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
+import {
+  holdingLineFor,
+  outcomeForFailure,
+  summarizeOutcomes,
+  type TurnSpeechOutcome,
+} from "./speechOutcome";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
 
@@ -116,11 +122,53 @@ const ECHO_MIN_TOKEN_OVERLAP = 0.7;
  * match, substring in either direction, or high word-token overlap —
  * so it's testable without a live audio pipeline.
  */
+/**
+ * Words a person uses to interrupt a talker.
+ *
+ * These are never her own voice coming back. The blanket "three characters or
+ * fewer is a fragment" rule below is right about trailing TTS audio and wrong
+ * about "no": measured in M23.0, it swallowed 37.5% of short interruptions
+ * (MISSION-23.0/logs/echo-guard-matrix.json). A person saying "no" over her
+ * must be heard, whatever she happens to be saying.
+ */
+const INTERRUPT_WORDS = new Set([
+  "no",
+  "nope",
+  "stop",
+  "wait",
+  "hey",
+  "hold",
+  "hush",
+  "quiet",
+  "shush",
+  "enough",
+  "listen",
+  "wrong",
+  "oi",
+]);
+
+/**
+ * A question is the person talking. She is answering, not interrogating
+ * herself, and a real correction very often begins with her own words
+ * ("is an API a contract or a protocol?" straight after she said almost that),
+ * which the token-overlap test alone would discard as echo.
+ */
+const INTERROGATIVE_START = /^(what|why|how|when|where|who|whom|which|whose|can|could|should|would|will|do|does|did|is|are|was|were|am|have|has|may|might)\b/;
+
 export function isEchoUtterance(candidate: string, spoken: string): boolean {
   const a = candidate.trim().toLowerCase();
   const b = spoken.trim().toLowerCase();
   if (!a || !b) return false;
   if (a === b) return true;
+
+  const bare = a.replace(/[^\p{L}\p{N} ]/gu, "").trim();
+  const words = bare.split(/\s+/).filter(Boolean);
+
+  // An interruption is not an echo, however short it is.
+  if (words.length > 0 && words.length <= 4 && INTERRUPT_WORDS.has(words[0]!)) return false;
+
+  // A question addressed to her is a turn.
+  if (INTERROGATIVE_START.test(bare) && a.includes("?")) return false;
 
   // Tiny fragments ("the", "um") are near-useless as genuine barge-in
   // and very commonly a recognizer's mis-hearing of trailing TTS audio.
@@ -310,6 +358,24 @@ export interface VoiceDiagnostics {
    * separate and stays blocked until a real microphone is used.
    */
   fullDuplex: boolean;
+  /**
+   * Why each turn did or did not end in speech (M23.0).
+   *
+   * `unexplained` is the number that must stay at zero. M22.9 had four turns
+   * with no speech and no reason recorded anywhere, which is why they could
+   * not be classified after the fact. A turn that ends with no reason at all
+   * is now itself the defect signal.
+   */
+  speechOutcome: {
+    started: number;
+    recorded: number;
+    unexplained: number;
+    spoken: number;
+    silent: number;
+    noticeSpoken: number;
+    last: TurnSpeechOutcome | null;
+    byOutcome: Partial<Record<TurnSpeechOutcome, number>>;
+  };
 }
 
 /**
@@ -317,6 +383,21 @@ export interface VoiceDiagnostics {
  * measured) instead of guessed. All times are milliseconds since the
  * transcript that started the turn.
  */
+/**
+ * One turn in the session ledger: what was heard, and why it did or did not
+ * end in speech. A record whose `outcome` is still null when the session ends
+ * is an UNEXPLAINED silence — the M22.9 defect, made visible.
+ */
+export interface TurnOutcomeRecord {
+  /** 1-based position in this session's ledger. */
+  index: number;
+  turnId: string;
+  /** What the mic delivered (truncated; the conversation holds the full text). */
+  text: string;
+  at: number;
+  outcome: TurnSpeechOutcome | null;
+}
+
 export interface TurnLatency {
   turnId: string;
   transcriptAt: number;
@@ -496,6 +577,23 @@ class VoiceEngine {
    * Capability is recomputed; what actually happened is preserved here.
    */
   private live: Partial<VoiceDiagnostics> = {};
+  // The turn ledger is declared BEFORE the first diagnostics object is
+  // computed: computeDiagnostics() reads it, and a field initialised later
+  // would be undefined at that moment.
+  /** Per-turn speech reasons, bounded so a long session cannot grow forever. */
+  private turnOutcomes = new Map<string, TurnSpeechOutcome>();
+  /** The readable per-turn ledger (see TurnOutcomeRecord), bounded at 400. */
+  private turnLog: TurnOutcomeRecord[] = [];
+  /** Turns that reached the speech layer this session (including suppressed ones). */
+  private turnsStarted = 0;
+  /** Holding lines spoken INSTEAD of silence, this session. */
+  private noticeSpoken = 0;
+  private lastNoticeAt = 0;
+  private lastOutcome: TurnSpeechOutcome | null = null;
+  /** True while a holding line is being spoken, so it is not counted as her answer. */
+  private speakingNotice = false;
+  /** At most one holding line per window: a failing provider must not babble. */
+  private static readonly NOTICE_COOLDOWN_MS = 15_000;
   private _diagnostics: VoiceDiagnostics = this.computeDiagnostics();
 
   /** The turn whose latency is being measured (see TurnLatency). */
@@ -915,6 +1013,7 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   private async start(): Promise<void> {
+    this.resetSpeechOutcomes();
     // Learn now whether the server holds her voice, so the first reply
     // rarely has to wait for the answer.
     void this.probeElevenLabs();
@@ -1835,6 +1934,115 @@ class VoiceEngine {
   }
 
   /* ---------------------------------------------------------
+   * Speech outcomes — every turn says how it ended
+   * --------------------------------------------------------- */
+
+  /** A turn (or a suppressed utterance) is beginning: it must end with a reason. */
+  private noteTurnStarted(turnId: string, text: string): void {
+    // Deliberately records NO reason: a turn still without one when the
+    // session ends is exactly what "unexplained" must count.
+    this.turnsStarted += 1;
+    this.turnLog.push({ index: this.turnsStarted, turnId, text: text.slice(0, 200), at: Date.now(), outcome: null });
+    if (this.turnLog.length > 400) this.turnLog.splice(0, this.turnLog.length - 400);
+  }
+
+  /** The session's turn ledger, newest last — read by the diagnostic surface. */
+  getTurnLog(): TurnOutcomeRecord[] {
+    return this.turnLog.map((entry) => ({ ...entry }));
+  }
+
+  /** A new session starts a new ledger; stop() keeps it for the report. */
+  private resetSpeechOutcomes(): void {
+    this.turnOutcomes.clear();
+    this.turnLog = [];
+    this.turnsStarted = 0;
+    this.noticeSpoken = 0;
+    this.lastNoticeAt = 0;
+    this.lastOutcome = null;
+  }
+
+  /**
+   * Record why a turn did or did not speak.
+   *
+   * Overwrites freely EXCEPT for "superseded": supersession explains a turn
+   * that had no other reason. A turn that already spoke, or already failed
+   * for a specific cause, keeps the more specific answer.
+   */
+  private recordTurnOutcome(turnId: string | null, outcome: TurnSpeechOutcome): void {
+    this.lastOutcome = outcome;
+    if (turnId) {
+      const existing = this.turnOutcomes.get(turnId);
+      if (!(existing && outcome === "superseded")) {
+        this.turnOutcomes.set(turnId, outcome);
+        for (let index = this.turnLog.length - 1; index >= 0; index -= 1) {
+          if (this.turnLog[index]!.turnId === turnId) {
+            this.turnLog[index] = { ...this.turnLog[index]!, outcome };
+            break;
+          }
+        }
+      }
+      if (this.turnOutcomes.size > 400) {
+        const oldest = this.turnOutcomes.keys().next();
+        if (!oldest.done) this.turnOutcomes.delete(oldest.value);
+      }
+    }
+    this.patchDiagnostics({ speechOutcome: this.speechOutcomeSummary() });
+  }
+
+  private speechOutcomeSummary(): VoiceDiagnostics["speechOutcome"] {
+    return summarizeOutcomes(this.turnOutcomes.values(), this.turnsStarted, this.noticeSpoken, this.lastOutcome);
+  }
+
+  /** Record an utterance the mic delivered but that is not a user turn. */
+  private recordSuppressedUtterance(outcome: TurnSpeechOutcome, text: string): void {
+    const id = crypto.randomUUID();
+    this.noteTurnStarted(id, text);
+    this.recordTurnOutcome(id, outcome);
+  }
+
+  /**
+   * Say a short line instead of nothing.
+   *
+   * Mission 10.3 was right that a provider's error text must never be read
+   * aloud as if it were her answer. It did not follow that the person should
+   * hear silence: four M22.9 turns ended that way, with no error, no failed
+   * request and no trace. This speaks a FIXED notice — never the error text —
+   * at most once per cooldown so a failing provider does not make her babble.
+   */
+  private speakHoldingLine(outcome: TurnSpeechOutcome): void {
+    const line = holdingLineFor(outcome);
+    if (!line) return;
+    const now = Date.now();
+    if (now - this.lastNoticeAt < VoiceEngine.NOTICE_COOLDOWN_MS) return;
+    const spoken = toSpokenText(line);
+    if (!spoken) return;
+    if (typeof speechSynthesis === "undefined" && !this.elevenLabs) return;
+    this.lastNoticeAt = now;
+    this.noticeSpoken += 1;
+    this.cancelFlag = false;
+    this.lastSpokenText = spoken;
+    this.patchDiagnostics({ ttsRequested: true, ttsStage: "requested" });
+    this.updateState({ ...this._state, phase: this._state.active ? "speaking" : this._state.phase });
+    this.speakingNotice = true;
+    try {
+      if (this.elevenLabs) {
+        this.speakThroughElevenLabs(spoken);
+      } else {
+        speechSynthesis.speak(this.createUtterance(spoken));
+      }
+    } catch {
+      // A notice that cannot play leaves the written notice in the conversation.
+    } finally {
+      this.speakingNotice = false;
+    }
+    this.patchDiagnostics({ speechOutcome: this.speechOutcomeSummary() });
+  }
+
+  /* ---------------------------------------------------------
+   * (turn speech outcomes end)
+   * --------------------------------------------------------- */
+
+  /* ---------------------------------------------------------
    * User Speech Handling
    * --------------------------------------------------------- */
 
@@ -1845,6 +2053,10 @@ class VoiceEngine {
     // that gets sent back to the AI as if the user said it.
     if (this.lastSpokenText && isEchoUtterance(text, this.lastSpokenText)) {
       this.lastSpokenText = "";
+      // Counted, not merely discarded: a transcript the mic delivered and the
+      // echo guard rejected has to be explainable in the turn ledger, or it
+      // looks exactly like a turn that produced no speech for no reason.
+      this.recordSuppressedUtterance("echo-suppressed", text);
       return;
     }
 
@@ -1852,6 +2064,7 @@ class VoiceEngine {
     // (a restarted recognizer or a duplicated audio chunk re-delivering it).
     const normalized = text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").trim();
     if (this.lastUtterance && this.lastUtterance.text === normalized && Date.now() - this.lastUtterance.at < 4000) {
+      this.recordSuppressedUtterance("duplicate-suppressed", text);
       return;
     }
     this.lastUtterance = { text: normalized, at: Date.now() };
@@ -1864,10 +2077,14 @@ class VoiceEngine {
     // going to be discarded (the turnId check below); stopping it also
     // stops its model call and any further tool runs.
     if (this._turn && this._turn.response === null) {
+      // The abandoned turn gets its reason BEFORE it is replaced: this is the
+      // path that made two M22.9 turns vanish without a record.
+      this.recordTurnOutcome(this._turn.id, "superseded");
       this.cancelInFlightTurn("superseded by new speech");
     }
 
     const turnId = crypto.randomUUID();
+    this.noteTurnStarted(turnId, text);
     // The clock this turn's responsiveness is measured from: the moment the
     // transcriber finished, not the moment she started speaking.
     this.turnLatency = {
@@ -1960,9 +2177,14 @@ class VoiceEngine {
         // was spoken as the answer on 18 of 20 turns).
         const failure = failureFromResponse(response as { text?: string; provider?: string; metadata?: Record<string, unknown> });
         if (failure) {
-          // A failure notice is not spoken, and anything already spoken from
-          // a partial stream stops: the notice is shown, never read aloud.
+          // The notice text is never read aloud as her answer (Mission 10.3),
+          // and anything already spoken from a partial stream stops. But the
+          // turn no longer ends in silence: it ends with a recorded reason,
+          // and — when nothing was said at all — a short holding line.
           if (streamStarted) this.cancelSpeech();
+          const outcome = outcomeForFailure(failure.kind);
+          this.recordTurnOutcome(turnId, outcome);
+          if (!streamStarted) this.speakHoldingLine(outcome);
           this._turn = { ...this._turn, response: response.text, failure };
           this.emitTurn(this._turn);
           this.updateState({ ...this._state, phase: "listening", turnFailure: { ...failure, at: Date.now() } });
@@ -1975,11 +2197,17 @@ class VoiceEngine {
         // sentences behind the cursor were spoken, only the tail is left.
         if (streamStarted) this.finishStreamingSpeech(response.text, streamOwner);
         else this.speakResponse(response.text);
+      } else {
+        // A newer turn owns the conversation: this reply is dropped on purpose.
+        this.recordTurnOutcome(turnId, "superseded");
       }
     } catch (error) {
       console.error("[VoiceEngine] Chat failed:", error);
       if (this._turn?.id === turnId) {
         const failure = failureFromError(error);
+        const outcome = outcomeForFailure(failure.kind);
+        this.recordTurnOutcome(turnId, outcome);
+        this.speakHoldingLine(outcome);
         this._turn = { ...this._turn, response: failure.message, failure };
         this.emitTurn(this._turn);
         this.updateState({ ...this._state, phase: this._state.active ? "listening" : this._state.phase, turnFailure: { ...failure, at: Date.now() } });
@@ -2078,6 +2306,7 @@ class VoiceEngine {
       return;
     }
     this.patchDiagnostics({ ttsRequested: true });
+    if (!this.speakingNotice) this.recordTurnOutcome(this._turn?.id ?? null, "spoke");
     let index = 0;
     this.chainActive = true;
 
@@ -2104,6 +2333,7 @@ class VoiceEngine {
         onAudible: () => this.noteAudible(),
         onEnd: () => next(),
         onFail: () => {
+          this.recordTurnOutcome(this._turn?.id ?? null, "playback-failed");
           // Her voice failed mid-reply: say the rest with the browser engine
           // rather than leaving the reply unspoken, and report the failure.
           this.demoteFromElevenLabs();
@@ -2172,7 +2402,9 @@ class VoiceEngine {
 
     this.cancelSpeech();
     if (!text || !text.trim()) {
+      this.recordTurnOutcome(this._turn?.id ?? null, "empty-reply");
       this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
+      this.speakHoldingLine("empty-reply");
       this.updateState({ ...this._state, phase: "listening" });
       return;
     }
@@ -2183,6 +2415,7 @@ class VoiceEngine {
     if (!spoken) {
       // Nothing pronounceable at all (a reply that was only an emoji or only
       // a code block): no provider is asked to synthesise silence.
+      this.recordTurnOutcome(this._turn?.id ?? null, "unpronounceable");
       this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
       this.updateState({ ...this._state, phase: "listening" });
       return;
@@ -2450,6 +2683,7 @@ class VoiceEngine {
    * and every streamed answer actually takes.
    */
   private speakStreamSegment(segment: string): void {
+    this.recordTurnOutcome(this._turn?.id ?? null, "spoke");
     this.streamSegmentsPending += 1;
     this.chainActive = true;
     void speakText(
@@ -2669,6 +2903,7 @@ class VoiceEngine {
       warmSynthesis: getLastSynthesis(),
       bargeIns: this.bargeIns,
       fullDuplex: this.whisperFallbackActive,
+      speechOutcome: this.speechOutcomeSummary(),
 
       // What actually happened outranks the defaults above: capability is
       // recomputed on every poll, the pipeline's own facts are preserved.
