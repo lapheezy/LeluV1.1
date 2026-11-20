@@ -17,8 +17,8 @@ afcfd8c7…  refs/heads/m22.6/voice-runtime-release-qualification
 
 | Ref | Remote hash | Meaning |
 | --- | --- | --- |
-| `m22.9/persistent-voice-runtime` | **`8c2d4af6fb33bbd8b606828de9bce1441d8fd201`** | the branch head (this document's commit) |
-| local `HEAD` | `8c2d4af6fb33bbd8b606828de9bce1441d8fd201` | **identical to the remote** |
+| `m22.9/persistent-voice-runtime` | **`607a677b1938b46c60421df429641c3912e3964c`** | the implementation commit; evidence-only commits follow it |
+| local `HEAD` | matches the remote ref every time it was checked | **identical to the remote** |
 | `m22.8/real-time-conversational-intelligence` | `43db0a06c3c9c587aab9606e4cb328671548c805` | unchanged — the baseline is still exactly where the mission found it |
 | `m22.7/live-voice-qualification` | `8fe502382fb9911629860bda08d90dcff0be7fdc` | unchanged — M22.7 still recoverable |
 | **canonical** `integration/m16-3-wp05-reconciliation` | `543da7c8d7876258869d928648cffa913cd10649` | **untouched** |
@@ -50,6 +50,8 @@ evidence, not runtime noise.
 ## Method note
 
 `git push` reported `* [new branch] HEAD -> m22.9/persistent-voice-runtime`,
-and that was not accepted as proof. The hash above was read back with
+and that was not accepted as proof. The authoritative head is whatever
+`git ls-remote origin refs/heads/m22.9/persistent-voice-runtime` reports; at
+the last verification it equalled the local commit exactly. The hash above was read back with
 `git ls-remote origin` after a fetch, and compared with `git rev-parse HEAD`
 locally. They match exactly.
