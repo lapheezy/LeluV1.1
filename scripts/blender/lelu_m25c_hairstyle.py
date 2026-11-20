@@ -113,6 +113,40 @@ bm.free()
 body.data.update()
 R["generatedHair"] = {"facesRemoved": len(polys), "fragmentsRemoved": len(kill), "holeFacesAdded": loops_filled}
 
+if st.get("noHair") and bpy.data.objects.get("lelu_hair") is not None:
+    # bald look: hairstyles are wardrobe items now, so every old hair face goes; face jewellery and lips stay
+    o = bpy.data.objects["lelu_hair"]
+    BA = C.mesh_arrays(o)
+    bt = C.triangle_texture(o, BA)
+    bq = BA["wco"][BA["tv"]].mean(1) - OFF
+    bmr = bt.get("mr")
+    bmetal = bmr[:, 2] >= 0.5 if bmr is not None else np.zeros(len(bq), bool)
+    bh, bs, bv = C.hsv(bt["albedo"][:, :3])
+    lips = (np.abs(bq[:, 0]) < 0.03) & (bq[:, 2] > 1.53) & (bq[:, 2] < 1.565) & (bq[:, 1] < -0.07)
+    keep = (bmetal & (np.abs(bq[:, 0]) < 0.095) & (bq[:, 1] < 0.0) & (bq[:, 2] > 1.48)) | lips
+    bb = bmesh.new()
+    bb.from_mesh(o.data)
+    bb.faces.ensure_lookup_table()
+    bmesh.ops.delete(bb, geom=[bb.faces[i] for i in set(BA["tp"][~keep].tolist())], context="FACES")
+    bb.to_mesh(o.data)
+    bb.free()
+    R["baldOldHairFacesRemoved"] = int((~keep).sum())
+    # her scalp object: hair-coloured faces (dark, outside the face) go too
+    o = bpy.data.objects["lelu_scalp"]
+    SA0 = C.mesh_arrays(o)
+    st0 = C.triangle_texture(o, SA0)
+    sq0 = SA0["wco"][SA0["tv"]].mean(1) - OFF
+    _, s_s, s_v = C.hsv(st0["albedo"][:, :3])
+    face0 = (np.abs(sq0[:, 0]) < 0.075) & (sq0[:, 1] < -0.04) & (sq0[:, 2] > 1.48) & (sq0[:, 2] < 1.70)
+    hairish = (s_v < 0.2) & ~face0 & (sq0[:, 2] > 1.50)
+    sb0 = bmesh.new()
+    sb0.from_mesh(o.data)
+    sb0.faces.ensure_lookup_table()
+    bmesh.ops.delete(sb0, geom=[sb0.faces[i] for i in set(SA0["tp"][hairish].tolist())], context="FACES")
+    sb0.to_mesh(o.data)
+    sb0.free()
+    R["baldScalpHairFacesRemoved"] = int(hairish.sum())
+
 # her old hair cap: its front edge above the forehead reads as a black slab under the new hair
 cap = bpy.data.objects.get("lelu_hair")
 if cap is not None:
@@ -237,7 +271,7 @@ for box in [b for b in st.get("dropJewelBoxes", []) if b.get("allNonSkin")]:
     sr_ = np.array(surf_r)
     ring_r = sr_[np.linalg.norm(sr_[:, :2] - [cx, cz], axis=1) < rad + 0.006, 2] if len(sr_) else np.array([])
     # just behind the skin that rims the hole (10th percentile of its radius, less 0.6 mm)
-    rr = float(np.percentile(ring_r, 10)) - 0.0006 if len(ring_r) else float(np.median(sr_[:, 2])) - 0.0006
+    rr = float(np.median(ring_r)) + float(box.get("patchLiftMm", 0.2)) / 1000 if len(ring_r) else float(np.median(sr_[:, 2]))
     # cap: polar grid on the sphere of radius rr, around the direction to the hole centre
     centre_dir = np.array([cx, -0.2, cz]) + OFF - HC_pre
     yfront = None
@@ -394,6 +428,8 @@ for p in pts:
         if kd.find(Vector(p))[2] < sp:
             continue
     roots.append(p)
+if st.get("noHair"):
+    roots = []  # the look carries no hair: hairstyles are separate wardrobe items
 R["roots"] = len(roots)
 
 
@@ -725,15 +761,15 @@ def build(name, parts, sides, mats, extra=None):
     return {"vertices": int(len(V)), "triangles": int(len(Q) * 2)}
 
 
-R["hairstyle"] = build("lelu_hairstyle", items, int(st.get("sides", 4)), ["hair", "highlight"])
+R["hairstyle"] = None if not items else build("lelu_hairstyle", items, int(st.get("sides", 4)), ["hair", "highlight"])
 if fillers:
     R["hairFiller"] = build("lelu_hair_filler", fillers, 4, ["hair"])
 R["locks"] = len(items)
-R["coilsMesh"] = build("lelu_hair_coils", coils + cuffs, 6, ["copper", "gold"])
+R["coilsMesh"] = None if not (coils or cuffs) else build("lelu_hair_coils", coils + cuffs, 6, ["copper", "gold"])
 if jewels_v:
     jm = ["gold", "gold", "crystal"]
     R["jewelsMesh"] = build("lelu_hair_jewels", [], 4, ["copper", "gold", "crystal"], (jewels_v, [q[:, :4] for q in jewels_q], jewels_m))
-R["lockLengthMm"] = {"p10": round(float(np.percentile(lens, 10)) * 1000), "p50": round(float(np.median(lens)) * 1000), "p90": round(float(np.percentile(lens, 90)) * 1000)}
+R["lockLengthMm"] = None if not lens else {"p10": round(float(np.percentile(lens, 10)) * 1000), "p50": round(float(np.median(lens)) * 1000), "p90": round(float(np.percentile(lens, 90)) * 1000)}
 
 bpy.ops.export_scene.gltf(filepath=job["output"], export_format="GLB", export_apply=False, export_morph=True,
                           export_morph_normal=False, export_animations=False, export_skins=True,
@@ -741,4 +777,4 @@ bpy.ops.export_scene.gltf(filepath=job["output"], export_format="GLB", export_ap
 R["outputSha256"] = hashlib.sha256(open(job["output"], "rb").read()).hexdigest()
 R["outputBytes"] = os.path.getsize(job["output"])
 json.dump(R, open(job["report"], "w"), indent=1)
-print("M25C_HAIRSTYLE", json.dumps({k: R[k] for k in ("generatedHair", "roots", "hairstyle", "coilsMesh", "lockLengthMm", "jewellery")}))
+print("M25C_HAIRSTYLE", json.dumps({k: R.get(k) for k in ("generatedHair", "roots", "hairstyle", "coilsMesh", "lockLengthMm", "jewellery", "holePatches")}))

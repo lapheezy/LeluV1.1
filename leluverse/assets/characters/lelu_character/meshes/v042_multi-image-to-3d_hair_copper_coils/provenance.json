@@ -1,0 +1,104 @@
+{
+ "jobs": [
+  {
+   "look": "hair_copper_coils",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f5d7-1660-7753-a201-36095d84816b",
+   "submittedAt": 1795125878.6313958,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 150000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v039_image-to-image_hair_copper_coils/view_01a1f5d4_0.png",
+     "sha256": "174bd35b61dab0baf5b68764dfbe45666b970bc111d4d41f2b46d1efacb3b00e"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v039_image-to-image_hair_copper_coils/split_left.png",
+     "sha256": "ebddfcbd4efe45ca7d5c2b5d06cf6a22e5ea5b8c9855c1dfe8a3eb877c597205"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v039_image-to-image_hair_copper_coils/split_back.png",
+     "sha256": "286f12d2b62770d84b80d72834b17d5757e82ade80aaa2163a5aa223de5dabeb"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v039_image-to-image_hair_copper_coils/split_right.png",
+     "sha256": "799cec01533edad1f127972b9d397de8414c6fbb536fe6b2f7ab81867e1b9438"
+    }
+   ],
+   "authorisation": "user approved paid Meshy for the two new looks in-session"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f5d7-1660-7753-a201-36095d84816b",
+   "finished": 1795136066.705667,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d7-1660-7753-a201-36095d84816b",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795125878248,
+    "progress": 100,
+    "started_at": 1795125878257,
+    "finished_at": 1795126251278,
+    "expires_at": 1795385451278,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f5d7-1660-7753-a201-36095d84816b/output/model.glb?Expires=1795385451&Signature=bMgCUBtGiHNWKPzcGATgXKwSQhFpNHuuxkC74OdkmAoHWvURxCe6jvI~CNkCs6wZIZrnDrNtDSXP3Elcl~h74dkJUeOvhgcIF6P2zA~VbiV2ShKJ6yDOiHsk04IjTA05mmaFR-o9KWKUVpdpQVBWMKu51ZNAeGid0eI1YXnM5qxpLqfKZh96yE9CdYZiYDfYAiRftlZYOsIS7MEftDPGD-7dTcICCFTkLw0YL8zHTIHphOZt4hhWAooVUZpiAonYORv8VJEdfr-l5DnmBhcN9fXFNXk9bC1j9V3aONQYzjo3VV8KihMJzyWBH1TQCJ96VvYoa9GUSjGi47uwKyqCJg__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 27656640,
+     "sha256": "d94a9055a50131562d9bd1ddaccb38fa124f05fad783209763c78e42faf69ffc"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 22988188,
+     "sha256": "6b79ff57e45a5bddc9d2f2035f554ec0f3408bd62cfd0846df59bf1fe0b8a522"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 5519473,
+     "sha256": "5f44620116782b9bf8af8f7a2cf0f7c386f97854c084329c5f5ccd3ffd996b9b"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 2675739,
+     "sha256": "a1c062826275ea36f945dd46295a88a2145146aedf84a65648c04e49ebb6a180"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 2949633,
+     "sha256": "732785c2bf6f0bd19caa6f82ce946b63f9b61b139c053da91109fa8b3a4b3706"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 8819567,
+     "sha256": "16242049ff1d8b2732211f3104365ef881f46d6786308507b622058793211cb7"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 99854,
+     "sha256": "7727b8e227c032d04ab0f30deb86a7a08c38c43f617c0410a0071e7107929530"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look5-rose_gold_sovereign.glb",
+ "output": "artifacts/foundry/m25c/v5/rose_gold_sovereign-bald-face.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.09000000357627869,
+   1.600000023841858
+  ],
+  "radius": 0.11,
+  "lens": 105.0,
+  "distance": 0.6510269665007058,
+  "location": [
+   0.0,
+   -0.7389535903930664,
+   1.651916265487671
+  ]
+ },
+ "resolution": [
+  640,
+  640
+ ],
+ "samples": 24,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0466322998205821,
+  "exposureEV": -2.5396858756844467
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_forehead_patch",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign"
+ ],
+ "triangles": 27214,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 8.02,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

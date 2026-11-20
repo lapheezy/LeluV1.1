@@ -1,0 +1,163 @@
+{
+ "jobs": [
+  {
+   "look": "shoes_rose_gold_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f5d4-7a39-7594-a2a2-b27598c9e1ec",
+   "submittedAt": 1795125706.5223615,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this ONE right-foot shoe alone, standing upright, side view from the outside of the foot, plain white background: a copper open-toe platform stiletto sandal with copper tubes spiralling up the shin to below the knee, copper ball studs, a flower-of-life medallion hanging on the outer ankle, a copper mesh heel cup, bare toes visible through the open toe. No leg, no foot, empty shoe.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/01-boots.png",
+     "sha256": "f83f1df28e112a1f1414769ef8d293fc443fcc1a64133a9ce2a7ab6446b773d0"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d4-7a39-7594-a2a2-b27598c9e1ec",
+   "finished": 1795125756.3224006,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d4-7a39-7594-a2a2-b27598c9e1ec",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this ONE right-foot shoe alone, standing upright, side view from the outside of the foot, plain white background: a copper open-toe platform stiletto sandal with copper tubes spiralling up the shin to below the knee, copper ball studs, a flower-of-life medallion hanging on the outer ankle, a copper mesh heel cup, bare toes visible through the open toe. No leg, no foot, empty shoe.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125706392,
+    "started_at": 1795125706402,
+    "finished_at": 1795125745820,
+    "expires_at": 1795384945820,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d4-7a39-7594-a2a2-b27598c9e1ec_0.png?Expires=1795384945&Signature=gdSP59yVPg5cZ4oUkw9dz29OiR4XlVehhdOH0cjAoqxc1fkqrg4qTXncwTtMIxDThljIVUiB4D79pm28wVCif1lAZLV6KNIcLeerYJ7ah7FqRLJpBQ3GyCXwNy3l8xThXSmOkb4YHqVhm9deGG0W~fpJxFO~jftC3rT1SJ0fFkWGkD4BS3R7BfncppinAmmLEra0qj2UrT2tr2vbH-dOBWCZtBhhBdBQkGkF5hIHi42HkPdxGmcRfoF4DuPJXQzaE2SFuPfqRxlF1WogpfDBXpwzrD9hGG1P8SvUcRhJdKv7wVBeb~y43R~~0lfjJC02G~efLxx-BeIWJpkwwPufBw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d4_0.png",
+     "bytes": 400346,
+     "sha256": "d742cae1787c451aa51718ef5d22869630d8ad03fd4501716b154f220778299d"
+    }
+   ]
+  },
+  {
+   "look": "shoes_rose_gold_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f5d5-7e97-7387-8473-8ad8579e7912",
+   "submittedAt": 1795125772.7339997,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same single shoe, identical in every detail. Show it from the front, from the back, and from the inside of the foot, side by side, standing upright, plain background.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v041_image-to-image_shoes_rose_gold_spiral/view_01a1f5d4_0.png",
+     "sha256": "d742cae1787c451aa51718ef5d22869630d8ad03fd4501716b154f220778299d"
+    }
+   ]
+  },
+  {
+   "look": "shoes_rose_gold_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f5d6-6741-706c-9ade-26665fb9eb24",
+   "submittedAt": 1795125832.7151237,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this ONE right shoe worn on a bare deep-brown-skinned right foot and lower leg up to the knee (show only the foot and lower leg, cut just below the knee), side view from the outside, plain white background. The toes with nude glossy nails show clearly through the open toe. Copper open-toe platform stiletto sandal, copper tubes spiralling around the bare shin to below the knee with copper ball studs, a flower-of-life medallion hanging on the outer ankle, copper mesh heel cup. Keep every detail of the shoe in the photograph.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/01-boots.png",
+     "sha256": "f83f1df28e112a1f1414769ef8d293fc443fcc1a64133a9ce2a7ab6446b773d0"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d6-6741-706c-9ade-26665fb9eb24",
+   "finished": 1795125861.1993513,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d6-6741-706c-9ade-26665fb9eb24",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this ONE right shoe worn on a bare deep-brown-skinned right foot and lower leg up to the knee (show only the foot and lower leg, cut just below the knee), side view from the outside, plain white background. The toes with nude glossy nails show clearly through the open toe. Copper open-toe platform stiletto sandal, copper tubes spiralling around the bare shin to below the knee with copper ball studs, a flower-of-life medallion hanging on the outer ankle, copper mesh heel cup. Keep every detail of the shoe in the photograph.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125832582,
+    "started_at": 1795125832592,
+    "finished_at": 1795125848046,
+    "expires_at": 1795385048046,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d6-6741-706c-9ade-26665fb9eb24_0.png?Expires=1795385048&Signature=n4WpyAUgUoCIsSWMjM1jYbVIu176rfLKj3xTKbFvqdZVw55FbF~RD7TSnJ0bUoWjBEYEFCMqEcaSaqOdYoj5OKqe7e-pZyxv5x4~w~w7x9fSAqgSWG7-ahDMPZwDbYOH65fHf6AQ18XhQlMkPISQQMjcqDAuoSA-939g7StxHdBvMsy4fxwEQ9d3K7MhnUkvNafgCjSwozermQvqoxnLYqKVQbVcgtyRrQdvPV3oFkuTCC4TPEkLlZeL6G~aTVoUO1k8Sd13X1XoJSXiBOOnKhKacnvKTw7xc6bewQeazm40R-gMzDJXuKTqsGDntfCupt~6BYQHM08ZA7tPP-2Ckw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d6_0.png",
+     "bytes": 808067,
+     "sha256": "227b91d27232f4c2a424082b244673477b8bfeca2bda59d14b4842c9f3a0d612"
+    }
+   ]
+  },
+  {
+   "look": "shoes_rose_gold_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f5d7-0fd4-71a7-bbb0-7950c4520d86",
+   "submittedAt": 1795125875.6155388,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of shoes on the same bare lower legs and feet, identical in every detail. Show them from the left side, from the back, and from the right side, side by side, plain white background, legs cut just below the knee.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v041_image-to-image_shoes_rose_gold_spiral/view_01a1f5d6_0.png",
+     "sha256": "227b91d27232f4c2a424082b244673477b8bfeca2bda59d14b4842c9f3a0d612"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d7-0fd4-71a7-bbb0-7950c4520d86",
+   "finished": 1795136072.6202307,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d7-0fd4-71a7-bbb0-7950c4520d86",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of shoes on the same bare lower legs and feet, identical in every detail. Show them from the left side, from the back, and from the right side, side by side, plain white background, legs cut just below the knee.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125875491,
+    "started_at": 1795125875501,
+    "finished_at": 1795125898895,
+    "expires_at": 1795385098895,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d7-0fd4-71a7-bbb0-7950c4520d86_0.png?Expires=1795385098&Signature=Jf~ei08y1dUAy1SqtcPAYTWB4oWXTZxKSp2PEyv~UY-D7O9lfB8hEqc2wTcmbpWybEmQjOMYVmiGHj6xpaK8176yLXpjX3I6UpV9UvQp~tVOpMbmO8uVi4-Y-6tRK3V6NaawEXD2GvMgHPxYC4uw88Nb2L9Xeejst4Dkr-AUNfwu2otaEQOTMQOxz0QZ8Z1cr4by4GbEQ8V3tpttmF2l4syxhc25P~5c0GNstJ7ktBsp~P37R6mV21Li2BdlW191h9fH2V7QffhD0pSkDueBIyXuA-QZQYq3MgmfysGPz7VDYRsxYB996A4Rv2Nwqy0G7nZqmJl5zwKxLXwaOYqxcQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d7_0.png",
+     "bytes": 1182099,
+     "sha256": "dbd707d14c2723c2bbbd7e629f89c54bff75a025a367ec7fc319527a1688c981"
+    }
+   ]
+  }
+ ]
+}
