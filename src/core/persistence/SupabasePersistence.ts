@@ -619,6 +619,33 @@ export default class SupabasePersistence {
     await this.write("user_preferences", [{ user_id: this.userId, preference_key: key, value, updated_at: new Date().toISOString() }], "user_preferences");
   }
 
+  /**
+   * Remove one deleted memory's cloud mirror row (M22.6, WP02).
+   *
+   * `memory_items` is a mirror of the local store: hydration merges it back in
+   * on another device, and the external-context provider reads it. A local
+   * deletion that left the row behind would keep the statement alive in the
+   * one place M22.5 never looked. Best-effort by design — a signed-out or
+   * offline device must not fail a deletion — and the caller is told whether
+   * the cloud copy was actually removed.
+   */
+  public async forgetMemory(id: string): Promise<boolean> {
+    if (!this.isConnected() || !this.client) return false;
+    try {
+      const { error } = await this.withTimeout(
+        Promise.resolve(this.client.from("memory_items").delete().eq("id", id).eq("user_id", this.userId)),
+        CORE_HYDRATE_TIMEOUT_MS,
+        "Supabase memory deletion",
+      );
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      this.status = "degraded";
+      console.warn("[Lélu] Supabase memory deletion failed (contained)", error);
+      return false;
+    }
+  }
+
   public async persistMemories(memories: ResponsePattern[]): Promise<void> {
     if (!this.isConnected() || memories.length === 0) return;
     await this.write("memory_items", memories.map((memory) => ({

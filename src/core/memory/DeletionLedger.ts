@@ -85,33 +85,59 @@ export function fingerprintStatement(text: string): { windows: string[]; size: n
   return { windows: [...new Set(windows)], size, tokens: tokens.length };
 }
 
+/**
+ * Fingerprints flipped into a lookup table once, instead of rebuilt per field.
+ *
+ * `matchTombstone` below already answered the question correctly, but it did so
+ * by grouping every tombstone for every piece of text it was asked about — so a
+ * 1,000-project scan rebuilt the same maps a few thousand times. The migration,
+ * the boot healer and recall protection all ask the same question, so they now
+ * build this index once per run (M22.6, WP06).
+ */
+export interface TombstoneIndex {
+  /** Window size → (window hash → the tombstone that owns it). */
+  bySize: Map<number, Map<string, DeletionTombstone>>;
+}
+
+export function buildTombstoneIndex(tombstones: DeletionTombstone[]): TombstoneIndex {
+  const bySize = new Map<number, Map<string, DeletionTombstone>>();
+  for (const tombstone of tombstones) {
+    if (tombstone.windows.length === 0) continue;
+    let group = bySize.get(tombstone.size);
+    if (!group) {
+      group = new Map<string, DeletionTombstone>();
+      bySize.set(tombstone.size, group);
+    }
+    for (const window of tombstone.windows) {
+      if (!group.has(window)) group.set(window, tombstone);
+    }
+  }
+  return { bySize };
+}
+
+/** Same answer as `matchTombstone`, without rebuilding the lookup per text. */
+export function matchTombstoneIndex(
+  text: string,
+  index: TombstoneIndex,
+): DeletionTombstone | undefined {
+  if (!text.trim() || index.bySize.size === 0) return undefined;
+  const tokens = residueTokens(text);
+  for (const [size, group] of index.bySize) {
+    if (tokens.length < size) continue;
+    for (let i = 0; i + size <= tokens.length; i += 1) {
+      const tombstone = group.get(hash(tokens.slice(i, i + size).join(" ")));
+      if (tombstone) return tombstone;
+    }
+  }
+  return undefined;
+}
+
 /** Does this text quote any of the tombstones? Returns the matching tombstone, if any. */
 export function matchTombstone(
   text: string,
   tombstones: DeletionTombstone[],
 ): DeletionTombstone | undefined {
-  if (!text.trim() || tombstones.length === 0) return undefined;
-  const tokens = residueTokens(text);
-  const bySize = new Map<number, DeletionTombstone[]>();
-  for (const tombstone of tombstones) {
-    if (tombstone.windows.length === 0) continue;
-    const list = bySize.get(tombstone.size) ?? [];
-    list.push(tombstone);
-    bySize.set(tombstone.size, list);
-  }
-  for (const [size, group] of bySize) {
-    if (tokens.length < size) continue;
-    const present = new Set<string>();
-    for (let i = 0; i + size <= tokens.length; i += 1) {
-      present.add(hash(tokens.slice(i, i + size).join(" ")));
-    }
-    for (const tombstone of group) {
-      if (tombstone.windows.some((window) => present.has(window))) {
-        return tombstone;
-      }
-    }
-  }
-  return undefined;
+  return matchTombstoneIndex(text, buildTombstoneIndex(tombstones));
 }
 
 export default class DeletionLedger {
@@ -158,12 +184,76 @@ export default class DeletionLedger {
     };
     const next = [tombstone, ...this.entries().filter((existing) => existing.id !== tombstone.id)]
       .slice(0, MAX_ENTRIES);
-    this.kv.set(DELETION_LEDGER_KEY, next);
+    // A failed ledger write means the deletion can no longer be PROVEN later,
+    // even though the record is gone. The caller must be able to say so instead
+    // of reporting a clean forget (M22.6, WP02.7).
+    if (!this.kv.set(DELETION_LEDGER_KEY, next)) {
+      throw new Error("Deletion ledger is unavailable — deletion could not be recorded.");
+    }
     return tombstone;
+  }
+
+  /**
+   * Record several deletions in ONE write.
+   *
+   * Bulk pathways (a cleared conversation, a reset) used to remove records with
+   * no tombstone at all. Recording them one at a time would write the whole
+   * ledger per record — O(n²) bytes for a bulk wipe — and would leave a partial
+   * ledger if the tab closed mid-loop. This writes once, and returns only the
+   * tombstones that were identifiable (statements under four tokens cannot be
+   * fingerprinted and are deliberately not recorded).
+   */
+  public recordMany(
+    entries: Array<{ id: string; text: string; conversationId?: string | null; at?: number }>,
+  ): DeletionTombstone[] {
+    if (entries.length === 0) return [];
+    const at = entries[0].at ?? Date.now();
+    const existing = this.entries();
+    const replaced = new Set(entries.map((entry) => entry.id));
+    const recorded: DeletionTombstone[] = [];
+    for (const entry of entries) {
+      const print = fingerprintStatement(entry.text);
+      if (print.windows.length === 0) continue;
+      recorded.push({
+        id: entry.id,
+        at: entry.at ?? at,
+        conversationId: entry.conversationId ?? null,
+        windows: print.windows,
+        size: print.size,
+        tokens: print.tokens,
+      });
+    }
+    if (recorded.length === 0) return [];
+    const next = [...recorded, ...existing.filter((entry) => !replaced.has(entry.id))].slice(0, MAX_ENTRIES);
+    // A ledger write that fails is not a successful deletion; the caller learns
+    // it from the return value rather than from a log line.
+    if (!this.kv.set(DELETION_LEDGER_KEY, next)) {
+      throw new Error("Deletion ledger is unavailable — deletion could not be recorded.");
+    }
+    return recorded;
   }
 
   public has(id: string): boolean {
     return this.entries().some((entry) => entry.id === id);
+  }
+
+  /**
+   * Drop a tombstone.
+   *
+   * Only for COMPENSATION: a delete records its fingerprint before it removes
+   * the record (so a concurrent context read cannot quote it in the gap). If the
+   * removal itself then fails, the record still exists — and a tombstone for a
+   * live record would make it unretrievable through recall. This undoes that.
+   */
+  public discard(id: string): void {
+    const next = this.entries().filter((entry) => entry.id !== id);
+    this.kv.set(DELETION_LEDGER_KEY, next);
+  }
+
+  /** Cheap change signature, so a cache can tell when the ledger moved. */
+  public signature(): string {
+    const entries = this.entries();
+    return `${entries.length}:${entries[0]?.at ?? 0}:${entries[0]?.id ?? ""}`;
   }
 
   /** Audit view: ids and counts only — never the deleted text. */

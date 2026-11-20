@@ -49,6 +49,7 @@ import LeluIdentity from "../identity/LeluIdentity";
 import { isProjectVisible, projectLabel } from "../projects/ProjectSovereignty";
 import type { ProjectAccess } from "../projects/ProjectSovereignty";
 import { currentSessionId } from "../memory/MemorySovereignty";
+import DeletionGuard from "../memory/DeletionGuard";
 import LinguisticProfile from "../identity/voice/LinguisticProfile";
 import { describeStudioWork, pendingStudioApprovals } from "../studio/StudioMemory";
 
@@ -333,22 +334,48 @@ export function buildCognitiveContext(scope?: string | ContextScope): CognitiveC
   // unowned legacy project is visible to a real turn (that is continuity),
   // but an anonymous snapshot is not a turn and must not become one.
   const fullyAnonymous = !access.userId && !access.conversationId;
+
+  /**
+   * DELETION-AWARE CONTEXT (M22.6, WP05.2/WP05.3).
+   *
+   * A checkpoint is the turn's own request persisted as work state, and this
+   * snapshot is re-injected into every later prompt. Until now a statement the
+   * user deleted still reached the model from here — the deletion changed the
+   * Memory panel and nothing else. Two things change that:
+   *
+   *   1. a project whose NAME quotes a deleted memory is not visible at all
+   *      (the old auto-created projects were named after the request);
+   *   2. summary, pending steps and next action lose exactly the sentences a
+   *      tombstone proves, even if the stored copy has not been migrated yet.
+   *
+   * Filtering here rather than only in the migration matters: the migration can
+   * be interrupted, skipped, or still running, and recall must be safe anyway.
+   */
+  const guard = DeletionGuard.getInstance();
   const projects = fullyAnonymous
     ? []
     : projectStore
         .list()
         .filter((p) => p.status === "active" || p.status === "paused")
-        .filter((project) => isProjectVisible(project, access));
+        .filter((project) => isProjectVisible(project, access))
+        .filter((project) => !guard.quotes(project.name))
+        .map((project) => {
+          if (!project.queries?.length) return project;
+          return { ...project, queries: guard.filterList(project.queries) };
+        });
   const checkpoints = projects
     .filter((project) => project.checkpoint)
     .map((project) => ({
       projectId: project.id,
       projectName: project.name,
       status: project.checkpoint?.status ?? project.status,
-      summary: project.checkpoint?.summary ?? "",
-      nextAction: project.checkpoint?.nextAction ?? null,
-      pending: project.checkpoint?.pending ?? [],
-    }));
+      summary: guard.scrub(project.checkpoint?.summary ?? "").text,
+      nextAction: guard.scrubField(project.checkpoint?.nextAction) ?? null,
+      pending: guard.filterList(project.checkpoint?.pending ?? []),
+    }))
+    // A checkpoint whose summary quoted the deleted memory has nothing left to
+    // say; its project, name and status still appear in ACTIVE PROJECTS.
+    .filter((checkpoint) => checkpoint.summary || checkpoint.nextAction || checkpoint.pending.length > 0);
 
   const authorizedProjectNames = new Set(projects.map((project) => project.name));
 
@@ -400,6 +427,10 @@ export function buildCognitiveContext(scope?: string | ContextScope): CognitiveC
     self: {
       ...self,
       projects: (self.projects ?? []).filter((name) => authorizedProjectNames.has(name)),
+      // Self-model knowledge and goals are derived from memory too; a deleted
+      // statement must not survive inside her description of herself.
+      knows: guard.filterList(self.knows ?? []),
+      goals: guard.filterList(self.goals ?? []),
     },
     projects,
     agents,
@@ -867,7 +898,12 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     // personality is optional — never let it break context assembly
   }
 
-  return sections.join("\n\n");
+  // FINAL BACKSTOP (M22.6, WP05). Sections above read from a dozen subsystems —
+  // self-study state, executive self-description, Studio work, autonomous
+  // objectives, cosmos inspection. Each one that reads project text is guarded
+  // at its own source, and this pass catches anything assembled from a source
+  // this build has not met yet. It removes only sentences a tombstone proves.
+  return DeletionGuard.getInstance().sanitizeContext(sections.join("\n\n")).context;
 }
 
 /**

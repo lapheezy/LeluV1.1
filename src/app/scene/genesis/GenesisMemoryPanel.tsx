@@ -67,6 +67,7 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
   const [notice, setNotice] = useState("");
   const [residue, setResidue] = useState<ResidueReport | null>(null);
   const [residueBusy, setResidueBusy] = useState(false);
+  const [healing, setHealing] = useState<ReturnType<typeof ai.memoryIntegrityStatus> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +83,11 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
     async function readResidue() {
       try {
         const report = await ai.residueReport({ dryRun: true });
-        if (!cancelled) setResidue(report);
+        if (!cancelled) {
+          setResidue(report);
+          // Automatic healing happens without this panel; say what it did.
+          setHealing(ai.memoryIntegrityStatus());
+        }
       } catch (error) {
         console.warn("[GenesisMemoryPanel] residue check failed (contained)", error);
       }
@@ -113,9 +118,11 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
       const rows = await ai.getMemories(300);
       setMemories(rows);
       setNotice(
-        result.removed
-          ? "Memory deleted. It is removed from the store and will not be recalled again."
-          : "That memory was already gone.",
+        !result.removed
+          ? "That memory was already gone."
+          : result.ledgerRecorded
+            ? "Memory deleted. It will not be recalled again, and historical copies that quote it are removed automatically."
+            : "Memory deleted, but the deletion ledger could not be written — older copies that quote it cannot be proven and removed.",
       );
       setResidue(await ai.residueReport({ dryRun: true }));
     } catch (error) {
@@ -251,6 +258,14 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
             Historical residue · {residue.scannedProjects} project(s) scanned ·{" "}
             {residue.findings.length} quote(s) of deleted memories · {residue.quarantined.length} checkpoint(s) to review
           </div>
+          {healing?.healing ? (
+            <div style={{ opacity: 0.6, marginBottom: residue.quarantined.length ? 6 : 0 }}>
+              Automatic healing: {healing.healing.state}
+              {healing.healing.state === "complete"
+                ? ` — removed ${healing.healing.cleanedFields} quote(s) this session, ${healing.healing.quarantined} left for review`
+                : ""}
+            </div>
+          ) : null}
           {residue.quarantined.slice(0, 4).map((finding) => (
             <div
               key={finding.id}

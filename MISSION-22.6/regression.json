@@ -1,0 +1,82 @@
+{
+  "mission": "M22.6",
+  "baseline": {
+    "mission": "M22.5",
+    "tests": 2386,
+    "pass": 2376,
+    "fail": 2,
+    "skipped": 8,
+    "knownFailures": [
+      "tests/genesis-interface.test.tsx (CSS export)",
+      "tests/sandbox-security.test.ts (network)"
+    ]
+  },
+  "current": {
+    "command": "npm test (final code, after the last source edits)",
+    "tests": 2398,
+    "pass": 2388,
+    "fail": 2,
+    "skipped": 8,
+    "cancelled": 0,
+    "durationMs": 232966,
+    "newTests": 12,
+    "delta": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0
+    },
+    "failures": [
+      {
+        "test": "tests/genesis-interface.test.tsx",
+        "message": "test failed",
+        "preExisting": true,
+        "note": "The same CSS-export failure M22.5 recorded; untouched by this mission."
+      },
+      {
+        "test": "tests/sandbox-security.test.ts",
+        "message": "network: TCP, UDP, DNS and fetch all fail \u2014 expected /^denied:/, received ''",
+        "preExisting": true,
+        "note": "Environment-dependent network sandbox assertion; fails identically on the M22.5 baseline."
+      }
+    ]
+  },
+  "typecheck": {
+    "command": "npx tsc -p tsconfig.app.json --noEmit",
+    "errors": 2,
+    "newErrors": 0,
+    "existing": [
+      "src/core/perception/FeatureUnderstanding.ts(455,20): TS18047 'landmarks.measurements.count' is possibly 'null'",
+      "src/core/perception/FeatureUnderstanding.ts(455,20): TS2365 Operator '<' cannot be applied to types 'string | number' and 'number'"
+    ],
+    "note": "Neither file is touched by M22.6; both errors predate it (identical to the M22.5 baseline)."
+  },
+  "build": {
+    "command": "npx vite build",
+    "exit": 0,
+    "durationNote": "built in 6.29s (final code)",
+    "warnings": "two pre-existing INEFFECTIVE_DYNAMIC_IMPORT notices (ArchitectureMap vs main.tsx/index.css)"
+  },
+  "lint": {
+    "command": "npx oxlint (touched directories and files)",
+    "errors": 0,
+    "warnings": 0,
+    "note": "Two unused-variable warnings in the new test file were fixed rather than suppressed."
+  },
+  "memorySuites": {
+    "tests/memory-integrity.test.ts": {
+      "run": 12,
+      "pass": 12
+    },
+    "tests/memory-residue.test.ts": {
+      "run": 8,
+      "pass": 8
+    },
+    "adjacent": {
+      "conversation-memory, memory-model, memory-safety, memory-sovereignty, memory-hardening, memory-providers, context-sovereignty": "exit 0, no failures"
+    }
+  },
+  "notRun": [
+    "tests/autonomy-end-to-end.test.ts (excluded from `npm test` by the repository's own script; unchanged)",
+    "No test was removed, skipped or weakened to produce this result."
+  ]
+}

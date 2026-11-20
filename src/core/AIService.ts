@@ -36,6 +36,9 @@ import type { LeluAgent, AgentTaskScope } from "./agents/AgentTypes";
 import { currentSessionId } from "./memory/MemorySovereignty";
 import { resolveTurnHistory } from "./memory/SharedWindowAdapter";
 import ResidueMigration, { type ResidueReport } from "./memory/ResidueMigration";
+import MemoryHealing, { type HealingStatus } from "./memory/MemoryHealing";
+import DeletionGuard, { type GuardStats } from "./memory/DeletionGuard";
+import DeletionLedger from "./memory/DeletionLedger";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
 import Shaman from "./agents/Shaman";
@@ -1114,7 +1117,13 @@ export default class AIService {
     if (!this.initialized) {
       await this.initialize();
     }
-    return this.runtime.brain.forgetConversation(conversationId);
+    const result = await this.runtime.brain.forgetConversation(conversationId);
+    // The cloud mirror is a persistence pathway too (M22.6, WP02): removing the
+    // rows is best-effort and never blocks or fails the local deletion.
+    for (const id of result.memoryIds) {
+      void SupabasePersistence.getInstance().forgetMemory(id).catch(() => undefined);
+    }
+    return { memories: result.memories, nodes: result.nodes };
   }
 
   /**
@@ -1123,11 +1132,47 @@ export default class AIService {
    * observation + graph node); the panel is only a caller of it. Deleting a
    * conversation is forgetConversation — this never touches anything else.
    */
-  public async forgetMemory(id: string): Promise<{ removed: boolean; nodes: number; checkpoints: number }> {
+  public async forgetMemory(id: string): Promise<{
+    removed: boolean;
+    nodes: number;
+    checkpoints: number;
+    ledgerRecorded: boolean;
+  }> {
     if (!this.initialized) {
       await this.initialize();
     }
-    return this.runtime.brain.forgetMemory(id);
+    const result = await this.runtime.brain.forgetMemory(id);
+    // The deleted record's cloud mirror goes with it. `void` on purpose: a
+    // signed-out or offline device must not turn a completed local deletion
+    // into a failure, and a copy that survives is still unrecallable because
+    // the tombstone blocks its id from being restored.
+    void SupabasePersistence.getInstance().forgetMemory(id).catch(() => undefined);
+    return result;
+  }
+
+  /**
+   * M22.6: what automatic memory healing has actually done, what the deletion
+   * gate has filtered, and how many deletions are provable. Counts and ids of
+   * deletions only — never the text of a deleted statement.
+   */
+  public memoryIntegrityStatus(): {
+    healing: HealingStatus | null;
+    guard: GuardStats;
+    ledger: { entries: number; oldest: number | null; newest: number | null };
+  } {
+    return {
+      healing: MemoryHealing.getInstance().status(),
+      guard: DeletionGuard.getInstance().stats(),
+      ledger: DeletionLedger.getInstance().summary(),
+    };
+  }
+
+  /** Run the boot-time healer now (maintenance/verification; the boot path schedules it). */
+  public async healMemoryNow(): Promise<HealingStatus> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return MemoryHealing.getInstance().heal();
   }
 
   /**

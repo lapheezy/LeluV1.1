@@ -24,6 +24,7 @@
 import type { LeluProject } from "../projects/ProjectStore";
 import type { ChatConversation } from "../multichat/MultiChatStore";
 import type { QueueItem } from "./WorkQueue";
+import DeletionGuard from "../memory/DeletionGuard";
 
 /** Where a derived intent came from, so the work item can say so. */
 export type IntentSource =
@@ -77,7 +78,10 @@ function clean(value: string | undefined | null): string {
 export function resolveIntent(inputs: IntentInputs): ResolvedIntent | null {
   const { project } = inputs;
 
-  const checkpointAction = clean(project.checkpoint?.nextAction);
+  // A next action is a persisted turn request, so it can quote a memory the
+  // user deleted. An objective built from it would carry that text into
+  // self-study and cognition prompts (M22.6, WP05.4).
+  const checkpointAction = clean(DeletionGuard.getInstance().scrub(project.checkpoint?.nextAction ?? "").text);
   if (checkpointAction.length >= MIN_USEFUL) {
     return { intent: checkpointAction, source: "checkpoint", confidence: 0.95 };
   }

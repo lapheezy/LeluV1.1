@@ -22,6 +22,12 @@ import {
   type MemoryScopeContext,
 } from "../core/memory/MemorySovereignty";
 
+import DeletionGuard
+  from "../core/memory/DeletionGuard";
+
+import DeletionLedger
+  from "../core/memory/DeletionLedger";
+
 import type {
   MemoryRecord,
 } from "../core/memory/MemoryStore";
@@ -220,6 +226,34 @@ export default class PatternMemory {
     await this.initialize();
 
 
+    // DELETION IS STICKY FOR MACHINE-WRITTEN MEMORY (M22.6, WP05.4).
+    //
+    // Background learning, self-study and system notes read context that was
+    // already scrubbed, but a paraphrase can still quote a deleted statement.
+    // Re-storing it would make a forgotten memory available again through a
+    // new record — the exact failure the ledger exists to prevent. A record the
+    // USER just stated is allowed: they are teaching her something now, and
+    // refusing their own words would be a different bug.
+    // A DELETED ID IS NEVER RESTORED (M22.6, WP02).
+    //
+    // Hydration merges `memory_items` back into this store, and other devices
+    // may still hold the row this deletion removed. Without this check the
+    // delete was undone the next time the cloud copy arrived — the record came
+    // back with its original id and the tombstone could not tell it apart from
+    // the legitimate record it used to be, because it IS that record.
+    if (DeletionLedger.getInstance().has(pattern.id)) {
+      console.info("[PatternMemory] refused to restore a record whose id was deleted");
+      return;
+    }
+
+    const sourceType = (pattern.context as
+      | { origin?: { sourceType?: string } }
+      | undefined)?.origin?.sourceType;
+    if (sourceType !== "user-said" && DeletionGuard.getInstance().quotes(`${pattern.prompt}\n${pattern.response}`)) {
+      console.info("[PatternMemory] refused a machine-written record that quotes a deleted memory");
+      return;
+    }
+
 
     this.patterns.set(
 
@@ -396,13 +430,19 @@ export default class PatternMemory {
    * everything it ever taught her. Origin survives on what remains, so a
    * fact that outlives its chat still says where it came from.
    */
-  public async forgetByConversation(
+  /**
+   * Which records a conversation deletion WOULD remove — without removing them.
+   *
+   * The caller needs this list to fingerprint the records before they are gone
+   * (M22.6, WP02). Reading and deleting are separate so the tombstone can be
+   * written in the only moment the text still exists.
+   */
+  public async previewForgetByConversation(
     conversationId: string,
     options: { keepPersistent?: boolean } = {},
-  ):
-    Promise<number> {
-
-    const doomed = [...this.patterns.values()].filter((pattern) => {
+  ): Promise<ResponsePattern[]> {
+    await this.initialize();
+    return [...this.patterns.values()].filter((pattern) => {
       const origin = (pattern.context as
         | { origin?: { originatingConversationId?: string | null; scope?: string } }
         | undefined)?.origin;
@@ -413,13 +453,25 @@ export default class PatternMemory {
       if ((options.keepPersistent ?? true) && origin.scope === "persistent-user") return false;
       return true;
     });
+  }
+
+  public async forgetByConversation(
+    conversationId: string,
+    options: { keepPersistent?: boolean } = {},
+  ):
+    Promise<ResponsePattern[]> {
+    await this.initialize();
+    const doomed = await this.previewForgetByConversation(conversationId, options);
 
     for (const pattern of doomed) {
       this.patterns.delete(pattern.id);
       await this.store.delete(pattern.id);
     }
 
-    return doomed.length;
+    // The records themselves, not a count: the caller records a tombstone for
+    // each one BEFORE they leave memory, which is the only moment their text
+    // is still available to fingerprint (M22.6, WP02).
+    return doomed;
   }
 
   /** The stored record for an id, without reading it out of the store. */
@@ -580,6 +632,21 @@ export default class PatternMemory {
           pattern =>
 
             pattern.context?.searchable !== false,
+
+        )
+
+        // DELETION-AWARE RETRIEVAL (M22.6, WP05.1).
+        //
+        // The record itself is gone after forgetMemory, but a DIFFERENT record
+        // can carry its text — a superseded correction keeps the earlier
+        // statement, and a merged memory keeps the fuller content. If that text
+        // quotes a deletion, the record is not a candidate at all: it cannot
+        // rank, cannot enter the working set, and cannot reach a prompt.
+        .filter(
+
+          pattern =>
+
+            !DeletionGuard.getInstance().quotes(`${pattern.prompt}\n${pattern.response}`),
 
         )
 

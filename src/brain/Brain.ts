@@ -335,27 +335,53 @@ export default class Brain {
    * cognitive observation derived from it. There is no second index to keep
    * in step — this IS the one memory system (M22.1, WP06).
    */
-  public async forgetMemory(id: string): Promise<{ removed: boolean; nodes: number; checkpoints: number }> {
+  public async forgetMemory(id: string): Promise<{
+    removed: boolean;
+    nodes: number;
+    checkpoints: number;
+    /** False when the deletion happened but could not be recorded. */
+    ledgerRecorded: boolean;
+  }> {
     // Read the record first: after removal there is nothing left to find the
     // derived representations by. A project checkpoint can quote the same
     // statement (Orchestrator persisted the turn's request as work state),
     // and CognitiveContext re-injects checkpoints into later prompts — so a
     // deleted memory that only left the store was still reaching the model.
     const pattern = await this.memory.get(id);
-    const removed = await this.memory.remove(id);
-    const nodes = this.cognitionRuntime.forgetMemory(id);
 
-    // Leave fingerprints, never the text: a copy written by another subsystem
-    // (or one this build has not met yet) can still be proven to quote this
-    // statement later, without keeping a readable ghost of it (M22.5).
+    // FINGERPRINT BEFORE REMOVAL (M22.6, WP02.4).
+    //
+    // The window between removing the record and recording its fingerprints
+    // was a window in which a checkpoint quoting it could be read without the
+    // guard knowing it was deleted. Nothing is awaited between these two lines,
+    // so no context assembly can run inside that gap. If the removal itself
+    // then fails, the tombstone is withdrawn — a tombstone for a record that
+    // still exists would make a live memory unretrievable.
+    let ledgerRecorded = false;
     if (pattern) {
       const origin = (pattern.context as { origin?: { originatingConversationId?: string | null } } | undefined)?.origin;
-      DeletionLedger.getInstance().record({
-        id,
-        text: [pattern.prompt, pattern.response].filter((text) => typeof text === "string" && text.trim()).join("\n"),
-        conversationId: origin?.originatingConversationId ?? null,
-      });
+      try {
+        DeletionLedger.getInstance().record({
+          id,
+          text: [pattern.prompt, pattern.response].filter((text) => typeof text === "string" && text.trim()).join("\n"),
+          conversationId: origin?.originatingConversationId ?? null,
+        });
+        ledgerRecorded = true;
+      } catch (error) {
+        // Not fatal to the deletion, but the caller must not be told the
+        // deletion was fully propagated when it cannot be proven later.
+        console.warn("[Brain] deletion ledger unavailable — deletion is not provable", error);
+      }
     }
+
+    let removed = false;
+    try {
+      removed = await this.memory.remove(id);
+    } catch (error) {
+      if (ledgerRecorded) DeletionLedger.getInstance().discard(id);
+      throw error;
+    }
+    const nodes = this.cognitionRuntime.forgetMemory(id);
     const scraps = [pattern?.prompt, pattern?.response]
       .flatMap((text) => (typeof text === "string" ? [text, ...text.split(/(?<=[.!?])\s+/)] : []))
       .map((text) => text.trim())
@@ -371,8 +397,9 @@ export default class Brain {
       removed,
       nodesRemoved: nodes,
       checkpointsChanged: checkpoints,
+      ledgerRecorded,
     });
-    return { removed, nodes, checkpoints };
+    return { removed, nodes, checkpoints, ledgerRecorded };
   }
 
   /**
@@ -383,16 +410,41 @@ export default class Brain {
   public async forgetConversation(
     conversationId: string,
     options: { keepPersistent?: boolean } = {},
-  ): Promise<{ memories: number; nodes: number }> {
-    const memories = await this.memory.forgetByConversation(conversationId, options);
+  ): Promise<{ memories: number; nodes: number; ledgerRecorded: number; memoryIds: string[] }> {
+    // Deleting a conversation removes session memories. Before M22.6 it left no
+    // trace of what those memories said, so a checkpoint that quoted one could
+    // never be proven to quote a deletion — the same blind spot M22.5 closed
+    // for single-memory deletion, re-opened by the bulk pathway.
+    //
+    // Read the doomed records first, fingerprint them, then remove: the text
+    // exists only until the removal.
+    const doomed = await this.memory.previewForgetByConversation(conversationId, options);
+    let ledgerRecorded = 0;
+    try {
+      const recorded = DeletionLedger.getInstance().recordMany(
+        doomed.map((pattern) => ({
+          id: pattern.id,
+          text: [pattern.prompt, pattern.response]
+            .filter((text) => typeof text === "string" && text.trim())
+            .join("\n"),
+          conversationId,
+        })),
+      );
+      ledgerRecorded = recorded.length;
+    } catch (error) {
+      console.warn("[Brain] conversation deletion is not provable — ledger unavailable", error);
+    }
+
+    const forgotten = await this.memory.forgetByConversation(conversationId, options);
     const nodes = this.cognitionRuntime.forgetConversation(conversationId);
-    CognitiveTrace.getInstance().record("MEMORY_WRITE", `forgot conversation ${conversationId.slice(0, 8)}: ${memories} memory(ies), ${nodes} node(s)`, {
+    CognitiveTrace.getInstance().record("MEMORY_WRITE", `forgot conversation ${conversationId.slice(0, 8)}: ${forgotten.length} memory(ies), ${nodes} node(s)`, {
       conversationId,
-      memories,
+      memories: forgotten.length,
       nodes,
+      ledgerRecorded,
       keepPersistent: options.keepPersistent ?? true,
     });
-    return { memories, nodes };
+    return { memories: forgotten.length, nodes, ledgerRecorded, memoryIds: forgotten.map((pattern) => pattern.id) };
   }
 
 
@@ -1009,6 +1061,26 @@ export default class Brain {
 
     Promise<void> {
 
+    // A reset removes every record; before M22.6 it recorded nothing, so every
+    // project checkpoint quoting a reset memory became unprovable residue. The
+    // fingerprints are written first, in one ledger write, while the text is
+    // still in hand.
+    const doomed = this.memory.getAll();
+    try {
+      DeletionLedger.getInstance().recordMany(
+        doomed.map((pattern) => ({
+          id: pattern.id,
+          text: [pattern.prompt, pattern.response]
+            .filter((text) => typeof text === "string" && text.trim())
+            .join("\n"),
+          conversationId:
+            (pattern.context as { origin?: { originatingConversationId?: string | null } } | undefined)?.origin
+              ?.originatingConversationId ?? null,
+        })),
+      );
+    } catch (error) {
+      console.warn("[Brain] memory reset is not provable — ledger unavailable", error);
+    }
 
     await this.memory.clear();
 

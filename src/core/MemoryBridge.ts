@@ -37,6 +37,7 @@ import {
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
 import { fitContext } from "./memory/CognitiveBudget";
+import DeletionGuard from "./memory/DeletionGuard";
 import MemoryOrchestrator from "./memory/MemoryProvider";
 import { LocalMemoryProvider, OgArchiveProvider, SupabaseMemoryProvider } from "./memory/providers";
 import PersonalityMemoryProvider from "./identity/PersonalityMemoryProvider";
@@ -356,14 +357,47 @@ export default class MemoryBridge {
     // otherwise walks the required ladder: deduplicate, then compress, then
     // drop oldest. It never throws, because failing a turn to protect a
     // budget would trade one crash for another.
-    const fitted = fitContext(withHistory);
+    // DELETION GATE (M22.6, WP05.5).
+    //
+    // Everything a model can see about memory passes through here: authorized
+    // recall, synthesized memory, project checkpoints, the identity providers
+    // and the external archive. A statement the user deleted must not reach a
+    // provider even when one of those sources still holds a copy — so the gate
+    // is applied to the assembled block, after every source has contributed
+    // and before the budget trims it. Removing whole sentences can only shrink
+    // the context, so the budget below still sees a valid size.
+    const guarded = DeletionGuard.getInstance().sanitizeContext(withHistory);
+    if (guarded.removed > 0) {
+      trace.record(
+        "CONTEXT_INJECTION",
+        `removed ${guarded.removed} sentence(s) that quoted a deleted memory before the provider saw them`,
+        { removedSegments: guarded.removed, conversationId: scope.conversationId },
+      );
+    }
+    const safeContext = guarded.context;
+
+    const fitted = fitContext(safeContext);
     if (fitted.applied.length > 0) {
       console.info(
         "[MemoryBridge] Context %d → %d chars (%s) — %d removed.",
-        withHistory.length,
+        safeContext.length,
         fitted.context.length,
         fitted.applied.join(" → "),
         fitted.removed,
+      );
+    }
+
+    // FINAL PAYLOAD GATE (M22.6, WP05.5). The dialogue turns are the last place
+    // a deleted statement can hide: an earlier reply or an earlier user turn can
+    // quote it. The newest user message is deliberately NOT scrubbed — the user
+    // may be restating something on purpose, and silently deleting their own
+    // words would be a different bug (documented in known-limitations.md).
+    const dialogue = DeletionGuard.getInstance().sanitizeMessages(request.messages ?? []);
+    if (dialogue.removed > 0) {
+      trace.record(
+        "CONTEXT_INJECTION",
+        `removed ${dialogue.removed} sentence(s) that quoted a deleted memory from the dialogue turns`,
+        { removedSegments: dialogue.removed, conversationId: scope.conversationId },
       );
     }
 
@@ -393,7 +427,7 @@ Rules:
 - Answer the user's actual question with the minimum sufficient relevant information first; go deeper only when asked.
 - Say it in your own voice: the identity instructions define it. Do not open with filler, do not restate the question, and do not close with a stock offer of further help.`,
         },
-        ...(request.messages ?? []),
+        ...dialogue.messages,
       ],
     };
 
