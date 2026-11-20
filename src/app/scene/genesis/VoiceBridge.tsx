@@ -23,8 +23,27 @@
 
 import { useEffect } from "react";
 
-import VoiceEngine from "../../../core/voice/VoiceEngine";
+import VoiceEngine, { type VoiceDiagnostics } from "../../../core/voice/VoiceEngine";
 import { useGenesisState } from "./GenesisCore";
+
+/**
+ * The runtime diagnostic, readable from the page.
+ *
+ * Same convention as `window.__leluReadiness` and `window.__leluRenderStats`:
+ * the REAL pipeline state is published so an acceptance run can measure it
+ * instead of inferring it from pixels. Read-only — nothing writes back.
+ */
+declare global {
+  interface Window {
+    __leluVoice?: {
+      at: number;
+      phase: string;
+      active: boolean;
+      diagnostics: VoiceDiagnostics;
+      turnLatency: ReturnType<VoiceEngine["getTurnLatency"]>;
+    };
+  }
+}
 
 export default function VoiceBridge() {
   const { addMessage, setVoice, notify } = useGenesisState();
@@ -32,9 +51,23 @@ export default function VoiceBridge() {
   useEffect(() => {
     const engine = VoiceEngine.getInstance();
 
+    const publish = (diagnostics: VoiceDiagnostics) => {
+      const state = engine.getState();
+      window.__leluVoice = {
+        at: Date.now(),
+        phase: state.phase,
+        active: state.active,
+        diagnostics,
+        turnLatency: engine.getTurnLatency(),
+      };
+    };
+
     const unsubState = engine.onStateChange((next) => {
       setVoice(next.phase);
+      publish(engine.getDiagnostics());
     });
+
+    const unsubDiagnostics = engine.onDiagnostics(publish);
 
     const unsubUtterance = engine.onUtterance((text) => {
       addMessage({
@@ -52,6 +85,7 @@ export default function VoiceBridge() {
 
     return () => {
       unsubState();
+      unsubDiagnostics();
       unsubUtterance();
       unsubError();
     };

@@ -18,7 +18,8 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
 import { resolveFirst } from "../resolveEnv";
-import { elevenLabsReady, forgetElevenLabsStatus, speakText, stopSpeaking } from "./elevenLabsTts";
+import { elevenLabsReady, forgetElevenLabsStatus, speakText, stopSpeaking, ttsQueueDepth } from "./elevenLabsTts";
+import { toSpokenText } from "./spokenText";
 import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
@@ -256,6 +257,42 @@ export interface VoiceDiagnostics {
   audioPlaying: boolean;
   /** Furthest stage the TTS pipeline reached for the last response. */
   ttsStage: VoiceTtsStage;
+
+  /* ---- conversational responsiveness ---- */
+  /** A streamed reply is being spoken right now (begin → feed… → finish). */
+  streaming: boolean;
+  /**
+   * Streamed text dropped because a newer turn owned the conversation.
+   * A superseded turn that kept streaming is what used to speak over the
+   * user's latest question; this number is the proof it no longer does.
+   */
+  staleStreamsDropped: number;
+  /** Transcript → first streamed text, this turn (null before it happens). */
+  firstTextLatencyMs: number | null;
+  /** Transcript → first audible speech, this turn (null before it happens). */
+  firstAudioLatencyMs: number | null;
+  /** Segments synthesised ahead of playback and still waiting. */
+  ttsQueueDepth: number;
+  /** Times the user spoke over her and she stopped, this session. */
+  bargeIns: number;
+  /**
+   * The mic stays open while she speaks (full-duplex capture). Without a
+   * physical device this is the simulated path — the hardware gate is
+   * separate and stays blocked until a real microphone is used.
+   */
+  fullDuplex: boolean;
+}
+
+/**
+ * One turn's responsiveness, kept after the turn so it can be read (and
+ * measured) instead of guessed. All times are milliseconds since the
+ * transcript that started the turn.
+ */
+export interface TurnLatency {
+  turnId: string;
+  transcriptAt: number;
+  firstTextAt: number | null;
+  firstAudioAt: number | null;
 }
 
 type StateListener = (state: VoiceState) => void;
@@ -414,7 +451,23 @@ class VoiceEngine {
    * computeDiagnostics() stays synchronous for its existing callers.
    */
   private relayGroqAvailable = false;
+  /**
+   * Live pipeline facts, kept ACROSS the capability poll.
+   *
+   * The 5 s poll rebuilt diagnostics from static capability alone, which
+   * reset ttsStage/audioPlaying/transcriptReceived to their defaults while
+   * the pipeline was mid-reply — so the panel reported "idle" during speech.
+   * Capability is recomputed; what actually happened is preserved here.
+   */
+  private live: Partial<VoiceDiagnostics> = {};
   private _diagnostics: VoiceDiagnostics = this.computeDiagnostics();
+
+  /** The turn whose latency is being measured (see TurnLatency). */
+  private turnLatency: TurnLatency | null = null;
+  /** Total streamed deltas dropped as belonging to a superseded turn. */
+  private staleStreamDrops = 0;
+  /** The turn that owns streamed speech right now (see beginStreamingSpeech). */
+  private streamOwner: string | null = null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private recognition: any = null;
@@ -806,7 +859,7 @@ class VoiceEngine {
 
   /** Hand a finished reply to the agent to be spoken in her VoxCPM2 voice. */
   private speakThroughLivekit(text: string): void {
-    const clean = text.trim();
+    const clean = toSpokenText(text);
     this.patchDiagnostics({ responseReceived: true });
     if (!clean || !this.livekit) {
       this.updateState({ ...this._state, phase: "listening" });
@@ -846,9 +899,20 @@ class VoiceEngine {
       return;
     }
 
-    // Request microphone
+        // Request microphone.
+    //
+    // Echo cancellation, noise suppression and automatic gain control are
+    // asked for explicitly: the mic now stays open while she speaks (real
+    // barge-in), so the browser must remove her own output from the capture.
+    // Without this the loop transcribed her voice back as a user turn. A
+    // browser that refuses the constraints still gets a plain stream, and
+    // the echo guard in handleUserSpeech remains the second line of defence.
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices
+        .getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        })
+        .catch(() => navigator.mediaDevices.getUserMedia({ audio: true }));
       this.mediaStream = stream;
       this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
       this.updateState({
@@ -1664,6 +1728,25 @@ class VoiceEngine {
     this.updateState({ ...this._state, turnFailure: { ...failure, at: Date.now() } });
   }
 
+  /**
+   * The first audible sound of this turn. Recorded once, from the engine's
+   * real play/start event — never from a timer that assumes it played.
+   */
+  private noteFirstAudio(): void {
+    const latency = this.turnLatency;
+    if (!latency) return;
+    if (latency.firstAudioAt === null) latency.firstAudioAt = Date.now();
+    this.patchDiagnostics({
+      firstAudioLatencyMs: latency.firstAudioAt - latency.transcriptAt,
+      firstTextLatencyMs: latency.firstTextAt === null ? null : latency.firstTextAt - latency.transcriptAt,
+    });
+  }
+
+  /** The last turn's measured responsiveness (transcript → text → audio). */
+  getTurnLatency(): TurnLatency | null {
+    return this.turnLatency;
+  }
+
   private cancelInFlightTurn(reason: string): void {
     if (this._turn && this._turn.response === null) {
       this.noteFailure({ kind: "user-cancellation", message: `Stopped (${reason}).` });
@@ -1707,6 +1790,14 @@ class VoiceEngine {
     }
 
     const turnId = crypto.randomUUID();
+    // The clock this turn's responsiveness is measured from: the moment the
+    // transcriber finished, not the moment she started speaking.
+    this.turnLatency = {
+      turnId,
+      transcriptAt: this.lastTranscription?.at ?? Date.now(),
+      firstTextAt: null,
+      firstAudioAt: null,
+    };
     this._turn = {
       id: turnId,
       user: text,
@@ -1725,6 +1816,35 @@ class VoiceEngine {
       // The conversation the user was in when they spoke owns the reply,
       // even if they switch before it arrives.
       const conversationId = MultiChatStore.getInstance().getActiveId();
+      // STREAMING SPEECH FOR A SPOKEN TURN.
+      //
+      // This path used to await chat() and speak the finished reply, so a
+      // spoken turn heard nothing until the whole answer had been generated
+      // (M22.7: transcript → first TTS request median 3.0 s, worst 9.82 s).
+      // Every sentence the model completes is now spoken while the rest is
+      // still being written, exactly as a typed reply already was.
+      //
+      // OWNERSHIP: a delta is spoken only while THIS turn is the current one
+      // and only for its conversation. A superseded turn's stream keeps
+      // arriving for a moment after its abort; without this check it spoke
+      // over the newer question (the M22.7 reply-drift defect).
+      const streamOwner = crypto.randomUUID();
+      let streamStarted = false;
+      const unsubscribeStream = ai.subscribeStream((event) => {
+        if (this._turn?.id !== turnId) return;
+        if (event.conversationId && conversationId && event.conversationId !== conversationId) return;
+        if (!event.text) return;
+        const latency = this.turnLatency;
+        if (latency?.turnId === turnId && latency.firstTextAt === null) {
+          latency.firstTextAt = Date.now();
+          this.patchDiagnostics({ firstTextLatencyMs: latency.firstTextAt - latency.transcriptAt });
+        }
+        if (!streamStarted) {
+          streamStarted = true;
+          this.beginStreamingSpeech(streamOwner);
+        }
+        this.feedStreamingSpeech(event.text, streamOwner);
+      });
       // A shared screen rides along with the spoken turn, as with typed ones.
       const { default: ScreenShare } = await import("../perception/ScreenShare");
       const seen = ScreenShare.getInstance().attachmentsFor(text);
@@ -1741,12 +1861,18 @@ class VoiceEngine {
         ...(conversationId ? { conversationId } : {}),
         ...(transcript ? { transcript } : {}),
       };
-      const response = await ai.chat(
-        text,
-        seen.length > 0 ? seen : undefined,
-        note,
-        Object.keys(chatOptions).length > 0 ? chatOptions : undefined,
-      );
+      let response: Awaited<ReturnType<typeof ai.chat>>;
+      try {
+        response = await ai.chat(
+          text,
+          seen.length > 0 ? seen : undefined,
+          note,
+          Object.keys(chatOptions).length > 0 ? chatOptions : undefined,
+        );
+      } finally {
+        // The stream is this turn's; it ends when the turn does.
+        unsubscribeStream();
+      }
 
       if (this._turn?.id === turnId) {
         // A failure notice is not her answer: it is shown in the
@@ -1755,6 +1881,9 @@ class VoiceEngine {
         // was spoken as the answer on 18 of 20 turns).
         const failure = failureFromResponse(response as { text?: string; provider?: string; metadata?: Record<string, unknown> });
         if (failure) {
+          // A failure notice is not spoken, and anything already spoken from
+          // a partial stream stops: the notice is shown, never read aloud.
+          if (streamStarted) this.cancelSpeech();
           this._turn = { ...this._turn, response: response.text, failure };
           this.emitTurn(this._turn);
           this.updateState({ ...this._state, phase: "listening", turnFailure: { ...failure, at: Date.now() } });
@@ -1763,7 +1892,10 @@ class VoiceEngine {
         this._turn = { ...this._turn, response: response.text };
         this.emitTurn(this._turn);
         this.updateState({ ...this._state, phase: "speaking" });
-        this.speakResponse(response.text);
+        // A reply that already streamed is FINISHED, not restarted: the
+        // sentences behind the cursor were spoken, only the tail is left.
+        if (streamStarted) this.finishStreamingSpeech(response.text, streamOwner);
+        else this.speakResponse(response.text);
       }
     } catch (error) {
       console.error("[VoiceEngine] Chat failed:", error);
@@ -1886,8 +2018,10 @@ class VoiceEngine {
       const segment = segments[index];
       index += 1;
       void speakText(segment, {
-        onStart: () =>
-          this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" }),
+        onStart: () => {
+          this.noteFirstAudio();
+          this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
+        },
         onEnd: () => next(),
         onFail: () => {
           // Her voice failed mid-reply: say the rest with the browser engine
@@ -1962,8 +2096,19 @@ class VoiceEngine {
       this.updateState({ ...this._state, phase: "listening" });
       return;
     }
+    // WHAT IS RENDERED IS NOT WHAT IS SPEAKEN (spokenText.ts): an emoji, a
+    // heading or "**bold**" is visual, and reading the characters aloud was
+    // one of the M22.7 defects.
+    const spoken = toSpokenText(text);
+    if (!spoken) {
+      // Nothing pronounceable at all (a reply that was only an emoji or only
+      // a code block): no provider is asked to synthesise silence.
+      this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
+      this.updateState({ ...this._state, phase: "listening" });
+      return;
+    }
 
-    this.lastSpokenText = text.trim();
+    this.lastSpokenText = spoken;
     this.cancelFlag = false;
     // speaking flag is managed by cancelFlag and phase state
 
@@ -1971,11 +2116,11 @@ class VoiceEngine {
     // the speaker, on every machine. The browser engine stays the fallback.
     void this.probeElevenLabs();
     if (this.elevenLabs) {
-      this.speakThroughElevenLabs(text.trim());
+      this.speakThroughElevenLabs(spoken);
       return;
     }
 
-    const chunks = chunkForSpeech(text.trim());
+    const chunks = chunkForSpeech(spoken);
     let index = 0;
     this.chainActive = true;
 
@@ -2032,6 +2177,7 @@ class VoiceEngine {
     this.cancelFlag = true;
     this.chainActive = false;
     this.streaming = false;
+    this.patchDiagnostics({ streaming: false });
     // Real audio, not just the browser queue: barge-in must stop a playing
     // MP3 too, or she keeps talking over the user.
     stopSpeaking();
@@ -2069,11 +2215,21 @@ class VoiceEngine {
   private streamCursor = 0;
   private streamFinalizing = false;
 
-  beginStreamingSpeech(): void {
+  /**
+   * Open a streamed reply. `owner` names the turn that owns it; every
+   * subsequent feed/finish from a DIFFERENT owner is dropped, so a reply
+   * that was superseded can never speak over the newer one.
+   *
+   * Returns the owner actually in force (a generated one when the caller
+   * does not name itself, which keeps older callers working).
+   */
+  beginStreamingSpeech(owner?: string): string {
+    const ownerId = owner ?? crypto.randomUUID();
+    this.streamOwner = ownerId;
     if (this.livekit) {
       // The agent speaks whole replies; nothing is queued per token here.
       this.cancelSpeech();
-      return;
+      return ownerId;
     }
     this.cancelSpeech();
     this.cancelFlag = false;
@@ -2081,10 +2237,26 @@ class VoiceEngine {
     this.streamFinalizing = false;
     this.streaming = true;
     this.lastSpokenText = "";
+    this.patchDiagnostics({ streaming: true });
     this.updateState({ ...this._state, phase: "speaking" });
+    return ownerId;
   }
 
-  feedStreamingSpeech(fullText: string): void {
+  /**
+   * Is this feed still allowed to speak? A reply whose turn has been
+   * superseded is dropped AND counted, so the drop is visible evidence
+   * rather than silence that looks like a bug.
+   */
+  private ownsStream(owner?: string): boolean {
+    if (!owner || !this.streamOwner) return true;
+    if (owner === this.streamOwner) return true;
+    this.staleStreamDrops += 1;
+    this.patchDiagnostics({ staleStreamsDropped: this.staleStreamDrops });
+    return false;
+  }
+
+  feedStreamingSpeech(fullText: string, owner?: string): void {
+    if (!this.ownsStream(owner)) return;
     if (this.livekit) return;
     // Which speaker to use is answered by the server ONCE per session. Before
     // that answer arrives the browser engine used to take the first
@@ -2120,25 +2292,32 @@ class VoiceEngine {
     const segment = match[0].trim();
     this.streamCursor += match[0].length;
     if (!segment) return;
-    // What she says is what the echo check compares against; streamed
-    // replies used to leave it empty, so her own voice could come back
-    // through the open mic as a user turn.
-    this.lastSpokenText = fullText.slice(0, this.streamCursor).trim();
+    // WHAT IS SPOKEN IS NOT WHAT IS RENDERED. Markdown, emoji, list markers
+    // and numeric notation are visual; the speaker gets the words a person
+    // would say (spokenText.ts). A segment with nothing pronounceable
+    // ("🚀" alone) advances the cursor and is not sent to a provider.
+    const spoken = toSpokenText(segment);
+    if (!spoken) return;
+    // What she actually said is what the echo check compares against;
+    // streamed replies used to record the rendered text instead.
+    this.lastSpokenText = `${this.lastSpokenText} ${spoken}`.trim().slice(-800);
     void this.probeElevenLabs();
     if (this.elevenLabs) {
-      // speakText() serialises, so streamed sentences stay in order and in
-      // the same voice.
-      this.speakStreamSegment(segment);
+      // speakText() queues in order, and synthesises ahead, so streamed
+      // sentences stay in order, in the same voice, without a gap between
+      // them while the next one is being generated.
+      this.speakStreamSegment(spoken);
       return;
     }
     try {
-      speechSynthesis.speak(this.createUtterance(segment));
+      speechSynthesis.speak(this.createUtterance(spoken));
     } catch {
       // Speech queue failures must never break chat.
     }
   }
 
-  finishStreamingSpeech(fullText: string): void {
+  finishStreamingSpeech(fullText: string, owner?: string): void {
+    if (!this.ownsStream(owner)) return;
     if (this.livekit) {
       this.speakThroughLivekit(fullText);
       return;
@@ -2152,11 +2331,11 @@ class VoiceEngine {
     }
     this.streamFinalizing = true;
     this.streaming = false;
+    this.patchDiagnostics({ streaming: false });
     if ((typeof speechSynthesis === "undefined" && !this.elevenLabs) || this.cancelFlag) {
       this.settleSpeech();
       return;
     }
-    if (fullText.trim()) this.lastSpokenText = fullText.trim();
     const rest = fullText.slice(this.streamCursor).trim();
     if (!rest) {
       // Everything was already queued — or nothing was said at all. Either
@@ -2165,12 +2344,15 @@ class VoiceEngine {
       return;
     }
     for (const chunk of chunkForSpeech(rest)) {
+      const spoken = toSpokenText(chunk);
+      if (!spoken) continue;
+      this.lastSpokenText = `${this.lastSpokenText} ${spoken}`.trim().slice(-800);
       if (this.elevenLabs) {
-        this.speakStreamSegment(chunk);
+        this.speakStreamSegment(spoken);
         continue;
       }
       try {
-        speechSynthesis.speak(this.createUtterance(chunk));
+        speechSynthesis.speak(this.createUtterance(spoken));
       } catch {
         // ignore
       }
@@ -2190,7 +2372,7 @@ class VoiceEngine {
   private speakStreamSegment(segment: string): void {
     this.streamSegmentsPending += 1;
     this.chainActive = true;
-    void speakText(segment).finally(() => {
+    void speakText(segment, { onStart: () => this.noteFirstAudio() }).finally(() => {
       this.streamSegmentsPending = Math.max(0, this.streamSegmentsPending - 1);
       if (this.streamSegmentsPending === 0) {
         this.chainActive = false;
@@ -2308,6 +2490,7 @@ class VoiceEngine {
       setTimeout(() => this.settleSpeech(), 0);
     };
     utterance.addEventListener("start", () => {
+      this.noteFirstAudio();
       this.emitSpeechActivity({ speaking: true, kind: "start", text, at: Date.now() });
     });
     utterance.addEventListener("boundary", (event: Event) => {
@@ -2390,12 +2573,26 @@ class VoiceEngine {
       audioGenerated: false,
       audioPlaying: false,
       ttsStage: "idle",
+
+      streaming: false,
+      staleStreamsDropped: this.staleStreamDrops,
+      firstTextLatencyMs: null,
+      firstAudioLatencyMs: null,
+      ttsQueueDepth: ttsQueueDepth(),
+      bargeIns: this.bargeIns,
+      fullDuplex: this.whisperFallbackActive,
+
+      // What actually happened outranks the defaults above: capability is
+      // recomputed on every poll, the pipeline's own facts are preserved.
+      ...this.live,
     };
   }
 
   /** Patch live diagnostics and notify listeners — the ONE place the
    *  pipeline reports what it actually did. */
   private patchDiagnostics(patch: Partial<VoiceDiagnostics>): void {
+    // Kept so a capability poll cannot reset what the pipeline just did.
+    this.live = { ...this.live, ...patch };
     this._diagnostics = { ...this._diagnostics, ...patch };
     for (const listener of this.diagnosticsListeners) {
       try {

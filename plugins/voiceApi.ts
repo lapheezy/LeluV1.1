@@ -53,7 +53,7 @@
 
 /** Anything that resolves an environment name, like vite's envReader. */
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
@@ -94,6 +94,10 @@ interface ConnectLikeRes {
   statusCode?: number;
   setHeader: (name: string, value: string) => void;
   end: (body?: string | Uint8Array) => void;
+  /** Present on a real ServerResponse: incremental audio is written here. */
+  write?: (chunk: Uint8Array) => void;
+  on?: (event: "close" | "error", listener: () => void) => void;
+  flushHeaders?: () => void;
 }
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
@@ -290,6 +294,92 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     return config ? `local-piper:${basename(config.model).replace(/\.onnx$/, "")}` : null;
   }
 
+  /**
+   * The local model's own sample rate, read from the voice's config file next
+   * to the model ("audio": {"sample_rate": 16000}). Never guessed: raw PCM
+   * played at the wrong rate is a chipmunk, and the config is the authority.
+   */
+  function localVoiceSampleRate(): number {
+    const config = localVoiceConfig();
+    if (!config) return 16_000;
+    try {
+      const parsed = JSON.parse(readFileSync(`${config.model}.json`, "utf8")) as {
+        audio?: { sample_rate?: unknown };
+      };
+      const rate = Number(parsed.audio?.sample_rate);
+      return Number.isFinite(rate) && rate > 0 ? rate : 16_000;
+    } catch {
+      return 16_000;
+    }
+  }
+
+  /**
+   * INCREMENTAL LOCAL SPEECH (Mission 22.8, WP02).
+   *
+   * Piper's `--output_raw` emits 16-bit mono PCM as it is generated, so the
+   * first audible sample can reach the page while the rest of the sentence
+   * is still being synthesised. Before this the route waited for the whole
+   * WAV to be written to a temporary file and read back, which is where the
+   * 0.8–2 s between "first text" and "first audio" went.
+   *
+   * The response is `audio/L16` with its real rate in the header, chunked so
+   * a barge-in can abort it: closing the response kills the synthesiser
+   * instead of letting it finish a sentence nobody will hear.
+   */
+  function synthesizeLocalStream(text: string, res: ConnectLikeRes): void {
+    const config = localVoiceConfig();
+    if (!config || typeof res.write !== "function") {
+      sendJson(res, { ok: false, error: "No streaming speech engine is configured." }, 503);
+      return;
+    }
+    const rate = localVoiceSampleRate();
+    const child = execFile(
+      config.bin,
+      ["--model", config.model, "--output_raw"],
+      // `encoding: "buffer"`: audio is bytes, not UTF-8 text. Without it every
+      // sample above 0x7F is replaced by U+FFFD and the reply is noise.
+      { timeout: 60_000, maxBuffer: 64 * 1024 * 1024, encoding: "buffer" },
+    );
+    let sent = 0;
+    let failed = false;
+    res.statusCode = 200;
+    res.setHeader("Content-Type", `audio/L16;rate=${rate};channels=1`);
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Lelu-Voice-Provider", localVoiceId() ?? "local-piper");
+    res.setHeader("X-Lelu-Sample-Rate", String(rate));
+    res.setHeader("X-Lelu-Streaming", "pcm16");
+    // Headers are NOT flushed here: nothing is committed until the first
+    // sample exists, so a synthesiser that produces nothing can still be
+    // reported as a failure instead of as an empty 200.
+
+    child.stdout?.on("data", (chunk: Uint8Array) => {
+      if (failed) return;
+      sent += chunk.length;
+      res.write?.(chunk);
+    });
+    child.on("error", () => {
+      failed = true;
+      if (sent === 0) {
+        sendJson(res, { ok: false, error: "The local speech engine failed." }, 502);
+        return;
+      }
+      res.end();
+    });
+    child.on("close", () => {
+      // A synthesiser that produced nothing is a failure, not silence.
+      if (!failed && sent === 0) {
+        sendJson(res, { ok: false, error: "The local speech engine produced no audio." }, 502);
+        return;
+      }
+      res.end();
+    });
+    // The client stopped listening (barge-in, navigation): stop generating.
+    res.on?.("close", () => {
+      if (!child.killed) child.kill();
+    });
+    child.stdin?.end(text);
+  }
+
   /** Synthesise with the local engine; resolves to WAV bytes or null. */
   async function synthesizeLocal(text: string): Promise<Buffer | null> {
     const config = localVoiceConfig();
@@ -387,6 +477,13 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       }
       if (keyCount === 0) {
         // No paid account: speak with the free local engine when it is set up.
+        const wantsStream =
+          body.stream === true ||
+          new URL(req.url ?? "/", "http://localhost").searchParams.get("stream") === "1";
+        if (wantsStream) {
+          synthesizeLocalStream(text, res);
+          return;
+        }
         const started = Date.now();
         const audio = await synthesizeLocal(text);
         if (!audio) {
@@ -652,6 +749,86 @@ export function createVoiceApi(readEnv?: ReadEnv): {
   }
 
   /**
+   * THE RUNTIME DIAGNOSTIC (Mission 22.8, WP06).
+   *
+   * One answer that says which components of a voice conversation are
+   * actually in place on THIS server: the transcriber, the response
+   * providers' reachability is the client's to report, the speaker, whether
+   * that speaker is her identity or an honest fallback, and whether the
+   * streaming and interruption paths are the ones this build runs.
+   *
+   * It makes NO network call and reads NO key: a diagnostic that spends
+   * credit or claims an upstream is healthy because a socket opened is worse
+   * than none. What cannot be known from here (a physical microphone, a
+   * speaker, the browser's echo cancellation) is reported as the CLIENT's
+   * fact and marked unverified rather than assumed present.
+   */
+  function handleDiagnostic(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
+    if ((req.method ?? "GET") !== "GET") {
+      next();
+      return;
+    }
+    if (!admit(req, res, "diagnostic", RESOURCES_LIMIT)) return;
+    const { keyCount, sttModelId } = voiceConfig();
+    const local = localVoiceConfig();
+    const spend = spendPolicy().check("elevenlabs", { operation: "tts" }, { peek: true });
+    const elevenLabsUsable = keyCount > 0 && spend.allowed;
+    const identity = voiceIdentity();
+    const ttsProvider = elevenLabsUsable ? "elevenlabs" : local ? "local-piper" : "none";
+    sendJson(res, {
+      ok: true,
+      at: Date.now(),
+      server: "ok",
+      asr: {
+        provider: elevenLabsUsable ? "elevenlabs-scribe" : "groq-whisper-relay",
+        model: elevenLabsUsable ? sttModelId : "whisper-large-v3-turbo",
+        configured: true,
+      },
+      ai: {
+        // The response providers are the client's to probe: this route does
+        // not open a socket to a paid model to answer a diagnostic.
+        provider: "client-reported",
+        note: "see VoiceEngine diagnostics (responseReceived, turnFailure)",
+      },
+      tts: {
+        provider: ttsProvider,
+        configured: ttsProvider !== "none",
+        voiceId: ttsProvider === "elevenlabs" ? identity.voiceId : ttsProvider === "local-piper" ? localVoiceId() : null,
+        modelId: ttsProvider === "elevenlabs" ? identity.modelId : null,
+        localBinary: Boolean(local),
+      },
+      voiceIdentity: {
+        name: identity.name,
+        provider: ttsProvider === "elevenlabs" ? identity.provider : ttsProvider === "local-piper" ? "piper" : "none",
+        // Piper is a placeholder voice, never presented as her clone.
+        status: ttsProvider === "elevenlabs" ? "identity" : ttsProvider === "local-piper" ? "fallback" : "absent",
+        cloned: false,
+      },
+      streaming: {
+        sentenceStreaming: true,
+        synthesisAhead: true,
+        firstAudioMeasured: true,
+      },
+      interruption: {
+        fullDuplexCapture: true,
+        bargeIn: "energy-vad + transcript ownership",
+        echoCancellationRequested: true,
+      },
+      hardware: {
+        // The server has no microphone or speaker to inspect.
+        verified: false,
+        reportedBy: "client",
+        note: "microphone, speaker and echo cancellation are client facts; hardware acceptance is a separate, physical test",
+      },
+      voxcpm: {
+        configured: Boolean(readSecret(readEnv, ["VOXCPM_BASE_URL"]) || readSecret(readEnv, ["VOXCPM_WORKERS"])),
+        // Not probed here: the worker's own /health is the authority.
+        reachable: "unprobed",
+      },
+    });
+  }
+
+  /**
    * Sanitized operational status for the dashboard: allowance, cooldowns,
    * failures, history and availability. No key, no environment name and no
    * upstream response body ever appears here — accounts are opaque ids.
@@ -795,6 +972,7 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       middlewares.use("/api/voice/resources/replenish", handleReplenish);
       middlewares.use("/api/voice/resources", handleResources);
       middlewares.use("/api/voice/status", handleStatus);
+      middlewares.use("/api/voice/diagnostic", handleDiagnostic);
       middlewares.use("/api/voice/tts", handleTts);
       middlewares.use("/api/voice/stt", handleStt);
     },
