@@ -237,6 +237,52 @@ export default class DeletionGuard {
     return { messages: next, removed };
   }
 
+  /**
+   * Scrub every string inside a record before it is written elsewhere (M22.7).
+   *
+   * Derived stores — the identity record, the daily journal, the curiosity
+   * ledger, knowledge entries, cognitive event payloads — are re-serialised
+   * copies of things LÉLU concluded, not the user's own transcript. A deletion
+   * that only filtered reads left those copies intact, and each sync then
+   * uploaded the deleted sentence again under a different shape. This walks the
+   * object once, at the outbound seam, and removes it there.
+   *
+   * Deliberately conservative: only strings are touched, depth and node counts
+   * are bounded so a pathological object cannot stall a sync, and the same
+   * object reference is returned when nothing matched (the common case).
+   */
+  public scrubDeep<T>(value: T): T {
+    const index = this.currentIndex();
+    if (index.bySize.size === 0) return value;
+    if (typeof value === "string") return this.scrub(value).text as unknown as T;
+    if (value === null || typeof value !== "object") return value;
+
+    const MAX_DEPTH = 6;
+    const MAX_NODES = 2_000;
+    let nodes = 0;
+    let touched = false;
+
+    const walk = (input: unknown, depth: number): unknown => {
+      if (nodes >= MAX_NODES || depth > MAX_DEPTH) return input;
+      nodes += 1;
+      if (typeof input === "string") {
+        const result = this.scrub(input);
+        if (result.removed > 0) touched = true;
+        return result.text;
+      }
+      if (Array.isArray(input)) return input.map((item) => walk(item, depth + 1));
+      if (!input || typeof input !== "object") return input;
+      const output: Record<string, unknown> = {};
+      for (const [key, item] of Object.entries(input as Record<string, unknown>)) {
+        output[key] = walk(item, depth + 1);
+      }
+      return output;
+    };
+
+    const scrubbed = walk(value, 0) as T;
+    return touched ? scrubbed : value;
+  }
+
   /** Counts only. Safe to show in a diagnostic panel or evidence file. */
   public stats(): GuardStats {
     const stored = this.kv.get<GuardStats>(GUARD_STATS_KEY);

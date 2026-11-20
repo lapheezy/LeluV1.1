@@ -19,6 +19,8 @@ import LeluIdentity, { type LeluIdentityState } from "../identity/LeluIdentity";
 import DailyRecord, { type DailyStore } from "../identity/DailyRecord";
 import CuriosityLedger, { type LedgerSnapshot } from "../curiosity/CuriosityLedger";
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+import DeletionLedger, { MAX_REMOTE_ATTEMPTS } from "../memory/DeletionLedger";
+import DeletionGuard from "../memory/DeletionGuard";
 
 /**
  * LÉLU's development records, synced as per-user documents in the EXISTING
@@ -95,6 +97,9 @@ const PAGE_KEY: Record<string, string> = {
   user_preferences: "preference_key",
   // Keyed (user_id, provider).
   api_health: "provider",
+  // M22.7: keyed (user_id, memory_id) — again no `id` column, and the whole
+  // point of reading it is that ids are unique for this user.
+  memory_tombstones: "memory_id",
 };
 
 /** The stable sort key for a table. */
@@ -118,6 +123,8 @@ export default class SupabasePersistence {
   private attached = false;
   private readonly developmentTimers = new Map<string, BackgroundTimer>();
   private hydrated = false;
+  /** False until a read proves this deployment has the M22.7 tombstone table. */
+  private tombstonesAvailable = false;
   /** True only once conversations AND every message page have been collected. */
   private historyHydrated = false;
   private historyProgress: { loaded: number; total: number } = { loaded: 0, total: 0 };
@@ -391,6 +398,10 @@ export default class SupabasePersistence {
 
     await this.hydrateCoreStores(brain, user);
 
+    // Deletions that could not reach the cloud before this device went offline
+    // are retried now, once, and not awaited: sign-in must not wait on them.
+    void this.flushDeletionOutbox();
+
     // Deliberately not awaited: conversation history is large and the
     // interface is usable without it. It merges in as it arrives.
     void this.hydrateConversationHistory();
@@ -414,6 +425,16 @@ export default class SupabasePersistence {
       }
     };
 
+    // Deletions made elsewhere (another device, an earlier session) arrive as
+    // ids before any memory row is merged (M22.7, WP03). Adopting them first is
+    // what makes a fresh browser refuse the deleted statement instead of
+    // learning it from the mirror for the first time.
+    //
+    // Read CONCURRENTLY with the stores: awaiting it first would add a whole
+    // round trip to sign-in, and the ids are only needed at merge time, which
+    // happens after every read has landed.
+    const remoteDeletionRead = this.readRemoteDeletions();
+
     const [
       memoryRows, projectRows, agentRows, questionRows,
       knowledgeRows, improvementRows, uiRows, newsRows, preferenceRows,
@@ -429,8 +450,24 @@ export default class SupabasePersistence {
       read("user_preferences"),
     ]);
 
+    const remoteDeletions = await remoteDeletionRead;
+    const adopted = DeletionLedger.getInstance().adoptRemote(remoteDeletions);
+    if (adopted > 0) {
+      console.info(`[Lélu] adopted ${adopted} deletion(s) recorded on the server`);
+    }
+    const deletedIds = new Set([
+      ...remoteDeletions,
+      ...DeletionLedger.getInstance().entries().map((entry) => entry.id),
+    ]);
+
     try {
-      const memories = memoryRows.map((row) => this.toMemory(row)).filter((item): item is ResponsePattern => Boolean(item));
+      // The server refuses a tombstoned id; a row that survived an older
+      // schema, or arrived in the same read that taught us the tombstone, is
+      // dropped here rather than merged (defence in depth, not the only gate).
+      const memories = memoryRows
+        .filter((row) => !deletedIds.has(String(row.id)))
+        .map((row) => this.toMemory(row))
+        .filter((item): item is ResponsePattern => Boolean(item));
       await brain.mergeMemories(memories);
       ProjectStore.getInstance().mergeRemote(projectRows.map((row) => this.toProject(row)).filter((item): item is LeluProject => Boolean(item)));
       AgentStore.getInstance().mergeRemote(agentRows.map((row) => this.toAgent(row)).filter((item): item is LeluAgent => Boolean(item)));
@@ -616,21 +653,67 @@ export default class SupabasePersistence {
         : key === DEVELOPMENT_SYNC_KEYS.daily
           ? DailyRecord.getInstance().snapshot()
           : CuriosityLedger.getInstance().snapshot();
-    await this.write("user_preferences", [{ user_id: this.userId, preference_key: key, value, updated_at: new Date().toISOString() }], "user_preferences");
+    // These records are conclusions drawn from memory, so a deleted statement
+    // can survive inside them and be uploaded again on every sync (M22.7,
+    // WP05/WP06). Scrubbed at the outbound seam, not rewritten in the store: the
+    // local copy stays the user's own record and is filtered on read.
+    const scrubbed = DeletionGuard.getInstance().scrubDeep(value);
+    await this.write("user_preferences", [{ user_id: this.userId, preference_key: key, value: scrubbed, updated_at: new Date().toISOString() }], "user_preferences");
   }
 
+  /* ------------------------------------------------------------------ *
+   * Remote memory deletion (M22.6 introduced it, M22.7 made it durable)
+   * ------------------------------------------------------------------ */
+
   /**
-   * Remove one deleted memory's cloud mirror row (M22.6, WP02).
+   * Remove one deleted memory's cloud copy AND leave server-side evidence.
    *
    * `memory_items` is a mirror of the local store: hydration merges it back in
-   * on another device, and the external-context provider reads it. A local
-   * deletion that left the row behind would keep the statement alive in the
-   * one place M22.5 never looked. Best-effort by design — a signed-out or
-   * offline device must not fail a deletion — and the caller is told whether
-   * the cloud copy was actually removed.
+   * on another device, so a row left behind keeps the statement alive. M22.6
+   * deleted the row, which was not enough — with no tombstone the same id could
+   * be uploaded again by any client that had not seen the deletion.
+   *
+   * `erase_memory` does both in one transaction, scoped to auth.uid() by the
+   * database. Returns what the caller needs to be honest about:
+   *   ok         the server answered and the tombstone is in place
+   *   tombstoned false when only an older schema (no function) was available,
+   *              so the row is gone but a stale upload could still return
+   *   reason     short upstream code for the outbox and the status surface
    */
-  public async forgetMemory(id: string): Promise<boolean> {
-    if (!this.isConnected() || !this.client) return false;
+  public async forgetMemory(
+    id: string,
+    fingerprint = "",
+  ): Promise<{ ok: boolean; removed: number; tombstoned: boolean; reason: string | null }> {
+    if (!this.isConnected() || !this.client) {
+      return { ok: false, removed: 0, tombstoned: false, reason: "signed_out" };
+    }
+    try {
+      const { data, error } = await this.withTimeout(
+        Promise.resolve(this.client.rpc("erase_memory", { p_id: id, p_fingerprint: fingerprint })),
+        CORE_HYDRATE_TIMEOUT_MS,
+        "Supabase memory erase",
+      );
+      if (error) throw error;
+      const removed = typeof data === "number" ? data : 0;
+      return { ok: true, removed, tombstoned: true, reason: null };
+    } catch (error) {
+      const reason = this.describeRemoteError(error);
+      // The function does not exist yet on this deployment. Deleting the row is
+      // still better than leaving it, but the caller must not be told the
+      // deletion is protected server-side.
+      if (/PGRST202|does not exist|function .*erase_memory/i.test(reason)) {
+        const fallback = await this.deleteMemoryRow(id);
+        return { ok: fallback.ok, removed: fallback.removed, tombstoned: false, reason: fallback.ok ? "no_tombstone_function" : fallback.reason };
+      }
+      this.status = "degraded";
+      console.warn("[Lélu] Supabase memory erasure failed (contained)", reason);
+      return { ok: false, removed: 0, tombstoned: false, reason };
+    }
+  }
+
+  /** The pre-tombstone path, kept only as the fallback above. */
+  private async deleteMemoryRow(id: string): Promise<{ ok: boolean; removed: number; reason: string | null }> {
+    if (!this.client) return { ok: false, removed: 0, reason: "signed_out" };
     try {
       const { error } = await this.withTimeout(
         Promise.resolve(this.client.from("memory_items").delete().eq("id", id).eq("user_id", this.userId)),
@@ -638,17 +721,98 @@ export default class SupabasePersistence {
         "Supabase memory deletion",
       );
       if (error) throw error;
-      return true;
+      return { ok: true, removed: 1, reason: null };
     } catch (error) {
-      this.status = "degraded";
-      console.warn("[Lélu] Supabase memory deletion failed (contained)", error);
-      return false;
+      return { ok: false, removed: 0, reason: this.describeRemoteError(error) };
     }
+  }
+
+  /** A short, text-free code for an upstream failure (never the statement). */
+  private describeRemoteError(error: unknown): string {
+    const candidate = error as { code?: string; message?: string; status?: number } | null;
+    if (candidate?.code) return String(candidate.code);
+    if (candidate?.status) return `http_${candidate.status}`;
+    const message = String(candidate?.message ?? error ?? "unknown");
+    return message.slice(0, 80);
+  }
+
+  /**
+   * Retry deletions the cloud has not confirmed.
+   *
+   * Bounded twice over: at most MAX_REMOTE_ATTEMPTS per id, and one attempt per
+   * id per flush, so an offline device cannot spin. Called after sign-in and
+   * after hydration — not on a timer.
+   */
+  public async flushDeletionOutbox(): Promise<{ attempted: number; cleared: number; remaining: number }> {
+    const ledger = DeletionLedger.getInstance();
+    const queue = ledger.remoteQueue().filter((entry) => entry.attempts < MAX_REMOTE_ATTEMPTS);
+    if (!this.isConnected() || queue.length === 0) {
+      return { attempted: 0, cleared: 0, remaining: ledger.remoteQueue().length };
+    }
+    let cleared = 0;
+    for (const entry of queue) {
+      const result = await this.forgetMemory(entry.id, entry.fingerprint);
+      if (result.ok) {
+        ledger.dropRemote(entry.id);
+        cleared += 1;
+      } else {
+        ledger.noteRemoteAttempt(entry.id, result.reason);
+      }
+    }
+    if (cleared > 0) console.info(`[Lélu] ${cleared} unconfirmed deletion(s) are now removed from the cloud`);
+    return { attempted: queue.length, cleared, remaining: ledger.remoteQueue().length };
+  }
+
+  /**
+   * Ids the server says were deleted for this user.
+   *
+   * A missing table is not an error the user should see: it means the tombstone
+   * migration is not applied on this deployment yet, which is reported in the
+   * integrity status as `tombstones: false` rather than degrading hydration.
+   */
+  private async readRemoteDeletions(): Promise<string[]> {
+    if (!this.isConnected() || !this.client) return [];
+    try {
+      const rows = await this.withTimeout(
+        this.read("memory_tombstones"),
+        CORE_HYDRATE_TIMEOUT_MS,
+        "Supabase memory_tombstones hydrate",
+      );
+      this.tombstonesAvailable = true;
+      return rows.map((row) => String(row.memory_id ?? "")).filter(Boolean);
+    } catch (error) {
+      this.tombstonesAvailable = false;
+      console.warn("[Lélu] server-side deletions could not be read (contained)", this.describeRemoteError(error));
+      return [];
+    }
+  }
+
+  /** Whether this deployment's schema carries the M22.7 tombstone table. */
+  public hasServerTombstones(): boolean {
+    return this.tombstonesAvailable;
+  }
+
+  /** Cloud side of the memory integrity picture, for the status surface. */
+  public memoryCloudStatus(): { connected: boolean; tombstones: boolean; pendingDeletions: number } {
+    return {
+      connected: this.isConnected(),
+      tombstones: this.tombstonesAvailable,
+      pendingDeletions: DeletionLedger.getInstance().remoteSummary().pending,
+    };
   }
 
   public async persistMemories(memories: ResponsePattern[]): Promise<void> {
     if (!this.isConnected() || memories.length === 0) return;
-    await this.write("memory_items", memories.map((memory) => ({
+    // An upload must never re-create a deleted memory. The database refuses a
+    // tombstoned id (M22.7 migration); this keeps the request from carrying it
+    // at all, so a batch is not failed by one deleted record.
+    const ledger = DeletionLedger.getInstance();
+    const allowed = memories.filter((memory) => !ledger.has(memory.id));
+    if (allowed.length !== memories.length) {
+      console.info(`[Lélu] ${memories.length - allowed.length} deleted memory(ies) withheld from upload`);
+    }
+    if (allowed.length === 0) return;
+    await this.write("memory_items", allowed.map((memory) => ({
       id: memory.id, user_id: this.userId, category: memory.category,
       memory_type: memory.memoryType ?? "user", prompt: memory.prompt.slice(0, 2000),
       response: memory.response.slice(0, 6000), keywords: memory.keywords.slice(0, 40),
@@ -670,9 +834,10 @@ export default class SupabasePersistence {
 
   public async persistKnowledge(entries: KnowledgeEntry[]): Promise<void> {
     if (!this.isConnected() || entries.length === 0) return;
+    const guard = DeletionGuard.getInstance();
     await this.write("knowledge_items", entries.map((entry) => ({
-      id: entry.id, user_id: this.userId, title: entry.title, domain: entry.domain,
-      detail: entry.detail.slice(0, 4000), source: entry.source ?? null,
+      id: entry.id, user_id: this.userId, title: guard.scrubDeep(entry.title), domain: entry.domain,
+      detail: guard.scrubDeep(entry.detail.slice(0, 4000)), source: entry.source ?? null,
       metadata: { status: entry.status }, updated_at: new Date(entry.updatedAt).toISOString(),
       created_at: new Date(entry.updatedAt).toISOString(),
     })), "knowledge_items");
@@ -770,14 +935,28 @@ export default class SupabasePersistence {
 
   private async persistImprovements(proposals: ImprovementProposal[]): Promise<void> {
     if (!this.isConnected() || proposals.length === 0) return;
+    // Self-improvement proposals are conclusions drawn from worked material,
+    // so a deleted statement can be embedded in one (WP06: background agent
+    // outputs). Scrubbed at the outbound seam like the other derived stores.
+    const guard = DeletionGuard.getInstance();
     await this.write("improvement_items", proposals.map((proposal) => ({
-      id: proposal.id, user_id: this.userId, state: proposal, updated_at: new Date(proposal.updated).toISOString(),
+      id: proposal.id, user_id: this.userId,
+      state: guard.scrubDeep(proposal), updated_at: new Date(proposal.updated).toISOString(),
     })), "improvement_items");
   }
 
   private async persistCognitiveEvent(event: AgentEvent): Promise<void> {
     if (!this.isConnected()) return;
-    await this.append("cognitive_events", [{ user_id: this.userId, event_type: event.type, task_id: event.taskId, payload: event, created_at: new Date().toISOString() }], "cognitive_events");
+    // Event payloads carry task text, which can quote a deleted memory. The
+    // stream is operational (bounded at 500 rows per user, trimmed by trigger),
+    // so the content is removed at the seam rather than the event being dropped.
+    await this.append("cognitive_events", [{
+      user_id: this.userId,
+      event_type: event.type,
+      task_id: event.taskId,
+      payload: DeletionGuard.getInstance().scrubDeep(event),
+      created_at: new Date().toISOString(),
+    }], "cognitive_events");
   }
 
   public async reconnect(brain?: Brain, user?: UserManager): Promise<SupabasePersistenceStatus> {

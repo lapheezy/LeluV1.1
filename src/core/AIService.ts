@@ -1113,17 +1113,48 @@ export default class AIService {
    * observations made in it. Durable user facts survive, with their origin
    * intact — deleting a chat is not a request to forget the user (WP06).
    */
-  public async forgetConversation(conversationId: string): Promise<{ memories: number; nodes: number }> {
+  public async forgetConversation(conversationId: string): Promise<{
+    memories: number;
+    nodes: number;
+    cloud: { attempted: number; removed: number; queued: number; tombstoned: boolean };
+  }> {
     if (!this.initialized) {
       await this.initialize();
     }
     const result = await this.runtime.brain.forgetConversation(conversationId);
     // The cloud mirror is a persistence pathway too (M22.6, WP02): removing the
-    // rows is best-effort and never blocks or fails the local deletion.
-    for (const id of result.memoryIds) {
-      void SupabasePersistence.getInstance().forgetMemory(id).catch(() => undefined);
+    // rows is best-effort and never blocks or fails the local deletion. What
+    // could not be removed is queued, not forgotten (M22.7, WP02).
+    const cloud = await this.eraseRemoteMemories(result.memoryIds);
+    return { memories: result.memories, nodes: result.nodes, cloud };
+  }
+
+  /**
+   * Remove a set of ids from the cloud, or queue them for retry.
+   *
+   * One place decides what "the cloud copy is gone" means, so a single delete
+   * and a conversation purge cannot report it differently.
+   */
+  private async eraseRemoteMemories(ids: string[]): Promise<{
+    attempted: number; removed: number; queued: number; tombstoned: boolean;
+  }> {
+    const ledger = DeletionLedger.getInstance();
+    let removed = 0;
+    let queued = 0;
+    let tombstoned = false;
+    for (const id of ids) {
+      const result = await SupabasePersistence.getInstance().forgetMemory(id, ledger.fingerprintFor(id));
+      if (result.ok) {
+        removed += 1;
+        tombstoned = tombstoned || result.tombstoned;
+      } else {
+        // Signed out is not a failure to retry — there is no user to act for.
+        // Anything else is queued durably and retried after the next sign-in.
+        if (result.reason !== "signed_out") ledger.queueRemote(id, ledger.fingerprintFor(id));
+        queued += 1;
+      }
     }
-    return { memories: result.memories, nodes: result.nodes };
+    return { attempted: ids.length, removed, queued, tombstoned };
   }
 
   /**
@@ -1137,17 +1168,17 @@ export default class AIService {
     nodes: number;
     checkpoints: number;
     ledgerRecorded: boolean;
+    cloud: { attempted: number; removed: number; queued: number; tombstoned: boolean };
   }> {
     if (!this.initialized) {
       await this.initialize();
     }
     const result = await this.runtime.brain.forgetMemory(id);
-    // The deleted record's cloud mirror goes with it. `void` on purpose: a
-    // signed-out or offline device must not turn a completed local deletion
-    // into a failure, and a copy that survives is still unrecallable because
-    // the tombstone blocks its id from being restored.
-    void SupabasePersistence.getInstance().forgetMemory(id).catch(() => undefined);
-    return result;
+    // The deleted record's cloud copy goes with it, and this time the answer is
+    // reported rather than assumed (M22.7). A copy that survives is queued for
+    // retry, and the panel is told — a local delete is not a universal one.
+    const cloud = await this.eraseRemoteMemories([id]);
+    return { ...result, cloud };
   }
 
   /**
@@ -1159,12 +1190,23 @@ export default class AIService {
     healing: HealingStatus | null;
     guard: GuardStats;
     ledger: { entries: number; oldest: number | null; newest: number | null };
+    cloud: { connected: boolean; tombstones: boolean; pendingDeletions: number; exhausted: number };
   } {
+    const remote = DeletionLedger.getInstance().remoteSummary();
     return {
       healing: MemoryHealing.getInstance().status(),
       guard: DeletionGuard.getInstance().stats(),
       ledger: DeletionLedger.getInstance().summary(),
+      cloud: {
+        ...SupabasePersistence.getInstance().memoryCloudStatus(),
+        exhausted: remote.exhausted,
+      },
     };
+  }
+
+  /** Retry the deletions the cloud has not confirmed (maintenance path). */
+  public async flushUnconfirmedDeletions(): Promise<{ attempted: number; cleared: number; remaining: number }> {
+    return SupabasePersistence.getInstance().flushDeletionOutbox();
   }
 
   /** Run the boot-time healer now (maintenance/verification; the boot path schedules it). */

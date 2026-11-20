@@ -28,6 +28,21 @@ import KvStore from "../storage/KvStore";
 
 export const DELETION_LEDGER_KEY = "memory.deletions.v1";
 
+/**
+ * Deletions the cloud has not confirmed yet (M22.7).
+ *
+ * Kept beside the ledger rather than in a second authority: the same tombstone,
+ * waiting for the remote copy to catch up. Bounded, retried with backoff, and
+ * never silently dropped — a deletion that was never confirmed stays visible
+ * in the integrity status instead of being reported as finished.
+ */
+export const DELETION_OUTBOX_KEY = "memory.deletions.outbox.v1";
+
+/** How many unconfirmed deletions are remembered. */
+const MAX_OUTBOX = 200;
+/** Attempts before a remote deletion stops being retried automatically. */
+export const MAX_REMOTE_ATTEMPTS = 8;
+
 /** How many consecutive tokens make a fingerprint. */
 const WINDOW = 6;
 /** Windows kept per deleted memory — the head of the statement is what gets quoted. */
@@ -36,6 +51,19 @@ const MAX_WINDOWS = 48;
 const MIN_TOKENS = 4;
 /** Bound the ledger so it cannot grow without limit. */
 const MAX_ENTRIES = 400;
+
+export interface RemoteDeletion {
+  /** The deleted memory's id. */
+  id: string;
+  /** Fingerprint hash to send with it — never the statement. */
+  fingerprint: string;
+  /** When it was first queued. */
+  at: number;
+  /** Failed attempts so far; bounded so retries cannot loop forever. */
+  attempts: number;
+  /** Short upstream reason from the last attempt, for the status surface. */
+  lastError: string | null;
+}
 
 export interface DeletionTombstone {
   /** The deleted memory's id. */
@@ -235,6 +263,91 @@ export default class DeletionLedger {
 
   public has(id: string): boolean {
     return this.entries().some((entry) => entry.id === id);
+  }
+
+  /** The hash sent with a remote deletion: evidence, never the text. */
+  public fingerprintFor(id: string): string {
+    return this.entries().find((entry) => entry.id === id)?.windows[0] ?? "";
+  }
+
+  /**
+   * Adopt tombstones learned from the server (M22.7, WP03).
+   *
+   * A deletion made on another device — or before this browser had any storage
+   * at all — arrives as an id on `memory_tombstones`. Without this, a fresh
+   * browser keeps no local record of it, and hydration is free to merge the
+   * statement straight back in. Ids only: the server never held the text.
+   *
+   * Returns how many ids were newly adopted.
+   */
+  public adoptRemote(ids: string[]): number {
+    const entries = this.entries();
+    const known = new Set(entries.map((entry) => entry.id));
+    const additions: DeletionTombstone[] = [];
+    const at = Date.now();
+    for (const id of ids) {
+      if (!id || known.has(id)) continue;
+      known.add(id);
+      additions.push({ id, at, conversationId: null, windows: [], size: 0, tokens: 0 });
+    }
+    if (additions.length === 0) return 0;
+    const next = [...additions, ...entries].slice(0, MAX_ENTRIES);
+    if (!this.kv.set(DELETION_LEDGER_KEY, next)) return 0;
+    return additions.length;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * Remote deletion outbox
+   * ---------------------------------------------------------------- */
+
+  public remoteQueue(): RemoteDeletion[] {
+    const stored = this.kv.get<RemoteDeletion[]>(DELETION_OUTBOX_KEY);
+    return Array.isArray(stored) ? stored : [];
+  }
+
+  /**
+   * Remember that a deletion still has to reach the cloud.
+   *
+   * Idempotent per id: a second failure updates the attempt count rather than
+   * queuing the same id twice, so a device that is offline for an hour does not
+   * accumulate a queue it can never drain.
+   */
+  public queueRemote(id: string, fingerprint = ""): void {
+    const queue = this.remoteQueue();
+    const existing = queue.find((entry) => entry.id === id);
+    const next = existing
+      ? queue.map((entry) => (entry.id === id ? { ...entry, fingerprint: fingerprint || entry.fingerprint } : entry))
+      : [{ id, fingerprint, at: Date.now(), attempts: 0, lastError: null }, ...queue].slice(0, MAX_OUTBOX);
+    // The local ledger already proves the deletion; failing to remember the
+    // retry weakens propagation but must not undo the deletion.
+    if (!this.kv.set(DELETION_OUTBOX_KEY, next)) {
+      console.warn("[DeletionLedger] could not queue the remote deletion");
+    }
+  }
+
+  /** Drop an id once the cloud has confirmed it. */
+  public dropRemote(id: string): void {
+    const next = this.remoteQueue().filter((entry) => entry.id !== id);
+    // Bounded queue; a failed write is retried by the next flush.
+    this.kv.set(DELETION_OUTBOX_KEY, next);
+  }
+
+  /** Record a failed attempt, with a short, text-free reason. */
+  public noteRemoteAttempt(id: string, error: string | null): void {
+    const next = this.remoteQueue().map((entry) =>
+      entry.id === id ? { ...entry, attempts: entry.attempts + 1, lastError: error } : entry,
+    );
+    this.kv.set(DELETION_OUTBOX_KEY, next);
+  }
+
+  /** What is still unconfirmed, for the integrity status. Ids and codes only. */
+  public remoteSummary(): { pending: number; exhausted: number; lastError: string | null } {
+    const queue = this.remoteQueue();
+    return {
+      pending: queue.length,
+      exhausted: queue.filter((entry) => entry.attempts >= MAX_REMOTE_ATTEMPTS).length,
+      lastError: queue.find((entry) => entry.lastError)?.lastError ?? null,
+    };
   }
 
   /**

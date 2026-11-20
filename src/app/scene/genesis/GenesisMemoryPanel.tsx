@@ -117,11 +117,22 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
       const result = await ai.forgetMemory(id);
       const rows = await ai.getMemories(300);
       setMemories(rows);
+      // Three separate facts, and the copy never claims more than it knows
+      // (M22.7): the local record is gone; the cloud copy is either confirmed
+      // removed, queued for retry, or not reachable because nobody is signed in.
+      const cloudNote =
+        result.cloud.removed > 0 && result.cloud.tombstoned
+          ? " The cloud copy was removed and cannot be restored."
+          : result.cloud.removed > 0
+            ? " The cloud copy was removed, but this deployment cannot yet block a stale re-upload."
+            : result.cloud.queued > 0
+              ? " The cloud copy is still there — it is queued and retried when the connection returns."
+              : " No cloud copy was involved (not signed in).";
       setNotice(
         !result.removed
           ? "That memory was already gone."
           : result.ledgerRecorded
-            ? "Memory deleted. It will not be recalled again, and historical copies that quote it are removed automatically."
+            ? `Memory deleted. It will not be recalled again, and historical copies that quote it are removed automatically.${cloudNote}`
             : "Memory deleted, but the deletion ledger could not be written — older copies that quote it cannot be proven and removed.",
       );
       setResidue(await ai.residueReport({ dryRun: true }));

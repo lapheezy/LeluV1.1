@@ -26,6 +26,7 @@ import type Brain from "../../brain/Brain";
 import SupabasePersistence from "../persistence/SupabasePersistence";
 import { getSupabase } from "../../og/integrations/supabase/client";
 import type { ContextItem, MemoryCandidate, MemoryProvider } from "./MemoryProvider";
+import DeletionGuard from "./DeletionGuard";
 import type { MemoryScopeContext } from "./MemorySovereignty";
 
 /**
@@ -182,7 +183,12 @@ export class OgArchiveProvider implements MemoryProvider {
             content: key && value ? `${key}: ${value}` : value || key,
           };
         })
-        .filter((item) => item.content.length > 0);
+        .filter((item) => item.content.length > 0)
+        // The archive is a frozen snapshot nothing in v1.1 writes to, so a
+        // deletion cannot remove it from the table. It is excluded at the one
+        // place it becomes context (M22.7, WP04): a row that quotes a deleted
+        // memory never reaches the provider payload.
+        .filter((item) => !DeletionGuard.getInstance().quotes(item.content));
     } catch (error) {
       console.warn("[OgArchiveProvider] unavailable:", error);
       return [];

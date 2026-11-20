@@ -1,0 +1,130 @@
+{
+  "kind": "sql-level verification (PGlite = real Postgres, stubbed auth.uid())",
+  "migration": "202611200001_memory_tombstones.sql",
+  "at": "2026-11-20T17:56:14.713Z",
+  "checks": 20,
+  "passed": 20,
+  "failed": 0,
+  "results": [
+    {
+      "id": "A1",
+      "name": "a tombstoned user may delete their own row",
+      "ok": true,
+      "detail": "1 row(s)"
+    },
+    {
+      "id": "A2",
+      "name": "the delete left a tombstone in the same transaction",
+      "ok": true,
+      "detail": "[{\"memory_id\":\"m-a-1\",\"fingerprint\":\"fp-deadbeef\",\"source\":\"row-delete\"}]"
+    },
+    {
+      "id": "A3",
+      "name": "the tombstone carries the fingerprint hash, not the text",
+      "ok": true,
+      "detail": "fp-deadbeef"
+    },
+    {
+      "id": "B1",
+      "name": "a stale upload of a deleted id is refused by the database",
+      "ok": true,
+      "detail": "memory_deleted"
+    },
+    {
+      "id": "B2",
+      "name": "the refusal names the reason",
+      "ok": true,
+      "detail": "memory_deleted"
+    },
+    {
+      "id": "B3",
+      "name": "the refused row did not come into existence",
+      "ok": true,
+      "detail": "0 row(s)"
+    },
+    {
+      "id": "C1",
+      "name": "another user may use the same id (no cross-user deletion)",
+      "ok": true,
+      "detail": "accepted"
+    },
+    {
+      "id": "D1",
+      "name": "erase_memory tombstones an id that has no row at all",
+      "ok": true,
+      "detail": "1 tombstone(s)"
+    },
+    {
+      "id": "D2",
+      "name": "it reports 0 rows removed rather than claiming a delete",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "id": "D3",
+      "name": "a memory deleted before it ever synced cannot be uploaded later",
+      "ok": true,
+      "detail": "memory_deleted"
+    },
+    {
+      "id": "E1",
+      "name": "a repeated erase returns 0",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "id": "E2",
+      "name": "a repeated erase keeps exactly one tombstone",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "E3",
+      "name": "a repeat with no fingerprint does not erase the one already stored",
+      "ok": true,
+      "detail": "fp-2"
+    },
+    {
+      "id": "F1",
+      "name": "erase_memory without a session is refused",
+      "ok": true,
+      "detail": "authentication required"
+    },
+    {
+      "id": "G1",
+      "name": "user A sees only their own memory rows",
+      "ok": true,
+      "detail": "[\"m-a-2\"]"
+    },
+    {
+      "id": "G2",
+      "name": "user A cannot see another user's tombstones",
+      "ok": true,
+      "detail": "A sees [\"m-a-1\",\"never-synced-id\"]; B holds m-b-tomb"
+    },
+    {
+      "id": "G3",
+      "name": "user A cannot insert a row owned by user B",
+      "ok": true,
+      "detail": "new row violates row-level security policy for table \"memory_items\""
+    },
+    {
+      "id": "G4",
+      "name": "erase_memory cannot delete another user's row by id",
+      "ok": true,
+      "detail": "removed 0, B still has 1"
+    },
+    {
+      "id": "H1",
+      "name": "no tombstone anywhere holds the deleted statement",
+      "ok": true,
+      "detail": "462 bytes inspected"
+    },
+    {
+      "id": "H2",
+      "name": "the deleted statement is gone from memory_items",
+      "ok": true,
+      "detail": "no matching row"
+    }
+  ]
+}
