@@ -343,6 +343,16 @@ export default class ProjectStore {
     return changed;
   }
 
+  /**
+   * Forget one project's checkpoint — explicit review only (M22.5).
+   * The project, its items and every other field stay exactly as they are:
+   * a checkpoint written for a single answered turn is not project state.
+   */
+  public clearCheckpoint(id: string): void {
+    if (!this.get(id)?.checkpoint) return;
+    this.update(id, { checkpoint: undefined });
+  }
+
   /** Case-insensitive lookup by (partial) name — "tampa news" → project. */
   public findByName(name: string): LeluProject | undefined {
     const needle = name.trim().toLowerCase();

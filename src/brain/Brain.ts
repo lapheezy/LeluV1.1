@@ -44,6 +44,9 @@ import CognitiveTrace
 import ProjectStore
   from "../core/projects/ProjectStore";
 
+import DeletionLedger
+  from "../core/memory/DeletionLedger";
+
 import type ResponsePattern
   from "./ResponsePattern";
 
@@ -341,6 +344,18 @@ export default class Brain {
     const pattern = await this.memory.get(id);
     const removed = await this.memory.remove(id);
     const nodes = this.cognitionRuntime.forgetMemory(id);
+
+    // Leave fingerprints, never the text: a copy written by another subsystem
+    // (or one this build has not met yet) can still be proven to quote this
+    // statement later, without keeping a readable ghost of it (M22.5).
+    if (pattern) {
+      const origin = (pattern.context as { origin?: { originatingConversationId?: string | null } } | undefined)?.origin;
+      DeletionLedger.getInstance().record({
+        id,
+        text: [pattern.prompt, pattern.response].filter((text) => typeof text === "string" && text.trim()).join("\n"),
+        conversationId: origin?.originatingConversationId ?? null,
+      });
+    }
     const scraps = [pattern?.prompt, pattern?.response]
       .flatMap((text) => (typeof text === "string" ? [text, ...text.split(/(?<=[.!?])\s+/)] : []))
       .map((text) => text.trim())

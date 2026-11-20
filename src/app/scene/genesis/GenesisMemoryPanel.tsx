@@ -26,6 +26,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import AIService from "../../../core/AIService";
+import type { ResidueReport } from "../../../core/memory/ResidueMigration";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 
 const ai = AIService.getInstance();
@@ -64,6 +65,8 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const [residue, setResidue] = useState<ResidueReport | null>(null);
+  const [residueBusy, setResidueBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,7 +79,17 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
       }
     }
 
+    async function readResidue() {
+      try {
+        const report = await ai.residueReport({ dryRun: true });
+        if (!cancelled) setResidue(report);
+      } catch (error) {
+        console.warn("[GenesisMemoryPanel] residue check failed (contained)", error);
+      }
+    }
+
     void refresh();
+    void readResidue();
     const interval = window.setInterval(refresh, 6000);
 
     return () => {
@@ -104,12 +117,52 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
           ? "Memory deleted. It is removed from the store and will not be recalled again."
           : "That memory was already gone.",
       );
+      setResidue(await ai.residueReport({ dryRun: true }));
     } catch (error) {
       console.error("[GenesisMemoryPanel] delete failed", error);
       setNotice("Could not delete that memory — nothing was removed.");
     } finally {
       setDeleting(null);
       setPendingDelete(null);
+    }
+  }
+
+  /** Remove the residue the deletion ledger can prove, then re-read the plan. */
+  async function cleanResidue() {
+    setResidueBusy(true);
+    try {
+      const applied = await ai.residueReport({ dryRun: false });
+      const after = await ai.residueReport({ dryRun: true });
+      setResidue(after);
+      setNotice(
+        applied.cleanedFields > 0
+          ? `Removed ${applied.cleanedFields} quote(s) of deleted memories from project text.`
+          : "No provable residue left to remove.",
+      );
+    } catch (error) {
+      console.error("[GenesisMemoryPanel] residue migration failed", error);
+      setNotice("Residue check failed — nothing was changed.");
+    } finally {
+      setResidueBusy(false);
+    }
+  }
+
+  /** Forget or keep one quarantined legacy checkpoint. */
+  async function reviewResidue(projectId: string, action: "forget" | "keep") {
+    setResidueBusy(true);
+    try {
+      const after = await ai.reviewMemoryResidue(projectId, action);
+      setResidue(after);
+      setNotice(
+        action === "forget"
+          ? "Checkpoint forgotten; the project and its other content are untouched."
+          : "Kept. This checkpoint will stop being reported.",
+      );
+    } catch (error) {
+      console.error("[GenesisMemoryPanel] residue review failed", error);
+      setNotice("Could not update that checkpoint — nothing changed.");
+    } finally {
+      setResidueBusy(false);
     }
   }
 
@@ -179,6 +232,84 @@ export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps)
       {notice ? (
         <div role="status" style={{ fontSize: 12, opacity: 0.8, marginBottom: 10, color: genesisTheme.status.ok }}>
           {notice}
+        </div>
+      ) : null}
+
+      {residue ? (
+        <div
+          role="status"
+          style={{
+            border: "1px solid rgba(251, 191, 36, 0.25)",
+            borderRadius: 10,
+            padding: "8px 10px",
+            marginBottom: 10,
+            background: "rgba(251, 191, 36, 0.05)",
+            fontSize: 11,
+          }}
+        >
+          <div style={{ opacity: 0.85, marginBottom: residue.quarantined.length ? 6 : 0 }}>
+            Historical residue · {residue.scannedProjects} project(s) scanned ·{" "}
+            {residue.findings.length} quote(s) of deleted memories · {residue.quarantined.length} checkpoint(s) to review
+          </div>
+          {residue.quarantined.slice(0, 4).map((finding) => (
+            <div
+              key={finding.id}
+              style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}
+            >
+              <span style={{ flex: 1, opacity: 0.75, overflowWrap: "anywhere" }}>{finding.preview}</span>
+              <button
+                type="button"
+                onClick={() => void reviewResidue(finding.projectId, "forget")}
+                disabled={residueBusy}
+                style={{
+                  border: "1px solid rgba(248, 113, 113, 0.45)",
+                  borderRadius: genesisTheme.radius.pill,
+                  background: "rgba(248, 113, 113, 0.14)",
+                  color: "white",
+                  padding: "2px 8px",
+                  fontSize: 10,
+                  cursor: residueBusy ? "default" : "pointer",
+                }}
+              >
+                Forget
+              </button>
+              <button
+                type="button"
+                onClick={() => void reviewResidue(finding.projectId, "keep")}
+                disabled={residueBusy}
+                style={{
+                  border: genesisTheme.glass.borderSoft,
+                  borderRadius: genesisTheme.radius.pill,
+                  background: "rgba(255,255,255,0.04)",
+                  color: "white",
+                  padding: "2px 8px",
+                  fontSize: 10,
+                  cursor: residueBusy ? "default" : "pointer",
+                }}
+              >
+                Keep
+              </button>
+            </div>
+          ))}
+          {residue.findings.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => void cleanResidue()}
+              disabled={residueBusy}
+              style={{
+                marginTop: 6,
+                border: "1px solid rgba(251, 191, 36, 0.5)",
+                borderRadius: genesisTheme.radius.pill,
+                background: "rgba(251, 191, 36, 0.14)",
+                color: "white",
+                padding: "3px 10px",
+                fontSize: 10,
+                cursor: residueBusy ? "default" : "pointer",
+              }}
+            >
+              {residueBusy ? "Working…" : `Remove ${residue.findings.length} provable quote(s)`}
+            </button>
+          ) : null}
         </div>
       ) : null}
 

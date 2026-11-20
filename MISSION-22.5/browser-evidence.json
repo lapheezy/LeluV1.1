@@ -1,0 +1,110 @@
+{
+  "mission": "LÉLU 22.5 — historical residue eliminated in the real application",
+  "executedAt": "2026-11-20",
+  "origin": "https://pv-4fe6237b5488-f58f9974-a58e-4331-80f5-c23528e8173e.style.dev/?scene=off",
+  "surface": "the real GenesisV1/GenesisInterface, Chat Universe, Memory module; ?scene=off is the development-only presentation switch used since M22.3",
+  "provider": "same-origin /api/model broker — OpenRouter nvidia/nemotron-3-ultra-550b-a55b:free answered 200 for all four post-restart requests",
+  "why_the_legacy_record_was_seeded": "The M22.4 browser profile lived on an older preview origin; a new runner assigned a new origin, so the pre-fix COPPER checkpoint from M22.4 was not present here. To exercise the migration against a copy the old writer would have produced, one was written into lelu.projects.v1 with the old writer's exact shape (description “Auto-created for general tasks”, summary = the turn's request, completed = the reply, no pending work, no next action) after the memory had been deleted. Everything after that point — the dry run, the migration, the storage inspection, the reload, the app restart and the provider payloads — is the unmodified application.",
+  "steps": [
+    {
+      "step": "memory created through chat",
+      "input": "Please remember this: my studio access phrase is COPPER-LANTERN-77.",
+      "reply": "Got it. Your studio access phrase is COPPER‑LANTERN‑77.",
+      "providerRequest": { "url": "/api/model/groq/chat/completions", "status": 200, "chars": 29214 }
+    },
+    {
+      "step": "Memory panel before any migration",
+      "panel": "Memory · 7 stored",
+      "row": "Please remember this: my studio access phrase is COPPER-LANTERN-77.",
+      "residueLine": "Historical residue · 2 project(s) scanned · 0 quote(s) of deleted memories · 0 checkpoint(s) to review"
+    },
+    {
+      "step": "deleted through the panel",
+      "action": "Delete → Confirm delete",
+      "notice": "Memory deleted. It is removed from the store and will not be recalled again.",
+      "listing": "No memories match this search.",
+      "ledgerWritten": true,
+      "ledgerPrefix": "[{\"id\":\"41a62bc0-8497-4831-86d4-a5ad101a1271\",\"at\":1795142088503,\"conversationId\":\"0b54283c-…\"",
+      "ledgerContainsPhrase": false
+    },
+    {
+      "step": "legacy copy present in persisted storage",
+      "storage": "lelu.projects.v1",
+      "bytes": 1526,
+      "containsDeletedPhrase": true,
+      "checkpoints": [
+        { "id": "legacy-copper", "name": "Legacy answered turn", "summary": "Please remember this: my studio access phrase is COPPER-LANTERN-77." },
+        { "id": "legacy-unknown", "name": "Legacy general", "summary": "An old answered turn nobody deleted." }
+      ]
+    },
+    {
+      "step": "page reload, dry run (panel opens with a dry run by default)",
+      "residueLine": "Historical residue · 4 project(s) scanned · 1 quote(s) of deleted memories · 1 checkpoint(s) to review",
+      "storageChangedByDryRun": false,
+      "button": "Remove 1 provable quote(s)"
+    },
+    {
+      "step": "migration executed through the panel",
+      "notice": "Removed 1 quote(s) of deleted memories from project text.",
+      "residueLine": "Historical residue · 4 project(s) scanned · 0 quote(s) of deleted memories · 1 checkpoint(s) to review",
+      "report": {
+        "dryRun": false,
+        "durationMs": 1,
+        "tombstones": 1,
+        "scannedProjects": 4,
+        "scannedFields": 6,
+        "cleanedFields": 1,
+        "cleanedByTombstone": { "41a62bc0-8497-4831-86d4-a5ad101a1271": 1 },
+        "quarantined": 1,
+        "cursor": null
+      },
+      "persistedAfter": {
+        "bytes": 1459,
+        "containsDeletedPhrase": false,
+        "projectsContainingPhrase": [],
+        "copperCheckpointSummary": "",
+        "unknownCheckpointSummary": "An old answered turn nobody deleted."
+      }
+    },
+    {
+      "step": "explicit review of the unprovable checkpoint",
+      "action": "Forget",
+      "notice": "Checkpoint forgotten; the project and its other content are untouched.",
+      "residueLine": "Historical residue · 4 project(s) scanned · 0 quote(s) of deleted memories · 0 checkpoint(s) to review",
+      "projectStillExists": true,
+      "projectNamePreserved": true
+    },
+    {
+      "step": "application restart (dev server stopped and started again) and page reload",
+      "persistedContainsPhrase": false,
+      "checkpoints": [
+        { "id": "legacy-copper", "summary": "" },
+        { "id": "legacy-unknown", "checkpoint": null }
+      ]
+    },
+    {
+      "step": "fresh conversation after the restart",
+      "question": "What is my studio access phrase? Answer in one short line if you know.",
+      "reply": "I don't have that in this chat's memory. There's a related chat titled \"Please remember this: my studio acce\" that might contain it, but it's not authorized for use here. Want me to bring that chat in?",
+      "requests": 4,
+      "statuses": [200, 200, 200, "captured before completion"],
+      "phraseOccurrences": [0, 0, 0, 0],
+      "phraseInContext": [0, 0, 0, 0],
+      "researchFromOtherChatsBlock": false,
+      "attribution": "the related chat is discovered and offered; nothing was injected",
+      "badge": "Web research · 1 search"
+    }
+  ],
+  "screenshots": [
+    { "file": "MISSION-22.5/screenshots/01-before-migration-memory-panel.png", "shows": "COPPER row in the real panel, delete control, residue line at 0/0" },
+    { "file": "MISSION-22.5/screenshots/02-identified-residue-dry-run.png", "shows": "dry run: 1 quote of a deleted memory, 1 checkpoint to review, both the Forget/Keep controls and the “Remove 1 provable quote(s)” button" },
+    { "file": "MISSION-22.5/screenshots/03-migration-executed.png", "shows": "after execution: notice “Removed 1 quote(s)…”, 0 quotes, the unrelated legacy checkpoint still quarantined and preserved" },
+    { "file": "MISSION-22.5/screenshots/04-after-migration-and-review.png", "shows": "after explicit review: 0 quotes, 0 checkpoints to review, project content untouched" },
+    { "file": "MISSION-22.5/screenshots/05-after-restart-fresh-chat.png", "shows": "fresh chat after restart: the deleted phrase is unavailable, the earlier chat is offered rather than used" }
+  ],
+  "limitations": [
+    "one browser profile, desktop Chromium; no mobile device or emulator",
+    "the legacy copy was written by the test harness in the old writer's shape, because the pre-fix profile was not on this origin; the migration, storage inspection and payloads are real",
+    "the phrase remaining in the conversation transcript is intentional: deleting a memory does not delete the user's chat"
+  ]
+}

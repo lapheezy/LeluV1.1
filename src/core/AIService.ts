@@ -35,6 +35,7 @@ import type { Plan } from "./planning/PlanningEngine";
 import type { LeluAgent, AgentTaskScope } from "./agents/AgentTypes";
 import { currentSessionId } from "./memory/MemorySovereignty";
 import { resolveTurnHistory } from "./memory/SharedWindowAdapter";
+import ResidueMigration, { type ResidueReport } from "./memory/ResidueMigration";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
 import Shaman from "./agents/Shaman";
@@ -1127,6 +1128,26 @@ export default class AIService {
       await this.initialize();
     }
     return this.runtime.brain.forgetMemory(id);
+  }
+
+  /**
+   * M22.5: what historical residue exists, and (unless dryRun) clean the part
+   * that the deletion ledger can prove. Defaults to a dry run — reading never
+   * changes storage.
+   */
+  public async residueReport(options: { dryRun?: boolean; limit?: number } = {}): Promise<ResidueReport> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return ResidueMigration.getInstance().run(options);
+  }
+
+  /** Explicit review of one quarantined checkpoint: forget it, or keep it. */
+  public async reviewMemoryResidue(projectId: string, action: "forget" | "keep"): Promise<ResidueReport> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return ResidueMigration.getInstance().review(projectId, action);
   }
 
   public async delegate(

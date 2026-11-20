@@ -1,0 +1,26 @@
+{
+  "mission": "LÉLU 22.5 — regression",
+  "command": "npm test",
+  "totals": { "tests": 2386, "pass": 2376, "fail": 2, "cancelled": 0 },
+  "m22_4_baseline": { "tests": 2378, "pass": 2368, "fail": 2 },
+  "delta": { "tests": 8, "pass": 8, "fail": 0, "newTests": "tests/memory-residue.test.ts (A–H)" },
+  "newFailures": [],
+  "knownFailures": [
+    { "test": "tests/genesis-interface.test.tsx", "symptom": "CSS-export pipeline", "status": "unchanged pre-existing" },
+    { "test": "tests/sandbox-security.test.ts — network: TCP, UDP, DNS and fetch all fail", "symptom": "environment network probe", "status": "unchanged pre-existing" }
+  ],
+  "focused": {
+    "tests/memory-residue.test.ts": { "tests": 8, "pass": 8, "fail": 0 },
+    "tests/context-sovereignty.test.ts": { "status": "pass (includes the M22.4 checkpoint-purge test)" },
+    "tests/live-agent.test.ts": { "status": "pass (includes the M22.4 cross-chat tests)" }
+  },
+  "typecheck": {
+    "command": "npx tsc -p tsconfig.app.json --noEmit",
+    "newErrors": 0,
+    "preExisting": [
+      "src/core/perception/FeatureUnderstanding.ts(455,20) TS18047",
+      "src/core/perception/FeatureUnderstanding.ts(455,20) TS2365"
+    ]
+  },
+  "log": "/tmp/m225-full3.log (not committed)"
+}
