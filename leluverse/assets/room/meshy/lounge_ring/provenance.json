@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "lounge_ring",
+   "kind": "image-to-image",
+   "task": "01a1f68b-4cc4-73c0-82ba-9dfc4e27eada",
+   "submittedAt": 1795137687.7779162,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this conversation pit alone: a circular ring of cream sofas with pink and black cushions on a round raised black-marble platform with copper-gold trim, low bookshelves at its ends and a round coffee table in the middle. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/lounge_ring.png",
+     "sha256": "69ec542640c4264e8b82a9cdc7e5fcb2e3af09e89b45a98ccdcf192395fea7b0"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f68b-4cc4-73c0-82ba-9dfc4e27eada",
+   "finished": 1795137708.4905012,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68b-4cc4-73c0-82ba-9dfc4e27eada",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this conversation pit alone: a circular ring of cream sofas with pink and black cushions on a round raised black-marble platform with copper-gold trim, low bookshelves at its ends and a round coffee table in the middle. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137687610,
+    "started_at": 1795137687623,
+    "finished_at": 1795137702112,
+    "expires_at": 1795396902112,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f68b-4cc4-73c0-82ba-9dfc4e27eada_0.png?Expires=1795396902&Signature=oykQIZ1KIYxAxvXbLKLIzQHYNJXuEOAplH0W6jyCsY9Tttltr5J3Ab56hL5zL3SK4cqTrJP0gm7aMRNXSOf1ntW7eGUz1pB1C6IVjCOarqtS9xRvnG3dD~0peDUknIp50jTwInT3iGBzZtR9xBijCBmQqXYRlY2ms34s8BBOpnyZANm065NyehW-dLW2Q5m-9dyNJ1GtweXVZlYlWdqovPYuDLPTc87avksQOchN27Yd1lnlTUc3tLmgiPFU546Dq758PeAFBskoHINH~HrAG9mY9jyjWDkT4Ta1icnDilXrDU2jB-nw2LrViAm9CZM5nJUe~1A4yUsPej9Xl42mzg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f68b_0.png",
+     "bytes": 1208706,
+     "sha256": "4b4e5750f34d4191997d492eeee3742cc03c5cec9571c23c3e879f0115a41b7c"
+    }
+   ]
+  },
+  {
+   "piece": "lounge_ring",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68b-a2c8-7587-ad5f-4f07600b4cf6",
+   "submittedAt": 1795137710.0926216,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/lounge_ring/view_01a1f68b_0.png",
+     "sha256": "4b4e5750f34d4191997d492eeee3742cc03c5cec9571c23c3e879f0115a41b7c"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68b-a2c8-7587-ad5f-4f07600b4cf6",
+   "finished": 1795137856.1739163,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68b-a2c8-7587-ad5f-4f07600b4cf6",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137709947,
+    "progress": 100,
+    "started_at": 1795137709956,
+    "finished_at": 1795137849200,
+    "expires_at": 1795397049200,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f68b-a2c8-7587-ad5f-4f07600b4cf6/output/model.glb?Expires=1795397049&Signature=lSX0HGHQCseMoD2pKvZOa3Cpwva5f90uaSMvbwQ-4xfsJxphQr0eOCajEMXmn5qy6xR5XNRV2Tg7RAOPrZOV7N6ns3J4GQLpETAF35LgjcJmwUNln81KOlMDax7wiiOWatRRG51POJmH3SeOby5ng3yHvsOefxg1kz0KtZ0OGfaOCJmFlNUHImCRO3MIyiq33Vdlk8RG7BMQR4letb7H0xmxHongHDWTt0HIYgh29DBGs~CCjY1rQLP0IzRs1uxGl0Ci6lPpSuHZDAIwLxeLDqHSHx3QErlBpz9cPJXEHyTsjC5RVfpDiTkE5RsjoMXQOljytOnYFjDnVjl~PJd1pw__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 13862956,
+     "sha256": "c6020cd2952a5fc9d4fa8702d27ffe99def9542346546f9505508576cfd921a2"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 13931644,
+     "sha256": "091d48de101a7623f418b497e09787403032439d04f6b24b48d06496d4eebc70"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 5234776,
+     "sha256": "63bc345d8941193a0e37de9a22c04db02f325e4b5f1ce35855605c802290867f"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 2583125,
+     "sha256": "a7c12879309f2aaad1134aa6596b694511754ef5e69fefd3c6d99f8dd6fe4bbb"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 2225898,
+     "sha256": "c72ecba13c3284da9a148f2eac1d2fa698ebf2e43ed932a2fac163f572d01dab"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 5758374,
+     "sha256": "79d4fde5697377982531a5bbf6359777204dbcbef160df997721829038a43641"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 115181,
+     "sha256": "d7d6e47a3ec507d4438010035a6653d18cc2d67e4557be37ebd0a63e7808470e"
+    }
+   ]
+  }
+ ]
+}

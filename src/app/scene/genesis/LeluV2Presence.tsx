@@ -51,6 +51,7 @@ import {
 } from "../../../core/avatar/LeluSpatial";
 import { ACTIVITY_ACCENT, useLeluActivity } from "./avatar/leluActivity";
 import LeluBody from "./avatar/LeluBody";
+import { roomObstaclesWorld } from "../../../core/world/roomPresence";
 import { V2_LELU_POS } from "./GenesisV2CameraRig";
 
 const BODY_HEIGHT = 2.42;
@@ -298,7 +299,8 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
   }
 
   function obstacles(): SpatialObstacle[] {
-    return [...SCENE_OBSTACLES, ...worldObstacles.current, ...windowObstacles.current];
+    // her rotating room's furniture: only what is standing right now (it turns and transforms)
+    return [...SCENE_OBSTACLES, ...worldObstacles.current, ...roomObstaclesWorld(), ...windowObstacles.current];
   }
 
   function viewerPoint(): [number, number] | null {

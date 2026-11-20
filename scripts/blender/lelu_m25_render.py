@@ -49,6 +49,9 @@ t0 = time.time()
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 bpy.ops.import_scene.gltf(filepath=job["input"])
+# wardrobe items exported on the look's own skeleton (hair, shoes, bags): shown at rest with the look
+for extra in job.get("extra", []):
+    bpy.ops.import_scene.gltf(filepath=extra)
 
 for o in list(scene.objects):
     if o.type == "ARMATURE":

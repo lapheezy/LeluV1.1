@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "vanity",
+   "kind": "image-to-image",
+   "task": "01a1f68b-ed45-72ab-b409-c5325a51b130",
+   "submittedAt": 1795137728.3417048,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this vanity alone: a small black-and-copper vanity table with a round glowing ring mirror and a round cream upholstered stool. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/vanity.png",
+     "sha256": "36ecb20ef535bde1acbdcafb29135d1a02b87dbfb1fb4d8f78b59cc2f7263839"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f68b-ed45-72ab-b409-c5325a51b130",
+   "finished": 1795137749.336656,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68b-ed45-72ab-b409-c5325a51b130",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this vanity alone: a small black-and-copper vanity table with a round glowing ring mirror and a round cream upholstered stool. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137728222,
+    "started_at": 1795137728237,
+    "finished_at": 1795137747672,
+    "expires_at": 1795396947672,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f68b-ed45-72ab-b409-c5325a51b130_0.png?Expires=1795396947&Signature=qi9G7AaxkrePLaHu61ikxV647rSkCan8wmI68TtkIbWVoptAHnV~2bAfaJUJwMjDhHZqVT7-WTPEVm9PG2Gp6529Cu2rwe6bR~0YGBESGUVEiYgdcp5S4Gt~Hk1PimmpfFrZkf14kFng07QoguvMmnPD~x3bDCPNhJkyDDzUNnC-xkdSu3~K2L6uMkl8ucPBgfSGsvjyJxg6gtOrwYBzuMDeKvA5XG7fBvbkxjiIsj~LQWyXqrvowE-ntWRnaM5CNQnFv1xH2fH1HVQNzuBffXNos29bg9e-OFr6hl245oK9nfCgzbOXWKghs~X87w5RSiGL74~4ltmeHvMSdaW4ZQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f68b_0.png",
+     "bytes": 618173,
+     "sha256": "c317e88322583d7c94ff84be4e7910387687643ee3e8b0296e63f4e0ce5c1097"
+    }
+   ]
+  },
+  {
+   "piece": "vanity",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-4240-74ad-b96a-792fc7b78615",
+   "submittedAt": 1795137750.509405,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/vanity/view_01a1f68b_0.png",
+     "sha256": "c317e88322583d7c94ff84be4e7910387687643ee3e8b0296e63f4e0ce5c1097"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-4240-74ad-b96a-792fc7b78615",
+   "finished": 1795137855.888156,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68c-4240-74ad-b96a-792fc7b78615",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137750390,
+    "progress": 100,
+    "started_at": 1795137750401,
+    "finished_at": 1795137842937,
+    "expires_at": 1795397042937,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f68c-4240-74ad-b96a-792fc7b78615/output/model.glb?Expires=1795397042&Signature=ggO9G35GuTUTS8hrrK~-uKhCHRvZW64V6U5FtZQEjJmiCVlkVPfXrG1lX7Sm3u5oPU4VBxbJku9XwvR~N4kwUBP~I7JOoWBuoBnNzuBAtJOSgOTgN-3lzGZdKhB0MpjZSTNTJb3gWLqxsXSa-jg5qsZv3O44QXJn4RQ7PUKKX5lfiBkxS-aQltawVZT2Ptt84rI8pH~q8-NrbgjpTK2OyVv0EXFWJ7Gii1iFygXf9L1SNJqSqBEIrqhXe12XLaJK2eOFvhZ0JD3gLEMyI4RVyEiQCVmetY8e~YboTkAs8QaS2dEUI44sbQBFcxFy6aVOhoYQuujaPtvo1rwGvlogAw__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 8316660,
+     "sha256": "c386d23e89685db6a6f31dd265478666da77d209c14fa2a05d09c57a7ab7e816"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 8628092,
+     "sha256": "43082021409f0cff806d7eba836baee31118f049692d644e88a6a94b6374147d"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 3599895,
+     "sha256": "99ab57149a97385605b169d18c7f3498aad508851c36dcc283f0e7f517189021"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1055227,
+     "sha256": "df33868f624a0dfa7ccc757c52b7a442e1db5b74012ecd3c626d29f386126a02"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1591166,
+     "sha256": "da7c168186dc5b2b6504bb9092e75fcc9e599a14e022faed17273bfa92e750ee"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 3243105,
+     "sha256": "099ed9514d6c69aa514ca8050a5004a6435a31d2393cfbf82191927c3384e540"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 68677,
+     "sha256": "e0573b261260f0af8439238720c1c75cc4cf5095788735f9e450db381ad8762d"
+    }
+   ]
+  }
+ ]
+}

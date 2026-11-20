@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "crystal",
+   "kind": "image-to-image",
+   "task": "01a1f687-32a2-76e6-90b0-abe2ab10e5f8",
+   "submittedAt": 1795137418.6560643,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this glowing pink-violet quartz crystal cluster alone, standing on a small round copper base. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/crystal.png",
+     "sha256": "129c86229b354be777d80f6dcd798651ec6244d1de10203736ab0597a967ff50"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f687-32a2-76e6-90b0-abe2ab10e5f8",
+   "finished": 1795137439.6087136,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f687-32a2-76e6-90b0-abe2ab10e5f8",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this glowing pink-violet quartz crystal cluster alone, standing on a small round copper base. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137418469,
+    "started_at": 1795137418480,
+    "finished_at": 1795137433899,
+    "expires_at": 1795396633899,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f687-32a2-76e6-90b0-abe2ab10e5f8_0.png?Expires=1795396633&Signature=RoO4LgtSng1EnbtPuWLZlA7Aj0j~uL2tAdyGEkxcZHa9orV8CjIhP1CBMFDGv5AyQZ9HzDi3rbwSlR6razr8rczA~7xyLBC1CU~CHSqIXB4y3gJgEAkiyAu3WyOtEmVqBoQYb2yJAc75xRV1-vR9JByZPHls5UO807m7LtMvUfunShKuhwUFoU8909I0duH~3~E0zFjIGRy3c7RvYWXqrLXKlPEob5tPDUbY9GZYDnory8qIP6JqY-uiJvrL3XyAuBaNd19PN0IG022GSPNWPv7jgCITHedko0GaS8ChcKTV2Fi0HQlLfIt4-rn11vMPB3bViJa6XTX2r6VwYLr8KA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f687_0.png",
+     "bytes": 671906,
+     "sha256": "51f1bba8515291850e72549c07c48a20eddae160c6e16e143b35bec34f2e2924"
+    }
+   ]
+  },
+  {
+   "piece": "crystal",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f687-889c-7646-8d0c-34a0ac9ff7d3",
+   "submittedAt": 1795137440.9598126,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/crystal/view_01a1f687_0.png",
+     "sha256": "51f1bba8515291850e72549c07c48a20eddae160c6e16e143b35bec34f2e2924"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f687-889c-7646-8d0c-34a0ac9ff7d3",
+   "finished": 1795137546.6786082,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f687-889c-7646-8d0c-34a0ac9ff7d3",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137440838,
+    "progress": 100,
+    "started_at": 1795137440845,
+    "finished_at": 1795137541294,
+    "expires_at": 1795396741294,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f687-889c-7646-8d0c-34a0ac9ff7d3/output/model.glb?Expires=1795396741&Signature=MSYcGN2lpTFdolVs4ffVWh~4FC8nlkp7yraJcP5dHPQVqbnMWKd7e2Oz~Ch7gEB4IuXyhYtqCHWBO3wt~tU2sfjdrmI7zto~38UaZL0OHPXN3FTPEjJu~QU11HtVlJzdJKihUcR1w2Qg4v2IBZHHmBA0Fs7nGTb90DsJv37QirWx55RSsF5GyNMCCa0GkCibwqbskQm4OBNjAuG3cp~OR5PieqcDnWpH7-Wv2S40gukuZ~N8QxRa6ZTRoaDlETO2egtFAZctzhc~lE0ermfo9qaeTdapv1Zg3OGwG6RIZDdlwcmSxQWimX8C2pQOs64aRMG804RFTGkQtpr3uXRJPw__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 7878584,
+     "sha256": "742207da6dabe5bad86036941a13054c66076731161c516370e4e62697783c7b"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 8414636,
+     "sha256": "4ad0a539872d257f1c661757bf46c402500d84990cda189db2db9e55bc5d8b27"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 3812660,
+     "sha256": "5db9806c2f82a3d5e53219f8bfc9bb01669b3db3c29a550b29b08f712a065a30"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1675206,
+     "sha256": "744ff27922e970050fadfcc707454ab8e1ea49a69ed247d14957840d541ef146"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 847451,
+     "sha256": "f8b0031fd543f5a56cb336405b0e5b41f0e2ef2eb09495d8db6139590ae1ea27"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 3806521,
+     "sha256": "57205ff06299be61660611f9d2fb9a99d6da11e142671a635e2b6fadcac5f230"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 117591,
+     "sha256": "ad4cc037141d7c240fc35e52afeabd0264094e77e0a8a18a0ebb463d087f1580"
+    }
+   ]
+  }
+ ]
+}

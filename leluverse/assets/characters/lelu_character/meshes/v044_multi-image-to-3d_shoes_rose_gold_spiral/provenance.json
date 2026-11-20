@@ -1,0 +1,92 @@
+{
+ "jobs": [
+  {
+   "look": "shoes_rose_gold_spiral",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f686-5e76-75de-a65d-6cdb1fc8dc50",
+   "submittedAt": 1795137364.462404,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 60000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v041_image-to-image_shoes_rose_gold_spiral/empty_shoe_white.png",
+     "sha256": "ce104d21f9a6b94b3fddebb82f9b00cc674496956dd07d02c7376da15ce9c4b0"
+    }
+   ],
+   "authorisation": "owner approved Meshy for the coat heels (pause report step 4) on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f686-5e76-75de-a65d-6cdb1fc8dc50",
+   "finished": 1795137512.9685712,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f686-5e76-75de-a65d-6cdb1fc8dc50",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137364313,
+    "progress": 100,
+    "started_at": 1795137364325,
+    "finished_at": 1795137496662,
+    "expires_at": 1795396696662,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f686-5e76-75de-a65d-6cdb1fc8dc50/output/model.glb?Expires=1795396696&Signature=idK1ncI1DVWrewIbkNTfSSd1aBibm8GcjAb7ajfX7vYto-eioLxz3Y-lR242TogyNslaKs5O1uAh5y78VyUHIdlzlxYtrgYwo2dgk-2mbpew~bEKfjvTskmQdHqwtqjD-Km3PhZkbGEVNk7Tpu~6wyHY-~Ip2AK39i77h1qlA2Wmt8haaPgsJIaP5PgSeErNYOonfvp-0g9fE41NSSp~BsrHXR29xLYGAlvNB8BnJEX4HriENRFYcZp4fddAAu5OohYT9VRNy4SoxBUDvlaD-Nud9chVK42G65OS9oQCWTo2V4Y8C-rnZwyX-j~SFgh88iTOzosD8LZs7O161echjQ__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 12400724,
+     "sha256": "5bef58a18986359ec902a0e4a4ed028a3297f4480365318f3228a855956b9f90"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 12118332,
+     "sha256": "4fcc96612a79c8d1b7c03c03c39bfa26c2f962fd15d76ac9fa020aca0f7df300"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 3847624,
+     "sha256": "46662797d3e30596a1e7cfe02388131bc1d8aa30b03ac07d18ee587732b86d59"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 2068897,
+     "sha256": "e78255f07260180dd4c7ab5629cd831dd3d0dc76fbbb408a7ed2ed3a02114b40"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1241198,
+     "sha256": "020a5a1157383098ab369394ebd35f3b10e8a0c23d9fa7e6020e5bd36ea4d4c1"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 5588483,
+     "sha256": "c3251af966dc0375029f63e6d8cf513339758985e283f582a2ef33f433fe7432"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 95338,
+     "sha256": "2b35a1284926078cf125a25988158116069b3063171577b045a51ce2684742fb"
+    }
+   ]
+  }
+ ]
+}

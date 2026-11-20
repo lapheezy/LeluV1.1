@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "island",
+   "kind": "image-to-image",
+   "task": "01a1f689-54fc-7588-8e04-9381bbfc0402",
+   "submittedAt": 1795137559.435432,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this kitchen island alone: a long black-marble kitchen island with copper-gold trim and under-glow, a cooktop and sink on top, and four tall copper-legged bar stools along its front. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/island.png",
+     "sha256": "97c39455e07e1ca48608da102aa5df09be85f3a7418f50dec239230c3c2d6c63"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f689-54fc-7588-8e04-9381bbfc0402",
+   "finished": 1795137600.8535838,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-54fc-7588-8e04-9381bbfc0402",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this kitchen island alone: a long black-marble kitchen island with copper-gold trim and under-glow, a cooktop and sink on top, and four tall copper-legged bar stools along its front. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137559302,
+    "started_at": 1795137559329,
+    "finished_at": 1795137583538,
+    "expires_at": 1795396783538,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f689-54fc-7588-8e04-9381bbfc0402_0.png?Expires=1795396783&Signature=WUdMZ5KJxZY8ri02gHecIbTyhRXpxRIs-CeFqfUH0nQBqz982nEMHqYPdgh8HdTeOOqDAAU5QEPg64jYzdaIAprFmHjL-SGsgQhmWpIaECb7iylL7Gxjzt9neO8bRoS2PXxetnkxDB4mv8pZrdSbdsIw-l7kqvV5jOD-0bM6Yld4SoodvwQxSZ-N59DKNM95oeixKQB-hbGlwd-OOs3u8ht-Nx1lEL4AHGBjgvhGjJGV1NMlV~z9mPOdDzK6IHVubH7dHaJGHh7KLVkGLJSb4f9bJUN58dQaXjKa9Vy6uLGdYZgRRAlP7RsFr6qWnQA07lc5KKzUkgmTPSdM32iPcg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f689_0.png",
+     "bytes": 793698,
+     "sha256": "15d6e9edb619c0a6e6321203565b72fc7409556869b76a05311b087e15086a4d"
+    }
+   ]
+  },
+  {
+   "piece": "island",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-fe6e-75ea-ae7f-d83c0a213ccf",
+   "submittedAt": 1795137602.2819452,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/island/view_01a1f689_0.png",
+     "sha256": "15d6e9edb619c0a6e6321203565b72fc7409556869b76a05311b087e15086a4d"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-fe6e-75ea-ae7f-d83c0a213ccf",
+   "finished": 1795137727.4284086,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-fe6e-75ea-ae7f-d83c0a213ccf",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137602074,
+    "progress": 100,
+    "started_at": 1795137602082,
+    "finished_at": 1795137713920,
+    "expires_at": 1795396913920,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f689-fe6e-75ea-ae7f-d83c0a213ccf/output/model.glb?Expires=1795396913&Signature=bgQur42Jb3Baa0OelHm4mXfEOH727eYy2RkTSje8E5FmWtI6ucCj-czKiw8JjY2ZQxKk2JxH~CmGx2vztK2Xuln3E~ZSiLltMa-jJUUdAUU-8yk-Sxu0aeV0VHm9Qpnqdswye5fR9Ifl1kQkdYDN5ayGw9vR4XwR09BLTycJz4dthSF4i2ABQpGoUVIovHjxrbTZ9gjEp3QDoxi5WDVY3w6gdaJeq5zH9uQ-050Qm7xjxu-aWdsK7AQmkXBotcy19DFxiWz526DJRv----vrnHjsgVtGW7tiY0Veb90GMuevt1VMOuqV6G4ZdJB2UqjYUbDUmhJ0U9bLHnUYhWBlaA__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 8905932,
+     "sha256": "852fb05d7f780cd590aa7b2c374bee22e321e1d935f5c376389042957c895f7b"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 9028844,
+     "sha256": "6b7dd50e2575e8e2ea5c7b409c0a106a5028b7e8a6efc553f592dc6eb18a0f90"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 2888673,
+     "sha256": "b80eed39c6b3d4629d9659d3b2aa2633bf921fd94319f425d2bdbdfaadba170f"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1538144,
+     "sha256": "708821279e5e9d48a3b3cf373b990bb9f6c2d76a3a7614aa6a84848922962b82"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1516423,
+     "sha256": "c03c43799ef167536c33e7c9b5bee6889cccbc496e65561bd68f9b7fa9087825"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 3458048,
+     "sha256": "71d43b8410d6bcfd09af30f9d20ac3721fe7284866c8d993424306dd3e398110"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 94685,
+     "sha256": "589fab6ea7734f8d7c99dbed304a18c6327f6cc603889761ccafc39d0884b6f5"
+    }
+   ]
+  }
+ ]
+}

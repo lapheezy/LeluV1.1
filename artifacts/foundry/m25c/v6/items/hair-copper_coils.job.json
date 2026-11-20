@@ -1,0 +1,15 @@
+{
+ "look": "artifacts/foundry/m25c/steps/look6-bronze_velocity.glb",
+ "hair": "leluverse/assets/characters/lelu_character/meshes/v042_multi-image-to-3d_hair_copper_coils/model.glb",
+ "output": "artifacts/foundry/m25c/steps/item-hair_copper_coils.glb",
+ "report": "artifacts/foundry/m25c/v6/items/hair-copper_coils.json",
+ "name": "hair_copper_coils",
+ "headOffset": [
+  -0.0272,
+  0.0792,
+  -0.0113
+ ],
+ "decimate": 0.55,
+ "textureSize": 1024,
+ "shellMax": 0.035
+}

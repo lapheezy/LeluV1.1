@@ -1,0 +1,16 @@
+{
+ "look": "artifacts/foundry/m25c/steps/look6-rose_gold_sovereign.glb",
+ "hair": "leluverse/assets/characters/lelu_character/meshes/v043_multi-image-to-3d_hair_rose_gold_waves/model.glb",
+ "output": "artifacts/foundry/m25c/steps/item-hair_rose_gold_waves.glb",
+ "report": "artifacts/foundry/m25c/v6/items/hair-rose_gold_waves.json",
+ "name": "hair_rose_gold_waves",
+ "headOffset": [
+  -0.0144,
+  0.015099999999999999,
+  -0.016800000000000002
+ ],
+ "decimate": 0.55,
+ "textureSize": 1024,
+ "shellMax": 0.035,
+ "bustDepth": 1.7
+}

@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "desk",
+   "kind": "image-to-image",
+   "task": "01a1f689-55a5-73bf-a3ca-d57b84aa5909",
+   "submittedAt": 1795137559.375594,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this curved creator desk alone: a curved black desk with copper-gold trim and drawers, a row of five computer monitors and a laptop on it, and a white high-back office chair in front. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/desk.png",
+     "sha256": "5ce63a36286d31f4ebc56df7c04a85dba8bf865f88a0c1ad880d16c0baacd871"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f689-55a5-73bf-a3ca-d57b84aa5909",
+   "finished": 1795137641.3684056,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-55a5-73bf-a3ca-d57b84aa5909",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this curved creator desk alone: a curved black desk with copper-gold trim and drawers, a row of five computer monitors and a laptop on it, and a white high-back office chair in front. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137559204,
+    "started_at": 1795137559231,
+    "finished_at": 1795137623137,
+    "expires_at": 1795396823137,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f689-55a5-73bf-a3ca-d57b84aa5909_0.png?Expires=1795396823&Signature=Q4Rd2H9H80td9Tfr7KvlJrJK~ty6eckFPUmVSIEVFSQh9Z7D1ZIvJz5gbtSePOhMWa3Ki0Gzp7hQln0oaB5x0IU6x38cnvcTsr8RoCKiaeQ3BsKmNTqFRNy~vZE3OPyc8VZ-vtRQZ1D-8KE7HWcvzeFDYQb2vEK-ecmt88M7f~lawI1AwvY8gdyatcQoW2qIrWd~vqHYaQHy-5wN9IzMdtq19OvPaZnh-HlWFRxlF6WgHCzn1jO-XO1ugM8OqBDklQQJLIjauxOdNP2AN2QyLcO44eadkPo84u2BSMNbZ~nMjMlgNBgb5T7U1t~xPVpRTfpOy~4MU2iO~d47A70EDQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f689_0.png",
+     "bytes": 714060,
+     "sha256": "39d62975dea44a0959d5c67c46358244522a13c6ee57546fa4816278313fe763"
+    }
+   ]
+  },
+  {
+   "piece": "desk",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68a-9ca9-7536-ae25-31ea7532eb34",
+   "submittedAt": 1795137642.7537022,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/desk/view_01a1f689_0.png",
+     "sha256": "39d62975dea44a0959d5c67c46358244522a13c6ee57546fa4816278313fe763"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68a-9ca9-7536-ae25-31ea7532eb34",
+   "finished": 1795137747.858966,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68a-9ca9-7536-ae25-31ea7532eb34",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137642592,
+    "progress": 100,
+    "started_at": 1795137642602,
+    "finished_at": 1795137728729,
+    "expires_at": 1795396928729,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f68a-9ca9-7536-ae25-31ea7532eb34/output/model.glb?Expires=1795396928&Signature=hpCguvbWgf~XBJGUZccu3SbTfuR-aemSp34iqmTMkQG9QeLIeTA0Qfk69IB8CrXd5aFMGKPxavyEAf-~c3QFiHCR3NOx1ldryMGZgM2pnw7JRD1OsGT7P6FqyWMq67yc6hlcvTThUKr1wk-vJAFX1qqJ2~qeY1H9~gNtZyhqUnLacKxH4gMBFD-pQjDxAP4G9WoCnXrUuTea-mHx05CWGXyq96xgltfdx23W9lOSOGgK678lXPJ9XkoZUdkM7OLW~9K23finqade1JjlFYqIreoSvx10H7Z7eN8be1KWkqk7hJQgc1hXYnEUeckY2eq2FhLo3Mgoj4ZIkWyfEFveBA__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 8205372,
+     "sha256": "959bd5df418924d7950ae01687d60b28d6ebf8011038fbfad38d1056bb7ff3ea"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 8545884,
+     "sha256": "e54eb2a96f086c00421788c46fe4b308d63bdb4f20a41db0e8274d9461ff14c7"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 2947085,
+     "sha256": "c54a161603a59bdff472a94a81117fcd70d7d6e17972af87533e9bd706efabc6"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1605366,
+     "sha256": "d8da312a1363bfa7753ccfb041af71dfabf17b715f93223e03464741b59fff74"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1677003,
+     "sha256": "6d0e72fe55fa983817a6ec91b4dfd1d96c82bd64acb02678083613ac85fa6a13"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 2975830,
+     "sha256": "b404afacf9fa36d3a7a2987e9d2859964ba680cd041df305844528b1cf686a76"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 75274,
+     "sha256": "058a16273e4424229101222f0278ce4414cda897d2623c9685c1e68d502e7fb8"
+    }
+   ]
+  }
+ ]
+}

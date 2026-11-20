@@ -810,7 +810,7 @@ export class MeshyForge {
    */
   addWardrobeItem(
     character: string,
-    input: { id: string; name?: string; category?: string; slot?: string; jobId: string; bone?: string; offset?: unknown; rotation?: unknown; height?: number },
+    input: { id: string; name?: string; category?: string; slot?: string; jobId: string; bone?: string; offset?: unknown; rotation?: unknown; height?: number; withLooks?: unknown },
   ) {
     const job = this.store.job(String(input.jobId ?? ""));
     if (!job || job.character !== character) throw new ForgeError(`No job ${input.jobId} for ${character}.`, 404);
@@ -846,6 +846,12 @@ export class MeshyForge {
       height: typeof input.height === "number" && Number.isFinite(input.height) ? Math.min(5, Math.max(0.02, input.height)) : 0.3,
       createdAt: Date.now(),
     };
+    if (input.withLooks !== undefined) {
+      if (!Array.isArray(input.withLooks) || input.withLooks.some((l) => typeof l !== "string" || !/^[a-z0-9_-]{1,40}$/.test(l))) {
+        throw new ForgeError("withLooks must be a list of look names (lowercase letters, digits, _ or -).");
+      }
+      item.withLooks = [...new Set(input.withLooks as string[])];
+    }
     // Re-registering an id replaces its settings; the asset it pointed at is kept.
     this.store.saveWardrobeItems(character, [...this.store.wardrobeItems(character).filter((i) => i.id !== id), item]);
     this.store.logEvent(character, { type: "wardrobe_item_registered", id, slot, category, jobId: job.id, bone });
@@ -905,8 +911,20 @@ export class MeshyForge {
       }
     }
     const items = this.store.wardrobeItems(character);
-    const wear = (input.wear ?? {}) as Record<string, unknown>;
-    if (wear === null || typeof wear !== "object" || Array.isArray(wear)) throw new ForgeError("wear must be an object of slot: item id or null.");
+    const given = (input.wear ?? {}) as Record<string, unknown>;
+    if (given === null || typeof given !== "object" || Array.isArray(given)) throw new ForgeError("wear must be an object of slot: item id or null.");
+    const wear: Record<string, unknown> = { ...given };
+    if (lookGiven) {
+      // A look's own pieces (its hairstyle, its bag) come with it; another look's own pieces go.
+      // Anything the call names explicitly wins.
+      const named = new Set(Object.keys(given).map((k) => k.toLowerCase()));
+      const worn = new Set(this.store.placements().filter((p) => p.attach?.character === character && p.worn !== false).map((p) => p.item));
+      for (const item of items) {
+        if (!item.withLooks?.length || named.has(item.slot)) continue;
+        if (look && item.withLooks.includes(look)) wear[item.slot] = item.id;
+        else if (worn.has(item.id) && !(item.slot in wear)) wear[item.slot] = null;
+      }
+    }
     const plan = Object.entries(wear).map(([rawSlot, value]) => {
       const slot = this.slotName(rawSlot);
       if (!slot) throw new ForgeError("wear keys are wearable slots such as hair, earrings or bag.");

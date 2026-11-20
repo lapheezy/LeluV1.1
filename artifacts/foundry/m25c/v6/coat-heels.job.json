@@ -1,0 +1,22 @@
+{
+ "look": "artifacts/foundry/m25c/steps/look6-rose_gold_sovereign.glb",
+ "leg": "leluverse/assets/characters/lelu_character/meshes/v045_multi-image-to-3d_shoes_worn_spiral/model.glb",
+ "output": "artifacts/foundry/m25c/steps/look7-rose_gold_sovereign.glb",
+ "report": "artifacts/foundry/m25c/v6/coat-heels.json",
+ "body": "look_rose_gold_sovereign",
+ "cutZ": 0.27,
+ "decimate": 0.6,
+ "textureSize": 1024,
+ "boots": {
+  "l": [
+   0.068,
+   -0.092
+  ],
+  "r": [
+   -0.076,
+   -0.092
+  ]
+ },
+ "bootRadius": 0.07,
+ "lengthScale": 0.85
+}

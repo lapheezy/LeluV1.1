@@ -1,0 +1,66 @@
+{
+ "job": {
+  "look": "artifacts/foundry/m25c/steps/look6-bronze_velocity.glb",
+  "hair": "leluverse/assets/characters/lelu_character/meshes/v042_multi-image-to-3d_hair_copper_coils/model.glb",
+  "output": "artifacts/foundry/m25c/steps/item-hair_copper_coils.glb",
+  "name": "hair_copper_coils",
+  "headOffset": [
+   -0.0272,
+   0.0792,
+   -0.0113
+  ],
+  "decimate": 0.55,
+  "textureSize": 1024,
+  "shellMax": 0.035
+ },
+ "her": {
+  "chinZ": 1.4946,
+  "noseTipY": -0.1115,
+  "crownZ": 1.697
+ },
+ "peelDistancePct": [
+  [
+   0.0069,
+   0.0119,
+   0.022,
+   0.0359,
+   0.0533,
+   0.0947
+  ]
+ ],
+ "peelPasses": [
+  4342,
+  6866
+ ],
+ "mannequin": {
+  "triangles": 12099,
+  "of": 155151,
+  "chinZ": 0.385,
+  "faceTopZ": 0.7914
+ },
+ "fit": {
+  "scale": 0.41177,
+  "translate": [
+   -0.0233,
+   0.1125,
+   1.3248
+  ],
+  "mannequinCrownZ": 0.8867,
+  "mannequinNoseY": -0.3517
+ },
+ "removedInsideHead": 29,
+ "removedOverFace": 0,
+ "crumbsRemoved": 396,
+ "triangles": 78443,
+ "skin": {
+  "bones": [
+   "Head",
+   "Spine02",
+   "neck"
+  ],
+  "verticesOnHead": 10392,
+  "vertices": 35223
+ },
+ "outputSha256": "972a0d2445d116bd28896e33411d483e23a55ded14fe9f30d241b04d275368e3",
+ "outputBytes": 9162672
+}

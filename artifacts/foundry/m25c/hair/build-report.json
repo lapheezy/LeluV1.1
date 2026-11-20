@@ -43,9 +43,9 @@
      30.62
     ],
     "before": {
-     "skinMetallicMean": 0.04452405124902725,
+     "skinMetallicMean": 0.04452404007315636,
      "skinRoughnessP10": 0.44705885648727417,
-     "hairMetallicMean": 0.03596295416355133,
+     "hairMetallicMean": 0.035962946712970734,
      "hairRoughnessP10": 0.7019608020782471
     },
     "after": {
@@ -73,7 +73,7 @@
      20.41
     ],
     "before": {
-     "skinMetallicMean": 0.07918107509613037,
+     "skinMetallicMean": 0.07918106764554977,
      "skinRoughnessP10": 0.7882353663444519,
      "hairMetallicMean": 0.030590252950787544,
      "hairRoughnessP10": 0.9450981020927429
@@ -185,11 +185,11 @@
   "hair": {
    "primary": {
     "strands": 312,
-    "vertices": 57486,
-    "triangles": 111228,
+    "vertices": 57696,
+    "triangles": 111648,
     "strandLengthMm": {
      "p10": 15.0,
-     "p50": 61.1,
+     "p50": 61.6,
      "p90": 178.1
     }
    },
@@ -206,16 +206,16 @@
    "babyHairs": 48,
    "flyaways": 276,
    "ringlets": 516,
-   "rootsRejected": 1073,
+   "rootsRejected": 1071,
    "truncatedAtFace": 10,
    "truncatedAtAccessory": 546,
    "accessoryClearanceMm": 9.0
   }
  },
  "output": "artifacts/foundry/m25c/steps/s0-build.glb",
- "outputSha256": "e99ae590a3ddce28f2d20184dbeb600678c3bb6ec28dde32290a16b94d82a4df",
- "outputBytes": 44724996,
- "seconds": 75.5,
+ "outputSha256": "8bf1bdd39b0a44994ab284f8fb71be376ea3276e41c945733a1d512016afaf38",
+ "outputBytes": 44734692,
+ "seconds": 86.5,
  "blender": "4.5.9 LTS",
  "job": {
   "skin": {

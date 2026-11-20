@@ -17,6 +17,12 @@
  * orientation, not scale — so it moves with her walk, idle
  * and gestures, with a little inertial sway for hanging
  * pieces. Without a rigged model on screen it waits hidden.
+ *
+ * A SKINNED item (hair, shoes, a carried bag exported on her own
+ * skeleton) is not fitted or posed here: its meshes are bound to
+ * her live bones by name (bindSkinnedItem), so it deforms with her
+ * neck, back and feet in every look, and is re-bound when her look
+ * changes.
  * ==========================================================
  */
 
@@ -26,7 +32,7 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import ForgeClient, { type CosmosPlacement } from "../../../core/forge/ForgeClient";
-import { attachmentPose, findBone } from "../../../core/forge/Attachment";
+import { attachmentPose, bindSkinnedItem, findBone, isSkinnedItem } from "../../../core/forge/Attachment";
 
 const tmpPos = new THREE.Vector3();
 const tmpQuat = new THREE.Quaternion();
@@ -37,6 +43,12 @@ function inScene(object: THREE.Object3D, scene: THREE.Object3D): boolean {
   let o: THREE.Object3D = object;
   while (o.parent) o = o.parent;
   return o === scene;
+}
+
+/** True when `object` is `ancestor` or sits somewhere under it. */
+function within(object: THREE.Object3D, ancestor: THREE.Object3D): boolean {
+  for (let o: THREE.Object3D | null = object; o; o = o.parent) if (o === ancestor) return true;
+  return false;
 }
 
 export function PlacedModel({ placement }: { placement: CosmosPlacement }) {
@@ -52,6 +64,9 @@ export function PlacedModel({ placement }: { placement: CosmosPlacement }) {
   const [hovered, setHovered] = useState(false);
   const turn = useRef<THREE.Group>(null);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
+  const skinned = useRef(false);
+  /** The character root the skinned item is bound to (re-bound when her model is swapped). */
+  const boundTo = useRef<THREE.Object3D | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -60,6 +75,15 @@ export function PlacedModel({ placement }: { placement: CosmosPlacement }) {
       .then((gltf) => {
         if (disposed) return;
         const scene = gltf.scene;
+        skinned.current = Boolean(attach) && isSkinnedItem(scene);
+        boundTo.current = null;
+        if (skinned.current) {
+          // Worn on her skeleton: no fitting, no centring (bound to her bones each time she changes).
+          const holder = new THREE.Group();
+          holder.add(scene);
+          setObject(holder);
+          return;
+        }
         const size = new THREE.Box3().setFromObject(scene).getSize(new THREE.Vector3());
         if (!isFinite(size.y) || size.y <= 0) throw new Error("model has an empty bounding box");
         scene.scale.setScalar(placement.height / size.y);
@@ -95,6 +119,23 @@ export function PlacedModel({ placement }: { placement: CosmosPlacement }) {
     if (spinning && turn.current) turn.current.rotation.y += delta * 0.6;
     const group = root.current;
     if (!attach || !group) return;
+
+    if (skinned.current) {
+      // boundTo holds one of HER bones the item is bound to: when her look is swapped that bone
+      // leaves the scene, and the item is bound again to the new model's bones.
+      const her = scene.getObjectByName("V2Lelu") ?? null;
+      if (object && her && (!boundTo.current || !inScene(boundTo.current, scene))) {
+        const { bound } = bindSkinnedItem(object, her);
+        let first: THREE.Object3D | null = null;
+        object.traverse((o) => {
+          const m = o as THREE.SkinnedMesh;
+          if (!first && m.isSkinnedMesh) first = m.skeleton.bones.find((b) => within(b, her)) ?? null;
+        });
+        boundTo.current = bound ? first : null;
+      }
+      group.visible = Boolean(object && boundTo.current) && placement.worn !== false;
+      return;
+    }
 
     // Re-find the bone if the character model was swapped (new look, new version).
     if (!bone.current || !inScene(bone.current, scene)) {

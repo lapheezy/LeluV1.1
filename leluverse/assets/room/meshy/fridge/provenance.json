@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "fridge",
+   "kind": "image-to-image",
+   "task": "01a1f68b-eda2-73ff-82e0-b27bbc54b885",
+   "submittedAt": 1795137729.0063834,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this tall black-and-copper double-door refrigerator cabinet alone, with a glowing copper symbol on one door and a glass door showing fruit shelves. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/fridge.png",
+     "sha256": "a0d5e214cfce9408d2ecfb28b1b3fdcf2eb12acd6f3d925c29af0aa218da82d2"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f68b-eda2-73ff-82e0-b27bbc54b885",
+   "finished": 1795137749.7372503,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68b-eda2-73ff-82e0-b27bbc54b885",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this tall black-and-copper double-door refrigerator cabinet alone, with a glowing copper symbol on one door and a glass door showing fruit shelves. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137728884,
+    "started_at": 1795137728896,
+    "finished_at": 1795137743089,
+    "expires_at": 1795396943089,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f68b-eda2-73ff-82e0-b27bbc54b885_0.png?Expires=1795396943&Signature=k1LTpmOhfMxatH8Ug99hIFPX3TEWNnIdbqv41pedHaTWT5rfUCmwlqnG~ycnTEU4k-x0uu~5h9o7Q-CusTIf9itfNaRsA-I3CIUjStIB3oi7vJUIKvmQl0tkiowFWE3GxVlPtOrdEedmM9KtxHaHm2oTybDTMvVP-Bn~pYDcLt7yNHRbiW3voqQj9NHvf4PFUZv8qNgTaMLhr6gyEM8Q9ZLNxGycSyCvKt8OtoFieF9S8f9LISu9xg4f3gpDZI1dP3zJ4fR0OyJYzxP~-DxdZkDiQV6R5kDc~uvOKI2byQsA~vNVah1hOnGn7263RhZ2Xapk8dubDGVDgR~HfjrTxg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f68b_0.png",
+     "bytes": 831503,
+     "sha256": "9b87d457bf9a0f3e65f631507ec0276cd7bc15c7e3c8120eaaee0d65d3ba01da"
+    }
+   ]
+  },
+  {
+   "piece": "fridge",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-4431-74e7-893c-373eece874d6",
+   "submittedAt": 1795137750.9929554,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/fridge/view_01a1f68b_0.png",
+     "sha256": "9b87d457bf9a0f3e65f631507ec0276cd7bc15c7e3c8120eaaee0d65d3ba01da"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-4431-74e7-893c-373eece874d6",
+   "finished": 1795137856.311328,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68c-4431-74e7-893c-373eece874d6",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137750813,
+    "progress": 100,
+    "started_at": 1795137750824,
+    "finished_at": 1795137841038,
+    "expires_at": 1795397041038,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f68c-4431-74e7-893c-373eece874d6/output/model.glb?Expires=1795397041&Signature=WkFoeNtc6uUm6CIVY3UO8HRDk1YUaLckauR3aIEi5tVxvfU9bUgcYd4ZzMe6aYH0eUDPBKcfwW8i377TiEL-SCS3nSym4qLPJASV4HZvLUQvsg5MeKQd-qhCKYZwwKYZnjF3-BoPG1bQVfJTk1jTwH37fvOcYEH-S~dt8USs1py6ZxAVJrJoW9qoEkzGtSW-rDM3sEkeAFnHL6QjfyWVW5tkFxesnLjuezNHPKAK4Mx0wLDzZA7spGJYB3JnTe9noGx8qe9WFBg8Xd4W5ML3q82RXGXDHWW8DlUOW14oasgOzME5l11vfatUcQlh9C1VyXkB32XU7Y3bcpFIRcfcHA__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 8088236,
+     "sha256": "759d717825e8d3ccad4ea8f96de9066ec9e3de78777f8be449ff45a842d24af9"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 8600428,
+     "sha256": "0e36f18e048204153997d67542c369a27367fc2edc466a785f74895ec9f1fa55"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 3037713,
+     "sha256": "cd1860f11338fc35cb3dfc8d0365a11a32ef7736339e901a8e02da9d188bcb1a"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1837172,
+     "sha256": "832e777e9d218c33c5d04a1251f8612d4fb62406a0731aebb814e680c58b6531"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1725043,
+     "sha256": "a177777425856f516ee3d36495697aaab6afbdf7d9f136ed182b6c146013465d"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 2942558,
+     "sha256": "9afb3f1a4640f1caf294083c3e7d1bf2fb7eeb8ad17556d67833d5f24deec0ac"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 132685,
+     "sha256": "162f5d53330ee0b367d606e35f935a2441b0c4b9ed8634f4c8274f0bcc9c13f3"
+    }
+   ]
+  }
+ ]
+}

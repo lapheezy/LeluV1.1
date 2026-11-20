@@ -3,9 +3,9 @@
  "clearanceMm": 2.5,
  "objects": {
   "lelu_mouth": {
-   "vertices": 748,
-   "inFrontOfSkinBefore": 123,
-   "moved": 622,
+   "vertices": 749,
+   "inFrontOfSkinBefore": 125,
+   "moved": 623,
    "moveMm": {
     "p50": 1.141,
     "max": 6.345
@@ -27,5 +27,5 @@
   "specular": 0.15
  },
  "output": "artifacts/foundry/m25c/steps/s1-mouth.glb",
- "outputSha256": "bb7043d9e4cc36aaa0b4f0b336dcba2a5a5e10d3f7fb61938c68553dbdb51861"
+ "outputSha256": "9d0ea45e0aa43fb64ba58e73a3b0fd25da59e6b549694799ba11aab27f790cb8"
 }

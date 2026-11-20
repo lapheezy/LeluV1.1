@@ -9,7 +9,6 @@
  *
  *   RESET      → return to the default composition
  *   LÉLU       → fly to LÉLU
- *   CORE       → fly to the Genesis Core
  *   ORBIT/FLY  → switch camera mode (seamless, no snap)
  *   ZOOM − / + → dolly in/out
  *   FULLSCREEN → Gen V2 becomes the primary viewport
@@ -167,9 +166,6 @@ export default function GenesisV2CameraHUD({ mobile = false }: { mobile?: boolea
         </button>
         <button type="button" style={BTN} onClick={() => focus("lelu")} title="Focus LÉLU" aria-label="Focus LÉLU">
           ◉ <span>LÉLU</span>
-        </button>
-        <button type="button" style={BTN} onClick={() => focus("core")} title="Focus the Core" aria-label="Focus the Core">
-          ⬡ <span>Core</span>
         </button>
         <button
           type="button"

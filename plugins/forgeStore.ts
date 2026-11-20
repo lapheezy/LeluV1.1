@@ -179,6 +179,11 @@ export interface WardrobeItem {
   rotation: [number, number, number];
   /** Height in metres the piece is fitted to (attachments ignore the bone's scale). */
   height: number;
+  /**
+   * Looks this piece is worn with by default (a look's own hairstyle or bag). Switching to one
+   * of them puts it on unless the call says otherwise; switching to any other look takes it off.
+   */
+  withLooks?: string[];
   createdAt: number;
 }
 

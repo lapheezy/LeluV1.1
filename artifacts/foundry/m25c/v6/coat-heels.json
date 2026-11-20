@@ -1,0 +1,75 @@
+{
+ "job": {
+  "look": "artifacts/foundry/m25c/steps/look6-rose_gold_sovereign.glb",
+  "leg": "leluverse/assets/characters/lelu_character/meshes/v045_multi-image-to-3d_shoes_worn_spiral/model.glb",
+  "output": "artifacts/foundry/m25c/steps/look7-rose_gold_sovereign.glb",
+  "body": "look_rose_gold_sovereign",
+  "cutZ": 0.27,
+  "decimate": 0.6,
+  "textureSize": 1024,
+  "boots": {
+   "l": [
+    0.068,
+    -0.092
+   ],
+   "r": [
+    -0.076,
+    -0.092
+   ]
+  },
+  "bootRadius": 0.07,
+  "lengthScale": 0.85
+ },
+ "bootTrianglesRemoved": 488,
+ "boot": {
+  "l": {
+   "floor": 0.0051,
+   "toeY": -0.158,
+   "heelY": -0.0304,
+   "x": 0.0697,
+   "ankle": [
+    0.0963,
+    -0.2069,
+    0.1759
+   ],
+   "knee": [
+    0.1091,
+    -0.1804,
+    0.5262
+   ]
+  },
+  "r": {
+   "floor": 0.0053,
+   "toeY": -0.1578,
+   "heelY": -0.0341,
+   "x": -0.0722,
+   "ankle": [
+    -0.1427,
+    -0.1969,
+    0.1683
+   ],
+   "knee": [
+    -0.1409,
+    -0.1636,
+    0.5221
+   ]
+  }
+ },
+ "legModel": {
+  "heightUnits": 1.903,
+  "footLengthUnits": 0.4735,
+  "toeWasNegY": false
+ },
+ "heels": {
+  "r": {
+   "scale": 0.22212,
+   "triangles": 36980
+  },
+  "l": {
+   "scale": 0.2291,
+   "triangles": 36979
+  }
+ },
+ "outputSha256": "4716b066faca86b8ab8f68ed7ba03316a8eb6fc6d03ce1484da64b9b4fdb3b3c",
+ "outputBytes": 18226252
+}

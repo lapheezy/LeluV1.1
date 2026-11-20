@@ -83,6 +83,17 @@ m.object = rig
 report = {"bag": job["name"], "sourceSizeM": [round(x, 4) for x in (hi - lo)], "scale": round(s, 4),
           "triangles": sum(len(p.vertices) - 2 for p in bag.data.polygons), "hand": job.get("hand", "RightHand"),
           "handWorld": [round(x, 4) for x in hand]}
+if job.get("itemOnly"):
+    # a wardrobe item of its own (pause 2): the look's skeleton and this bag only; the client binds
+    # it to her live bones by name, so the bag can be carried with any look or put down
+    for o in [o for o in bpy.data.objects if o.type == "MESH" and o is not bag]:
+        bpy.data.objects.remove(o, do_unlink=True)
+    size = int(job.get("textureSize", 1024))
+    for mt in bag.data.materials:
+        if mt and mt.use_nodes:
+            for n in mt.node_tree.nodes:
+                if n.type == "TEX_IMAGE" and n.image and max(n.image.size) > size:
+                    n.image.scale(size, size)
 bpy.ops.export_scene.gltf(filepath=job["output"], export_format="GLB", export_apply=False, export_morph=True,
                           export_morph_normal=False, export_animations=False, export_skins=True,
                           export_image_format="JPEG", export_jpeg_quality=90)

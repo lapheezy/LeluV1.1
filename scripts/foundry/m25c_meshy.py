@@ -70,7 +70,7 @@ def submit(look, out, images):
     res = call("POST", PATHS["multi-image-to-3d"], body)
     rec = {"look": look, "kind": "multi-image-to-3d", "task": res.get("result"), "submittedAt": time.time(),
            "request": {k: v for k, v in body.items() if k != "image_urls"},
-           "images": [{"file": i, "sha256": sha(i)} for i in images], "authorisation": "user approved paid Meshy for the two new looks in-session"}
+           "images": [{"file": i, "sha256": sha(i)} for i in images], "authorisation": os.environ.get("M25C_AUTH", "user approved paid Meshy for the two new looks in-session")}
     save(out, rec)
     print("TASK", res.get("result"))
 
@@ -82,7 +82,8 @@ def i2i(look, out, prompt, images, model="nano-banana-pro", multi=False):
     res = call("POST", PATHS["image-to-image"], body)
     save(out, {"look": look, "kind": "image-to-image", "task": res.get("result"), "submittedAt": time.time(),
                "request": {k: v for k, v in body.items() if k != "reference_image_urls"},
-               "images": [{"file": i, "sha256": sha(i)} for i in images]})
+               "images": [{"file": i, "sha256": sha(i)} for i in images],
+               "authorisation": os.environ.get("M25C_AUTH", "user approved paid Meshy in-session")})
     print("TASK", res.get("result"))
 
 
@@ -113,7 +114,7 @@ def wait(out, kind, task):
                 urls["preview.png"] = t["thumbnail_url"]
         elif kind == "image-to-image":
             for i, u in enumerate(t.get("image_urls") or []):
-                urls[f"view_{task[:8]}_{i}.png"] = u
+                urls[f"view_{task[:13].replace('-', '')}_{i}.png"] = u
         else:
             r = t.get("result") or {}
             for k, v in (r.get("rigged_character_glb_url") and {"rigged.glb": r["rigged_character_glb_url"]} or {}).items():

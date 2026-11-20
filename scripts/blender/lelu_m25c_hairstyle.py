@@ -93,9 +93,9 @@ for f in bm.faces:
                 if h.index not in seen:
                     seen.add(h.index)
                     stack.append(h)
-    zc = [((W_b @ g.calc_center_median()).z - OFF[2]) for g in comp[:50]]
+    zc = [((W_b @ g.calc_center_median()).z - OFF[2]) for g in comp[:: max(1, len(comp) // 200)]]
     # loose pieces anywhere; near the shoulders/neck, larger leftovers of the generated coils too
-    if len(comp) < 40 or (len(comp) < 250 and min(zc) > 1.25):
+    if len(comp) < 40 or (len(comp) < int(st.get("fragmentFaces", 250)) and min(zc) > float(st.get("fragmentMinZ", 1.25))):
         kill += comp
 bmesh.ops.delete(bm, geom=kill, context="FACES")
 W = body.matrix_world
@@ -131,21 +131,25 @@ if st.get("noHair") and bpy.data.objects.get("lelu_hair") is not None:
     bb.to_mesh(o.data)
     bb.free()
     R["baldOldHairFacesRemoved"] = int((~keep).sum())
-    # her scalp object: hair-coloured faces (dark, outside the face) go too
+    # her scalp object is a face mask; the loose copper hair fragments around it are found by
+    # WHERE they are, not their colour (pause 2): every triangle outside an ellipsoid fitted to her
+    # head (centre/radii in her coordinates, below/above the centre separately) goes. Her mask is
+    # itself in pieces (cheeks are separate components), so connectivity cannot be used.
     o = bpy.data.objects["lelu_scalp"]
     SA0 = C.mesh_arrays(o)
-    st0 = C.triangle_texture(o, SA0)
     sq0 = SA0["wco"][SA0["tv"]].mean(1) - OFF
-    _, s_s, s_v = C.hsv(st0["albedo"][:, :3])
-    face0 = (np.abs(sq0[:, 0]) < 0.075) & (sq0[:, 1] < -0.04) & (sq0[:, 2] > 1.48) & (sq0[:, 2] < 1.70)
-    hairish = (s_v < 0.2) & ~face0 & (sq0[:, 2] > 1.50)
+    E = st.get("headEllipsoid", {"centre": [0.0, -0.015, 1.585], "radii": [0.079, 0.105, 0.135], "below": 0.118})
+    ec, er = np.array(E["centre"]), np.array(E["radii"], float)
+    rz = np.where(sq0[:, 2] < ec[2], float(E["below"]), er[2])
+    nd = np.sqrt(((sq0[:, 0] - ec[0]) / er[0]) ** 2 + ((sq0[:, 1] - ec[1]) / er[1]) ** 2 + ((sq0[:, 2] - ec[2]) / rz) ** 2)
+    outside = nd > 1.0
     sb0 = bmesh.new()
     sb0.from_mesh(o.data)
     sb0.faces.ensure_lookup_table()
-    bmesh.ops.delete(sb0, geom=[sb0.faces[i] for i in set(SA0["tp"][hairish].tolist())], context="FACES")
+    bmesh.ops.delete(sb0, geom=[sb0.faces[i] for i in set(SA0["tp"][outside].tolist())], context="FACES")
     sb0.to_mesh(o.data)
     sb0.free()
-    R["baldScalpHairFacesRemoved"] = int(hairish.sum())
+    R["baldScalpFragmentsRemoved"] = int(outside.sum())
 
 # her old hair cap: its front edge above the forehead reads as a black slab under the new hair
 cap = bpy.data.objects.get("lelu_hair")
@@ -245,7 +249,7 @@ for box in st.get("dropJewelBoxes", []):
 # holes her original face mesh has under a removed jewel: found by casting rays from the
 # front — where the first hit lies far behind the forehead, there is no skin — and closed by
 # a small cap tucked 0.4 mm under the forehead sphere, textured with her own forehead skin.
-for box in [b for b in st.get("dropJewelBoxes", []) if b.get("allNonSkin")]:
+for box in [b for b in st.get("dropJewelBoxes", []) if b.get("allNonSkin") and not st.get("skullShell")]:
     so = bpy.data.objects["lelu_scalp"]
     SA_ = C.mesh_arrays(so)
     sbvh = BVHTree.FromPolygons(SA_["wco"][SA_["tv"]].reshape(-1, 3).tolist(), np.arange(len(SA_["tv"]) * 3).reshape(-1, 3).tolist())
@@ -378,6 +382,111 @@ if inpaint_boxes:
                     n_.image = new
     R["inpaintedPixels"] = int((mask > 0).sum())
     R["inpaintRegionPixels"] = int(reg.sum())
+
+# ------------------------------------------------ 1b. her skull (bald base)
+# Her head mesh is only a face mask: without hair there is nothing behind it. A closed skull is
+# grown under it: an ellipsoid around her head centre whose every vertex is pulled in to sit
+# `insetMm` under the mask wherever a ray from the centre meets the mask (so it can never poke
+# through her face) — it also closes the hole the old headpiece left in her forehead. Vertex
+# colours: her own forehead skin below a hairline, dark scalp above it (any hairstyle item sits on
+# it and gaps read as roots, not as a void). Skinned 100% to Head.
+if st.get("skullShell"):
+    so = bpy.data.objects["lelu_scalp"]
+    SA_ = C.mesh_arrays(so)
+    mt = SA_["wco"][SA_["tv"]]
+    mbvh = BVHTree.FromPolygons(mt.reshape(-1, 3).tolist(), np.arange(len(mt) * 3).reshape(-1, 3).tolist())
+    E = st.get("headEllipsoid", {"centre": [0.0, -0.015, 1.585], "radii": [0.079, 0.105, 0.135], "below": 0.118})
+    SH = st["skullShell"]
+    ec = np.array(E["centre"]) + OFF
+    sr_ = np.array(SH.get("radii", [0.071, 0.09, 0.112]), float)
+    front_ = float(SH.get("front", 0.072))  # shallower in front: it must stay behind her face where the mask is open
+    below_ = float(SH.get("below", 0.10))
+    inset = float(SH.get("insetMm", 2.0)) / 1000
+    nu, nv = 64, 40
+    # a lat-long grid with single poles
+    verts, faces = [], []
+    rows = []
+    for j in range(1, nv):
+        th = np.pi * j / nv
+        row = []
+        for i in range(nu):
+            ph = 2 * np.pi * i / nu
+            d = np.array([np.sin(th) * np.sin(ph), -np.sin(th) * np.cos(ph), np.cos(th)])
+            rz_ = sr_[2] if d[2] >= 0 else below_
+            ry_ = sr_[1] if d[1] >= 0 else front_
+            k = 1.0 / np.sqrt((d[0] / sr_[0]) ** 2 + (d[1] / ry_) ** 2 + (d[2] / rz_) ** 2)
+            hit = mbvh.ray_cast(Vector(ec.tolist()), Vector(d.tolist()), float(k) + 0.05)
+            r = k
+            if hit[0] is not None:
+                r_m = float((np.array(hit[0]) - ec) @ d)
+                r = min(k, max(r_m - inset, 0.02))
+            row.append(len(verts))
+            verts.append((d, r, hit[0] is not None))
+        rows.append(row)
+    # where a front ray met no mask (eyes, mouth, the old headpiece hole), the shell takes the
+    # smallest radius of its hit neighbours so it cannot stand in front of her face
+    Dn = np.array([v[0] for v in verts]); Rr = np.array([v[1] for v in verts]); Hh = np.array([v[2] for v in verts])
+    grid = np.array(rows)
+    for _ in range(int(SH.get("fillPasses", 12))):
+        Rn = np.minimum.reduce([np.roll(Rr[grid], 1, 1), np.roll(Rr[grid], -1, 1),
+                                np.vstack([Rr[grid][:1], Rr[grid][:-1]]), np.vstack([Rr[grid][1:], Rr[grid][-1:]])]).reshape(-1)
+        front = (Dn[grid.reshape(-1), 1] < -0.2) & ~Hh[grid.reshape(-1)]
+        idx = grid.reshape(-1)[front]
+        Rr[idx] = np.minimum(Rr[idx], Rn[front] + 0.0005)
+    verts = [ec + Dn[i] * Rr[i] for i in range(len(Dn))]
+    top = len(verts); verts.append(ec + np.array([0, 0, sr_[2]]))
+    bot = len(verts); verts.append(ec - np.array([0, 0, below_]))
+    for i in range(nu):
+        faces.append((top, rows[0][i], rows[0][(i + 1) % nu]))
+        faces.append((bot, rows[-1][(i + 1) % nu], rows[-1][i]))
+    for j in range(len(rows) - 1):
+        for i in range(nu):
+            a, b = rows[j][i], rows[j][(i + 1) % nu]
+            c_, d_ = rows[j + 1][(i + 1) % nu], rows[j + 1][i]
+            faces.append((a, d_, c_, b))
+    V = np.array(verts)
+    Mi_ = np.linalg.inv(np.array(so.matrix_world))
+    me_s = bpy.data.meshes.new("lelu_skull")
+    me_s.from_pydata((V @ Mi_[:3, :3].T + Mi_[:3, 3]).tolist(), [], faces)
+    me_s.update()
+    for poly in me_s.polygons:
+        poly.use_smooth = True
+    # colours: her forehead skin (median albedo of skin-coloured mask triangles on the forehead)
+    stex = C.triangle_texture(so, SA_)
+    sh_, ss_, sv_ = C.hsv(stex["albedo"][:, :3])
+    sq = mt.mean(1) - OFF
+    fore = (np.abs(sq[:, 0]) < 0.04) & (sq[:, 2] > 1.60) & (sq[:, 2] < 1.66) & (sh_ >= 4) & (sh_ <= 42) & (ss_ >= 0.2) & (sv_ >= 0.25)
+    skin_srgb = np.median(stex["albedo"][fore, :3], 0) if fore.any() else np.array([0.55, 0.36, 0.27])
+    scalp_srgb = np.array(SH.get("scalpSrgb", [0.075, 0.045, 0.032]))
+    q = V - OFF
+    ang = np.arctan2(q[:, 0] - E["centre"][0], -(q[:, 1] - E["centre"][1]))  # 0 front, ±pi back
+    # hairline: across the forehead, down in front of the ears, and right down to the nape behind
+    # them (under any hairstyle the back of her head must read as hair roots, never as bare skin)
+    hl = SH.get("hairline", {"front": 1.662, "side": 1.60, "back": 1.42})
+    a_ = np.abs(ang) / np.pi
+    line = np.where(a_ < 0.5, hl["front"] + (hl["side"] - hl["front"]) * (a_ / 0.5),
+                    hl["side"] + (hl["back"] - hl["side"]) * np.clip((a_ - 0.5) / 0.12, 0, 1))
+    tz = np.clip((q[:, 2] - line) / 0.008 + 0.5, 0, 1)
+    col_ = skin_srgb[None, :] * (1 - tz[:, None]) + scalp_srgb[None, :] * tz[:, None]
+    lin = np.where(col_ <= 0.04045, col_ / 12.92, ((col_ + 0.055) / 1.055) ** 2.4)
+    ca = me_s.color_attributes.new("Col", "FLOAT_COLOR", "POINT")
+    ca.data.foreach_set("color", np.concatenate([lin, np.ones((len(lin), 1))], 1).astype(np.float32).reshape(-1))
+    sm = bpy.data.materials.new("m25c_skull")
+    sm.use_nodes = True
+    nt = sm.node_tree
+    bs = nt.nodes["Principled BSDF"]
+    an = nt.nodes.new("ShaderNodeVertexColor")
+    an.layer_name = "Col"
+    nt.links.new(an.outputs["Color"], bs.inputs["Base Color"])
+    bs.inputs["Roughness"].default_value = 0.55
+    me_s.materials.append(sm)
+    sk = bpy.data.objects.new("lelu_skull", me_s)
+    bpy.context.scene.collection.objects.link(sk)
+    sk.parent = rig
+    sk.matrix_world = so.matrix_world.copy()
+    sk.vertex_groups.new(name="Head").add(list(range(len(V))), 1.0, "REPLACE")
+    sk.modifiers.new("Armature", "ARMATURE").object = rig
+    R["skull"] = {"vertices": int(len(V)), "skinSrgb": [round(float(x), 3) for x in skin_srgb]}
 
 # ------------------------------------------------ 2. colliders and her head
 def world_tris(o):
