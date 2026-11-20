@@ -17,8 +17,8 @@ afcfd8c7…  refs/heads/m22.6/voice-runtime-release-qualification
 
 | Ref | Remote hash | Meaning |
 | --- | --- | --- |
-| `m22.9/persistent-voice-runtime` | **`607a677b1938b46c60421df429641c3912e3964c`** | the M22.9 candidate |
-| local `HEAD` | `607a677b1938b46c60421df429641c3912e3964c` | **identical to the remote** |
+| `m22.9/persistent-voice-runtime` | **`8c2d4af6fb33bbd8b606828de9bce1441d8fd201`** | the branch head (this document's commit) |
+| local `HEAD` | `8c2d4af6fb33bbd8b606828de9bce1441d8fd201` | **identical to the remote** |
 | `m22.8/real-time-conversational-intelligence` | `43db0a06c3c9c587aab9606e4cb328671548c805` | unchanged — the baseline is still exactly where the mission found it |
 | `m22.7/live-voice-qualification` | `8fe502382fb9911629860bda08d90dcff0be7fdc` | unchanged — M22.7 still recoverable |
 | **canonical** `integration/m16-3-wp05-reconciliation` | `543da7c8d7876258869d928648cffa913cd10649` | **untouched** |
@@ -38,9 +38,12 @@ an ancestor that was never checked out or modified.
 
 ## What was pushed
 
-A single commit, `607a677b`, containing the runtime change, the three new test
-suites, and the M22.9 evidence package (16 documents, probe logs, benchmark,
-browser run, audio, screenshots). Log files under `MISSION-22.9/logs/` are
+Two commits on top of `43db0a06`:
+
+| Commit | Contents |
+| --- | --- |
+| `607a677b` | the runtime change, the three new test suites, and the M22.9 evidence package (16 documents, probe logs, benchmark, browser run, audio, screenshots) |
+| `8c2d4af6` | this remote-verification record (and the mission's fake-microphone builder, copied so the acceptance harness's own reference resolves) | Log files under `MISSION-22.9/logs/` are
 force-added because the repository ignores any directory named `logs`; they are
 evidence, not runtime noise.
 
