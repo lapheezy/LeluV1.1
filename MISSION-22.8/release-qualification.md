@@ -24,7 +24,7 @@ BLOCKED, and two latency targets are missed.
 | **G14** | Multi-turn continuity | **PARTIAL** | 19–21 turn sessions in one voice session; each transcript answered; explicit topic-change-and-return test not scripted (the question set changes topic every turn, which exercises switching but not deliberate resumption) |
 | **G15** | Hardware acceptance | **BLOCKED** | no microphone, no speaker; the full procedure is written in `hardware-acceptance.md` and has **not** been executed |
 | **G16** | Full regression | **VERIFIED** | 2310 tests, 2300 pass, 2 pre-existing failures, 8 skipped; typecheck 0; build 0; lint 0 errors / 174 warnings (identical to baseline) |
-| **G17** | Evidence package | **VERIFIED** | 13 documents, 5 run logs, 4 screenshots, 3 scripts, commits listed below |
+| **G17** | Evidence package | **VERIFIED** | 15 documents (the 13 required plus the final report and remote verification), 5 run logs, 4 screenshots, 2 audio samples, 2 scripts, commits below |
 | **G18** | Commit and remote verification | **VERIFIED** | see "Commits" below |
 
 **Score: 11 VERIFIED · 5 PARTIAL · 1 BLOCKED · 0 NOT TESTED**

@@ -27,8 +27,9 @@ Tests: six new files (24 tests) — `voice-spoken-text`, `voice-tts-pipeline`,
 `voice-turn-ownership`, `voice-runtime-diagnostic`, `voice-local-tts-stream`,
 `voice-pcm-playback`.
 
-Evidence: thirteen documents, five run logs, four screenshots, two audio
-samples and two scripts under `MISSION-22.8/`.
+Evidence: fifteen documents (the thirteen the mission requires, plus
+`MISSION-22.8-REPORT.md` and this file), five run logs, four screenshots, two
+audio samples and two scripts under `MISSION-22.8/`.
 
 Nothing in `MISSION-22.7/` was modified. The commit that adds this file changes
 no source, test or evidence; it only records the remote check, so the branch
