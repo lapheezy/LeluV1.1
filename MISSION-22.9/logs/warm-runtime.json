@@ -1,0 +1,73 @@
+{
+  "at": "2026-11-20T16:34:58.180Z",
+  "bin": "/workspace/chats/a194f0c9c3c58bfdf5946c17/.piper/piper/piper",
+  "model": "/workspace/chats/a194f0c9c3c58bfdf5946c17/.piper/voices/amy-low.onnx",
+  "sentences": 20,
+  "cold": {
+    "modelLoads": 20,
+    "firstByteMs": {
+      "n": 20,
+      "min": 358,
+      "median": 426,
+      "p90": 466,
+      "max": 514,
+      "mean": 430
+    },
+    "completeMs": {
+      "n": 20,
+      "min": 383,
+      "median": 453,
+      "p90": 528,
+      "max": 541,
+      "mean": 460
+    },
+    "totalMs": 9193
+  },
+  "warm": {
+    "prewarmMs": 351,
+    "modelLoads": 1,
+    "workers": 1,
+    "synthesisMs": {
+      "n": 20,
+      "min": 64,
+      "median": 114,
+      "p90": 138,
+      "max": 139,
+      "mean": 109
+    },
+    "totalMs": 2179,
+    "pids": [
+      416508
+    ],
+    "rssMiB": [
+      {
+        "profile": "warm",
+        "rssMiB": 113,
+        "pid": 416508
+      }
+    ],
+    "audioSeconds": 62.75,
+    "realTimeFactor": 0.035,
+    "restarts": 0,
+    "failures": 0
+  },
+  "comparison": {
+    "medianFirstAudioMs": {
+      "cold": 426,
+      "warm": 114
+    },
+    "medianFullSentenceMs": {
+      "cold": 453,
+      "warm": 114
+    },
+    "totalWallMs": {
+      "cold": 9193,
+      "warm": 2530
+    },
+    "modelLoadsPerSession": {
+      "cold": 20,
+      "warm": 1
+    }
+  },
+  "note": "Warm audio is counted at complete WAV (pessimistic for warm); cold audio is counted at its first PCM byte (flattering to cold). Both used the same voice model and sentences."
+}

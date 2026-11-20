@@ -62,6 +62,8 @@ import { createRateLimiter } from "./requestGuard.ts";
 import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import VoiceResourceManager, { isAnotherAccountWorthTrying } from "../src/core/voice/VoiceResourceManager.ts";
 import { resolveVoiceIdentity, voiceSettingsPayload } from "../src/core/voice/voiceIdentity.ts";
+import { speechProfile, type SpeechProfileId } from "../src/core/voice/speechProfile.ts";
+import { getPersistentPiper, PiperError, type PiperPoolSnapshot } from "./persistentPiper.ts";
 
 type ReadEnv = (key: string) => string | undefined;
 
@@ -92,6 +94,8 @@ interface ConnectLikeReq {
 
 interface ConnectLikeRes {
   statusCode?: number;
+  /** Present on a real ServerResponse once anything has been written. */
+  headersSent?: boolean;
   setHeader: (name: string, value: string) => void;
   end: (body?: string | Uint8Array) => void;
   /** Present on a real ServerResponse: incremental audio is written here. */
@@ -314,25 +318,47 @@ export function createVoiceApi(readEnv?: ReadEnv): {
   }
 
   /**
-   * INCREMENTAL LOCAL SPEECH (Mission 22.8, WP02).
+   * WHETHER THE WARM RUNTIME IS USED (Mission 22.9, WP01).
+   *
+   * On by default when a local voice is configured. `LELU_PIPER_PERSISTENT=0`
+   * restores the M22.8 behaviour exactly (one cold process per sentence with
+   * `--output_raw` PCM streaming), so the old path stays a working fallback
+   * and can be compared against the warm one in the same build.
+   */
+  function persistentEnabled(): boolean {
+    const raw = readSecret(readEnv, ["LELU_PIPER_PERSISTENT"]);
+    return raw !== "0";
+  }
+
+  /** The delivery an untrusted request body asked for, validated to the set. */
+  function requestedProfile(body: Record<string, unknown>): SpeechProfileId {
+    return speechProfile(body.delivery).id;
+  }
+
+  /** Warm-runtime facts for the diagnostic; null when it is not running. */
+  function warmRuntime(): PiperPoolSnapshot | null {
+    const config = localVoiceConfig();
+    if (!config || !persistentEnabled()) return null;
+    try {
+      return getPersistentPiper({ bin: config.bin, model: config.model }).stats();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * THE COLD STREAMING PATH (Mission 22.8, WP02) — preserved as fallback.
    *
    * Piper's `--output_raw` emits 16-bit mono PCM as it is generated, so the
    * first audible sample can reach the page while the rest of the sentence
-   * is still being synthesised. Before this the route waited for the whole
-   * WAV to be written to a temporary file and read back, which is where the
-   * 0.8–2 s between "first text" and "first audio" went.
+   * is still being synthesised. It pays a model load per sentence (measured:
+   * 511–630 ms each), which is exactly what the warm runtime removes.
    *
    * The response is `audio/L16` with its real rate in the header, chunked so
    * a barge-in can abort it: closing the response kills the synthesiser
    * instead of letting it finish a sentence nobody will hear.
    */
-  function synthesizeLocalStream(text: string, res: ConnectLikeRes): void {
-    const config = localVoiceConfig();
-    if (!config || typeof res.write !== "function") {
-      sendJson(res, { ok: false, error: "No streaming speech engine is configured." }, 503);
-      return;
-    }
-    const rate = localVoiceSampleRate();
+  function streamFromColdProcess(text: string, res: ConnectLikeRes, rate: number, config: { bin: string; model: string }): void {
     const child = execFile(
       config.bin,
       ["--model", config.model, "--output_raw"],
@@ -377,13 +403,81 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     res.on?.("close", () => {
       if (!child.killed) child.kill();
     });
+    // A synthesiser that has already exited closes its end of the pipe; the
+    // write then fails with EPIPE, which is the "produced no audio" failure
+    // above and must be reported as that, not thrown as a stream error.
+    child.stdin?.on("error", () => undefined);
     child.stdin?.end(text);
   }
 
+  /**
+   * LOCAL SPEECH, WARM FIRST (Mission 22.9, WP01).
+   *
+   * The durable path: one long-lived synthesiser per delivery profile, its
+   * model loaded once, answering with a complete WAV in 80–200 ms instead of
+   * paying a ~290 ms model load per sentence. A warm failure falls back to
+   * the cold streaming path rather than going silent, and the fallback is
+   * recorded in the diagnostic so it can never look like the warm path.
+   */
+  function synthesizeLocalStream(text: string, res: ConnectLikeRes, profile: SpeechProfileId): void {
+    const config = localVoiceConfig();
+    if (!config || typeof res.write !== "function") {
+      sendJson(res, { ok: false, error: "No streaming speech engine is configured." }, 503);
+      return;
+    }
+    const rate = localVoiceSampleRate();
+    if (!persistentEnabled()) {
+      streamFromColdProcess(text, res, rate, config);
+      return;
+    }
+    const controller = new AbortController();
+    // A barge-in closes the response: stop waiting for a sentence nobody
+    // will hear (the worker finishes it into a file the pool then deletes).
+    res.on?.("close", () => controller.abort());
+    void (async () => {
+      try {
+        const pool = getPersistentPiper({ bin: config.bin, model: config.model });
+        const result = await pool.synthesize(text, { profile, signal: controller.signal });
+        if (controller.signal.aborted) return;
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "audio/wav");
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("X-Lelu-Voice-Provider", localVoiceId() ?? "local-piper");
+        res.setHeader("X-Lelu-Sample-Rate", String(rate));
+        // Not `pcm16`: this sentence arrived complete, and the client must
+        // not be told it is receiving a stream it is not receiving.
+        res.setHeader("X-Lelu-Streaming", "warm-wav");
+        res.setHeader("X-Lelu-Synthesis-Ms", String(result.synthesisMs));
+        res.setHeader("X-Lelu-Worker-Profile", result.profile);
+        res.setHeader("X-Lelu-Model-Loads", String(result.modelLoads));
+        res.setHeader("X-Lelu-Cold-Start", result.coldStart ? "1" : "0");
+        res.end(result.wav);
+        return;
+      } catch (error) {
+        // Cancelled: nobody is listening, so there is nothing to repair.
+        if (controller.signal.aborted) return;
+        if (error instanceof PiperError && error.code === "cancelled") return;
+      }
+      // The warm runtime failed: speak with the cold streaming path, and
+      // never claim the warm runtime answered.
+      if (!res.headersSent) streamFromColdProcess(text, res, rate, config);
+      else res.end();
+    })();
+  }
+
   /** Synthesise with the local engine; resolves to WAV bytes or null. */
-  async function synthesizeLocal(text: string): Promise<Buffer | null> {
+  async function synthesizeLocal(text: string, profile: SpeechProfileId): Promise<Buffer | null> {
     const config = localVoiceConfig();
     if (!config) return null;
+    if (persistentEnabled()) {
+      try {
+        const pool = getPersistentPiper({ bin: config.bin, model: config.model });
+        const result = await pool.synthesize(text, { profile });
+        return result.wav;
+      } catch {
+        // fall through to the cold process below
+      }
+    }
     const dir = await mkdtemp(join(tmpdir(), "lelu-tts-"));
     const out = join(dir, "speech.wav");
     try {
@@ -480,12 +574,13 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         const wantsStream =
           body.stream === true ||
           new URL(req.url ?? "/", "http://localhost").searchParams.get("stream") === "1";
+        const profile = requestedProfile(body);
         if (wantsStream) {
-          synthesizeLocalStream(text, res);
+          synthesizeLocalStream(text, res, profile);
           return;
         }
         const started = Date.now();
-        const audio = await synthesizeLocal(text);
+        const audio = await synthesizeLocal(text, profile);
         if (!audio) {
           sendJson(res, { ok: false, error: "No speech engine is configured." }, 503);
           return;
@@ -763,6 +858,46 @@ export function createVoiceApi(readEnv?: ReadEnv): {
    * speaker, the browser's echo cancellation) is reported as the CLIENT's
    * fact and marked unverified rather than assumed present.
    */
+  /**
+   * What the warm runtime is doing right now, safe to publish.
+   *
+   * Facts only: worker state, PID, uptime, how many times a voice was loaded,
+   * queue depth, cancellations, restarts and RSS. No text, no path, no key and
+   * no audio ever appears here.
+   */
+  function runtimeFacts(): Record<string, unknown> {
+    const stats = warmRuntime();
+    if (!stats) {
+      return {
+        persistent: false,
+        mode: "cold-process-per-sentence",
+        note: "Set LELU_LOCAL_TTS_BIN and LELU_LOCAL_TTS_MODEL (and do not set LELU_PIPER_PERSISTENT=0) to hold the model in memory.",
+      };
+    }
+    return {
+      persistent: true,
+      warmWorkers: stats.warmWorkers,
+      modelLoads: stats.modelLoads,
+      modelLoadFailures: stats.modelLoadFailures,
+      restarts: stats.restarts,
+      requests: stats.requests,
+      failures: stats.failures,
+      cancelled: stats.cancelled,
+      queueDepth: stats.queueDepth,
+      active: stats.active,
+      workers: stats.workers.map((worker) => ({
+        profile: worker.profile,
+        state: worker.state,
+        pid: worker.pid,
+        uptimeMs: worker.uptimeMs,
+        requests: worker.requests,
+        medianSynthesisMs: worker.medianSynthesisMs,
+        rssMiB: worker.rssMiB,
+        lastError: worker.lastError,
+      })),
+    };
+  }
+
   function handleDiagnostic(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
     if ((req.method ?? "GET") !== "GET") {
       next();
@@ -796,6 +931,8 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         voiceId: ttsProvider === "elevenlabs" ? identity.voiceId : ttsProvider === "local-piper" ? localVoiceId() : null,
         modelId: ttsProvider === "elevenlabs" ? identity.modelId : null,
         localBinary: Boolean(local),
+        /** M22.9: whether the speaker holds its model, and what that cost. */
+        runtime: runtimeFacts(),
       },
       voiceIdentity: {
         name: identity.name,

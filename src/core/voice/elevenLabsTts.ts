@@ -20,6 +20,7 @@
  */
 
 import UsageBudgetGate from "../observability/UsageBudgetGate";
+import type { SpeechProfileId } from "./speechProfile";
 
 interface ReportedUsage { characterCost: number | null; fiatCostUsd: number | null }
 
@@ -33,9 +34,23 @@ function parseUsageHeader(raw: string | null): ReportedUsage {
   }
 }
 
-/** Last synthesis: time to audio and ElevenLabs' reported characters (evidence). */
-let lastSynthesis: { ms: number; characters: number | null; at: number } | null = null;
-export function getLastSynthesis(): { ms: number; characters: number | null; at: number } | null {
+/**
+ * Last synthesis: time to audio, ElevenLabs' reported characters, and what
+ * the SERVER said it did (M22.9). The server headers are the only place the
+ * page can learn whether a warm worker answered, how long its synthesis took
+ * and how many times a voice was loaded — read them, never infer them.
+ */
+let lastSynthesis: {
+  ms: number;
+  characters: number | null;
+  at: number;
+  streaming: string | null;
+  modelLoads: number | null;
+  synthesisMs: number | null;
+  profile: string | null;
+  coldStart: boolean;
+} | null = null;
+export function getLastSynthesis(): typeof lastSynthesis {
   return lastSynthesis;
 }
 
@@ -104,7 +119,7 @@ export function ttsPlayedSegments(): number {
 }
 
 /** Resolve to playable audio, or null when the provider refused/failed. */
-async function synthesize(text: string): Promise<PreparedAudio | null> {
+async function synthesize(text: string, delivery?: SpeechProfileId): Promise<PreparedAudio | null> {
   // Metered and budget-gated like every billed call (kind "api",
   // source "elevenlabs-tts"). A spent budget lands in onFail, whose
   // fallback is the browser's own (free) voice — never another paid one.
@@ -119,14 +134,32 @@ async function synthesize(text: string): Promise<PreparedAudio | null> {
       // that speaks MP3 (ElevenLabs) ignores the flag and answers with a file,
       // which is handled below — one request shape, two providers.
       headers: { "Content-Type": "application/json", Accept: "audio/*" },
-      body: JSON.stringify({ text, stream: true }),
+      // `delivery` names one of the closed profiles in speechProfile.ts. The
+      // server validates it against that set; a profile is a delivery choice,
+      // never a change to her words.
+      body: JSON.stringify({ text, stream: true, ...(delivery ? { delivery } : {}) }),
     });
   } catch (error) {
     await gate.settle(reservation, { operation: "tts", ok: false, latencyMs: Date.now() - started, error: (error as Error).message });
     return null;
   }
   const usage = parseUsageHeader(response.headers.get("X-Lelu-Usage"));
-  lastSynthesis = { ms: Date.now() - started, characters: usage.characterCost, at: Date.now() };
+  const headerNumber = (name: string): number | null => {
+    const raw = response.headers.get(name);
+    if (raw === null) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  };
+  lastSynthesis = {
+    ms: Date.now() - started,
+    characters: usage.characterCost,
+    at: Date.now(),
+    streaming: response.headers.get("X-Lelu-Streaming"),
+    modelLoads: headerNumber("X-Lelu-Model-Loads"),
+    synthesisMs: headerNumber("X-Lelu-Synthesis-Ms"),
+    profile: response.headers.get("X-Lelu-Worker-Profile"),
+    coldStart: response.headers.get("X-Lelu-Cold-Start") === "1",
+  };
   await gate.settle(reservation, {
     operation: "tts",
     ok: response.ok,
@@ -175,6 +208,18 @@ function audioContext(): AudioContext | null {
   return sharedContext;
 }
 
+/**
+ * The output context's state, as a fact for the diagnostic (M22.9/WP08).
+ *
+ * `unknown` before any context exists — the honest answer, because a browser
+ * that has never opened an output context has not proven it can play.
+ */
+export function audioContextState(): "suspended" | "running" | "closed" | "unknown" {
+  const ctx = sharedContext;
+  if (!ctx) return "unknown";
+  return ctx.state === "suspended" || ctx.state === "running" || ctx.state === "closed" ? ctx.state : "unknown";
+}
+
 /** The PCM playback in progress, so a barge-in can stop it and its reader. */
 let activePcm: { stop: () => void } | null = null;
 
@@ -196,6 +241,9 @@ function playBlob(blob: Blob, callbacks: SpeakCallbacks): Promise<boolean> {
       done(true);
     };
     audio.onerror = () => done(false);
+    // "playing" is the browser's own report that samples reached the output
+    // device, which is a later and more honest moment than handing over a URL.
+    audio.onplaying = () => callbacks.onAudible?.();
     callbacks.onStart?.();
     void audio.play().catch(() => done(false));
   });
@@ -268,6 +316,12 @@ async function playPcm(
       if (!started) {
         started = true;
         callbacks.onStart?.();
+        // The first buffer is scheduled a moment ahead; report the moment it
+        // is actually due to be heard rather than the moment it was queued.
+        const delayMs = Math.max(0, Math.round((startAt - ctx.currentTime) * 1000));
+        setTimeout(() => {
+          if (!stopped) callbacks.onAudible?.();
+        }, delayMs);
       }
     }
     if (!started) return false;
@@ -354,6 +408,12 @@ export function forgetElevenLabsStatus(): void {
 
 export interface SpeakCallbacks {
   onStart?: () => void;
+  /**
+   * Playback actually began on the output device (M22.9). Later than
+   * `onStart`, which only means audio was handed to a player: the difference
+   * is what a latency report must not hide.
+   */
+  onAudible?: () => void;
   onEnd?: () => void;
   /** Synthesis or playback failed — the caller decides how to fall back. */
   onFail?: () => void;
@@ -368,7 +428,11 @@ export interface SpeakCallbacks {
  * one plays — but playback stays in order through one pump, so streamed
  * sentences never overlap.
  */
-export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise<void> {
+export function speakText(
+  text: string,
+  callbacks: SpeakCallbacks = {},
+  delivery?: SpeechProfileId,
+): Promise<void> {
   const trimmed = text.trim();
   if (!trimmed) {
     callbacks.onEnd?.();
@@ -379,7 +443,7 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
     settle = resolve;
   });
   halted = false;
-  queue.push({ text: trimmed, audio: synthesize(trimmed), callbacks, settled, settle });
+  queue.push({ text: trimmed, audio: synthesize(trimmed, delivery), callbacks, settled, settle });
   void pump();
   return settled;
 }

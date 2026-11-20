@@ -1,0 +1,20 @@
+## 1. baseline via CLI flags (cold processes)
+/tmp/tmp.p87giYhTS3/cli-1.0.wav
+length_scale=1.0 duration=5.400s bytes=172800
+/tmp/tmp.p87giYhTS3/cli-0.9.wav
+length_scale=0.9 duration=5.000s bytes=160000
+/tmp/tmp.p87giYhTS3/cli-1.15.wav
+length_scale=1.15 duration=5.816s bytes=186112
+
+## 2. per-request fields over ONE persistent json-input process
+warm-1.0 duration=5.224s bytes=167168
+warm-0.9 duration=5.368s bytes=171776
+warm-1.15 duration=5.224s bytes=167168
+warm-noise duration=5.384s bytes=172288
+stderr_tail:  [piper] [info] Real-time factor: 0.03630197147739222 (infer=0.552370798 sec, audio=15.216000000000001 sec) [2026-11-20 16:16:02.583] [piper] [info] Real-time factor: 0.036276372892156857 (infer=0.740038007 sec, audio=20.400000000000002 sec) [2026-11-20 16:16:02.583] [piper] [info] Terminated piper 
+
+## 3. warm-process RSS and per-sentence cost (10 sentences, one process)
+warm_worker_pid=404596 rss_kb=114180 rss_mib=111.5
+
+## 4. concurrency: two warm workers, two sentences at once
+two_processes_total=1041 ms
