@@ -1,0 +1,698 @@
+{
+  "ranAt": "2026-11-20T17:58:46.527Z",
+  "replies": 30,
+  "registers": {
+    "supportive": {
+      "replies": 3,
+      "profiles": [
+        "calm"
+      ],
+      "consistent": true
+    },
+    "humorous": {
+      "replies": 3,
+      "profiles": [
+        "bright"
+      ],
+      "consistent": true
+    },
+    "correction": {
+      "replies": 3,
+      "profiles": [
+        "calm"
+      ],
+      "consistent": true
+    },
+    "serious": {
+      "replies": 3,
+      "profiles": [
+        "calm"
+      ],
+      "consistent": true
+    },
+    "research": {
+      "replies": 3,
+      "profiles": [
+        "calm"
+      ],
+      "consistent": true
+    },
+    "technical": {
+      "replies": 3,
+      "profiles": [
+        "calm"
+      ],
+      "consistent": true
+    },
+    "excited": {
+      "replies": 3,
+      "profiles": [
+        "bright"
+      ],
+      "consistent": true
+    },
+    "long-form": {
+      "replies": 3,
+      "profiles": [
+        "calm"
+      ],
+      "consistent": true
+    },
+    "question": {
+      "replies": 3,
+      "profiles": [
+        "warm"
+      ],
+      "consistent": true
+    },
+    "casual": {
+      "replies": 3,
+      "profiles": [
+        "warm"
+      ],
+      "consistent": true
+    }
+  },
+  "registersCovered": 10,
+  "registerClassification": {
+    "matched": 30,
+    "total": 30
+  },
+  "wordsPreserved": {
+    "matched": 30,
+    "total": 30
+  },
+  "profilesNamed": {
+    "matched": 30,
+    "total": 30
+  },
+  "profileArgs": {
+    "warm": [
+      "--length_scale",
+      "1.00",
+      "--noise_scale",
+      "0.667",
+      "--noise_w",
+      "0.80",
+      "--sentence_silence",
+      "0.20"
+    ],
+    "calm": [
+      "--length_scale",
+      "1.12",
+      "--noise_scale",
+      "0.550",
+      "--noise_w",
+      "0.70",
+      "--sentence_silence",
+      "0.30"
+    ],
+    "bright": [
+      "--length_scale",
+      "0.92",
+      "--noise_scale",
+      "0.780",
+      "--noise_w",
+      "0.90",
+      "--sentence_silence",
+      "0.14"
+    ]
+  },
+  "identityEffect": {
+    "note": "a developed trait may move the profile one step; a candidate trait may not",
+    "rows": [
+      {
+        "text": "I'm sorry — that sounds rough. Take your time.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "I hear you. You're not alone in this.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "That must have been exhausting. Take care of yourself.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "Haha, that joke was ridiculous and I loved it.",
+        "seed": "bright",
+        "playful": "bright",
+        "patient": "calm"
+      },
+      {
+        "text": "Honestly, a cat running a build pipeline is absurd.",
+        "seed": "bright",
+        "playful": "bright",
+        "patient": "calm"
+      },
+      {
+        "text": "Lol. A joke about sockets never connects.",
+        "seed": "bright",
+        "playful": "bright",
+        "patient": "calm"
+      },
+      {
+        "text": "Actually, the capital is Lima, not Cusco.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "To be precise, it halves the search space, it does not sort it.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "I was wrong about the boiling point. Correction: it is 100 degrees.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "The honest answer is that we have not verified this.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "That claim is unverified, and I must not claim it as measured.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "The limitation is real: what we can actually prove is narrow.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "The study found a small effect, and the dataset is public.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "Our hypothesis fits the evidence so far.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "That paper is peer reviewed, but the findings are preliminary.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "The endpoint returns a buffer of 16 kilobytes.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "Run tsc and the suite together; latency drops to 114 milliseconds.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "The commit is on the branch, and the module is loaded once.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "That's amazing — finally, it works!",
+        "seed": "bright",
+        "playful": "bright",
+        "patient": "calm"
+      },
+      {
+        "text": "Excellent! Let's go.",
+        "seed": "bright",
+        "playful": "bright",
+        "patient": "calm"
+      },
+      {
+        "text": "Wonderful, the lights came on!!",
+        "seed": "bright",
+        "playful": "bright",
+        "patient": "calm"
+      },
+      {
+        "text": "I want to take my time with this one, because the question deserves an answer that is not hurried. There are two things worth separating: what you asked, and what you would find useful once you have it. The first is narrow and I can answer it plainly. The second is larger, and it depends on what you are planning afterwards, which I do not know yet. So let me answer the narrow one first, and then tell me whether the larger one is where you actually wanted to go, and I will follow you there.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "There is a longer answer here, and I would rather give it to you properly than compress it into a slogan. The short version is that the thing you are asking about has two halves that behave differently, and only one of them is under my control. The other half belongs to circumstances I can describe but cannot change, so the useful move is to make the first half as good as it can be and then check whether the second half still matters to you. If it does, tell me and we will look at it together rather than separately.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "Let me walk through this slowly, because a hurried version of it would leave you with the impression that the answer is simpler than it is. First, the part you already know, restated so we are using the same words. Second, the part that surprised me when I looked closely, and why it changes what I would suggest. Third, what I would do next if it were mine, and what I would want to know before committing to that. Ask me to stop at any point and I will stop there instead of finishing for the sake of finishing.",
+        "seed": "calm",
+        "playful": "calm",
+        "patient": "calm"
+      },
+      {
+        "text": "Would you like me to explain it again?",
+        "seed": "warm",
+        "playful": "bright",
+        "patient": "bright"
+      },
+      {
+        "text": "What would you like to know first?",
+        "seed": "warm",
+        "playful": "bright",
+        "patient": "bright"
+      },
+      {
+        "text": "Should I keep going?",
+        "seed": "warm",
+        "playful": "bright",
+        "patient": "bright"
+      },
+      {
+        "text": "Sure, that works for me.",
+        "seed": "warm",
+        "playful": "bright",
+        "patient": "bright"
+      },
+      {
+        "text": "I had a quiet morning, mostly reading.",
+        "seed": "warm",
+        "playful": "bright",
+        "patient": "bright"
+      },
+      {
+        "text": "Okay, tell me more when you're ready.",
+        "seed": "warm",
+        "playful": "bright",
+        "patient": "bright"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "register": "supportive",
+      "classified": "supportive",
+      "registerOk": true,
+      "text": "I'm sorry — that sounds rough. Take your time.",
+      "spokenText": "I'm sorry, that sounds rough. Take your time.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register supportive → calm"
+    },
+    {
+      "register": "supportive",
+      "classified": "supportive",
+      "registerOk": true,
+      "text": "I hear you. You're not alone in this.",
+      "spokenText": "I hear you. You're not alone in this.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register supportive → calm"
+    },
+    {
+      "register": "supportive",
+      "classified": "supportive",
+      "registerOk": true,
+      "text": "That must have been exhausting. Take care of yourself.",
+      "spokenText": "That must have been exhausting. Take care of yourself.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register supportive → calm"
+    },
+    {
+      "register": "humorous",
+      "classified": "humorous",
+      "registerOk": true,
+      "text": "Haha, that joke was ridiculous and I loved it.",
+      "spokenText": "Haha, that joke was ridiculous and I loved it.",
+      "missingTerms": [],
+      "seedProfile": "bright",
+      "seedPacePct": 92,
+      "playfulProfile": "bright",
+      "patientProfile": "calm",
+      "reason": "register humorous → bright"
+    },
+    {
+      "register": "humorous",
+      "classified": "humorous",
+      "registerOk": true,
+      "text": "Honestly, a cat running a build pipeline is absurd.",
+      "spokenText": "Honestly, a cat running a build pipeline is absurd.",
+      "missingTerms": [],
+      "seedProfile": "bright",
+      "seedPacePct": 92,
+      "playfulProfile": "bright",
+      "patientProfile": "calm",
+      "reason": "register humorous → bright"
+    },
+    {
+      "register": "humorous",
+      "classified": "humorous",
+      "registerOk": true,
+      "text": "Lol. A joke about sockets never connects.",
+      "spokenText": "Lol. A joke about sockets never connects.",
+      "missingTerms": [],
+      "seedProfile": "bright",
+      "seedPacePct": 92,
+      "playfulProfile": "bright",
+      "patientProfile": "calm",
+      "reason": "register humorous → bright"
+    },
+    {
+      "register": "correction",
+      "classified": "correction",
+      "registerOk": true,
+      "text": "Actually, the capital is Lima, not Cusco.",
+      "spokenText": "Actually, the capital is Lima, not Cusco.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register correction → calm"
+    },
+    {
+      "register": "correction",
+      "classified": "correction",
+      "registerOk": true,
+      "text": "To be precise, it halves the search space, it does not sort it.",
+      "spokenText": "To be precise, it halves the search space, it does not sort it.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register correction → calm"
+    },
+    {
+      "register": "correction",
+      "classified": "correction",
+      "registerOk": true,
+      "text": "I was wrong about the boiling point. Correction: it is 100 degrees.",
+      "spokenText": "I was wrong about the boiling point. Correction: it is one hundred degrees.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register correction → calm"
+    },
+    {
+      "register": "serious",
+      "classified": "serious",
+      "registerOk": true,
+      "text": "The honest answer is that we have not verified this.",
+      "spokenText": "The honest answer is that we have not verified this.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register serious → calm"
+    },
+    {
+      "register": "serious",
+      "classified": "serious",
+      "registerOk": true,
+      "text": "That claim is unverified, and I must not claim it as measured.",
+      "spokenText": "That claim is unverified, and I must not claim it as measured.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register serious → calm"
+    },
+    {
+      "register": "serious",
+      "classified": "serious",
+      "registerOk": true,
+      "text": "The limitation is real: what we can actually prove is narrow.",
+      "spokenText": "The limitation is real: what we can actually prove is narrow.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register serious → calm"
+    },
+    {
+      "register": "research",
+      "classified": "research",
+      "registerOk": true,
+      "text": "The study found a small effect, and the dataset is public.",
+      "spokenText": "The study found a small effect, and the dataset is public.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register research → calm"
+    },
+    {
+      "register": "research",
+      "classified": "research",
+      "registerOk": true,
+      "text": "Our hypothesis fits the evidence so far.",
+      "spokenText": "Our hypothesis fits the evidence so far.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register research → calm"
+    },
+    {
+      "register": "research",
+      "classified": "research",
+      "registerOk": true,
+      "text": "That paper is peer reviewed, but the findings are preliminary.",
+      "spokenText": "That paper is peer reviewed, but the findings are preliminary.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register research → calm"
+    },
+    {
+      "register": "technical",
+      "classified": "technical",
+      "registerOk": true,
+      "text": "The endpoint returns a buffer of 16 kilobytes.",
+      "spokenText": "The endpoint returns a buffer of sixteen kilobytes.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register technical → calm"
+    },
+    {
+      "register": "technical",
+      "classified": "technical",
+      "registerOk": true,
+      "text": "Run tsc and the suite together; latency drops to 114 milliseconds.",
+      "spokenText": "Run tsc and the suite together; latency drops to one hundred fourteen milliseconds.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register technical → calm"
+    },
+    {
+      "register": "technical",
+      "classified": "technical",
+      "registerOk": true,
+      "text": "The commit is on the branch, and the module is loaded once.",
+      "spokenText": "The commit is on the branch, and the module is loaded once.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register technical → calm"
+    },
+    {
+      "register": "excited",
+      "classified": "excited",
+      "registerOk": true,
+      "text": "That's amazing — finally, it works!",
+      "spokenText": "That's amazing, finally, it works!",
+      "missingTerms": [],
+      "seedProfile": "bright",
+      "seedPacePct": 92,
+      "playfulProfile": "bright",
+      "patientProfile": "calm",
+      "reason": "register excited → bright"
+    },
+    {
+      "register": "excited",
+      "classified": "excited",
+      "registerOk": true,
+      "text": "Excellent! Let's go.",
+      "spokenText": "Excellent! Let's go.",
+      "missingTerms": [],
+      "seedProfile": "bright",
+      "seedPacePct": 92,
+      "playfulProfile": "bright",
+      "patientProfile": "calm",
+      "reason": "register excited → bright"
+    },
+    {
+      "register": "excited",
+      "classified": "excited",
+      "registerOk": true,
+      "text": "Wonderful, the lights came on!!",
+      "spokenText": "Wonderful, the lights came on!!",
+      "missingTerms": [],
+      "seedProfile": "bright",
+      "seedPacePct": 92,
+      "playfulProfile": "bright",
+      "patientProfile": "calm",
+      "reason": "register excited → bright"
+    },
+    {
+      "register": "long-form",
+      "classified": "long-form",
+      "registerOk": true,
+      "text": "I want to take my time with this one, because the question deserves an answer that is not hurried. There are two things worth separating: what you asked, and what you would find useful once you have it. The first is narrow and I can answer it plainly. The second is larger, and it depends on what you are planning afterwards, which I do not know yet. So let me answer the narrow one first, and then tell me whether the larger one is where you actually wanted to go, and I will follow you there.",
+      "spokenText": "I want to take my time with this one, because the question deserves an answer that is not hurried. There are two things worth separating: what you asked, and what you would find useful once you have it. The first is narrow and I can answer it plainly. The second is larger, and it depends on what you are planning afterwards, which I do not know yet. So let me answer the narrow one first, and then tell me whether the larger one is where you actually wanted to go, and I will follow you there.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register long-form → calm"
+    },
+    {
+      "register": "long-form",
+      "classified": "long-form",
+      "registerOk": true,
+      "text": "There is a longer answer here, and I would rather give it to you properly than compress it into a slogan. The short version is that the thing you are asking about has two halves that behave differently, and only one of them is under my control. The other half belongs to circumstances I can describe but cannot change, so the useful move is to make the first half as good as it can be and then check whether the second half still matters to you. If it does, tell me and we will look at it together rather than separately.",
+      "spokenText": "There is a longer answer here, and I would rather give it to you properly than compress it into a slogan. The short version is that the thing you are asking about has two halves that behave differently, and only one of them is under my control. The other half belongs to circumstances I can describe but cannot change, so the useful move is to make the first half as good as it can be and then check whether the second half still matters to you. If it does, tell me and we will look at it together rather than separately.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register long-form → calm"
+    },
+    {
+      "register": "long-form",
+      "classified": "long-form",
+      "registerOk": true,
+      "text": "Let me walk through this slowly, because a hurried version of it would leave you with the impression that the answer is simpler than it is. First, the part you already know, restated so we are using the same words. Second, the part that surprised me when I looked closely, and why it changes what I would suggest. Third, what I would do next if it were mine, and what I would want to know before committing to that. Ask me to stop at any point and I will stop there instead of finishing for the sake of finishing.",
+      "spokenText": "Let me walk through this slowly, because a hurried version of it would leave you with the impression that the answer is simpler than it is. First, the part you already know, restated so we are using the same words. Second, the part that surprised me when I looked closely, and why it changes what I would suggest. Third, what I would do next if it were mine, and what I would want to know before committing to that. Ask me to stop at any point and I will stop there instead of finishing for the sake of finishing.",
+      "missingTerms": [],
+      "seedProfile": "calm",
+      "seedPacePct": 112,
+      "playfulProfile": "calm",
+      "patientProfile": "calm",
+      "reason": "register long-form → calm"
+    },
+    {
+      "register": "question",
+      "classified": "question",
+      "registerOk": true,
+      "text": "Would you like me to explain it again?",
+      "spokenText": "Would you like me to explain it again?",
+      "missingTerms": [],
+      "seedProfile": "warm",
+      "seedPacePct": 100,
+      "playfulProfile": "bright",
+      "patientProfile": "bright",
+      "reason": "register question → warm"
+    },
+    {
+      "register": "question",
+      "classified": "question",
+      "registerOk": true,
+      "text": "What would you like to know first?",
+      "spokenText": "What would you like to know first?",
+      "missingTerms": [],
+      "seedProfile": "warm",
+      "seedPacePct": 100,
+      "playfulProfile": "bright",
+      "patientProfile": "bright",
+      "reason": "register question → warm"
+    },
+    {
+      "register": "question",
+      "classified": "question",
+      "registerOk": true,
+      "text": "Should I keep going?",
+      "spokenText": "Should I keep going?",
+      "missingTerms": [],
+      "seedProfile": "warm",
+      "seedPacePct": 100,
+      "playfulProfile": "bright",
+      "patientProfile": "bright",
+      "reason": "register question → warm"
+    },
+    {
+      "register": "casual",
+      "classified": "casual",
+      "registerOk": true,
+      "text": "Sure, that works for me.",
+      "spokenText": "Sure, that works for me.",
+      "missingTerms": [],
+      "seedProfile": "warm",
+      "seedPacePct": 100,
+      "playfulProfile": "bright",
+      "patientProfile": "bright",
+      "reason": "register casual → warm"
+    },
+    {
+      "register": "casual",
+      "classified": "casual",
+      "registerOk": true,
+      "text": "I had a quiet morning, mostly reading.",
+      "spokenText": "I had a quiet morning, mostly reading.",
+      "missingTerms": [],
+      "seedProfile": "warm",
+      "seedPacePct": 100,
+      "playfulProfile": "bright",
+      "patientProfile": "bright",
+      "reason": "register casual → warm"
+    },
+    {
+      "register": "casual",
+      "classified": "casual",
+      "registerOk": true,
+      "text": "Okay, tell me more when you're ready.",
+      "spokenText": "Okay, tell me more when you're ready.",
+      "missingTerms": [],
+      "seedProfile": "warm",
+      "seedPacePct": 100,
+      "playfulProfile": "bright",
+      "patientProfile": "bright",
+      "reason": "register casual → warm"
+    }
+  ]
+}

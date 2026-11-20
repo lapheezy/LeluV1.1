@@ -1,0 +1,113 @@
+soaking the warm runtime for 30 minutes against http://127.0.0.1:4180
+baseline rss=49 MiB workers=1 loads=1
+t+32s rss=55MiB workers=3 loads=3 req=16 q=0 limited=0
+t+63s rss=53MiB workers=3 loads=3 req=31 q=0 limited=0
+t+95s rss=54MiB workers=3 loads=3 req=46 q=0 limited=0
+t+126s rss=53MiB workers=3 loads=3 req=61 q=0 limited=0
+t+158s rss=53MiB workers=3 loads=3 req=76 q=0 limited=0
+t+189s rss=54MiB workers=3 loads=3 req=91 q=0 limited=0
+t+221s rss=55MiB workers=3 loads=3 req=106 q=0 limited=0
+t+252s rss=55MiB workers=3 loads=3 req=121 q=0 limited=0
+t+284s rss=55MiB workers=3 loads=3 req=136 q=0 limited=0
+t+316s rss=55MiB workers=3 loads=3 req=151 q=0 limited=0
+t+347s rss=57MiB workers=3 loads=3 req=166 q=0 limited=0
+t+379s rss=57MiB workers=3 loads=3 req=181 q=0 limited=0
+t+410s rss=57MiB workers=3 loads=3 req=196 q=0 limited=0
+t+442s rss=57MiB workers=3 loads=3 req=211 q=0 limited=0
+t+473s rss=57MiB workers=3 loads=3 req=226 q=0 limited=0
+t+505s rss=57MiB workers=3 loads=3 req=241 q=0 limited=0
+t+536s rss=57MiB workers=3 loads=3 req=256 q=0 limited=0
+t+568s rss=57MiB workers=3 loads=3 req=271 q=0 limited=0
+t+600s rss=57MiB workers=3 loads=3 req=286 q=0 limited=0
+t+631s rss=56MiB workers=3 loads=3 req=301 q=0 limited=0
+t+663s rss=56MiB workers=3 loads=3 req=316 q=0 limited=0
+t+694s rss=56MiB workers=3 loads=3 req=331 q=0 limited=0
+t+726s rss=57MiB workers=3 loads=3 req=346 q=0 limited=0
+t+757s rss=57MiB workers=3 loads=3 req=361 q=0 limited=0
+t+789s rss=57MiB workers=3 loads=3 req=376 q=0 limited=0
+t+820s rss=57MiB workers=3 loads=3 req=391 q=0 limited=0
+t+852s rss=57MiB workers=3 loads=3 req=406 q=0 limited=0
+t+883s rss=58MiB workers=3 loads=3 req=421 q=0 limited=0
+t+915s rss=57MiB workers=3 loads=3 req=436 q=0 limited=0
+t+947s rss=57MiB workers=3 loads=3 req=451 q=0 limited=0
+t+978s rss=57MiB workers=3 loads=3 req=466 q=0 limited=0
+t+1010s rss=58MiB workers=3 loads=3 req=481 q=0 limited=0
+t+1041s rss=58MiB workers=3 loads=3 req=496 q=0 limited=0
+t+1073s rss=58MiB workers=3 loads=3 req=511 q=0 limited=0
+t+1104s rss=58MiB workers=3 loads=3 req=526 q=0 limited=0
+t+1136s rss=58MiB workers=3 loads=3 req=541 q=0 limited=0
+t+1167s rss=57MiB workers=3 loads=3 req=556 q=0 limited=0
+t+1199s rss=57MiB workers=3 loads=3 req=571 q=0 limited=0
+t+1230s rss=57MiB workers=3 loads=3 req=586 q=0 limited=0
+t+1262s rss=57MiB workers=3 loads=3 req=601 q=0 limited=0
+t+1294s rss=57MiB workers=3 loads=3 req=616 q=0 limited=0
+t+1325s rss=58MiB workers=3 loads=3 req=631 q=0 limited=0
+t+1357s rss=57MiB workers=3 loads=3 req=646 q=0 limited=0
+t+1388s rss=58MiB workers=3 loads=3 req=661 q=0 limited=0
+t+1420s rss=58MiB workers=3 loads=3 req=676 q=0 limited=0
+t+1451s rss=58MiB workers=3 loads=3 req=691 q=0 limited=0
+t+1483s rss=58MiB workers=3 loads=3 req=706 q=0 limited=0
+t+1514s rss=58MiB workers=3 loads=3 req=721 q=0 limited=0
+t+1546s rss=58MiB workers=3 loads=3 req=736 q=0 limited=0
+t+1578s rss=58MiB workers=3 loads=3 req=751 q=0 limited=0
+t+1609s rss=58MiB workers=3 loads=3 req=766 q=0 limited=0
+t+1641s rss=58MiB workers=3 loads=3 req=781 q=0 limited=0
+t+1672s rss=59MiB workers=3 loads=3 req=796 q=0 limited=0
+t+1704s rss=58MiB workers=3 loads=3 req=811 q=0 limited=0
+t+1735s rss=59MiB workers=3 loads=3 req=826 q=0 limited=0
+t+1767s rss=59MiB workers=3 loads=3 req=841 q=0 limited=0
+t+1798s rss=59MiB workers=3 loads=3 req=856 q=0 limited=0
+
+=== soak summary ===
+{
+  "requests": 856,
+  "errorCount": 0,
+  "rss": {
+    "baseline": 49,
+    "final": 59,
+    "min": 49,
+    "max": 59,
+    "firstHalfAvg": 55.7,
+    "secondHalfAvg": 57.9,
+    "growthMiB": 10
+  },
+  "synthesisMs": {
+    "count": 857,
+    "min": 72,
+    "median": 138,
+    "p90": 169,
+    "max": 586
+  },
+  "workers": [
+    {
+      "profile": "warm",
+      "state": "dead",
+      "uptimeMs": 0,
+      "medianSynthesisMs": 138,
+      "rssMiB": null
+    },
+    {
+      "profile": "calm",
+      "state": "ready",
+      "uptimeMs": 1800376,
+      "medianSynthesisMs": 146,
+      "rssMiB": 99
+    },
+    {
+      "profile": "bright",
+      "state": "ready",
+      "uptimeMs": 1798275,
+      "medianSynthesisMs": 131,
+      "rssMiB": 100
+    }
+  ],
+  "modelLoads": 3,
+  "modelLoadFailures": 0,
+  "queueDepth": 0,
+  "recovery": {
+    "attempted": true,
+    "ok": true,
+    "ms": 588,
+    "note": "pid 458858 killed; workers=2 restarts=1 loads=3"
+  }
+}
