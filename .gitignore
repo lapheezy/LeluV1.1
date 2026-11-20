@@ -113,3 +113,7 @@ __pycache__/
 # GL libraries (built by scripts/perception/setup.sh, never committed)
 .venv-perception/
 .libs/
+
+# M22.7 local runtime (downloaded runtimes, ~500 MB)
+.browser-libs/
+.piper/

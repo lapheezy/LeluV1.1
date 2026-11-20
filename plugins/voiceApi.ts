@@ -52,6 +52,12 @@
  */
 
 /** Anything that resolves an environment name, like vite's envReader. */
+import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+
 import { createRateLimiter } from "./requestGuard.ts";
 import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import VoiceResourceManager, { isAnotherAccountWorthTrying } from "../src/core/voice/VoiceResourceManager.ts";
@@ -261,6 +267,53 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     return resolveVoiceIdentity(readEnv);
   }
 
+  /**
+   * The free local speaker, used when no ElevenLabs key is configured.
+   *
+   * Piper is an offline neural TTS: a binary plus one voice model, no
+   * account, no network, no per-character cost. It is deliberately opt-in
+   * through the environment so a checkout without the binary behaves
+   * exactly as before (honest 503 rather than a surprise voice).
+   *
+   * It is NOT LÉLU's cloned voice; `/api/voice/status` says so.
+   */
+  function localVoiceConfig(): { bin: string; model: string } | null {
+    const bin = readSecret(readEnv, ["LELU_LOCAL_TTS_BIN"]);
+    const model = readSecret(readEnv, ["LELU_LOCAL_TTS_MODEL"]);
+    if (!bin || !model) return null;
+    if (!existsSync(bin) || !existsSync(model)) return null;
+    return { bin, model };
+  }
+
+  function localVoiceId(): string | null {
+    const config = localVoiceConfig();
+    return config ? `local-piper:${basename(config.model).replace(/\.onnx$/, "")}` : null;
+  }
+
+  /** Synthesise with the local engine; resolves to WAV bytes or null. */
+  async function synthesizeLocal(text: string): Promise<Buffer | null> {
+    const config = localVoiceConfig();
+    if (!config) return null;
+    const dir = await mkdtemp(join(tmpdir(), "lelu-tts-"));
+    const out = join(dir, "speech.wav");
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const child = execFile(
+          config.bin,
+          ["--model", config.model, "--output_file", out],
+          { timeout: 30_000, maxBuffer: 1024 * 1024 },
+          (error) => (error ? reject(error) : resolve()),
+        );
+        child.stdin?.end(text);
+      });
+      return await readFile(out);
+    } catch {
+      return null;
+    } finally {
+      await rm(dir, { recursive: true, force: true }).catch(() => undefined);
+    }
+  }
+
   function voiceConfig(): { keyCount: number; voiceId: string; modelId: string; sttModelId: string } {
     const identity = voiceIdentity();
     return {
@@ -292,7 +345,16 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     // the page speaks through LÉLU's free local worker instead.
     const spend = spendPolicy().check("elevenlabs", { operation: "tts" }, { peek: true });
     const usable = keyCount > 0 && spend.allowed;
-    sendJson(res, { configured: usable, stt: usable, voiceId, modelId, sttModelId, ...(keyCount > 0 && !spend.allowed ? { spend: spend.code } : {}) });
+    const local = usable ? null : localVoiceId();
+    sendJson(res, {
+      configured: usable || Boolean(local),
+      stt: usable,
+      voiceId: local ?? voiceId,
+      modelId,
+      sttModelId,
+      ...(local ? { provider: "local-piper", localVoice: true } : {}),
+      ...(keyCount > 0 && !spend.allowed ? { spend: spend.code } : {}),
+    });
   }
 
   function handleTts(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
@@ -307,10 +369,6 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     if (!admit(req, res, "tts", TTS_LIMIT)) return;
     void (async () => {
       const { keyCount } = voiceConfig();
-      if (keyCount === 0) {
-        sendJson(res, { ok: false, error: "ElevenLabs is not configured." }, 503);
-        return;
-      }
       let body: Record<string, unknown>;
       try {
         body = await readJsonBody(req);
@@ -325,6 +383,22 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       }
       if (text.length > MAX_TEXT_LENGTH) {
         sendJson(res, { ok: false, error: `Text exceeds ${MAX_TEXT_LENGTH} characters.` }, 413);
+        return;
+      }
+      if (keyCount === 0) {
+        // No paid account: speak with the free local engine when it is set up.
+        const started = Date.now();
+        const audio = await synthesizeLocal(text);
+        if (!audio) {
+          sendJson(res, { ok: false, error: "No speech engine is configured." }, 503);
+          return;
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "audio/wav");
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("X-Lelu-Voice-Provider", localVoiceId() ?? "local-piper");
+        res.setHeader("X-Lelu-Synthesis-Ms", String(Date.now() - started));
+        res.end(audio);
         return;
       }
       // Which account may spend what this sentence costs — decided from local
