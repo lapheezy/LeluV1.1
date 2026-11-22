@@ -31,7 +31,10 @@ test("the Universe composer carries attachments, screen sharing and voice itself
   const u = code("src/app/scene/genesis/chat/universe/ChatUniverse.tsx");
   assert.match(u, /aria-label="Attach an image, video or file"/);
   assert.match(u, /screenShareSupport\(\)\.supported/);
-  assert.match(u, /VoiceEngine\.getInstance\(\)\.toggle\(\)/);
+  // Voice: the composer renders the shared microphone (M22.10), which toggles
+  // the one engine — the same assertion, followed one component down.
+  assert.match(u, /<VoiceToggle conversationId=/);
+  assert.match(code("src/app/scene/genesis/chat/universe/VoiceToggle.tsx"), /VoiceEngine\.getInstance\(\)\.toggle\(\)/);
   assert.match(u, /media: attached/);
   assert.match(code("src/app/scene/genesis/GenesisChat.tsx"), /universeMediaRef\.current = media;/);
 });
