@@ -45,6 +45,8 @@ const EXTRA_CONTROLS = [
   "[data-lelu-drawing-editor] .lst-toolbar",
   ".excalidraw .App-toolbar",
   ".react-flow__controls",
+  // The Retro Terminal's command line is its composer.
+  "[data-rt-prompt]",
 ];
 
 export function rectOf(element: Element): Rect | null {

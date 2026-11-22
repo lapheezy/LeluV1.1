@@ -1,0 +1,36 @@
+
+=== LAYOUT: nothing overlaps, nothing overflows ===
+  PASS  the sign-in gate can be answered @ phone  — skipped
+  PASS  renders @ phone
+  PASS  no horizontal overflow @ phone
+  PASS  workspace root is present and sized @ phone  — 390x844
+  PASS  primary controls are actually clickable @ phone
+  FAIL  composer is present to be measured @ phone  — chat did not open — overlap checks below are unverified
+  FAIL  a real toast is on screen to be measured @ phone  — NO TOAST COULD BE PROVOKED, so the three overlap checks below would be VACUOUS rather than passing — which is why this is a failure and not a skip. An undecodable image is supposed to raise notify("Lélu Error", …) from GenesisChat's attachMedia catch; either the chat is not open (so its hidden file input does not exist), or that error path no longer reports to the notification centre. Check which before trusting the geometry below.
+  FAIL  the toast layer is identifiable @ phone  — no [data-lelu-notifications]
+  PASS  the sign-in gate can be answered @ tablet  — skipped
+  PASS  renders @ tablet
+  PASS  no horizontal overflow @ tablet
+  PASS  workspace root is present and sized @ tablet  — 820x1180
+  PASS  primary controls are actually clickable @ tablet
+  FAIL  composer is present to be measured @ tablet  — chat did not open — overlap checks below are unverified
+  FAIL  a real toast is on screen to be measured @ tablet  — NO TOAST COULD BE PROVOKED, so the three overlap checks below would be VACUOUS rather than passing — which is why this is a failure and not a skip. An undecodable image is supposed to raise notify("Lélu Error", …) from GenesisChat's attachMedia catch; either the chat is not open (so its hidden file input does not exist), or that error path no longer reports to the notification centre. Check which before trusting the geometry below.
+  PASS  the toast layer does not capture pointer events @ tablet  — pointer-events: none
+  PASS  no toast covers a primary control @ tablet
+  PASS  no primary control is captured by a toast @ tablet
+  PASS  the sign-in gate can be answered @ desktop  — skipped
+  PASS  renders @ desktop
+  PASS  no horizontal overflow @ desktop
+  PASS  workspace root is present and sized @ desktop  — 1440x900
+  PASS  primary controls are actually clickable @ desktop
+  FAIL  composer is present to be measured @ desktop  — chat did not open — overlap checks below are unverified
+  FAIL  a real toast is on screen to be measured @ desktop  — NO TOAST COULD BE PROVOKED, so the three overlap checks below would be VACUOUS rather than passing — which is why this is a failure and not a skip. An undecodable image is supposed to raise notify("Lélu Error", …) from GenesisChat's attachMedia catch; either the chat is not open (so its hidden file input does not exist), or that error path no longer reports to the notification centre. Check which before trusting the geometry below.
+  PASS  the toast layer does not capture pointer events @ desktop  — pointer-events: none
+  PASS  no toast covers a primary control @ desktop
+  PASS  no primary control is captured by a toast @ desktop
+
+=== CONTAINER: the interface fits a container smaller than the window ===
+  PASS  root accepts a constrained size  — 420
+  PASS  controls stay inside the constrained container
+
+7 CHECK(S) FAILED

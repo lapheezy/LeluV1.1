@@ -221,6 +221,11 @@
 .rt-view-cap { top: 10px; color: var(--rt-heading); }
 .rt-view-read { bottom: 10px; }
 .rt-view-look { position: absolute; right: 10px; bottom: 8px; min-height: 32px; background: var(--rt-bg2-fill); }
+/* LÉLU's spot in the frame (the companion lands here: [data-lelu-hero-host]).
+   Top-right, above "Full view"; the caption stops short of it. */
+.rt-view { --rt-hero-w: clamp(64px, 12%, 112px); }
+.rt-view-hero { position: absolute; top: 10px; right: 12px; width: var(--rt-hero-w); height: min(160px, calc(100% - 64px)); pointer-events: none; }
+.rt-view-cap { max-width: calc(100% - var(--rt-hero-w) - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------------- panes: the Home's live modules, terminal-skinned ---------------- */
 .rt-panes {
@@ -269,6 +274,12 @@
 .rt-cmd::placeholder { color: var(--rt-text2); opacity: 0.7; }
 .rt-caret { width: 9px; height: 18px; background: var(--rt-accent1); animation: rt-blink 1.1s steps(1) infinite; opacity: calc(0.25 + var(--rt-anim)); }
 @keyframes rt-blink { 50% { visibility: hidden; } }
+
+/* ---------------- the app's Spatial side tab ----------------
+   SpatialNavigator draws a 24 px tab fixed to the left edge, mid-height, over
+   every Home. While it is on screen the terminal keeps a gutter for it, so the
+   tab stays reachable and covers none of the terminal's rows or panes. */
+body:has([data-spatial-nav-tab]) .lch.lch-m15.rt[data-device] { padding-left: max(30px, env(safe-area-inset-left, 0px)); }
 
 /* ---------------- phone ---------------- */
 .lch.rt[data-device="phone"] { gap: 6px; }

@@ -1,0 +1,40 @@
+✓ desktop: Retro Terminal is selectable as a layout
+✓ desktop: the Cosmos renderer was not remounted by switching to the terminal
+✓ desktop: directory lists real destinations — 24 rows
+✓ desktop: the Home's live modules render as terminal panes
+✓ desktop: telemetry shows world lifecycle and stream data
+✓ desktop: no horizontal overflow — {"page":0,"terminal":0,"offenders":[]}
+✓ desktop: default look is Classic Retro (charcoal + amber)
+✓ desktop: 'where' prints real coordinates and the world phase
+✓ desktop: a directory row navigates through CosmosNavigation — SHAMAN → map-shaman
+✓ desktop: main background changes live and independently
+✓ desktop: typography roles change independently
+✓ desktop: multiple accents and regions coexist — rgb() accepted as #9b5cff
+✓ desktop: an invalid HEX is refused and the colour kept
+✓ desktop: the terminal marks unsaved changes
+✓ desktop: editing a palette swatch recolours its roles
+✓ desktop: poor contrast is warned about and the colour is kept
+✓ desktop: undo restores the previous colour
+✓ desktop: revert drops every unsaved change
+✓ desktop: a preset loads
+✓ desktop: the preset is editable
+✓ desktop: saving an edited preset creates a custom theme — {"n":1,"name":"Cybernetic (custom)"}
+✓ desktop: effects can be reduced (scanlines, grid, glow, animation off)
+✓ desktop: after reload the terminal and its saved theme return
+NOTE reload: navigation map-shaman → map-shaman (CosmosNavigation restore rule, unchanged)
+✓ desktop: switching to another layout leaves the terminal; existing layouts intact
+✓ desktop: returning restores the terminal's selected appearance
+✓ desktop: layout switches keep region, trail and camera — {"u2":{"current":"map-shaman","trail":["cosmos-core","map-shaman"],"camera":"0.00 · 0.00 · 0.00"},"u3":{"current":"map-shaman","trail":["cosmos-core","map-shaman"],"camera":"0.00 · 0.00 · 0.00"}}
+✓ desktop: the Cosmos renderer survived two layout switches
+✓ desktop: other compositions still listed — ,lelu-central,bento-universe,cosmos-orbit,spatial-home,executive-command,organic-asymmetry,creative-gallery,project-hub,minimal-focus,adaptive-intelligence,workspace-deck,living-ecosystem,retro-terminal,__concepts__
+✓ tablet: terminal renders with no horizontal overflow — {"page":0,"terminal":0,"offenders":[]}
+✓ tablet: presets apply live behind the studio — Cosmic Violet has a gradient background
+✓ phone: terminal renders as a phone layout (tabs, not a shrunk desktop), no overflow — {"page":0,"terminal":0,"offenders":[]}
+✓ phone: directory tab works by touch
+✓ phone: command line works and the log shows output
+✓ phone: live preview while the studio sheet is open
+✓ phone: studio controls are touch-sized (≥32px)
+✓ phone: studio sheet has no horizontal overflow — {"page":0,"terminal":0,"offenders":[]}
+✓ no page errors during the run
+
+37/37 verified

@@ -28,6 +28,9 @@ import CosmosNavigation, { type NavNode, type NavigationState } from "../../../.
 import SpatialObjects, { type SpatialObject } from "../../../../core/cosmos/SpatialObjects";
 import CosmosFocus, { type FocusTarget } from "../../../../core/cosmos/CosmosFocus";
 import WorkspaceAPI from "../../../../core/workspace/WorkspaceAPI";
+import { syncCosmosMap } from "../../../../core/cosmos/CosmosLiveMap";
+import { cameraFlightActive } from "../cameraFlight";
+import { cameraOwner } from "../cameraOwnership";
 
 /** The scene draws its entities at this depth. */
 const Z_OFFSET = -25;
@@ -216,6 +219,50 @@ function PlacedRecord({ object, room }: { object: SpatialObject; room: NavNode |
   );
 }
 
+/**
+ * Select a destination restored from storage, as arriving there would
+ * have. Never replaces a selection made in this session.
+ */
+function reselectRestored(id: string): boolean {
+  if (CosmosNavigation.getInstance().restoredArrival() !== id) return false;
+  const focus = CosmosFocus.getInstance();
+  if (!focus.get()) focus.set({ kind: "node", id });
+  return true;
+}
+
+/**
+ * Fly to a restored destination as soon as the camera controller takes the
+ * flight. During start-up the camera API or OrbitControls may not be up
+ * yet, and the controller ignores a navigation it cannot perform; the
+ * flight starts synchronously when it is accepted (cameraFlightActive), so
+ * this simply asks again on the next frame until it is (for up to a minute). A newer
+ * navigation, or the user taking the camera, ends the attempt.
+ */
+function frameWhenReady(node: NavNode): () => void {
+  let cancelled = false;
+  // A time bound, not a frame count: animation frames run far faster than a
+  // slow device mounts the scene, so a frame budget expired before the camera
+  // API existed.
+  const deadline = Date.now() + 60_000;
+  const tick = () => {
+    if (cancelled) return;
+    if (CosmosNavigation.getInstance().getState().currentId !== node.id) return;
+    if (cameraOwner() === "user") return;
+    if ((window as unknown as { __cosmosCamera?: unknown }).__cosmosCamera) {
+      flyToNode(node);
+      if (cameraFlightActive()) {
+        CosmosNavigation.getInstance().restoredArrivalFramed(node.id);
+        return;
+      }
+    }
+    if (Date.now() < deadline) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return () => {
+    cancelled = true;
+  };
+}
+
 export default function CosmosRooms3D() {
   const [state, setState] = useState<NavigationState>(() => CosmosNavigation.getInstance().getState());
   const [objects, setObjects] = useState<SpatialObject[]>(() => SpatialObjects.getInstance().list());
@@ -246,11 +293,27 @@ export default function CosmosRooms3D() {
    * is drawn by the scene itself, at the origin.
    */
   const lastCurrent = useRef(state.currentId);
+  // The pending restore framing, if any (cancelled by a newer arrival or unmount).
+  const framing = useRef<(() => void) | null>(null);
+  const frame = (node: NavNode) => {
+    framing.current?.();
+    framing.current = frameWhenReady(node);
+  };
+  useEffect(() => () => framing.current?.(), []);
   useEffect(() => {
     if (state.currentId === lastCurrent.current) return;
     lastCurrent.current = state.currentId;
     const node = state.nodes.find((n) => n.id === state.currentId);
     if (!node) return;
+    // A live-map destination that a reload was waiting for has just been
+    // registered: it is the place you were, so it is selected again too,
+    // and framed once the camera can take it (the scene may still be starting).
+    if (reselectRestored(node.id) && node.level !== "core") {
+      frame(node);
+      return;
+    }
+    framing.current?.();
+    framing.current = null;
     if (node.level === "core") {
       // Back to the core is back to the Genesis view CosmosLayer defines.
       const camera = (window as unknown as { __cosmosCamera?: { resetToGenesis?: () => void } }).__cosmosCamera;
@@ -259,6 +322,31 @@ export default function CosmosRooms3D() {
     }
     flyToNode(node);
   }, [state.currentId, state.nodes]);
+
+  /*
+   * After a reload. The camera pose is deliberately not persisted
+   * (cameraPoseMemory), so a destination restored from storage would be
+   * the current place while the view sat at the opening composition.
+   * Frame it once, through the same flight every arrival uses. Only a
+   * restored destination is framed: a remount in the same session (back
+   * from chat) keeps its remembered pose.
+   *
+   * A live-map destination (an agent's planet, a project) is only known
+   * after the live map syncs, and on most Homes nothing else asks for a
+   * sync. So while a restore is pending the scene asks once, through the
+   * same syncCosmosMap the workspace panel and the terminal use; the
+   * currentId change that follows flies the camera like any arrival.
+   */
+  useEffect(() => {
+    const nav = CosmosNavigation.getInstance();
+    if (nav.pendingRestore()) void syncCosmosMap();
+    const restored = nav.restoredArrival();
+    if (!restored) return;
+    const node = nav.get(restored);
+    if (!node || node.level === "core") return;
+    reselectRestored(node.id);
+    frame(node);
+  }, []);
 
   const nodes = useMemo(
     () => state.nodes.filter((node) => node.level !== "core").slice(0, MAX_NODES),

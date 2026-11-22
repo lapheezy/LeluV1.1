@@ -1,0 +1,80 @@
+
+=== PHONE ===
+  PASS  Retro Terminal is selectable and renders
+  PASS  the live Cosmos scene runs under the terminal (camera tracker reporting)
+  PASS  companion avatar covers no terminal control (header, caption, Full view, tabs, command line)  — avatar hero [303,76,367,156]
+  PASS  companion stands inside the terminal's live Cosmos frame
+  PASS  Spatial side tab is shown and covers no terminal row, pane or the command line  — tab [0,287,24,377]
+  PASS  Spatial tab keeps a usable touch target (≥ 24×44)
+  PASS  no horizontal overflow  — scrollWidth − innerWidth = 0
+  PASS  command line and RUN fully inside the viewport
+  PASS  opened Spatial bar leaves the command line clear  — 7 controls, lifted 68 px
+  PASS  Appearance Studio fits the viewport and its close control is reachable
+  PASS  directory holds live-map destinations (planets from the runtime)  — Designer (map-agent-ec1d5d65-5671-44d8-ba38-2c2ae4924458)
+  PASS  terminal goto: navigation, selection and camera all reach the planet  — camera (0.00, 19.97, -21.00) want (0.00, 20.00, -21.00)
+  PASS  switching layouts keeps the camera where navigation put it  — (0.00, 20.00, -21.00) → My Home: (0.00, 20.00, -21.00) → terminal: (0.00, 20.00, -21.00)
+  PASS  switching layouts keeps the same WebGL canvas, destination and selection
+  PASS  switching layouts keeps the Cosmos scale  — "planet"
+  PASS  terminal back: returns to the previous destination and the camera follows  — (0.00, 18.49, -21.00)
+  PASS  reload: the terminal layout comes back
+  PASS  reload: the live-map planet is the current destination again  — current map-agent-ec1d5d65-5671-44d8-ba38-2c2ae4924458
+  PASS  reload: the planet is selected again  — {"kind":"node","id":"map-agent-ec1d5d65-5671-44d8-ba38-2c2ae4924458"}
+  PASS  reload: the camera frames the restored planet  — camera (0.00, 20.00, -21.00) want (0.00, 20.00, -21.00)
+  PASS  reload: the terminal reads the same universe state  — LIVE COSMOS · Designer
+  PASS  reload on an original layout restores the same planet, selection and camera  — camera (0.00, 20.00, -21.00)
+  PASS  reload with an unavailable destination falls back to the core, no error  — current cosmos-core
+  PASS  no uncaught page errors
+
+=== TABLET ===
+  PASS  Retro Terminal is selectable and renders
+  FAIL  the live Cosmos scene runs under the terminal (camera tracker reporting)
+  PASS  companion avatar covers no terminal control (header, caption, Full view, tabs, command line)  — avatar hero [658,76,745,208]
+  PASS  companion stands inside the terminal's live Cosmos frame
+  PASS  Spatial side tab is shown and covers no terminal row, pane or the command line  — tab [0,467,24,557]
+  PASS  Spatial tab keeps a usable touch target (≥ 24×44)
+  PASS  no horizontal overflow  — scrollWidth − innerWidth = 0
+  PASS  command line and RUN fully inside the viewport
+  PASS  opened Spatial bar leaves the command line clear  — 8 controls, lifted 52 px
+  PASS  Appearance Studio fits the viewport and its close control is reachable
+  PASS  directory holds live-map destinations (planets from the runtime)  — Designer (map-agent-6c70b34d-4ed4-4207-a879-857beb9293ed)
+  FAIL  terminal goto: navigation, selection and camera all reach the planet  — camera (0.00, 0.00, 0.00) want (0.00, 20.00, -21.00)
+  PASS  switching layouts keeps the camera where navigation put it  — (0.00, 0.00, 0.00) → My Home: (0.00, 0.00, 0.00) → terminal: (0.00, 0.00, 0.00)
+  PASS  switching layouts keeps the same WebGL canvas, destination and selection
+  PASS  switching layouts keeps the Cosmos scale  — "planet"
+  FAIL  terminal back: returns to the previous destination and the camera follows  — (0.00, 0.00, 0.00)
+  PASS  reload: the terminal layout comes back
+  PASS  reload: the live-map planet is the current destination again  — current map-agent-6c70b34d-4ed4-4207-a879-857beb9293ed
+  PASS  reload: the planet is selected again  — {"kind":"node","id":"map-agent-6c70b34d-4ed4-4207-a879-857beb9293ed"}
+  PASS  reload: the camera frames the restored planet  — camera (0.00, 20.00, -21.00) want (0.00, 20.00, -21.00)
+  PASS  reload: the terminal reads the same universe state  — LIVE COSMOS · Designer
+  PASS  reload on an original layout restores the same planet, selection and camera  — camera (0.00, 20.00, -21.00)
+  PASS  reload with an unavailable destination falls back to the core, no error  — current cosmos-core
+  PASS  no uncaught page errors
+
+=== DESKTOP ===
+  PASS  Retro Terminal is selectable and renders
+  PASS  the live Cosmos scene runs under the terminal (camera tracker reporting)
+  PASS  companion avatar covers no terminal control (header, caption, Full view, tabs, command line)  — avatar hero [1035,76,1138,227]
+  PASS  companion stands inside the terminal's live Cosmos frame
+  PASS  Spatial side tab is shown and covers no terminal row, pane or the command line  — tab [0,405,24,495]
+  PASS  Spatial tab keeps a usable touch target (≥ 24×44)
+  PASS  no horizontal overflow  — scrollWidth − innerWidth = 0
+  PASS  command line and RUN fully inside the viewport
+  PASS  opened Spatial bar leaves the command line clear  — 8 controls, lifted 52 px
+  PASS  Appearance Studio fits the viewport and its close control is reachable
+  PASS  directory holds live-map destinations (planets from the runtime)  — Designer (map-agent-84e4a773-9706-457b-9417-022a4821dae1)
+  PASS  terminal goto: navigation, selection and camera all reach the planet  — camera (0.00, 20.00, -21.00) want (0.00, 20.00, -21.00)
+  PASS  switching layouts keeps the camera where navigation put it  — (0.00, 20.00, -21.00) → My Home: (0.00, 20.00, -21.00) → terminal: (0.00, 20.00, -21.00)
+  PASS  switching layouts keeps the same WebGL canvas, destination and selection
+  PASS  switching layouts keeps the Cosmos scale  — "planet"
+  PASS  terminal back: returns to the previous destination and the camera follows  — (0.00, 18.00, -21.00)
+  PASS  reload: the terminal layout comes back
+  PASS  reload: the live-map planet is the current destination again  — current map-agent-84e4a773-9706-457b-9417-022a4821dae1
+  PASS  reload: the planet is selected again  — {"kind":"node","id":"map-agent-84e4a773-9706-457b-9417-022a4821dae1"}
+  PASS  reload: the camera frames the restored planet  — camera (0.00, 20.00, -21.00) want (0.00, 20.00, -21.00)
+  PASS  reload: the terminal reads the same universe state  — LIVE COSMOS · Designer
+  PASS  reload on an original layout restores the same planet, selection and camera  — camera (0.00, 20.00, -21.00)
+  PASS  reload with an unavailable destination falls back to the core, no error  — current cosmos-core
+  PASS  no uncaught page errors
+
+69/72 PASS

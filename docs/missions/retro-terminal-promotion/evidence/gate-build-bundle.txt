@@ -1,0 +1,11 @@
+dist/assets/error-reporting-CXNvWWO8.js                     0.16 kB │ gzip:   0.15 kB
+dist/assets/error-reporting-DESH3SHR.js                     0.68 kB │ gzip:   0.42 kB
+dist/assets/error-CJ3RHG07.js                               2.00 kB │ gzip:   0.83 kB
+dist/assets/CosmosHome-GknjGHps.js                          8.34 kB │ gzip:   2.87 kB
+dist/assets/CosmosLayer-DuhKYVhJ.js                        15.98 kB │ gzip:   4.02 kB
+dist/assets/RetroTerminal-D6-j1Gqd.js                      18.58 kB │ gzip:   5.81 kB
+dist/assets/TerminalAppearanceStudio-DHxMb_ls.js           21.83 kB │ gzip:   6.50 kB
+✓ built in 9.19s
+build exit 0
+PASS: no test files in dist/ (1909 files scanned).
+verify:bundle exit 0

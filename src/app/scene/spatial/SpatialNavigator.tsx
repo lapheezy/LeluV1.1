@@ -213,6 +213,8 @@ export default function SpatialNavigator() {
         chatOpen ? box(document.querySelector("[data-lelu-composer]")) : null,
         box(document.querySelector('nav.lsn[data-hidden="false"] .lsn-bar')),
         box(document.querySelector('nav.lsn[data-hidden="false"] .lsn-orb')),
+        // The Retro Terminal's command line is a composer too (M22.12).
+        box(document.querySelector("[data-rt-prompt]")),
       ];
       const next = Math.max(0, ...obstacles.map((o) => composerLift(natural, o)));
       if (next > 0 && liftOverflowsTop(natural, next, 8) && open) {

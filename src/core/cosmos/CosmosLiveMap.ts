@@ -255,6 +255,9 @@ export function applyCosmosSnapshot(snapshot: LiveCosmosSnapshot): { destination
     if (live.has(node.id)) continue;
     if (nav.retire(node.id)) retired += 1;
   }
+  // Whatever a reload was still waiting for and this sync did not bring
+  // back is gone: stop waiting, so the restore fails safely to the core.
+  nav.settleRestore();
 
   return { destinations: destinations.length, retired };
 }

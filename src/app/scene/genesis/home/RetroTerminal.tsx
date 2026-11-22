@@ -49,7 +49,7 @@ const TerminalAppearanceStudio = lazy(() => import("./TerminalAppearanceStudio")
 /** The scene draws its destinations at this depth (CosmosRooms3D.Z_OFFSET). */
 const Z_OFFSET = -25;
 
-/** Fly the existing camera to a destination exactly as the 3D rings do (CosmosRooms3D.flyTo). */
+/** Re-centre on the current destination exactly as a ring tap does (CosmosRooms3D.flyTo). */
 function flyToNode(node: NavNode): void {
   const [x, y, z0] = node.position;
   const z = z0 + Z_OFFSET;
@@ -61,13 +61,22 @@ function flyToNode(node: NavNode): void {
   window.dispatchEvent(new CustomEvent("cosmos-navigate", { detail: { pos: { x, y, z: z + 10 }, lookAt: { x, y, z } } }));
 }
 
-/** Navigate the way the scene's rings and the workspace panel do: WorkspaceAPI, then focus, then the camera. */
+/**
+ * Navigate the way the scene's rings and the workspace panel do: WorkspaceAPI, then focus.
+ *
+ * The camera is not flown from here. CosmosRooms3D follows
+ * CosmosNavigation.currentId and flies every arrival (ring, panel, LÉLU,
+ * this terminal) through one path, so a second flight from the terminal
+ * would only race it. Asking for the place you are already in moves no
+ * state, so that one case re-centres here, exactly as a ring tap does.
+ */
 function goToNode(id: string): boolean {
+  const wasCurrent = CosmosNavigation.getInstance().getState().currentId === id;
   const result = WorkspaceAPI.getInstance().execute({ action: "navigate", actor: "user", roomId: id });
   if (!result.ok) return false;
   CosmosFocus.getInstance().set({ kind: "node", id });
   const node = CosmosNavigation.getInstance().get(id);
-  if (node) flyToNode(node);
+  if (node && wasCurrent && node.level !== "core") flyToNode(node);
   return true;
 }
 
@@ -271,11 +280,9 @@ export default function RetroTerminal({ presentation, device, editing, signals, 
       currentNodeId: () => CosmosNavigation.getInstance().getState().currentId,
       navigateTo: (id) => goToNode(id),
       back: () => {
+        // back() changes currentId; CosmosRooms3D flies the arrival.
         const node = CosmosNavigation.getInstance().back();
-        if (node) {
-          CosmosFocus.getInstance().set({ kind: "node", id: node.id });
-          flyToNode(node);
-        }
+        if (node) CosmosFocus.getInstance().set({ kind: "node", id: node.id });
         return Boolean(node);
       },
       objects: () => CosmosObjectStore.getInstance().list().map((o) => ({ id: o.id, name: o.name })),
@@ -515,6 +522,10 @@ export default function RetroTerminal({ presentation, device, editing, signals, 
       <span className="rt-corner" data-c="bl" aria-hidden />
       <span className="rt-corner" data-c="br" aria-hidden />
       <span className="rt-cross" aria-hidden />
+      {/* Her place on this Home (the companion's hero contract, as the Lélu module
+          offers on the other layouts): she stands in the live Cosmos, inside the
+          frame, instead of resting on the screen edge over the command line. */}
+      <span className="rt-view-hero" data-lelu-hero-host aria-hidden />
       <span className="rt-view-cap">LIVE COSMOS · {current?.label ?? "—"}</span>
       <span className="rt-view-read rt-num" aria-live="off">
         {n2(stream.camera.x)} · {n2(stream.camera.y)} · {n2(stream.camera.z)}
@@ -641,6 +652,7 @@ export default function RetroTerminal({ presentation, device, editing, signals, 
       <footer className="rt-footer">
         {phone ? null : logView}
         <form
+          data-rt-prompt
           className="rt-prompt"
           onSubmit={(e) => {
             e.preventDefault();

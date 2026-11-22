@@ -1,0 +1,152 @@
+{
+  "at": "2026-11-22T23:18:40.129Z",
+  "base": "http://127.0.0.1:5173/",
+  "pass": 24,
+  "total": 24,
+  "results": [
+    {
+      "viewport": "tablet",
+      "name": "Retro Terminal is selectable and renders",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "the live Cosmos scene runs under the terminal (camera tracker reporting)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "companion avatar covers no terminal control (header, caption, Full view, tabs, command line)",
+      "status": "PASS",
+      "detail": "avatar hero [658,76,745,208]"
+    },
+    {
+      "viewport": "tablet",
+      "name": "companion stands inside the terminal's live Cosmos frame",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "Spatial side tab is shown and covers no terminal row, pane or the command line",
+      "status": "PASS",
+      "detail": "tab [0,467,24,557]"
+    },
+    {
+      "viewport": "tablet",
+      "name": "Spatial tab keeps a usable touch target (≥ 24×44)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "no horizontal overflow",
+      "status": "PASS",
+      "detail": "scrollWidth − innerWidth = 0"
+    },
+    {
+      "viewport": "tablet",
+      "name": "command line and RUN fully inside the viewport",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "opened Spatial bar leaves the command line clear",
+      "status": "PASS",
+      "detail": "8 controls, lifted 52 px"
+    },
+    {
+      "viewport": "tablet",
+      "name": "Appearance Studio fits the viewport and its close control is reachable",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "directory holds live-map destinations (planets from the runtime)",
+      "status": "PASS",
+      "detail": "Designer (map-agent-94fa7757-5d47-43d5-bf0a-ba25dff7cffd)"
+    },
+    {
+      "viewport": "tablet",
+      "name": "terminal goto: navigation, selection and camera all reach the planet",
+      "status": "PASS",
+      "detail": "camera (0.00, 20.00, -21.00) want (0.00, 20.00, -21.00)"
+    },
+    {
+      "viewport": "tablet",
+      "name": "switching layouts keeps the camera where navigation put it",
+      "status": "PASS",
+      "detail": "(0.00, 20.00, -21.00) → My Home: (0.00, 20.00, -21.00) → terminal: (0.00, 20.00, -21.00)"
+    },
+    {
+      "viewport": "tablet",
+      "name": "switching layouts keeps the same WebGL canvas, destination and selection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "switching layouts keeps the Cosmos scale",
+      "status": "PASS",
+      "detail": "\"planet\""
+    },
+    {
+      "viewport": "tablet",
+      "name": "terminal back: returns to the previous destination and the camera follows",
+      "status": "PASS",
+      "detail": "(0.00, 18.02, -21.00)"
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload: the terminal layout comes back",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload: the live-map planet is the current destination again",
+      "status": "PASS",
+      "detail": "current map-agent-94fa7757-5d47-43d5-bf0a-ba25dff7cffd"
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload: the planet is selected again",
+      "status": "PASS",
+      "detail": "{\"kind\":\"node\",\"id\":\"map-agent-94fa7757-5d47-43d5-bf0a-ba25dff7cffd\"}"
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload: the camera frames the restored planet",
+      "status": "PASS",
+      "detail": "camera (0.00, 20.00, -21.00) want (0.00, 20.00, -21.00)"
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload: the terminal reads the same universe state",
+      "status": "PASS",
+      "detail": "LIVE COSMOS · Designer"
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload on an original layout restores the same planet, selection and camera",
+      "status": "PASS",
+      "detail": "camera (0.00, 20.00, -21.00)"
+    },
+    {
+      "viewport": "tablet",
+      "name": "reload with an unavailable destination falls back to the core, no error",
+      "status": "PASS",
+      "detail": "current cosmos-core"
+    },
+    {
+      "viewport": "tablet",
+      "name": "no uncaught page errors",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}

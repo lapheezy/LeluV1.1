@@ -107,6 +107,15 @@ interface PersistedNav {
   trail: string[];
 }
 
+/**
+ * Ids the live map (CosmosLiveMap.MAP_ID) derives from runtime records.
+ * Only these are waited for after a reload; anything else unknown in
+ * storage is stale and ignored, as before.
+ */
+function isLiveMapId(id: string): boolean {
+  return id.startsWith("map-");
+}
+
 function coreNode(): NavNode {
   return {
     id: CORE_ID,
@@ -144,6 +153,21 @@ export default class CosmosNavigation {
   private currentId = CORE_ID;
   private version = 0;
   private listeners = new Set<(state: NavigationState) => void>();
+  /*
+   * Restoration of live-map destinations. Rooms are persisted whole, but
+   * the live map's destinations (an agent's planet, a project, an open
+   * view) are re-registered from the runtime after boot, so at load time
+   * the stored `currentId`, trail and visit counts can name nodes that do
+   * not exist yet. They wait here, numbers and ids only, until the live
+   * map registers those ids (then they apply) or a sync settles without
+   * them (then they are dropped and you stay at the core). Navigating
+   * yourself abandons the pending destination: a newer choice wins.
+   */
+  private pendingCurrentId: string | null = null;
+  private pendingTrail: string[] | null = null;
+  private pendingVisits = new Map<string, { visits: number; lastVisited: number | null }>();
+  /** A destination restored from storage that the scene has not framed yet. */
+  private restoredArrival_: string | null = null;
 
   private constructor() {
     this.nodes.set(CORE_ID, coreNode());
@@ -221,6 +245,7 @@ export default class CosmosNavigation {
       archived: false,
     };
     this.nodes.set(node.id, node);
+    this.applyPending(node);
     this.version += 1;
     this.persist();
     this.notify();
@@ -260,6 +285,10 @@ export default class CosmosNavigation {
   navigateTo(id: string): NavNode | null {
     const node = this.nodes.get(id);
     if (!node || node.archived) return null;
+    // Your own move is newer than whatever was waiting to be restored.
+    this.pendingCurrentId = null;
+    this.pendingTrail = null;
+    this.restoredArrival_ = null;
     // The first move starts the trail from where you already were, so a
     // trail always reads as a path rather than a list that begins mid-way.
     if (this.trail.length === 0 && this.currentId !== id) this.trail = [this.currentId];
@@ -358,6 +387,7 @@ export default class CosmosNavigation {
     if (!node || node.archived) return false;
     if (node.origin !== "system" || node.removable) return false;
     node.archived = true;
+    if (this.restoredArrival_ === id) this.restoredArrival_ = null;
     if (this.currentId === id) {
       this.currentId = node.parentId && this.nodes.get(node.parentId) ? node.parentId : CORE_ID;
     }
@@ -388,6 +418,42 @@ export default class CosmosNavigation {
   /** Every room, for a workspace listing. */
   rooms(): NavNode[] {
     return [...this.nodes.values()].filter((node) => node.level === "room" && !node.archived);
+  }
+
+  /** The stored destination still waiting for the live map, if any. */
+  pendingRestore(): string | null {
+    return this.pendingCurrentId;
+  }
+
+  /**
+   * The live map has synced. Whatever stored state it did not bring back
+   * no longer exists (the agent, project or view is gone), so stop
+   * waiting for it: you stay where you are (the core) and storage stops
+   * naming a destination that cannot be reached.
+   */
+  settleRestore(): void {
+    if (this.pendingCurrentId === null && this.pendingTrail === null && this.pendingVisits.size === 0) return;
+    this.pendingCurrentId = null;
+    this.pendingTrail = null;
+    this.pendingVisits.clear();
+    this.persist();
+  }
+
+  /**
+   * The destination restored from storage that the scene has not framed
+   * yet, so it can frame it after a reload. Null when the current place
+   * came from a navigation in this session. Reading does not clear it: a
+   * scene that mounts twice (or unmounts before its camera is up) must
+   * still find it. `restoredArrivalFramed` clears it once framed.
+   */
+  restoredArrival(): string | null {
+    const id = this.restoredArrival_;
+    return id && id === this.currentId ? id : null;
+  }
+
+  /** The scene has framed the restored destination: it is an ordinary place now. */
+  restoredArrivalFramed(id: string): void {
+    if (this.restoredArrival_ === id) this.restoredArrival_ = null;
   }
 
   /** Re-read persisted visits and rooms (a fresh start sees the same map). */
@@ -425,14 +491,17 @@ export default class CosmosNavigation {
         .filter((node) => node.level === "room" && node.origin !== "system")
         .slice(-MAX_PERSISTED_ROOMS);
       const visits: PersistedNav["visits"] = {};
+      // Visits of live-map destinations not registered yet are kept as
+      // stored, so an early write cannot wipe them before the map syncs.
+      for (const [id, visit] of this.pendingVisits) visits[id] = visit;
       for (const node of this.nodes.values()) {
         if (node.visits > 0) visits[node.id] = { visits: node.visits, lastVisited: node.lastVisited };
       }
       const payload: PersistedNav = {
         rooms,
         visits,
-        currentId: this.currentId,
-        trail: this.trail,
+        currentId: this.pendingCurrentId ?? this.currentId,
+        trail: this.pendingTrail ?? this.trail,
       };
       KvStore.getInstance().set(KEY, payload);
     } catch {
@@ -455,18 +524,59 @@ export default class CosmosNavigation {
       const parentId = room.parentId && this.nodes.has(room.parentId) ? room.parentId : CORE_ID;
       this.nodes.set(room.id, { ...room, level: "room", removable: true, parentId });
     }
+    this.pendingVisits.clear();
     for (const [id, visit] of Object.entries(stored.visits ?? {})) {
+      if (!visit || typeof visit.visits !== "number") continue;
       const node = this.nodes.get(id);
-      if (!node) continue;
+      if (!node) {
+        // A live-map destination: its node arrives with the next sync.
+        if (isLiveMapId(id)) this.pendingVisits.set(id, { visits: visit.visits, lastVisited: visit.lastVisited ?? null });
+        continue;
+      }
       node.visits = visit.visits;
       node.lastVisited = visit.lastVisited;
     }
-    if (stored.currentId && this.nodes.get(stored.currentId) && !this.nodes.get(stored.currentId)!.archived) {
-      this.currentId = stored.currentId;
+    this.pendingCurrentId = null;
+    this.restoredArrival_ = null;
+    const storedCurrent = typeof stored.currentId === "string" ? stored.currentId : null;
+    const known = storedCurrent ? this.nodes.get(storedCurrent) : undefined;
+    if (storedCurrent && known && !known.archived) {
+      this.currentId = storedCurrent;
+      if (storedCurrent !== CORE_ID) this.restoredArrival_ = storedCurrent;
+    } else if (storedCurrent && !known && isLiveMapId(storedCurrent)) {
+      this.pendingCurrentId = storedCurrent;
     }
-    this.trail = (stored.trail ?? []).filter((id) => {
+    const storedTrail = Array.isArray(stored.trail) ? stored.trail.filter((id): id is string => typeof id === "string") : [];
+    this.pendingTrail = storedTrail.some((id) => !this.nodes.has(id) && isLiveMapId(id)) ? storedTrail : null;
+    this.trail = this.liveTrail(storedTrail);
+  }
+
+  /** The stored trail, keeping only places that exist now. */
+  private liveTrail(ids: string[]): string[] {
+    return ids.filter((id) => {
       const node = this.nodes.get(id);
       return Boolean(node && !node.archived);
     });
+  }
+
+  /** A newly registered node may be what a reload was waiting for. */
+  private applyPending(node: NavNode): void {
+    const visit = this.pendingVisits.get(node.id);
+    if (visit) {
+      node.visits = visit.visits;
+      node.lastVisited = visit.lastVisited;
+      this.pendingVisits.delete(node.id);
+    }
+    if (this.pendingTrail) {
+      this.trail = this.liveTrail(this.pendingTrail);
+      if (!this.pendingTrail.some((id) => !this.nodes.has(id))) this.pendingTrail = null;
+    }
+    if (this.pendingCurrentId === node.id) {
+      this.pendingCurrentId = null;
+      // Still where the boot left you (nobody navigated since), so this is
+      // the place you were before the reload.
+      this.currentId = node.id;
+      this.restoredArrival_ = node.id;
+    }
   }
 }
