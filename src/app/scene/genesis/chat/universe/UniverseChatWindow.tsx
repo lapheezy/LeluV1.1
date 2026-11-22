@@ -32,6 +32,7 @@ import StudioArtifactCards from "../../studio/StudioArtifactCards";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
+import VoiceToggle from "./VoiceToggle";
 import Model3DView from "../Model3DView";
 
 /** A file attached in this window; a 3D file keeps its bytes so the reply can open it in three.js. */
@@ -267,6 +268,10 @@ export default function UniverseChatWindow({
           }
         }}
       />
+      {/* The same microphone as the Universe composer (M22.10): an open window
+          replaces that composer, so without this a live voice session had no
+          visible state and no stop control. */}
+      <VoiceToggle conversationId={conversation.id} />
       <button type="submit" className="lcu-send" disabled={!draft.trim() && attached.length === 0} aria-label={`Send to ${conversation.title}`}>
         Send
       </button>

@@ -37,8 +37,7 @@ import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
 import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
-import VoiceEngine from "../../../../../core/voice/VoiceEngine";
-import { useVoice } from "../../../../../core/voice/useVoice";
+import VoiceToggle from "./VoiceToggle";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
@@ -293,9 +292,6 @@ export default function ChatUniverse() {
     setSharing(stats.active);
     if (stats.active) setAttachNotice(null);
   }), []);
-  // The microphone's REAL state (not a guess): pressed only while a session
-  // is on, "paused" while the platform holds the microphone.
-  const voiceView = useVoice();
   if (!open) return null;
 
   const openChat = (id: string) => {
@@ -654,25 +650,7 @@ export default function ChatUniverse() {
                 {sharing ? <Icons.ScreenShareOff size={17} /> : <Icons.ScreenShare size={17} />}
               </button>
             ) : null}
-            <button
-              type="button"
-              className="lcu-icon sm"
-              data-lelu-voice-toggle
-              data-lelu-voice-phase={voiceView.state.phase}
-              data-lelu-voice-capture={voiceView.state.active ? (voiceView.state.captureSuspended ? "suspended" : "live") : "off"}
-              aria-pressed={voiceView.state.active}
-              aria-label={voiceView.state.active ? (voiceView.state.captureSuspended ? "Microphone paused — stop voice" : "Stop listening") : "Talk to LÉLU"}
-              title={voiceView.state.active ? (voiceView.state.captureSuspended ? "Microphone paused" : `Listening — ${voiceView.state.phase}`) : "Talk to LÉLU"}
-              onClick={() => {
-                // Voice speaks into the chat this composer targets — the same
-                // conversation a typed message here would go to (see send()).
-                const target = focused ?? byId.get(activeConversationId) ?? null;
-                if (!voiceView.state.active && target && target.id !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(target.id);
-                void VoiceEngine.getInstance().toggle();
-              }}
-            >
-              <Icons.Mic size={17} />
-            </button>
+            <VoiceToggle conversationId={(focused ?? byId.get(activeConversationId) ?? null)?.id ?? null} />
             <button type="button" className="lcu-send" onClick={send} disabled={!target || (!draft.trim() && attached.length === 0 && attachedFiles.length === 0)} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
           </div>
         </div>
