@@ -1,0 +1,384 @@
+{
+  "generatedAt": "2026-11-22T19:16:05.295Z",
+  "targetBranch": "integration/lelu-four-workforce-consolidation",
+  "canonicalBefore": "b74b378ea30de9572d2a0cbb5fb8c6e3eee45671",
+  "source": "448770bd9b1cf1a7a22e15639b2f2387ea31b39a",
+  "fullSuite": {
+    "canonical": {
+      "tests": 2325,
+      "pass": 2317,
+      "fail": 2,
+      "skipped": 6,
+      "failing": [
+        "sandbox: an installed module is reused, not reinstalled",
+        "curated proofs for reusable installed modules pass in the sandbox (no model writes this code)"
+      ]
+    },
+    "integrated": {
+      "tests": 2401,
+      "pass": 2394,
+      "fail": 1,
+      "skipped": 6,
+      "failing": [
+        "the Universe composer carries attachments, screen sharing and voice itself"
+      ]
+    },
+    "afterTestOnlyCommit": {
+      "file": "tests/old-chat-panel-removed.test.ts",
+      "pass": 4,
+      "fail": 0
+    }
+  },
+  "categories": {
+    "voice": {
+      "files": 21,
+      "tests": 145,
+      "pass": 144,
+      "fail": 0,
+      "skipped": 1
+    },
+    "chat": {
+      "files": 14,
+      "tests": 109,
+      "pass": 109,
+      "fail": 0
+    },
+    "genesis": {
+      "files": 58,
+      "tests": 748,
+      "pass": 748,
+      "fail": 0
+    },
+    "runtimeCognition": {
+      "files": 24,
+      "tests": 180,
+      "pass": 180,
+      "fail": 0
+    }
+  },
+  "typecheck": 0,
+  "lint": {
+    "errors": 0,
+    "warnings": 184,
+    "canonicalWarnings": 181,
+    "extraFromVoiceLine": 3
+  },
+  "build": 0,
+  "acceptance": {
+    "desktop": {
+      "turns": [
+        {
+          "turnId": "454302d7-10d0-4205-bc58-eb6a36e7bb02",
+          "transcriptAtS": 9.38,
+          "transcriptToFirstTextMs": 4522,
+          "transcriptToFirstAudioMs": 5929,
+          "transcriptToAudibleMs": 6434,
+          "firstTextToAudibleMs": 1912
+        },
+        {
+          "turnId": "1ab18f6b-b136-4761-8e0b-f81eba4c9358",
+          "transcriptAtS": 23.14,
+          "transcriptToFirstTextMs": 2448,
+          "transcriptToFirstAudioMs": 5449,
+          "transcriptToAudibleMs": 5674,
+          "firstTextToAudibleMs": 3226
+        },
+        {
+          "turnId": "0ae09e6c-da83-4f91-93c9-b31e82af5e8c",
+          "transcriptAtS": 32.22,
+          "transcriptToFirstTextMs": 2363,
+          "transcriptToFirstAudioMs": 2716,
+          "transcriptToAudibleMs": 2983,
+          "firstTextToAudibleMs": 620
+        },
+        {
+          "turnId": "8e78faeb-7042-42b0-9b2d-3d6ffe687c15",
+          "transcriptAtS": 51.24,
+          "transcriptToFirstTextMs": 1967,
+          "transcriptToFirstAudioMs": 2350,
+          "transcriptToAudibleMs": 2363,
+          "firstTextToAudibleMs": 396
+        }
+      ],
+      "bargeIns": 2,
+      "bargeInFromPhase": [
+        {
+          "line": "Wait, stop. Tell me one interesting fact about the ocean instead.",
+          "phaseAtLineStart": "speaking",
+          "phaseAtLineEnd": "speaking",
+          "bargeInCountedAtS": 23.15,
+          "lineEndToBargeInMs": 3011,
+          "speakingLeftAtS": 23.15
+        },
+        {
+          "line": "Sorry, hold on. What is seven times eight?",
+          "phaseAtLineStart": "speaking",
+          "phaseAtLineEnd": "speaking",
+          "bargeInCountedAtS": 32.22,
+          "lineEndToBargeInMs": 1675,
+          "speakingLeftAtS": 32.22
+        }
+      ],
+      "ttsStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "getUserMediaCalls": 1,
+      "allTracksEnded": true,
+      "typedReply": {
+        "role": "assistant",
+        "text": "We've covered Lima (Peru), an ocean fact (oxygen from phytoplankton), a math question (7×8=56), and confirmed your name is Sam.",
+        "t": 1795373927913,
+        "provider": "OpenRouter"
+      }
+    },
+    "contamination": {
+      "file": "MISSION-22.10/logs/e2e-desktop.json",
+      "spokenSentences": 34,
+      "fromAnEarlierTurn": 0,
+      "unattributed": 1,
+      "rows": [
+        {
+          "atS": 34.58,
+          "turn": 2,
+          "best": -1,
+          "score": 0,
+          "text": "seven × eight = fifty-six."
+        }
+      ],
+      "staleStreamsDropped": 0
+    },
+    "mobile": {
+      "viewport": {
+        "width": 390,
+        "height": 664
+      },
+      "micButton": {
+        "x": 284,
+        "y": 546,
+        "width": 44,
+        "height": 44
+      },
+      "micInViewport": true,
+      "micTapTargetPx": 44,
+      "topElementAtMic": {
+        "tag": "svg",
+        "isMicOrChild": true
+      }
+    },
+    "mobileCosmos": [
+      {
+        "label": "home (world visible)",
+        "drawCalls5s": 192
+      },
+      {
+        "label": "chat open",
+        "drawCalls5s": 0
+      },
+      {
+        "label": "chat open + voice session",
+        "drawCalls5s": 0
+      }
+    ],
+    "recovery": {
+      "micRecovery": {
+        "recovered": true,
+        "recoveryMs": 821,
+        "captureLosses": 1,
+        "captureRecoveries": 1,
+        "streamsOpen": 1,
+        "phase": "speaking",
+        "active": true,
+        "utteranceAfterRecovery": [],
+        "spokenAfterRecovery": true,
+        "endedToSpokenMs": 1733
+      },
+      "sttNetworkFailure": {
+        "aborted": 1,
+        "laterTranscripts": [
+          " Wait, stop. Tell me one interesting fact about the ocean instead."
+        ],
+        "sessionStillActive": true,
+        "phase": "processing"
+      },
+      "playbackFailure": {
+        "ttsFailed": 21,
+        "phaseAfter": "speaking",
+        "activeAfter": true,
+        "ttsStage": "failed",
+        "replyInConversation": 1,
+        "at": 1795374050871
+      },
+      "lastCycle": {
+        "i": 9,
+        "active": false,
+        "streamsOpen": 0,
+        "acquired": 13,
+        "released": 13,
+        "lifecycleListeners": 4
+      }
+    },
+    "denial": {
+      "getUserMediaCallsForOneTap": 1,
+      "stateAfter": {
+        "active": false,
+        "phase": "idle",
+        "permission": "denied"
+      },
+      "buttonCapture": "off",
+      "streamsOpen": 0,
+      "priorStreams": 0
+    },
+    "visibility": {
+      "simulatedVisibilityEvent": true,
+      "whileHidden": {
+        "active": true,
+        "phase": "idle",
+        "micStreamActive": false,
+        "streamsOpen": 0,
+        "getUserMediaCalls": 0,
+        "button": "suspended"
+      },
+      "afterVisible": {
+        "restored": true,
+        "restoreMs": 469,
+        "phase": "listening",
+        "streamsOpen": 1,
+        "recoveries": 1,
+        "button": "live"
+      }
+    },
+    "pagehide": {
+      "active": false,
+      "streamsOpen": 0,
+      "allTracksEnded": true
+    },
+    "resources": {
+      "ranAt": "2026-11-22T19:05:34.443Z",
+      "cycles": 30,
+      "simulatedMicrophone": true,
+      "mode": "cycles",
+      "tapToMicLiveMs": {
+        "min": 240,
+        "median": 589,
+        "p90": 1006,
+        "max": 1134
+      },
+      "rows": [
+        {
+          "i": -1,
+          "phase": "before",
+          "heapMB": 38.8,
+          "windowListeners": 76,
+          "documentListeners": 6,
+          "audioContextsCreated": 1,
+          "audioContextsClosed": 1,
+          "buttonAttributeMutations": 0
+        },
+        {
+          "i": 0,
+          "phase": "after-stop",
+          "heapMB": 39.24,
+          "windowListeners": 91,
+          "documentListeners": 7,
+          "audioContextsCreated": 3,
+          "audioContextsClosed": 3,
+          "micStreamsOpen": 0,
+          "micStreamsAcquired": 1,
+          "micStreamsReleased": 1,
+          "lifecycleListeners": 4,
+          "ttsQueueDepth": 0,
+          "buttonAttributeMutations": 10,
+          "active": false
+        },
+        {
+          "i": 9,
+          "phase": "after-stop",
+          "heapMB": 39.46,
+          "windowListeners": 91,
+          "documentListeners": 7,
+          "audioContextsCreated": 21,
+          "audioContextsClosed": 21,
+          "micStreamsOpen": 0,
+          "micStreamsAcquired": 10,
+          "micStreamsReleased": 10,
+          "lifecycleListeners": 4,
+          "ttsQueueDepth": 0,
+          "buttonAttributeMutations": 100,
+          "active": false
+        },
+        {
+          "i": 19,
+          "phase": "after-stop",
+          "heapMB": 40.34,
+          "windowListeners": 91,
+          "documentListeners": 7,
+          "audioContextsCreated": 41,
+          "audioContextsClosed": 41,
+          "micStreamsOpen": 0,
+          "micStreamsAcquired": 20,
+          "micStreamsReleased": 20,
+          "lifecycleListeners": 4,
+          "ttsQueueDepth": 0,
+          "buttonAttributeMutations": 200,
+          "active": false
+        },
+        {
+          "i": 29,
+          "phase": "after-stop",
+          "heapMB": 41.18,
+          "windowListeners": 91,
+          "documentListeners": 7,
+          "audioContextsCreated": 61,
+          "audioContextsClosed": 61,
+          "micStreamsOpen": 0,
+          "micStreamsAcquired": 30,
+          "micStreamsReleased": 30,
+          "lifecycleListeners": 4,
+          "ttsQueueDepth": 0,
+          "buttonAttributeMutations": 300,
+          "active": false
+        }
+      ]
+    }
+  },
+  "environment": {
+    "physicalMicrophone": false,
+    "physicalSpeaker": false,
+    "iPhone": false,
+    "anthropicKeyRemovedFromServer": true,
+    "elevenLabsKeysRemovedFromServer": true
+  }
+}
