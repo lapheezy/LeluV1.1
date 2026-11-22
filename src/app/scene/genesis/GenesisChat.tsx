@@ -1507,7 +1507,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     : state.thinking || isSending
       ? "thinking"
       : voiceView.state.active
-        ? "listening to you"
+        ? voiceView.state.captureSuspended
+          ? "microphone paused"
+          : "listening to you"
         : "here with you";
   const orbState = state.speaking ? "speaking" : state.thinking || isSending ? "thinking" : "idle";
   const canSend = Boolean(input.trim()) || pendingMedia.length > 0 || pendingFiles.length > 0;
@@ -2155,7 +2157,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             <button
               type="button"
               onClick={() => void voiceView.engine.toggle()}
-              disabled={isSending}
+              // Turning voice ON waits for the typed reply; turning it OFF is
+              // always allowed — a microphone the user cannot close is a bug.
+              disabled={isSending && !voiceView.state.active}
+              data-lelu-voice-toggle
+              data-lelu-voice-phase={voiceView.state.phase}
+              data-lelu-voice-capture={voiceView.state.active ? (voiceView.state.captureSuspended ? "suspended" : "live") : "off"}
               title={voiceView.state.active ? "Stop listening" : "Voice input"}
               aria-label={voiceView.state.active ? "Stop listening" : "Voice input"}
               aria-pressed={voiceView.state.active}
