@@ -496,16 +496,31 @@ function FilmEnv({ conversationId, model }: EnvProps) {
 
 function VoiceEnv({ model }: EnvProps) {
   const [speaking, setSpeaking] = useState<number | null>(null);
+  // Which read-aloud run is current; a cancelled run's late events are ignored.
+  const runRef = useRef(0);
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const parts = model.sections.map((s) => `${s.heading}. ${s.text.replace(/[#*_`>|-]/g, " ")}`);
-  const stop = () => { window.speechSynthesis?.cancel(); setSpeaking(null); };
-  const read = (from: number) => {
+  const stop = () => { runRef.current += 1; window.speechSynthesis?.cancel(); setSpeaking(null); };
+  const read = async (from: number) => {
     if (!supported) return;
+    const run = ++runRef.current;
+    // One speaker at a time: reading aloud stops LÉLU's own voice FIRST (and
+    // waits for it — the engine's stop also clears the device speech queue).
+    // Both use that queue, and the engine is otherwise not told that something
+    // else is talking (M22.10 conflict audit).
+    const { default: VoiceEngine } = await import("../../../../../core/voice/VoiceEngine");
+    if (run !== runRef.current) return;
+    VoiceEngine.getInstance().cancelSpeech();
     window.speechSynthesis.cancel();
     const next = (i: number) => {
+      if (run !== runRef.current) return;
       if (i >= parts.length) { setSpeaking(null); return; }
       const u = new SpeechSynthesisUtterance(parts[i].slice(0, 1200));
       u.onend = () => next(i + 1);
+      // Cancelled from elsewhere (LÉLU starting to speak calls cancel()):
+      // a cancelled utterance fires "error", not "end" — without this the
+      // button stayed on "■ Stop" with nothing playing.
+      u.onerror = () => { if (run === runRef.current) setSpeaking(null); };
       setSpeaking(i);
       window.speechSynthesis.speak(u);
     };
@@ -515,11 +530,11 @@ function VoiceEnv({ model }: EnvProps) {
   return (
     <div className="lev" data-lelu-env-view="voice">
       <Header stage="voice">
-        <Btn tone="primary" disabled={!supported} onClick={() => (speaking === null ? read(0) : stop())}>{speaking === null ? "▶ Read aloud" : "■ Stop"}</Btn>
-        <Btn onClick={async () => (await import("../../../../../core/voice/VoiceEngine")).default.getInstance().toggle()}>◖ Talk to LÉLU</Btn>
+        <Btn tone="primary" disabled={!supported} onClick={() => (speaking === null ? void read(0) : stop())}>{speaking === null ? "▶ Read aloud" : "■ Stop"}</Btn>
+        <Btn onClick={async () => { if (speaking !== null) stop(); (await import("../../../../../core/voice/VoiceEngine")).default.getInstance().toggle(); }}>◖ Talk to LÉLU</Btn>
       </Header>
       <p className="lev-hint">{supported ? "Read aloud uses this device's own voices (no network). LÉLU's cloned voice needs her VoxCPM2 worker on the server; “Talk to LÉLU” uses the voice engine already configured." : "This browser has no speech synthesis; “Talk to LÉLU” still works where the voice engine is configured."}</p>
-      <ol className="lev-readalong">{model.sections.map((s, i) => <li key={s.id} data-on={i === speaking}><button type="button" onClick={() => read(i)}>{s.heading}</button><p>{s.text.slice(0, 260)}</p></li>)}</ol>
+      <ol className="lev-readalong">{model.sections.map((s, i) => <li key={s.id} data-on={i === speaking}><button type="button" onClick={() => void read(i)}>{s.heading}</button><p>{s.text.slice(0, 260)}</p></li>)}</ol>
     </div>
   );
 }
