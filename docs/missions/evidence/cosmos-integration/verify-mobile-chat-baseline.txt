@@ -1,0 +1,23 @@
+
+=== iPhone portrait 390×844 ===
+  PASS  Home renders Cosmos  — canvases 3
+  FAIL  chat is shown
+  FAIL  chat covers the whole viewport  — null
+  FAIL  no Cosmos scene is rendered under it  — {"canvases":1,"v1":0,"hud":false,"overview":false}
+  PASS  nothing else owns any point of the screen
+  PASS  no toast stack over the chat
+  FAIL  composer on screen
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.click: Timeout 5000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-lelu-composer] textarea')[22m
+
+    at /home/user/LeluV1.1/scripts/verify-mobile-chat.mjs:126:14 {
+  log: [ "  - waiting for locator('[data-lelu-composer] textarea')" ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.5

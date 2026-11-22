@@ -52,6 +52,8 @@ import {
   noteUserCameraStart,
 } from "./cameraOwnership";
 
+import { flyCameraTo } from "./cameraFlight";
+
 import {
   PLANET_CENTER,
   PLANET_RADIUS,
@@ -71,38 +73,6 @@ interface GenesisCameraControllerProps {
 
 const ORIGIN = new Vector3(0, 0, 0);
 const UP_AXIS = new Vector3(0, 1, 0);
-
-/** Smoothly fly the camera + OrbitControls target to a destination. */
-function flyCameraTo(
-  camera: PerspectiveCamera,
-  controls: any,
-  targetPos: Vector3,
-  lookAt: Vector3,
-  duration = 1.5,
-) {
-  const startPos = camera.position.clone();
-  const startTarget = controls.target.clone();
-  let progress = 0;
-  let lastTime = performance.now();
-
-  function animate() {
-    const now = performance.now();
-    const dt = (now - lastTime) / 1000;
-    lastTime = now;
-    progress += dt / duration;
-    const t = Math.min(1, progress);
-    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-
-    camera.position.lerpVectors(startPos, targetPos, ease);
-    controls.target.lerpVectors(startTarget, lookAt, ease);
-    controls.update();
-
-    if (t < 1) {
-      requestAnimationFrame(animate);
-    }
-  }
-  requestAnimationFrame(animate);
-}
 
 export default function GenesisCameraController({
   navigator,

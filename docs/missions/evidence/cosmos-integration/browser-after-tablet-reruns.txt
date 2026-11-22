@@ -1,0 +1,22 @@
+
+=== TABLET 820x1180 ===
+  PASS  scene canvas on Home @ tablet
+  PASS  camera tracker feeds the Infinite Cosmos engine @ tablet
+  PASS  Infinite Cosmos sky populated at first paint @ tablet  — 1716 stars in 343 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ tablet  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ tablet  — camera (0.00, 6.00, 0.50) → (3.00, -1.00, -15.00); destination (3.00, -1.00, -15.00); off by 0.000
+  PASS  navigating to the core returns to the Genesis view @ tablet  — (0.00, 0.00, 6.80)
+  PASS  no fatal page error @ tablet
+
+7 passed, 0 failed
+
+=== TABLET 820x1180 ===
+  PASS  scene canvas on Home @ tablet
+  PASS  camera tracker feeds the Infinite Cosmos engine @ tablet
+  PASS  Infinite Cosmos sky populated at first paint @ tablet  — 1716 stars in 343 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ tablet  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ tablet  — camera (0.00, 3.50, 8.00) → (3.00, -1.00, -15.00); destination (3.00, -1.00, -15.00); off by 0.000
+  PASS  navigating to the core returns to the Genesis view @ tablet  — (0.00, 0.00, 6.80)
+  PASS  no fatal page error @ tablet
+
+7 passed, 0 failed

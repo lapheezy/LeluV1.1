@@ -1,0 +1,45 @@
+
+=== PHONE 390x844 ===
+  PASS  scene canvas on Home @ phone
+  PASS  camera tracker feeds the Infinite Cosmos engine @ phone
+  PASS  Infinite Cosmos sky populated at first paint @ phone  — 1961 stars in 392 chunks; camera chunk {"cx":0,"cy":0,"cz":-1}
+  PASS  LÉLU navigate is accepted @ phone  — Harness Room
+  FAIL  camera reaches the destination LÉLU navigated to @ phone  — camera (0.00, 3.50, 8.00) → (0.00, 0.90, 3.20); destination (3.00, -1.00, -15.00); off by 18.543
+  FAIL  navigating to the core returns to the Genesis view @ phone  — (0.00, 6.00, 0.50)
+  PASS  Chat Universe composer on screen @ phone
+  PASS  no Cosmos scene canvas mounted under the phone chat  — {"sceneCanvases":0,"otherCanvases":[100],"universe":"workspace"}
+  PASS  composer accepts typing @ phone
+  PASS  going Home brings the Cosmos scene back and it draws  — frames 5 → 11
+  PASS  the sky is still populated after returning Home  — 2206 stars
+  PERF  phone: 0.8 fps over 10 s on Home; long tasks 20 (17445 ms); heap 846.2 → 581.5 MB
+  PASS  no fatal page error @ phone
+
+=== TABLET 820x1180 ===
+  PASS  scene canvas on Home @ tablet
+  FAIL  camera tracker feeds the Infinite Cosmos engine @ tablet
+  FAIL  Infinite Cosmos sky populated at first paint @ tablet  — 0 stars in 0 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ tablet  — Harness Room
+  FAIL  camera reaches the destination LÉLU navigated to @ tablet  — camera (0.00, 0.00, 0.00) → (0.00, 0.00, 0.00); destination (3.00, -1.00, -15.00); off by 15.330
+  FAIL  navigating to the core returns to the Genesis view @ tablet  — (0.00, 0.00, 0.00)
+  PERF  tablet: 0.9 fps over 10 s on Home; long tasks 18 (10632 ms); heap 617.8 → 612.3 MB
+  PASS  no fatal page error @ tablet
+
+=== DESKTOP 1440x900 ===
+  PASS  scene canvas on Home @ desktop
+  PASS  camera tracker feeds the Infinite Cosmos engine @ desktop
+  PASS  Infinite Cosmos sky populated at first paint @ desktop  — 1961 stars in 392 chunks; camera chunk {"cx":-1,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ desktop  — Harness Room
+  FAIL  camera reaches the destination LÉLU navigated to @ desktop  — camera (-5.00, 3.00, 5.00) → (4.00, 4.00, -3.00); destination (3.00, -1.00, -15.00); off by 13.038
+  FAIL  navigating to the core returns to the Genesis view @ desktop  — (0.00, 3.50, 8.00)
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: TypeError: C.getMaxLoadedChunks is not a function
+    at eval (eval at evaluate (:311:30), <anonymous>:25:133)
+    at async <anonymous>:337:30
+    at /home/user/LeluV1.1/scripts/verify-cosmos-integration.mjs:164:28 {
+  log: []
+}
+
+Node.js v22.23.5

@@ -1,0 +1,41 @@
+
+=== PHONE 390x844 ===
+  PASS  scene canvas on Home @ phone
+  PASS  camera tracker feeds the Infinite Cosmos engine @ phone
+  PASS  Infinite Cosmos sky populated at first paint @ phone  — 1716 stars in 343 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ phone  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ phone  — camera (0.00, 3.50, 8.00) → (3.00, -1.00, -15.00); destination (3.00, -1.00, -15.00); off by 0.000
+  PASS  navigating to the core returns to the Genesis view @ phone  — (0.00, 0.00, 6.80)
+  PASS  Chat Universe composer on screen @ phone
+  PASS  no Cosmos scene canvas mounted under the phone chat  — {"sceneCanvases":0,"otherCanvases":[100],"universe":"workspace"}
+  PASS  composer accepts typing @ phone
+  PASS  going Home brings the Cosmos scene back and it draws  — frames 6 → 14
+  PASS  the sky is still populated after returning Home  — 2241 stars
+  PERF  phone: 1.2 fps over 10 s on Home; long tasks 17 (10040 ms); heap 612.2 → 646.1 MB
+  PASS  no fatal page error @ phone
+
+=== TABLET 820x1180 ===
+  PASS  scene canvas on Home @ tablet
+  FAIL  camera tracker feeds the Infinite Cosmos engine @ tablet
+  FAIL  Infinite Cosmos sky populated at first paint @ tablet  — 0 stars in 0 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ tablet  — Harness Room
+  FAIL  camera reaches the destination LÉLU navigated to @ tablet  — camera (0.00, 0.00, 0.00) → (0.00, 0.00, 0.00); destination (3.00, -1.00, -15.00); off by 15.330
+  FAIL  navigating to the core returns to the Genesis view @ tablet  — (0.00, 0.00, 0.00)
+  PERF  tablet: 1.1 fps over 10 s on Home; long tasks 15 (10546 ms); heap 592.2 → 525.1 MB
+  PASS  no fatal page error @ tablet
+
+=== DESKTOP 1440x900 ===
+  PASS  scene canvas on Home @ desktop
+  PASS  camera tracker feeds the Infinite Cosmos engine @ desktop
+  PASS  Infinite Cosmos sky populated at first paint @ desktop  — 1716 stars in 343 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ desktop  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ desktop  — camera (5.08, 2.12, 4.15) → (3.00, -1.00, -15.00); destination (3.00, -1.00, -15.00); off by 0.000
+  PASS  navigating to the core returns to the Genesis view @ desktop  — (0.00, 0.00, 6.80)
+  PASS  travelling far generates a region that did not exist
+  PASS  left regions are released
+  PASS  a revisited region regenerates identically
+  PASS  loaded chunks stay under the cap on a long walk with preloads  — max 875 / cap 1674
+  PERF  desktop: 0.8 fps over 10 s on Home; long tasks 16 (10676 ms); heap 583.8 → 636.7 MB
+  PASS  no fatal page error @ desktop
+
+26 passed, 4 failed

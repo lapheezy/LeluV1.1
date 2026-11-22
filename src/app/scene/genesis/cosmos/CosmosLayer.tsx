@@ -15,8 +15,9 @@ import { useRef, useEffect, useState, useMemo } from "react";
 import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import { Group, Color, AdditiveBlending, BufferAttribute } from "three";
+import { Group, Color, AdditiveBlending, BufferAttribute, BufferGeometry, DynamicDrawUsage, type Points } from "three";
 import CosmosStore from "./CosmosStore";
+import { claimCinematicCamera } from "../cameraOwnership";
 import type {
   CosmosState,
   CosmosEntity,
@@ -46,13 +47,21 @@ import CosmosObjectsLayer from "./CosmosObjectsLayer";
 function CosmosCameraBlend() {
   // Expose navigation API — navigateTo positions the camera smoothly
   // via GenesisCosmosPanel tap. Does NOT fight OrbitControls.
+  //
+  // Arriving at a destination is a deliberate view, so it claims the
+  // camera the same way a spatial reveal does (cameraOwnership): the
+  // ambient ExplorationController stops cycling waypoints instead of
+  // flying away from the place you asked for a few seconds later, and
+  // the claim ends the moment the user takes the camera.
   useEffect(() => {
     (window as any).__cosmosCamera = {
       navigateTo: (pos: { x: number; y: number; z: number }, lookAt: { x: number; y: number; z: number }) => {
+        claimCinematicCamera();
         // Dispatch a custom event that the camera controller can listen to
         window.dispatchEvent(new CustomEvent("cosmos-navigate", { detail: { pos, lookAt } }));
       },
       resetToGenesis: () => {
+        claimCinematicCamera();
         window.dispatchEvent(new CustomEvent("cosmos-navigate", { detail: { pos: { x: 0, y: 0, z: 6.8 }, lookAt: { x: 0, y: 0, z: 0 } } }));
       },
     };
@@ -498,43 +507,90 @@ function InfiniteCosmosTracker() {
  * INFINITE COSMOS — Star Field (instanced points)
  * ------------------------------------------------------------------ */
 
-function InfiniteStarField() {
-  const meshRef = useRef<any>(null);
+/** One shared snapshot of the engine's render data (the engine caches it per change). */
+function useInfiniteCosmosData() {
   const [data, setData] = useState(() => InfiniteCosmos.getInstance().getRenderableData());
-
   useEffect(() => {
-    return InfiniteCosmos.getInstance().subscribe(() => {
-      setData(InfiniteCosmos.getInstance().getRenderableData());
-    });
+    const cosmos = InfiniteCosmos.getInstance();
+    // A preload may have landed between the first render and this effect.
+    setData(cosmos.getRenderableData());
+    return cosmos.subscribe(() => setData(cosmos.getRenderableData()));
   }, []);
+  return data;
+}
 
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const t = clock.elapsedTime;
-    const count = data.stars.length;
-    if (count === 0) return;
+/**
+ * The `limit` objects nearest the camera, for the detailed meshes. Picking
+ * the first N in chunk order meant the oldest loaded chunks — behind you
+ * once you had travelled — kept the mesh budget while new regions showed
+ * none. Re-evaluated whenever the loaded set changes (a chunk boundary).
+ */
+function nearestToCamera<T extends { x: number; y: number; z: number }>(items: T[], limit: number): T[] {
+  if (items.length <= limit) return items;
+  const c = InfiniteCosmos.getInstance().getCameraPosition();
+  // Objects are drawn 25 units deeper than their stored z.
+  const d = (o: T) => (o.x - c.x) ** 2 + (o.y - c.y) ** 2 + (o.z - 25 - c.z) ** 2;
+  return items
+    .map((item) => [item, d(item)] as const)
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, limit)
+    .map(([item]) => item);
+}
+
+function InfiniteStarField() {
+  const meshRef = useRef<Points>(null);
+  const { stars } = useInfiniteCosmosData();
+
+  /*
+   * Buffers are built when the loaded set changes (a chunk boundary), not
+   * every frame. This used to allocate two Float32Arrays, two new
+   * BufferAttributes and a Color per star per frame — thousands of
+   * objects and a full GPU re-upload of positions that never move.
+   * The geometry's bounding sphere is recomputed with them: three culls
+   * Points by it, and the one computed once around the origin made the
+   * whole field vanish after flying a few chunks away.
+   */
+  const geometry = useMemo(() => {
+    const count = stars.length;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-
     for (let i = 0; i < count; i++) {
-      const star = data.stars[i];
+      const star = stars[i];
       positions[i * 3] = star.x;
       positions[i * 3 + 1] = star.y;
       positions[i * 3 + 2] = star.z - 25;
-
-      const c = new Color().setHSL(star.hue / 360, 0.6, star.brightness * (0.7 + 0.3 * Math.sin(t * star.twinkleSpeed + star.twinklePhase)));
-      colors[i * 3] = c.r;
-      colors[i * 3 + 1] = c.g;
-      colors[i * 3 + 2] = c.b;
     }
+    const g = new BufferGeometry();
+    g.setAttribute("position", new BufferAttribute(positions, 3));
+    const color = new BufferAttribute(colors, 3);
+    color.setUsage(DynamicDrawUsage);
+    g.setAttribute("color", color);
+    g.computeBoundingSphere();
+    return g;
+  }, [stars]);
 
-    meshRef.current.geometry.setAttribute("position", new BufferAttribute(positions, 3));
-    meshRef.current.geometry.setAttribute("color", new BufferAttribute(colors, 3));
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  const scratch = useMemo(() => new Color(), []);
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const count = stars.length;
+    if (count === 0) return;
+    const t = clock.elapsedTime;
+    const attribute = geometry.getAttribute("color") as BufferAttribute;
+    const colors = attribute.array as Float32Array;
+    for (let i = 0; i < count; i++) {
+      const star = stars[i];
+      scratch.setHSL(star.hue / 360, 0.6, star.brightness * (0.7 + 0.3 * Math.sin(t * star.twinkleSpeed + star.twinklePhase)));
+      colors[i * 3] = scratch.r;
+      colors[i * 3 + 1] = scratch.g;
+      colors[i * 3 + 2] = scratch.b;
+    }
+    attribute.needsUpdate = true;
   });
 
   return (
-    <points ref={meshRef}>
-      <bufferGeometry />
+    <points ref={meshRef} geometry={geometry}>
       <pointsMaterial size={0.08} vertexColors transparent opacity={0.8} sizeAttenuation blending={AdditiveBlending} depthWrite={false} />
     </points>
   );
@@ -575,13 +631,8 @@ function InfiniteGalaxyMesh({ galaxy }: { galaxy: GalaxyData }) {
 }
 
 function InfiniteGalaxies() {
-  const [galaxies, setGalaxies] = useState(() => InfiniteCosmos.getInstance().getRenderableData().galaxies);
-  useEffect(() => {
-    return InfiniteCosmos.getInstance().subscribe(() => {
-      setGalaxies(InfiniteCosmos.getInstance().getRenderableData().galaxies);
-    });
-  }, []);
-  const visible = useMemo(() => galaxies.slice(0, 30), [galaxies]);
+  const { galaxies } = useInfiniteCosmosData();
+  const visible = useMemo(() => nearestToCamera(galaxies, 30), [galaxies]);
   return (
     <group>
       {visible.map((g) => <InfiniteGalaxyMesh key={g.id} galaxy={g} />)}
@@ -604,13 +655,8 @@ function InfiniteNebulaMesh({ nebula }: { nebula: NebulaData }) {
 }
 
 function InfiniteNebulae() {
-  const [nebulae, setNebulae] = useState(() => InfiniteCosmos.getInstance().getRenderableData().nebulae);
-  useEffect(() => {
-    return InfiniteCosmos.getInstance().subscribe(() => {
-      setNebulae(InfiniteCosmos.getInstance().getRenderableData().nebulae);
-    });
-  }, []);
-  const visible = useMemo(() => nebulae.slice(0, 15), [nebulae]);
+  const { nebulae } = useInfiniteCosmosData();
+  const visible = useMemo(() => nearestToCamera(nebulae, 15), [nebulae]);
   return (
     <group>
       {visible.map((n) => <InfiniteNebulaMesh key={n.id} nebula={n} />)}
@@ -648,13 +694,8 @@ function InfiniteBlackHoleMesh({ bh }: { bh: BlackHoleData }) {
 }
 
 function InfiniteBlackHoles() {
-  const [holes, setHoles] = useState(() => InfiniteCosmos.getInstance().getRenderableData().blackHoles);
-  useEffect(() => {
-    return InfiniteCosmos.getInstance().subscribe(() => {
-      setHoles(InfiniteCosmos.getInstance().getRenderableData().blackHoles);
-    });
-  }, []);
-  const visible = useMemo(() => holes.slice(0, 5), [holes]);
+  const { blackHoles: holes } = useInfiniteCosmosData();
+  const visible = useMemo(() => nearestToCamera(holes, 5), [holes]);
   return (
     <group>
       {visible.map((bh) => <InfiniteBlackHoleMesh key={bh.id} bh={bh} />)}

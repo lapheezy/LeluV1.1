@@ -1,0 +1,38 @@
+
+=== PHONE 390x844 ===
+  PASS  scene canvas on Home @ phone
+  PASS  camera tracker feeds the Infinite Cosmos engine @ phone
+  PASS  Infinite Cosmos sky populated at first paint @ phone  — 1716 stars in 343 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ phone  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ phone  — camera (0.00, 3.50, 8.00) → (3.00, -1.00, -15.00); destination (3.00, -1.00, -15.00); off by 0.000
+  PASS  navigating to the core returns to the Genesis view @ phone  — (0.00, 0.00, 6.80)
+  PASS  Chat Universe composer on screen @ phone
+  PASS  no Cosmos scene canvas mounted under the phone chat  — {"sceneCanvases":0,"otherCanvases":[100],"universe":"workspace"}
+  PASS  composer accepts typing @ phone
+  PASS  going Home brings the Cosmos scene back and it draws  — frames 3 → 13
+  PASS  the sky is still populated after returning Home  — 2241 stars
+  PASS  no fatal page error @ phone
+
+=== TABLET 820x1180 ===
+  PASS  scene canvas on Home @ tablet
+  PASS  camera tracker feeds the Infinite Cosmos engine @ tablet
+  PASS  Infinite Cosmos sky populated at first paint @ tablet  — 1961 stars in 392 chunks; camera chunk {"cx":-1,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ tablet  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ tablet  — camera (-3.00, 1.50, 7.00) → (3.00, -1.00, -14.97); destination (3.00, -1.00, -15.00); off by 0.028
+  PASS  navigating to the core returns to the Genesis view @ tablet  — (0.00, 0.00, 6.80)
+  PASS  no fatal page error @ tablet
+
+=== DESKTOP 1440x900 ===
+  PASS  scene canvas on Home @ desktop
+  PASS  camera tracker feeds the Infinite Cosmos engine @ desktop
+  PASS  Infinite Cosmos sky populated at first paint @ desktop  — 1716 stars in 343 chunks; camera chunk {"cx":0,"cy":0,"cz":0}
+  PASS  LÉLU navigate is accepted @ desktop  — Harness Room
+  PASS  camera reaches the destination LÉLU navigated to @ desktop  — camera (0.00, 0.90, 3.20) → (3.04, -0.96, -14.77); destination (3.00, -1.00, -15.00); off by 0.233
+  PASS  navigating to the core returns to the Genesis view @ desktop  — (0.00, 0.00, 6.80)
+  PASS  travelling far generates a region that did not exist
+  PASS  left regions are released
+  PASS  a revisited region regenerates identically
+  PASS  loaded chunks stay under the cap on a long walk with preloads  — max 875 / cap 1674
+  PASS  no fatal page error @ desktop
+
+30 passed, 0 failed
