@@ -104,7 +104,7 @@ No dependency, framework, store, registry, canvas, frame loop or event channel w
 | `verify:bundle` | PASS, no test files in dist (1519 files) |
 | New unit tests | 12/12 pass |
 | Cosmos / layout / genesis unit tests (19 files) | 143/143 pass before the changes (baseline) |
-| Full suite `npm test` | see the commit message for the final count |
+| Full suite `npm test` | **2310 tests: 2304 pass, 0 fail, 6 skipped** (clean run, tree untouched during it; `test-suite.txt`) |
 
 **Browser (`scripts/verify-cosmos-integration.mjs`, Chromium + SwiftShader in this container).** About this environment: with no GPU, the app correctly refuses to paint the world. So the harness reports a hardware GL renderer string and switches off the render manager's fps downgrade on its singleton. That makes the real scene path run (CosmosLayer, tracker, flights) on a CPU rasteriser at about 1 fps.
 
