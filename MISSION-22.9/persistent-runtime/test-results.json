@@ -1,0 +1,576 @@
+{
+  "generatedAt": "2026-11-22T17:52:18.990Z",
+  "branch": "m22.9/persistent-voice-runtime",
+  "baseHead": "b46b0aa33c6e8873e8f2f7f5ade05884d102e1d5",
+  "environment": {
+    "physicalMicrophone": false,
+    "physicalSpeaker": false,
+    "microphone": "Chromium --use-file-for-fake-audio-capture",
+    "browser": "Chromium 1243 (Playwright)",
+    "stt": "Groq Whisper via server relay",
+    "tts": "local Piper amy-low (warm worker)",
+    "llm": "app providers (Groq / OpenRouter observed)",
+    "anthropicKeyRemovedFromServer": true,
+    "elevenLabsKeysRemovedFromServer": true
+  },
+  "fullSuite": {
+    "baseline": {
+      "tests": 2326,
+      "pass": 2317,
+      "fail": 3,
+      "skipped": 6,
+      "failing": [
+        "tests/genesis-interface.test.tsx",
+        "sandbox: an installed module is reused, not reinstalled",
+        "curated proofs for reusable installed modules pass in the sandbox (no model writes this code)"
+      ]
+    },
+    "final": {
+      "tests": 2346,
+      "pass": 2339,
+      "fail": 1,
+      "skipped": 6,
+      "failing": [
+        "tests/genesis-interface.test.tsx"
+      ]
+    },
+    "preExisting": [
+      "tests/genesis-interface.test.tsx (ERR_PACKAGE_PATH_NOT_EXPORTED @excalidraw/excalidraw ./index.css under Node; fails identically at baseline)"
+    ],
+    "baselineOnlyFlaky": [
+      "sandbox: an installed module is reused, not reinstalled",
+      "curated proofs for reusable installed modules pass in the sandbox"
+    ]
+  },
+  "voiceTargeted": {
+    "files": 20,
+    "pass": 141,
+    "fail": 0,
+    "newFile": "tests/voice-persistent-session.test.ts (20 tests)"
+  },
+  "typecheck": {
+    "command": "tsc -b --force",
+    "exit": 0
+  },
+  "lint": {
+    "command": "oxlint",
+    "errors": 0,
+    "warnings": 175,
+    "baselineWarnings": 175,
+    "newWarnings": 0
+  },
+  "build": {
+    "command": "npm run build",
+    "exit": 0
+  },
+  "e2e": {
+    "desktop": {
+      "runs": [
+        "e2e-desktop.json",
+        "e2e-desktop-run2.json",
+        "e2e-desktop-run3.json"
+      ],
+      "turns": [
+        [
+          {
+            "turnId": "73101836-caea-499d-9fe6-b1d9c11c0670",
+            "transcriptAtS": 9.23,
+            "transcriptToFirstTextMs": 2188,
+            "transcriptToFirstAudioMs": 4492,
+            "transcriptToAudibleMs": 4832,
+            "firstTextToAudibleMs": 2644
+          },
+          {
+            "turnId": "2142b8c2-5807-4b27-8dc8-2b3f6b0812df",
+            "transcriptAtS": 21.95,
+            "transcriptToFirstTextMs": 1042,
+            "transcriptToFirstAudioMs": 2031,
+            "transcriptToAudibleMs": 2366,
+            "firstTextToAudibleMs": 1324
+          },
+          {
+            "turnId": "8a5d8894-a91e-4dd9-b1d5-bdba32c3681a",
+            "transcriptAtS": 31.78,
+            "transcriptToFirstTextMs": 3697,
+            "transcriptToFirstAudioMs": 4084,
+            "transcriptToAudibleMs": 4373,
+            "firstTextToAudibleMs": 676
+          },
+          {
+            "turnId": "41d6ca50-bb2a-480c-98fb-93aa860618fd",
+            "transcriptAtS": 51.53,
+            "transcriptToFirstTextMs": 2068,
+            "transcriptToFirstAudioMs": 2430,
+            "transcriptToAudibleMs": 2747,
+            "firstTextToAudibleMs": 679
+          }
+        ],
+        [
+          {
+            "turnId": "a5d2f56e-9e40-4f8b-95c1-2f21a6b09914",
+            "transcriptAtS": 9.46,
+            "transcriptToFirstTextMs": 712,
+            "transcriptToFirstAudioMs": 1218,
+            "transcriptToAudibleMs": 1241,
+            "firstTextToAudibleMs": 529
+          },
+          {
+            "turnId": "66f70c21-7f9a-43b3-b243-d8789781a351",
+            "transcriptAtS": 21.57,
+            "transcriptToFirstTextMs": 1334,
+            "transcriptToFirstAudioMs": 2145,
+            "transcriptToAudibleMs": 2167,
+            "firstTextToAudibleMs": 833
+          },
+          {
+            "turnId": "c1eda8a9-94c2-4b10-9f06-a32a7a2684e6",
+            "transcriptAtS": 31.75,
+            "transcriptToFirstTextMs": 2688,
+            "transcriptToFirstAudioMs": 3149,
+            "transcriptToAudibleMs": 3484,
+            "firstTextToAudibleMs": 796
+          },
+          {
+            "turnId": "1dae6be5-9f40-41b8-a79b-6ebb8e74dc2d",
+            "transcriptAtS": 51.31,
+            "transcriptToFirstTextMs": 2704,
+            "transcriptToFirstAudioMs": 3078,
+            "transcriptToAudibleMs": 3530,
+            "firstTextToAudibleMs": 826
+          }
+        ],
+        [
+          {
+            "turnId": "da8cca05-1417-449b-8438-337d11614500",
+            "transcriptAtS": 9.36,
+            "transcriptToFirstTextMs": 4894,
+            "transcriptToFirstAudioMs": 6237,
+            "transcriptToAudibleMs": 6273,
+            "firstTextToAudibleMs": 1379
+          },
+          {
+            "turnId": "edab95b4-7386-4b39-a39d-57dab0ec9380",
+            "transcriptAtS": 21.36,
+            "transcriptToFirstTextMs": 2379,
+            "transcriptToFirstAudioMs": 4634,
+            "transcriptToAudibleMs": 5064,
+            "firstTextToAudibleMs": 2685
+          },
+          {
+            "turnId": "27872763-3d77-4b64-a7ae-91b03bbb108d",
+            "transcriptAtS": 31.94,
+            "transcriptToFirstTextMs": 3420,
+            "transcriptToFirstAudioMs": 3793,
+            "transcriptToAudibleMs": 4107,
+            "firstTextToAudibleMs": 687
+          },
+          {
+            "turnId": "9fd0e665-a642-4141-b847-52549acd5ef0",
+            "transcriptAtS": 51.08,
+            "transcriptToFirstTextMs": 5056,
+            "transcriptToFirstAudioMs": 5721,
+            "transcriptToAudibleMs": 6041,
+            "firstTextToAudibleMs": 985
+          }
+        ]
+      ],
+      "bargeIns": [
+        2,
+        1,
+        2
+      ],
+      "bargeInFromPhase": [
+        [
+          {
+            "line": "Wait, stop. Tell me one interesting fact about the ocean instead.",
+            "phaseAtLineStart": "speaking",
+            "phaseAtLineEnd": "speaking",
+            "bargeInCountedAtS": 22.34,
+            "lineEndToBargeInMs": 2195,
+            "speakingLeftAtS": 22.34
+          },
+          {
+            "line": "Sorry, hold on. What is seven times eight?",
+            "phaseAtLineStart": "speaking",
+            "phaseAtLineEnd": "speaking",
+            "bargeInCountedAtS": 32.22,
+            "lineEndToBargeInMs": 1676,
+            "speakingLeftAtS": 32.22
+          }
+        ],
+        [
+          {
+            "line": "Wait, stop. Tell me one interesting fact about the ocean instead.",
+            "phaseAtLineStart": "speaking",
+            "phaseAtLineEnd": "speaking",
+            "bargeInCountedAtS": 21.98,
+            "lineEndToBargeInMs": 1840,
+            "speakingLeftAtS": 21.98
+          },
+          {
+            "line": "Sorry, hold on. What is seven times eight?",
+            "phaseAtLineStart": "speaking",
+            "phaseAtLineEnd": "speaking",
+            "bargeInCountedAtS": null,
+            "lineEndToBargeInMs": null,
+            "speakingLeftAtS": 32.22
+          }
+        ],
+        [
+          {
+            "line": "Wait, stop. Tell me one interesting fact about the ocean instead.",
+            "phaseAtLineStart": "speaking",
+            "phaseAtLineEnd": "speaking",
+            "bargeInCountedAtS": 21.75,
+            "lineEndToBargeInMs": 1606,
+            "speakingLeftAtS": 21.75
+          },
+          {
+            "line": "Sorry, hold on. What is seven times eight?",
+            "phaseAtLineStart": "speaking",
+            "phaseAtLineEnd": "speaking",
+            "bargeInCountedAtS": 31.95,
+            "lineEndToBargeInMs": 1401,
+            "speakingLeftAtS": 31.95
+          }
+        ]
+      ],
+      "ttsStatuses": [
+        [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      ],
+      "sttMs": [
+        [
+          462,
+          991,
+          359,
+          556
+        ],
+        [
+          546,
+          410,
+          348,
+          359
+        ],
+        [
+          556,
+          619,
+          350,
+          374
+        ]
+      ],
+      "getUserMediaCalls": [
+        1,
+        1,
+        1
+      ],
+      "allTracksEndedAfterEnd": [
+        true,
+        true,
+        true
+      ],
+      "typedHandoff": [
+        {
+          "role": "assistant",
+          "text": "I don't have any established details about you yet — if you tell me your name, preferences or what you're working on, I'll remember it locally.",
+          "t": 1795369207579
+        },
+        {
+          "role": "assistant",
+          "text": "Your name is Sam.",
+          "t": 1795369770975,
+          "provider": "brain"
+        },
+        {
+          "role": "assistant",
+          "text": "We’ve discussed Lima, Peru, an ocean fact, the product of 7 × 8, and you reminding me of your name, Sam.",
+          "t": 1795369874863,
+          "provider": "Groq"
+        }
+      ]
+    },
+    "mobile": {
+      "layout": {
+        "viewport": {
+          "width": 390,
+          "height": 664
+        },
+        "micButton": {
+          "x": 284,
+          "y": 546,
+          "width": 44,
+          "height": 44
+        },
+        "micInViewport": true,
+        "micTapTargetPx": 44,
+        "topElementAtMic": {
+          "tag": "svg",
+          "isMicOrChild": true
+        }
+      },
+      "turns": [
+        {
+          "turnId": "169e73a2-a948-45c4-9b05-9768527c750e",
+          "transcriptAtS": 9.03,
+          "transcriptToFirstTextMs": 601,
+          "transcriptToFirstAudioMs": 702,
+          "transcriptToAudibleMs": 735,
+          "firstTextToAudibleMs": 134
+        }
+      ],
+      "allTracksEndedAfterEnd": true
+    },
+    "recovery": {
+      "playbackFailure": {
+        "ttsFailed": 30,
+        "phaseAfter": "listening",
+        "activeAfter": true,
+        "ttsStage": "failed",
+        "replyInConversation": 1,
+        "at": 1795368762041
+      },
+      "micRecovery": {
+        "recovered": true,
+        "recoveryMs": 817,
+        "captureLosses": 1,
+        "captureRecoveries": 1,
+        "streamsOpen": 1,
+        "phase": "listening",
+        "active": true,
+        "utteranceAfterRecovery": [
+          " Hello, Lélu. My name is Sam. Can you tell me about the city of Lima in Peru?"
+        ],
+        "spokenAfterRecovery": true,
+        "endedToSpokenMs": 11590
+      },
+      "sttNetworkFailure": {
+        "aborted": 1,
+        "laterTranscripts": [
+          " Wait, stop. Tell me one interesting fact about the ocean instead."
+        ],
+        "sessionStillActive": true,
+        "phase": "processing"
+      },
+      "cycles": {
+        "i": 9,
+        "active": false,
+        "streamsOpen": 0,
+        "acquired": 13,
+        "released": 13,
+        "lifecycleListeners": 4
+      },
+      "allTracksEnded": true
+    }
+  },
+  "resources": {
+    "cycles": [
+      {
+        "i": -1,
+        "phase": "before",
+        "heapMB": 38.39,
+        "windowListeners": 72,
+        "documentListeners": 6,
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 1,
+        "buttonAttributeMutations": 0
+      },
+      {
+        "i": 0,
+        "phase": "after-stop",
+        "heapMB": 38.98,
+        "windowListeners": 87,
+        "documentListeners": 7,
+        "audioContextsCreated": 3,
+        "audioContextsClosed": 3,
+        "micStreamsOpen": 0,
+        "micStreamsAcquired": 1,
+        "micStreamsReleased": 1,
+        "lifecycleListeners": 4,
+        "ttsQueueDepth": 0,
+        "buttonAttributeMutations": 10,
+        "active": false
+      },
+      {
+        "i": 9,
+        "phase": "after-stop",
+        "heapMB": 40.36,
+        "windowListeners": 87,
+        "documentListeners": 7,
+        "audioContextsCreated": 21,
+        "audioContextsClosed": 21,
+        "micStreamsOpen": 0,
+        "micStreamsAcquired": 10,
+        "micStreamsReleased": 10,
+        "lifecycleListeners": 4,
+        "ttsQueueDepth": 0,
+        "buttonAttributeMutations": 100,
+        "active": false
+      },
+      {
+        "i": 19,
+        "phase": "after-stop",
+        "heapMB": 40.96,
+        "windowListeners": 87,
+        "documentListeners": 7,
+        "audioContextsCreated": 41,
+        "audioContextsClosed": 41,
+        "micStreamsOpen": 0,
+        "micStreamsAcquired": 20,
+        "micStreamsReleased": 20,
+        "lifecycleListeners": 4,
+        "ttsQueueDepth": 0,
+        "buttonAttributeMutations": 200,
+        "active": false
+      },
+      {
+        "i": 29,
+        "phase": "after-stop",
+        "heapMB": 41.59,
+        "windowListeners": 87,
+        "documentListeners": 7,
+        "audioContextsCreated": 61,
+        "audioContextsClosed": 61,
+        "micStreamsOpen": 0,
+        "micStreamsAcquired": 30,
+        "micStreamsReleased": 30,
+        "lifecycleListeners": 4,
+        "ttsQueueDepth": 0,
+        "buttonAttributeMutations": 300,
+        "active": false
+      }
+    ],
+    "idleControl": [
+      {
+        "i": -1,
+        "phase": "before",
+        "heapMB": 38.29,
+        "windowListeners": 72,
+        "documentListeners": 6,
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 1,
+        "buttonAttributeMutations": 0
+      },
+      {
+        "i": 0,
+        "phase": "idle",
+        "heapMB": 38.67,
+        "windowListeners": 72,
+        "documentListeners": 6,
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 1,
+        "buttonAttributeMutations": 0
+      },
+      {
+        "i": 9,
+        "phase": "idle",
+        "heapMB": 39.7,
+        "windowListeners": 72,
+        "documentListeners": 6,
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 1,
+        "buttonAttributeMutations": 0
+      },
+      {
+        "i": 19,
+        "phase": "idle",
+        "heapMB": 39.77,
+        "windowListeners": 72,
+        "documentListeners": 6,
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 1,
+        "buttonAttributeMutations": 0
+      },
+      {
+        "i": 29,
+        "phase": "idle",
+        "heapMB": 40.28,
+        "windowListeners": 72,
+        "documentListeners": 6,
+        "audioContextsCreated": 1,
+        "audioContextsClosed": 1,
+        "buttonAttributeMutations": 0
+      }
+    ],
+    "tapToMicLiveMs": {
+      "min": 611,
+      "median": 1224,
+      "p90": 1661,
+      "max": 1725
+    }
+  }
+}

@@ -29,7 +29,9 @@ export function useVoice(): VoiceView {
 
   const [state, setState] = useState<VoiceState>(() => engine.getState());
   const [interim, setInterim] = useState("");
-  const [turn, setTurn] = useState<VoiceTurn | null>(null);
+  // A component mounting mid-session (navigation, remount) starts from the
+  // engine's real turn, not from an empty one.
+  const [turn, setTurn] = useState<VoiceTurn | null>(() => engine.getTurn());
   const [diagnostics, setDiagnostics] = useState<VoiceDiagnostics>(() =>
     engine.getDiagnostics(),
   );
@@ -39,6 +41,9 @@ export function useVoice(): VoiceView {
     const unsubInterim = engine.onInterim(setInterim);
     const unsubTurn = engine.onTurn(setTurn);
     const unsubDiagnostics = engine.onDiagnostics(setDiagnostics);
+    // Catch up on anything that changed between render and subscribe.
+    setState(engine.getState());
+    setTurn(engine.getTurn());
 
     return () => {
       unsubState();

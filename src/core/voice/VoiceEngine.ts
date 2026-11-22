@@ -192,6 +192,13 @@ export interface VoiceState {
    * unavailable. Shown, never spoken as her answer.
    */
   turnFailure?: (VoiceTurnFailure & { at: number }) | null;
+  /**
+   * The user's voice session is still on, but the microphone is not being
+   * captured right now: the page went to the background, the OS took the
+   * microphone (a call, Siri) or the device disappeared and is being
+   * re-acquired. The UI must not claim she is listening while this is true.
+   */
+  captureSuspended?: boolean;
 }
 
 /**
@@ -310,6 +317,23 @@ export interface VoiceDiagnostics {
    * separate and stays blocked until a real microphone is used.
    */
   fullDuplex: boolean;
+
+  /* ---- persistent session lifecycle (M22.9 persistent runtime) ---- */
+  /** Microphone streams currently held by the engine (must be 0 or 1). */
+  micStreamsOpen: number;
+  /** Total microphone streams acquired / released since load. */
+  micStreamsAcquired: number;
+  micStreamsReleased: number;
+  /** The OS muted the captured track (phone call, Siri, another app). */
+  micInterrupted: boolean;
+  /** Times the microphone was lost mid-session and re-acquired. */
+  captureRecoveries: number;
+  /** Times the microphone was lost mid-session (ended track, revoked permission). */
+  captureLosses: number;
+  /** Page visibility as last observed by the engine. */
+  pageVisible: boolean;
+  /** Lifecycle listeners the engine holds (bound once; never accumulates). */
+  lifecycleListeners: number;
 }
 
 /**
@@ -550,6 +574,26 @@ class VoiceEngine {
   /** Barge-ins this session (diagnostics). */
   private bargeIns = 0;
 
+  /* ---- persistent session lifecycle ----
+   * One session = one intentional start … one stop. `sessionEpoch` changes on
+   * every stop, so anything that was awaiting (a getUserMedia prompt, a
+   * re-acquire, a provider probe) can tell its session has ended and release
+   * what it got instead of reviving a session the user closed. */
+  private sessionEpoch = 0;
+  /** A start() is awaiting the microphone; a second tap must not open another. */
+  private starting: Promise<void> | null = null;
+  /** A capture re-acquire is in progress (single flight). */
+  private recovering: Promise<void> | null = null;
+  /** Listeners on the current stream's tracks, removed when it is released. */
+  private trackCleanup: (() => void) | null = null;
+  private streamsAcquired = 0;
+  private streamsReleased = 0;
+  private captureRecoveries = 0;
+  private captureLosses = 0;
+  /** Document/window listeners: bound once for the singleton's life. */
+  private lifecycleCleanup: Array<() => void> = [];
+  private lifecycleBound = false;
+
   /* LiveKit transport mode (see livekitTransport.ts). When set, the mic is
    * LiveKit's, transcripts arrive from the voice agent, and replies are spoken
    * by the agent through the VoxCPM2 worker. Cognition does not move. */
@@ -648,15 +692,33 @@ class VoiceEngine {
     }
     // iOS: audio may only be unlocked inside the tap itself, before any await.
     this.unlockAudio();
-    if (!this._state.active && (await this.livekitPreferred())) {
-      await this.startLivekitSession();
+    // A second tap while the first is still opening the session (provider
+    // probe, permission prompt) is "stop", not a second session. Decided
+    // synchronously, before any await: two taps used to both reach
+    // getUserMedia and open two streams.
+    if (this.starting) {
+      this.stop();
       return;
     }
     if (this._state.active) {
       this.stop();
-    } else {
-      await this.start();
+      return;
     }
+    await this.start();
+  }
+
+  /** The current (or last) voice turn, for a component that mounts mid-session. */
+  getTurn(): VoiceTurn | null {
+    return this._turn;
+  }
+
+  /** End the voice session (public alias of the stop half of toggle). */
+  end(): void {
+    if (this.livekit) {
+      void this.endLivekitSession();
+      return;
+    }
+    this.stop();
   }
 
   /* ---------------------------------------------------------
@@ -868,7 +930,11 @@ class VoiceEngine {
         });
         break;
       case "user_speaking":
-        if (this.livekitSpeaking) this.bargeIns += 1;
+        if (this.livekitSpeaking) {
+          this.bargeIns += 1;
+          this.patchDiagnostics({ bargeIns: this.bargeIns });
+        }
+          this.patchDiagnostics({ bargeIns: this.bargeIns });
         break;
       case "speaking":
         this.livekitSpeaking = true;
@@ -914,7 +980,26 @@ class VoiceEngine {
    * Start / Stop
    * --------------------------------------------------------- */
 
-  private async start(): Promise<void> {
+  private start(): Promise<void> {
+    if (this.starting) return this.starting;
+    const epoch = this.sessionEpoch;
+    const run = (async () => {
+      if (await this.livekitPreferred()) {
+        if (epoch !== this.sessionEpoch) return;
+        await this.startLivekitSession();
+        return;
+      }
+      await this.startSession(epoch);
+    })().finally(() => {
+      if (this.starting === run) this.starting = null;
+    });
+    this.starting = run;
+    return run;
+  }
+
+  private async startSession(epoch: number): Promise<void> {
+    if (epoch !== this.sessionEpoch) return;
+    this.bindLifecycle();
     // Learn now whether the server holds her voice, so the first reply
     // rarely has to wait for the answer.
     void this.probeElevenLabs();
@@ -950,8 +1035,26 @@ class VoiceEngine {
         .getUserMedia({
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         })
-        .catch(() => navigator.mediaDevices.getUserMedia({ audio: true }));
-      this.mediaStream = stream;
+        // Only a browser that rejects the CONSTRAINTS gets the plain retry.
+        // Retrying after a denial asked the user a second time (Safari does
+        // not remember a "Don't Allow") and turned "no" into a second prompt.
+        .catch((error: unknown) => {
+          const name = (error as { name?: string } | null)?.name;
+          if (name === "OverconstrainedError" || name === "ConstraintNotSatisfiedError" || name === "TypeError") {
+            return navigator.mediaDevices.getUserMedia({ audio: true });
+          }
+          throw error;
+        });
+      this.streamsAcquired += 1;
+      if (epoch !== this.sessionEpoch) {
+        // The user ended the session while the permission prompt was open:
+        // the stream that just arrived is released, not adopted.
+        this.releaseStream(stream);
+        return;
+      }
+      // Never two: a stream somehow still held is released first.
+      if (this.mediaStream && this.mediaStream !== stream) this.releaseStream(this.mediaStream);
+      this.adoptStream(stream);
       this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
       // How many output devices this runtime can actually see. Zero before
       // permission is granted is the browser hiding labels, not an absence of
@@ -972,10 +1075,14 @@ class VoiceEngine {
         permission: "granted",
         error: null,
         errorKind: null,
+        captureSuspended: false,
       });
     } catch (error) {
+      if (epoch !== this.sessionEpoch) return;
       const diagnosis = mapMediaError(error instanceof DOMException || error instanceof Error ? error : { name: String(error) });
       console.warn("[VoiceEngine] Microphone error:", error, "→", diagnosis.kind);
+      if (diagnosis.kind === "permission") this.updateState({ ...this._state, permission: "denied" });
+      this.patchDiagnostics({ micPermission: diagnosis.kind === "permission" ? "denied" : this._state.permission });
       this.setError(diagnosis.message, diagnosis.kind);
       return;
     }
@@ -984,21 +1091,25 @@ class VoiceEngine {
     // recognizer is explicitly preferred), else Web Speech, else Whisper.
     const sttPreference = (resolveFirst("LELU_VOICE_STT") ?? "").trim().toLowerCase();
     this.preferElevenLabsStt = sttPreference !== "browser" && (await elevenLabsSttReady().catch(() => false));
+    // Stopped while the provider answered: do not start ears for a closed session.
+    if (epoch !== this.sessionEpoch || !this._state.active) return;
     this.startRecognition();
   }
 
   private stop(): void {
+    // Everything still awaiting on behalf of this session is now stale.
+    this.sessionEpoch += 1;
+    this.recovering = null;
     this.cancelSpeech();
     this.cancelInFlightTurn("voice stopped");
     this.stopRecognition();
     this.stopWhisperFallback();
 
     if (this.mediaStream) {
-      for (const track of this.mediaStream.getTracks()) {
-        track.stop();
-      }
+      this.releaseStream(this.mediaStream);
       this.mediaStream = null;
     }
+    this.patchDiagnostics({ micStreamActive: false, recognitionActive: false, micInterrupted: false });
 
     this._turn = null;        // interim cleared
     this.updateState({
@@ -1007,9 +1118,259 @@ class VoiceEngine {
       permission: this._state.permission,
       error: null,
       errorKind: null,
+      captureSuspended: false,
     });
     this.emitInterim("");
     this.emitTurn(null);
+  }
+
+  /* ---------------------------------------------------------
+   * Persistent capture lifecycle
+   *
+   * The session is the user's intent ("I am talking with her"); the
+   * MediaStream is only the current means. A stream can end under the
+   * session — device unplugged, permission revoked in site settings, iOS
+   * taking the microphone for a call, a backgrounded page — and the
+   * session must then either get a new stream or end honestly. It used to
+   * do neither: `active` stayed true over a dead track, the indicator said
+   * "listening", and the recorder loop failed once a second.
+   * --------------------------------------------------------- */
+
+  private adoptStream(stream: MediaStream): void {
+    this.trackCleanup?.();
+    this.trackCleanup = null;
+    this.mediaStream = stream;
+    const cleanups: Array<() => void> = [];
+    for (const track of VoiceEngine.audioTracks(stream)) {
+      const onEnded = () => this.onCaptureLost("track-ended", stream);
+      const onMute = () => this.patchDiagnostics({ micInterrupted: true });
+      const onUnmute = () => this.patchDiagnostics({ micInterrupted: false });
+      track.addEventListener?.("ended", onEnded);
+      track.addEventListener?.("mute", onMute);
+      track.addEventListener?.("unmute", onUnmute);
+      cleanups.push(() => {
+        track.removeEventListener?.("ended", onEnded);
+        track.removeEventListener?.("mute", onMute);
+        track.removeEventListener?.("unmute", onUnmute);
+      });
+    }
+    this.trackCleanup = () => {
+      for (const cleanup of cleanups) cleanup();
+    };
+    this.patchDiagnostics({ micInterrupted: false, ...this.streamCounters() });
+  }
+
+  /** Stop every track of a stream and forget its listeners. Idempotent per stream. */
+  private releaseStream(stream: MediaStream): void {
+    if (stream === this.mediaStream) {
+      this.trackCleanup?.();
+      this.trackCleanup = null;
+    }
+    const released = (stream as MediaStream & { __leluReleased?: boolean });
+    if (released.__leluReleased) return;
+    released.__leluReleased = true;
+    for (const track of stream.getTracks?.() ?? []) {
+      try {
+        track.stop();
+      } catch {
+        // already stopped
+      }
+    }
+    this.streamsReleased += 1;
+    this.patchDiagnostics(this.streamCounters());
+  }
+
+  private streamCounters(): Pick<VoiceDiagnostics, "micStreamsOpen" | "micStreamsAcquired" | "micStreamsReleased" | "captureRecoveries" | "captureLosses"> {
+    return {
+      micStreamsOpen: Math.max(0, this.streamsAcquired - this.streamsReleased),
+      micStreamsAcquired: this.streamsAcquired,
+      micStreamsReleased: this.streamsReleased,
+      captureRecoveries: this.captureRecoveries,
+      captureLosses: this.captureLosses,
+    };
+  }
+
+  /** Audio tracks of a stream (tolerant of minimal stream objects). */
+  private static audioTracks(stream: MediaStream): MediaStreamTrack[] {
+    const tracks = (stream.getAudioTracks?.() ?? stream.getTracks?.() ?? []) as MediaStreamTrack[];
+    return tracks.filter((track) => !track.kind || track.kind === "audio");
+  }
+
+  private static pageHidden(): boolean {
+    return typeof document !== "undefined" && document.visibilityState === "hidden";
+  }
+
+  /**
+   * The microphone stopped delivering under a live session. Ears that depend
+   * on it stop; then it is re-acquired now (page visible) or when the page
+   * comes back (page hidden — a background tab cannot be relied on to keep a
+   * microphone, and on iOS it cannot).
+   */
+  private onCaptureLost(reason: string, stream: MediaStream): void {
+    if (stream !== this.mediaStream || !this._state.active || this.livekit) return;
+    console.info(`[VoiceEngine] microphone lost (${reason}) — ${VoiceEngine.pageHidden() ? "waiting for the page to return" : "re-acquiring"}.`);
+    this.captureLosses += 1;
+    this.stopRecognition();
+    this.stopWhisperFallback();
+    this.releaseStream(stream);
+    this.mediaStream = null;
+    this.patchDiagnostics({ micStreamActive: false, recognitionActive: false, ...this.streamCounters() });
+    this.emitInterim("");
+    // Speech already playing is not the microphone's business: she finishes
+    // her sentence. Only the listening claim is withdrawn.
+    this.updateState({
+      ...this._state,
+      captureSuspended: true,
+      phase: this._state.phase === "listening" ? "idle" : this._state.phase,
+    });
+    if (!VoiceEngine.pageHidden()) void this.recoverCapture(reason);
+  }
+
+  /** Delays between re-acquire attempts when the device is busy (a call). */
+  private static readonly RECOVERY_DELAYS_MS = [0, 1000, 3000];
+
+  /**
+   * Get the microphone back for the session that is still on. Single flight;
+   * abandoned the moment the session ends. A denial or a missing device ends
+   * the session with that reason — never a silent dead "listening".
+   */
+  private recoverCapture(reason: string): Promise<void> {
+    if (this.recovering) return this.recovering;
+    const epoch = this.sessionEpoch;
+    const run = (async () => {
+      let lastError: unknown = null;
+      for (const delay of VoiceEngine.RECOVERY_DELAYS_MS) {
+        if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+        if (epoch !== this.sessionEpoch || !this._state.active) return;
+        if (VoiceEngine.pageHidden()) return; // resumed on visibilitychange
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          });
+          this.streamsAcquired += 1;
+          if (epoch !== this.sessionEpoch || !this._state.active) {
+            this.releaseStream(stream);
+            return;
+          }
+          if (this.mediaStream) this.releaseStream(this.mediaStream);
+          this.adoptStream(stream);
+          this.captureRecoveries += 1;
+          this.patchDiagnostics({ micStreamActive: true, micPermission: "granted", ...this.streamCounters() });
+          this.updateState({
+            ...this._state,
+            permission: "granted",
+            captureSuspended: false,
+            phase: this._state.phase === "idle" ? "listening" : this._state.phase,
+            error: null,
+            errorKind: null,
+          });
+          this.startRecognition();
+          console.info(`[VoiceEngine] microphone re-acquired after ${reason}.`);
+          return;
+        } catch (error) {
+          lastError = error;
+          const diagnosis = mapMediaError(error instanceof DOMException || error instanceof Error ? error : { name: String(error) });
+          // Busy (a call holds it) is worth waiting out; anything else is final.
+          if (diagnosis.kind !== "audio") break;
+        }
+      }
+      if (epoch !== this.sessionEpoch || !this._state.active) return;
+      const diagnosis = mapMediaError(lastError instanceof DOMException || lastError instanceof Error ? lastError : { name: String(lastError) });
+      this.endSessionWithError(diagnosis.message, diagnosis.kind);
+    })().finally(() => {
+      if (this.recovering === run) this.recovering = null;
+    });
+    this.recovering = run;
+    return run;
+  }
+
+  /** End the session because the platform took the microphone away for good. */
+  private endSessionWithError(message: string, kind: VoiceErrorKind): void {
+    this.stop();
+    if (kind === "permission") {
+      this.updateState({ ...this._state, permission: "denied" });
+      this.patchDiagnostics({ micPermission: "denied" });
+    }
+    this.setError(message, kind);
+  }
+
+  /**
+   * Page lifecycle, bound ONCE for the engine's life (a singleton), so start
+   * and stop cycles never add listeners.
+   */
+  private bindLifecycle(): void {
+    if (this.lifecycleBound || typeof window === "undefined" || typeof document === "undefined") return;
+    this.lifecycleBound = true;
+    const on = (target: EventTarget, type: string, handler: (event: Event) => void) => {
+      target.addEventListener(type, handler);
+      this.lifecycleCleanup.push(() => target.removeEventListener(type, handler));
+    };
+    on(document, "visibilitychange", () => this.onVisibilityChange());
+    // Leaving the page (navigation, close, bfcache) releases the microphone.
+    // A session is never resumed without a new tap: reloading must not turn
+    // the microphone back on by itself.
+    on(window, "pagehide", () => {
+      if (this._state.active && !this.livekit) this.stop();
+    });
+    on(window, "online", () => {
+      if (!this._state.active || this.livekit) return;
+      if (this.whisperFallbackActive && !this.whisperLoopBusy && this.whisperFallbackTimer === null) {
+        void this.whisperFallbackLoop();
+      }
+    });
+    // Permission revoked in site settings while talking (Chrome, Safari 16+).
+    try {
+      void navigator.permissions
+        ?.query({ name: "microphone" as PermissionName })
+        .then((status) => {
+          const onChange = () => {
+            if (status.state === "denied" && this._state.active && !this.livekit) {
+              this.endSessionWithError("Microphone permission was revoked.", "permission");
+            }
+          };
+          status.addEventListener?.("change", onChange);
+          this.lifecycleCleanup.push(() => status.removeEventListener?.("change", onChange));
+          this.patchDiagnostics({ lifecycleListeners: this.lifecycleCleanup.length });
+          return undefined;
+        })
+        .catch(() => undefined);
+    } catch {
+      // permissions API absent: the track's "ended" still covers revocation.
+    }
+    this.patchDiagnostics({ lifecycleListeners: this.lifecycleCleanup.length, pageVisible: !VoiceEngine.pageHidden() });
+  }
+
+  private onVisibilityChange(): void {
+    const visible = !VoiceEngine.pageHidden();
+    this.patchDiagnostics({ pageVisible: visible });
+    if (!visible || !this._state.active || this.livekit) return;
+    const live = this.mediaStream ? VoiceEngine.audioTracks(this.mediaStream).some((track) => track.readyState === "live") : false;
+    if (!live) {
+      if (this.mediaStream) this.onCaptureLost("hidden-page", this.mediaStream);
+      else void this.recoverCapture("page returned");
+      return;
+    }
+    // Stream survived; the ears may not have (Web Speech is aborted by
+    // several browsers when a tab is hidden). Restart whichever is down.
+    if (this.recognition && !this.recognitionRunning) {
+      try {
+        this.recognition.start();
+        this.recognitionRunning = true;
+      } catch {
+        // already running
+      }
+    } else if (!this.recognition && !this.whisperFallbackActive) {
+      this.startRecognition();
+    } else if (this.whisperFallbackActive && !this.whisperLoopBusy && this.whisperFallbackTimer === null) {
+      void this.whisperFallbackLoop();
+    }
+  }
+
+  /** Test/teardown hook: remove the page-lifecycle listeners. */
+  disposeLifecycle(): void {
+    for (const cleanup of this.lifecycleCleanup.splice(0)) cleanup();
+    this.lifecycleBound = false;
+    this.patchDiagnostics({ lifecycleListeners: 0 });
   }
 
   private setError(message: string, kind: VoiceErrorKind): void {
@@ -1155,6 +1516,7 @@ class VoiceEngine {
         const heard = (finalText || interimText).trim();
         if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
           this.bargeIns += 1;
+          this.patchDiagnostics({ bargeIns: this.bargeIns });
           this.cancelSpeech();
           this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
         }
@@ -1470,6 +1832,7 @@ class VoiceEngine {
         // so she could not be interrupted at all.
         if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
           this.bargeIns += 1;
+          this.patchDiagnostics({ bargeIns: this.bargeIns });
           this.cancelSpeech();
           this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
         }
@@ -1782,9 +2145,11 @@ class VoiceEngine {
    * The first audible sound of this turn. Recorded once, from the engine's
    * real play/start event — never from a timer that assumes it played.
    */
-  private noteFirstAudio(): void {
+  private noteFirstAudio(owner: TurnLatency | null = this.turnLatency): void {
     const latency = this.turnLatency;
-    if (!latency) return;
+    // Audio from an older turn (still finishing, or a late "playing" event
+    // after a barge-in) is not the new turn's first audio.
+    if (!latency || owner !== latency) return;
     if (latency.firstAudioAt === null) latency.firstAudioAt = Date.now();
     this.patchDiagnostics({
       firstAudioLatencyMs: latency.firstAudioAt - latency.transcriptAt,
@@ -1796,9 +2161,9 @@ class VoiceEngine {
    * The output device says it is playing. Recorded separately from
    * noteFirstAudio so the report can show both moments.
    */
-  private noteAudible(): void {
+  private noteAudible(owner: TurnLatency | null = this.turnLatency): void {
     const latency = this.turnLatency;
-    if (!latency || latency.firstAudibleAt !== null) return;
+    if (!latency || owner !== latency || latency.firstAudibleAt !== null) return;
     latency.firstAudibleAt = Date.now();
     this.patchDiagnostics({ firstAudibleLatencyMs: latency.firstAudibleAt - latency.transcriptAt });
   }
@@ -2080,6 +2445,7 @@ class VoiceEngine {
     this.patchDiagnostics({ ttsRequested: true });
     let index = 0;
     this.chainActive = true;
+    const turn = this.turnLatency;
 
     const next = (): void => {
       if (this.cancelFlag || index >= segments.length) {
@@ -2098,10 +2464,10 @@ class VoiceEngine {
       index += 1;
       void speakText(segment, {
         onStart: () => {
-          this.noteFirstAudio();
+          this.noteFirstAudio(turn);
           this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
         },
-        onAudible: () => this.noteAudible(),
+        onAudible: () => this.noteAudible(turn),
         onEnd: () => next(),
         onFail: () => {
           // Her voice failed mid-reply: say the rest with the browser engine
@@ -2366,12 +2732,29 @@ class VoiceEngine {
       return;
     }
     const rest = fullText.slice(this.streamCursor);
-    // First complete sentence boundary in the not-yet-spoken tail.
-    const match = rest.match(/^[\s\S]*?[.!?](\s+|$)/);
+    // First complete boundary in the not-yet-spoken tail: a sentence end, or
+    // a line break. Markdown replies (headings, "**Key Facts:**", list items)
+    // often carry no sentence punctuation for many lines; with only [.!?] as
+    // a boundary the whole block became ONE request, which the speech server
+    // refuses over 900 characters (413, found in the live M22.9 run) — and
+    // that part of the answer was never spoken.
+    const match = rest.match(/^[\s\S]*?(?:[.!?](?:\s+|$)|\n+)/);
     if (!match) return;
-    const segment = match[0].trim();
+    const block = match[0].trim();
     this.streamCursor += match[0].length;
-    if (!segment) return;
+    if (!block) return;
+    // A single sentence longer than a segment is split like any other reply.
+    if (block.length > SPEECH_CHUNK_SIZE) {
+      for (const piece of chunkForSpeech(block)) this.speakStreamPiece(piece);
+    } else {
+      this.speakStreamPiece(block);
+    }
+    // More complete boundaries may already be waiting in the tail.
+    if (fullText.length > this.streamCursor) this.feedStreamingSpeech(fullText, owner);
+  }
+
+  /** Speak one bounded piece of a streamed reply (see feedStreamingSpeech). */
+  private speakStreamPiece(segment: string): void {
     // WHAT IS SPOKEN IS NOT WHAT IS RENDERED. Markdown, emoji, list markers
     // and numeric notation are visual; the speaker gets the words a person
     // would say (spokenText.ts). A segment with nothing pronounceable
@@ -2450,11 +2833,24 @@ class VoiceEngine {
    * and every streamed answer actually takes.
    */
   private speakStreamSegment(segment: string): void {
+    const turn = this.turnLatency;
     this.streamSegmentsPending += 1;
     this.chainActive = true;
     void speakText(
       segment,
-      { onStart: () => this.noteFirstAudio(), onAudible: () => this.noteAudible() },
+      {
+        onStart: () => {
+          this.noteFirstAudio(turn);
+          this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
+        },
+        onAudible: () => this.noteAudible(turn),
+        onEnd: () => this.patchDiagnostics({ audioPlaying: false, ttsStage: "ended" }),
+        // A streamed sentence her voice could not produce used to vanish
+        // without a trace (no onFail was given): the reply went silent
+        // mid-answer and nothing said why. It is now reported, and spoken by
+        // the browser's own voice where one exists. The text is in the chat.
+        onFail: () => this.onStreamSegmentFailed(segment),
+      },
       this.deliveryFor(segment),
     ).finally(() => {
       this.streamSegmentsPending = Math.max(0, this.streamSegmentsPending - 1);
@@ -2463,6 +2859,25 @@ class VoiceEngine {
         this.settleSpeech();
       }
     });
+  }
+
+  private onStreamSegmentFailed(segment: string): void {
+    if (this.cancelFlag) return;
+    this.demoteFromElevenLabs();
+    const browserVoice = typeof speechSynthesis !== "undefined" && (speechSynthesis.getVoices?.().length ?? 0) > 0;
+    this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed", ...(browserVoice ? {} : { ttsAvailable: false }) });
+    this.noteFailure({
+      kind: "playback-failure",
+      message: browserVoice
+        ? "Her voice could not be produced for part of this reply; the browser voice is saying it instead. The full answer is in the conversation."
+        : "Her voice could not be produced for part of this reply, and this browser has no speech engine. The full answer is in the conversation.",
+    });
+    if (!browserVoice) return;
+    try {
+      speechSynthesis.speak(this.createUtterance(segment));
+    } catch {
+      // the text stays in the conversation
+    }
   }
 
   /* ---------------------------------------------------------
@@ -2670,6 +3085,15 @@ class VoiceEngine {
       bargeIns: this.bargeIns,
       fullDuplex: this.whisperFallbackActive,
 
+      micStreamsOpen: Math.max(0, this.streamsAcquired - this.streamsReleased),
+      micStreamsAcquired: this.streamsAcquired,
+      micStreamsReleased: this.streamsReleased,
+      micInterrupted: false,
+      captureRecoveries: this.captureRecoveries,
+      captureLosses: this.captureLosses,
+      pageVisible: typeof document === "undefined" || document.visibilityState !== "hidden",
+      lifecycleListeners: this.lifecycleCleanup?.length ?? 0,
+
       // What actually happened outranks the defaults above: capability is
       // recomputed on every poll, the pipeline's own facts are preserved.
       ...this.live,
@@ -2696,7 +3120,13 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   private updateState(partial: VoiceState): void {
-    this._state = partial;
+    // One rule for every path that returns to "listening" (speech ended, a
+    // turn failed, silence): with no microphone captured, she is not
+    // listening, and the state must not say so.
+    this._state =
+      partial.active && partial.captureSuspended && partial.phase === "listening"
+        ? { ...partial, phase: "idle" }
+        : partial;
     for (const listener of this.stateListeners) {
       try {
         listener(this._state);

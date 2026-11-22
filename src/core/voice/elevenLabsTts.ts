@@ -54,6 +54,9 @@ export function getLastSynthesis(): typeof lastSynthesis {
   return lastSynthesis;
 }
 
+/** A synthesis request with no response headers by then has failed. */
+const TTS_HEADER_TIMEOUT_MS = 15_000;
+
 /** How long a status answer is trusted before asking again. */
 const STATUS_TTL_MS = 60_000;
 
@@ -127,8 +130,15 @@ async function synthesize(text: string, delivery?: SpeechProfileId): Promise<Pre
   const reservation = await gate.reserve("api", "elevenlabs-tts");
   const started = Date.now();
   let response: Response;
+  // A speech server that never answers must not hold the reply's queue (and
+  // the "speaking" state) forever: no headers within the limit is a failed
+  // segment, which the caller reports and falls back from. The timer is
+  // cleared once headers arrive, so a long streamed body is never cut.
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const headerTimer = controller ? setTimeout(() => controller.abort(), TTS_HEADER_TIMEOUT_MS) : null;
   try {
     response = await fetch("/api/voice/tts", {
+      ...(controller ? { signal: controller.signal } : {}),
       method: "POST",
       // `stream` asks the local engine for PCM as it is generated. A provider
       // that speaks MP3 (ElevenLabs) ignores the flag and answers with a file,
@@ -140,9 +150,11 @@ async function synthesize(text: string, delivery?: SpeechProfileId): Promise<Pre
       body: JSON.stringify({ text, stream: true, ...(delivery ? { delivery } : {}) }),
     });
   } catch (error) {
+    if (headerTimer) clearTimeout(headerTimer);
     await gate.settle(reservation, { operation: "tts", ok: false, latencyMs: Date.now() - started, error: (error as Error).message });
     return null;
   }
+  if (headerTimer) clearTimeout(headerTimer);
   const usage = parseUsageHeader(response.headers.get("X-Lelu-Usage"));
   const headerNumber = (name: string): number | null => {
     const raw = response.headers.get(name);
