@@ -58,7 +58,10 @@ export type CompositionKind =
   | "radial"
   | "constellation"
   | "scatter"
-  | "twozone";
+  | "twozone"
+  // The Retro Terminal: the live modules as terminal panes inside a
+  // console frame (header · directory · viewport · telemetry · command line)
+  | "terminal";
 
 export const COMPOSITION_KINDS: Array<{ id: CompositionKind; name: string; blurb: string; absolute?: boolean }> = [
   { id: "bento", name: "Bento", blurb: "Mixed-size tiles packed with no gaps." },
@@ -80,6 +83,7 @@ export const COMPOSITION_KINDS: Array<{ id: CompositionKind; name: string; blurb
   { id: "scatter", name: "Card table", blurb: "Cards dealt at angles.", absolute: true },
   { id: "twozone", name: "Orbit band + bento", blurb: "An orbit band on top, a bento below.", absolute: true },
   { id: "freeform", name: "Freeform", blurb: "Every surface where you put it.", absolute: true },
+  { id: "terminal", name: "Retro terminal", blurb: "A console: directory, Cosmos viewport, telemetry, command line; the modules as panes." },
 ];
 
 export const ABSOLUTE_KINDS = new Set<CompositionKind>(COMPOSITION_KINDS.filter((k) => k.absolute).map((k) => k.id));
@@ -131,7 +135,8 @@ export type BuiltinTemplateId =
   | "minimal-focus"
   | "adaptive-intelligence"
   | "workspace-deck"
-  | "living-ecosystem";
+  | "living-ecosystem"
+  | "retro-terminal";
 
 export type ModuleSize = "s" | "m" | "l" | "xl";
 export const SIZES: ModuleSize[] = ["s", "m", "l", "xl"];
@@ -246,7 +251,8 @@ const ALL = [...HOME_MODULES];
 const T = (t: HomeTemplate) => t;
 
 /**
- * The twelve Mission 15 prototypes. Each is a real arrangement of the same
+ * The twelve Mission 15 prototypes (plus the Retro Terminal, kind "terminal").
+ * Each is a real arrangement of the same
  * eight live modules — not a mock-up — so comparing them compares layouts,
  * not content.
  */
@@ -355,6 +361,16 @@ export const TEMPLATES: HomeTemplate[] = [
     kind: { phone: "bento", tablet: "freeform", desktop: "freeform" },
     order: ["lelu", "now", "weather", "apps", "workspaces", "notifications", "library", "activity"],
     sizes: { lelu: "m", now: "m", weather: "s", apps: "l", workspaces: "l", notifications: "m", library: "s", activity: "m" },
+  }),
+  T({
+    id: "retro-terminal",
+    name: "Retro Terminal",
+    blurb: "The Cosmos through a console: directory, viewport, live telemetry and a command line — every colour yours.",
+    kind: { phone: "terminal", tablet: "terminal", desktop: "terminal" },
+    order: ["now", "activity", "workspaces", "notifications", "apps", "weather", "lelu", "library"],
+    sizes: { now: "m", activity: "m", workspaces: "m", notifications: "m", apps: "l", weather: "s", lelu: "s", library: "s" },
+    // The terminal's own command line replaces "Ask LÉLU"; it stays available from the dock.
+    hidden: ["ask"],
   }),
 ];
 
@@ -906,6 +922,11 @@ export function solveHome(presentation: HomePresentation, device: DeviceClass, o
       break;
     case "strip":
       fromCells(solveStrip(flowIds, modules, device));
+      break;
+    case "terminal":
+      // The panes sit in the console's main column: a phone reads them as one
+      // column, wider screens as a packed grid inside that column.
+      fromCells(device === "phone" ? solveColumn(flowIds, modules, device) : solveGrid(flowIds, modules, device, "bento"));
       break;
     default:
       fromCells(solveGrid(flowIds, modules, device, kind === "focus" ? "bento" : kind));

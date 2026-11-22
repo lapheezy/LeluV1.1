@@ -23,9 +23,9 @@ import {
 const overlaps = (a: GridCell, b: GridCell) =>
   a.col < b.col + b.w && b.col < a.col + a.w && a.row < b.row + b.h && b.row < a.row + a.h;
 
-test("there are exactly twelve compositions, each with a distinct id", () => {
-  assert.equal(TEMPLATES.length, 12);
-  assert.equal(new Set(TEMPLATES.map((t) => t.id)).size, 12);
+test("there are exactly thirteen compositions (twelve + the Retro Terminal), each with a distinct id", () => {
+  assert.equal(TEMPLATES.length, 13);
+  assert.equal(new Set(TEMPLATES.map((t) => t.id)).size, 13);
 });
 
 test("every composition solves on every device with every module accounted for, and no grid overlaps", () => {

@@ -53,6 +53,18 @@ import {
 } from "./homeComposition";
 import { newLayoutId } from "./homeBlend";
 import { readStyle, type HomeStyle } from "./homeStyle";
+import {
+  DEFAULT_PRESET,
+  cloneTheme,
+  exportTheme,
+  importTheme,
+  isPresetThemeId,
+  newTerminalThemeId,
+  presetTheme,
+  presetThemeId,
+  readTerminalTheme,
+  type TerminalTheme,
+} from "./homeTerminal";
 
 export type { CosmosMode };
 
@@ -100,12 +112,32 @@ export interface HomePresentationsState {
   canRedo: boolean;
 }
 
+/**
+ * The Retro Terminal's appearance (homeTerminal). One active theme — a
+ * built-in preset or one of her saved themes — and, while she is
+ * experimenting, a DRAFT that previews live without touching the saved
+ * theme until she saves. It belongs to the person, not to a presentation,
+ * so switching layouts or presentations never changes it, and coming back
+ * to the Retro Terminal finds the same look.
+ */
+export interface TerminalAppearanceState {
+  /** Her saved themes (presets are never stored: they are data in homeTerminal). */
+  themes: TerminalTheme[];
+  /** A preset id ("preset:…") or one of `themes`. */
+  activeId: string;
+  /** Unsaved edits of the active theme, previewing live; null = none. */
+  draft: TerminalTheme | null;
+  canUndo: boolean;
+  canRedo: boolean;
+}
+
 export interface HomeState {
   layout: SavedLayout | null;
   immersive: boolean;
   cosmosMode: CosmosMode;
   universe: UniverseState;
   presentations: HomePresentationsState;
+  terminal: TerminalAppearanceState;
 }
 
 /** Chat conversations open as module windows are owned by `universe`, not
@@ -118,6 +150,22 @@ export const PRESENTATIONS_KEY = "lelu.home.presentations.v1";
 /** Her layout library, research notes and module usage: a separate key again. */
 export const LAYOUTS_KEY = "lelu.home.layouts.v1";
 const HISTORY_LIMIT = 50;
+/** The Retro Terminal's themes and the active one: their own key, like presentations and layouts. */
+export const TERMINAL_KEY = "lelu.home.terminal.v1";
+
+/** Read the terminal appearance back from storage (exported for the persistence tests). */
+export function loadTerminalAppearance(): TerminalAppearanceState {
+  const saved = typeof window !== "undefined" ? KvStore.getInstance().get<{ themes?: unknown[]; activeId?: unknown; draft?: unknown }>(TERMINAL_KEY) : null;
+  const seen = new Set<string>();
+  const themes = (saved?.themes ?? [])
+    .map(readTerminalTheme)
+    .filter((t): t is TerminalTheme => Boolean(t) && !isPresetThemeId(t!.id) && !seen.has(t!.id) && Boolean(seen.add(t!.id)))
+    .map((t) => ({ ...t, custom: true }));
+  const wanted = typeof saved?.activeId === "string" ? saved.activeId : "";
+  const activeId = isPresetThemeId(wanted) || themes.some((t) => t.id === wanted) ? wanted : presetThemeId(DEFAULT_PRESET);
+  const draft = readTerminalTheme(saved?.draft);
+  return { themes, activeId, draft: draft && draft.id === activeId ? draft : null, canUndo: false, canRedo: false };
+}
 
 function loadPresentations(): HomePresentationsState {
   const saved = typeof window !== "undefined" ? KvStore.getInstance().get<{ list?: unknown[]; activeId?: string; restorePoint?: unknown }>(PRESENTATIONS_KEY) : null;
@@ -152,7 +200,190 @@ class HomeStoreImpl {
         geometry: saved?.universe?.geometry ?? {},
       },
       presentations: loadPresentations(),
+      terminal: loadTerminalAppearance(),
     };
+  }
+
+  /* ---------------- Retro Terminal appearance ---------------- */
+
+  private terminalUndo: TerminalTheme[] = [];
+  private terminalRedo: TerminalTheme[] = [];
+
+  /** The saved theme the terminal is set to (ignoring any unsaved draft). */
+  savedTerminalTheme(): TerminalTheme {
+    const { activeId, themes } = this.state.terminal;
+    if (isPresetThemeId(activeId)) return presetTheme(activeId.slice("preset:".length));
+    return themes.find((t) => t.id === activeId) ?? presetTheme(DEFAULT_PRESET);
+  }
+
+  /** What the terminal shows right now: the draft while she experiments, else the saved theme. */
+  terminalTheme(): TerminalTheme {
+    return this.state.terminal.draft ?? this.savedTerminalTheme();
+  }
+
+  /** Switch to a preset or a saved theme. Unsaved edits are dropped (the studio asks first). */
+  selectTerminalTheme(id: string): boolean {
+    this.lastTerminalEdit = null;
+    const { themes } = this.state.terminal;
+    if (!isPresetThemeId(id) && !themes.some((t) => t.id === id)) return false;
+    this.terminalUndo = [];
+    this.terminalRedo = [];
+    this.patchTerminal({ activeId: id, draft: null });
+    return true;
+  }
+
+  private lastTerminalEdit: { key: string; at: number } | null = null;
+
+  /**
+   * One edit, previewed live as the draft. Undoable; the saved theme is untouched until save.
+   * `coalesce` merges a run of edits with the same key (dragging a colour picker or a slider)
+   * into ONE undo step.
+   */
+  editTerminal(edit: (theme: TerminalTheme) => TerminalTheme, coalesce?: string): boolean {
+    const before = this.terminalTheme();
+    const after = edit(cloneTheme(before));
+    if (JSON.stringify(after) === JSON.stringify(before)) return false;
+    const now = Date.now();
+    const last = this.lastTerminalEdit;
+    const merge = Boolean(coalesce) && last !== null && last.key === coalesce && now - last.at < 1500 && this.terminalUndo.length > 0;
+    this.lastTerminalEdit = coalesce ? { key: coalesce, at: now } : null;
+    if (!merge) {
+      this.terminalUndo.push(before);
+      if (this.terminalUndo.length > HISTORY_LIMIT) this.terminalUndo.shift();
+    }
+    this.terminalRedo = [];
+    this.patchTerminal({ draft: { ...after, id: this.state.terminal.activeId } });
+    return true;
+  }
+
+  undoTerminal(): boolean {
+    this.lastTerminalEdit = null;
+    const previous = this.terminalUndo.pop();
+    if (!previous) return false;
+    this.terminalRedo.push(this.terminalTheme());
+    const saved = this.savedTerminalTheme();
+    this.patchTerminal({ draft: JSON.stringify(previous) === JSON.stringify(saved) ? null : previous });
+    return true;
+  }
+
+  redoTerminal(): boolean {
+    const next = this.terminalRedo.pop();
+    if (!next) return false;
+    this.terminalUndo.push(this.terminalTheme());
+    this.patchTerminal({ draft: next });
+    return true;
+  }
+
+  /** Drop every unsaved change: back to the saved theme. */
+  revertTerminal(): boolean {
+    this.lastTerminalEdit = null;
+    if (!this.state.terminal.draft) return false;
+    this.terminalUndo = [];
+    this.terminalRedo = [];
+    this.patchTerminal({ draft: null });
+    return true;
+  }
+
+  /**
+   * Save the draft. A saved theme of hers is updated in place; a preset is never
+   * overwritten — saving an edited preset makes a new theme of hers.
+   */
+  saveTerminalTheme(): TerminalTheme {
+    const current = this.terminalTheme();
+    const active = this.state.terminal.activeId;
+    if (!isPresetThemeId(active) && this.state.terminal.themes.some((t) => t.id === active)) {
+      const saved = { ...current, id: active, custom: true, updatedAt: Date.now() };
+      this.terminalUndo = [];
+      this.terminalRedo = [];
+      this.patchTerminal({ themes: this.state.terminal.themes.map((t) => (t.id === active ? saved : t)), draft: null });
+      return saved;
+    }
+    return this.saveTerminalThemeAs(`${current.name} (custom)`);
+  }
+
+  /** Save what she sees as a NEW theme of hers, and make it the active one. */
+  saveTerminalThemeAs(name: string): TerminalTheme {
+    const now = Date.now();
+    const created: TerminalTheme = { ...cloneTheme(this.terminalTheme()), id: newTerminalThemeId(now), name: this.freeTerminalName(name), custom: true, createdAt: now, updatedAt: now };
+    this.terminalUndo = [];
+    this.terminalRedo = [];
+    this.patchTerminal({ themes: [...this.state.terminal.themes, created], activeId: created.id, draft: null });
+    return created;
+  }
+
+  renameTerminalTheme(id: string, name: string): boolean {
+    const clean = name.trim().slice(0, 60);
+    if (!clean || !this.state.terminal.themes.some((t) => t.id === id)) return false;
+    const draft = this.state.terminal.draft;
+    this.patchTerminal({
+      themes: this.state.terminal.themes.map((t) => (t.id === id ? { ...t, name: clean, updatedAt: Date.now() } : t)),
+      ...(draft && draft.id === id ? { draft: { ...draft, name: clean } } : {}),
+    });
+    return true;
+  }
+
+  /** A copy of any theme (a preset or hers) as a new theme of hers. The copy becomes active. */
+  duplicateTerminalTheme(id: string): TerminalTheme | null {
+    const source = isPresetThemeId(id) ? presetTheme(id.slice("preset:".length)) : this.state.terminal.themes.find((t) => t.id === id);
+    if (!source) return null;
+    const now = Date.now();
+    const copy: TerminalTheme = { ...cloneTheme(source), id: newTerminalThemeId(now), name: this.freeTerminalName(`${source.name} copy`), custom: true, createdAt: now, updatedAt: now };
+    this.terminalUndo = [];
+    this.terminalRedo = [];
+    this.patchTerminal({ themes: [...this.state.terminal.themes, copy], activeId: copy.id, draft: null });
+    return copy;
+  }
+
+  /** Delete one of her themes (presets cannot be deleted). The active one falls back to its preset. */
+  deleteTerminalTheme(id: string): boolean {
+    const gone = this.state.terminal.themes.find((t) => t.id === id);
+    if (!gone) return false;
+    const wasActive = this.state.terminal.activeId === id;
+    if (wasActive) {
+      this.terminalUndo = [];
+      this.terminalRedo = [];
+    }
+    this.patchTerminal({
+      themes: this.state.terminal.themes.filter((t) => t.id !== id),
+      ...(wasActive ? { activeId: presetThemeId(gone.base), draft: null } : {}),
+    });
+    return true;
+  }
+
+  exportTerminalTheme(id?: string): string {
+    const theme = id === undefined || id === this.state.terminal.activeId ? this.terminalTheme() : isPresetThemeId(id) ? presetTheme(id.slice("preset:".length)) : this.state.terminal.themes.find((t) => t.id === id);
+    return exportTheme(theme ?? this.terminalTheme());
+  }
+
+  /** Import an exported theme as a new theme of hers (made active). Nothing changes when it cannot be read. */
+  importTerminalTheme(text: string): { ok: true; theme: TerminalTheme } | { ok: false; reason: string } {
+    const result = importTheme(text);
+    if (!result.ok) return result;
+    const now = Date.now();
+    const theme: TerminalTheme = { ...result.theme, id: newTerminalThemeId(now), name: this.freeTerminalName(result.theme.name), custom: true, createdAt: now, updatedAt: now };
+    this.terminalUndo = [];
+    this.terminalRedo = [];
+    this.patchTerminal({ themes: [...this.state.terminal.themes, theme], activeId: theme.id, draft: null });
+    return { ok: true, theme };
+  }
+
+  private freeTerminalName(wanted: string): string {
+    const taken = new Set(this.state.terminal.themes.map((t) => t.name));
+    const base = wanted.trim().slice(0, 56) || "My terminal";
+    let label = base;
+    for (let n = 2; taken.has(label); n += 1) label = `${base} ${n}`;
+    return label;
+  }
+
+  private patchTerminal(next: Partial<TerminalAppearanceState>): void {
+    const terminal = { ...this.state.terminal, ...next, canUndo: this.terminalUndo.length > 0, canRedo: this.terminalRedo.length > 0 };
+    this.state = { ...this.state, terminal };
+    try {
+      KvStore.getInstance().set(TERMINAL_KEY, { themes: terminal.themes, activeId: terminal.activeId, draft: terminal.draft });
+    } catch {
+      // storage unavailable: this session only
+    }
+    for (const listener of this.listeners) listener(this.state);
   }
 
   /* ---------------- Mission 15: Home presentations ---------------- */

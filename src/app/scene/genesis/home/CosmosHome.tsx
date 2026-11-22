@@ -28,12 +28,14 @@ import { launch } from "./homeActions";
 import { announceHome } from "./homePresence";
 import { HomeIcon, useHomeSignals } from "./HomeModules";
 import HomeComposition from "./HomeComposition";
-import { TEMPLATES, deviceClassFor, type DeviceClass, type TemplateId } from "./homeComposition";
+import { TEMPLATES, deviceClassFor, layoutOf, type DeviceClass, type TemplateId } from "./homeComposition";
 import { resolveStyle } from "./homeStyle";
 import "./cosmosHome.css";
 
 // The studio is only for arranging: it loads when opened, never with the Home.
 const HomeDesignStudio = lazy(() => import("./HomeDesignStudio"));
+// The Retro Terminal layout (kind "terminal") loads only when a presentation uses it.
+const RetroTerminal = lazy(() => import("./RetroTerminal"));
 
 export { HomeIcon };
 
@@ -74,6 +76,49 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
   // The presentation's look (theme, fonts): its CSS variables go on the Home itself,
   // so the header and edit bar follow it as well as the modules.
   const look = presentation.style ? resolveStyle(presentation.style) : null;
+  // The Retro Terminal is one more layout of this same Home: same presentation,
+  // same modules, same stores — only its frame and its own appearance differ.
+  const terminal = layoutOf(presentation).kind[device] === "terminal";
+
+  const neuralSlot = (
+    <NeuralEmbedSlot
+      open={neural}
+      host="home"
+      hostLabel="Home"
+      focus="app:home"
+      context={[{ id: "app:home", label: "Home" }, ...PRIMARY.filter((p) => p !== "workspaces").map((p) => ({ id: `app:${p}`, label: APPS.find((a) => a.id === p)?.label ?? p })), { id: "interface:cosmos", label: "Cosmos" }, { id: "interface:lelu-room", label: "LÉLU's Room" }]}
+      hostActions={[{ id: "open-app", label: "Open app", when: (e) => e.type === "app" && APPS.some((a) => a.id === e.sourceId), run: (e) => open(e.sourceId as GenesisPanel) }]}
+      unindexed="the Home's arrangement (presentations, module positions) — presentation state, kept out of the map on purpose"
+      onClose={() => setNeural(false)}
+      style={{ position: "fixed", top: 74, right: 12, zIndex: terminal ? 61 : 41 }}
+    />
+  );
+  const designStudio = studio ? (
+    <Suspense fallback={null}>
+      <HomeDesignStudio onClose={() => setStudio(false)} />
+    </Suspense>
+  ) : null;
+
+  if (terminal) {
+    return (
+      <>
+        <Suspense fallback={null}>
+          <RetroTerminal
+            presentation={presentation}
+            device={device}
+            editing={editing}
+            signals={signals}
+            editBar={editing ? <HomeEditBar device={device} onStudio={() => setStudio(true)} /> : null}
+            neural={<NeuralToggle host="home" open={neural} onToggle={() => setNeural(!neural)} style={{ alignSelf: "center" }} />}
+            onOpenLibrary={() => onOpenLibrary()}
+            onOpenWindows={onOpenWindows}
+          />
+        </Suspense>
+        {neuralSlot}
+        {designStudio}
+      </>
+    );
+  }
 
   return (
     <>
@@ -139,22 +184,8 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
     </div>
     {/* M17.2-WP02: the Home's place in the Neural Map — the Home, its apps
         and the interfaces it leads to — in the Home itself. */}
-    <NeuralEmbedSlot
-      open={neural}
-      host="home"
-      hostLabel="Home"
-      focus="app:home"
-      context={[{ id: "app:home", label: "Home" }, ...PRIMARY.filter((p) => p !== "workspaces").map((p) => ({ id: `app:${p}`, label: APPS.find((a) => a.id === p)?.label ?? p })), { id: "interface:cosmos", label: "Cosmos" }, { id: "interface:lelu-room", label: "LÉLU's Room" }]}
-      hostActions={[{ id: "open-app", label: "Open app", when: (e) => e.type === "app" && APPS.some((a) => a.id === e.sourceId), run: (e) => open(e.sourceId as GenesisPanel) }]}
-      unindexed="the Home's arrangement (presentations, module positions) — presentation state, kept out of the map on purpose"
-      onClose={() => setNeural(false)}
-      style={{ position: "fixed", top: 74, right: 12, zIndex: 41 }}
-    />
-    {studio ? (
-      <Suspense fallback={null}>
-        <HomeDesignStudio onClose={() => setStudio(false)} />
-      </Suspense>
-    ) : null}
+    {neuralSlot}
+    {designStudio}
     </>
   );
 }

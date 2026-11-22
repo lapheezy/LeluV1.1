@@ -63,6 +63,8 @@ export interface HomeCompositionProps extends HomeModuleProps {
   label?: string;
   /** Hour of the day for time-of-day layouts (default: now). */
   hour?: number;
+  /** CSS variables laid over the presentation's look (the Retro Terminal skins the modules with its own theme). */
+  skinVars?: Record<string, string>;
 }
 
 interface Drag {
@@ -75,7 +77,7 @@ interface Drag {
   rect?: NRect;
 }
 
-export default function HomeComposition({ presentation, device, editing = false, preview = false, signals, onOp, label, onOpenLibrary, onOpenWindows, hour }: HomeCompositionProps) {
+export default function HomeComposition({ presentation, device, editing = false, preview = false, signals, onOp, label, onOpenLibrary, onOpenWindows, hour, skinVars }: HomeCompositionProps) {
   const genesis = useGenesis();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -346,6 +348,7 @@ export default function HomeComposition({ presentation, device, editing = false,
   const windowShare = params.window ?? 0;
   const rootStyle: CSSProperties = {
     ...look.vars,
+    ...(skinVars ?? null),
     ["--cols" as string]: solved.columns,
     ["--rows" as string]: solved.rows,
     ["--hc-density" as string]: params.density ?? 0.5,

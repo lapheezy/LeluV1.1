@@ -1,0 +1,13 @@
+# tests 2416
+# pass 2410
+# fail 0
+# cancelled 0
+# skipped 6
+
+tsc -b --force: exit 0
+oxlint: 0 errors, 184 warnings (184 before the change)
+dist/assets/CosmosHome-DC3qqE1V.js                          8.34 kB │ gzip:   2.87 kB
+dist/assets/RetroTerminal-C6NWEz00.js                      18.42 kB │ gzip:   5.77 kB
+dist/assets/TerminalAppearanceStudio-CcRr-Q1t.js           21.83 kB │ gzip:   6.50 kB
+build exit 0
+PASS: no test files in dist/ (1907 files scanned).
