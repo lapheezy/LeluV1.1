@@ -34,6 +34,26 @@ const NEBULA_CHANCE = 0.05;
 /** Black hole spawn chance per chunk */
 const BLACK_HOLE_CHANCE = 0.005;
 
+/** Chunks farther than this (in chunks, any axis) from the camera are unloaded */
+const UNLOAD_RADIUS = CHUNK_RADIUS + 2;
+
+/**
+ * Hard ceiling on loaded chunks. The camera's unload ring alone holds at
+ * most (2·UNLOAD_RADIUS+1)³ = 1331 and streaming never exceeds that;
+ * preloads around a destination are the only way past it, so the cap is
+ * one ring plus one preload (7³ = 343). Farthest-from-camera chunks go
+ * first. Before this, every preload away from the camera added 343
+ * chunks that nothing removed until the camera next crossed a boundary.
+ */
+const MAX_LOADED_CHUNKS = 1331 + 343;
+
+type RenderableData = {
+  stars: StarData[];
+  galaxies: GalaxyData[];
+  nebulae: NebulaData[];
+  blackHoles: BlackHoleData[];
+};
+
 // ── TYPES ──
 
 export interface ChunkCoord {
@@ -218,6 +238,12 @@ export default class InfiniteCosmos {
   private cameraWorldPos = { x: 0, y: 0, z: 0 };
   private totalGenerated = 0;
   private listeners = new Set<() => void>();
+  /**
+   * Flattened render data, built once per change. The scene has four
+   * subscribers (stars, galaxies, nebulae, black holes); each used to
+   * rebuild the whole flat array from every chunk on every emit.
+   */
+  private renderable: RenderableData | null = null;
 
   private constructor() {}
 
@@ -254,32 +280,77 @@ export default class InfiniteCosmos {
   // ── CHUNK STREAMING ──
 
   private streamChunks(): void {
-    const { cx, cy, cz } = this.cameraChunk;
+    const added = this.ensureAround(this.cameraChunk);
+    const removed = this.unloadFar();
+    if (added || removed) this.changed();
+  }
 
-    // Generate missing chunks within radius
+  /** Generate any missing chunk within CHUNK_RADIUS of a center. Returns how many were added. */
+  private ensureAround(center: ChunkCoord): number {
+    const now = Date.now();
+    let added = 0;
     for (let dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
       for (let dy = -CHUNK_RADIUS; dy <= CHUNK_RADIUS; dy++) {
         for (let dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
-          const key = `${cx + dx},${cy + dy},${cz + dz}`;
-          if (!this.chunks.has(key)) {
-            this.chunks.set(key, generateChunk({ cx: cx + dx, cy: cy + dy, cz: cz + dz }));
-            this.totalGenerated++;
+          const coord = { cx: center.cx + dx, cy: center.cy + dy, cz: center.cz + dz };
+          const key = `${coord.cx},${coord.cy},${coord.cz}`;
+          const existing = this.chunks.get(key);
+          if (existing) {
+            existing.lastAccessed = now;
+            continue;
           }
+          this.chunks.set(key, generateChunk(coord));
+          this.totalGenerated++;
+          added++;
         }
       }
     }
+    return added;
+  }
 
-    // Unload chunks outside extended radius
-    const unloadRadius = CHUNK_RADIUS + 2;
+  /** Drop chunks outside the camera's unload ring. Returns how many were removed. */
+  private unloadFar(): number {
+    const { cx, cy, cz } = this.cameraChunk;
+    let removed = 0;
     for (const [key, chunk] of this.chunks) {
-      const dcx = chunk.coord.cx - cx;
-      const dcy = chunk.coord.cy - cy;
-      const dcz = chunk.coord.cz - cz;
-      if (Math.abs(dcx) > unloadRadius || Math.abs(dcy) > unloadRadius || Math.abs(dcz) > unloadRadius) {
+      const d = Math.max(
+        Math.abs(chunk.coord.cx - cx),
+        Math.abs(chunk.coord.cy - cy),
+        Math.abs(chunk.coord.cz - cz),
+      );
+      if (d > UNLOAD_RADIUS) {
         this.chunks.delete(key);
+        removed++;
       }
     }
+    return removed + this.enforceCap();
+  }
 
+  /** Evict farthest-from-camera chunks (never the camera's own ring) until under the cap. */
+  private enforceCap(): number {
+    const excess = this.chunks.size - MAX_LOADED_CHUNKS;
+    if (excess <= 0) return 0;
+    const { cx, cy, cz } = this.cameraChunk;
+    const candidates: Array<[string, number]> = [];
+    for (const [key, chunk] of this.chunks) {
+      const d = Math.max(
+        Math.abs(chunk.coord.cx - cx),
+        Math.abs(chunk.coord.cy - cy),
+        Math.abs(chunk.coord.cz - cz),
+      );
+      if (d > CHUNK_RADIUS) candidates.push([key, d]);
+    }
+    candidates.sort((a, b) => b[1] - a[1]);
+    let removed = 0;
+    for (const [key] of candidates.slice(0, excess)) {
+      this.chunks.delete(key);
+      removed++;
+    }
+    return removed;
+  }
+
+  private changed(): void {
+    this.renderable = null;
     this.emit();
   }
 
@@ -290,26 +361,27 @@ export default class InfiniteCosmos {
     return Array.from(this.chunks.values());
   }
 
-  /** Get chunks as a flat array of renderable objects */
-  getRenderableData(): {
-    stars: StarData[];
-    galaxies: GalaxyData[];
-    nebulae: NebulaData[];
-    blackHoles: BlackHoleData[];
-  } {
+  /**
+   * Get chunks as a flat array of renderable objects. The same snapshot is
+   * returned until the loaded set changes, so subscribers can compare by
+   * reference and share one build.
+   */
+  getRenderableData(): RenderableData {
+    if (this.renderable) return this.renderable;
     const stars: StarData[] = [];
     const galaxies: GalaxyData[] = [];
     const nebulae: NebulaData[] = [];
     const blackHoles: BlackHoleData[] = [];
 
     for (const chunk of this.chunks.values()) {
-      stars.push(...chunk.stars);
-      galaxies.push(...chunk.galaxies);
-      nebulae.push(...chunk.nebulae);
-      blackHoles.push(...chunk.blackHoles);
+      for (const star of chunk.stars) stars.push(star);
+      for (const galaxy of chunk.galaxies) galaxies.push(galaxy);
+      for (const nebula of chunk.nebulae) nebulae.push(nebula);
+      for (const hole of chunk.blackHoles) blackHoles.push(hole);
     }
 
-    return { stars, galaxies, nebulae, blackHoles };
+    this.renderable = { stars, galaxies, nebulae, blackHoles };
+    return this.renderable;
   }
 
   /** Get chunk at a world position */
@@ -338,25 +410,18 @@ export default class InfiniteCosmos {
     return this.chunks.size;
   }
 
-  /** Force generate chunks around a specific position (for preloading) */
+  /**
+   * Force generate chunks around a specific position (for preloading a
+   * destination before the camera gets there). Subscribers are notified
+   * when anything new was generated — the first preload at mount is what
+   * fills the sky, and it used to be silent, so the star field mounted
+   * empty and stayed empty until the camera crossed a chunk boundary.
+   */
   preloadAround(x: number, y: number, z: number): void {
-    const center: ChunkCoord = {
-      cx: Math.floor(x / CHUNK_SIZE),
-      cy: Math.floor(y / CHUNK_SIZE),
-      cz: Math.floor(z / CHUNK_SIZE),
-    };
-
-    for (let dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
-      for (let dy = -CHUNK_RADIUS; dy <= CHUNK_RADIUS; dy++) {
-        for (let dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
-          const key = `${center.cx + dx},${center.cy + dy},${center.cz + dz}`;
-          if (!this.chunks.has(key)) {
-            this.chunks.set(key, generateChunk({ cx: center.cx + dx, cy: center.cy + dy, cz: center.cz + dz }));
-            this.totalGenerated++;
-          }
-        }
-      }
-    }
+    const added = this.ensureAround(InfiniteCosmos.worldToChunk(x, y, z));
+    if (added === 0) return;
+    this.enforceCap();
+    this.changed();
   }
 
   /** Check if a world position is within loaded chunks */
@@ -387,6 +452,11 @@ export default class InfiniteCosmos {
     return CHUNK_SIZE;
   }
 
+  /** Hard ceiling on loaded chunks */
+  static getMaxLoadedChunks(): number {
+    return MAX_LOADED_CHUNKS;
+  }
+
   // ── SUBSCRIPTIONS ──
 
   subscribe(listener: () => void): () => void {
@@ -400,11 +470,19 @@ export default class InfiniteCosmos {
     }
   }
 
+  /** Drop every loaded chunk without regenerating (coordinates stay deterministic). */
+  clear(): void {
+    this.chunks.clear();
+    this.changed();
+  }
+
   /** Reset and regenerate all chunks */
   reset(): void {
     this.chunks.clear();
     this.totalGenerated = 0;
     this.streamChunks();
+    // streamChunks only emits on a difference; a reset always is one.
+    this.changed();
   }
 
   /** Get stats for diagnostics */

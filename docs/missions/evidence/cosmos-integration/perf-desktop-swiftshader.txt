@@ -1,0 +1,8 @@
+# after (desktop 1440x900, 3 runs)
+{"fps":0.42,"frames":8,"longTaskMs":19052,"longTasks":13,"avgFrameMs":2382,"heapMB":12.7,"calls":482}
+{"fps":0.78,"frames":12,"longTaskMs":15211,"longTasks":19,"avgFrameMs":1268,"heapMB":38,"calls":488}
+{"fps":0.66,"frames":11,"longTaskMs":15605,"longTasks":16,"avgFrameMs":1419,"heapMB":9.4,"calls":541}
+# before
+{"fps":0.65,"frames":11,"longTaskMs":15392,"longTasks":16,"avgFrameMs":1399,"heapMB":34.9,"calls":481}
+{"fps":0.58,"frames":9,"longTaskMs":15423,"longTasks":14,"avgFrameMs":1714,"heapMB":49.5,"calls":186}
+{"fps":0.52,"frames":8,"longTaskMs":15363,"longTasks":13,"avgFrameMs":1920,"heapMB":103.3,"calls":466}

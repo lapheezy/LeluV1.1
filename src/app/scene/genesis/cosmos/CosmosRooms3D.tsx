@@ -20,11 +20,10 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { AdditiveBlending, Color, type Group } from "three";
-import { useRef } from "react";
 import CosmosNavigation, { type NavNode, type NavigationState } from "../../../../core/cosmos/CosmosNavigation";
 import SpatialObjects, { type SpatialObject } from "../../../../core/cosmos/SpatialObjects";
 import CosmosFocus, { type FocusTarget } from "../../../../core/cosmos/CosmosFocus";
@@ -64,6 +63,11 @@ function flyTo(x: number, y: number, z: number): void {
   window.dispatchEvent(new CustomEvent("cosmos-navigate", { detail: { pos: { x, y, z: z + 10 }, lookAt: { x, y, z } } }));
 }
 
+/** Fly the existing camera to a destination ring (where the ring is drawn). */
+function flyToNode(node: NavNode): void {
+  flyTo(node.position[0], node.position[1], node.position[2] + Z_OFFSET);
+}
+
 function DestinationRing({ node, current, focused }: { node: NavNode; current: boolean; focused: boolean }) {
   const group = useRef<Group>(null);
   const color = useMemo(() => new Color(LEVEL_COLOR[node.level] ?? "#94a3b8"), [node.level]);
@@ -81,7 +85,10 @@ function DestinationRing({ node, current, focused }: { node: NavNode; current: b
   const goTo = () => {
     WorkspaceAPI.getInstance().execute({ action: "navigate", actor: "user", roomId: node.id });
     CosmosFocus.getInstance().set({ kind: "node", id: node.id });
-    flyTo(node.position[0], node.position[1], node.position[2] + Z_OFFSET);
+    // Arriving somewhere new flies the camera from CosmosRooms3D's
+    // navigation subscription (the same path the panel and LÉLU use).
+    // Tapping the place you are already in only re-centres on it.
+    if (current) flyToNode(node);
   };
 
   return (
@@ -227,6 +234,31 @@ export default function CosmosRooms3D() {
       unsubFocus();
     };
   }, []);
+
+  /*
+   * Arrival moves the camera. CosmosNavigation is the one record of where
+   * you are, and it changes from three places: a ring tapped here, a row
+   * in the Cosmos workspace panel, and LÉLU's cosmos.workspace "navigate".
+   * Only the ring tap used to fly the camera, so the other two moved the
+   * highlight and left the view where it was. Following currentId here
+   * covers all three. The first value is where you already were (restored
+   * from storage), not an arrival, so it does not fly on load. The core
+   * is drawn by the scene itself, at the origin.
+   */
+  const lastCurrent = useRef(state.currentId);
+  useEffect(() => {
+    if (state.currentId === lastCurrent.current) return;
+    lastCurrent.current = state.currentId;
+    const node = state.nodes.find((n) => n.id === state.currentId);
+    if (!node) return;
+    if (node.level === "core") {
+      // Back to the core is back to the Genesis view CosmosLayer defines.
+      const camera = (window as unknown as { __cosmosCamera?: { resetToGenesis?: () => void } }).__cosmosCamera;
+      camera?.resetToGenesis?.();
+      return;
+    }
+    flyToNode(node);
+  }, [state.currentId, state.nodes]);
 
   const nodes = useMemo(
     () => state.nodes.filter((node) => node.level !== "core").slice(0, MAX_NODES),

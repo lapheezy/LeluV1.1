@@ -1,0 +1,8 @@
+Per-frame star-field work, Node + real three.js, 1716 stars (the first-paint sky).
+Run 1 (idle machine):            old 0.186 ms/frame   new 0.156 ms/frame
+Run 2 (test suite running too):  old 0.199 ms/frame   new 0.199 ms/frame
+=> CPU time difference is within noise on this server CPU.
+Structural difference (not timing): old allocated 2 Float32Arrays + 2 BufferAttributes
++ 1716 Color objects per frame and re-uploaded positions (41184 B/frame);
+new allocates nothing per frame and re-uploads colours only (20592 B/frame).
+Positions are uploaded once per chunk-boundary change.
