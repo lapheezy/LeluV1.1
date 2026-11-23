@@ -103,6 +103,11 @@ EXECUTE in the catalogue. It is a trigger function, like the two the lockdown re
 does not flag it, so it is recorded here as a candidate for the same lockdown, not as a confirmed
 exposure. Revoking it is a one-line follow-up that needs approval.
 
+> **Update (same day, 14:54 UTC):** closed by migration `20261123145445_continuity_touch_execute_lockdown`.
+> See `docs/production/2026-11-23-security-closure.md`, which also records the decisions on `rls_auto_enable()`
+> and leaked-password protection. It also notes that `lelu_migration_guard_20261123` is a schema of 6 tables,
+> not a single table.
+
 ## 7. Rollback snapshot
 
 Name from the mission: `lelu_migration_guard_20261123`. **Not inspected or modified in this run**;
