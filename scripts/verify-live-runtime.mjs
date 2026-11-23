@@ -145,12 +145,19 @@ try {
   );
 
   console.log("\n== TEST 1 — a message typed into the existing chat input reaches the runtime ==");
+  // Dismiss sign-in gate if present
+  await page.evaluate(() => {
+    const gate = document.querySelector("[data-lelu-signin-gate]");
+    [...(gate?.querySelectorAll("button") ?? [])].find((b) => /Continue/.test(b.innerText))?.click();
+  }).catch(() => {});
+  await page.waitForTimeout(500);
+
   // The chat surface lives behind the LÉLU dock button; it is not
   // mounted at load, which is why a plain textarea selector finds
   // nothing until this is clicked.
   await page.getByRole("button", { name: "LÉLU", exact: true }).first().click();
 
-  const input = page.locator('textarea[placeholder="Type instructions for Lélu…"]').first();
+  const input = page.locator('textarea[placeholder="Message LÉLU…"], textarea[placeholder="Type instructions for Lélu…"]').first();
   await input.waitFor({ state: "visible", timeout: 20000 });
   assert(true, "the existing chat input is present and visible (Phase 10)");
 

@@ -178,6 +178,7 @@ async function main(): Promise<void> {
   );
 
   console.log("\n== B — the conversation is the real, persistent MultiChatStore, not an in-memory illusion ==");
+  store.flush();
   const threadId = chat.getThreadId();
   const viaStore = store.get(threadId);
   assert(Boolean(viaStore), "the thread exists as a real MultiChatStore conversation");

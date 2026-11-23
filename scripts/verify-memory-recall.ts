@@ -178,6 +178,7 @@ async function main(): Promise<void> {
   await ai.chat("My name is Jordan.");
   await ai.chat("I love hiking on weekends.");
   await ai.chat("My goal is to run a marathon next year.");
+  await ai.waitForPendingConsolidations();
 
   // Sanity: the facts really are in long-term memory (extraction/
   // persistence were never the suspected bug, but confirm anyway).
