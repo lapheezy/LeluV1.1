@@ -66,7 +66,7 @@ function number(value: unknown): number {
 
 /**
  * A strict revision token. `continuity_revision` is written only by the
- * database trigger in migration 202611160001; `updated_at` is retained as a
+ * database trigger in migration 20261123094156 (applied to production as that version); `updated_at` is retained as a
  * compatibility fallback for a project that has not applied that migration.
  */
 function cloudRevisionOf(row: Row): string {

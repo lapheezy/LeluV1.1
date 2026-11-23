@@ -11,7 +11,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 
 const migration = readFileSync(
-  "supabase/migrations/202611160001_continuity_revisions.sql",
+  "supabase/migrations/20261123094156_continuity_revisions.sql",
   "utf8",
 );
 const transport = readFileSync(
