@@ -1,0 +1,61 @@
+import test from "node:test";
+if (typeof globalThis.window === "undefined") (globalThis as any).window = globalThis;
+if (typeof (globalThis as any).location === "undefined") (globalThis as any).location = new URL("http://localhost:5173/");
+if (typeof localStorage === "undefined") {
+  const s: Record<string,string> = {};
+  (globalThis as any).localStorage = { getItem:(k:string)=>s[k]??null, setItem:(k:string,v:string)=>{s[k]=v}, removeItem:(k:string)=>{delete s[k]}, clear:()=>{for(const k of Object.keys(s)) delete s[k]}, get length(){return Object.keys(s).length}, key:(i:number)=>Object.keys(s)[i]??null };
+}
+import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
+import StudyObjectives from "../src/core/cognition/StudyObjectives";
+import ImprovementQueue from "../src/core/selfdev/ImprovementQueue";
+import SelfDevelopmentLoop from "../src/core/selfdev/SelfDevelopmentLoop";
+import AutonomyGate from "../src/core/cognition/AutonomyGate";
+import SourceAccess from "../src/core/selfdev/SourceAccess";
+import UsageLedger from "../src/core/observability/UsageLedger";
+import UsageBudgetGate from "../src/core/observability/UsageBudgetGate";
+import { buildDevelopmentRecord } from "../src/core/selfdev/DevelopmentRecord";
+import { stopBackgroundCognition } from "./support/isolation";
+import { writeFileSync } from "node:fs";
+
+const redact = (t?: string) => t?.replace(/org_[0-9a-z]+/g, "org_[redacted]");
+
+test("real run", { timeout: 3_000_000 }, async () => {
+  await stopBackgroundCognition();
+  const status = await SourceAccess.getInstance().status(true);
+  console.log("SOURCE", status.reachable, status.runtime);
+  const engine = SelfStudyEngine.getInstance();
+  const N = Number(process.env.N ?? 40);
+  const rows: any[] = [];
+  let proposalId: string | undefined;
+  for (let i = 0; i < N && !proposalId; i++) {
+    const r = await engine.runCycle();
+    rows.push({ c: r.cycle, q: r.objective?.question, origin: r.objective?.origin, tool: r.tool, evOrigin: r.evidenceOrigin, verdict: r.conclusion?.verdict, by: r.conclusion?.synthesizedBy, change: r.conclusion?.change, learned: r.conclusion?.learned?.slice(0, 400), note: r.conclusion?.note, proposalId: r.conclusion?.proposalId });
+    if (r.provider || r.conclusion?.synthesizedBy?.startsWith("provider")) console.log("MODEL", r.cycle, r.conclusion?.verdict, "|", r.objective?.question?.slice(0, 100), "|", (r.conclusion?.change ?? r.conclusion?.learned ?? "").slice(0, 200));
+    if (r.conclusion?.proposalId) { proposalId = r.conclusion.proposalId; console.log("PROPOSED", r.cycle, r.conclusion.subject, "|", r.conclusion.change); }
+  }
+  let development: any = null;
+  if (proposalId) {
+    // Owner's instruction: approve her proposal and let her own loop implement it.
+    const gate = AutonomyGate.getInstance();
+    const level = gate.getLevel();
+    gate.setLevel(3);
+    try {
+      const run = await SelfDevelopmentLoop.getInstance().develop(proposalId);
+      development = { success: run.success, finalStatus: run.finalStatus, summary: run.summary, steps: run.steps };
+      console.log("DEVELOP", run.success, run.finalStatus, "|", run.summary);
+    } finally {
+      gate.setLevel(level);
+    }
+  }
+  const proposals = ImprovementQueue.getInstance().list().filter((p) => p.origin?.kind === "self-study");
+  writeFileSync(process.env.OUT!, JSON.stringify({
+    sourceAccess: { reachable: status.reachable, runtime: status.runtime },
+    allowance: UsageBudgetGate.getInstance().backgroundAllowance(),
+    usageByPurpose: UsageLedger.getInstance().summaryByPurpose("session"),
+    usageEvents: UsageLedger.getInstance().allEvents().map((e) => ({ source: e.source, model: e.model, operation: e.operation, ok: e.ok, error: redact(e.error?.slice(0, 200)) })),
+    proposals,
+    development,
+    record: buildDevelopmentRecord(StudyObjectives.getInstance().list(), ImprovementQueue.getInstance().list()),
+    rows,
+  }, null, 2));
+});
