@@ -1,0 +1,60 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/meshes/v015_look_bronze_velocity/lelu.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25c/final/bronze_velocity/side.png",
+ "view": "left",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   0.8799999952316284
+  ],
+  "radius": 0.92,
+  "lens": 70.0,
+  "distance": 3.694170248805609,
+  "location": [
+   3.689561128616333,
+   0.0,
+   1.0644780397415161
+  ]
+ },
+ "resolution": [
+  1024,
+  1536
+ ],
+ "samples": 48,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.5216184212929673,
+  "exposureEV": -3.0795378055656735
+ },
+ "objects": [
+  "bronze_bag",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_ringlets",
+  "lelu_hair_strands",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_bronze_velocity"
+ ],
+ "triangles": 400351,
+ "materialsApplied": [
+  "m25_hair_curl: anisotropy (Cycles extension)",
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_highlight: anisotropy (Cycles extension)",
+  "m25_hair_strand: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 26.72,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

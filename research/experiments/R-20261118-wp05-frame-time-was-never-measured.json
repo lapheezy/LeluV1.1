@@ -1,0 +1,61 @@
+{
+  "id": "R-20261118-wp05-frame-time-was-never-measured",
+  "kind": "experiments",
+  "createdAt": 1795034704551,
+  "updatedAt": 1795034704551,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP05",
+  "observed": "Projection cost was measured structurally for 4 variants: 15 draw calls each, GPU bytes 27.6/26.3/21.5/18.5 MB, parse 105.7/56.8/77.7/72.7 ms. No frame time was measured on any device.",
+  "studied": "What a static projection measurement can and cannot say about real-time performance.",
+  "question": "Does the tube hair hold a mobile frame budget?",
+  "hypothesis": "Lower triangle counts imply a proportionally lower frame time.",
+  "method": "Parse each GLB, count triangles and draw calls, estimate GPU bytes, and time the parse. Do not extrapolate to frames.",
+  "results": "Triangle and memory cost fall with LOD; frame time is unmeasured. The honest statement is structural: the binding cost is not known.",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/projection.json",
+      "note": "draw calls, triangles, GPU bytes, parse time, no frame time"
+    },
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-artifacts.test.ts",
+      "note": "asserts the 'no frame time' note is still there"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "Triangle count is a proxy for GPU work only when the bottleneck is vertex processing. Nothing in this data establishes that, so no iPhone or real-time claim can be made.",
+  "confidence": 0.57,
+  "limitations": [
+    "No device or browser benchmark was run; p50/p95 frame times and LOD transition cost are unknown.",
+    "GPU byte estimates are derived from buffer sizes, not from measured upload."
+  ],
+  "applications": [
+    "The LOD ladder is ready for a device benchmark that has not happened yet."
+  ],
+  "nextQuestions": [
+    "What is p50/p95 frame time for tubes-high on a mid-range phone at 1080p?",
+    "At what screen coverage does the high LOD stop being affordable?"
+  ],
+  "answers": [],
+  "status": "open",
+  "tags": [
+    "mobile",
+    "benchmark",
+    "projection",
+    "unmeasured",
+    "wp05"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

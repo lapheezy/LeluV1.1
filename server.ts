@@ -25,6 +25,7 @@
  */
 
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createSelfJournalApi } from "./plugins/selfJournalApi.ts";
 import { createVoiceApi } from "./plugins/voiceApi.ts";
 import { getPersistentPiper, shutdownPersistentPipers } from "./plugins/persistentPiper.ts";
 import { createLivekitApi } from "./plugins/livekitApi.ts";
@@ -53,6 +54,7 @@ import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAsreApi } from "./plugins/asreApi.ts";
+import { createFoundryApi } from "./plugins/foundryApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
 import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
@@ -456,6 +458,7 @@ const nekoApi = createNekoApi((key) => process.env[key]);
 
 createEngineerApi(createNodeEngineerAdapter("node-server")).attach(middlewares);
 createSelfViewApi().attach(middlewares);
+createSelfJournalApi().attach(middlewares);
 // Intelligence integrations: real service probes, real OPA decisions and
 // real security scans. Mounted HERE as well as in Vite dev, so the deployed
 // runtime is not a lesser version of the development one.
@@ -517,6 +520,8 @@ const forgeApi = createMeshyForgeApi((key) => process.env[key]);
 forgeApi.attach(middlewares);
 // ASRE files its finished geometry in the same Forge ledger (job kind "asre").
 createAsreApi((key) => process.env[key], { forgeStore: forgeApi.forge.store }).attach(middlewares);
+// Character Foundry: reference intelligence, immutable versions and Cycles renders — local only.
+createFoundryApi((key) => process.env[key]).attach(middlewares);
 // The GitHub Models relay forwards with the SERVER's token, so it is for a
 // signed-in user only (it was reachable anonymously).
 const aiRelayGuard = createGuard();

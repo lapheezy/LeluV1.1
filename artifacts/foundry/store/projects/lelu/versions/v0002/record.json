@@ -1,0 +1,2071 @@
+{
+ "id": "v0002",
+ "projectId": "lelu",
+ "label": "2.3.1 youth identity pass (reference-measured)",
+ "createdAt": "2026-11-19T10:53:24.907Z",
+ "parentId": "v0001",
+ "operation": "import",
+ "spec": {
+  "variant": "youth",
+  "identity": "lelu-canonical",
+  "foundation": "0883b24ef7a9655f",
+  "metricsPath": "artifacts/lelu2/m23/youth/metrics-youth.json"
+ },
+ "model": {
+  "file": "versions/v0002/model.glb",
+  "sha256": "d1483ce953c9779b8160378ec2bf79b914f35efca67496be8db7f33b3f4aa2bd",
+  "bytes": 41966316
+ },
+ "triangles": 1289906,
+ "validation": {
+  "verdict": "close",
+  "landmarks": [
+   {
+    "feature": "jaw width",
+    "measured": 98.65,
+    "reference": 96,
+    "unit": "mm",
+    "delta": 2.65,
+    "tolerance": 4,
+    "status": "within",
+    "consequence": "a wider jaw reads as a different person"
+   },
+   {
+    "feature": "jaw / cheek",
+    "measured": 0.67,
+    "reference": 0.68,
+    "unit": "ratio",
+    "delta": -0.01,
+    "tolerance": 0.04,
+    "status": "within",
+    "consequence": "the face's taper"
+   },
+   {
+    "feature": "chin / jaw",
+    "measured": 0.47,
+    "reference": 0.45,
+    "unit": "ratio",
+    "delta": 0.02,
+    "tolerance": 0.04,
+    "status": "within",
+    "consequence": "square versus tapered chin"
+   },
+   {
+    "feature": "mouth width",
+    "measured": null,
+    "reference": 50.4,
+    "unit": "mm",
+    "delta": null,
+    "tolerance": 3,
+    "status": "not-measured",
+    "consequence": "lip width against the iris; this build does not measure it"
+   },
+   {
+    "feature": "nose width",
+    "measured": null,
+    "reference": 37.8,
+    "unit": "mm",
+    "delta": null,
+    "tolerance": 3,
+    "status": "not-measured",
+    "consequence": "alar definition; this build does not measure it"
+   },
+   {
+    "feature": "interpupillary",
+    "measured": 61.75,
+    "reference": 63,
+    "unit": "mm",
+    "delta": -1.25,
+    "tolerance": 3,
+    "status": "within",
+    "consequence": "eye spacing"
+   },
+   {
+    "feature": "hairline above eye line",
+    "measured": 52.38,
+    "reference": 87.68,
+    "unit": "mm",
+    "delta": -35.3,
+    "tolerance": 8,
+    "status": "outside",
+    "consequence": "forehead height, the most visible hair defect"
+   }
+  ],
+  "hair": [
+   {
+    "feature": "front strands",
+    "measured": 149,
+    "spec": 96,
+    "unit": "strands",
+    "status": "within"
+   },
+   {
+    "feature": "hairline coverage",
+    "measured": 100,
+    "spec": 100,
+    "unit": "%",
+    "status": "within"
+   },
+   {
+    "feature": "root thickness (min)",
+    "measured": 0.16150341919623315,
+    "spec": 0.1,
+    "unit": "mm",
+    "status": "outside"
+   },
+   {
+    "feature": "root thickness (max)",
+    "measured": 0.44898136035073544,
+    "spec": 0.12,
+    "unit": "mm",
+    "status": "outside"
+   },
+   {
+    "feature": "strand length (min)",
+    "measured": 5.799625120972145,
+    "spec": 5.8,
+    "unit": "mm",
+    "status": "within"
+   },
+   {
+    "feature": "strand length (max)",
+    "measured": 33.90143490677999,
+    "spec": 33.9,
+    "unit": "mm",
+    "status": "within"
+   }
+  ],
+  "notes": [
+   "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+   "features this build never measured are reported as not-measured, never assumed close"
+  ],
+  "validatedAt": "2026-11-19T11:12:47.360Z"
+ },
+ "renders": [
+  {
+   "shot": "face-close-up",
+   "file": "versions/v0002/renders/face-close-up.png",
+   "sha256": "6bd02d1daa35bd40366803140078450e8012eb7193a4e3711cf67fc077179e0d",
+   "seconds": 37.56,
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.5288000106811523
+    ],
+    "radius": 0.145,
+    "lens_mm": 135,
+    "distance_m": 1.1629515262898966
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.7726812169674399,
+     "excess": 0.13673083769203384,
+     "missing": 0.09058794534052633,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.2058,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.00 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "nose-lips",
+   "file": "versions/v0002/renders/nose-lips.png",
+   "sha256": "aee9a0a8baeb088477557055649b72d4800161f67e8744c3d3834721d9a7c268",
+   "seconds": 22.33,
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.5583000183105469
+    ],
+    "radius": 0.07,
+    "lens_mm": 180,
+    "distance_m": 0.74570077108717
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.81563651248465,
+     "excess": 0.1397462136717151,
+     "missing": 0.044617273843634876,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.4389,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.00 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "hairline",
+   "file": "versions/v0002/renders/hairline.png",
+   "sha256": "89f241c198b6b6dd187dae6fc229a4b7daaad362414d2b07f8bcb917657193a2",
+   "seconds": 30.71,
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.6246999502182007
+    ],
+    "radius": 0.095,
+    "lens_mm": 150,
+    "distance_m": 0.8451870706798847
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.7475783943523231,
+     "excess": 0.12428172713840092,
+     "missing": 0.12813987850927597,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.2602,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.08 vs reference 0.75 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "curl-detail",
+   "file": "versions/v0002/renders/curl-detail.png",
+   "sha256": "ace77385b0a896b7cdaf71c4dbf82fd90ef5ff37b9995c8e9bc766c214615c36",
+   "seconds": 22.72,
+   "camera": {
+    "center": [
+     0.09000000357627869,
+     -0.05999999865889549,
+     1.523800015449524
+    ],
+    "radius": 0.075,
+    "lens_mm": 135,
+    "distance_m": 0.6015266515292568
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0,
+     "excess": 0,
+     "missing": 0,
+     "usable": false,
+     "note": "mask coverage 99.4% / 55.7% — the background was not separable, so the silhouette is not measured"
+    },
+    "colourDistance": null,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "mask coverage 99.4% / 55.7% — the background was not separable, so the silhouette is not measured",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.00 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "hair-full",
+   "file": "versions/v0002/renders/hair-full.png",
+   "sha256": "b785ff0b2aaf66955a9445f6f6449025aa77ca58217b7515232cf027633b5def",
+   "seconds": 19.21,
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.4201204603733079,
+     "excess": 0.12603613811199238,
+     "missing": 0.45384340151469976,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.419,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.07 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "jewelry",
+   "file": "versions/v0002/renders/jewelry.png",
+   "sha256": "886080f232db544615d39fbca88ef791dcd60625dbe5337f212a135bc7fd77df",
+   "seconds": 19.63,
+   "camera": {
+    "center": [
+     0,
+     -0.04907458275556564,
+     1.5824611186981201
+    ],
+    "radius": 0.13534896484788744,
+    "lens_mm": 70,
+    "distance_m": 0.5760893981484392
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.6609592770034843,
+     "excess": 0.20949477351916376,
+     "missing": 0.12954594947735193,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.1747,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.06 vs reference 0.75 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "portrait-front",
+   "file": "versions/v0002/renders/portrait-front.png",
+   "sha256": "257b826b7038e305da1b2f112d2b562e7ce10a23a4fa5e17c75c73f7587cb257",
+   "seconds": 16.52,
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.40332045648904485,
+     "excess": 0.07039013889298458,
+     "missing": 0.5262894046179706,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.317,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.30 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "portrait-three-quarter",
+   "file": "versions/v0002/renders/portrait-three-quarter.png",
+   "sha256": "d85f64a0d60c26028015a5881a770eb12cd338693a27d7d51bdfa53a980ced2e",
+   "seconds": 15.34,
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.46284568905414825,
+     "excess": 0.06925400883104811,
+     "missing": 0.4679003021148036,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.3854,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.07 vs reference 0.75 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "profile",
+   "file": "versions/v0002/renders/profile.png",
+   "sha256": "c1b3b5c5d7f91dfdcd3f28f07a15470d77cbe6cefd927475da7418dea94f7080",
+   "seconds": 12.84,
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.5284826444486661,
+     "excess": 0.008223193204331425,
+     "missing": 0.4632941623470025,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.2246,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "differs",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close"
+    ]
+   }
+  },
+  {
+   "shot": "rear",
+   "file": "versions/v0002/renders/rear.png",
+   "sha256": "fdb925e7287ed15ef43fdf4d2b00463920d31479803ff077ddeed50951d57352",
+   "seconds": 15.21,
+   "camera": {
+    "center": [
+     0.0004821270704269409,
+     0.00009249895811080933,
+     1.4473623037338257
+    ],
+    "radius": 0.4494813524688876,
+    "lens_mm": 70,
+    "distance_m": 1.913139432678783
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.4017952881345547,
+     "excess": 0.10201893324346681,
+     "missing": 0.4961857786219785,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.1398,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.14 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "upper-body",
+   "file": "versions/v0002/renders/upper-body.png",
+   "sha256": "cc179862f0c6affeafb3c073d678880ffa9a427a0ffa7c6b84cc0f0a0fc2c186",
+   "seconds": 18.49,
+   "camera": {
+    "center": [
+     -4.023313522338867e-7,
+     0.00009249895811080933,
+     1.3907101154327393
+    ],
+    "radius": 0.5969280562611871,
+    "lens_mm": 70,
+    "distance_m": 2.540720758787483
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.8274617305395723,
+     "excess": 0.0027684290522201715,
+     "missing": 0.16976984040820758,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.5648,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "unknown",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close",
+     "framing differs: render aspect 1.34 vs reference 0.67 — no silhouette verdict is claimed"
+    ]
+   }
+  },
+  {
+   "shot": "full-body",
+   "file": "versions/v0002/renders/full-body.png",
+   "sha256": "35b437e82d0abe4ce74ab69c3ed9d7a7565fba4da766cfd1df977b0d81b20445",
+   "seconds": 15.86,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.04197274148464203,
+     0.8542441725730896
+    ],
+    "radius": 1.0317547025515603,
+    "lens_mm": 70,
+    "distance_m": 4.391484975875141
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.6827088159149748,
+     "excess": 0.0014715901348957624,
+     "missing": 0.31581959395012943,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.5835,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "differs",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close"
+    ]
+   }
+  },
+  {
+   "shot": "eyes",
+   "file": "versions/v0002/renders/eyes.png",
+   "sha256": "3cb50a9cac612f7083390322bcd9026e1d18f8a773697b5c330a2bf4977c9604",
+   "seconds": 39.53,
+   "camera": {
+    "center": [
+     0,
+     -0.10000000149011612,
+     1.5784000158309937
+    ],
+    "radius": 0.07,
+    "lens_mm": 200,
+    "distance_m": 0.8277767102155682
+   },
+   "comparison": {
+    "silhouette": {
+     "iou": 0.8313101830382716,
+     "excess": 0.12698109604735536,
+     "missing": 0.041708720914373006,
+     "usable": true,
+     "note": "normalised content-box IoU: shape agreement only, insensitive to absolute scale"
+    },
+    "colourDistance": 0.4853,
+    "landmarks": [
+     {
+      "feature": "jaw width",
+      "measured": 98.65,
+      "reference": 96,
+      "unit": "mm",
+      "delta": 2.65,
+      "tolerance": 4,
+      "status": "within",
+      "consequence": "a wider jaw reads as a different person"
+     },
+     {
+      "feature": "jaw / cheek",
+      "measured": 0.67,
+      "reference": 0.68,
+      "unit": "ratio",
+      "delta": -0.01,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "the face's taper"
+     },
+     {
+      "feature": "chin / jaw",
+      "measured": 0.47,
+      "reference": 0.45,
+      "unit": "ratio",
+      "delta": 0.02,
+      "tolerance": 0.04,
+      "status": "within",
+      "consequence": "square versus tapered chin"
+     },
+     {
+      "feature": "mouth width",
+      "measured": null,
+      "reference": 50.4,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "lip width against the iris; this build does not measure it"
+     },
+     {
+      "feature": "nose width",
+      "measured": null,
+      "reference": 37.8,
+      "unit": "mm",
+      "delta": null,
+      "tolerance": 3,
+      "status": "not-measured",
+      "consequence": "alar definition; this build does not measure it"
+     },
+     {
+      "feature": "interpupillary",
+      "measured": 61.75,
+      "reference": 63,
+      "unit": "mm",
+      "delta": -1.25,
+      "tolerance": 3,
+      "status": "within",
+      "consequence": "eye spacing"
+     },
+     {
+      "feature": "hairline above eye line",
+      "measured": 52.38,
+      "reference": 87.68,
+      "unit": "mm",
+      "delta": -35.3,
+      "tolerance": 8,
+      "status": "outside",
+      "consequence": "forehead height, the most visible hair defect"
+     }
+    ],
+    "hair": [
+     {
+      "feature": "front strands",
+      "measured": 149,
+      "spec": 96,
+      "unit": "strands",
+      "status": "within"
+     },
+     {
+      "feature": "hairline coverage",
+      "measured": 100,
+      "spec": 100,
+      "unit": "%",
+      "status": "within"
+     },
+     {
+      "feature": "root thickness (min)",
+      "measured": 0.16150341919623315,
+      "spec": 0.1,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "root thickness (max)",
+      "measured": 0.44898136035073544,
+      "spec": 0.12,
+      "unit": "mm",
+      "status": "outside"
+     },
+     {
+      "feature": "strand length (min)",
+      "measured": 5.799625120972145,
+      "spec": 5.8,
+      "unit": "mm",
+      "status": "within"
+     },
+     {
+      "feature": "strand length (max)",
+      "measured": 33.90143490677999,
+      "spec": 33.9,
+      "unit": "mm",
+      "status": "within"
+     }
+    ],
+    "verdict": "close",
+    "notes": [
+     "colour distance compares masked histograms; it rewards a similar palette, not correct geometry",
+     "features this build never measured are reported as not-measured, never assumed close"
+    ]
+   }
+  }
+ ],
+ "exports": [],
+ "notes": [
+  "imported from the m23:youth build; the store copied the bytes and hashed them"
+ ]
+}

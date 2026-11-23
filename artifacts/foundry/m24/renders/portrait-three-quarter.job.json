@@ -1,0 +1,35 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/assets/lelu-m24-hair-split.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/renders/portrait-three-quarter.png",
+ "shot": "portrait-three-quarter",
+ "view": "three-quarter",
+ "focus": [
+  "head",
+  "face",
+  "hair",
+  "neck"
+ ],
+ "camera": {
+  "center": [
+   0.0004821270704269409,
+   0.00009249895811080933,
+   1.4473623037338257
+  ],
+  "radius": 0.4494813524688876
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 16,
+ "threads": 7,
+ "ground": false,
+ "lens": 70,
+ "materials": false,
+ "rest_pose": true,
+ "exclude": [
+  "Icosphere"
+ ]
+}

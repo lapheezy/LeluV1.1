@@ -1,0 +1,51 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/acceptance/v0004/14-clothing-close-up.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.09000000357627869,
+   1.1699999570846558
+  ],
+  "radius": 0.16,
+  "lens": 85.0,
+  "distance": 0.7723109461420732,
+  "location": [
+   0.0,
+   -0.8598513603210449,
+   1.2315881252288818
+  ]
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 64,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0355626514388456,
+  "exposureEV": -2.524346027439724
+ },
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "triangles": 224233,
+ "materialsApplied": [],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 63.38,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

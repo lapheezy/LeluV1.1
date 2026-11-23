@@ -1,0 +1,203 @@
+{
+ "asset": {
+  "v0004": "6b9bccbe3591a3eecdf624e2965e83490182213f3c7f8dab0bd6e106f5594b18",
+  "v0003": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce"
+ },
+ "causeCodes": {
+  "A": "geometry/topology",
+  "B": "vertex normals",
+  "C": "material/shader",
+  "D": "texture resolution/content",
+  "E": "UV mapping",
+  "F": "lighting",
+  "G": "sampling",
+  "H": "camera/post (exposure, tone map)",
+  "I": "multiple interacting"
+ },
+ "inspected": [
+  "face",
+  "skull",
+  "eyes",
+  "eyelids",
+  "eyebrows",
+  "nose",
+  "lips",
+  "ears",
+  "neck",
+  "shoulders",
+  "chest",
+  "torso",
+  "arms",
+  "hands",
+  "clothing",
+  "hair",
+  "accessories"
+ ],
+ "notDefects": [
+  "degenerate triangles: 0 zero-area, 0 collapsed, 0 duplicate faces on every object (v0004)",
+  "inverted loop normals: 0 on every object",
+  "winding: 18 inconsistent welded edges on char1, 66 on lelu_hair, 28 on lelu_scalp — too few to explain region-wide artefacts",
+  "transparency sorting: head/body materials are HASHED with alpha 1.0 — no transparent surfaces to sort",
+  "the 'Icosphere' seen on import is a Blender importer bone shape, not part of the GLB (not in its node list)"
+ ],
+ "defects": [
+  {
+   "id": "D01",
+   "region": "hair (lelu_hair) — close-ups",
+   "symptom": "folded, angular, metallic-grey ribbons",
+   "causes": [
+    "A",
+    "B",
+    "C",
+    "H"
+   ],
+   "primary": "I",
+   "evidence": {
+    "geometry": "welded dihedral median 31.94739°, 23.8 % of adjacent pairs bend > 60° — the ribbons really are folded strips",
+    "normals": "80.5 % of shared positions carry a > 30° normal split — every fold is drawn as a hard crease",
+    "material": "hair metallic texels up to p99 0.68235, roughness p1 0.21569",
+    "renderer": "M24 renders: no material pass matched (materials_applied = []), AgX Medium High Contrast, key light 120 W × framing²: grey speculars on near-black albedo (mean sRGB 0.07/0.03/0.03)"
+   },
+   "repair": "renderer recalibrated (grey card); hair metallic → 0 / roughness floor 0.55; foundation Taubin-smoothed (4 it, ≤ 6 mm); normals rebuilt (80° limit); primary representation replaced by rounded ringlets"
+  },
+  {
+   "id": "D02",
+   "region": "shoulders, upper back, upper chest (char1)",
+   "symptom": "crystalline triangular fragmentation",
+   "causes": [
+    "A",
+    "B"
+   ],
+   "primary": "A",
+   "evidence": {
+    "geometry": "shoulder triangles mean dihedral p50 51.66734°, 61.1 % above 45°; mean edge 12.72 mm (39,166 triangles for the whole body)",
+    "content": "31.5 % of shoulder and 50.9 % of upper-back triangles carry hair albedo: Meshy fused hair into the body as a crumpled shell",
+    "normals": "88.1 % of shared positions split > 30°"
+   },
+   "repair": "localised Taubin smoothing of the hair cape (12 it, ≤ 15 mm) and of folded shoulder triangles (6 it, ≤ 8 mm), seams pinned; normals rebuilt (80° hair, 40–50° elsewhere); ringlets drape over the cape",
+   "residual": "the crumple is real low-resolution geometry pinned by its UV seams; the repair reduces it but cannot remove it without a retopology that would invalidate the UVs — FAIL recorded"
+  },
+  {
+   "id": "D03",
+   "region": "face skin",
+   "symptom": "washed-out, pale complexion",
+   "causes": [
+    "F",
+    "H",
+    "D"
+   ],
+   "primary": "H",
+   "evidence": {
+    "m24Render": {
+     "lab": [
+      80.28,
+      12.89,
+      14.39
+     ],
+     "dE2000": 32.16
+    },
+    "photoMedianLab": [
+     44.86,
+     34.11,
+     32.56
+    ],
+    "v0004Calibrated": {
+     "lab": [
+      50.78,
+      17.17,
+      25.08
+     ],
+     "dE2000": 10.23
+    },
+    "albedo": [
+     42.93,
+     16.2,
+     22.62
+    ],
+    "explanation": "the same v0004 asset measures L* 80 in the M24 render and L* ≈ 51 under a grey-card exposure; the remaining gap is albedo chroma (a* 16 in the texture against 34 in the photographs)"
+   },
+   "repair": "renderer: grey-card exposure, AgX base look; texture: CIELAB transform on skin texels only (L* × 0.88, a* × 1.89, b* × 1.41), never lightening"
+  },
+  {
+   "id": "D04",
+   "region": "face skin",
+   "symptom": "plastic/metallic sheen, over-smooth",
+   "causes": [
+    "C"
+   ],
+   "primary": "C",
+   "evidence": {
+    "skinMetallicBefore": 0.04452405124902725,
+    "skinRoughnessP10Before": 0.44705885648727417,
+    "scalpMetallicP90": 0.67451
+   },
+   "repair": "skin texels metallic → 0, roughness clamped 0.48–0.85; metal (jewellery) texels untouched"
+  },
+  {
+   "id": "D05",
+   "region": "eyes",
+   "symptom": "soft, low-detail eyes in close-up",
+   "causes": [
+    "D"
+   ],
+   "primary": "D",
+   "evidence": {
+    "eyePatchTexture": "121 × 83 and 121 × 78 px",
+    "underlyingHead": "the eye sockets under the patches are empty (render with patches hidden)",
+    "photographs": "MediaPipe eye widths 40–84 px in the available references"
+   },
+   "repair": "none: no legitimate source carries more eye detail than the patch; interpolation would be invented detail. Documented as a limitation"
+  },
+  {
+   "id": "D06",
+   "region": "face proportions",
+   "symptom": "IPD 51 mm vs 63 mm, mouth 31 mm vs 50 mm (M24)",
+   "causes": [
+    "registration"
+   ],
+   "primary": "measurement",
+   "evidence": {
+    "ipd/faceWidth": 5.6,
+    "mouthWidth/faceWidth": 1.52,
+    "mouthWidth/ipd": -4.14,
+    "noseWidth/ipd": 1.97,
+    "eyeWidth/ipd": -3.49,
+    "eyeToMouth/ipd": -4.51,
+    "eyeToChin/ipd": -4.82,
+    "jawWidth/faceWidth": -0.78,
+    "lipHeight/mouthWidth": 7.19
+   },
+   "repair": "none required: scale-free ratios match the photographs; the millimetre targets assumed a 142 mm face and are mutually inconsistent (50.4 / 63 = 0.80 while the photographs give 0.66–0.69)"
+  },
+  {
+   "id": "D07",
+   "region": "lips",
+   "symptom": "rectangular lip patch edge in close-up",
+   "causes": [
+    "D",
+    "E"
+   ],
+   "primary": "D",
+   "evidence": {
+    "note": "visible in v0004 eye/face close-ups as a boxed boundary around the lower lip"
+   },
+   "repair": "not repaired in M25 (texture painting); documented"
+  },
+  {
+   "id": "D08",
+   "region": "clothing (char1)",
+   "symptom": "smeared camo, grey metallic sheen on fabric",
+   "causes": [
+    "C",
+    "D"
+   ],
+   "primary": "C",
+   "evidence": {
+    "bodyMetallicMean": 0.2014,
+    "armsMetallicMean": 0.4387,
+    "texelDensity": "one 2048² map for body + outfit (M24 texture audit)"
+   },
+   "repair": "fabric is classified per triangle as material slot m25_body; metallic is only kept where the asset's map says ≥ 0.5 (straps, rings); texel density unchanged — FAIL recorded for fabric definition"
+  }
+ ]
+}

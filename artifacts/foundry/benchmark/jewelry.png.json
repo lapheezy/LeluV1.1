@@ -1,0 +1,82 @@
+{
+ "shot": "jewelry",
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/jewelry.png",
+ "view": "front",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": [
+  "accessories.head"
+ ],
+ "focus_missing": [],
+ "triangles": 1289906,
+ "materials_applied": [
+  "torso: skin SSS (scale 12 mm)",
+  "pelvis: skin SSS (scale 12 mm)",
+  "neck: skin SSS (scale 12 mm)",
+  "head: skin SSS (scale 12 mm)",
+  "face: skin SSS (scale 12 mm)",
+  "hair: hair gloss + anisotropy",
+  "arms: skin SSS (scale 12 mm)",
+  "hands: skin SSS (scale 12 mm)",
+  "legs: skin SSS (scale 12 mm)",
+  "feet: skin SSS (scale 12 mm)"
+ ],
+ "warnings": [],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.04907458275556564,
+   1.5824611186981201
+  ],
+  "radius": 0.13534896484788744,
+  "lens_mm": 70.0,
+  "distance_m": 0.5760893981484392
+ },
+ "framing": "measured-bounds",
+ "bounds_blender_zup": {
+  "min": [
+   -0.09201518446207047,
+   -0.11311826854944229,
+   1.506626009941101
+  ],
+  "max": [
+   0.09201518446207047,
+   0.014969103038311005,
+   1.6582961082458496
+  ]
+ },
+ "render": {
+  "engine": "CYCLES",
+  "device": "CPU",
+  "samples": 32,
+  "threads": 7,
+  "resolution": [
+   768,
+   768
+  ],
+  "denoise": true,
+  "view_transform": "AgX"
+ },
+ "render_seconds": 18.97,
+ "blender": "4.2.23 LTS",
+ "job": {
+  "shot": "jewelry",
+  "view": "front",
+  "ground": false
+ }
+}

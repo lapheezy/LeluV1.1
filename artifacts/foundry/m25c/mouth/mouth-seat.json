@@ -1,0 +1,31 @@
+{
+ "input": "artifacts/foundry/m25c/steps/s0-build.glb",
+ "clearanceMm": 2.5,
+ "objects": {
+  "lelu_mouth": {
+   "vertices": 749,
+   "inFrontOfSkinBefore": 125,
+   "moved": 623,
+   "moveMm": {
+    "p50": 1.141,
+    "max": 6.345
+   }
+  },
+  "lelu_teeth": {
+   "vertices": 209,
+   "inFrontOfSkinBefore": 24,
+   "rigidShiftMm": 2.888
+  }
+ },
+ "mouthMaterial": {
+  "baseColorLinear": [
+   0.03,
+   0.007,
+   0.009
+  ],
+  "roughness": 0.9,
+  "specular": 0.15
+ },
+ "output": "artifacts/foundry/m25c/steps/s1-mouth.glb",
+ "outputSha256": "9d0ea45e0aa43fb64ba58e73a3b0fd25da59e6b549694799ba11aab27f790cb8"
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118022935-101",
+  "at": 1794968975000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "feat(asre): M5.7 evidence — spatial surfaces in the real Chat Universe",
+  "detail": "19 file(s): artifacts/mission57/00-home.png, artifacts/mission57/01-chat-universe.png, artifacts/mission57/02-conversation.png, artifacts/mission57/03-surface-summoned.png, artifacts/mission57/04-reconstruction-in-chat.png, artifacts/mission57/05-numerical-in-chat.png, artifacts/mission57/06-character-in-chat.png, artifacts/mission57/07-restored-in-chat.png, …",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e",
+      "note": "feat(asre): M5.7 evidence — spatial surfaces in the real Chat Universe"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/00-home.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/01-chat-universe.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/02-conversation.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/03-surface-summoned.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/04-reconstruction-in-chat.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/05-numerical-in-chat.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/06-character-in-chat.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/07-restored-in-chat.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/08-export-in-chat.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/09-after-reload.png",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/MANIFEST.md",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission57/results.json",
+      "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+    }
+  ],
+  "commit": "d8acba2de0db7ea5217af17d4e1a669b2a578f7e",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:d8acba2de0db7ea5217af17d4e1a669b2a578f7e"
+}

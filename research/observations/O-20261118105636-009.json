@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118105636-009",
+  "at": 1794999396000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "fix(lelu): her eyes are actually open now, measured on her own skull",
+  "detail": "15 file(s): artifacts/lelu/canon/lelu-canon-face-front.job.json, artifacts/lelu/canon/lelu-canon-face-front.png, artifacts/lelu/canon/lelu-canon-face-front.png.json, artifacts/lelu/canon/lelu-canon-face-three-quarter.job.json, artifacts/lelu/canon/lelu-canon-face-three-quarter.png, artifacts/lelu/canon/lelu-canon-face-three-quarter.png.json, artifacts/lelu/canon/lelu-canon-front.job.json, artifacts/lelu/canon/lelu-canon-front.png, …",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "d4ce1dc38d9863bd52ae3854cc0719747afa0530",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530",
+      "note": "fix(lelu): her eyes are actually open now, measured on her own skull"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.job.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-three-quarter.job.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-three-quarter.png",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-three-quarter.png.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.job.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-report.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon.glb",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/renders-closeups.json",
+      "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+    }
+  ],
+  "commit": "d4ce1dc38d9863bd52ae3854cc0719747afa0530",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:d4ce1dc38d9863bd52ae3854cc0719747afa0530"
+}

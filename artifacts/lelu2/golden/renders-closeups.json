@@ -1,0 +1,69 @@
+{
+ "generatedAt": "2026-11-18T14:53:11.783Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/golden",
+ "size": 720,
+ "samples": 24,
+ "renders": [
+  {
+   "label": "lelu2-golden",
+   "kind": "full",
+   "view": "front",
+   "png": "lelu2-golden-front.png",
+   "triangles": 1389588,
+   "seconds": 6.13,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8561108112335205
+    ],
+    "radius": 1.023026980992829
+   }
+  },
+  {
+   "label": "lelu2-golden",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "lelu2-golden-three-quarter.png",
+   "triangles": 1389588,
+   "seconds": 6.1,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8561108112335205
+    ],
+    "radius": 1.023026980992829
+   }
+  },
+  {
+   "label": "lelu2-golden",
+   "kind": "full",
+   "view": "back",
+   "png": "lelu2-golden-back.png",
+   "triangles": 1389588,
+   "seconds": 5.42,
+   "camera": {
+    "center": [
+     0.01195843517780304,
+     -0.08204931020736694,
+     0.8561108112335205
+    ],
+    "radius": 1.023026980992829
+   }
+  },
+  {
+   "label": "lelu2-golden",
+   "kind": "face",
+   "view": "front",
+   "png": "lelu2-golden-face-front.png",
+   "triangles": 1389588,
+   "seconds": 5.53,
+   "focused": [
+    "head",
+    "face",
+    "hair"
+   ]
+  }
+ ]
+}

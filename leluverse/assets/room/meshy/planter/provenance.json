@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "planter",
+   "kind": "image-to-image",
+   "task": "01a1f68b-ec90-701b-8354-b4b61a841670",
+   "submittedAt": 1795137728.2159233,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly one tall lush green fern plant in a round black-and-copper planter pot, alone. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/planter.png",
+     "sha256": "2433e28f23fe337b92d57f25675d1bd4c827445f53af99580fc3b9b6625df208"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f68b-ec90-701b-8354-b4b61a841670",
+   "finished": 1795137749.215852,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68b-ec90-701b-8354-b4b61a841670",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly one tall lush green fern plant in a round black-and-copper planter pot, alone. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137728080,
+    "started_at": 1795137728094,
+    "finished_at": 1795137748037,
+    "expires_at": 1795396948037,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f68b-ec90-701b-8354-b4b61a841670_0.png?Expires=1795396948&Signature=Vd9uf4A0HcG6yBakVblbzAQcaA~-HLSBNfOkPxDdoJSDWPk1nfUR1fNLYYM5M8Hmgjj13oZAbVF~8bWYmOWsRZWzRNX1ixBNGf0lFvRO3RyNYG8cCLOrOIQNImaqnuVsp~fLjh53u9yaEbTC6GhRMfzj4q5KkNmpUbHEJB84vIqDPVgAMp4WniMdZ5bzizWSE92xzLqdN~CiFB0hia9BW2zSblRMeunqtuD2dYzzDwftlAuNDdXeIzGN-494F3bO3BKveazTi42Uuro4T0tYOl0YX3JiNG4cNfC5tXcpIrMuD53-ZpyBXh5ATWJgVRjQw~uV-aDwV0oQvBirzKUXwQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f68b_0.png",
+     "bytes": 1043188,
+     "sha256": "88786f3b237c961c31952cde4e4503a0c7b5c95df89b217bcf0a238ef3a8f68b"
+    }
+   ]
+  },
+  {
+   "piece": "planter",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-42da-77d2-bb03-2dfd088352d5",
+   "submittedAt": 1795137750.768749,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/planter/view_01a1f68b_0.png",
+     "sha256": "88786f3b237c961c31952cde4e4503a0c7b5c95df89b217bcf0a238ef3a8f68b"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-42da-77d2-bb03-2dfd088352d5",
+   "finished": 1795137999.0252361,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68c-42da-77d2-bb03-2dfd088352d5",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137750661,
+    "progress": 100,
+    "started_at": 1795137750673,
+    "finished_at": 1795137995570,
+    "expires_at": 1795397195570,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f68c-42da-77d2-bb03-2dfd088352d5/output/model.glb?Expires=1795397195&Signature=Vdd3tcA0YjL8vyHSl2w3P8~17Ez3kqrOTUAhRq5WUx~3suV4K67QOUQnCCL-2nxZVkTNC~-9pixdPO6OveWGTZlT19ewDpL1jO734zW2F5QGXC6z8cUTcI~GBm99sEaNwf23t7-5CxVh2kgdfNyMn4rJjEoQ8RIrv6fmi0LRZdld9~err5cBGfiF3Vl9HL2b-zdOiqxFQhH0vTVxQ4YDyB~u~2jOPYRbwqYe7pRF3iDsqgSRTTAQx4G8HC-OTipn3GFZ1GB25GMNWPH4grgzofS6CJ6QWgfk60jnpm4Ucmn2DEvdzR47k6jwzgufq6HpEDf~DYjUZuuWJrYfM~NdMQ__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 12994708,
+     "sha256": "2945b52d1c5d1864804fc102ccac0e4485ae822b115139de79c41ae753d10998"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 13423884,
+     "sha256": "6cec690c0cd51f19f4199f2c1e65b619e932b64d5475338d168409547c086d6d"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 4875647,
+     "sha256": "c9ed6abfd1a397a8518abc0e4e63cc4b16acb51a79548ff73ce25e8c7e08b931"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1490153,
+     "sha256": "aa9ddd9408391b89a3be2d465d8ff3fe5f8a2250b2416ae7f5d80bd0ab037b47"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1741074,
+     "sha256": "227266ce91a1c03c078720724ab0013ac01d07443dd5a16a9a5ed50159f09791"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 6656896,
+     "sha256": "e97a2622733ee62b202ca76fa37393b8beb09d8a5e778f8e21ab468ca484e24d"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 193472,
+     "sha256": "2e6ca85ac91fe3291d49df5a89fdbf7b8c1d8385e75c8b8808fc6a8f3af39c29"
+    }
+   ]
+  }
+ ]
+}

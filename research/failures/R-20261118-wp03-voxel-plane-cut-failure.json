@@ -1,0 +1,76 @@
+{
+  "id": "R-20261118-wp03-voxel-plane-cut-failure",
+  "kind": "failures",
+  "createdAt": 1795034704530,
+  "updatedAt": 1795034704530,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP03",
+  "observed": "Two attempts to stop strands crossing her face failed before the shipped one: deflecting strands produced a cage of horizontal rods; cutting at the voxel plane left 574 of 1350 strands, i.e. most of the hair.",
+  "studied": "Where a strand actually crosses the face, and what a cut removes along the strand's arc length.",
+  "question": "How do you keep hair off the face without deleting most of it?",
+  "hypothesis": "Cutting every strand at the boundary of the hair field box is sufficient.",
+  "method": "Keep the root set and the curl law fixed; change only the cut predicate. Compare the number of surviving strands and inspect a front render.",
+  "results": "Voxel-plane cut: 574/1350 strands survived and the crown went bald. The shipped predicate cuts at the face plane (z > head[2] + 0.03) after the curl is generated, which keeps the face clear and the crown covered.",
+  "evidence": [
+    {
+      "kind": "code",
+      "ref": "src/core/asre/reference/provider.ts",
+      "note": "inFacePoint and the face-plane cut"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/hair/tubes.ts",
+      "note": "sweepTube — the geometry the cut applies to"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json",
+      "note": "shipped build: 1219 strands"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "A cut plane chosen for the volume grid is not a cut plane chosen for the body. The failure was not the idea of cutting, it was cutting along the wrong surface.",
+  "confidence": 0.32,
+  "limitations": [
+    "The 574/1350 count came from an intermediate build whose artefact was not preserved; the shipped behaviour is reproducible, the failed count is quoted from the session record.",
+    "The deflection attempt was rejected visually; no metric was defined for it."
+  ],
+  "applications": [
+    "Any strand-level culling must be measured in surviving strands before it is accepted.",
+    "Volume boundaries and anatomical boundaries are different predicates."
+  ],
+  "nextQuestions": [
+    "What fraction of strands does the shipped face-plane cut remove, and where?",
+    "Can the cut be replaced by a length-preserving bend so roots keep their length?"
+  ],
+  "answers": [],
+  "status": "rejected",
+  "tags": [
+    "hair",
+    "failure",
+    "cut",
+    "face",
+    "wp03"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [
+    {
+      "statement": "the hair field box boundary is a good enough face cut",
+      "verdict": "refuted"
+    },
+    {
+      "statement": "deflecting strands sideways is visually acceptable",
+      "verdict": "refuted"
+    }
+  ],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

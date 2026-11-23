@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118110023-008",
+  "at": 1794999623000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(lelu): corkscrew curls instead of locs",
+  "detail": "19 file(s): artifacts/lelu/canon/lelu-canon-back.job.json, artifacts/lelu/canon/lelu-canon-back.png, artifacts/lelu/canon/lelu-canon-back.png.json, artifacts/lelu/canon/lelu-canon-face-front.job.json, artifacts/lelu/canon/lelu-canon-face-front.png, artifacts/lelu/canon/lelu-canon-face-front.png.json, artifacts/lelu/canon/lelu-canon-front.job.json, artifacts/lelu/canon/lelu-canon-front.png, …",
+  "interpretation": "Associated with WP03 by keyword \\bwp\\s*0?3\\b|hair|tube|curl|. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0",
+      "note": "feat(lelu): corkscrew curls instead of locs"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.job.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.png",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.png.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.job.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.job.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-report.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-side.job.json",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-side.png",
+      "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+    }
+  ],
+  "commit": "57a72ddd18e968ee1210d0e535c0645dd3ee0cc0",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:57a72ddd18e968ee1210d0e535c0645dd3ee0cc0"
+}

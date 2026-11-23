@@ -6,9 +6,11 @@
  * The environment LÉLU is in, rendered inside the same Gen V2
  * canvas as her presence (no second viewer):
  *
- *   - the environment itself: her circular room by default —
- *     floor, inlaid accent ring, pillars with an open front,
- *     rim and lights — from the persisted settings
+ *   - the environment itself: her home is her ROTATING room
+ *     (RotatingRoom.tsx: six sections that turn to the back and
+ *     transform their furniture); any other environment is the
+ *     plain circular room — floor, inlaid accent ring, pillars
+ *     with an open front, rim and lights — from its settings
  *   - every object in it: built-in shapes and Forge models
  *   - real rigid-body physics for objects that have it
  *     (src/core/world/Physics.ts); when everything comes to
@@ -29,6 +31,7 @@ import * as THREE from "three";
 import ForgeClient, { FORGE_CHANGED_EVENT, type CosmosPlacement, type WorldState } from "../../../core/forge/ForgeClient";
 import { PhysicsWorld, type Body } from "../../../core/world/Physics";
 import { PlacedModel } from "./PlacedModel";
+import RotatingRoom from "./RotatingRoom";
 
 /* ------------------------------- the room ------------------------------- */
 
@@ -295,7 +298,7 @@ export default function WorldScene() {
   if (!state) return null;
   return (
     <group name="LeluverseWorld" onPointerMissed={() => setSelected(null)}>
-      <Room state={state} />
+      {state.environment.id === "home" ? <RotatingRoom state={state} /> : <Room state={state} />}
       {state.objects.map((o) =>
         o.primitive ? (
           <WorldObject

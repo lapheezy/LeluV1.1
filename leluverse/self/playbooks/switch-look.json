@@ -1,0 +1,13 @@
+{
+ "id": "switch-look",
+ "title": "Change what I am wearing",
+ "for": "LÉLU",
+ "why": "Every change goes through one OutfitDirector on my Forge wardrobe, whoever asks, so I always know what I'm wearing and why.",
+ "spendsCredits": 0,
+ "learnedFrom": "journal/2026-11-19-outfit-switching.md",
+ "steps": [
+  {"id": "list", "title": "See what I can wear", "kind": "tool", "tool": "forge.wardrobe", "why": "Only approved looks with a file can be worn."},
+  {"id": "dress", "title": "Put a look on", "kind": "tool", "tool": "forge.dress", "args": {"look": "<id>"}, "why": "A person can also just say “wear the copper-rose coat”; that goes through the same director without a model call."},
+  {"id": "myself", "title": "Choose by occasion on my own", "kind": "note", "why": "OutfitAutopilot checks every 5 minutes: late at night → home look; presenting/meeting → coat; building/training/lab → catsuit; otherwise my usual outfit. A look a person chose is kept for 2 hours. Turn off with localStorage lelu.outfit.autopilot = off."}
+ ]
+}

@@ -1,0 +1,83 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "colors": {
+  "skin": [
+   0.9,
+   0.55,
+   0.3
+  ],
+  "hair": [
+   0.02,
+   0.02,
+   0.02
+  ],
+  "metal": [
+   1.0,
+   0.85,
+   0.0
+  ],
+  "fabric": [
+   0.1,
+   0.45,
+   0.15
+  ],
+  "flower": [
+   1.0,
+   0.2,
+   0.6
+  ],
+  "lips": [
+   0.8,
+   0.0,
+   0.1
+  ],
+  "other": [
+   0.3,
+   0.3,
+   1.0
+  ],
+  "eye": [
+   1,
+   1,
+   1
+  ],
+  "crumpled": [
+   1.0,
+   0.0,
+   0.0
+  ]
+ },
+ "triangleClasses": {
+  "char1": {
+   "fabric": 12299,
+   "hair": 4231,
+   "metal": 7247,
+   "skin": 15389
+  },
+  "eye_patch_l": {
+   "eye": 1026
+  },
+  "eye_patch_r": {
+   "eye": 1026
+  },
+  "lelu_hair": {
+   "flower": 883,
+   "hair": 156721,
+   "lips": 785,
+   "metal": 3284
+  },
+  "lelu_mouth": {
+   "other": 368
+  },
+  "lelu_scalp": {
+   "flower": 3011,
+   "hair": 501,
+   "lips": 57,
+   "metal": 3464,
+   "skin": 13849
+  },
+  "lelu_teeth": {
+   "other": 92
+  }
+ }
+}

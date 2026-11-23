@@ -1,0 +1,95 @@
+{
+ "rig": {
+  "name": "Armature",
+  "bones": 24,
+  "boneNames": [
+   "Hips",
+   "LeftUpLeg",
+   "LeftLeg",
+   "LeftFoot",
+   "LeftToeBase",
+   "RightUpLeg",
+   "RightLeg",
+   "RightFoot",
+   "RightToeBase",
+   "Spine02",
+   "Spine01",
+   "Spine",
+   "LeftShoulder",
+   "LeftArm",
+   "LeftForeArm",
+   "LeftHand",
+   "neck",
+   "Head",
+   "head_end",
+   "headfront",
+   "RightShoulder",
+   "RightArm",
+   "RightForeArm",
+   "RightHand"
+  ],
+  "root": "Hips",
+  "shapeKeyDrivers": "none beyond the exported keys"
+ },
+ "skinning": {
+  "mesh": "char1",
+  "vertices": 83133,
+  "unweighted": 0,
+  "unweightedPct": 0.0,
+  "maxInfluences": 4,
+  "vertexGroups": 24,
+  "armatureModifier": true
+ },
+ "clipsInCharacterGlb": [
+  {
+   "name": "Armature|clip0|baselayer_Armature",
+   "frames": [
+    0,
+    0
+   ],
+   "fcurves": 240
+  }
+ ],
+ "clipsOnDisk": {
+  "count": 31,
+  "location": "leluverse/assets/characters/lelu_character/animations/vNNN_*/motion.glb",
+  "evaluatedInThisPass": 0,
+  "reason": "each clip is a separate GLB; loading all 31 was out of scope for this pass, so no claim is made about their playback"
+ },
+ "tested": [
+  {
+   "test": "shape key eyeBlinkLeft/Right = 1",
+   "result": "pass",
+   "evidence": "rig/renders/shape-blink.png",
+   "note": "both lids close over the painted eyes; no hole or stretched lid"
+  },
+  {
+   "test": "shape key jawOpen 0.8 + smile 0.7",
+   "result": "pass",
+   "evidence": "rig/renders/shape-jawOpen-smile.png",
+   "note": "mouth opens on the cavity mesh and the lip corners lift"
+  },
+  {
+   "test": "armature imported, 24 bones bound",
+   "result": "pass",
+   "evidence": "rig/rig-validation.json"
+  },
+  {
+   "test": "body skinning coverage",
+   "result": "pass",
+   "evidence": "0 unweighted vertices of 83133, max 4 influences"
+  }
+ ],
+ "notTested": [
+  "walk",
+  "run",
+  "sit",
+  "arm elevation",
+  "shoulder rotation",
+  "wrist",
+  "hand articulation",
+  "head/neck rotation",
+  "eye movement"
+ ],
+ "defectFlag": "the in-character clip spans frame 0\u20130 (a single baseline pose), so it cannot be used as motion evidence"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "O-20261117215228-121",
+  "at": 1794952348000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "feat(asre): WP4 adaptive dependency scheduler (information gain / cost)",
+  "detail": "2 file(s): src/core/asre/scheduler/Scheduler.ts, tests/asre-scheduler.test.ts",
+  "interpretation": "Associated with WP04 by explicit WP4. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "3b8a50f3e2ed177d7fbafa42b8f1359fd9bdf4bb",
+      "commit": "3b8a50f3e2ed177d7fbafa42b8f1359fd9bdf4bb",
+      "note": "feat(asre): WP4 adaptive dependency scheduler (information gain / cost)"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/scheduler/Scheduler.ts",
+      "commit": "3b8a50f3e2ed177d7fbafa42b8f1359fd9bdf4bb"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-scheduler.test.ts",
+      "commit": "3b8a50f3e2ed177d7fbafa42b8f1359fd9bdf4bb"
+    }
+  ],
+  "commit": "3b8a50f3e2ed177d7fbafa42b8f1359fd9bdf4bb",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:3b8a50f3e2ed177d7fbafa42b8f1359fd9bdf4bb"
+}

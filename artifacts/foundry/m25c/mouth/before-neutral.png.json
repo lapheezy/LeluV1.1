@@ -1,0 +1,61 @@
+{
+ "input": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+ "output": "artifacts/foundry/m25c/mouth/before-neutral.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.10000000149011612,
+   1.5460000038146973
+  ],
+  "radius": 0.03,
+  "lens": 135.0,
+  "distance": 0.22699118925632333,
+  "location": [
+   0.0,
+   -0.3262682855129242,
+   1.5641014575958252
+  ]
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 48,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0524776205420494,
+  "exposureEV": -2.547720745067061
+ },
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_ringlets",
+  "lelu_hair_strands",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "triangles": 604591,
+ "materialsApplied": [
+  "m25_hair_body: anisotropy (Cycles extension)",
+  "m25_hair_curl: anisotropy (Cycles extension)",
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_highlight: anisotropy (Cycles extension)",
+  "m25_hair_strand: anisotropy (Cycles extension)",
+  "m25_skin_body: SSS (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": {},
+ "renderSeconds": 59.76,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

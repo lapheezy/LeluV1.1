@@ -24,6 +24,10 @@ import type { CharacterSpec } from "../character/CharacterSpec.ts";
 import { fieldFromMesh, fieldFromVoxels, fieldSdf, fieldShape } from "./field.ts";
 import { CELL } from "../character/lattice.ts";
 import { isLelu, LELU_COLOURS as L } from "../character/leluIdentity.ts";
+import { conicalCurl, nearestNeighbourStats, selectSphericalEvenSubset } from "../../geometry/golden/index.ts";
+import { bundleTubes, setHairRootPoints, hairTubeBuild, resetTubeDiagnostics, TUBE_LOD, tubeDiagnostics, type StrandSpec } from "../hair/tubes.ts";
+import { growBabyHair, babyHairState } from "../hair/baby.ts";
+import { landmarksFromJoints, recordYouth, youthWarp, YOUTH_PAINT, REFERENCE_231, type YouthLandmarks } from "../character/youth.ts";
 import type { Rgb } from "../character/shape.ts";
 import type { SdfField } from "./field.ts";
 import { cross, skin, sub, unit } from "./skin.ts";
@@ -111,6 +115,56 @@ const has = (name: string): boolean => !!current?.joints.get(name);
 
 const SIDE = (side: 0 | 1) => (side === 0 ? "l" : "r");
 const SIDEB = (side: 0 | 1) => (side === 0 ? "L" : "R");
+
+/* ------------------------------- youth pass ------------------------------ */
+
+/**
+ * Whether the head being built carries the LÉLU 2.3 youth pass.
+ *
+ * Every reference region is built through `referenceRegion`, so the flag is set
+ * there and read by the head-field helpers and the face paint below. This is the
+ * same module-state pattern `current` uses; the head-field cache and the region
+ * cache both key on it, so a canonical and a youth build can never be served
+ * each other's geometry.
+ */
+let youthEnabled = false;
+
+/**
+ * The mouth line the face paint is drawn against, resolved once per head build.
+ *
+ * Her rig's mouth joint resolves to the origin, so a lip mask anchored on it is
+ * painted at her feet — which is why no lip had ever appeared on a render. The
+ * resolved line comes from `landmarksFromJoints`, which falls back to the
+ * reference's own eye→mouth→chin ratio.
+ */
+// Workforce consolidation: the lip/brow paint that read this mouth line
+// (jolly-davinci leluFaceColour) is superseded by face.ts faceColour, which
+// paints from the measured landmarks; the youth SHAPE warp below still applies.
+
+/**
+ * Her own face landmarks, in world metres, from the rig she is built on.
+ *
+ * `faceZ` is her eye joint's z plus 2 cm — the front of her face — and it is
+ * deliberately NOT measured with `skinZ`, which builds the head field and would
+ * recurse through the warp it is being asked to place.
+ */
+function youthLandmarks(): YouthLandmarks {
+  const eye = J("joint-l-eye");
+  return landmarksFromJoints(J, eye[2] + 0.02);
+}
+
+/** The head SDF with the youth pass applied, when this build asks for it. */
+function applyYouth(field: Sdf): Sdf {
+  if (!youthEnabled) return field;
+  const lm = youthLandmarks();
+  recordYouth(lm);
+  return youthWarp(field, lm);
+}
+
+/** The head field with the youth pass applied — every consumer uses this. */
+function headFieldWithYouth(field: SdfField): Sdf {
+  return applyYouth(fieldSdf(field));
+}
 
 /* -------------------------------- fields -------------------------------- */
 
@@ -219,6 +273,25 @@ export function footPoses(spec: CharacterSpec, side: 0 | 1): BonePose[] {
  * random walk, which is a loc — and thick locs are exactly what her curls kept
  * looking like.
  */
+/**
+ * What the last hair build actually did. Measured by the LÉLU 2 experiment
+ * harness so a root-distribution claim is read off the builder, not off a copy of
+ * its algorithm.
+ */
+export const hairDiagnostics: {
+  golden: boolean;
+  roots: number;
+  curl: "helix" | "golden-spiral";
+  rootCv: number;
+  meanSpacing: number;
+  minSpacing: number;
+  maxSpacing: number;
+  /** Lowest root anywhere on the scalp (m). */
+  hairlineY: number;
+  /** Lowest root at the FRONT of the skull — the forehead hairline (m). */
+  hairlineFrontY: number;
+} = { golden: false, roots: 0, curl: "helix", rootCv: 0, meanSpacing: 0, minSpacing: 0, maxSpacing: 0, hairlineY: 0, hairlineFrontY: 0 };
+
 const HAIR_STYLE: Record<string, { len: number; droop: number; wave: number; count: number; radius: number; turns?: number; curl?: number }> = {
   buzz: { len: 0.014, droop: 0.15, wave: 0.1, count: 1800, radius: 0.0036 },
   pixie: { len: 0.06, droop: 0.35, wave: 0.2, count: 1700, radius: 0.0042, turns: 1.2, curl: 0.005 },
@@ -429,21 +502,54 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   // card picked up ears and cheeks, which is why an earlier attempt grew hair
   // over the face.
   const head = J("joint-head");
-  const headField = fieldSdf(bodyField("head", 0.003, [], { lo: [head[0] - 0.17, head[1] - 0.20, head[2] - 0.20], hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.20] }));
+  const headBox = { lo: [head[0] - 0.17, head[1] - 0.2, head[2] - 0.2] as V3, hi: [head[0] + 0.17, head[1] + 0.16, head[2] + 0.2] as V3 };
+  // The hair grows on the head that is actually built, youth pass included: if
+  // the roots were projected onto the un-warped skull they would float off a
+  // shortened chin and a fuller cheek.
+  const headField = headFieldWithYouth(bodyField("head", 0.003, [], headBox));
   const scalp: number[] = [];
   const eps = 0.002;
-  const cardStep = Math.max(1, Math.floor(roots.length / 3 / 1800));
-  for (let v = 0; v < roots.length / 3; v += cardStep) {
-    let x = roots[3 * v], y = roots[3 * v + 1], z = roots[3 * v + 2];
+  const golden = spec.geometry?.golden === true;
+  const tubes = spec.geometry?.hairTubes === true;
+  if (tubes) {
+    resetTubeDiagnostics();
+    hairTubeBuild.mesh = null;
+  }
+  const tubeStrands: StrandSpec[] = [];
+  const strandRoots: number[] = [];
+  // Candidate roots. In golden mode the hair card's own triangles are sampled at
+  // four interior barycentric points each: the card defines the coverage region,
+  // and a few thousand candidates inside it give the even-subset selection real
+  // points to choose from (her card has only ~900 vertices, which is coarser than
+  // the strand count). Otherwise the card's vertices are stepped as before.
+  const candidates: number[] = [];
+  const card = current!.proxies[`hair:${spec.hair.style}`];
+  if (golden && card) {
+    const P = card.positions, I = card.indices;
+    const BARY: [number, number][] = [[1 / 3, 1 / 3], [1 / 6, 1 / 6], [1 / 6, 2 / 3], [2 / 3, 1 / 6]];
+    for (let t = 0; t + 2 < I.length; t += 3) {
+      const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3;
+      for (const [u, v] of BARY) {
+        const w = 1 - u - v;
+        candidates.push(P[a] * w + P[b] * u + P[c] * v, P[a + 1] * w + P[b + 1] * u + P[c + 1] * v, P[a + 2] * w + P[b + 2] * u + P[c + 2] * v);
+      }
+    }
+  }
+  if (!candidates.length) {
+    const cardStep = Math.max(1, Math.floor(roots.length / 3 / 1800));
+    for (let v = 0; v < roots.length / 3; v += cardStep) candidates.push(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2]);
+  }
+  for (let v = 0; v < candidates.length / 3; v++) {
+    let x = candidates[3 * v], y = candidates[3 * v + 1], z = candidates[3 * v + 2];
     // Only the part of the card that lies on the SCALP can be a root. The rest
     // of the card is the length of the hairstyle hanging in the air, and
     // projecting that onto the skin grew a curtain over the face.
     if (y < head[1] - 0.09) continue;
     // and nothing in front of the brow
     if (z > head[2] + 0.015 && y < head[1] + 0.085) continue;
-    for (let it = 0; it < 8; it++) {
+    for (let it = 0; it < 24; it++) {
       const d = headField(x, y, z);
-      if (Math.abs(d) < 0.0012) break;
+      if (Math.abs(d) < 0.0006) break;
       const g: V3 = [
         headField(x + eps, y, z) - headField(x - eps, y, z),
         headField(x, y + eps, z) - headField(x, y - eps, z),
@@ -460,15 +566,44 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
   if (!scalp.length) return null;
   roots = Float32Array.from(scalp);
 
+  // GOLDEN GEOMETRY: the scalp is an area, so the roots are distributed over its
+  // area. The candidate roots are her asset's own scalp vertices; the engine picks
+  // the subset whose directions around the skull are evenly spread *by area*
+  // (cos-latitude even, azimuth turned by the golden angle). That is Vogel's law
+  // on a sphere, applied to points that actually exist on her head. The gate is
+  // `spec.geometry.golden`, so her canonical build keeps the asset's own vertex
+  // distribution and stays byte-identical.
+  const scalpCount = Math.floor(roots.length / 3);
+  if (golden) {
+    const chosen = selectSphericalEvenSubset(roots, Math.min(st.count, scalpCount), centre);
+    if (chosen.points.length >= 96) roots = chosen.points;
+  }
+
   // 1. the scalp layer: the asset's own coverage, 2 mm thick, so no skin shows
   const step = Math.max(1, Math.floor(roots.length / 3 / 1600));
   for (let v = 0; v < roots.length / 3; v += step) stamp(roots[3 * v], roots[3 * v + 1], roots[3 * v + 2], 0.0035);
 
   // 2. strands
-  const count = Math.min(st.count, Math.floor(roots.length / 3));
-  const rootStep = Math.max(1, Math.floor(roots.length / 3 / count));
+  const nRoots = Math.floor(roots.length / 3);
+  const count = Math.min(st.count, nRoots);
+  // Golden roots arrive in Fibonacci-direction order, so taking `count` of them at
+  // even index positions keeps the area-even property. The asset's own vertex order
+  // carries no such guarantee, so it is strided as before.
+  const rootIndexes: number[] = [];
+  if (golden) {
+    for (let k = 0; k < count; k++) rootIndexes.push(Math.floor((k * nRoots) / count));
+  } else {
+    const rootStep = Math.max(1, Math.floor(nRoots / count));
+    for (let k = 0; k < nRoots; k += rootStep) rootIndexes.push(k);
+  }
+  // A face is not a place hair grows. The voxel field skipped stamps here, but a
+  // swept tube draws its whole PATH — which is why the first tube render had
+  // curls lying across her face. One predicate, used by both representations.
+  const inFacePoint = (x: number, y: number, z: number) =>
+    z > head[2] - 0.02 && Math.abs(x - head[0]) < 0.095 && y < head[1] + 0.105 && y > head[1] - 0.21;
+
   let strand = 0;
-  for (let v = 0; v < roots.length / 3; v += rootStep) {
+  for (const v of rootIndexes) {
     const r0 = hash3(v, 1), r1 = hash3(v, 2), r2 = hash3(v, 3);
     const px = roots[3 * v], py = roots[3 * v + 1], pz = roots[3 * v + 2];
     // outward from the skull centre, jittered so locks do not comb in rows
@@ -493,16 +628,60 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     const phase = r2 * Math.PI * 2;
     const radius = st.radius * (0.85 + 0.3 * r2);
     const segs = 32;
-    const r0x = px, r0y = py, r0z = pz;
-    let prevx = r0x, prevy = r0y, prevz = r0z;
-    for (let s = 1; s <= segs; s++) {
-      const t = s / segs;
-      const ang = phase + turns * Math.PI * 2 * t;
-      const rad = curlR * (0.5 + 0.65 * t);
-      const cx = r0x + ax * (len * t), cy = r0y + ay * (len * t), cz = r0z + az * (len * t);
-      const qx = cx + (e1x * Math.cos(ang) + e2x * Math.sin(ang)) * rad;
-      const qy = cy + (e1y * Math.cos(ang) + e2y * Math.sin(ang)) * rad;
-      const qz = cz + (e1z * Math.cos(ang) + e2z * Math.sin(ang)) * rad;
+    // The lock is built as a PATH first, then rasterised, so the two shape laws
+    // differ only in the path:
+    //   helix          constant radius around the drooping axis (the M5.8 lock)
+    //   golden-spiral  a logarithmic spiral whose radius decays by 1/φ along the
+    //                  lock, i.e. a ringlet: tight tip, wide root
+    const path: { x: number; y: number; z: number; t: number }[] = [];
+    if (golden) {
+      const spiral = conicalCurl({
+        origin: [px, py, pz],
+        axis: [ax, ay, az],
+        e1: [e1x, e1y, e1z],
+        e2: [e2x, e2y, e2z],
+        length: len,
+        radius0: curlR * 1.15,
+        turns,
+        samples: segs,
+        taper: 1,
+        growth: 1 / 1.6180339887498949,
+        phase,
+      });
+      path.push(...spiral);
+    } else {
+      for (let s = 0; s <= segs; s++) {
+        const t = s / segs;
+        const ang = phase + turns * Math.PI * 2 * t;
+        const rad = curlR * (0.5 + 0.65 * t);
+        path.push({
+          x: px + ax * (len * t) + (e1x * Math.cos(ang) + e2x * Math.sin(ang)) * rad,
+          y: py + ay * (len * t) + (e1y * Math.cos(ang) + e2y * Math.sin(ang)) * rad,
+          z: pz + az * (len * t) + (e1z * Math.cos(ang) + e2z * Math.sin(ang)) * rad,
+          t,
+        });
+      }
+    }
+      if (tubes) strandRoots.push(px, py, pz);
+    // Keep the path when tubes are on: the same strand law, drawn as geometry,
+    // cut where it would enter the face so a curl frames her face instead of
+    // being drawn over it.
+    if (tubes) {
+      // Cut where a lock would pass IN FRONT of her face. The voxel test used a
+      // plane 2 cm behind the face (a stamp there has volume and would bulge),
+      // which for a tube cuts strands that only pass beside her cheeks. The tube
+      // test is the actual face plane, so a side lock survives.
+      const kept: { x: number; y: number; z: number }[] = [];
+      for (const p of path) {
+        const inFrontOfFace = p.z > head[2] + 0.03 && Math.abs(p.x - head[0]) < 0.075 && p.y < head[1] + 0.1 && p.y > head[1] - 0.21;
+        if (inFrontOfFace) break;
+        kept.push({ x: p.x, y: p.y, z: p.z });
+      }
+      if (kept.length >= 12) tubeStrands.push({ path: kept, radius, seed: r2, droop: st.droop });
+    }
+    let prevx = path[0].x, prevy = path[0].y, prevz = path[0].z;
+    for (let s = 1; s < path.length; s++) {
+      const { x: qx, y: qy, z: qz, t } = path[s];
       // stamp along the whole segment, or a curl thins into disconnected beads
       const span = Math.hypot(qx - prevx, qy - prevy, qz - prevz);
       const sub = Math.max(2, Math.ceil(span / (radius * 0.6)));
@@ -511,7 +690,7 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
         // A face is not a place hair grows. Locks that would cross the face are
         // left out, which is what gives a fringe that frames the face instead
         // of a curtain drawn over it.
-        const inFace = szp > head[2] - 0.02 && Math.abs(sxp - head[0]) < 0.095 && syp < head[1] + 0.105 && syp > head[1] - 0.21;
+        const inFace = inFacePoint(sxp, syp, szp);
         if (!inFace) stamp(sxp, syp, szp, radius * (1 - 0.4 * t));
       }
       prevx = qx; prevy = qy; prevz = qz;
@@ -519,6 +698,160 @@ function strandHairField(spec: CharacterSpec, cap: SdfField, roots: Float32Array
     strand++;
   }
   if (!strand) return null;
+
+  if (tubes) {
+    // BABY HAIR — its own coordinated system (hair/baby.ts).
+    //
+    // Every strand is a RECORD first: root and tip coordinates, the control
+    // points that are actually swept, measured length and thickness, growth
+    // direction, curvature, its distances to the front hairline / brow / nearest
+    // eye / temple, and its visibility and skin clearance. The tubes below are
+    // swept from those same control points, so the geometry cannot disagree with
+    // the record and a strand that disappears is a visible, countable fact.
+    let yLo = Infinity, yHi = -Infinity, yFront = Infinity;
+    for (let i = 0; i < roots.length / 3; i++) {
+      const y = roots[3 * i + 1];
+      yLo = Math.min(yLo, y);
+      yHi = Math.max(yHi, y);
+      if (roots[3 * i + 2] > centre[2] + 0.015) yFront = Math.min(yFront, y);
+    }
+    const eyeL = J("joint-l-eye"), eyeR = J("joint-r-eye");
+    const eyeSpan = Math.abs(eyeL[0] - eyeR[0]) || 0.062;
+    const babyReport = growBabyHair({
+      roots,
+      landmarks: {
+        centre: { x: centre[0], y: centre[1], z: centre[2] },
+        hairlineFrontY: Number.isFinite(yFront) ? yFront : yHi,
+        // WP01: the hairline is not the scalp cloud's lowest front root, it is the
+        // line the photographs put on her face — 0.848 eye→chin spans above the
+        // eye line. The difference is reported, not smoothed away.
+        // `chinY - eyeY` is NEGATIVE — the chin is below the eye line — so the
+        // first version's Math.max(0.05, …) collapsed the span to 50 mm and put
+        // the "photographic" hairline 42 mm above her eyes. The span is the
+        // absolute difference; the hairline is above the eyes, the chin below.
+        hairlineReferenceY:
+          eyeL[1] + Math.abs(youthLandmarks().chinY - eyeL[1]) * REFERENCE_231.heights.hairline,
+        surfaceZ: (x: number, y: number) => skinZ(x, y),
+        hairlineY: yLo,
+        browY: eyeL[1] + eyeSpan * (youthEnabled ? YOUTH_PAINT.browLiftSpan : 0.2),
+        eyes: [
+          { x: eyeL[0], y: eyeL[1], z: eyeL[2] },
+          { x: eyeR[0], y: eyeR[1], z: eyeR[2] },
+        ],
+        temples: [
+          { x: eyeL[0] - eyeSpan * 0.55, y: eyeL[1] + eyeSpan * 0.16, z: eyeL[2] },
+          { x: eyeR[0] + eyeSpan * 0.55, y: eyeR[1] + eyeSpan * 0.16, z: eyeR[2] },
+        ],
+        faceSpan: eyeSpan,
+      },
+      probe: {
+        distance: (p) => headField(p.x, p.y, p.z),
+        gradient: (p) => {
+          const g: V3 = [
+            headField(p.x + eps, p.y, p.z) - headField(p.x - eps, p.y, p.z),
+            headField(p.x, p.y + eps, p.z) - headField(p.x, p.y - eps, p.z),
+            headField(p.x, p.y, p.z + eps) - headField(p.x, p.y, p.z - eps),
+          ];
+          const l = Math.hypot(g[0], g[1], g[2]) || 1;
+          return { x: g[0] / l, y: g[1] / l, z: g[2] / l };
+        },
+      },
+      counts: spec.geometry?.babyHairCounts,
+    });
+    for (const s of babyReport.strands) {
+      tubeStrands.push({
+        path: s.controlPoints.map((p) => ({ x: p.x, y: p.y, z: p.z })),
+        radius: s.rootThicknessMm / 1000,
+        seed: 0.5,
+        droop: 1,
+        // A measured thickness is the drawn thickness: no jitter on these.
+        diameterJitter: 0,
+        taperJitter: 0,
+      });
+    }
+    babyHairState.report = babyReport;
+    const lod = spec.geometry?.hairLod ?? "high";
+    const options = TUBE_LOD[lod];
+    const built = bundleTubes(tubeStrands, { ...options, diameterVariation: 0.35, taperVariation: 0.4 });
+    hairTubeBuild.mesh = { positions: built.positions, indices: built.indices };
+    // Roots of the strands that were actually drawn, for clearance measurement
+    // against her head MESH (a 3 mm occupancy field cannot resolve 0.5 mm).
+    setHairRootPoints(Float32Array.from(strandRoots));
+    const radii = built.perStrand.map((s) => s.radius * 2000);
+    const tips = built.perStrand.map((s) => s.tipScale);
+    const meanR = radii.reduce((s, v) => s + v, 0) / (radii.length || 1);
+    const varR = radii.reduce((s, v) => s + (v - meanR) ** 2, 0) / (radii.length || 1);
+    // Root clearance measured against the skull field: a negative offset is a
+    // root under the skin, a large positive one is a lock hanging in the air.
+    let minOff = Infinity, maxOff = -Infinity, penetrations = 0, floating = 0;
+    const offsets: number[] = [];
+    // The head field is only a valid distance INSIDE its own box; outside it the
+    // value is not a clearance, so those roots are counted separately instead of
+    // being reported as 59 mm of floating hair.
+    let outsideBox = 0;
+    for (let i = 0; i < roots.length / 3; i++) {
+      const x = roots[3 * i], y = roots[3 * i + 1], z = roots[3 * i + 2];
+      const inBox = x > headBox.lo[0] && x < headBox.hi[0] && y > headBox.lo[1] && y < headBox.hi[1] && z > headBox.lo[2] && z < headBox.hi[2];
+      if (!inBox) {
+        outsideBox++;
+        continue;
+      }
+      const d = headField(x, y, z);
+      offsets.push(d);
+      minOff = Math.min(minOff, d);
+      maxOff = Math.max(maxOff, d);
+      if (d < 0) penetrations++;
+      if (d > 0.002) floating++;
+    }
+    offsets.sort((a, b) => a - b);
+    tubeDiagnostics.enabled = true;
+    tubeDiagnostics.lod = lod;
+    tubeDiagnostics.strands = built.perStrand.length;
+    tubeDiagnostics.triangles = built.triangles;
+    tubeDiagnostics.sides = options.sides;
+    tubeDiagnostics.segments = options.segments;
+    tubeDiagnostics.rootOffsetMinMm = minOff * 1000;
+    tubeDiagnostics.rootOffsetMaxMm = maxOff * 1000;
+    tubeDiagnostics.rootPenetrations = penetrations;
+    tubeDiagnostics.floatingRoots = floating;
+    tubeDiagnostics.diameterMinMm = Math.min(...radii);
+    tubeDiagnostics.diameterMaxMm = Math.max(...radii);
+    tubeDiagnostics.diameterCv = meanR > 0 ? Math.sqrt(varR) / meanR : 0;
+    tubeDiagnostics.tipScaleMin = Math.min(...tips);
+    tubeDiagnostics.tipScaleMax = Math.max(...tips);
+    tubeDiagnostics.babyStrands = babyHairState.report?.count ?? 0;
+    tubeDiagnostics.babyMaxLengthMm = babyHairState.report?.lengthMm.max ?? 0;
+    tubeDiagnostics.rootsMeasured = offsets.length;
+    tubeDiagnostics.rootsOutsideFieldBox = outsideBox;
+    tubeDiagnostics.rootOffsetP50Mm = offsets.length ? offsets[Math.floor(offsets.length / 2)] * 1000 : 0;
+    tubeDiagnostics.rootOffsetP99Mm = offsets.length ? offsets[Math.floor(offsets.length * 0.99)] * 1000 : 0;
+  }
+
+  const sample: { x: number; y: number; z: number }[] = [];
+  const sampleStep = Math.max(1, Math.floor(rootIndexes.length / 500));
+  for (let k = 0; k < rootIndexes.length; k += sampleStep) {
+    const v = rootIndexes[k];
+    sample.push({ x: roots[3 * v], y: roots[3 * v + 1], z: roots[3 * v + 2] });
+  }
+  const nn = nearestNeighbourStats(sample);
+  hairDiagnostics.golden = golden;
+  hairDiagnostics.roots = rootIndexes.length;
+  hairDiagnostics.curl = golden ? "golden-spiral" : "helix";
+  // The hairline is where HAIR GROWS, so it is measured on the roots, not on the
+  // hair mesh: the mesh's front edge is a side lock at temple height and reading
+  // it as the hairline put her hairline 11 mm below her eyes.
+  let hy = Infinity, hyFront = Infinity;
+  for (const v of rootIndexes) {
+    const y = roots[3 * v + 1], z = roots[3 * v + 2];
+    hy = Math.min(hy, y);
+    if (z > centre[2] + 0.015) hyFront = Math.min(hyFront, y);
+  }
+  hairDiagnostics.hairlineY = Number.isFinite(hy) ? hy : 0;
+  hairDiagnostics.hairlineFrontY = Number.isFinite(hyFront) ? hyFront : 0;
+  hairDiagnostics.rootCv = nn.cv;
+  hairDiagnostics.meanSpacing = nn.mean;
+  hairDiagnostics.minSpacing = nn.min;
+  hairDiagnostics.maxSpacing = nn.max;
   return fieldFromVoxels(inside, dims, origin, h);
 }
 
@@ -671,19 +1004,19 @@ function skinZ(x: number, y: number, seeded = 0): number {
   // Her face is at +z, so the front-most skin on a ray is the FIRST solid met
   // marching in from in front of her head — measured on the RAW head field, the
   // one that exists before any eyelid is cut into it.
-  const sd = fieldSdf(headSdf());
+  const sd = headFieldWithYouth(headSdf());
   const hp = J("joint-head");
   for (let z = hp[2] + 0.14; z > hp[2] - 0.14; z -= 0.0005) if (sd(x, y, z) < 0) return z;
   return seeded;
 }
 
 /** Her head's distance field, built once per loaded reference. */
-let headFieldCache: { digest: string; field: SdfField } | null = null;
+let headFieldCache: { digest: string; youth: boolean; field: SdfField } | null = null;
 function headSdf(): SdfField {
-  if (headFieldCache && headFieldCache.digest === (current!.digest as string)) return headFieldCache.field;
+  if (headFieldCache && headFieldCache.digest === (current!.digest as string) && headFieldCache.youth === youthEnabled) return headFieldCache.field;
   const hp = J("joint-head"), neckY = J("joint-neck")[1];
   const field = bodyField("head", FIELD_H, [], { lo: [hp[0] - 0.16, neckY - 0.06, hp[2] - 0.20], hi: [hp[0] + 0.16, hp[1] + 0.16, hp[2] + 0.20] });
-  headFieldCache = { digest: current!.digest as string, field };
+  headFieldCache = { digest: current!.digest as string, youth: youthEnabled, field };
   return field;
 }
 
@@ -691,6 +1024,16 @@ function headSdf(): SdfField {
 const EYE_HALF_W = 0.0165, EYE_HALF_H = 0.0052;
 /** Radius of her eyeball: a 24 mm globe, the real thing. */
 const EYE_GLOBE_R = 0.012;
+
+/**
+ * Hazel-green, not grey.
+ *
+ * The facial reference sheet reads her iris as olive-hazel behind a dark limbal
+ * ring (mean sampled colour ≈ #4a5222 in the lit part of the iris). 2.3 painted
+ * the palette's `iris`, which rendered as a pale grey slit in every render — the
+ * single most "not her" feature of her face.
+ */
+const IRIS_HAZEL: Rgb = [0.2, 0.225, 0.1];
 
 /**
  * Her eyeball: a single globe whose pupil, iris, limbal ring and sclera are
@@ -709,7 +1052,7 @@ function leluEyeball(c: V3, skinFront: number): Shape {
       const vy = (y - c[1]) / R, vz = (z - c[2]) / R;
       const cos = vz; // forward is +z
       if (cos > 0.986) return L.pupil;
-      if (cos > 0.868) return L.iris;
+      if (cos > 0.868) return IRIS_HAZEL;
       if (cos > 0.851) return L.irisRing;
       // sclera: warm off-white, shaded under the upper lid
       const shade = Math.max(0, Math.min(1, (vy + 0.45) / 1.2));
@@ -798,6 +1141,39 @@ export function faceMasks(): { lips: Sdf; brows: Sdf; eyes: [V3, V3] } {
   return { lips, brows, eyes: [eyeL, eyeR] };
 }
 
+/**
+ * Her measured landmarks, in metres above the floor, plus the joint-derived
+ * widths the proportion analysis needs. Read from the same rig every component
+ * uses, so the numbers are the body that was actually built.
+ */
+export function bodyLandmarks(): Record<string, number> {
+  const head = J("joint-head"), neck = J("joint-neck"), chest = J("joint-spine-1");
+  const waist = J("joint-spine-3"), pelvis = J("joint-pelvis");
+  const knee = J("joint-l-knee"), ankle = J("joint-l-ankle"), toe = J("joint-l-toe-1-1");
+  const shoulder = J("joint-l-shoulder"), elbow = J("joint-l-elbow"), wrist = J("joint-l-wrist");
+  const eye = J("joint-l-eye"), chin = J("joint-chin");
+  return {
+    totalHeight: head[1] + 0.11,
+    eyeHeight: eye[1],
+    chinHeight: chin[1],
+    neckHeight: neck[1],
+    chestHeight: chest[1],
+    waistHeight: waist[1],
+    pelvisHeight: pelvis[1],
+    kneeHeight: knee[1],
+    ankleHeight: ankle[1],
+    toeHeight: toe[1],
+    shoulderToWrist: shoulder[1] - wrist[1],
+    upperArm: shoulder[1] - elbow[1],
+    forearm: elbow[1] - wrist[1],
+    thigh: pelvis[1] - knee[1],
+    shin: knee[1] - ankle[1],
+    shoulderWidth: Math.abs(J("joint-l-shoulder")[0] - J("joint-r-shoulder")[0]),
+    hipWidth: Math.abs(J("joint-l-hip")[0] - J("joint-r-hip")[0]),
+    headWidth: Math.abs(J("joint-l-eye")[0] - J("joint-r-eye")[0]),
+  };
+}
+
 export type RegionId =
   | "head" | "face" | "torso" | "pelvis" | "neck" | "arms" | "hands" | "legs" | "feet" | "hair"
   | "clothing.top" | "clothing.bottom" | "clothing.shoes";
@@ -811,12 +1187,13 @@ export type RegionId =
  */
 export function referenceRegion(id: RegionId, spec: CharacterSpec, h: number, frame: "world" | "head" = "world", headCenter: V3 = [0, 0, 0]): Shape | null {
   if (!current) return null;
+  youthEnabled = spec.geometry?.youth === true;
   // Snapped to the OCCUPANCY cell, never to the mesh resolution: the anchor
   // that places this shape is `anchorCells(…, lattice.resolution)`, so
   // snapping with the mesh resolution shifted the head by up to 3 mm between
   // the per-component and whole-object paths.
   const anchor: V3 = frame === "head" ? [Math.round(headCenter[0] / CELL) * CELL, Math.round(headCenter[1] / CELL) * CELL, Math.round(headCenter[2] / CELL) * CELL] : [0, 0, 0];
-  const key = `${current.digest}|region:${id}|${h}|${frame}|${anchor.join(",")}|${spec.hands.curl},${spec.hands.spread},${spec.hands.opposition},${spec.feet?.toeCurl ?? 0}`;
+  const key = `${current.digest}|region:${id}|${h}|${frame}|${anchor.join(",")}|${spec.hands.curl},${spec.hands.spread},${spec.hands.opposition},${spec.feet?.toeCurl ?? 0}|youth:${youthEnabled}`;
   const hit = shapeCache.get(key);
   if (hit !== undefined) return hit;
   const s = buildRegion(id, spec, h, anchor);
@@ -842,15 +1219,24 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
     case "head": {
       const hp = J("joint-head");
       const f = body("head", [], { lo: [hp[0] - 0.16, neckY - 0.06, hp[2] - 0.20], hi: [hp[0] + 0.16, hp[1] + 0.16, hp[2] + 0.20] });
+      // The youth pass deforms the head she HAS — her skull, her marks, her eye
+      // joints. No generic face is substituted. The bounds are grown by the
+      // displacement so no surface is sampled outside its own box.
+      const headShape: Shape = youthEnabled
+        ? { ...f, f: applyYouth(f.f), lo: [f.lo[0], f.lo[1], f.lo[2] - 0.002] as V3, hi: [f.hi[0] + 0.004, f.hi[1] + 0.004, f.hi[2] + 0.012] as V3 }
+        : f;
       const m = faceMasks();
       const hairC = spec.materials.hair;
-      let result = clip(f, above(neckY - 0.004));
+      let result = clip(headShape, above(neckY - 0.004));
       if (isLelu(spec)) {
         // Open her eyelids: without an aperture the reference mesh is closed and
         // the eyeballs read as two white slits behind skin.
         const eL = J("joint-l-eye"), eR = J("joint-r-eye");
         const span = Math.abs(eL[0] - eR[0]) || 0.062;
-        const ap = (e: V3) => eyeAperture(e, span, Math.sign(e[0]) || 1);
+        // A youth pass opens the lid aperture slightly: the reference's eyes are
+        // larger than the 2.1 build's, and a larger opening is what makes an eye
+        // read young rather than small.
+        const ap = (e: V3) => eyeAperture(e, span * (youthEnabled ? YOUTH_PAINT.apertureScale : 1), Math.sign(e[0]) || 1);
         result = subtract(result, (x, y, z) => Math.min(ap(eL)(x, y, z), ap(eR)(x, y, z)));
       }
       // Colour is written in WORLD space: the anchor block below moves the
@@ -924,7 +1310,12 @@ function buildRegion(id: RegionId, spec: CharacterSpec, h: number, anchor: V3): 
         // does tell us reliably. So the globe goes on the joint, and the lid
         // opening is cut around the same point.
         const zs = isLelu(spec) ? skinZ(raw[0], raw[1], raw[2]) : raw[2];
-        const e: V3 = isLelu(spec) ? [raw[0], raw[1], raw[2]] : raw;
+        // The globe sits where her SKIN is, not on the rig's joint: the joint is
+        // a couple of millimetres behind the surface, which left only the globe's
+        // edge visible through the lid opening and made her eyes read as two pale
+        // slits with a dot in them. `zs` was already measured here and then
+        // ignored; the cornea now sits 1.5 mm proud of the skin.
+        const e: V3 = isLelu(spec) ? [raw[0], raw[1], zs - EYE_GLOBE_R + 0.0015] : raw;
         if (lelu) {
           feats.push(leluEyeball(e, zs));
         } else {

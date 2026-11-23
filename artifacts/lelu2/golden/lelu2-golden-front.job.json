@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/golden/lelu2-golden.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/golden/lelu2-golden-front.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 24,
+ "view": "front",
+ "wireframe": false,
+ "ground": true,
+ "view_transform": "AgX"
+}

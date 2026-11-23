@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117220833-116",
+  "at": 1794953313000,
+  "type": "source-change",
+  "workPackage": "WP06",
+  "summary": "feat(asre): make the WP6 benchmark resumable (journal per trial/strategy)",
+  "detail": "1 file(s): scripts/asre/wp6-benchmark.ts",
+  "interpretation": "Associated with WP06 by explicit WP6. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "7a9b0641cbe45ff5ada170232258c55f430cf827",
+      "commit": "7a9b0641cbe45ff5ada170232258c55f430cf827",
+      "note": "feat(asre): make the WP6 benchmark resumable (journal per trial/strategy)"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/wp6-benchmark.ts",
+      "commit": "7a9b0641cbe45ff5ada170232258c55f430cf827"
+    }
+  ],
+  "commit": "7a9b0641cbe45ff5ada170232258c55f430cf827",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:7a9b0641cbe45ff5ada170232258c55f430cf827"
+}

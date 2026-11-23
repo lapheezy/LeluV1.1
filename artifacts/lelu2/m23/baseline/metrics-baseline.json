@@ -1,0 +1,161 @@
+{
+  "variant": "baseline",
+  "identity": "lelu-canonical",
+  "primaryReference": "ref10_face_primary",
+  "foundation": "0883b24ef7a9655f",
+  "buildMs": 56481,
+  "triangles": 1294408,
+  "head": {
+    "heightMm": 264.6268606185913,
+    "widthMm": 172.08056896924973,
+    "depthMm": 280.72112053632736,
+    "widthToHeight": 0.6502762741733566,
+    "skullWidthMm": 146.63893729448318,
+    "cheekWidthMm": 150.05381405353546,
+    "jawWidthMm": 123.82260710000992,
+    "chinWidthMm": 59.99999865889549,
+    "jawToCheek": 0.8251880025910777,
+    "chinToJaw": 0.48456416856442275,
+    "cheekVolumeCm3": 748.0822854548376,
+    "headVolumeCm3": 3971.224054337366,
+    "cheekShareOfHead": 0.18837574390641168
+  },
+  "eyes": {
+    "spacingMm": 61.74795563336428,
+    "centresMm": [
+      {
+        "x": 30.9,
+        "y": 1578.4,
+        "z": 124.9
+      },
+      {
+        "x": -30.9,
+        "y": 1578.4,
+        "z": 124.9
+      }
+    ],
+    "heightAboveChinMm": 143.838338491453,
+    "heightFraction": 0.5435515433135425
+  },
+  "lowerFace": {
+    "chinHeightMm": 1434.5166683197021,
+    "eyeHeightMm": 1578.3550068111551,
+    "eyeToChinMm": 143.838338491453,
+    "shareOfHead": 0.5435515433135425
+  },
+  "face": {
+    "chinMmL": 1465.763807296753,
+    "eyeToChinMm": 112.59119951440222,
+    "crownToChinMm": 233.37972164154053,
+    "lowerThirdShare": 0.48243780017587223,
+    "cheekWidthMm": 145.55031806230545,
+    "jawWidthMm": 116.24978110194206,
+    "chinWidthMm": 88.45657482743263,
+    "jawToCheek": 0.798691357391464,
+    "chinToJaw": 0.7609182055135489
+  },
+  "hair": {
+    "golden": true,
+    "roots": 1350,
+    "curl": "golden-spiral",
+    "rootCv": 0.847142777704976,
+    "meanSpacing": 0.005151661372423803,
+    "minSpacing": 0.000023672242883634266,
+    "maxSpacing": 0.021483353609208646,
+    "hairlineY": 1.4185655117034912,
+    "hairlineFrontY": 1.4778797626495361
+  },
+  "tubes": {
+    "enabled": true,
+    "lod": "high",
+    "strands": 1248,
+    "triangles": 436800,
+    "sides": 7,
+    "segments": 26,
+    "rootOffsetMinMm": -0.5731443801006563,
+    "rootOffsetMaxMm": 0.5968904873120144,
+    "rootPenetrations": 392,
+    "floatingRoots": 0,
+    "diameterMinMm": 0.3230068383924663,
+    "diameterMaxMm": 22.969432751737273,
+    "diameterCv": 0.4648974529328756,
+    "tipScaleMin": 0.07206057102978229,
+    "tipScaleMax": 0.1679594310298562,
+    "babyStrands": 149,
+    "babyMaxLengthMm": 44.10664807214545,
+    "rootsMeasured": 1350,
+    "rootsOutsideFieldBox": 0,
+    "rootOffsetP50Mm": 0.0026963615923530134,
+    "rootOffsetP99Mm": 0.5661826204960929
+  },
+  "youth": {
+    "enabled": false,
+    "params": {
+      "lowerFaceCompression": 0.085,
+      "jawNarrowing": 0.3,
+      "cheekFullnessMm": 2.8,
+      "chinRoundnessMm": 2.2,
+      "lipFullnessMm": 1.4
+    },
+    "landmarks": null,
+    "chinLiftMm": 0,
+    "jawNarrowMm": 0,
+    "mouthLiftMm": 0
+  },
+  "babyHair": {
+    "count": 149,
+    "byRegion": {
+      "front": 96,
+      "temple-left": 4,
+      "temple-right": 5,
+      "sideburn-left": 12,
+      "sideburn-right": 12,
+      "flyaway": 20
+    },
+    "lengthMm": {
+      "min": 5.799625120972145,
+      "median": 10.333934463703326,
+      "mean": 11.732203491774255,
+      "max": 44.10664807214545
+    },
+    "rootThicknessMm": {
+      "min": 0.16150341919623315,
+      "median": 0.2596940361522138,
+      "mean": 0.2686639252185022,
+      "max": 0.44898136035073544
+    },
+    "curvaturePerM": {
+      "min": 7.041047033605515,
+      "median": 316.2629850793682,
+      "mean": 299.045544274298,
+      "max": 646.5344813035163
+    },
+    "hairline": {
+      "coveragePct": 100,
+      "scalpHairlineMm": 52.38360917852991,
+      "referenceHairlineMm": 92.67210366399836,
+      "maxGapMm": 0,
+      "medianRootAboveBrowMm": 61.62903484793936,
+      "rootAboveHairlineMm": {
+        "min": -131.95490837097168,
+        "median": 20.78261839180806,
+        "mean": 6.692806232290831,
+        "max": 66.94924831390381
+      }
+    },
+    "collision": {
+      "clear": 149,
+      "contact": 0,
+      "penetrating": 0
+    },
+    "sample": [
+      "front-001 (front)\n  root -0.0741, 1.6351, 0.0587 m\n  tip  -0.0743, 1.6342, 0.0582 m\n  length 9.0 mm, thickness 0.30 → 0.05 mm\n  growth -0.22, -0.98, 0.00 · curvature 385.1 1/m\n  hairline 4.4 mm · brow 43.5 mm · eye 94.8 mm · temple 107.9 mm\n  front · clear · skin gap 0.54…0.56 mm",
+      "front-002 (front)\n  root -0.0739, 1.6351, 0.0612 m\n  tip  -0.0740, 1.6346, 0.0607 m\n  length 5.8 mm, thickness 0.20 → 0.04 mm\n  growth 0.22, -0.98, 0.00 · curvature 646.5 1/m\n  hairline 4.4 mm · brow 43.9 mm · eye 93.8 mm · temple 106.2 mm\n  front · clear · skin gap 0.55…0.55 mm",
+      "front-003 (front)\n  root -0.0738, 1.6351, 0.0617 m\n  tip  -0.0740, 1.6345, 0.0611 m\n  length 6.5 mm, thickness 0.19 → 0.03 mm\n  growth 0.22, -0.98, 0.00 · curvature 571.8 1/m\n  hairline 4.4 mm · brow 43.8 mm · eye 93.3 mm · temple 105.8 mm\n  front · clear · skin gap 0.54…0.56 mm"
+    ]
+  },
+  "body": {
+    "totalHeightMm": 1657.3355340263706,
+    "headsTall": 6.262914997185796
+  }
+}

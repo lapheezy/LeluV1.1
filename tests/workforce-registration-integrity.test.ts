@@ -9,13 +9,16 @@
  * registered tool that has no executor behind it.
  */
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { after } from "node:test";
+import SelfChangeAwareness from "../src/core/cognition/SelfChangeAwareness";
 import ToolRegistry from "../src/core/tools/ToolRegistry";
 import type { ToolDefinition } from "../src/core/tools/ToolRegistry";
 import { executableToolIds } from "../src/core/tools/ToolDispatcher";
 import { registerEarthTools } from "../src/core/earth/EarthTools";
 import { registerForgeTools } from "../src/core/forge/ForgeTools";
 import { registerAsreTools } from "../src/core/asre/AsreTools";
+import { registerFoundryTools } from "../src/core/asre/foundry/FoundryTools";
+import { registerSelfTools } from "../src/core/cognition/SelfTools";
 import { registerWorldTools } from "../src/core/world/WorldTools";
 import { registerAgenticTools } from "../src/core/agentic/AgenticTools";
 import { registerInterfaceTools } from "../src/core/interface/InterfaceTools";
@@ -30,10 +33,15 @@ import { registerNeuralMapTools } from "../src/core/neural/NeuralMapTools";
 import { registerCoutureTools } from "../src/core/couture/CoutureTools";
 import { registerContinuityTools } from "../src/core/cognition/ContinuityTools";
 
+// registerSelfTools starts a 10-minute refresh timer; stop it so the run can exit.
+after(() => SelfChangeAwareness.getInstance().stop());
+
 const REGISTRARS: Array<[string, () => void]> = [
   ["earth", registerEarthTools],
   ["forge", registerForgeTools],
   ["asre", registerAsreTools],
+  ["foundry", registerFoundryTools],
+  ["self", registerSelfTools],
   ["world", registerWorldTools],
   ["agentic", registerAgenticTools],
   ["interface", registerInterfaceTools],

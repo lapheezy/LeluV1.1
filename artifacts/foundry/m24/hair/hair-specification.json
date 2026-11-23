@@ -1,0 +1,41 @@
+{
+ "asset": "v0004 lelu_hair",
+ "geometry": {
+  "triangles": 162364,
+  "areaMm2": 1149442.3,
+  "shellsInV0003": 86228,
+  "shellVerticesMedian": 3,
+  "shellDiagonalMm": {
+   "p10": 3.11,
+   "median": 6.58,
+   "p90": 14.91,
+   "max": 148.7
+  },
+  "note": "the asset has no strand structure: shells are unwelded triangles, so this specification describes a surface, not follicles"
+ },
+ "colour": {
+  "base": "black/dark brown with burgundy and copper-red highlights (visible in every acceptance render)",
+  "source": "base-colour texture, 4096\u00b2, shared with the face",
+  "measuredDarkShare": 83.8
+ },
+ "hairline": {
+  "lowestFrontHairMm": 1516.22,
+  "aboveEyeLineMm": -76.63,
+  "photographTargetMm": 87.68,
+  "verdict": "outside"
+ },
+ "accessories": {
+  "present": [
+   "rose headpiece with quartz drop",
+   "rose clusters",
+   "gold hoops (attached to the head mesh)",
+   "chain and medallion (body mesh)"
+  ],
+  "addressability": "roses and headpiece travel with lelu_hair in v0004; the hoops are part of the same object"
+ },
+ "targets": {
+  "exposedForeheadMm": 87.68,
+  "curlSilhouette": "preserve the existing silhouette; only the front mass may move",
+  "strandLevel": "requires a rebuilt hair system, not a split of this mesh"
+ }
+}

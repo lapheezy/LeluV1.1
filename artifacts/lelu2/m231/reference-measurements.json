@@ -1,0 +1,1532 @@
+{
+  "method": "scripts/lelu2/measure-references.py \u2014 content-box crop, skin/tone masks, centre-column hairline, row-darkness bands",
+  "photographs": 39,
+  "collections": {
+    "lelu-anatomy": 11,
+    "lelu-facial-expressions": 3,
+    "lelu-hair": 25
+  },
+  "results": [
+    {
+      "file": "lelu-anatomy-01.png",
+      "ok": true,
+      "sha256": "9bb9aa984d337bb12071a59e7e367a51094d2bcb676b452d00b753932ec7c2b0",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        94,
+        1758
+      ],
+      "hairlineY": 94,
+      "hairlineFromEye": -0.6475,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 94,
+      "browPeakY": 230,
+      "browBottomY": 429,
+      "browFromEye": -0.3952,
+      "eyeLineY": 443,
+      "mouthY": 897,
+      "mouthFromEye": 0.8423,
+      "chinY": 982,
+      "eyeToChinPx": 539,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-02.png",
+      "ok": true,
+      "sha256": "b5ad171186dcfd2fabdb654ff5b4f4add276eb72c6707f4243efb2a4d6753aae",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        105,
+        1645
+      ],
+      "hairlineY": 753,
+      "hairlineFromEye": 0.0,
+      "hairlineOverFaceHeight": 0.4208,
+      "browTopY": 105,
+      "browPeakY": 232,
+      "browBottomY": 416,
+      "browFromEye": -0.5841,
+      "eyeLineY": 753,
+      "mouthY": 1381,
+      "mouthFromEye": 0.704,
+      "chinY": 1645,
+      "eyeToChinPx": 892,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-03.png",
+      "ok": true,
+      "sha256": "7cc612ddd41b8273ab27bd7745feb4cc9e5d93b47b3ee4c5354d7f95f9bf158f",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        728,
+        1168,
+        1800
+      ],
+      "faceBox": [
+        74,
+        1071
+      ],
+      "hairlineY": 74,
+      "hairlineFromEye": -0.2144,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 74,
+      "browPeakY": 127,
+      "browBottomY": 246,
+      "browFromEye": -0.1498,
+      "eyeLineY": 250,
+      "mouthY": 834,
+      "mouthFromEye": 0.7113,
+      "chinY": 1071,
+      "eyeToChinPx": 821,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-04.png",
+      "ok": true,
+      "sha256": "4d55c18fd521dc7b1d69e2f25779566f382ebadc90810c39ff904599835a3cea",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        318,
+        1268
+      ],
+      "hairlineY": 318,
+      "hairlineFromEye": -4.8282,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 906,
+      "browPeakY": 1020,
+      "browBottomY": 1029,
+      "browFromEye": -0.5215,
+      "eyeLineY": 1105,
+      "mouthY": 1153,
+      "mouthFromEye": 0.2945,
+      "chinY": 1268,
+      "eyeToChinPx": 163,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-05.png",
+      "ok": true,
+      "sha256": "b4c392cc32646a116c2d35ffb59276c633f447a35a596b483242b6c7cb74fadb",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        318,
+        1268
+      ],
+      "hairlineY": 318,
+      "hairlineFromEye": -4.8282,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 906,
+      "browPeakY": 1020,
+      "browBottomY": 1029,
+      "browFromEye": -0.5215,
+      "eyeLineY": 1105,
+      "mouthY": 1153,
+      "mouthFromEye": 0.2945,
+      "chinY": 1268,
+      "eyeToChinPx": 163,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-06.png",
+      "ok": true,
+      "sha256": "df1c3f15b3206606c67854807914793e84d1c46bc48b0948a493c367cd7880eb",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        298,
+        1758
+      ],
+      "hairlineY": 298,
+      "hairlineFromEye": -4.84,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 1205,
+      "browPeakY": 1380,
+      "browBottomY": 1392,
+      "browFromEye": -0.512,
+      "eyeLineY": 1508,
+      "mouthY": 1645,
+      "mouthFromEye": 0.548,
+      "chinY": 1758,
+      "eyeToChinPx": 250,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-07.png",
+      "ok": true,
+      "sha256": "147716a608ae8def5ec23a321a2d6ef84c36dae3360abce84325cfd90b336d63",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        152,
+        756
+      ],
+      "hairlineY": 152,
+      "hairlineFromEye": -2.6829,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 400,
+      "browPeakY": 472,
+      "browBottomY": 544,
+      "browFromEye": -0.7317,
+      "eyeLineY": 592,
+      "mouthY": 654,
+      "mouthFromEye": 0.378,
+      "chinY": 756,
+      "eyeToChinPx": 164,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-08.png",
+      "ok": true,
+      "sha256": "d7750fa8a070b35076619fbd5bdfd6bcded78627cbcb41f5aa5a9fa3180257b7",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        728,
+        1168,
+        1800
+      ],
+      "faceBox": [
+        81,
+        1048
+      ],
+      "hairlineY": 87,
+      "hairlineFromEye": -0.2529,
+      "hairlineOverFaceHeight": 0.0062,
+      "browTopY": 81,
+      "browPeakY": 161,
+      "browBottomY": 277,
+      "browFromEye": -0.1565,
+      "eyeLineY": 281,
+      "mouthY": 858,
+      "mouthFromEye": 0.7523,
+      "chinY": 1048,
+      "eyeToChinPx": 767,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-09.png",
+      "ok": true,
+      "sha256": "23b989c6606e1e314df91efdb71439f6e9a2c1fc4c70b686cea8487dc9cdf67d",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        293,
+        1244
+      ],
+      "hairlineY": 293,
+      "hairlineFromEye": -0.3605,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 313,
+      "browPeakY": 427,
+      "browBottomY": 541,
+      "browFromEye": -0.1688,
+      "eyeLineY": 545,
+      "mouthY": 1121,
+      "mouthFromEye": 0.824,
+      "chinY": 1244,
+      "eyeToChinPx": 699,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-10.png",
+      "ok": true,
+      "sha256": "28796ee4753b4c4bf0a05666fa4288144212bb1724e59e08ac8e7563bc707292",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        452,
+        1758
+      ],
+      "hairlineY": 452,
+      "hairlineFromEye": -0.1766,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 452,
+      "browPeakY": 452,
+      "browBottomY": 608,
+      "browFromEye": -0.1766,
+      "eyeLineY": 612,
+      "mouthY": 933,
+      "mouthFromEye": 0.3543,
+      "chinY": 1518,
+      "eyeToChinPx": 906,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-anatomy-11.png",
+      "ok": true,
+      "sha256": "f3bb5ca7c9d71a5cb139b3e9686251039f0f5355acf38690297e9008b0707b25",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        253,
+        1102
+      ],
+      "hairlineY": 253,
+      "hairlineFromEye": -702.0,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 784,
+      "browPeakY": 885,
+      "browBottomY": 888,
+      "browFromEye": -70.0,
+      "eyeLineY": 955,
+      "mouthY": null,
+      "mouthFromEye": null,
+      "chinY": 743,
+      "eyeToChinPx": 1,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "none",
+        "chin": "medium"
+      },
+      "collection": "lelu-anatomy"
+    },
+    {
+      "file": "lelu-facial-expression-01.png",
+      "ok": true,
+      "sha256": "b99db4e5f833b2f87f51371fc27e570329d3a46d73a7b516a2494b4ea1716d51",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        288,
+        1758
+      ],
+      "hairlineY": 288,
+      "hairlineFromEye": -1.4853,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 753,
+      "browPeakY": 929,
+      "browBottomY": 1105,
+      "browFromEye": -0.3782,
+      "eyeLineY": 1148,
+      "mouthY": 1293,
+      "mouthFromEye": 0.2504,
+      "chinY": 1727,
+      "eyeToChinPx": 579,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-facial-expressions"
+    },
+    {
+      "file": "lelu-facial-expression-02.png",
+      "ok": true,
+      "sha256": "d95eca74677c2c185026f54f1edfd3fef1a99810ad797baa60a96b5de7968458",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        480,
+        1168,
+        2048
+      ],
+      "faceBox": [
+        270,
+        1565
+      ],
+      "hairlineY": 270,
+      "hairlineFromEye": -1.5442,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 711,
+      "browPeakY": 866,
+      "browBottomY": 1021,
+      "browFromEye": -0.3733,
+      "eyeLineY": 1056,
+      "mouthY": 1183,
+      "mouthFromEye": 0.2495,
+      "chinY": 1565,
+      "eyeToChinPx": 509,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-facial-expressions"
+    },
+    {
+      "file": "lelu-facial-expression-03.png",
+      "ok": true,
+      "sha256": "06557c3de06cb06690772de3aaf8b0054d79534c770fcf513639d4f387120060",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        480,
+        1168,
+        2048
+      ],
+      "faceBox": [
+        264,
+        1565
+      ],
+      "hairlineY": 264,
+      "hairlineFromEye": -2.9814,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 904,
+      "browPeakY": 1060,
+      "browBottomY": 1216,
+      "browFromEye": -0.5093,
+      "eyeLineY": 1224,
+      "mouthY": 1304,
+      "mouthFromEye": 0.2484,
+      "chinY": 1546,
+      "eyeToChinPx": 322,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-facial-expressions"
+    },
+    {
+      "file": "lelu-hair-01.png",
+      "ok": true,
+      "sha256": "4a241943aa95602d2002738bbc22e218c080370c4cb1031f45fe4c3f5fadd7d5",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        480,
+        1168,
+        2048
+      ],
+      "faceBox": [
+        1041,
+        1565
+      ],
+      "hairlineY": 1041,
+      "hairlineFromEye": -0.1775,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 1041,
+      "browPeakY": 1052,
+      "browBottomY": 1114,
+      "browFromEye": -0.1528,
+      "eyeLineY": 1120,
+      "mouthY": 1559,
+      "mouthFromEye": 0.9865,
+      "chinY": 1565,
+      "eyeToChinPx": 445,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-02.png",
+      "ok": true,
+      "sha256": "8a90f1290c168569890166a9380287f6a049246b6c94b776dbf989be4f798fa5",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        728,
+        1168,
+        1800
+      ],
+      "faceBox": [
+        800,
+        1071
+      ],
+      "hairlineY": 800,
+      "hairlineFromEye": -0.2723,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 800,
+      "browPeakY": 802,
+      "browBottomY": 834,
+      "browFromEye": -0.2629,
+      "eyeLineY": 858,
+      "mouthY": 918,
+      "mouthFromEye": 0.2817,
+      "chinY": 1071,
+      "eyeToChinPx": 213,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-03.png",
+      "ok": true,
+      "sha256": "17c5e8aae48846d2263affb38c89eedfe6f96fcdec1992ca99089674fbae6586",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        624,
+        1168,
+        1912
+      ],
+      "faceBox": [
+        626,
+        1281
+      ],
+      "hairlineY": 632,
+      "hairlineFromEye": -3.0311,
+      "hairlineOverFaceHeight": 0.0092,
+      "browTopY": 981,
+      "browPeakY": 1059,
+      "browBottomY": 1116,
+      "browFromEye": -0.3789,
+      "eyeLineY": 1120,
+      "mouthY": 1280,
+      "mouthFromEye": 0.9938,
+      "chinY": 1281,
+      "eyeToChinPx": 161,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-04.png",
+      "ok": true,
+      "sha256": "2821f232461e1d7893d2ff9746893d74bb81686d5a6d6414cb96826e6be01688",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        480,
+        1168,
+        2048
+      ],
+      "faceBox": [
+        6,
+        1565
+      ],
+      "hairlineY": 196,
+      "hairlineFromEye": -0.0415,
+      "hairlineOverFaceHeight": 0.1219,
+      "browTopY": 6,
+      "browPeakY": 54,
+      "browBottomY": 241,
+      "browFromEye": -0.1528,
+      "eyeLineY": 249,
+      "mouthY": 1363,
+      "mouthFromEye": 0.873,
+      "chinY": 1525,
+      "eyeToChinPx": 1276,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-05.png",
+      "ok": true,
+      "sha256": "c99328a6d68656f7ecbbc042c640da2076f4772c13d01357d53b53785879892a",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        624,
+        1168,
+        1904
+      ],
+      "faceBox": [
+        2,
+        1279
+      ],
+      "hairlineY": null,
+      "hairlineFromEye": null,
+      "hairlineOverFaceHeight": null,
+      "browTopY": 332,
+      "browPeakY": 485,
+      "browBottomY": 638,
+      "browFromEye": -0.3728,
+      "eyeLineY": 655,
+      "mouthY": 930,
+      "mouthFromEye": 0.6031,
+      "chinY": 1111,
+      "eyeToChinPx": 456,
+      "confidence": {
+        "hairline": "none",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-06.png",
+      "ok": true,
+      "sha256": "4e8e9e21d36c957d007f092642d9a5b6ed1364c034b37cd589c5eac8348ae086",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        728,
+        1168,
+        1800
+      ],
+      "faceBox": [
+        3,
+        1046
+      ],
+      "hairlineY": 256,
+      "hairlineFromEye": -8.5571,
+      "hairlineOverFaceHeight": 0.2426,
+      "browTopY": 522,
+      "browPeakY": 647,
+      "browBottomY": 772,
+      "browFromEye": -2.9714,
+      "eyeLineY": 855,
+      "mouthY": 873,
+      "mouthFromEye": 0.2571,
+      "chinY": 925,
+      "eyeToChinPx": 70,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-07.png",
+      "ok": true,
+      "sha256": "2923d90193338370b8719f2c2f9746e9c5d91392b9fc30281917941995d90d31",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        384,
+        1168,
+        2144
+      ],
+      "faceBox": [
+        700,
+        1728
+      ],
+      "hairlineY": 933,
+      "hairlineFromEye": -0.0322,
+      "hairlineOverFaceHeight": 0.2267,
+      "browTopY": 700,
+      "browPeakY": 822,
+      "browBottomY": 945,
+      "browFromEye": -0.181,
+      "eyeLineY": 957,
+      "mouthY": 1617,
+      "mouthFromEye": 0.8847,
+      "chinY": 1703,
+      "eyeToChinPx": 746,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-08.png",
+      "ok": true,
+      "sha256": "cbae47f07d56160371bdfb2aaaebe8532f882f708684254105710106246fd028",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        12,
+        774
+      ],
+      "hairlineY": 359,
+      "hairlineFromEye": 0.117,
+      "hairlineOverFaceHeight": 0.4554,
+      "browTopY": 12,
+      "browPeakY": 13,
+      "browBottomY": 104,
+      "browFromEye": -0.6191,
+      "eyeLineY": 304,
+      "mouthY": 771,
+      "mouthFromEye": 0.9936,
+      "chinY": 774,
+      "eyeToChinPx": 470,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-09.png",
+      "ok": true,
+      "sha256": "8dd2d03063b4d5fe2aaebd5ba8253228338d6716fed5c270355cdb013ddd16f4",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        624,
+        1168,
+        1904
+      ],
+      "faceBox": [
+        43,
+        1062
+      ],
+      "hairlineY": 238,
+      "hairlineFromEye": -1.6343,
+      "hairlineOverFaceHeight": 0.1914,
+      "browTopY": 328,
+      "browPeakY": 450,
+      "browBottomY": 572,
+      "browFromEye": -0.9482,
+      "eyeLineY": 743,
+      "mouthY": 848,
+      "mouthFromEye": 0.3398,
+      "chinY": 1052,
+      "eyeToChinPx": 309,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-10.png",
+      "ok": true,
+      "sha256": "35358050d9761edce2f9feea722a014ae3dc1d14fb7f416153b79a2f2d2ce4b9",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        42,
+        783
+      ],
+      "hairlineY": 117,
+      "hairlineFromEye": -0.3455,
+      "hairlineOverFaceHeight": 0.1012,
+      "browTopY": 46,
+      "browPeakY": 134,
+      "browBottomY": 222,
+      "browFromEye": -0.3111,
+      "eyeLineY": 288,
+      "mouthY": 566,
+      "mouthFromEye": 0.5616,
+      "chinY": 783,
+      "eyeToChinPx": 495,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-11.png",
+      "ok": true,
+      "sha256": "a7af541a3866319147a34eddd01bb06532257a7639787eced2291395347f9c1c",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        180,
+        708
+      ],
+      "hairlineY": 180,
+      "hairlineFromEye": -0.1554,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 180,
+      "browPeakY": 180,
+      "browBottomY": 243,
+      "browFromEye": -0.1554,
+      "eyeLineY": 251,
+      "mouthY": 674,
+      "mouthFromEye": 0.9256,
+      "chinY": 708,
+      "eyeToChinPx": 457,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-12.png",
+      "ok": true,
+      "sha256": "a2dc8881bac6ca8cdc4739625210ae8eb71f37da673237d75110f9eb93a30d93",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        72,
+        783
+      ],
+      "hairlineY": 124,
+      "hairlineFromEye": -0.9018,
+      "hairlineOverFaceHeight": 0.0731,
+      "browTopY": 253,
+      "browPeakY": 338,
+      "browBottomY": 423,
+      "browFromEye": -0.2649,
+      "eyeLineY": 427,
+      "mouthY": 756,
+      "mouthFromEye": 0.9792,
+      "chinY": 763,
+      "eyeToChinPx": 336,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-13.png",
+      "ok": true,
+      "sha256": "db6c04c908f5c43118e980d370aeb68c5f1f88a585a91f6b1aa57d638f690e78",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        233,
+        783
+      ],
+      "hairlineY": 234,
+      "hairlineFromEye": -3.0667,
+      "hairlineOverFaceHeight": 0.0018,
+      "browTopY": 521,
+      "browPeakY": 587,
+      "browBottomY": 644,
+      "browFromEye": -0.4519,
+      "eyeLineY": 648,
+      "mouthY": 769,
+      "mouthFromEye": 0.8963,
+      "chinY": 783,
+      "eyeToChinPx": 135,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-14.png",
+      "ok": true,
+      "sha256": "fd9996f704b9508a17e26778872ceff447f4d297baeab07ac1f620e8f7384404",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        104,
+        750
+      ],
+      "hairlineY": 145,
+      "hairlineFromEye": -0.0708,
+      "hairlineOverFaceHeight": 0.0635,
+      "browTopY": 104,
+      "browPeakY": 104,
+      "browBottomY": 181,
+      "browFromEye": -0.1434,
+      "eyeLineY": 185,
+      "mouthY": 628,
+      "mouthFromEye": 0.7841,
+      "chinY": 750,
+      "eyeToChinPx": 565,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-15.png",
+      "ok": true,
+      "sha256": "3bc3f64dc265998f64c87e8e4f23e99d164b562720bda10f2529a32e56931176",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        211,
+        783
+      ],
+      "hairlineY": 214,
+      "hairlineFromEye": -2.4506,
+      "hairlineOverFaceHeight": 0.0052,
+      "browTopY": 471,
+      "browPeakY": 539,
+      "browBottomY": 607,
+      "browFromEye": -0.4444,
+      "eyeLineY": 611,
+      "mouthY": 708,
+      "mouthFromEye": 0.5988,
+      "chinY": 773,
+      "eyeToChinPx": 162,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-16.png",
+      "ok": true,
+      "sha256": "d1bc590ec5c8f54557f3416e10e699e56833d3e87b5482cd0eccd9aed17d394c",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        60,
+        783
+      ],
+      "hairlineY": 60,
+      "hairlineFromEye": -0.8753,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 221,
+      "browPeakY": 307,
+      "browBottomY": 393,
+      "browFromEye": -0.2338,
+      "eyeLineY": 397,
+      "mouthY": 660,
+      "mouthFromEye": 0.6831,
+      "chinY": 782,
+      "eyeToChinPx": 385,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-17.png",
+      "ok": true,
+      "sha256": "8735d65dd544ce6c39ba93737c8ec10aff39c5fc2c79732cdc86f496673a4a68",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        4,
+        739
+      ],
+      "hairlineY": null,
+      "hairlineFromEye": null,
+      "hairlineOverFaceHeight": null,
+      "browTopY": 262,
+      "browPeakY": 350,
+      "browBottomY": 438,
+      "browFromEye": -0.8263,
+      "eyeLineY": 526,
+      "mouthY": 628,
+      "mouthFromEye": 0.4789,
+      "chinY": 739,
+      "eyeToChinPx": 213,
+      "confidence": {
+        "hairline": "none",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-18.png",
+      "ok": true,
+      "sha256": "781806a2ad58b68d817edd14a9992ebe4bb392c8e0521a4be7cb17385d30a03b",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        278,
+        783
+      ],
+      "hairlineY": 435,
+      "hairlineFromEye": 0.0225,
+      "hairlineOverFaceHeight": 0.3109,
+      "browTopY": 278,
+      "browPeakY": 279,
+      "browBottomY": 339,
+      "browFromEye": -0.4157,
+      "eyeLineY": 427,
+      "mouthY": 636,
+      "mouthFromEye": 0.5871,
+      "chinY": 783,
+      "eyeToChinPx": 356,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-19.png",
+      "ok": true,
+      "sha256": "95341f779266a9815e2ed0ce5b53c326842ff96809f621321bdcd70fe929c042",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        225,
+        783
+      ],
+      "hairlineY": 235,
+      "hairlineFromEye": -0.1346,
+      "hairlineOverFaceHeight": 0.0179,
+      "browTopY": 225,
+      "browPeakY": 230,
+      "browBottomY": 296,
+      "browFromEye": -0.1449,
+      "eyeLineY": 300,
+      "mouthY": 584,
+      "mouthFromEye": 0.588,
+      "chinY": 783,
+      "eyeToChinPx": 483,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-20.png",
+      "ok": true,
+      "sha256": "713ba7e83c178aacdf1e9f91a653122c648aa09ee08d41d6748f76d45141425b",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        242,
+        783
+      ],
+      "hairlineY": 242,
+      "hairlineFromEye": -3.0677,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 521,
+      "browPeakY": 585,
+      "browBottomY": 646,
+      "browFromEye": -0.4887,
+      "eyeLineY": 650,
+      "mouthY": 770,
+      "mouthFromEye": 0.9023,
+      "chinY": 783,
+      "eyeToChinPx": 133,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-21.png",
+      "ok": true,
+      "sha256": "46ede2032053a4f4b7685d1367fad262b67676a2f42e8b454201100af71fee17",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        55,
+        643
+      ],
+      "hairlineY": 312,
+      "hairlineFromEye": 0.078,
+      "hairlineOverFaceHeight": 0.4371,
+      "browTopY": 81,
+      "browPeakY": 151,
+      "browBottomY": 221,
+      "browFromEye": -0.3705,
+      "eyeLineY": 284,
+      "mouthY": 503,
+      "mouthFromEye": 0.61,
+      "chinY": 643,
+      "eyeToChinPx": 359,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-22.png",
+      "ok": true,
+      "sha256": "6a2a1c32f65f0838eb7771a8edd7bb7fec318cbdfd0bc9003611dbb25648e79f",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        968,
+        1168,
+        1560
+      ],
+      "faceBox": [
+        490,
+        567
+      ],
+      "hairlineY": null,
+      "hairlineFromEye": null,
+      "hairlineOverFaceHeight": null,
+      "browTopY": 495,
+      "browPeakY": 504,
+      "browBottomY": 513,
+      "browFromEye": -30.5,
+      "eyeLineY": 565,
+      "mouthY": 565,
+      "mouthFromEye": 0.0,
+      "chinY": 567,
+      "eyeToChinPx": 2,
+      "confidence": {
+        "hairline": "none",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-23.png",
+      "ok": true,
+      "sha256": "e780426643d826725d501888caa697fad32d1ec54f0715171c52c71b70f2283a",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        128,
+        743
+      ],
+      "hairlineY": 128,
+      "hairlineFromEye": -0.1642,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 128,
+      "browPeakY": 128,
+      "browBottomY": 201,
+      "browFromEye": -0.1642,
+      "eyeLineY": 205,
+      "mouthY": 365,
+      "mouthFromEye": 0.3412,
+      "chinY": 674,
+      "eyeToChinPx": 469,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-24.png",
+      "ok": true,
+      "sha256": "95b1e9e5921c4d840ecd0fe4158745c4fbe51e84937f19b295731b605ad2efb7",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        37,
+        718
+      ],
+      "hairlineY": null,
+      "hairlineFromEye": null,
+      "hairlineOverFaceHeight": null,
+      "browTopY": 37,
+      "browPeakY": 91,
+      "browBottomY": 172,
+      "browFromEye": -0.4498,
+      "eyeLineY": 279,
+      "mouthY": 405,
+      "mouthFromEye": 0.3014,
+      "chinY": 697,
+      "eyeToChinPx": 418,
+      "confidence": {
+        "hairline": "none",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    },
+    {
+      "file": "lelu-hair-25.png",
+      "ok": true,
+      "sha256": "c0cc5819dbace07ebf64b7ff9746ba661168055ff433effd979f3771a8911746",
+      "size": [
+        1170,
+        2532
+      ],
+      "contentBox": [
+        0,
+        872,
+        1168,
+        1656
+      ],
+      "faceBox": [
+        110,
+        783
+      ],
+      "hairlineY": 110,
+      "hairlineFromEye": -3.0542,
+      "hairlineOverFaceHeight": 0.0,
+      "browTopY": 463,
+      "browPeakY": 543,
+      "browBottomY": 613,
+      "browFromEye": -0.4458,
+      "eyeLineY": 617,
+      "mouthY": 658,
+      "mouthFromEye": 0.247,
+      "chinY": 783,
+      "eyeToChinPx": 166,
+      "confidence": {
+        "hairline": "high",
+        "brow": "high",
+        "eye": "medium",
+        "mouth": "medium",
+        "chin": "medium"
+      },
+      "collection": "lelu-hair"
+    }
+  ]
+}

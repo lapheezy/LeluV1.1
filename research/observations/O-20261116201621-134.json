@@ -1,0 +1,82 @@
+{
+  "id": "O-20261116201621-134",
+  "at": 1794860181000,
+  "type": "source-change",
+  "workPackage": "WP05",
+  "summary": "M15.3 WP05: walks that start before her world exists, honest states, reload",
+  "detail": "307 file(s): docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/001-C-asked-on-home.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/002-C-entering-world.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/003-walking-+3s.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/004-walking-+12s.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/005-C-end.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/results.json, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/001-C-asked-on-home.png, docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/002-C-entering-world.png, …",
+  "interpretation": "Associated with WP05 by explicit WP05. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "f29071614aa27b07bd3c889fae32c7b73c81ede8",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8",
+      "note": "M15.3 WP05: walks that start before her world exists, honest states, reload"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/001-C-asked-on-home.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/002-C-entering-world.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/003-walking-+3s.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/004-walking-+12s.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/005-C-end.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1-desktop/results.json",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/001-C-asked-on-home.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/002-C-entering-world.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/003-walking-+3s.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/004-walking-+12s.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/005-walking-+16s.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/scenarios/wp05-fix1b-desktop/006-C-end.png",
+      "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8"
+    }
+  ],
+  "commit": "f29071614aa27b07bd3c889fae32c7b73c81ede8",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:f29071614aa27b07bd3c889fae32c7b73c81ede8"
+}

@@ -1,0 +1,49 @@
+{
+ "output": "artifacts/lelu2/m23/youth/lelu2-m231-youth-face-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": [
+  "head",
+  "face",
+  "hair"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0004821270704269409,
+   9.249895811080933e-05,
+   1.4473623037338257
+  ],
+  "radius": 0.4494813524688876
+ },
+ "triangles": 1289906,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2732996344566345,
+   -0.24150000512599945,
+   1.1852362155914307
+  ],
+  "max": [
+   0.2742638885974884,
+   0.24168500304222107,
+   1.7094883918762207
+  ]
+ },
+ "render_seconds": 6.02,
+ "blender": "4.2.23 LTS"
+}

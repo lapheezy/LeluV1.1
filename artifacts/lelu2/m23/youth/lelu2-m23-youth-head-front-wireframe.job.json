@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/m23/youth/lelu2-m23-youth-head.glb"
+ ],
+ "output": "artifacts/lelu2/m23/youth/lelu2-m23-youth-head-front-wireframe.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 20,
+ "view": "front",
+ "wireframe": true,
+ "ground": true,
+ "view_transform": "AgX"
+}

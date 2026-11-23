@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118164811-021",
+  "at": 1795020491117.657,
+  "type": "render",
+  "workPackage": "WP03",
+  "summary": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png (1.0 MB)",
+  "detail": "a rendered image — visual evidence that can be compared, not just counted; 1099870 bytes",
+  "interpretation": "classed as render · render evidence · associated with WP03 by artefact path \\/hair\\/",
+  "evidence": [
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png",
+      "at": 1795020491117.657
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png:1099870"
+}

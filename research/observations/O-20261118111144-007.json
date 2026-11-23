@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118111144-007",
+  "at": 1795000304000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "feat(lelu): her corset, cargo and platform boots instead of the CC0 suit",
+  "detail": "26 file(s): artifacts/lelu/canon/lelu-canon-back.job.json, artifacts/lelu/canon/lelu-canon-back.png, artifacts/lelu/canon/lelu-canon-back.png.json, artifacts/lelu/canon/lelu-canon-face-front.job.json, artifacts/lelu/canon/lelu-canon-face-front.png, artifacts/lelu/canon/lelu-canon-face-front.png.json, artifacts/lelu/canon/lelu-canon-feet-front.job.json, artifacts/lelu/canon/lelu-canon-feet-front.png, …",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "c060773d2cf272e7b7627403a4de3e459f5ba00b",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b",
+      "note": "feat(lelu): her corset, cargo and platform boots instead of the CC0 suit"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.job.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.png",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-back.png.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.job.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-face-front.png.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-feet-front.job.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-feet-front.png",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-feet-front.png.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.job.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu/canon/lelu-canon-front.png.json",
+      "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b"
+    }
+  ],
+  "commit": "c060773d2cf272e7b7627403a4de3e459f5ba00b",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:c060773d2cf272e7b7627403a4de3e459f5ba00b"
+}

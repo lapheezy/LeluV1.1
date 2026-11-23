@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LÉLU · research journal</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0d12; --panel:#141821; --line:#232a38; --ink:#e8edf7; --muted:#8f9bb3; --accent:#e46b9a; --ok:#4ec9a0; --warn:#e2b04a; --bad:#e2604a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { padding:36px clamp(16px,4vw,56px) 18px; border-bottom:1px solid var(--line); }
+  h1 { margin:0 0 6px; font-size:clamp(26px,4vw,40px); letter-spacing:-0.02em; }
+  h1 span { color:var(--accent); }
+  .sub { color:var(--muted); max-width:70ch; }
+  main { padding:24px clamp(16px,4vw,56px) 64px; display:grid; gap:28px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
+  .stat b { display:block; font-size:26px; }
+  .stat span { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; }
+  section h2 { font-size:15px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin:0 0 12px; }
+  .cards { display:grid; gap:12px; }
+  .entry { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .entry h3 { margin:8px 0 6px; font-size:17px; }
+  .entry p { margin:6px 0; }
+  .learned { color:#cfd8e8; }
+  .entry-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  code { font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color:#b7c3d8; }
+  .badge { font-size:11px; text-transform:uppercase; letter-spacing:0.08em; padding:2px 8px; border-radius:999px; border:1px solid var(--line); }
+  .badge.verified { color:var(--ok); border-color:#2b6b58; }
+  .badge.hypothesis { color:var(--warn); border-color:#6b5a2b; }
+  .badge.rejected { color:var(--bad); border-color:#6b342b; }
+  .badge.experiment, .badge.open { color:#8fb6e2; border-color:#2b4a6b; }
+  .conf { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
+  details summary { cursor:pointer; color:var(--muted); margin-top:8px; }
+  ul { margin:6px 0; padding-left:20px; }
+  .agenda { display:grid; gap:10px; }
+  .proposal { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .bar { height:6px; border-radius:999px; background:#1d2431; margin-top:8px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--accent),#8f7ce0); }
+  .meta { color:var(--muted); font-size:12px; }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+  figure { margin:0; background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  figure img { width:100%; display:block; aspect-ratio:1/1; object-fit:cover; background:#000; }
+  figcaption { padding:10px 12px; color:var(--muted); font-size:12px; }
+  .finding { border-left:3px solid var(--warn); padding:6px 10px; margin:8px 0; background:#171c26; border-radius:0 8px 8px 0; }
+  .finding.high { border-color:var(--bad); }
+  .timeline { list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+  .timeline li { display:grid; grid-template-columns:64px 78px 1fr; gap:10px; font-size:13px; padding:6px 10px; background:var(--panel); border:1px solid var(--line); border-radius:10px; }
+  .empty { color:var(--muted); font-style:italic; }
+  footer { padding:0 clamp(16px,4vw,56px) 48px; color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>LÉLU <span>·</span> research journal</h1>
+  <p class="sub">Every card below is a stored document under <code>research/</code>. Verified means a measurement, test or render supports it — not that a sentence sounded confident.</p>
+</header>
+<main>
+  <div class="stats">
+    <div class="stat"><b>12</b><span>entries</span></div>
+    <div class="stat"><b>4</b><span>verified</span></div>
+    <div class="stat"><b>1</b><span>hypotheses</span></div>
+    <div class="stat"><b>3</b><span>rejected</span></div>
+    <div class="stat"><b>25</b><span>measured evidence</span></div>
+    <div class="stat"><b>56%</b><span>mean confidence</span></div>
+    <div class="stat"><b>92</b><span>observed events</span></div>
+    <div class="stat"><b>18</b><span>open questions</span></div>
+  </div>
+
+  <section>
+    <h2>What she asks next</h2>
+    <div class="agenda">
+      <div class="proposal">
+        <div>Does the equal-n result hold on the garment and disc surfaces too?</div>
+        <div class="meta">impact 0.60 · feasibility 0.90 · cost 1/5 · relevance 0.85 · journal gap from R-20261118-wp01-three-claims-did-not-survive</div>
+        <div class="bar"><i style="width:109%"></i></div>
+        <div class="meta">raised by 1 entry · unsettled for 0 day(s) · priority 1.0893 = (0.40·0.6 + 0.35·0.85 + 0.25·0.9) ÷ (0.5 + 1/5)</div>
+      </div><div class="proposal">
+        <div>How many other published numbers were computed at unequal sample counts?</div>
+        <div class="meta">impact 0.60 · feasibility 0.90 · cost 1/5 · relevance 0.85 · journal gap from R-20261118-wp01-three-claims-did-not-survive</div>
+        <div class="bar"><i style="width:109%"></i></div>
+        <div class="meta">raised by 1 entry · unsettled for 0 day(s) · priority 1.0893 = (0.40·0.6 + 0.35·0.85 + 0.25·0.9) ÷ (0.5 + 1/5)</div>
+      </div><div class="proposal">
+        <div>Which work package produced the least evidence, and why?</div>
+        <div class="meta">impact 0.60 · feasibility 0.90 · cost 1/5 · relevance 0.75 · journal gap from R-20261118-daily-journal</div>
+        <div class="bar"><i style="width:104%"></i></div>
+        <div class="meta">raised by 1 entry · unsettled for 0 day(s) · priority 1.0393 = (0.40·0.6 + 0.35·0.75 + 0.25·0.9) ÷ (0.5 + 1/5)</div>
+      </div><div class="proposal">
+        <div>What causes the recurring comparison in WP01 (6 occurrences), and can it be eliminated?</div>
+        <div class="meta">impact 0.98 · feasibility 0.85 · cost 2/5 · relevance 0.85 · observation log: artifacts/lelu2/ornament/baseline/ornament-baseline-metrics.json (369 B)</div>
+        <div class="bar"><i style="width:100%"></i></div>
+        <div class="meta">6 observation(s) of the same kind · 39 observed event(s) in WP01 give the follow-up its context · the failing configuration already exists, so a controlled follow-up is cheap · priority 1.0022 = (0.40·0.98 + 0.35·0.85 + 0.25·0.85) ÷ (0.5 + 2/5)</div>
+      </div><div class="proposal">
+        <div>What causes the recurring comparison in WP03 (4 occurrences), and can it be eliminated?</div>
+        <div class="meta">impact 0.82 · feasibility 0.85 · cost 2/5 · relevance 0.95 · observation log: artifacts/lelu2/hair/voxel/metrics-voxel.json (1.9 KB)</div>
+        <div class="bar"><i style="width:97%"></i></div>
+        <div class="meta">4 observation(s) of the same kind · 38 observed event(s) in WP03 give the follow-up its context · the failing configuration already exists, so a controlled follow-up is cheap · priority 0.97 = (0.40·0.8200000000000001 + 0.35·0.95 + 0.25·0.85) ÷ (0.5 + 2/5)</div>
+      </div><div class="proposal">
+        <div>Can the hybrid be made deterministic across resolutions without losing its coverage guarantee?</div>
+        <div class="meta">impact 0.60 · feasibility 0.95 · cost 2/5 · relevance 0.80 · journal gap from R-20261118-wp02-the-best-sampler-depends-on-the-surface</div>
+        <div class="bar"><i style="width:84%"></i></div>
+        <div class="meta">raised by 1 entry · unsettled for 0 day(s) · priority 0.8417 = (0.40·0.6 + 0.35·0.8 + 0.25·0.95) ÷ (0.5 + 2/5)</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Visual evidence — the render, measured</h2>
+    <div class="grid2">
+      <figure><img src="../hair/voxel/lelu2-voxel-head-front.png" alt="voxel hair, front"><figcaption>voxel hair · coverage 61%</figcaption></figure>
+      <figure><img src="../hair/tubes-high/lelu2-tubes-high-head-front.png" alt="tube hair, front"><figcaption>tube hair · coverage 59%</figcaption></figure>
+    </div>
+    <p class="meta">Silhouette IoU 0.893. Every finding names the measurement that can settle it.</p>
+    <div class="finding medium"><strong>medium</strong> · crown / upper third coverage fell 7.0 percentage points<div class="meta">corroborate with strand roots in that region and the root-clearance report</div></div><div class="finding medium"><strong>medium</strong> · silhouette bounds moved by (0, 54) → (0, 0) px<div class="meta">corroborate with the shared cameras.json — a bounds change with identical framing is geometry, not camera</div></div>
+  </section>
+
+  <section>
+    <h2>Observations — this session</h2>
+    <ul class="timeline">
+      <li><span class="meta">16:37:49</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/cameras.json (444 B)</span></li><li><span class="meta">16:48:01</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/lelu2-tubes-high.glb (39.8 MB)</span></li><li><span class="meta">16:48:01</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head.glb (15.5 MB)</span></li><li><span class="meta">16:48:01</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json (2.3 KB)</span></li><li><span class="meta">16:48:11</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png (1.0 MB)</span></li><li><span class="meta">16:48:11</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png.json (641 B)</span></li><li><span class="meta">16:48:20</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-three-quarter.png (1.1 MB)</span></li><li><span class="meta">16:48:20</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-three-quarter.png.json (649 B)</span></li><li><span class="meta">16:48:20</span><span class="badge">WP03</span><span>artifacts/lelu2/hair/tubes-high/renders.json (864 B)</span></li><li><span class="meta">16:49:25</span><span class="badge">WP05</span><span>artifacts/lelu2/projection.json (2.0 KB)</span></li><li><span class="meta">16:49:51</span><span class="badge">WP02</span><span>artifacts/lelu2/matrix/summary.json (19.6 KB)</span></li><li><span class="meta">16:52:14</span><span class="badge">WP04</span><span>artifacts/lelu2/head/head-metrics.json (2.6 KB)</span></li><li><span class="meta">16:55:03</span><span class="badge">WP01</span><span>artifacts/lelu2/audit.json (11.0 KB)</span></li><li><span class="meta">16:55:29</span><span class="badge">WP03</span><span>feat(lelu2.1): draw her hair as swept tubes without moving her occupancy</span></li><li><span class="meta">16:55:29</span><span class="badge">WP01</span><span>feat(lelu2.1): audit the published numbers and gate every claim</span></li><li><span class="meta">20:45:20</span><span class="badge">WP10</span><span>artifacts/lelu2/research/visual-voxel-vs-tubes.json (942 B)</span></li><li><span class="meta">20:45:20</span><span class="badge">WP10</span><span>artifacts/lelu2/research/results/lelu-research-acceptance.json (115 B)</span></li><li><span class="meta">20:45:20</span><span class="badge">MISSION</span><span>lelu-research-acceptance: passed</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>WP01 · 1 entry</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp01-three-claims-did-not-survive</code>
+        <span class="badge verified">verified</span>
+        <span class="conf" title="confidence">57%</span>
+      </div>
+      <h3>Do the 2.0 uniformity claims survive an independent re-measurement?</h3>
+      <p class="learned">Three of the 2.0 claims were artefacts of unequal sample counts or of applying a disc metric to a ring layout. The comparison that survives is the equal-n one: 0.3925 → 0.0968 at n=800, a 75.3% reduction.</p>
+      <details>
+        <summary>3 evidence item(s) · discoveries</summary>
+        <p><strong>Observed.</strong> The 2.0 report claimed a more uniform hair root layout. The same comparison re-read from the published files reports CV 1.3446 at n=928 against 0.6434 at n=1350 — 11 verdicts, 3 warnings.</p>
+        <p><strong>Method.</strong> Re-read every published value from its own artefact path (no transcription), recompute the winner, and refuse a claim when the two sides were measured at different sample counts or when the metric does not describe both layouts.</p>
+        <p><strong>Results.</strong> Audit ok=true with 3 warnings. The hair CV comparison is confounded (928 vs 1350). Divergence and radial exponent are not applicable to concentric rings, so they cannot be wins. The 2.0 ringlet was mis-parameterised: growth was 1.09×/turn, not φ.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/audit.json — every verdict, with its source path and sample count</li><li><code>test</code> tests/claims.test.ts — eight guard tests, one per way a claim can lie</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> The audit re-reads files; it cannot repair an experiment that was never run at equal n.; Blueprint: the original 2.0 renders were not regenerated, only their measurements re-checked.</p>
+        <p><strong>Next.</strong> How many other published numbers were computed at unequal sample counts?; Does the equal-n result hold on the garment and disc surfaces too?</p>
+      </details>
+    </article></div>
+  </section><section>
+    <h2>WP02 · 2 entries</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp02-the-best-sampler-depends-on-the-surface</code>
+        <span class="badge verified">verified</span>
+        <span class="conf" title="confidence">57%</span>
+      </div>
+      <h3>Which sampling law produces the most uniform distribution for her actual surfaces?</h3>
+      <p class="learned">There is no single winner. A surface thin enough to be one strip (the disc) favours Vogel; a closed sphere favours Fibonacci; an irregular anatomical cloud favours the area-even hybrid. The constant is not the answer — the surface is.</p>
+      <details>
+        <summary>3 evidence item(s) · discoveries</summary>
+        <p><strong>Observed.</strong> Five samplers at n=800 on four surfaces: hair roots: A 0.3925 → E-hybrid 0.0968 (coverage 100.0%); surface detail placement: A 0.3943 → E-hybrid 0.0885 (coverage 100.0%); jewelry (diadem): A 0.4092 → C-vogel 0.0382 (coverage 100.0%); procedural surface sampling: A 0.0519 → B-fibonacci 0.0277 (coverage 100.0%). The one-arm logarithmic spiral was rejected on every surface for coverage (7–23%).</p>
+        <p><strong>Method.</strong> Identical point cloud, n=800, same seed and same coverage radius per surface; measure spacing CV, min/max spacing and coverage; reject any method whose coverage falls below the surface it is supposed to cover.</p>
+        <p><strong>Results.</strong> hair roots: A 0.3925 → E-hybrid 0.0968 (coverage 100.0%); surface detail placement: A 0.3943 → E-hybrid 0.0885 (coverage 100.0%); jewelry (diadem): A 0.4092 → C-vogel 0.0382 (coverage 100.0%); procedural surface sampling: A 0.0519 → B-fibonacci 0.0277 (coverage 100.0%). Curls: the log law is the regular one (R² 1.000, growth 0.618/turn), while the hybrid has diameter CV 0.153 but R² 0.934.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/matrix/summary.json — per-surface methods with spacing, coverage and decisions</li><li><code>test</code> tests/lelu2-artifacts.test.ts — guards equal n, coverage and the rejected spiral</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> Four surfaces only; the accessory and jewellery surfaces were not sampled.; CV is a spacing statistic, not a perceptual one.</p>
+        <p><strong>Next.</strong> Does the hybrid stay ahead on the accessory and jewellery surfaces?; Can the hybrid be made deterministic across resolutions without losing its coverage guarantee?</p>
+      </details>
+    </article>
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-lit-sampling-laws</code>
+        <span class="badge open">open</span>
+        <span class="conf" title="confidence">21%</span>
+      </div>
+      <h3>What do the sampling laws LÉLU uses actually promise?</h3>
+      <p class="learned">The matrix's result is not surprising once the guarantees are separated: the disc has a law, the skull does not.</p>
+      <details>
+        <summary>2 evidence item(s) · research-papers</summary>
+        <p><strong>Observed.</strong> The matrix needed a reason to expect a spiral disc law and a blue-noise law to behave differently.</p>
+        <p><strong>Method.</strong> Read the two primary sources and state the guarantee each construction provides; no implementation was changed.</p>
+        <p><strong>Results.</strong> Vogel guarantees equal area per point on a disc and is not a minimum-distance construction. Bridson guarantees a minimum separation with blue-noise spectrum. Neither makes a claim about an irregular anatomical surface, which is why the hybrid is empirical.</p>
+        <ul><li><code>source</code> https://doi.org/10.1016/0025-5564(79)90080-4 — Vogel 1979, Math. Biosci. 44:179–189</li><li><code>source</code> https://doi.org/10.1145/1278780.1278807 — Bridson 2007, SIGGRAPH sketches</li></ul>
+        <p><strong>Limitations.</strong> Studied from abstracts and the published construction, not from re-implementing both papers.</p>
+        <p><strong>Next.</strong> Would a Bridson variant on the head cloud beat the hybrid at equal n?</p>
+      </details>
+    </article></div>
+  </section><section>
+    <h2>WP03 · 4 entries</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp03-tube-hair-cannot-move-occupancy</code>
+        <span class="badge verified">verified</span>
+        <span class="conf" title="confidence">93%</span>
+      </div>
+      <h3>Can her hair look like distinct curls without changing what ASRE/NRE believe she occupies?</h3>
+      <p class="learned">Occupancy is an authority decision taken before the surface exists, so presentation can improve without re-opening ASRE/NRE. That is the property that makes visual work safe.</p>
+      <details>
+        <summary>5 evidence item(s) · discoveries</summary>
+        <p><strong>Observed.</strong> voxel/tubes-high/tubes-medium/tubes-low hair builds all report 375460 occupancy cells (digest 15999). Tubes replace the hair mesh only: high spends 426650 triangles where the voxel shell spends 540508.</p>
+        <p><strong>Method.</strong> Build voxel, tubes-high, tubes-medium and tubes-low from the same roots; hash the SparseVoxelGrid cell set in each build; compare the hashes, then compare triangle counts and file sizes.</p>
+        <p><strong>Results.</strong> Identical occupancy in all four variants (375460 cells, digest 15999); hair triangles 540508 → 426650 → 52920; strands 1219, baby hairs 120, diameter CV 0.427.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/hair/voxel/metrics-voxel.json — voxel occupancy baseline</li><li><code>measurement</code> artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json — high LOD occupancy and hair</li><li><code>measurement</code> artifacts/lelu2/hair/tubes-low/metrics-tubes-low.json — low LOD occupancy and hair</li><li><code>test</code> tests/lelu2-artifacts.test.ts — asserts the cell counts and digests are equal</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> Invariance is asserted for these four builds; a new root set needs its own comparison.; Root placement was carried over from the voxel roots — see the floating-root entry for what that did not guarantee.</p>
+        <p><strong>Next.</strong> Do the 54 roots beyond 4 mm come from the face cut, the normal lift, or the root set?; Does the crown stay covered at the medium LOD?</p>
+      </details>
+    </article>
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp03-root-diagnostics-disagree</code>
+        <span class="badge hypothesis">hypothesis</span>
+        <span class="conf" title="confidence">47%</span>
+      </div>
+      <h3>Why do the two root diagnostics disagree about floating roots?</h3>
+      <p class="learned">A diagnostic named after the defect it is supposed to catch is not evidence that it catches it. Zero floating roots was a definition, not a measurement.</p>
+      <details>
+        <summary>3 evidence item(s) · hypotheses</summary>
+        <p><strong>Observed.</strong> The tube builder reports floatingRoots=0 and rootPenetrations=392. The vertex-clearance measure on the same build reports p50 1.11 mm, p95 2.06 mm, 54 roots beyond 4 mm, max 49.2 mm.</p>
+        <p><strong>Method.</strong> Read both diagnostics from the same build and compare their definitions; the follow-up is to measure distance to the head *surface* (not vertices) for every root.</p>
+        <p><strong>Results.</strong> 0 reported floating against 54 roots beyond 4 mm and 392 inside the mesh. The two numbers cannot both describe the same property.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json — both diagnostics, same build</li><li><code>render</code> artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png — sparse crown and front hairline</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> The nearest-vertex distance overestimates clearance on a coarse scalp mesh; a surface-distance measure is still needed.; Whether the visible sparseness is the same 54 roots is not yet established.</p>
+        <p><strong>Next.</strong> Does a surface-distance measure reproduce the 54 out-of-tolerance roots?; Do those 54 roots correspond to the sparse region in the front render?</p>
+      </details>
+    </article>
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp03-voxel-plane-cut-failure</code>
+        <span class="badge rejected">rejected</span>
+        <span class="conf" title="confidence">32%</span>
+      </div>
+      <h3>How do you keep hair off the face without deleting most of it?</h3>
+      <p class="learned">A cut plane chosen for the volume grid is not a cut plane chosen for the body. The failure was not the idea of cutting, it was cutting along the wrong surface.</p>
+      <details>
+        <summary>4 evidence item(s) · failures</summary>
+        <p><strong>Observed.</strong> Two attempts to stop strands crossing her face failed before the shipped one: deflecting strands produced a cage of horizontal rods; cutting at the voxel plane left 574 of 1350 strands, i.e. most of the hair.</p>
+        <p><strong>Method.</strong> Keep the root set and the curl law fixed; change only the cut predicate. Compare the number of surviving strands and inspect a front render.</p>
+        <p><strong>Results.</strong> Voxel-plane cut: 574/1350 strands survived and the crown went bald. The shipped predicate cuts at the face plane (z &gt; head[2] + 0.03) after the curl is generated, which keeps the face clear and the crown covered.</p>
+        <ul><li><code>code</code> src/core/asre/reference/provider.ts — inFacePoint and the face-plane cut</li><li><code>code</code> src/core/asre/hair/tubes.ts — sweepTube — the geometry the cut applies to</li><li><code>measurement</code> artifacts/lelu2/hair/tubes-high/metrics-tubes-high.json — shipped build: 1219 strands</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> The 574/1350 count came from an intermediate build whose artefact was not preserved; the shipped behaviour is reproducible, the failed count is quoted from the session record.; The deflection attempt was rejected visually; no metric was defined for it.</p>
+        <p><strong>Next.</strong> What fraction of strands does the shipped face-plane cut remove, and where?; Can the cut be replaced by a length-preserving bend so roots keep their length?</p>
+      </details>
+    </article>
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-lit-swept-tubes</code>
+        <span class="badge experiment">experiment</span>
+        <span class="conf" title="confidence">36%</span>
+      </div>
+      <h3>How should a tube's cross-section be oriented along a curl so it does not twist?</h3>
+      <p class="learned">Parallel transport solves orientation, not penetration: frames that do not twist still produce roots that sit above the scalp. The framing literature is not a placement solution.</p>
+      <details>
+        <summary>3 evidence item(s) · technical-studies</summary>
+        <p><strong>Observed.</strong> Tube hair needed frames that do not spin along the curve, or the cross-section twists visibly.</p>
+        <p><strong>Method.</strong> Sweep each strand with parallel transport, elliptical cross-sections and a taper; verify by rendering and by diameter statistics.</p>
+        <p><strong>Results.</strong> Shipped in src/core/asre/hair/tubes.ts: 1219 strands, diameter CV 0.427, no visible twist artefacts in the front and three-quarter renders.</p>
+        <ul><li><code>source</code> https://doi.org/10.1145/1360612.1360662 — Bergou et al. 2008, ACM TOG 27(3):63</li><li><code>code</code> src/core/asre/hair/tubes.ts — sweepTube / bundleTubes</li><li><code>render</code> artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-three-quarter.png — ringlets frame the face</li></ul>
+        <p><strong>Limitations.</strong> The full rod dynamics (bending, collision) were not implemented; only the framing was used.</p>
+        <p><strong>Next.</strong> Would a collision-aware rod solve the floating roots that framing does not?</p>
+      </details>
+    </article></div>
+  </section><section>
+    <h2>WP04 · 2 entries</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp04-oval-taper-does-not-hold</code>
+        <span class="badge rejected">rejected</span>
+        <span class="conf" title="confidence">57%</span>
+      </div>
+      <h3>Is her face widest at the skull, as the reference says?</h3>
+      <p class="learned">The documented face is not the built face at the cheekbone. Either the mesh is too wide at the cheek or the description is; the measurement cannot say which without a reference plate.</p>
+      <details>
+        <summary>3 evidence item(s) · discoveries</summary>
+        <p><strong>Observed.</strong> The documented identity says her face is widest at the skull and tapers through cheek, jaw and chin. The mesh measures skull 146.6 mm, cheek 150.1 mm, jaw 123.8 mm, chin 60.0 mm.</p>
+        <p><strong>Method.</strong> Slice the head mesh into horizontal bands, measure the maximum width in each, and compare the ordering with the documented claim.</p>
+        <p><strong>Results.</strong> The cheek is 3.4 mm wider than the skull, so the documented ordering fails at its first step.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/head/head-metrics.json — band widths, volumes, eye and hairline positions</li><li><code>test</code> tests/lelu2-artifacts.test.ts — asserts cheek &gt; skull and that the check is recorded as failing</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> No orthographic reference plate exists in the repository, so the measurement is against the documented identity, not against the reference art.; Band width is a coarse descriptor of a shape.</p>
+        <p><strong>Next.</strong> Is the cheek band too wide, or is the documented description approximate?</p>
+      </details>
+    </article>
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp04-front-hairline-sits-below-the-eyes</code>
+        <span class="badge rejected">rejected</span>
+        <span class="conf" title="confidence">51%</span>
+      </div>
+      <h3>Is the front hairline above the brow?</h3>
+      <p class="learned">The low front hairline and the sparse front render are consistent with each other and with the root set, not with the description. The image and the measurement agree; the prose does not.</p>
+      <details>
+        <summary>3 evidence item(s) · discoveries</summary>
+        <p><strong>Observed.</strong> The documented identity describes a centre part with the hairline above the brow. The front hairline measures -49.7 mm relative to the eyes — i.e. 49.7 mm BELOW them.</p>
+        <p><strong>Method.</strong> Measure the minimum Y of front-facing hair roots in the built asset and compare it with the eye centre Y.</p>
+        <p><strong>Results.</strong> Front hairline at -49.7 mm above the eyes (negative = below); 928 strands.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/head/head-metrics.json — hairline vs eye landmark</li><li><code>render</code> artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png — the front hairline is visibly low and sparse</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> 'Above the brow' has no numeric definition in the documentation, so the comparison uses the eye line.</p>
+        <p><strong>Next.</strong> Should the front root band be raised, or the forehead shortened?</p>
+      </details>
+    </article></div>
+  </section><section>
+    <h2>WP05 · 1 entry</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp05-frame-time-was-never-measured</code>
+        <span class="badge open">open</span>
+        <span class="conf" title="confidence">57%</span>
+      </div>
+      <h3>Does the tube hair hold a mobile frame budget?</h3>
+      <p class="learned">Triangle count is a proxy for GPU work only when the bottleneck is vertex processing. Nothing in this data establishes that, so no iPhone or real-time claim can be made.</p>
+      <details>
+        <summary>3 evidence item(s) · experiments</summary>
+        <p><strong>Observed.</strong> Projection cost was measured structurally for 4 variants: 15 draw calls each, GPU bytes 27.6/26.3/21.5/18.5 MB, parse 105.7/56.8/77.7/72.7 ms. No frame time was measured on any device.</p>
+        <p><strong>Method.</strong> Parse each GLB, count triangles and draw calls, estimate GPU bytes, and time the parse. Do not extrapolate to frames.</p>
+        <p><strong>Results.</strong> Triangle and memory cost fall with LOD; frame time is unmeasured. The honest statement is structural: the binding cost is not known.</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/projection.json — draw calls, triangles, GPU bytes, parse time, no frame time</li><li><code>test</code> tests/lelu2-artifacts.test.ts — asserts the 'no frame time' note is still there</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> No device or browser benchmark was run; p50/p95 frame times and LOD transition cost are unknown.; GPU byte estimates are derived from buffer sizes, not from measured upload.</p>
+        <p><strong>Next.</strong> What is p50/p95 frame time for tubes-high on a mid-range phone at 1080p?; At what screen coverage does the high LOD stop being affordable?</p>
+      </details>
+    </article></div>
+  </section><section>
+    <h2>WP07 · 1 entry</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-wp07-silhouette-of-the-hair-swap</code>
+        <span class="badge verified">verified</span>
+        <span class="conf" title="confidence">90%</span>
+      </div>
+      <h3>Does the tube hair change the silhouette, and where?</h3>
+      <p class="learned">The outline moves at the top of the frame: the tube version loses upper-third coverage. That is consistent with the sparse crown seen in the render and with the 54 roots beyond 4 mm — three independent observations of the same defect.</p>
+      <details>
+        <summary>4 evidence item(s) · experiments</summary>
+        <p><strong>Observed.</strong> Front renders of voxel and tubes-high hair, same camera: silhouette IoU 0.8931, coverage 61.35% → 59.34%.</p>
+        <p><strong>Method.</strong> Decode both PNGs, take the background from the corners, build a foreground mask, and compare coverage, third profile, bounds and IoU.</p>
+        <p><strong>Results.</strong> crown / upper third coverage fell 7.0 percentage points silhouette bounds moved by (0, 54) → (0, 0) px</p>
+        <ul><li><code>measurement</code> artifacts/lelu2/research/visual-voxel-vs-tubes.json — full comparison</li><li><code>render</code> artifacts/lelu2/hair/voxel/lelu2-voxel-head-front.png — voxel front</li><li><code>render</code> artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png — tube front</li><li><code>test</code> tests/lelu2-artifacts.test.ts — the same comparison is asserted in the test suite</li></ul>
+        <p><strong>Limitations.</strong> A 2D silhouette cannot show geometry intersections or scalp penetration; those need the mesh and the clearance measure.; One camera angle only.</p>
+        <p><strong>Next.</strong> Does the upper-third loss disappear if the front roots keep their full length?</p>
+      </details>
+    </article></div>
+  </section><section>
+    <h2>WP09 · 1 entry</h2>
+    <div class="cards">
+    <article class="entry">
+      <div class="entry-head">
+        <code>R-20261118-daily-journal</code>
+        <span class="badge experiment">experiment</span>
+        <span class="conf" title="confidence">72%</span>
+      </div>
+      <h3>What actually happened in this development session?</h3>
+      <p class="learned">The commit history records what was committed; the observation log records what was measured, rendered and failed.</p>
+      <details>
+        <summary>4 evidence item(s) · daily-journals</summary>
+        <p><strong>Observed.</strong> Session S-2026-11-18: 89 observed events across 7 work packages; 89 observation documents on disk.</p>
+        <p><strong>Method.</strong> Reconstruct the session from timestamped observations (commits, artefacts, results), not from the commit messages.</p>
+        <p><strong>Results.</strong> 0 decision(s), 0 failure(s), 12 commit(s) observed.</p>
+        <ul><li><code>observation</code> O-20261118075926-012 — feat(asre): hair grown as strands from the scalp instead of a shell around the card</li><li><code>observation</code> O-20261118082301-011 — feat(lelu): canonical avatar identity, transcribed from her own locked files</li><li><code>observation</code> O-20261118084545-010 — feat(lelu): open her eyelids, place her eyes on her skin, print her corset</li><li><code>commit</code> 4512e9466d7157da81a190bb11b985c3c1e1b3ec — mission commit</li></ul>
+        <p><strong>Limitations.</strong> Only activity reachable from this worktree is observable; other sessions are not included.</p>
+        <p><strong>Next.</strong> Which work package produced the least evidence, and why?</p>
+      </details>
+    </article></div>
+  </section>
+
+  <section>
+    <h2>Contradictions and refuted assumptions</h2>
+    <div class="cards"><div class="entry"><div class="entry-head"><code>R-20261118-wp03-root-diagnostics-disagree</code><span>refutes</span><code>R-20261118-wp03-tube-hair-cannot-move-occupancy</code></div>
+        <p>“root placement is carried over unchanged from the voxel roots”</p><p class="meta">Placement was carried over as coordinates, but the face-plane cut and the normal lift move and shorten roots; the clearance measurement contradicts 'unchanged'. · the earlier entry still claims it, which is the point: nothing was rewritten.</p></div></div>
+    <p class="meta">Refuted by their own results: “published metrics were comparable across variants” (R-20261118-wp01-three-claims-did-not-survive); “the golden ringlet used φ per turn” (R-20261118-wp01-three-claims-did-not-survive); “a golden-ratio law is best on every surface” (R-20261118-wp02-the-best-sampler-depends-on-the-surface); “the one-arm spiral is usable if its CV is low” (R-20261118-wp02-the-best-sampler-depends-on-the-surface); “floatingRoots=0 means no root floats” (R-20261118-wp03-root-diagnostics-disagree); “the hair field box boundary is a good enough face cut” (R-20261118-wp03-voxel-plane-cut-failure); “deflecting strands sideways is visually acceptable” (R-20261118-wp03-voxel-plane-cut-failure); “the built head tapers monotonically from skull to chin” (R-20261118-wp04-oval-taper-does-not-hold); “the built hairline sits above the brow” (R-20261118-wp04-front-hairline-sits-below-the-eyes)</p>
+  </section>
+
+  <section>
+    <h2>Capabilities</h2>
+    <div class="cards"><div class="entry"><div class="entry-head"><code>C-20261118-wp03-tube-hair-cannot-move-occupancy</code><span class="badge verified">verified</span></div>
+        <h3>Tube hair with invariant occupancy</h3>
+        <ul><li>voxel, tubes-high, tubes-medium and tubes-low report the same occupancyCells</li><li>the same occupancyDigest</li><li>the low LOD uses fewer hair triangles than the high LOD</li></ul>
+        <p class="meta">from R-20261118-wp03-tube-hair-cannot-move-occupancy · <code>npx tsx --tsconfig tsconfig.test.json --test tests/lelu2-artifacts.test.ts</code></p></div></div>
+  </section>
+</main>
+<footer>
+  Generated from 12 entry documents and 92 observations · 2026-11-18T20:45:29.135Z ·
+  index rebuilt at generation time · no client-side state
+</footer>
+</body>
+</html>

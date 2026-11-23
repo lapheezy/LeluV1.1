@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118205944-093",
+  "at": 1795035584000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(lelu2.2): let her observe, record and verify her own research",
+  "detail": "144 file(s): artifacts/lelu2/research/acceptance.json, artifacts/lelu2/research/dashboard-knowledge.png, artifacts/lelu2/research/dashboard-top.png, artifacts/lelu2/research/dashboard-visual.png, artifacts/lelu2/research/dashboard.html, artifacts/lelu2/research/report-2.2.md, artifacts/lelu2/research/results/lelu-research-acceptance.json, artifacts/lelu2/research/visual-voxel-vs-tubes.json, …",
+  "interpretation": "Associated with WP03 by explicit wp03. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "761d01c88633c664a376bd8605a351df3a626287",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287",
+      "note": "feat(lelu2.2): let her observe, record and verify her own research"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/acceptance.json",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/dashboard-knowledge.png",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/dashboard-top.png",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/dashboard-visual.png",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/dashboard.html",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/report-2.2.md",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/results/lelu-research-acceptance.json",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/research/visual-voxel-vs-tubes.json",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "package.json",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "research/README.md",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "research/capabilities/C-20261118-wp03-tube-hair-cannot-move-occupancy.json",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    },
+    {
+      "kind": "code",
+      "ref": "research/daily-journals/R-20261118-daily-journal.json",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287"
+    }
+  ],
+  "commit": "761d01c88633c664a376bd8605a351df3a626287",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:761d01c88633c664a376bd8605a351df3a626287"
+}

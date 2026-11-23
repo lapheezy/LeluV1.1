@@ -1,0 +1,37 @@
+{
+  "id": "O-20261117234107-104",
+  "at": 1794958867000,
+  "type": "source-change",
+  "workPackage": "WP06",
+  "summary": "feat(asre): WP06 LELU uses her spatial engine through her existing agent stack",
+  "detail": "3 file(s): src/core/asre/AsreTools.ts, src/core/tools/ToolSchemas.ts, tests/asre-agent-tools.test.ts",
+  "interpretation": "Associated with WP06 by explicit WP06. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "a0c12404e036a167ac05bb5f933ce33f946c1b9c",
+      "commit": "a0c12404e036a167ac05bb5f933ce33f946c1b9c",
+      "note": "feat(asre): WP06 LELU uses her spatial engine through her existing agent stack"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/AsreTools.ts",
+      "commit": "a0c12404e036a167ac05bb5f933ce33f946c1b9c"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/tools/ToolSchemas.ts",
+      "commit": "a0c12404e036a167ac05bb5f933ce33f946c1b9c"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-agent-tools.test.ts",
+      "commit": "a0c12404e036a167ac05bb5f933ce33f946c1b9c"
+    }
+  ],
+  "commit": "a0c12404e036a167ac05bb5f933ce33f946c1b9c",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:a0c12404e036a167ac05bb5f933ce33f946c1b9c"
+}

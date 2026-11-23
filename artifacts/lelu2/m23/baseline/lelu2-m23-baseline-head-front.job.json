@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/m23/baseline/lelu2-m23-baseline-head.glb"
+ ],
+ "output": "artifacts/lelu2/m23/baseline/lelu2-m23-baseline-head-front.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 24,
+ "view": "front",
+ "wireframe": false,
+ "ground": true,
+ "view_transform": "AgX"
+}

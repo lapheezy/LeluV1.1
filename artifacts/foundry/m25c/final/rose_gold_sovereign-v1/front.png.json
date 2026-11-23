@@ -1,0 +1,59 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/meshes/v016_look_rose_gold_sovereign/lelu.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25c/final/rose_gold_sovereign/front.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   0.8799999952316284
+  ],
+  "radius": 0.92,
+  "lens": 70.0,
+  "distance": 3.694170248805609,
+  "location": [
+   0.0,
+   -3.6824052333831787,
+   1.17459237575531
+  ]
+ },
+ "resolution": [
+  1024,
+  1536
+ ],
+ "samples": 48,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0222429045372539,
+  "exposureEV": -2.5056692373796765
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_ringlets",
+  "lelu_hair_strands",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign"
+ ],
+ "triangles": 395270,
+ "materialsApplied": [
+  "m25_hair_curl: anisotropy (Cycles extension)",
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_highlight: anisotropy (Cycles extension)",
+  "m25_hair_strand: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 40.04,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

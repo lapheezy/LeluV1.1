@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118145311-070",
+  "at": 1795013591781.6724,
+  "type": "experiment-config",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/golden/renders-closeups.json (1.3 KB)",
+  "detail": "an experiment configuration or result document; 1333 bytes",
+  "interpretation": "classed as experiment-config · artifact evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/golden/renders-closeups.json",
+      "at": 1795013591781.6724
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/golden/renders-closeups.json:1333"
+}

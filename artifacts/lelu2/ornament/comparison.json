@@ -1,0 +1,37 @@
+{
+  "baseline": {
+    "variant": "baseline",
+    "beads": 34,
+    "triangles": 16416,
+    "glbBytes": 311432,
+    "beadSpacing": {
+      "mean": 0.017764024550972566,
+      "cv": 0.16611777736876018,
+      "min": 0.012628553268047961,
+      "max": 0.02120855597767039,
+      "maxOverMin": 1.6794129562988864
+    },
+    "radialExponent": 0.43192566702060475,
+    "divergenceDeg": 27.5,
+    "petalSpiralFit": null
+  },
+  "golden": {
+    "variant": "golden",
+    "beads": 34,
+    "triangles": 18976,
+    "glbBytes": 360512,
+    "beadSpacing": {
+      "mean": 0.01588325391054695,
+      "cv": 0.030373659752068183,
+      "min": 0.014582848315475986,
+      "max": 0.016905344691996633,
+      "maxOverMin": 1.1592621911904486
+    },
+    "radialExponent": 0.4903977767686367,
+    "divergenceDeg": 137.5,
+    "petalSpiralFit": {
+      "r2": 1.0000000000000002,
+      "growthPerTurn": 6.85410196624969
+    }
+  }
+}

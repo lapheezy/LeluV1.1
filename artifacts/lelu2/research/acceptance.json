@@ -1,0 +1,138 @@
+{
+  "generatedAt": "2026-11-18T22:31:15.472Z",
+  "session": "S-2026-11-18",
+  "root": "/workspace/chats/6d861f98cd849b149484323e/lelu2/research",
+  "passed": 11,
+  "failed": 0,
+  "ok": true,
+  "criteria": [
+    {
+      "id": 1,
+      "criterion": "Observe a real development event",
+      "passed": true,
+      "evidence": [
+        "research/observations/O-20261118222956-142.json",
+        "research/observations/O-20261118223056-141.json"
+      ],
+      "detail": "170 observation document(s) on disk; 0 new this run. Latest: artifacts/lelu2/research/evidence-m23.json (3.7 KB)"
+    },
+    {
+      "id": 2,
+      "criterion": "Associate it with the correct source and commit",
+      "passed": true,
+      "evidence": [
+        "f6f5d493ea5244aab6cf590e91ded1916c749511 · 12 code ref(s)",
+        "d92843aebf609dcb385e257c598eff31035c5f59 · 2 code ref(s)"
+      ],
+      "detail": "60 observation(s) carry both a commit sha and the files it changed. Example: f6f5d493 → docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-01-home-ready.png"
+    },
+    {
+      "id": 3,
+      "criterion": "Analyse the associated technical evidence",
+      "passed": true,
+      "evidence": [
+        "artifacts/lelu2/audit.json",
+        "research/discoveries/R-20261118-wp01-three-claims-did-not-survive.json"
+      ],
+      "detail": "Read 11 verdicts and 3 warnings from the audit file; the entry that cites it: R-20261118-wp01-three-claims-did-not-survive."
+    },
+    {
+      "id": 4,
+      "criterion": "Create a structured research entry",
+      "passed": true,
+      "evidence": [
+        "research/discoveries/R-20261118-wp01-three-claims-did-not-survive.json",
+        "research/discoveries/R-20261118-wp02-the-best-sampler-depends-on-the-surface.json",
+        "research/discoveries/R-20261118-wp03-tube-hair-cannot-move-occupancy.json"
+      ],
+      "detail": "15/15 stored entries carry every required field, written as JSON and rendered as Markdown."
+    },
+    {
+      "id": 5,
+      "criterion": "Retrieve that entry later",
+      "passed": true,
+      "evidence": [
+        "R-20261118-wp03-root-diagnostics-disagree (score 51)",
+        "R-20261118-lit-swept-tubes (score 9)"
+      ],
+      "detail": "A separately constructed store (new process, same research/ directory) answered \"floating roots\" with 8 hit(s), best R-20261118-wp03-root-diagnostics-disagree, matched floating, roots."
+    },
+    {
+      "id": 6,
+      "criterion": "Explain what was learned",
+      "passed": true,
+      "evidence": [
+        "research/hypotheses/R-20261118-wp03-root-diagnostics-disagree.md"
+      ],
+      "detail": "A diagnostic named after the defect it is supposed to catch is not evidence that it catches it. Zero floating roots was a definition, not a measurement."
+    },
+    {
+      "id": 7,
+      "criterion": "Distinguish verified knowledge from hypotheses",
+      "passed": true,
+      "evidence": [
+        "verified: R-20261118-wp01-three-claims-did-not-survive",
+        "verified: R-20261118-wp02-the-best-sampler-depends-on-the-surface",
+        "hypothesis: R-20261118-wp03-root-diagnostics-disagree",
+        "rejected: R-20261118-wp03-voxel-plane-cut-failure"
+      ],
+      "detail": "7 verified (each with measured evidence: true), 8 not verified. The rule is enforced at write time, not by convention."
+    },
+    {
+      "id": 8,
+      "criterion": "Propose a meaningful follow-up experiment",
+      "passed": true,
+      "evidence": [
+        "Does the equal-n result hold on the garment and disc surfaces too? (priority 1.0893)",
+        "Does the hair card's own coverage hide a real gap at the crown? (priority 1.0893)",
+        "How many other published numbers were computed at unequal sample counts? (priority 1.0893)"
+      ],
+      "detail": "Top proposal: Does the equal-n result hold on the garment and disc surfaces too? — impact 0.6, feasibility 0.9, cost 1, relevance 0.85."
+    },
+    {
+      "id": 9,
+      "criterion": "Execute an authorised isolated experiment",
+      "passed": true,
+      "evidence": [
+        "artifacts/lelu2/research/visual-voxel-vs-tubes.json",
+        "artifacts/lelu2/hair/voxel/lelu2-voxel-head-front.png",
+        "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png"
+      ],
+      "detail": "Compared the two front renders pixel by pixel: silhouette IoU 0.8931, coverage 61.35% → 59.34%, 2 finding(s)."
+    },
+    {
+      "id": 10,
+      "criterion": "Record and validate its results",
+      "passed": true,
+      "evidence": [
+        "research/experiments/R-20261118-wp07-silhouette-of-the-hair-swap.json",
+        "artifacts/lelu2/research/visual-voxel-vs-tubes.json"
+      ],
+      "detail": "R-20261118-wp07-silhouette-of-the-hair-swap recorded with 4 evidence items and status verified; confidence 0.90."
+    },
+    {
+      "id": 11,
+      "criterion": "Reuse a previously verified discovery",
+      "passed": true,
+      "evidence": [
+        "research/capabilities/C-20261118-wp03-tube-hair-cannot-move-occupancy.json",
+        "npx tsx --tsconfig tsconfig.test.json --test tests/lelu2-artifacts.test.ts"
+      ],
+      "detail": "Tube hair with invariant occupancy is a verified capability built from R-20261118-wp03-tube-hair-cannot-move-occupancy; it is re-checked by: npx tsx --tsconfig tsconfig.test.json --test tests/lelu2-artifacts.test.ts"
+    }
+  ],
+  "stats": {
+    "entries": 15,
+    "verified": 7,
+    "hypotheses": 1,
+    "rejected": 3,
+    "measuredEvidence": 36,
+    "averageConfidence": 0.621
+  },
+  "observations": 171,
+  "notes": [
+    "Every criterion ran against the persisted research/ documents.",
+    "Retrieval used a separately constructed store, which is what 'after a restart' means here.",
+    "The visual experiment is a read-only comparison of committed renders; no production system was modified."
+  ]
+}

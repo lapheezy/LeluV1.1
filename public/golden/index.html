@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LÉLU 2 — Golden Geometry Engine</title>
+    <style>
+      :root {
+        --ink: #f4e7e0;
+        --dim: #b08d84;
+        --rose: #d98a80;
+        --quartz: #efb3b7;
+        --copper: #a85a3c;
+        --bg: #120d10;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: radial-gradient(circle at 20% 0%, #1d1418, var(--bg) 60%);
+        color: var(--ink);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        min-height: 100vh;
+      }
+      header { padding: 28px 32px 8px; }
+      h1 { font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 6px; font-weight: 600; }
+      h1 span { color: var(--rose); }
+      p.sub { margin: 0; color: var(--dim); font-size: 13px; max-width: 70ch; line-height: 1.5; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; padding: 20px 32px 32px; }
+      .panel { background: #170f13; border: 1px solid #2a1d22; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+      .panel h2 { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--quartz); margin: 0; padding: 12px 14px 0; font-weight: 600; }
+      .panel .meta { padding: 4px 14px 10px; color: var(--dim); font-size: 11.5px; line-height: 1.45; min-height: 34px; }
+      canvas { display: block; width: 100%; height: 300px; }
+      .controls { display: flex; gap: 14px; align-items: center; padding: 0 14px 14px; flex-wrap: wrap; }
+      label { font-size: 11px; color: var(--dim); letter-spacing: 0.08em; text-transform: uppercase; }
+      input[type="range"] { width: 130px; accent-color: var(--rose); }
+      .value { font-variant-numeric: tabular-nums; color: var(--ink); font-size: 12px; }
+      .stat { color: var(--quartz); font-variant-numeric: tabular-nums; }
+      footer { padding: 0 32px 32px; color: #7d6260; font-size: 11.5px; line-height: 1.6; }
+      code { color: var(--quartz); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>LÉLU <span>2</span> — Golden Geometry Engine</h1>
+      <p class="sub">
+        The same laws LÉLU 2 measures with in TypeScript, drawn live. Every number under each panel is computed
+        in the browser from the points on screen — nearest-neighbour spacing (CV: 0 is perfectly even) and the
+        divergence angle recovered from the pattern's own radii — so the picture and the measurement are the same object.
+      </p>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Vogel phyllotaxis</h2>
+        <div class="meta">Equal area per point, turned by the divergence angle. At 137.5078° every point owns the same area and the arms never repeat.</div>
+        <canvas id="disc"></canvas>
+        <div class="controls">
+          <label for="n">points</label>
+          <input id="n" type="range" min="144" max="1597" step="1" value="987" />
+          <span class="value" id="nv">987</span>
+          <label for="phi">sweep</label>
+          <input id="phi" type="range" min="130" max="146" step="0.01" value="137.50776405" />
+          <span class="value" id="phiv">137.51°</span>
+        </div>
+        <div class="controls" style="padding-top: 0">
+          <span class="value">spacing CV <span class="stat" id="cv">—</span></span>
+          <span class="value">measured sweep <span class="stat" id="sweep">—</span></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Fibonacci sphere</h2>
+        <div class="meta">Longitudes advance by the golden angle while latitude is spaced evenly in <em>area</em> — no polar clustering, which is why LÉLU 2 uses it for the scalp.</div>
+        <canvas id="sphere"></canvas>
+        <div class="controls">
+          <label for="m">points</label>
+          <input id="m" type="range" min="200" max="3000" step="1" value="1350" />
+          <span class="value" id="mv">1350</span>
+          <span class="value">spacing CV <span class="stat" id="scv">—</span></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Spiral families</h2>
+        <div class="meta">One engine, five growth laws. The golden spiral is the logarithmic one whose radius grows by φ per quarter turn (φ⁴ per turn).</div>
+        <canvas id="spiral"></canvas>
+        <div class="controls">
+          <label for="fam">family</label>
+          <input id="fam" type="range" min="0" max="4" step="1" value="0" />
+          <span class="value" id="famv">golden</span>
+          <span class="value">log-radius fit <span class="stat" id="fit">—</span></span>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Engine: <code>src/core/geometry/golden/</code> · tests: <code>npx tsx --test tests/golden-geometry.test.ts</code> ·
+      sources audited in <code>research/LICENSES.md</code> (geometor/phyllotaxis, sacred-sandbox, trimesh, meshoptimizer, three.js — all MIT).
+    </footer>
+
+    <script type="importmap">
+      { "imports": { "three": "/node_modules/three/build/three.module.js" } }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+
+      const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+      const GOLDEN_DEG = (GOLDEN * 180) / Math.PI;
+
+      function stage(canvas) {
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(38, 1, 0.01, 100);
+        const material = new THREE.PointsMaterial({ color: 0xefb3b7, size: 0.012, sizeAttenuation: true });
+        const points = new THREE.Points(new THREE.BufferGeometry(), material);
+        scene.add(points);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xa85a3c });
+        const line = new THREE.Line(new THREE.BufferGeometry(), lineMat);
+        scene.add(line);
+        function resize() {
+          const w = canvas.clientWidth, h = canvas.clientHeight;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+        }
+        addEventListener("resize", resize);
+        resize();
+        let angle = 0;
+        return {
+          scene, camera, renderer, points, line,
+          frame() {
+            angle += 0.0025;
+            camera.position.set(Math.sin(angle) * 2.4, 1.05, Math.cos(angle) * 2.4);
+            camera.lookAt(0, 0, 0);
+            renderer.render(scene, camera);
+          },
+        };
+      }
+
+      /** Nearest-neighbour spacing CV, brute force — the same metric the engine reports. */
+      function spacingCv(pts) {
+        const n = pts.length;
+        if (n < 3) return 0;
+        const d = new Float64Array(n).fill(Infinity);
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            const dx = pts[i][0] - pts[j][0], dy = pts[i][1] - pts[j][1], dz = pts[i][2] - pts[j][2];
+            const q = dx * dx + dy * dy + dz * dz;
+            if (q < d[i]) d[i] = q;
+            if (q < d[j]) d[j] = q;
+          }
+        }
+        let mean = 0;
+        for (let i = 0; i < n; i++) mean += Math.sqrt(d[i]);
+        mean /= n;
+        let v = 0;
+        for (let i = 0; i < n; i++) v += (Math.sqrt(d[i]) - mean) ** 2;
+        return Math.sqrt(v / n) / mean;
+      }
+
+      // ---------- panel 1: phyllotaxis disc ----------
+      const disc = stage(document.getElementById("disc"));
+      function vogel(n, sweepDeg) {
+        const sweep = (sweepDeg * Math.PI) / 180;
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          const t = (i + 0.5) / n;
+          const r = Math.sqrt(t);
+          out.push([Math.cos(i * sweep) * r, Math.sin(i * sweep) * r, 0]);
+        }
+        return out;
+      }
+      function drawDisc() {
+        const n = +document.getElementById("n").value;
+        const sweep = +document.getElementById("phi").value;
+        document.getElementById("nv").textContent = n;
+        document.getElementById("phiv").textContent = `${sweep.toFixed(2)}°`;
+        const pts = vogel(n, sweep);
+        const pos = new Float32Array(pts.length * 3);
+        pts.forEach((p, i) => pos.set(p, i * 3));
+        disc.points.geometry.dispose();
+        disc.points.geometry = new THREE.BufferGeometry();
+        disc.points.geometry.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        disc.points.material.size = Math.max(0.004, 0.5 / Math.sqrt(n));
+        document.getElementById("cv").textContent = spacingCv(pts).toFixed(3);
+        document.getElementById("sweep").textContent = `${sweep.toFixed(2)}° (golden ${GOLDEN_DEG.toFixed(2)}°)`;
+      }
+
+      // ---------- panel 2: Fibonacci sphere ----------
+      const sphere = stage(document.getElementById("sphere"));
+      function fibSphere(n) {
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          const z = 1 - (2 * (i + 0.5)) / n;
+          const r = Math.sqrt(Math.max(0, 1 - z * z));
+          const t = i * GOLDEN;
+          out.push([Math.cos(t) * r, z, Math.sin(t) * r]);
+        }
+        return out;
+      }
+      function drawSphere() {
+        const n = +document.getElementById("m").value;
+        document.getElementById("mv").textContent = n;
+        const pts = fibSphere(n);
+        const pos = new Float32Array(pts.length * 3);
+        pts.forEach((p, i) => pos.set(p, i * 3));
+        sphere.points.geometry.dispose();
+        sphere.points.geometry = new THREE.BufferGeometry();
+        sphere.points.geometry.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        sphere.points.material.size = Math.max(0.004, 0.5 / Math.sqrt(n));
+        document.getElementById("scv").textContent = spacingCv(pts).toFixed(3);
+      }
+
+      // ---------- panel 3: spiral families ----------
+      const spiral = stage(document.getElementById("spiral"));
+      const FAMILIES = ["golden", "logarithmic", "archimedean", "fermat", "hyperbolic"];
+      function spiralPoints(family, turns = 3, samples = 900) {
+        const total = turns * Math.PI * 2;
+        const out = [];
+        for (let i = 0; i <= samples; i++) {
+          const t = i / samples;
+          const th = t * total;
+          let r;
+          if (family === "golden") r = Math.exp(Math.log(1.618033988749895) * (2 * th) / Math.PI - Math.log(1.618033988749895) * (2 * total) / Math.PI);
+          else if (family === "logarithmic") r = Math.exp((Math.log(Math.pow(1.618033988749895, 3)) / total) * th - Math.log(Math.pow(1.618033988749895, 3)));
+          else if (family === "archimedean") r = t;
+          else if (family === "fermat") r = Math.sqrt(t);
+          else r = 0.25 / (0.25 + th);
+          out.push([Math.cos(th) * r, Math.sin(th) * r, 0]);
+        }
+        return out;
+      }
+      function drawSpiral() {
+        const idx = +document.getElementById("fam").value;
+        const family = FAMILIES[idx];
+        document.getElementById("famv").textContent = family;
+        const pts = spiralPoints(family);
+        const pos = new Float32Array(pts.length * 3);
+        pts.forEach((p, i) => pos.set(p, i * 3));
+        spiral.line.geometry.dispose();
+        spiral.line.geometry = new THREE.BufferGeometry();
+        spiral.line.geometry.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        spiral.points.geometry.dispose();
+        spiral.points.geometry = new THREE.BufferGeometry();
+        // log-radius linearity: 1 is a perfect log spiral
+        const xs = pts.map((p) => Math.atan2(p[1], p[0]));
+        let base = xs[0], unwrapped = [base];
+        for (let i = 1; i < xs.length; i++) {
+          let d = xs[i] - base;
+          while (d <= -Math.PI) d += Math.PI * 2;
+          while (d > Math.PI) d -= Math.PI * 2;
+          base += d;
+          unwrapped.push(base);
+        }
+        const ys = pts.map((p) => Math.log(Math.max(1e-9, Math.hypot(p[0], p[1]))));
+        const n = xs.length;
+        const mx = unwrapped.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+        let sxy = 0, sxx = 0, syy = 0;
+        for (let i = 0; i < n; i++) { sxy += (unwrapped[i] - mx) * (ys[i] - my); sxx += (unwrapped[i] - mx) ** 2; syy += (ys[i] - my) ** 2; }
+        const r2 = sxx && syy ? (sxy * sxy) / (sxx * syy) : 0;
+        document.getElementById("fit").textContent = `R² ${r2.toFixed(4)}`;
+      }
+
+      drawDisc(); drawSphere(); drawSpiral();
+      document.getElementById("n").addEventListener("input", drawDisc);
+      document.getElementById("phi").addEventListener("input", drawDisc);
+      document.getElementById("m").addEventListener("input", drawSphere);
+      document.getElementById("fam").addEventListener("input", drawSpiral);
+
+      (function loop() {
+        requestAnimationFrame(loop);
+        disc.frame(); sphere.frame(); spiral.frame();
+      })();
+    </script>
+  </body>
+</html>

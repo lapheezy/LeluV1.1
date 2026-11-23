@@ -1,0 +1,82 @@
+{
+  "id": "O-20261117233743-105",
+  "at": 1794958663000,
+  "type": "source-change",
+  "workPackage": "WP03",
+  "summary": "feat(asre): WP03 Spatial Studio - native Genesis workspace for ASRE/NRE",
+  "detail": "26 file(s): docs/SESSION_HANDOFF.md, docs/asre/m5/screenshots/01-reconstruct.jpg, docs/asre/m5/screenshots/02-numerical-front-cut.jpg, docs/asre/m5/screenshots/03-numerical-side-cut-boundary.jpg, docs/asre/m5/screenshots/04-create-impact-preview.jpg, docs/asre/m5/screenshots/05-create-new-version.jpg, docs/asre/m5/screenshots/06-create-compare.jpg, docs/asre/m5/screenshots/07-render-front.jpg, …",
+  "interpretation": "Associated with WP03 by explicit WP03. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "f113e2a085216276bfa81a721484da9484b8655d",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d",
+      "note": "feat(asre): WP03 Spatial Studio - native Genesis workspace for ASRE/NRE"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/SESSION_HANDOFF.md",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/01-reconstruct.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/02-numerical-front-cut.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/03-numerical-side-cut-boundary.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/04-create-impact-preview.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/05-create-new-version.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/06-create-compare.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/07-render-front.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/m5/screenshots/08-render-export.jpg",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreJobs.ts",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/blenderStage.ts",
+      "commit": "f113e2a085216276bfa81a721484da9484b8655d"
+    }
+  ],
+  "commit": "f113e2a085216276bfa81a721484da9484b8655d",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:f113e2a085216276bfa81a721484da9484b8655d"
+}

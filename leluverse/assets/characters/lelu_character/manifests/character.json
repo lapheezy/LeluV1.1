@@ -33,7 +33,11 @@
     "animation:sit_talk": "fj_mvx4n7fz_ff51bd",
     "animation:sit_thumbs_up": "fj_mvx4n7uz_fdc107",
     "animation:strut": "fj_mvx4n8a3_64adf1",
-    "look:hooded": "fj_mvxh0elc_01b3ea"
+    "look:hooded": "fj_mvxh0elc_01b3ea",
+    "look:camo_repaired": "fj_mwnxaavo_4b3cd7",
+    "look:bronze_velocity": "fj_mwobta5l_f743bb",
+    "look:rose_gold_sovereign": "fj_mwobta8o_896ec6",
+    "look:home_laidback3": "fj_mwnzmg00_331e4c"
   },
   "history": [
     {
@@ -281,7 +285,157 @@
       "jobId": "fj_mvxg0q5l_10c652",
       "replacedBy": "fj_mvxh0elc_01b3ea",
       "at": 1793515872726
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": null,
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795115275184
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": null,
+      "replacedBy": "fj_mwnxab95_031ac5",
+      "at": 1795115275625
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": null,
+      "replacedBy": "fj_mwnxabmc_42d1c9",
+      "at": 1795115276088
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": "fj_mwnxaavo_4b3cd7",
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795118709869
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": "fj_mwnxab95_031ac5",
+      "replacedBy": "fj_mwnzbxf8_69d37c",
+      "at": 1795118710157
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": "fj_mwnxabmc_42d1c9",
+      "replacedBy": "fj_mwnzbxns_db3cb9",
+      "at": 1795118710413
+    },
+    {
+      "slot": "look:home_laidback3",
+      "jobId": null,
+      "replacedBy": "fj_mwnzbxtb_29c9ca",
+      "at": 1795118710575
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": "fj_mwnxaavo_4b3cd7",
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795119200067
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": "fj_mwnzbxf8_69d37c",
+      "replacedBy": "fj_mwnzmfol_0bab6d",
+      "at": 1795119200365
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": "fj_mwnzbxns_db3cb9",
+      "replacedBy": "fj_mwnzmfvq_b01559",
+      "at": 1795119200570
+    },
+    {
+      "slot": "look:home_laidback3",
+      "jobId": "fj_mwnzbxtb_29c9ca",
+      "replacedBy": "fj_mwnzmg00_331e4c",
+      "at": 1795119200717
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": "fj_mwnxaavo_4b3cd7",
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795120177605
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": "fj_mwnzmfol_0bab6d",
+      "replacedBy": "fj_mwnzmfol_0bab6d",
+      "at": 1795120177676
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": "fj_mwnzmfvq_b01559",
+      "replacedBy": "fj_mwnzmfvq_b01559",
+      "at": 1795120177753
+    },
+    {
+      "slot": "look:home_laidback3",
+      "jobId": "fj_mwnzmg00_331e4c",
+      "replacedBy": "fj_mwnzmg00_331e4c",
+      "at": 1795120177821
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": "fj_mwnxaavo_4b3cd7",
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795121650331
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": "fj_mwnzmfol_0bab6d",
+      "replacedBy": "fj_mwo12ycy_5a84f5",
+      "at": 1795121650775
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": "fj_mwnzmfvq_b01559",
+      "replacedBy": "fj_mwo12yp5_a969e1",
+      "at": 1795121651118
+    },
+    {
+      "slot": "look:home_laidback3",
+      "jobId": "fj_mwnzmg00_331e4c",
+      "replacedBy": "fj_mwnzmg00_331e4c",
+      "at": 1795121651168
+    },
+    {
+      "slot": "look:camo_repaired",
+      "jobId": "fj_mwnxaavo_4b3cd7",
+      "replacedBy": "fj_mwnxaavo_4b3cd7",
+      "at": 1795123111020
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": "fj_mwo12ycy_5a84f5",
+      "replacedBy": "fj_mwo1y9ji_c2526e",
+      "at": 1795123111882
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": "fj_mwo12yp5_a969e1",
+      "replacedBy": "fj_mwo1ya4u_ecbcc2",
+      "at": 1795123112436
+    },
+    {
+      "slot": "look:home_laidback3",
+      "jobId": "fj_mwnzmg00_331e4c",
+      "replacedBy": "fj_mwnzmg00_331e4c",
+      "at": 1795123112479
+    },
+    {
+      "slot": "look:bronze_velocity",
+      "jobId": "fj_mwo1y9ji_c2526e",
+      "replacedBy": "fj_mwobta5l_f743bb",
+      "at": 1795139675103
+    },
+    {
+      "slot": "look:rose_gold_sovereign",
+      "jobId": "fj_mwo1ya4u_ecbcc2",
+      "replacedBy": "fj_mwobta8o_896ec6",
+      "at": 1795139675232
     }
   ],
-  "currentLook": "hooded"
+  "currentLook": "home_laidback3"
 }

@@ -1,0 +1,27 @@
+{
+  "id": "O-20261118111156-006",
+  "at": 1795000316000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "docs(lelu): record the fidelity pass and what still does not match",
+  "detail": "1 file(s): docs/lelu/CANONICAL_AVATAR.md",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "55c89aae19de00251478438346e4a8a6a3d16be8",
+      "commit": "55c89aae19de00251478438346e4a8a6a3d16be8",
+      "note": "docs(lelu): record the fidelity pass and what still does not match"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/lelu/CANONICAL_AVATAR.md",
+      "commit": "55c89aae19de00251478438346e4a8a6a3d16be8"
+    }
+  ],
+  "commit": "55c89aae19de00251478438346e4a8a6a3d16be8",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:55c89aae19de00251478438346e4a8a6a3d16be8"
+}

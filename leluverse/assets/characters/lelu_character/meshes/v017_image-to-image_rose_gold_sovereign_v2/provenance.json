@@ -1,0 +1,102 @@
+{
+ "jobs": [
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "image-to-image",
+   "task": "01a1f555-d652-71fc-bcc4-67937e964bb4",
+   "submittedAt": 1795117407.269769,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms held slightly away from the body, legs slightly apart, feet flat, full body visible head to toe, plain light grey studio background, even lighting. Keep every garment, accessory, boot, handbag, jewellery and hairstyle detail identical to the reference. Floor-length copper-rose tailored coat with pointed side panels and front slit, rose-quartz belt, structured handbag in her right hand.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/02-coat-fullbody-cropped.png",
+     "sha256": "a52b92101921abaad4a09ae31bdc9a913987def609adaf7cb5688c4f747137d4"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/01-boots.png",
+     "sha256": "f83f1df28e112a1f1414769ef8d293fc443fcc1a64133a9ce2a7ab6446b773d0"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f555-d652-71fc-bcc4-67937e964bb4",
+   "finished": 1795117460.3125916,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f555-d652-71fc-bcc4-67937e964bb4",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms held slightly away from the body, legs slightly apart, feet flat, full body visible head to toe, plain light grey studio background, even lighting. Keep every garment, accessory, boot, handbag, jewellery and hairstyle detail identical to the reference. Floor-length copper-rose tailored coat with pointed side panels and front slit, rose-quartz belt, structured handbag in her right hand.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795117407043,
+    "started_at": 1795117407058,
+    "finished_at": 1795117448439,
+    "expires_at": 1795376648439,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f555-d652-71fc-bcc4-67937e964bb4_0.png?Expires=1795376648&Signature=hqRHObzfjDQCdoVqnI6kFBxhutAVCXF9G3Ap5nZgk-ZxxUZ6CPAg~hKFaIqwuVk01srwMlrEyemgG5NsjyipmG7JNgl94n5xVdoRQhyKWRbfimgTyshgxiTatIyoqUbmHth661RK8tTcb5lRWrm-DLH07pwUTp026TmYbDYeGv2N5WHwCPXk9L66NlFa2fwrDNiNv05oyTK8teykw0XgS3CikOG4cIG-INWNGvWJfdeBPPVoW~k8fZbtOH~myFlQ4IaOGbqV~s1cDCk17FKeSAMdP3knPbwJgLTeX6AcOQ~nCSR8i5CgCSITXOcL9tluQVyVWLTxKMvjZlWp7svJKw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f555_0.png",
+     "bytes": 536805,
+     "sha256": "ed55c8d12f1b3f616b4d6be2b705897df59422d7c726a6af577ec9ac94f3bbf2"
+    }
+   ]
+  },
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "image-to-image",
+   "task": "01a1f556-cefc-7777-b585-a9304fe2402c",
+   "submittedAt": 1795117470.3114283,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same outfit, accessories, boots, handbag, jewellery and hairstyle, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body head to toe, so the outfit can be built in 3D. Keep every design detail identical.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v017_image-to-image_rose_gold_sovereign_v2/view_01a1f555_0.png",
+     "sha256": "ed55c8d12f1b3f616b4d6be2b705897df59422d7c726a6af577ec9ac94f3bbf2"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f556-cefc-7777-b585-a9304fe2402c",
+   "finished": 1795117501.265179,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f556-cefc-7777-b585-a9304fe2402c",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same outfit, accessories, boots, handbag, jewellery and hairstyle, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body head to toe, so the outfit can be built in 3D. Keep every design detail identical.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795117470178,
+    "started_at": 1795117470188,
+    "finished_at": 1795117493009,
+    "expires_at": 1795376693009,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f556-cefc-7777-b585-a9304fe2402c_0.png?Expires=1795376693&Signature=HHwYafucC3afmwd6IQbsHL8poMVqD~R1~3WbV47nhKT6FtdOGfFx~EM1r3WrIZ4NYx3m1EfNyO8lOa27fzbXMRUKDOTUdLDpVdfKFtLe9~NCzQ8G4ApKZFO69BerAiAlTH3jwlxx8TWOK0RSMNDuzIMNpzVLqmBzst2GuT1cZaFtXFl1IVPNgdQjlRY5SUkAIKlgqcNGXojQxB1KHYgHGKx-kqNmMtH~oluEJH41Q8oyOaNyiEmhL0jhILiIqL6PFjxigTPs89yaBeRJMn8Fqa5HX8DGgrq3zFDZ9PKdWKd3l6wLif0YW~2BEGGFWxS7G1axUoWCCznksZr9SWXMAQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f556_0.png",
+     "bytes": 1201243,
+     "sha256": "a1d3647938ed8ddc6244a3fe7946582cda2609ea4b645002dba5cc61669c4311"
+    }
+   ]
+  }
+ ]
+}

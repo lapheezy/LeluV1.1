@@ -1,0 +1,173 @@
+```evidence
+{
+  "version": 1,
+  "blocks": [
+    {
+      "kind": "compare",
+      "title": "Her photograph -> her mesh",
+      "before": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m231__reference__face-front.png",
+        "alt": "Her reference photograph, front",
+        "caption": "lelu-facial-expression-01.png, committed and unmodified",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      },
+      "after": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m23__youth__lelu2-m231-youth-face-front.png",
+        "alt": "Her mesh, front",
+        "caption": "2.3.1: reference paint + youth geometry, 900 px AgX",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      },
+      "note": "Different media, same landmarks. The photograph is the authority for ratios; the mesh is what is being corrected."
+    },
+    {
+      "kind": "compare",
+      "title": "2.3 -> 2.3.1, same camera",
+      "before": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m23__youth__lelu2-m23-youth-face-front.png",
+        "alt": "Face at 2.3",
+        "caption": "2.3: brow bar, grey slit iris, small lips, wide jaw",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      },
+      "after": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m23__youth__lelu2-m231-youth-face-front.png",
+        "alt": "Face at 2.3.1",
+        "caption": "2.3.1: tapered arched brows, hazel iris, lips at 0.355 face width",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      },
+      "measurements": [
+        {
+          "label": "jaw / cheek",
+          "value": 0.7,
+          "delta": "-0.1",
+          "source": "head.jawToCheek"
+        },
+        {
+          "label": "jaw width",
+          "value": 98.7,
+          "unit": "mm",
+          "delta": "-15.6 mm",
+          "source": "face.jawWidthMm (reference 96 mm)"
+        },
+        {
+          "label": "eye -> chin",
+          "value": 103.4,
+          "unit": "mm",
+          "delta": "0 mm",
+          "source": "face.eyeToChinMm"
+        }
+      ]
+    },
+    {
+      "kind": "compare",
+      "title": "Head, three-quarter: 2.3 -> 2.3.1",
+      "before": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m23__youth__lelu2-m23-youth-head-three-quarter.png",
+        "alt": "Head at 2.3",
+        "caption": "2.3",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      },
+      "after": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m23__youth__lelu2-m231-youth-head-three-quarter.png",
+        "alt": "Head at 2.3.1",
+        "caption": "2.3.1",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      }
+    },
+    {
+      "kind": "compare",
+      "title": "The hairline the sheet specifies",
+      "before": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m231__reference__hairline-spec.png",
+        "alt": "Hairline specification",
+        "caption": "lelu-hair-18.png: arc 13.8 cm wide, 3.6 cm higher at the centre",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      },
+      "after": {
+        "src": "/lelu2-evidence/artifacts__lelu2__m23__youth__lelu2-m231-youth-face-front.png",
+        "alt": "Her mesh hairline",
+        "caption": "roots on the measured arc; main hair mass still 40 mm higher",
+        "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+      }
+    },
+    {
+      "kind": "measure",
+      "title": "Reference alignment, measured",
+      "rows": [
+        {
+          "label": "hairline above eye line (reference)",
+          "value": 87.7,
+          "unit": "mm",
+          "source": "landmark sheet 0.848 x eye->chin"
+        },
+        {
+          "label": "hairline the scalp cloud offers",
+          "value": 52.4,
+          "unit": "mm",
+          "source": "baby-hair.json"
+        },
+        {
+          "label": "hairline the strands root on",
+          "value": 92.7,
+          "unit": "mm",
+          "source": "baby-hair.json"
+        },
+        {
+          "label": "jaw width (reference)",
+          "value": 96,
+          "unit": "mm",
+          "source": "landmark sheet"
+        },
+        {
+          "label": "jaw width (mesh)",
+          "value": 98.7,
+          "unit": "mm",
+          "source": "metrics-youth.json"
+        },
+        {
+          "label": "jaw / cheek (reference)",
+          "value": 0.676,
+          "source": "landmark sheet"
+        },
+        {
+          "label": "baby strands",
+          "value": 149,
+          "delta": "+61",
+          "source": "sheet spacing 1.0-1.6 mm"
+        },
+        {
+          "label": "penetrating strands",
+          "value": 0,
+          "delta": "-2",
+          "source": "clearance pass"
+        },
+        {
+          "label": "hairline coverage",
+          "value": 100,
+          "unit": "%",
+          "delta": "0 pts",
+          "source": "3 mm band"
+        },
+        {
+          "label": "strand length",
+          "value": "5.8-33.9",
+          "unit": "mm",
+          "source": "sheet: 12-48 mm"
+        },
+        {
+          "label": "root diameter",
+          "value": "162-449",
+          "unit": "um",
+          "source": "sheet: 80-120 um (still 2-4x)"
+        }
+      ]
+    },
+    {
+      "kind": "image",
+      "src": "/lelu2-evidence/artifacts__lelu2__m231__baby-hair-overlay.png",
+      "alt": "Baby hair placement, 149 strands",
+      "caption": "Front strands on the measured arc with her eye line drawn. The bare band above them is scalp hair, not baby hair.",
+      "commit": "491e50461c2aca46c1b76ba670d83221418d026f"
+    }
+  ]
+}
+```

@@ -1,0 +1,44 @@
+{
+ "id": "v0003",
+ "projectId": "lelu",
+ "label": "Meshy LÉLU baseline (the owned character, bytes unchanged)",
+ "createdAt": "2026-11-19T12:46:22.813Z",
+ "parentId": "v0002",
+ "operation": "import",
+ "spec": {
+  "source": "meshy",
+  "authority": {
+   "identity": "photographs",
+   "geometry": "meshy",
+   "scaffold": "cc0"
+  },
+  "heightM": 1.7185012779564204,
+  "joints": 24,
+  "morphTargets": 36,
+  "textures": [
+   "2048x2048 image/jpeg",
+   "2048x2048 image/jpeg",
+   "2048x2048 image/jpeg",
+   "121x83 image/png",
+   "121x78 image/png",
+   "4096x4096 image/jpeg",
+   "4096x4096 image/jpeg",
+   "4096x4096 image/jpeg"
+  ],
+  "provenance": "fj_mvvfg2o3_ebd9c0 body → fj_mvvnf4v9_1ded97 rig → fj_mvvnvqa1_b5672e head → fj_mvwaqbim_55226d head swap"
+ },
+ "model": {
+  "file": "versions/v0003/model.glb",
+  "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+  "bytes": 49511140
+ },
+ "triangles": 224233,
+ "validation": null,
+ "renders": [],
+ "exports": [],
+ "notes": [
+  "immutable baseline: 80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+  "the original file in leluverse/ is never written by the Foundry; corrections become new versions",
+  "renders of this version keep the shipped PBR textures (materials:false) so the comparison is about the asset"
+ ]
+}

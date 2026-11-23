@@ -1,0 +1,8 @@
+{
+ "input": "artifacts/foundry/m25c/steps/s1-mouth.glb",
+ "output": "artifacts/foundry/m25c/steps/s2-lipsurface.glb",
+ "report": "artifacts/foundry/m25c/mouth/lip-surface.json",
+ "iterations": 4,
+ "clampMm": 0.8,
+ "normalLimitDeg": 70
+}

@@ -1,0 +1,94 @@
+[
+  {
+    "id": "hair_copper_coils",
+    "name": "Copper coil curls",
+    "slot": "hair",
+    "category": "hair",
+    "jobId": "fj_mwobtabg_c75678",
+    "bone": "Head",
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "height": 0.3,
+    "createdAt": 1795139675346,
+    "withLooks": [
+      "bronze_velocity"
+    ]
+  },
+  {
+    "id": "hair_rose_gold_waves",
+    "name": "Slicked rose-gold waves",
+    "slot": "hair",
+    "category": "hair",
+    "jobId": "fj_mwobtael_5487c5",
+    "bone": "Head",
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "height": 0.3,
+    "createdAt": 1795139675417,
+    "withLooks": [
+      "rose_gold_sovereign"
+    ]
+  },
+  {
+    "id": "bronze_lotus_bag",
+    "name": "Bronze lotus bag",
+    "slot": "bag",
+    "category": "bag",
+    "jobId": "fj_mwobtag7_0312cd",
+    "bone": "RightHand",
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "height": 0.3,
+    "createdAt": 1795139675443,
+    "withLooks": [
+      "bronze_velocity"
+    ]
+  },
+  {
+    "id": "rose_gold_bag",
+    "name": "Rose-gold linework bag",
+    "slot": "bag",
+    "category": "bag",
+    "jobId": "fj_mwobtagy_22987a",
+    "bone": "RightHand",
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "height": 0.3,
+    "createdAt": 1795139675464,
+    "withLooks": [
+      "rose_gold_sovereign"
+    ]
+  }
+]

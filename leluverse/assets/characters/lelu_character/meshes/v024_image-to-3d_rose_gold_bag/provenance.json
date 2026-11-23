@@ -1,0 +1,92 @@
+{
+ "jobs": [
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f564-7cb3-7774-9060-bde8e5b829fc",
+   "submittedAt": 1795118366.5623543,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/bag-coat.png",
+     "sha256": "a897bf9e6de746905f974916f2e02ac254f8dd92a938799d1ca70d0bc14659ed"
+    }
+   ],
+   "authorisation": "user approved paid Meshy for the two new looks in-session"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f564-7cb3-7774-9060-bde8e5b829fc",
+   "finished": 1795118514.815622,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f564-7cb3-7774-9060-bde8e5b829fc",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795118366383,
+    "progress": 100,
+    "started_at": 1795118366389,
+    "finished_at": 1795118507801,
+    "expires_at": 1795377707801,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f564-7cb3-7774-9060-bde8e5b829fc/output/model.glb?Expires=1795377707&Signature=dV-HoDhC8aU5bSc~Qsg9WtUyaakPDtc6EuZ9EktHDA2B1YIVEg4JoB1pdJsuH8MPrRehNsmX2OyTvRpT1vsWYOS0eoui2D5Q2RHV8qSiA1EgSetb6-5Rmm5VPTW5hDRwpePwiJta1d2cKYwWi2Qu9MYLGma4YPKjUX8sOdhRsa6uMqNI7DbuOYOdAHY-qa2AZW2-RRFa~fkv~qnix3-HCI40KCbynjT3VPUDo~24vvG46gwrGK9YTHoYUUEeY3qh-YJ2EdVaU3F4ue~QWoCKTseQvZiAUvzznZy85vILD8pEhQykthtwtkr9G1cu7eJ9-WHvzv0Sc-LlJQchX1ZhCg__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 8502292,
+     "sha256": "2727cf7726582221416370baa67eb7fd55b6904f8362069389c90862fddbdd40"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 8760556,
+     "sha256": "e73a9d5e731caa4c3a51445fec1f95c200fbc0c326c59b003a7718c1c8a9ba0c"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 2375618,
+     "sha256": "e36281e57995d7eaf865214ac750a7fd36090ad048d93d8f2ffeb8da955fa5a1"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1266343,
+     "sha256": "0a10773a3453f3999d27f852b7f29fd881f98ce7846b627b7909c733dea41202"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1673040,
+     "sha256": "c8720c2b08b3e505f1497f63fbfe3b89ad6d9848e809276ed6c0489cca15ce3d"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 3887757,
+     "sha256": "05df6c4d008a933fbdda2d4975080a536ae5c2bd534ef9b96c9d4a1208970665"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 65040,
+     "sha256": "8df407ee72fbe4065d0452807df81c1d3d2042acbecc0324b629e49133f13153"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,101 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/meshes/v037_look_bronze_velocity/lelu.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25c/final/bronze_velocity/sit.png",
+ "view": "three-quarter",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.22699999809265137,
+   0.6200000047683716,
+   0.6800000071525574
+  ],
+  "radius": 0.85,
+  "lens": 70.0,
+  "distance": 3.413092077700834,
+  "location": [
+   2.2118961811065674,
+   -2.1367998123168945,
+   1.010815978050232
+  ]
+ },
+ "resolution": [
+  1024,
+  1536
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.2291912573079269,
+  "exposureEV": -2.771640599162654
+ },
+ "objects": [
+  "bronze_lotus_bag",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_coils",
+  "lelu_hairstyle",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_bronze_velocity"
+ ],
+ "triangles": 1593630,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_foundation.001: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)",
+  "m25_skin_head.001: SSS (Cycles extension)"
+ ],
+ "animation": {
+  "clip": "leluverse/assets/characters/lelu_character/animations/v024_animation_01a193c7/motion.glb",
+  "action": "sit_idle",
+  "frameRange": [
+   0.8000000715255737,
+   272.79998779296875
+  ],
+  "frame": 20,
+  "channelsMerged": 66,
+  "unmatchedNodes": [],
+  "bonesMoved": 22,
+  "boneDelta": {
+   "Hips": 121.4708,
+   "Spine02": 2.405,
+   "Spine01": 2.0503,
+   "Spine": 1.8187,
+   "neck": 2.9732,
+   "Head": 2.8717,
+   "head_end": 0.0,
+   "headfront": 0.0,
+   "LeftShoulder": 3.5822,
+   "LeftArm": 12.6903,
+   "LeftForeArm": 16.3173,
+   "LeftHand": 23.819,
+   "RightShoulder": 2.3403,
+   "RightArm": 20.397,
+   "RightForeArm": 10.4136,
+   "RightHand": 14.0291,
+   "LeftUpLeg": 10.3646,
+   "LeftLeg": 11.8193,
+   "LeftFoot": 17.9423,
+   "LeftToeBase": 14.1425,
+   "RightUpLeg": 11.8476,
+   "RightLeg": 9.5323,
+   "RightFoot": 4.3119,
+   "RightToeBase": 4.0951
+  },
+  "hipsWorld": [
+   0.227,
+   0.7254,
+   0.7286
+  ]
+ },
+ "shapeKeys": null,
+ "renderSeconds": 31.85,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

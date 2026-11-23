@@ -196,3 +196,40 @@ test("an unapproved look is refused by name, and the wardrobe reports what is on
     cleanup();
   }
 });
+
+test("a look's own hairstyle and bag come with it; another look's own pieces go", () => {
+  const { store, forge, cleanup } = setup();
+  try {
+    const catsuit = seedFinishedJob(store, "hero", { id: "fj_catsuit" });
+    const coat = seedFinishedJob(store, "hero", { id: "fj_coat" });
+    const camo = seedFinishedJob(store, "hero", { id: "fj_camo" });
+    const curls = seedFinishedJob(store, "hero", { id: "fj_curls", rigged: true });
+    const waves = seedFinishedJob(store, "hero", { id: "fj_waves", rigged: true });
+    const lotus = seedFinishedJob(store, "hero", { id: "fj_lotus", rigged: true });
+    forge.addWardrobeItem("hero", { id: "catsuit", category: "look", jobId: catsuit.id });
+    forge.addWardrobeItem("hero", { id: "coat", category: "look", jobId: coat.id });
+    forge.addWardrobeItem("hero", { id: "camo", category: "look", jobId: camo.id });
+    forge.addWardrobeItem("hero", { id: "curls", category: "hair", jobId: curls.id, withLooks: ["catsuit"] });
+    forge.addWardrobeItem("hero", { id: "waves", category: "hair", jobId: waves.id, withLooks: ["coat"] });
+    forge.addWardrobeItem("hero", { id: "lotus", category: "bag", jobId: lotus.id, withLooks: ["catsuit"] });
+    assert.throws(() => forge.addWardrobeItem("hero", { id: "bad", category: "hair", jobId: curls.id, withLooks: ["Not A Look"] }));
+
+    const worn = () => forge.wardrobeView("hero").slots.map((s) => [s.slot, s.wornId]).sort();
+    forge.dressOutfit("hero", { look: "catsuit" });
+    assert.deepEqual(worn(), [["bag", "lotus"], ["hair", "curls"]]);
+    // the coat brings its waves; the catsuit's bag is its own, so it goes
+    forge.dressOutfit("hero", { look: "coat" });
+    assert.deepEqual(worn(), [["bag", null], ["hair", "waves"]]);
+    // a look with its own hair built in: nobody's hairstyle stays on top of it
+    forge.dressOutfit("hero", { look: "camo" });
+    assert.deepEqual(worn(), [["bag", null], ["hair", null]]);
+    // what the call names wins: the catsuit with the coat's waves
+    forge.dressOutfit("hero", { look: "catsuit", wear: { hair: "waves" } });
+    assert.deepEqual(worn(), [["bag", "lotus"], ["hair", "waves"]]);
+    // swapping a piece alone does not touch the look's other pieces
+    forge.dressOutfit("hero", { wear: { hair: "curls" } });
+    assert.deepEqual(worn(), [["bag", "lotus"], ["hair", "curls"]]);
+  } finally {
+    cleanup();
+  }
+});

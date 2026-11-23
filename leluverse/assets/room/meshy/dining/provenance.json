@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "dining",
+   "kind": "image-to-image",
+   "task": "01a1f689-54ea-71d3-906c-bbcf579b6566",
+   "submittedAt": 1795137558.7105548,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this round dining set alone: a round black-marble dining table on a copper-gold pedestal with six curved blush-pink velvet armchairs with copper frames around it, place settings on the table. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/dining.png",
+     "sha256": "1db945dcb6a1f0ffc7989527de3004f2573c892c174464895a263c14b3812470"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f689-54ea-71d3-906c-bbcf579b6566",
+   "finished": 1795137600.167598,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-54ea-71d3-906c-bbcf579b6566",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this round dining set alone: a round black-marble dining table on a copper-gold pedestal with six curved blush-pink velvet armchairs with copper frames around it, place settings on the table. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137558545,
+    "started_at": 1795137558579,
+    "finished_at": 1795137591116,
+    "expires_at": 1795396791116,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f689-54ea-71d3-906c-bbcf579b6566_0.png?Expires=1795396791&Signature=BIMfP-nM7oJba8UaxwsXZ93cEHak2ut9nGMdCIR5GEoYPKBNFA4c8H2CPPOSyTTakhn94pCSdgfWXY2HINe90LfexS3urtXq6s~NXfS8--zmLtHxPNk0hGcj8j7yZu14xJyEoTFYADKCNgRRO~7hWj-KdhRrANl8Gzf8EuAMkuejdBLSp8FteUfZnexg1UkA90WwUcaDVuAQSkHsgxOTxYgbRq271Porsof4BsmChRqXshdVX0hcxPmNQLseWe4WA329EfO4bCcjqB0hyXSSlFi7IBh25gThwF-7s5D7CTm5Fe8XKcpO4P7tz9yd3KF9BU0hKGs2wbNsZaz~d7r84A__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f689_0.png",
+     "bytes": 960239,
+     "sha256": "9ddec754a5ea8a370a80f4ba3278aed717178ac846e66248d7a7112c6478b011"
+    }
+   ]
+  },
+  {
+   "piece": "dining",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-fbe3-74bc-af8b-ae8fa6b5c3a3",
+   "submittedAt": 1795137601.4450722,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/dining/view_01a1f689_0.png",
+     "sha256": "9ddec754a5ea8a370a80f4ba3278aed717178ac846e66248d7a7112c6478b011"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-fbe3-74bc-af8b-ae8fa6b5c3a3",
+   "finished": 1795137727.6103487,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-fbe3-74bc-af8b-ae8fa6b5c3a3",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137601283,
+    "progress": 100,
+    "started_at": 1795137601292,
+    "finished_at": 1795137715678,
+    "expires_at": 1795396915678,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f689-fbe3-74bc-af8b-ae8fa6b5c3a3/output/model.glb?Expires=1795396915&Signature=CqR5mE~iaqOtfZtJap0vgZOiajrSgqKvs5ctMK1IBVll3yqzDo4YpsHxJh5K1I6mfCFo74~moK~oQULpqURh3iUyXnZcUjjbwX9Dah38pzi1BDBzUMUyelVfck2kq-DGlFsh2qu1WROl73cRETQajLLSMVxpatErUg8AkYZiMPoY1XenAG7WcXBAmJMwuEV-FBzfQVfmc63OZfWTdD7pSOSVs0mp2ahx-CMn19CX14fvStQaN0tdbsF69p6oEdAS6QpuPuPKXehI3SmnSJmVqGpHa3KhmIlRgRrECAkl6pa-jjd4WEv3nD8g1laWKK9rrqZNiTawsMY4lnYTlyJx8g__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 11193804,
+     "sha256": "3487c96a29630b882c467601ea22416716267783c0592e4d656a80773dee3dba"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 11121244,
+     "sha256": "a2426ee9992e95236304061b2170953a9d76c011661959cd48f92620768012d6"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 4059496,
+     "sha256": "566186b241d09080233ea3fe6a28fa874c2fac890d0f26ba160d1b594876b38f"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1862606,
+     "sha256": "379ffffbdfb085d731ac95cc181cb88ef255cb63aa96a6c840acb2f940857cae"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 2362301,
+     "sha256": "1539db4a83a0f3ec6746e8a554f8e2ced7c6352eb2cbfc1a7232b506d4999325"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 4239932,
+     "sha256": "f97fb3a5ba9f16a3b799302ce4e7d77c538de69ede021540105c2b22bc93c470"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 104268,
+     "sha256": "1211b25b2600b9053ba48810f9868d6b81b44e66c9126d8d0cd7e62b6e8b7aee"
+    }
+   ]
+  }
+ ]
+}

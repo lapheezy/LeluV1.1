@@ -1,0 +1,42 @@
+{
+  "id": "O-20261118021316-102",
+  "at": 1794967996000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "feat(asre): spatial work surfaces inside the conversation (M5.7 step 1)",
+  "detail": "4 file(s): src/app/scene/genesis/GenesisChat.tsx, src/app/scene/genesis/chat/SpatialSurface.tsx, src/core/asre/AsreTools.ts, src/core/asre/SpatialSummon.ts",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "8adaf34b92588dcfb118936704234b63046364c4",
+      "commit": "8adaf34b92588dcfb118936704234b63046364c4",
+      "note": "feat(asre): spatial work surfaces inside the conversation (M5.7 step 1)"
+    },
+    {
+      "kind": "code",
+      "ref": "src/app/scene/genesis/GenesisChat.tsx",
+      "commit": "8adaf34b92588dcfb118936704234b63046364c4"
+    },
+    {
+      "kind": "code",
+      "ref": "src/app/scene/genesis/chat/SpatialSurface.tsx",
+      "commit": "8adaf34b92588dcfb118936704234b63046364c4"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/AsreTools.ts",
+      "commit": "8adaf34b92588dcfb118936704234b63046364c4"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/SpatialSummon.ts",
+      "commit": "8adaf34b92588dcfb118936704234b63046364c4"
+    }
+  ],
+  "commit": "8adaf34b92588dcfb118936704234b63046364c4",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:8adaf34b92588dcfb118936704234b63046364c4"
+}

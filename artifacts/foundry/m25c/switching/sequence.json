@@ -1,0 +1,34 @@
+[
+ {
+  "step": 1,
+  "who": "person (chat)",
+  "said": "LÉLU, wear the copper-rose coat",
+  "why": "asked",
+  "currentLook": "rose_gold_sovereign",
+  "file": "leluverse/assets/characters/lelu_character/meshes/v029_look_rose_gold_sovereign/lelu.glb"
+ },
+ {
+  "step": 2,
+  "who": "person (chat)",
+  "said": "change into your catsuit",
+  "why": "asked",
+  "currentLook": "bronze_velocity",
+  "file": "leluverse/assets/characters/lelu_character/meshes/v028_look_bronze_velocity/lelu.glb"
+ },
+ {
+  "step": 3,
+  "who": "LÉLU (on her own)",
+  "said": "— 23:00, nothing asked —",
+  "why": "It's late, so something comfortable.",
+  "currentLook": "home_laidback3",
+  "file": "leluverse/assets/characters/lelu_character/meshes/v030_look_home_laidback3/lelu.glb"
+ },
+ {
+  "step": 4,
+  "who": "LÉLU (on her own)",
+  "said": "— presenting —",
+  "why": "I'm presenting, so the copper-rose coat.",
+  "currentLook": "rose_gold_sovereign",
+  "file": "leluverse/assets/characters/lelu_character/meshes/v029_look_rose_gold_sovereign/lelu.glb"
+ }
+]

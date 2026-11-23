@@ -1,0 +1,82 @@
+{
+  "id": "O-20261117215313-120",
+  "at": 1794952393000,
+  "type": "source-change",
+  "workPackage": "WP05",
+  "summary": "feat(asre): WP5 persistent character variations - 67 rendered from one identity",
+  "detail": "138 file(s): artifacts/asre/character/variations/accessories/all.png, artifacts/asre/character/variations/accessories/all.png.json, artifacts/asre/character/variations/accessories/backpack.png, artifacts/asre/character/variations/accessories/backpack.png.json, artifacts/asre/character/variations/accessories/earrings-necklace.png, artifacts/asre/character/variations/accessories/earrings-necklace.png.json, artifacts/asre/character/variations/accessories/glasses.png, artifacts/asre/character/variations/accessories/glasses.png.json, …",
+  "interpretation": "Associated with WP05 by explicit WP5. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "360c0d4e573577b0f4c50721cee1135176f8eb8b",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b",
+      "note": "feat(asre): WP5 persistent character variations - 67 rendered from one identity"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/all.png",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/all.png.json",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/backpack.png",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/backpack.png.json",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/earrings-necklace.png",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/earrings-necklace.png.json",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/glasses.png",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/glasses.png.json",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/hat.png",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/accessories/hat.png.json",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/base/base.png",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/character/variations/base/base.png.json",
+      "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b"
+    }
+  ],
+  "commit": "360c0d4e573577b0f4c50721cee1135176f8eb8b",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:360c0d4e573577b0f4c50721cee1135176f8eb8b"
+}

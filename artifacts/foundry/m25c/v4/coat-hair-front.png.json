@@ -1,0 +1,57 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look4-rose_gold_sovereign.glb",
+ "output": "artifacts/foundry/m25c/v4/coat-hair-front.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   0.8600000143051147
+  ],
+  "radius": 0.92,
+  "lens": 85.0,
+  "distance": 4.440787940316921,
+  "location": [
+   0.0,
+   -4.426645278930664,
+   1.2141315937042236
+  ]
+ },
+ "resolution": [
+  768,
+  1152
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0355626650982432,
+  "exposureEV": -2.5243460464693257
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_coils",
+  "lelu_hair_jewels",
+  "lelu_hairstyle",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign"
+ ],
+ "triangles": 1143510,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 19.45,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

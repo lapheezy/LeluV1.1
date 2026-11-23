@@ -1,0 +1,77 @@
+{
+  "id": "O-20261117225508-108",
+  "at": 1794956108000,
+  "type": "source-change",
+  "workPackage": "WP02",
+  "summary": "feat(asre): WP02 ASRE geometry enters the existing 3D Forge",
+  "detail": "11 file(s): plugins/asreApi.ts, plugins/asreForge.ts, plugins/forgeStore.ts, plugins/meshyForge.ts, server.ts, services/asre-reconstruct/analyze_worker.py, services/asre-reconstruct/triposr_worker.py, src/core/asre/gltf/GlbEditor.ts, …",
+  "interpretation": "Associated with WP02 by explicit WP02. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4",
+      "note": "feat(asre): WP02 ASRE geometry enters the existing 3D Forge"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreForge.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/forgeStore.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/meshyForge.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "server.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "services/asre-reconstruct/analyze_worker.py",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "services/asre-reconstruct/triposr_worker.py",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/gltf/GlbEditor.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/forge/ForgeClient.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-forge.test.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    },
+    {
+      "kind": "code",
+      "ref": "vite.config.ts",
+      "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+    }
+  ],
+  "commit": "6feaf3df9f2bf43e83838f5b00a3caeadf3280e4",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:6feaf3df9f2bf43e83838f5b00a3caeadf3280e4"
+}

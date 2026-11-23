@@ -1,0 +1,63 @@
+{
+  "id": "R-20261118-daily-journal",
+  "kind": "daily-journals",
+  "createdAt": 1795034704576,
+  "updatedAt": 1795034704576,
+  "mission": "LÉLU 2.1 — continuous observation",
+  "workPackage": "WP09",
+  "observed": "Session S-2026-11-18: 89 observed events across 7 work packages; 89 observation documents on disk.",
+  "studied": "The session itself: which changes happened, in what order, and which of them produced evidence.",
+  "question": "What actually happened in this development session?",
+  "hypothesis": "The commit history alone is enough to reconstruct the session.",
+  "method": "Reconstruct the session from timestamped observations (commits, artefacts, results), not from the commit messages.",
+  "results": "0 decision(s), 0 failure(s), 12 commit(s) observed.",
+  "evidence": [
+    {
+      "kind": "observation",
+      "ref": "O-20261118075926-012",
+      "note": "feat(asre): hair grown as strands from the scalp instead of a shell around the card"
+    },
+    {
+      "kind": "observation",
+      "ref": "O-20261118082301-011",
+      "note": "feat(lelu): canonical avatar identity, transcribed from her own locked files"
+    },
+    {
+      "kind": "observation",
+      "ref": "O-20261118084545-010",
+      "note": "feat(lelu): open her eyelids, place her eyes on her skin, print her corset"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "The commit history records what was committed; the observation log records what was measured, rendered and failed.",
+  "confidence": 0.72,
+  "limitations": [
+    "Only activity reachable from this worktree is observable; other sessions are not included."
+  ],
+  "applications": [
+    "A later mission can reconstruct this session without the conversation."
+  ],
+  "nextQuestions": [
+    "Which work package produced the least evidence, and why?"
+  ],
+  "answers": [],
+  "status": "experiment",
+  "tags": [
+    "session",
+    "observation",
+    "journal",
+    "wp09"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

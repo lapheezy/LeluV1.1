@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "tub",
+   "kind": "image-to-image",
+   "task": "01a1f689-551d-73ed-981e-d5fd2df0ad16",
+   "submittedAt": 1795137558.843009,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this round bathtub alone: a circular soaking tub filled with water and pink petals, set in a round black-marble surround with copper-gold trim and a glowing copper symbol on its side. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/tub.png",
+     "sha256": "8b4a0e67782aa7f51f9da1b8852ef4de88308334784cda347152ee857b1ece65"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f689-551d-73ed-981e-d5fd2df0ad16",
+   "finished": 1795137579.9823596,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-551d-73ed-981e-d5fd2df0ad16",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this round bathtub alone: a circular soaking tub filled with water and pink petals, set in a round black-marble surround with copper-gold trim and a glowing copper symbol on its side. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137558661,
+    "started_at": 1795137558722,
+    "finished_at": 1795137575982,
+    "expires_at": 1795396775982,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f689-551d-73ed-981e-d5fd2df0ad16_0.png?Expires=1795396775&Signature=e0isTVrmcSncvqANZ7z9Uq0NH22uD94ZOgml5pbwL7It7uFPgc--oy2p8LoVNL7Of-Olb-Sj7GB2ozmDFZwmG1fbkr9a4pD-d4KcfrPy04Ss9SMsyMtBJJmMghrnW9vAAIxvTqWkRtrLoCGTt0ttmQ-jQCbA247gzpyPeOqrr~lWeR9bviNUmYU2eKjmmYCym1J91LGGOd0YQZbZh5Ji8dd~jbFBihUMCpcUGzXzBykxNPOTRLtRqi~2kNRzCtOfyIBrtBQwXU~rzIul-gEbd6yKjiSS7tP7yo3sHaJLHju~PNHTO~dPueywFDkI5PKSEuB7DWjyhlkzqRY-JDn7GA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f689_0.png",
+     "bytes": 1017871,
+     "sha256": "b25f62ff30b9a4d66f8f947a9ee17f5d1381da5dc7d433cb8ded3f8666c69393"
+    }
+   ]
+  },
+  {
+   "piece": "tub",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-ace4-726b-96b5-0f7dada86a29",
+   "submittedAt": 1795137581.6486213,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/tub/view_01a1f689_0.png",
+     "sha256": "b25f62ff30b9a4d66f8f947a9ee17f5d1381da5dc7d433cb8ded3f8666c69393"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-ace4-726b-96b5-0f7dada86a29",
+   "finished": 1795137686.4453356,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-ace4-726b-96b5-0f7dada86a29",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137581506,
+    "progress": 100,
+    "started_at": 1795137581515,
+    "finished_at": 1795137681596,
+    "expires_at": 1795396881596,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f689-ace4-726b-96b5-0f7dada86a29/output/model.glb?Expires=1795396881&Signature=dapbpbVXMYrTEaRIMzswrna25PQo~eBuctCggpivmP-CIQ-qZYzIWZCm9DTRua7tEH~VbLAgN9xBR29dEE1N3AH2DFKddD~K8YHGWqJ-ZGTVut-f04srkFxmxvQnZo8WG2IJbIc-8LUmhyU9b4f0N6VASXFiL86k3pamf3SfIGaNVnuuOQhpTT7Wja5nmeBMFbH9tlaxNZD~bCiqbnFdC0p1erL-bwc3SquLRRd3lQCu1dZty5JDzLMuj2hME6Us3StQsJRCHSnXs2dPsywb8rI~uGrhVU2g5nkn265eC1nMUB6-hwWstbRySCBdzLUxXjVOSyroflcPxWYn0oeEYg__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 9550348,
+     "sha256": "dcf16992c1f1fb1fcc4e9fe31fc7d6f292c2a8d07178d27bc807b2a96a4640ed"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 9962940,
+     "sha256": "86bdb24e660e449f94730038a17986340f10ba5b1376d6ebf643651e5869ac91"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 3922202,
+     "sha256": "1ae5db1b02949786d16710c1f5cac80c032804a3af1d6176f81dd293656bcbac"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1845883,
+     "sha256": "6f6d95f4df7e999cc34f6353f1442261d43dc007ef8508b0713e32e76ce611d2"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1547918,
+     "sha256": "58a1e7f0bbba466ad1d8b8bc3e521ad8a45262869bd3e2d057758562077026b8"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 3893383,
+     "sha256": "49783063065465857903bca737e99ea14889a69c0c5cab8003f39442e437e633"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 104642,
+     "sha256": "0877f205e912a1d08ca4caaa05d0724de5324e6fa9d689eae2815b6dcd50e5e4"
+    }
+   ]
+  }
+ ]
+}

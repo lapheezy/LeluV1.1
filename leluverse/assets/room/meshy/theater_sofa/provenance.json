@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "theater_sofa",
+   "kind": "image-to-image",
+   "task": "01a1f689-54fa-7290-81ec-d371fc5a4bd4",
+   "submittedAt": 1795137559.0178697,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this sofa alone: a large curved cream sectional sofa with black and pink cushions and a velvet throw. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/theater_sofa.png",
+     "sha256": "49b378f0e734cef1a05e0641dc69a49f3096489e168349f3e586df97368456fc"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f689-54fa-7290-81ec-d371fc5a4bd4",
+   "finished": 1795137600.3700562,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-54fa-7290-81ec-d371fc5a4bd4",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this sofa alone: a large curved cream sectional sofa with black and pink cushions and a velvet throw. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137558867,
+    "started_at": 1795137558984,
+    "finished_at": 1795137580799,
+    "expires_at": 1795396780799,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f689-54fa-7290-81ec-d371fc5a4bd4_0.png?Expires=1795396780&Signature=Ibm7bxnX3xtpkKNsewbwQs6v6KnYpRnASxYGsPrXlqtDqrJQRHx~NTyl9Qg0nnUKSKOvOVr~PfaanEqhX2P5PrsnVKlt9A2DvCmPXg930lJWVzDuashmkOO5GUSyiwLKnZO~DZUhGwGY0keqJiIFUqWOqymRcVGF79-WWoXqalsfnUGLvVZwtFPMUXk39lSZ4vrfRnAQYC1DbHmYzQs-xR3HL3aVRGEDNU-vX8N99Do4aQVboQVED4Y71M9tuDkHQBW3ZaijWZi~iZibfgQeJQyKoqTphsgjhLQ1c72MebRjR5g2bhn1xiVxx9z~~G9-Bzts7r7f91ZWWNmAhb0geg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f689_0.png",
+     "bytes": 628081,
+     "sha256": "2b9191804708f3574ae80e7bd1285cae8fe0be895cfdd53e75c7a9a7924d5b20"
+    }
+   ]
+  },
+  {
+   "piece": "theater_sofa",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-fc7c-7204-93eb-8728925b1644",
+   "submittedAt": 1795137601.7381845,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/theater_sofa/view_01a1f689_0.png",
+     "sha256": "2b9191804708f3574ae80e7bd1285cae8fe0be895cfdd53e75c7a9a7924d5b20"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f689-fc7c-7204-93eb-8728925b1644",
+   "finished": 1795137706.7995267,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f689-fc7c-7204-93eb-8728925b1644",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137601556,
+    "progress": 100,
+    "started_at": 1795137601564,
+    "finished_at": 1795137700321,
+    "expires_at": 1795396900321,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f689-fc7c-7204-93eb-8728925b1644/output/model.glb?Expires=1795396900&Signature=k~ekb23f2vlWngnldZmLXmTT9bOomwZwTVmfIp37yL5vxLUlmMXXZR4dmdMSbIkxc5hUS2CzBAWYmCMMqDY2VKmm41KP8Ig-gONtVhPoc-0Y~~aikY01WZOvSwpMQ4i3gXHx3Pba3h7NVbtdn~1uvfIcCPU-wD65vR-yVxy83MVnxEp3VDGIbx5rdlZqYrarGUWX~4VQcKk-WUKQnb8l-i3S2BTxo6jNAl7KIhTRRRlzYJs3lGpCQ-jSJhLkQQUoLXgyxH9Um3QcRXlvNF4Zfz9KG~W1S64~ORHoC0Vkwvu1DxKLJPzxOSNozkR5qRpmbV-tQKlS8KbYmp~653c40A__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 10790220,
+     "sha256": "9778003978bdb15750a407f70e8e216699f653a3c606dda66ab8fd2c26becd1d"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 10969276,
+     "sha256": "dd2d33496c77ee095f854696d6405cd4abbc873ae285ad77cd45f67f731c9775"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 4027588,
+     "sha256": "6f4e96f34c1e45a43477e14c2c90fa3c161906d8e5939ac4eb195ad71b1512f0"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 886829,
+     "sha256": "0b65389deb33e0de219b94468f3750e4dd42ab86c256dce0c889d9c398ddb500"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 2030528,
+     "sha256": "85479d6639066ad3c82ea411702e9d8e5dc219313d17d6fa1b06238eccd82c94"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 4758791,
+     "sha256": "81590a728eb64257ad93cc88fa4adb473c27f489bb924355f641866fb60634a5"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 66303,
+     "sha256": "5a1d8d36fefec4e83921f59948ae6812b1095935b7061cd90a4a2bbf599d7f25"
+    }
+   ]
+  }
+ ]
+}

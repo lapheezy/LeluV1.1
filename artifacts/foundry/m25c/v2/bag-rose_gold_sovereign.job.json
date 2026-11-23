@@ -1,0 +1,11 @@
+{
+ "look": "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign.glb",
+ "bag": "leluverse/assets/characters/lelu_character/meshes/v024_image-to-3d_rose_gold_bag/model.glb",
+ "output": "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign-bag.glb",
+ "report": "artifacts/foundry/m25c/v2/bag-rose_gold_sovereign.json",
+ "name": "rose_gold_bag",
+ "heightM": 0.24,
+ "hand": "RightHand",
+ "handleDrop": 0.025,
+ "keepTopFraction": 0.5
+}

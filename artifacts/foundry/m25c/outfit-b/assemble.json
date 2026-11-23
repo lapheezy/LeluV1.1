@@ -1,0 +1,89 @@
+{
+ "job": {
+  "outfit": "leluverse/assets/characters/lelu_character/meshes/v013_multi-image-to-3d_rose_gold_sovereign/rigged.glb",
+  "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+  "output": "artifacts/foundry/m25c/steps/look-rose_gold_sovereign.glb",
+  "report": "artifacts/foundry/m25c/outfit-b/assemble.json",
+  "cutZ": 1.465,
+  "lookId": "rose_gold_sovereign",
+  "material": {
+   "metallicScale": 0.55,
+   "roughnessFloor": 0.32
+  },
+  "headOffset": [
+   -0.0074,
+   0.0093,
+   -0.0031
+  ],
+  "headOffsetSource": "Outfit A's Head-bone offset (-7.4,-4.7,-3.1 mm) plus the measured face-front difference between the two generated bodies at z 1.55 m (+14 mm in y); the coat body's Head bone sits 11 cm forward of its neck"
+ },
+ "headBoneOffsetIgnoredMm": [
+  -3.71,
+  -112.87,
+  15.64
+ ],
+ "headOffsetSource": "Outfit A's Head-bone offset (-7.4,-4.7,-3.1 mm) plus the measured face-front difference between the two generated bodies at z 1.55 m (+14 mm in y); the coat body's Head bone sits 11 cm forward of its neck",
+ "headOffsetMm": [
+  -7.4,
+  9.3,
+  -3.1
+ ],
+ "outfitFacesRemovedAboveCut": 26622,
+ "outfitFacesBefore": 90779,
+ "material": {
+  "metallicMeanBefore": 0.3328,
+  "roughnessP10Before": 0.2941,
+  "metallicMeanAfter": 0.183,
+  "roughnessFloor": 0.32,
+  "metallicScale": 0.55,
+  "packedMR": true
+ },
+ "objects": [
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair",
+   "triangles": 161673,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair_ringlets",
+   "triangles": 111228,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_hair_strands",
+   "triangles": 34818,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_scalp",
+   "triangles": 20882,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "shapeKeys": 0
+  },
+  {
+   "name": "look_rose_gold_sovereign",
+   "triangles": 64157,
+   "shapeKeys": 0
+  }
+ ],
+ "outputSha256": "41dbfb88dd07fbbd6e82f3cfc9b3fec4be7620ef490617526e43c623140a77b9"
+}

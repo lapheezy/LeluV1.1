@@ -1,0 +1,52 @@
+{
+  "id": "O-20261117212705-128",
+  "at": 1794950825000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "feat(foundry): headless Blender Cycles renderer for ASRE GLBs",
+  "detail": "6 file(s): artifacts/asre/smoke/sphere.glb, artifacts/asre/smoke/sphere.png, artifacts/asre/smoke/sphere.png.json, scripts/asre/render-smoke.ts, scripts/asre/runtime.ts, services/asre-reconstruct/blender_render.py",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "647d305b18716a9569df1a3a633d029bf165b735",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735",
+      "note": "feat(foundry): headless Blender Cycles renderer for ASRE GLBs"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/smoke/sphere.glb",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/smoke/sphere.png",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/smoke/sphere.png.json",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/render-smoke.ts",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/runtime.ts",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735"
+    },
+    {
+      "kind": "code",
+      "ref": "services/asre-reconstruct/blender_render.py",
+      "commit": "647d305b18716a9569df1a3a633d029bf165b735"
+    }
+  ],
+  "commit": "647d305b18716a9569df1a3a633d029bf165b735",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:647d305b18716a9569df1a3a633d029bf165b735"
+}

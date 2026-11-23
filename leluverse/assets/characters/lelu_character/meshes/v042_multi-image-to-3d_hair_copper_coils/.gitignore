@@ -1,0 +1,4 @@
+# Meshy duplicates of rigged.glb with a clip baked in, and the FBX: provenance.json records their checksums
+anim_walking_glb_url.glb
+anim_running_glb_url.glb
+model.fbx

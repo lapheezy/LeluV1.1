@@ -1,0 +1,21 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "view": "front",
+ "camera": {
+  "center": [
+   0,
+   -0.04,
+   1.34
+  ],
+  "radius": 0.23,
+  "lens": 85
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 64,
+ "lighting": "neutral-studio",
+ "seed": 0,
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/acceptance/v0004/13-shoulder-chest.png"
+}

@@ -1,0 +1,140 @@
+{
+ "jobs": [
+  {
+   "piece": "chandelier",
+   "kind": "image-to-image",
+   "task": "01a1f68b-9bf1-701a-aa69-1ed62e4f914b",
+   "submittedAt": 1795137707.5934365,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this chandelier alone: a copper-gold armillary-sphere chandelier with a glowing pink orb in the centre and hanging pink crystal pendants. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "generate_multi_view": false,
+    "remove_background": false
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/room/crops/chandelier.png",
+     "sha256": "958143e876073e9b3f1107cfe4255994a9e519bfb313e3c02a4e8f5d4dacfe49"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f68b-9bf1-701a-aa69-1ed62e4f914b",
+   "finished": 1795137748.4706275,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68b-9bf1-701a-aa69-1ed62e4f914b",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Exactly this chandelier alone: a copper-gold armillary-sphere chandelier with a glowing pink orb in the centre and hanging pink crystal pendants. Isolated and complete, seen in three-quarter view from slightly above, centred, on a plain pure white background. Nothing else: no floor, no walls, no plants, no candles, no people, no other furniture.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795137707414,
+    "started_at": 1795137707428,
+    "finished_at": 1795137730823,
+    "expires_at": 1795396930823,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f68b-9bf1-701a-aa69-1ed62e4f914b_0.png?Expires=1795396930&Signature=ko0OM20UdaB6zg26cSn3ayLpceYkOgL8oDs8Cu733SDZI7~Gh2boRIH2ZLO4T1wE-hV-BAB1zWiKrlnfUm-lcK5iO63JZ3h~6jGt3jOyez9RdcF2CCCRS0G6ueVIy3jYBkiXLguGNyF~g-bZ0LBaqSYsJMyk3Xx72lJj3dxCkeZRMmtTOtIltXOoP9KYrz~Kahz34B20ysezlXOKdO5VGmfACv~GZG4WbtXiSp8p8suMksuUwTQQvztqooKii-8ZkpEm7690TptMOkvVSmpPNnc9chelVT3TgDa7maMA95AP03Ob5hc-hnhx4ARz0KKY5w9W698MBlR4uxE-BqY8Pg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f68b_0.png",
+     "bytes": 832031,
+     "sha256": "50d6b8a11e266f85c63f7652506a8b2c840616fa80f3b0e97572aa77f33194ad"
+    }
+   ]
+  },
+  {
+   "piece": "chandelier",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-3f06-7643-b1b0-5ef12746b484",
+   "submittedAt": 1795137750.0864232,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/room/meshy/chandelier/view_01a1f68b_0.png",
+     "sha256": "50d6b8a11e266f85c63f7652506a8b2c840616fa80f3b0e97572aa77f33194ad"
+    }
+   ],
+   "authorisation": "owner approved Meshy credits for her rotating room on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f68c-3f06-7643-b1b0-5ef12746b484",
+   "finished": 1795137855.2304811,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f68c-3f06-7643-b1b0-5ef12746b484",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795137749927,
+    "progress": 100,
+    "started_at": 1795137749937,
+    "finished_at": 1795137849857,
+    "expires_at": 1795397049857,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f68c-3f06-7643-b1b0-5ef12746b484/output/model.glb?Expires=1795397049&Signature=DNjQJy32Jk7~dsNPuYwzQZ1B87Pfc9CSzNC8cg2Bbhmn~eYAQHRibGQnPW3cdrTfUefkedMSled8IR8E2uiKaQjoV5lUnwR38Opa13yTpSKJWufJIbp-LGZPTbj2Oc3p-giGp5OkgwtHMnZSuiH~iL~W-5M83KuuF0AFX5jisF~gld4M1PgsMeBYnL9ILX3w-jDrn~mC02ab7AwDY6i~VJk2~7xmluaoI4mcAjE-Kluw-UwktFs4qijBEUuewgmhDcnCRZ-IufQSTfFw1O~6RHrwwh9GePiEgEGx9vUNrZFIGwiUux9ANCtENOCkX5KFaUhzY8R-j97PXVayRlC1YA__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 8769448,
+     "sha256": "0d72d1bee489957fd67b1e908ccb0c289daf81f1408ada8e7c3d25c5d2f5dbc7"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 9276716,
+     "sha256": "da7980b98051903b54eaeb653010796aea571d328369f1e6ca4e1d9f6d00c882"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 2624362,
+     "sha256": "4dd0685bbdf47410703178dfeba2316812cf4ae7038b763e57ab0471ae09659d"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1660352,
+     "sha256": "fd8454827e99162185bfc298df7eecb7e320347d467461b106be7e6f5a27ab38"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1813735,
+     "sha256": "bee59a423adcf8107ad03680c1710352c5563cd5785462be10f05615467caa36"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 3526912,
+     "sha256": "49909d63d4691d3d429fb617a6dddf560f06f6156f32135a63392e809c2f40a8"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 119477,
+     "sha256": "fa640f94046c09fd204f73c77477c7a9461d18c6ea69c0e5169970672c3de17b"
+    }
+   ]
+  }
+ ]
+}

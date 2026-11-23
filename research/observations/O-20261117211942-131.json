@@ -1,0 +1,47 @@
+{
+  "id": "O-20261117211942-131",
+  "at": 1794950382000,
+  "type": "architecture-change",
+  "workPackage": "MISSION",
+  "summary": "feat(temporal): snapshot history with diffs, verified replay, restore and change classification",
+  "detail": "5 file(s): src/core/asre/temporal/SnapshotStore.ts, src/core/asre/temporal/compare.ts, src/core/asre/temporal/index.ts, src/core/asre/volume/shapes.ts, tests/asre-temporal.test.ts",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "862ab8a99fe8cc560702dfc4c697667b6f685976",
+      "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976",
+      "note": "feat(temporal): snapshot history with diffs, verified replay, restore and change classification"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/temporal/SnapshotStore.ts",
+      "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/temporal/compare.ts",
+      "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/temporal/index.ts",
+      "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/volume/shapes.ts",
+      "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-temporal.test.ts",
+      "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976"
+    }
+  ],
+  "commit": "862ab8a99fe8cc560702dfc4c697667b6f685976",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:862ab8a99fe8cc560702dfc4c697667b6f685976"
+}

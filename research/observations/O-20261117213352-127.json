@@ -1,0 +1,82 @@
+{
+  "id": "O-20261117213352-127",
+  "at": 1794951232000,
+  "type": "source-change",
+  "workPackage": "WP07",
+  "summary": "feat(foundry): offline TripoSR CPU worker, NRE ingest, upstream validation and renders",
+  "detail": "18 file(s): .gitignore, artifacts/asre/triposr/police_woman/contact_sheet.png, artifacts/asre/triposr/police_woman/ingest.json, artifacts/asre/triposr/police_woman/preprocessed.png, artifacts/asre/triposr/police_woman/reconstruction.glb, artifacts/asre/triposr/police_woman/render_front.png, artifacts/asre/triposr/police_woman/render_front.png.json, artifacts/asre/triposr/police_woman/render_side.png, …",
+  "interpretation": "Associated with WP07 by keyword \\bwp\\s*0?7\\b|render|image|vi. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c",
+      "note": "feat(foundry): offline TripoSR CPU worker, NRE ingest, upstream validation and renders"
+    },
+    {
+      "kind": "code",
+      "ref": ".gitignore",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/contact_sheet.png",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/ingest.json",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/preprocessed.png",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/reconstruction.glb",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/render_front.png",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/render_front.png.json",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/render_side.png",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/render_side.png.json",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/render_three-quarter.png",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/render_three-quarter.png.json",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/triposr/police_woman/result.json",
+      "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+    }
+  ],
+  "commit": "0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:0c34e3a1ec9ecc15ad4522aeb38a9694a8b1c66c"
+}

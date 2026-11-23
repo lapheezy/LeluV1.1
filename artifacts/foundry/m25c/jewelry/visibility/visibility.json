@@ -1,0 +1,63 @@
+{
+ "v0004/front": {
+  "visibleAccPx": 21092,
+  "exposedAccPx": 34477,
+  "visibleShare": 0.612
+ },
+ "v0004/three-quarter": {
+  "visibleAccPx": 21336,
+  "exposedAccPx": 33386,
+  "visibleShare": 0.639
+ },
+ "v0004/profile": {
+  "visibleAccPx": 17385,
+  "exposedAccPx": 30595,
+  "visibleShare": 0.568
+ },
+ "v0004/rear": {
+  "visibleAccPx": 14780,
+  "exposedAccPx": 26723,
+  "visibleShare": 0.553
+ },
+ "v0005/front": {
+  "visibleAccPx": 19107,
+  "exposedAccPx": 36158,
+  "visibleShare": 0.528
+ },
+ "v0005/three-quarter": {
+  "visibleAccPx": 19842,
+  "exposedAccPx": 35559,
+  "visibleShare": 0.558
+ },
+ "v0005/profile": {
+  "visibleAccPx": 13617,
+  "exposedAccPx": 32504,
+  "visibleShare": 0.419
+ },
+ "v0005/rear": {
+  "visibleAccPx": 11838,
+  "exposedAccPx": 26727,
+  "visibleShare": 0.443
+ },
+ "v0006-candidate/front": {
+  "visibleAccPx": 20203,
+  "exposedAccPx": 36160,
+  "visibleShare": 0.559
+ },
+ "v0006-candidate/three-quarter": {
+  "visibleAccPx": 20872,
+  "exposedAccPx": 35558,
+  "visibleShare": 0.587
+ },
+ "v0006-candidate/profile": {
+  "visibleAccPx": 16096,
+  "exposedAccPx": 32513,
+  "visibleShare": 0.495
+ },
+ "v0006-candidate/rear": {
+  "visibleAccPx": 13179,
+  "exposedAccPx": 26728,
+  "visibleShare": 0.493
+ },
+ "_note": "accessoryClearance 9 mm; visibleShare = accessory pixels with hair / accessory pixels with all hair removed"
+}

@@ -68,6 +68,7 @@ import {
 import GenesisNavIcon, { type GenesisNavIconName } from "./GenesisNavIcons";
 import GenesisV2Scene3D, { type V2NodeId } from "./GenesisV2Scene3D";
 import GenesisV2CameraHUD from "./GenesisV2CameraHUD";
+import RoomSectionBar from "./RoomSectionBar";
 
 /* ------------------------------- palette ------------------------------- */
 
@@ -1413,6 +1414,9 @@ export default function GenesisLab({ onClose }: { onClose: () => void }) {
           focus LÉLU/Core, orbit/free-fly toggle, zoom and fullscreen.
           It drives the REAL camera through the intent bus. */}
       <GenesisV2CameraHUD mobile={mobile} />
+
+      {/* her rotating room: turn it to a section, retract it to the stage, see the floor plan */}
+      <RoomSectionBar mobile={mobile} />
     </motion.div>
   );
 }

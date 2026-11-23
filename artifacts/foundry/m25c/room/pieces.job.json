@@ -1,0 +1,16 @@
+{"source": "leluverse/assets/room/meshy", "output": "public/lelu-room", "report": "artifacts/foundry/m25c/room/pieces.json",
+ "sheet": "/tmp/claude-0/-home-user-LeluV1-1/715ede51-b0b2-5a1a-b5ff-d12e8d8a03e2/scratchpad/pieces.png",
+ "pieces": {
+  "bed": {"size": 2.4, "measure": "width", "tris": 30000},
+  "tub": {"size": 2.0, "measure": "width", "tris": 24000},
+  "dining": {"size": 2.7, "measure": "width", "tris": 36000},
+  "island": {"size": 2.7, "measure": "width", "tris": 26000},
+  "desk": {"size": 2.9, "measure": "width", "tris": 30000},
+  "theater_sofa": {"size": 4.2, "measure": "width", "tris": 30000},
+  "lounge_ring": {"size": 3.8, "measure": "width", "tris": 40000},
+  "crystal": {"size": 0.55, "measure": "height", "tris": 4000, "texture": 512},
+  "chandelier": {"size": 1.3, "measure": "height", "tris": 16000, "texture": 512},
+  "planter": {"size": 1.5, "measure": "height", "tris": 16000, "texture": 512},
+  "vanity": {"size": 1.5, "measure": "height", "tris": 12000, "texture": 512},
+  "fridge": {"size": 2.15, "measure": "height", "tris": 12000}
+ }}

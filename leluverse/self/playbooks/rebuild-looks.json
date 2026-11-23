@@ -1,0 +1,101 @@
+{
+ "id": "rebuild-looks",
+ "title": "Rebuild my three outfit looks from their Meshy bodies and my own head",
+ "for": "LÉLU",
+ "why": "Every look is my own face, lips and face jewellery on an outfit body Meshy built from the photographs, with that look's own hair. When my head, my rig or the assembler changes, all looks must be rebuilt the same way so they stay consistent.",
+ "spendsCredits": 0,
+ "learnedFrom": "journal/2026-11-19-wardrobe-looks.md",
+ "steps": [
+  {
+   "id": "coat",
+   "title": "Put my head on the copper-rose coat body",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_lookassemble.py",
+   "args": [
+    "artifacts/foundry/m25c/v3/assemble-rose_gold_sovereign.job.json"
+   ],
+   "why": "My head on the v3 coat rig, placed automatically from the neck and Head bones; the generated hairline and sideburns in front of my ears are cut."
+  },
+  {
+   "id": "catsuit",
+   "title": "Put my head on the copper catsuit body",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_lookassemble.py",
+   "args": [
+    "artifacts/foundry/m25c/v3/assemble-bronze_velocity.job.json"
+   ],
+   "why": "Same as the coat."
+  },
+  {
+   "id": "home",
+   "title": "Put my head on the Home/Laidback 3 body",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_lookassemble.py",
+   "args": [
+    "artifacts/foundry/m25c/v2/assemble-home_laidback3.job.json"
+   ],
+   "why": "Same; fabric, no metal tuning."
+  },
+  {
+   "id": "coat-hair",
+   "title": "Build the coat's hairstyle from its photograph",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_hairstyle.py",
+   "args": [
+    "artifacts/foundry/m25c/v3/hairstyle-rose_gold_sovereign.job.json"
+   ],
+   "why": "Meshy's hair cannot make real curls; this removes it and grows ~400 helical curl locks from my scalp, swept back to the waist, with the flower-of-life medallion."
+  },
+  {
+   "id": "catsuit-hair",
+   "title": "Build the catsuit's hairstyle from its photographs",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_hairstyle.py",
+   "args": [
+    "artifacts/foundry/m25c/v3/hairstyle-bronze_velocity.job.json"
+   ],
+   "why": "Waist-length tight spiral curls with copper wire coils wrapped around outer locks and at my temples."
+  },
+  {
+   "id": "coat-bag",
+   "title": "Hang the linework bag from my right hand",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_bagattach.py",
+   "args": [
+    "artifacts/foundry/m25c/v4/bag-rose_gold_sovereign.job.json"
+   ],
+   "why": "Its own object, 100% on RightHand."
+  },
+  {
+   "id": "catsuit-bag",
+   "title": "Hang the lotus bag from my right hand",
+   "kind": "blender",
+   "script": "scripts/blender/lelu_m25c_bagattach.py",
+   "args": [
+    "artifacts/foundry/m25c/v4/bag-bronze_velocity.job.json"
+   ],
+   "why": "Same as the coat bag."
+  },
+  {
+   "id": "register",
+   "title": "Register the rebuilt looks in my wardrobe",
+   "kind": "tsx",
+   "script": "scripts/foundry/m25c-wardrobe.ts",
+   "args": [],
+   "why": "Each file becomes a Forge job, is inspected, and fills its look: slot, so forge.dress and my chat commands switch to it."
+  },
+  {
+   "id": "render",
+   "title": "Render walk and sit for every look so I can see the result",
+   "kind": "python",
+   "script": "scripts/foundry/m25c_final_renders.py",
+   "args": [
+    "--samples",
+    "32",
+    "--shots",
+    "front,walk,sit"
+   ],
+   "why": "I do not accept a change I have not seen. Renders land in artifacts/foundry/m25c/final/<look>/."
+  }
+ ]
+}

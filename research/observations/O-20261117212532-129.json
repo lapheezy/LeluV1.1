@@ -1,0 +1,37 @@
+{
+  "id": "O-20261117212532-129",
+  "at": 1794950732000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "feat(foundry): voxel-face and surface-nets meshing, mesh validation, GLB writer",
+  "detail": "3 file(s): src/core/asre/gltf/GlbWriter.ts, src/core/asre/volume/mesh.ts, tests/asre-geometry.test.ts",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "88cd701ddb4006440f97bb0cbec6829c137b298f",
+      "commit": "88cd701ddb4006440f97bb0cbec6829c137b298f",
+      "note": "feat(foundry): voxel-face and surface-nets meshing, mesh validation, GLB writer"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/gltf/GlbWriter.ts",
+      "commit": "88cd701ddb4006440f97bb0cbec6829c137b298f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/volume/mesh.ts",
+      "commit": "88cd701ddb4006440f97bb0cbec6829c137b298f"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-geometry.test.ts",
+      "commit": "88cd701ddb4006440f97bb0cbec6829c137b298f"
+    }
+  ],
+  "commit": "88cd701ddb4006440f97bb0cbec6829c137b298f",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:88cd701ddb4006440f97bb0cbec6829c137b298f"
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261116180850-140",
+  "at": 1794852530000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "M15.3 WP04: switch-cost measurements (3 runs each)",
+  "detail": "14 file(s): docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-01-home-ready.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.console.txt, docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Browser-wp04-1.json, docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Browser-wp04-2.json, docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Browser-wp04-3.json, docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Chat-wp04-1.json, docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Chat-wp04-2.json, docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Chat-wp04-3.json, …",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "f6f5d493ea5244aab6cf590e91ded1916c749511",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511",
+      "note": "M15.3 WP04: switch-cost measurements (3 runs each)"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop-01-home-ready.png",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-desktop.console.txt",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Browser-wp04-1.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Browser-wp04-2.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Browser-wp04-3.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Chat-wp04-1.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Chat-wp04-2.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Chat-wp04-3.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Code-wp04-1.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Code-wp04-2.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Code-wp04-3.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/perf/transition-Studio-wp04-1.json",
+      "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511"
+    }
+  ],
+  "commit": "f6f5d493ea5244aab6cf590e91ded1916c749511",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:f6f5d493ea5244aab6cf590e91ded1916c749511"
+}

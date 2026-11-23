@@ -1,0 +1,30 @@
+{
+ "photo": {
+  "heightPx": 997,
+  "centrePx": 509.5,
+  "shoulders": 0.2177,
+  "bust": 0.2187,
+  "waist": 0.2397,
+  "hips": 0.2076,
+  "upperThigh": 0.2166,
+  "knee": 0.1725
+ },
+ "render": {
+  "heightPx": 1047,
+  "centrePx": 367.5,
+  "shoulders": 0.1996,
+  "bust": 0.2369,
+  "waist": 0.1557,
+  "hips": 0.1977,
+  "upperThigh": 0.191,
+  "knee": 0.1691
+ },
+ "renderOverPhoto": {
+  "shoulders": 0.917,
+  "bust": 1.083,
+  "waist": 0.65,
+  "hips": 0.952,
+  "upperThigh": 0.882,
+  "knee": 0.98
+ }
+}

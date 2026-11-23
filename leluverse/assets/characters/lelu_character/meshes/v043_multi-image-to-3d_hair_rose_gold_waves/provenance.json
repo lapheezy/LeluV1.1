@@ -1,0 +1,104 @@
+{
+ "jobs": [
+  {
+   "look": "hair_rose_gold_waves",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f5d7-20d9-7112-b4df-be5153f9fb9f",
+   "submittedAt": 1795125880.9302998,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 150000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v040_image-to-image_hair_rose_gold_waves/view_01a1f5d4_0.png",
+     "sha256": "b55a751f7ae2adbe06e9b552248ad2f4ae626da82d5a2b54965600d55e52a92a"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v040_image-to-image_hair_rose_gold_waves/split_left.png",
+     "sha256": "e9273b8c5f19d589d51e4bfa6504284043a40e38ab65ebce687c86b8b5bbf9cb"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v040_image-to-image_hair_rose_gold_waves/split_back.png",
+     "sha256": "de01b6952a59df422bad47aa9432d1042dfce9b758eec619827c76eeb0f67efa"
+    },
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v040_image-to-image_hair_rose_gold_waves/split_right.png",
+     "sha256": "d3a171bb2500f356b43f8964e122f89f1b0c701d524c1dab1376768e3c830c45"
+    }
+   ],
+   "authorisation": "user approved paid Meshy for the two new looks in-session"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f5d7-20d9-7112-b4df-be5153f9fb9f",
+   "finished": 1795136071.9588852,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d7-20d9-7112-b4df-be5153f9fb9f",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795125880564,
+    "progress": 100,
+    "started_at": 1795125880572,
+    "finished_at": 1795126275712,
+    "expires_at": 1795385475712,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f5d7-20d9-7112-b4df-be5153f9fb9f/output/model.glb?Expires=1795385475&Signature=oFONVL9AaQCTT4J6fZzLK9Vn6NYl9nkl9RjNBIZ9ss6xomNyOCAhbRFWbsf8NXLuWDzU-K7opQr8QexFkVos-sRRp-ZIXpYNQu7SqfTJqEIevgX72ZEB7GOmFSzyRIQrRuu1X5A0vtndAWd1g00AIobpTvBBN30xFsnnP78FBHK8y2vdiGdAH9D4ZQrzhxyYakInlJyaVejTJfI8aHja7~KPnsWbXEBXH3SJb9~t1L6c8QuPlmLaEAkTQ0BUZjHgriPM-vXAUgf8Xg5sOpou5AZYffKXNPWO65Uutv4TTcmFuywOh9Fr7vE580jbEvK0jImIeR8vXej-zeyozrtmlQ__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 25641072,
+     "sha256": "65dd2d2caa7179a6d40652559bd8c36ff75522d9e14423f58050954daefb8234"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 21020892,
+     "sha256": "dc8302725e9d1512743580f571cd2cb8ae37019772d76494ea38eacbb6db3145"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 4686295,
+     "sha256": "54a6450878dcdd4aa23d21dfaa94c046f5490522ca84fab7eed733c8740d0125"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 1490192,
+     "sha256": "04578c8602dc538d4e2ba61be054055a04bdd53d218f8e6cba81c1ac7e80b709"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 1702102,
+     "sha256": "58b663df1ec22042ff2be157c0e651312b907e457ce4fd2e79ee046fc69f5f96"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 8720897,
+     "sha256": "75a735e2fda5493ac774542a6ce32e9e8af06221a0d8eeca6ed088aba7c0a1da"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 101202,
+     "sha256": "792bf51fbab23fef2f062125daf52217e523325d5ae7291af5f092f58f46385b"
+    }
+   ]
+  }
+ ]
+}

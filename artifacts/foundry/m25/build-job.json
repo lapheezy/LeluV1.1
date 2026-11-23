@@ -1,0 +1,13 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "output": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+ "report": "artifacts/foundry/m25/hair/build-report.json",
+ "skin": {
+  "L": 0.88,
+  "a": 1.0,
+  "b": 1.0,
+  "da": 12.0,
+  "db": 8.0
+ },
+ "seed": 25
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118070131-096",
+  "at": 1794985291000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "fix(asre): restore the IoU 1.000 occupancy invariant on the reference path",
+  "detail": "15 file(s): artifacts/mission58/reference/reference-base-front.job.json, artifacts/mission58/reference/reference-base-front.png, artifacts/mission58/reference/reference-base-front.png.json, artifacts/mission58/reference/reference-base-three-quarter.job.json, artifacts/mission58/reference/reference-base-three-quarter.png, artifacts/mission58/reference/reference-base-three-quarter.png.json, artifacts/mission58/reference/reference-base.glb, artifacts/mission58/reference/reference-report.json, …",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "473e86113636717218f587138ec1d42469266bb5",
+      "commit": "473e86113636717218f587138ec1d42469266bb5",
+      "note": "fix(asre): restore the IoU 1.000 occupancy invariant on the reference path"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.job.json",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.png",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-front.png.json",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-three-quarter.job.json",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-three-quarter.png",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base-three-quarter.png.json",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-base.glb",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/reference-report.json",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/reference/renders.json",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/10_MISSION58_WP03_REFERENCE.md",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/m58-iou.ts",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/build.ts",
+      "commit": "473e86113636717218f587138ec1d42469266bb5"
+    }
+  ],
+  "commit": "473e86113636717218f587138ec1d42469266bb5",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:473e86113636717218f587138ec1d42469266bb5"
+}

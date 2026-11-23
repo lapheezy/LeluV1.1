@@ -1,0 +1,82 @@
+{
+  "id": "O-20261117213750-125",
+  "at": 1794951470000,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "feat(asre): WP1 one image -> concurrent analyses -> competing hypotheses",
+  "detail": "21 file(s): artifacts/asre/wp1/police_woman/analysis.json, artifacts/asre/wp1/police_woman/depth.png, artifacts/asre/wp1/police_woman/hypotheses.json, artifacts/asre/wp1/police_woman/hypotheses_sheet.png, artifacts/asre/wp1/police_woman/hypothesis_depth-lift.glb, artifacts/asre/wp1/police_woman/hypothesis_depth-lift_side.png, artifacts/asre/wp1/police_woman/hypothesis_depth-lift_side.png.json, artifacts/asre/wp1/police_woman/hypothesis_depth-lift_three-quarter.png, …",
+  "interpretation": "Associated with WP01 by explicit WP1. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "d14e7c166416088576116af29d83cf1fa534cbab",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab",
+      "note": "feat(asre): WP1 one image -> concurrent analyses -> competing hypotheses"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/analysis.json",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/depth.png",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypotheses.json",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypotheses_sheet.png",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_depth-lift.glb",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_depth-lift_side.png",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_depth-lift_side.png.json",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_depth-lift_three-quarter.png",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_depth-lift_three-quarter.png.json",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_ellipse-hull.glb",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_ellipse-hull_side.png",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/asre/wp1/police_woman/hypothesis_ellipse-hull_side.png.json",
+      "commit": "d14e7c166416088576116af29d83cf1fa534cbab"
+    }
+  ],
+  "commit": "d14e7c166416088576116af29d83cf1fa534cbab",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:d14e7c166416088576116af29d83cf1fa534cbab"
+}

@@ -1,0 +1,99 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign-bag.glb",
+ "output": "artifacts/foundry/m25c/v3/coat-sit-aligned.png",
+ "view": "three-quarter",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.22699999809265137,
+   0.6200000047683716,
+   0.6800000071525574
+  ],
+  "radius": 0.85,
+  "lens": 70.0,
+  "distance": 3.413092077700834,
+  "location": [
+   2.2118961811065674,
+   -2.1367998123168945,
+   1.010815978050232
+  ]
+ },
+ "resolution": [
+  1024,
+  1536
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.2291912573079269,
+  "exposureEV": -2.771640599162654
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign",
+  "rose_gold_bag"
+ ],
+ "triangles": 111871,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_foundation.001: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)",
+  "m25_skin_head.001: SSS (Cycles extension)"
+ ],
+ "animation": {
+  "clip": "leluverse/assets/characters/lelu_character/animations/v024_animation_01a193c7/motion.glb",
+  "action": "sit_idle",
+  "frameRange": [
+   0.8000000715255737,
+   272.79998779296875
+  ],
+  "frame": 20,
+  "channelsMerged": 66,
+  "unmatchedNodes": [],
+  "bonesMoved": 22,
+  "boneDelta": {
+   "Hips": 136.86,
+   "Spine02": 2.0193,
+   "Spine01": 1.6642,
+   "Spine": 1.4297,
+   "neck": 3.122,
+   "Head": 5.4692,
+   "head_end": 0.0,
+   "headfront": 0.0,
+   "LeftShoulder": 4.8975,
+   "LeftArm": 9.5217,
+   "LeftForeArm": 5.238,
+   "LeftHand": 9.7629,
+   "RightShoulder": 2.8274,
+   "RightArm": 10.9464,
+   "RightForeArm": 3.464,
+   "RightHand": 11.9057,
+   "LeftUpLeg": 8.4469,
+   "LeftLeg": 10.4023,
+   "LeftFoot": 17.5687,
+   "LeftToeBase": 23.5806,
+   "RightUpLeg": 7.6887,
+   "RightLeg": 10.4543,
+   "RightFoot": 37.4187,
+   "RightToeBase": 30.4338
+  },
+  "hipsWorld": [
+   0.227,
+   0.7254,
+   0.7286
+  ]
+ },
+ "shapeKeys": null,
+ "renderSeconds": 28.31,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

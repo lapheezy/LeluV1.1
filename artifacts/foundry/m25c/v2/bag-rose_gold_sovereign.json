@@ -1,0 +1,17 @@
+{
+ "bag": "rose_gold_bag",
+ "sourceSizeM": [
+  0.5372,
+  0.2444,
+  1.0112
+ ],
+ "scale": 0.2373,
+ "triangles": 18987,
+ "hand": "RightHand",
+ "handWorld": [
+  -0.3377,
+  -0.1119,
+  0.975
+ ],
+ "outputSha256": "22c3dcd5855c7d47fe09d3ce44750c13ed1aea0ec766cc3c7c68da78f5f31f5e"
+}

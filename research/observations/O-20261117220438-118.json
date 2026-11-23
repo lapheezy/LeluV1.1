@@ -1,0 +1,72 @@
+{
+  "id": "O-20261117220438-118",
+  "at": 1794953078000,
+  "type": "architecture-change",
+  "workPackage": "WP06",
+  "summary": "feat(asre): LELU integration - API, tools, coverage/next-view; WP6 harness; fair baseline",
+  "detail": "10 file(s): plugins/asreApi.ts, scripts/asre/wp6-benchmark.ts, server.ts, src/core/Bootstrap.ts, src/core/asre/AsreTools.ts, src/core/asre/analysis/coverage.ts, src/core/asre/character/build.ts, src/core/tools/ToolDispatcher.ts, …",
+  "interpretation": "Associated with WP06 by explicit WP6. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "8995db818f2f50a05c4d980c29c9f0222e0abfcb",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb",
+      "note": "feat(asre): LELU integration - API, tools, coverage/next-view; WP6 harness; fair baseline"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/wp6-benchmark.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "server.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/Bootstrap.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/AsreTools.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/analysis/coverage.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/build.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/tools/ToolDispatcher.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-integration.test.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    },
+    {
+      "kind": "code",
+      "ref": "vite.config.ts",
+      "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+    }
+  ],
+  "commit": "8995db818f2f50a05c4d980c29c9f0222e0abfcb",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:8995db818f2f50a05c4d980c29c9f0222e0abfcb"
+}

@@ -1,0 +1,63 @@
+{
+  "id": "R-20261118-wp04-front-hairline-sits-below-the-eyes",
+  "kind": "discoveries",
+  "createdAt": 1795034704544,
+  "updatedAt": 1795034704544,
+  "mission": "LÉLU 2.1 — geometry fidelity and mathematical validation",
+  "workPackage": "WP04",
+  "observed": "The documented identity describes a centre part with the hairline above the brow. The front hairline measures -49.7 mm relative to the eyes — i.e. 49.7 mm BELOW them.",
+  "studied": "Hairline placement as a landmark ratio, and how a root set's front extent is measured.",
+  "question": "Is the front hairline above the brow?",
+  "hypothesis": "The lowest front hair root is above the eye line.",
+  "method": "Measure the minimum Y of front-facing hair roots in the built asset and compare it with the eye centre Y.",
+  "results": "Front hairline at -49.7 mm above the eyes (negative = below); 928 strands.",
+  "evidence": [
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/head/head-metrics.json",
+      "note": "hairline vs eye landmark"
+    },
+    {
+      "kind": "render",
+      "ref": "artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-head-front.png",
+      "note": "the front hairline is visibly low and sparse"
+    },
+    {
+      "kind": "commit",
+      "ref": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "The low front hairline and the sparse front render are consistent with each other and with the root set, not with the description. The image and the measurement agree; the prose does not.",
+  "confidence": 0.51,
+  "limitations": [
+    "'Above the brow' has no numeric definition in the documentation, so the comparison uses the eye line."
+  ],
+  "applications": [
+    "Front-hairline placement is now a measured landmark, so it can be fixed and re-measured."
+  ],
+  "nextQuestions": [
+    "Should the front root band be raised, or the forehead shortened?"
+  ],
+  "answers": [],
+  "status": "rejected",
+  "tags": [
+    "head",
+    "hairline",
+    "landmark",
+    "wp04"
+  ],
+  "commit": "4512e9466d7157da81a190bb11b985c3c1e1b3ec",
+  "session": "S-2026-11-18",
+  "assumptions": [
+    {
+      "statement": "the built hairline sits above the brow",
+      "verdict": "refuted"
+    }
+  ],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": null
+}

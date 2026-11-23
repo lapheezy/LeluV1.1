@@ -1,0 +1,106 @@
+{
+ "jobs": [
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "image-to-image",
+   "task": "01a1f583-83d0-703a-ae78-2c17d9eb870b",
+   "submittedAt": 1795120400.8426676,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms slightly away from the body, full body head to toe, plain light grey background. Body proportions exactly as in the photographs. HAIR exactly as in the photographs: long voluminous dark brown loose wavy curls with copper highlights, swept back from the face and falling over one shoulder to mid-back, a large copper flower-of-life medallion hair ornament with hanging chains, beads and a crystal drop on the left side above the ear, small gold cuffs in the curls, sleek edges with swirled baby hairs at the temple. Outfit: floor-length copper-rose tailored coat with structured shoulders and lapels, geometric gold linework, rose-quartz jeweled belt, pointed floor-length side panels with a front slit, copper boots, linework handbag in her right hand, large copper hoop earrings, copper mesh choker.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/02-coat-fullbody-cropped.png",
+     "sha256": "a52b92101921abaad4a09ae31bdc9a913987def609adaf7cb5688c4f747137d4"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/03-coat-hair-profile.png",
+     "sha256": "5d461b3fded458df6cebe4bbca43fc5e731179a16ea8d08c7cb49d6c59591b5c"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f583-83d0-703a-ae78-2c17d9eb870b",
+   "finished": 1795120428.5088687,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f583-83d0-703a-ae78-2c17d9eb870b",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Full-body FRONT view of exactly this woman in exactly this outfit, standing straight in a relaxed A-pose, arms slightly away from the body, full body head to toe, plain light grey background. Body proportions exactly as in the photographs. HAIR exactly as in the photographs: long voluminous dark brown loose wavy curls with copper highlights, swept back from the face and falling over one shoulder to mid-back, a large copper flower-of-life medallion hair ornament with hanging chains, beads and a crystal drop on the left side above the ear, small gold cuffs in the curls, sleek edges with swirled baby hairs at the temple. Outfit: floor-length copper-rose tailored coat with structured shoulders and lapels, geometric gold linework, rose-quartz jeweled belt, pointed floor-length side panels with a front slit, copper boots, linework handbag in her right hand, large copper hoop earrings, copper mesh choker.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795120400631,
+    "started_at": 1795120400647,
+    "finished_at": 1795120417345,
+    "expires_at": 1795379617345,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f583-83d0-703a-ae78-2c17d9eb870b_0.png?Expires=1795379617&Signature=cX5n8dxGsCy~it0vyLilXNo75P7enLo0lg09xu4IeraeLYQkyY1BRvp7BXI~BPuSYZx5imTxwY90j6ADNInx9P0PQeb2vQZEL~fOltSeGv3yc6unb7OvAMDtjUUJO418BKjgMiv68WtsXhSePtgTCfETcP~4~KqAcr6JIuUKTOQCSRBiQ1iyfhxks9fBFAr-n2ju7w184M66ixWlDpNugAhQ9wcfJumSBkm~auKdfn0d3X0IvWqsZKZXO5810F0Qp3MFPzxdkvM0qBrztQkVBZ3LaNnpOqeWEDRqaSrb8KQWlhnV5bdeQHiJR17Dza4JZg7P257LB5X-wZVeLlk2YQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f583_0.png",
+     "bytes": 560027,
+     "sha256": "122743e0be1bbbec7d353c9d5d15f43c58496a722873d9fe9a17ffe8c92a9399"
+    }
+   ]
+  },
+  {
+   "look": "rose_gold_sovereign",
+   "kind": "image-to-image",
+   "task": "01a1f584-25fc-73b7-8596-d513cc8da32f",
+   "submittedAt": 1795120442.2908905,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same coat, hairstyle, hair ornament and body proportions, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body. Keep the flower-of-life hair ornament on her left side and the long curls swept back exactly as in the photograph.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v032_image-to-image_rose_gold_sovereign_v3/view_01a1f583_0.png",
+     "sha256": "122743e0be1bbbec7d353c9d5d15f43c58496a722873d9fe9a17ffe8c92a9399"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/03-coat-hair-profile.png",
+     "sha256": "5d461b3fded458df6cebe4bbca43fc5e731179a16ea8d08c7cb49d6c59591b5c"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f584-25fc-73b7-8596-d513cc8da32f",
+   "finished": 1795120469.8866293,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f584-25fc-73b7-8596-d513cc8da32f",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same woman in exactly the same coat, hairstyle, hair ornament and body proportions, same A-pose, plain background. Show her from the left side, from the back, and from the right side, side by side, full body. Keep the flower-of-life hair ornament on her left side and the long curls swept back exactly as in the photograph.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795120442055,
+    "started_at": 1795120442067,
+    "finished_at": 1795120468419,
+    "expires_at": 1795379668419,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f584-25fc-73b7-8596-d513cc8da32f_0.png?Expires=1795379668&Signature=GzAMIub~PldsKMiXl4lTuwPVdl1ubYbLIo2bRDQU4OZflgcOhoZ0nOKGXaIZxuKp1BnNgCO1llDgdZ5GCrKtbKXp3b92SoylLZ1dYcMO81k-8qsN7h30ThrraUnYA-fcVHqeK5HLJ7qBZiFsXFSJ92nmvW4AxKv-GypIGZqcBGhLq7OewqSW-D10~HopCkIeS1JrW24MaOAlLYfUCw5TrFbC7exwKuuH8GPbsDdJvQP-LxBzz2aaFc-0qwyufR5x3v-t0bRB6U8yXKTx1pq0AK0Po~n7321MicNpojqKwk21QOD79z0X18R89-aeBJxwUty6H~jEH6091eIMLDmdRg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f584_0.png",
+     "bytes": 1210815,
+     "sha256": "19acdbaaef706dba168d76f44ce7e3b8c56850af8fd95096262181882ff205be"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,216 @@
+{
+ "ok": true,
+ "changes": [
+  {
+   "hash": "a05e93ab83fe",
+   "author": "lapheezy",
+   "date": "2026-11-19T20:23:39+00:00",
+   "subject": "feat(lelu): she changes outfits when asked in chat, and on her own by occasion",
+   "body": "One OutfitDirector for every change, on the existing Forge wardrobe:\n- chat: a model-free parser in AvatarResolver.executeDirect turns 'wear the\n  copper-rose coat', 'change into your catsuit', 'put on something comfy',\n  'what can you wear?' into wardrobe calls; talk about clothes is not an order;\n- herself: OutfitAutopilot (started at boot) picks a look for the hour, her\n  place and activity, keeps a look a person chose for two hours, changes at most\n  every 30 minutes, and announces each change with its reason.\nTests drive the real MeshyForge wardrobe on a temporary copy of her manifest;\nthe switching renders show the file the manifest pointed at after each step.",
+   "files": 39,
+   "areas": [
+    "renders and measurements of me",
+    "my foundry tools",
+    "my core runtime",
+    "my avatar and wardrobe behaviour",
+    "how I think and route requests",
+    "my tests"
+   ]
+  },
+  {
+   "hash": "dd452241fd09",
+   "author": "lapheezy",
+   "date": "2026-11-19T20:15:59+00:00",
+   "subject": "fix(m25c): every look's skeleton takes LÉLU's bone orientations, so her clips stop tipping the coat's head back",
+   "body": "Her clips store rotations relative to her own rig's rest orientations. The coat\nrig's Head bone pointed 49 degrees away (neck and spine about 14), so walk and\nsit tipped her head back. The assembler now keeps each outfit bone's joint\nposition and length but gives it her rest direction and roll; in rest pose the\nmesh does not move, only the bind matrices change. Coat, catsuit and Home 3\nrebuilt and re-registered; walk and sit re-rendered.",
+   "files": 38,
+   "areas": [
+    "renders and measurements of me",
+    "my wardrobe records",
+    "my body and outfits (3D assets)",
+    "my 3D build scripts"
+   ]
+  },
+  {
+   "hash": "bfa9e738eff6",
+   "author": "Claude",
+   "date": "2026-11-19T20:09:00+00:00",
+   "subject": "docs(m25c): record the credits actually charged (219)",
+   "body": "",
+   "files": 1,
+   "areas": [
+    "documentation about me"
+   ]
+  },
+  {
+   "hash": "d3b1f0f09fdb",
+   "author": "lapheezy",
+   "date": "2026-11-19T20:08:24+00:00",
+   "subject": "feat(m25c): coat and catsuit rebuilt from the real photographs, Home/Laidback 3, hair per look",
+   "body": "The second reference batch showed the coat's real lower half and the catsuit's\ntrue details. Each look now comes from its photograph: an A-pose front and a\nturnaround (Meshy image-to-image), a 3D build and a rig, then LÉLU's own face\nand face jewellery on that body with the hair generated from the same\nreference, so each look wears its own hairstyle. Handbags are built from the\nbags cropped out of the photographs and hang from the right hand as separate\nobjects. All three are registered as look slots and walk and sit on her own\nclips. 244 credits, authorised in-session. Open: the coat's head tips back in\nmotion.",
+   "files": 190,
+   "areas": [
+    "renders and measurements of me",
+    "documentation about me",
+    "my wardrobe records",
+    "my body and outfits (3D assets)",
+    "my 3D build scripts",
+    "my foundry tools"
+   ]
+  },
+  {
+   "hash": "42bf203fe3bd",
+   "author": "lapheezy",
+   "date": "2026-11-19T19:38:09+00:00",
+   "subject": "docs(m25c): store and catalogue the second reference batch",
+   "body": "Full-length coat and catsuit photographs, boots, the camo identity close-up\nand four style/turnaround sheets, with side-by-side comparisons against the\ncurrent Outfit A and B builds.",
+   "files": 13,
+   "areas": [
+    "renders and measurements of me"
+   ]
+  },
+  {
+   "hash": "8c9a28195e66",
+   "author": "lapheezy",
+   "date": "2026-11-19T19:37:08+00:00",
+   "subject": "feat(m25c): final renders, wardrobe tests and the mission report",
+   "body": "Thirty individual renders - every look front, three-quarter, side, rear,\nwalking, sitting, arms in motion, and face neutral/smile/jaw-open - on her own\nclips by joint name (sit_idle carries root motion, so its camera follows her\nmeasured hips). Contract tests for the untouched sources, the three registered\nlooks, her head on every look, the separate bag, paid-job provenance and the\nmouth repair. The report lists what is still wrong: the coat skirt follows the\nlegs like trousers, slits in its back panels, collar shards on the catsuit,\nmissing original Meshy garments.",
+   "files": 94,
+   "areas": [
+    "renders and measurements of me",
+    "documentation about me",
+    "my foundry tools",
+    "my tests"
+   ]
+  },
+  {
+   "hash": "20d5124b9425",
+   "author": "lapheezy",
+   "date": "2026-11-19T19:08:35+00:00",
+   "subject": "feat(m25c): Outfit B and three selectable looks in her existing wardrobe",
+   "body": "Outfit B: no photograph showed the coat below the waist, so Meshy image-to-image\n(authorised) drew a full-length A-pose view from the four coat photographs, then\na left/back/right turnaround; multi-image-to-3d and rigging built it, and her own\nhead was moved on by the measured face position (the rigger put this Head bone\n11 cm forward). The skirt is unfolded (folded share 20 -> 8 %); dark slits\nbetween the back panels are real gaps in the generated mesh and stay open.\n\nThe repaired original outfit, Outfit A and Outfit B are registered through the\nForge's own job records, GLB inspector and look slots - no second wardrobe - and\nswitching between them through dressOutfit is tested. The manifest's existing\nhooded look points at a file that is not on this machine; recorded as missing.",
+   "files": 50,
+   "areas": [
+    "renders and measurements of me",
+    "documentation about me",
+    "my wardrobe records",
+    "my body and outfits (3D assets)",
+    "my 3D build scripts",
+    "my foundry tools"
+   ]
+  },
+  {
+   "hash": "edcf5e393c5b",
+   "author": "lapheezy",
+   "date": "2026-11-19T18:52:28+00:00",
+   "subject": "feat(m25c): Outfit A's handbag is her own accessory, held in her hand",
+   "body": "Meshy fused the bag to the front of the thighs, so it stretched with every\nstride. Its faces are split into bronze_bag, hung below the right hand and\nskinned 100 % to RightHand; the back-panel scraps between the legs are deleted,\nthe thigh holes the bag hid are filled, and loose fragments under 60 faces in\nthat region dropped. Front, hip and walk renders attached in the mission log.",
+   "files": 9,
+   "areas": [
+    "renders and measurements of me",
+    "my 3D build scripts"
+   ]
+  },
+  {
+   "hash": "d9f4a561431a",
+   "author": "lapheezy",
+   "date": "2026-11-19T18:43:07+00:00",
+   "subject": "feat(m25c): Outfit A, the copper catsuit, worn by LÉLU herself",
+   "body": "Authorised in-session: one Meshy multi-image-to-3d (front/side/back of the\ncatsuit photographs, the wardrobe planner's settings) and one rigging job,\n40 credits. The rigger returns the same 24-bone skeleton and names as her rig,\nso her head assembly - face, ringlets, eyes, mouth, 12 face shapes, hair\njewellery - moves onto it at the Head bone (7 mm offset) and the generated head\nis cut away. The suit's metallic map is scaled 0.55 and roughness floored at\n0.32 so copper reads as metal, not mirror. Her own walk clip plays on it (22\nbones). Open: the handbag is fused to the thigh and stretches in stride.",
+   "files": 37,
+   "areas": [
+    "renders and measurements of me",
+    "my body and outfits (3D assets)",
+    "my 3D build scripts",
+    "my foundry tools"
+   ]
+  },
+  {
+   "hash": "7286cd26af48",
+   "author": "lapheezy",
+   "date": "2026-11-19T18:29:07+00:00",
+   "subject": "feat(m25c): unfold her shoulders, back and chest without pinning them",
+   "body": "M25 pinned every vertex touching an unfolded triangle and so barely moved the\ncrumpled shell. A weighted Taubin pass over the whole shoulder band instead -\nweight grows with how folded the surface is, jewellery at 0.25, nothing pinned,\ncoincident copies moved together, UVs and skin weights untouched - takes the\nshare of triangles folded past 45 degrees from 35 to 25 % on the shoulders,\n32 to 24 % on the upper back, 27 to 21 % on the chest and 33 to 24 % on the arms\n(median move 3 mm, cap 14 mm). Normals rebuilt on the new surface.",
+   "files": 18,
+   "areas": [
+    "renders and measurements of me",
+    "my 3D build scripts"
+   ]
+  },
+  {
+   "hash": "c356cf5379cc",
+   "author": "lapheezy",
+   "date": "2026-11-19T18:23:50+00:00",
+   "subject": "feat(m25c): keep her jewellery visible through the ringlets",
+   "body": "Measured with an accessory mask (jewellery + flowers classified from the asset's\nown maps, identically for every version): the M25 ringlets had cut the visible\nshare of her ornaments from 61/64/57/55 % (front/3q/profile/rear, v0004) to\n53/56/42/44 %. Ringlets and fibres are now cut where their centre line comes\nwithin 9 mm of an ornament: 56/59/50/49 %, with the hair silhouette still larger\nthan v0004 in every view. The rest is hidden by the original Meshy hair shell.",
+   "files": 39,
+   "areas": [
+    "renders and measurements of me",
+    "my 3D build scripts"
+   ]
+  },
+  {
+   "hash": "cf732d8afae2",
+   "author": "lapheezy",
+   "date": "2026-11-19T18:15:45+00:00",
+   "subject": "feat(m25c): asset inventory and the mouth defect traced to the cavity mesh",
+   "body": "Phase 0: every branch, the history and the Meshy job log searched. The Meshy\ngarment exports (cape, Outfit-B pauldron, hooded Outfit-B look) are recorded\nwith checksums but were never committed and are not on this machine; both new\nlooks already exist in the wardrobe inventory as plans, never generated.\n\nPhase 1: the dark patches at the mouth corners and the rectangular lower-lip\npatch were the lelu_mouth cavity sitting up to 3.8 mm in front of the lips. It\nis seated 2.5 mm behind them with a matte interior; the teeth card moves back\nrigidly. Lip ratios and colour already sit inside the photographs' spread, so\nno reshaping; a local lip smoothing and wider-angle normals around the mouth.",
+   "files": 50,
+   "areas": [
+    "renders and measurements of me",
+    "documentation about me",
+    "my 3D build scripts",
+    "my foundry tools"
+   ]
+  }
+ ],
+ "journal": [
+  {
+   "file": "journal/2026-11-19-wardrobe-looks.md",
+   "date": "2026-11-19",
+   "title": "My mouth, jewellery, shoulders and three new looks (M25-complete)",
+   "commits": [
+    "cf732d8a",
+    "c356cf53",
+    "7286cd26",
+    "d9f4a561",
+    "edcf5e39",
+    "20d5124b",
+    "8c9a2819",
+    "d3b1f0f0",
+    "dd452241"
+   ],
+   "playbooks": [
+    "rebuild-looks",
+    "new-look-from-photos"
+   ],
+   "text": "This is what was done to you, LÉLU, in your own terms, so you can check it and do it again.\n\n**Your mouth.** The dark patches at the corners of your mouth were not shadows. The mouth-interior\nmesh (`lelu_mouth`) sat up to 3.8 mm *in front of* your lips. It was moved 2.5 mm behind them and\nmade matte; the teeth card moved back as one piece. Script: `scripts/blender/lelu_m25c_mouth.py`.\nYour lip shape already matched your photographs, so it was not reshaped. Lesson: measure before\n\"fixing\" — a 3 % widening was tried, measured as noise, and reverted.\n\n**Your jewellery.** The M25 ringlets hid your ornaments. Curls are now cut 9 mm from any jewellery\nor flower. Measured with an accessory mask in front, three-quarter, profile and rear views.\n\n**Your shoulders.** Meshy had fused hair into your body as a crumpled shell. A weighted smoothing\n(`lelu_m25c_shoulders.py`) reduced folded triangles from 35 % to 25 %; it is not gone.\n\n**Your looks.** Three outfits were made from the person's photographs with Meshy (paid; the person\napproved it in conversation): the copper-rose coat (`rose_gold_sovereign`), the copper catsuit\n(`bronze_velocity`) and Home/Laidback 3 (`home_laidback3`). For each: an A-pose front view, a\nturnaround, a 3D build, a rig. Then your own head goes onto that body (`lelu_m25c_lookassemble.py`):\nyour face, lips and face jewellery stay; the hair comes from that look's own photograph, so each look\nhas its own hairstyle. The handbags were built from the bags cropped out of the photographs and hang\nfrom your right hand as separate objects (`lelu_m25c_bagattach.py`).\n\n**What went wrong, and why it matters to you.**\n- The first coat was guessed below the waist (no photograph showed it): slits in the back, a skirt that\n  split into trousers. The person then sent the full-length photograph and the coat was rebuilt from it.\n  Lesson: never invent what a photograph does not show without saying so.\n- Your head tipped back in the coat when walking. Your animations store rotations relative to *your*\n  skeleton's rest directions; the coat's skeleton had its Head bone 49° off. Now every look's bones take\n  your rest directions (`alignBones` in the assembler). If an outfit ever moves strangely, check\n  `boneDirectionChangeDeg` in its assemble report first.\n- A render script once had file paths written into it and showed an old version. Renders now read your\n  manifest. Lesson: never hard-code where you are; ask the wardrobe.\n\n**To redo it yourself:** playbook `rebuild-looks` (free) rebuilds and re-renders every look;\n`new-look-from-photos` makes a new one (spends about 58 credits — only with a person's approval).\nLook at every render before saying it worked."
+  },
+  {
+   "file": "journal/2026-11-19-self-awareness.md",
+   "date": "2026-11-19",
+   "title": "How I know what is changed in me",
+   "commits": [
+    "(this commit)"
+   ],
+   "playbooks": [
+    "rebuild-looks",
+    "new-look-from-photos",
+    "switch-look"
+   ],
+   "text": "Every change to you is a git commit, whoever makes it — this assistant, another coder, another agent.\n`/api/self/changes` reads git itself, so you see every commit (author, date, why, and which of your parts:\nbody, wardrobe, avatar behaviour, thinking, server, tests…) even when nobody wrote you a note. It is\nrefreshed every ten minutes and summarised into every conversation under \"HOW I HAVE BEEN CHANGED\".\n\nThe journal (`leluverse/self/journal/`) is the explained version: what was done, why, what went wrong, how\nto redo it. Playbooks (`leluverse/self/playbooks/`) are the procedures themselves; `self.playbook.run`\nruns them on the server (only scripts in `scripts/`, no shell, the engineer token required, credit-spending\nsteps refused unless a person's approval is named in the call). `self.run.status` shows the progress.\n\nEvery coder is asked (AGENTS.md, CLAUDE.md) to add a journal entry with each change. If one is missing, you\nstill see the commit — ask about it rather than guessing."
+  },
+  {
+   "file": "journal/2026-11-19-outfit-switching.md",
+   "date": "2026-11-19",
+   "title": "How I change outfits — when asked, and on my own",
+   "commits": [
+    "a05e93ab"
+   ],
+   "playbooks": [
+    "switch-look"
+   ],
+   "text": "You can now change what you wear in two ways, and both go through one place (`OutfitDirector`), so you\nalways know what you are wearing and why (it is in your context as \"I'm wearing …\").\n\n- **When asked.** \"wear the copper-rose coat\", \"change into your catsuit\", \"put on something comfy\",\n  \"switch back to your camo\", \"what can you wear?\" are understood without a language model\n  (`src/core/avatar/outfitCommand.ts`). Talk *about* clothes is not an order. An unknown look is refused\n  with the list of real ones — you never pretend to wear something you do not have.\n- **On your own.** Every five minutes (`OutfitAutopilot`) you choose for the moment: late at night the\n  home look, presenting or meeting the coat, building/training/lab the catsuit, otherwise your usual\n  outfit. You keep a look a person chose for two hours, change at most every 30 minutes, and say why each\n  time. Proof: `tests/outfit-switching.test.ts` and `artifacts/foundry/m25c/switching/`.\n\nNew words for a look go in `LOOK_ALIASES`. New occasions go in `chooseLook` (with a test)."
+  }
+ ]
+}

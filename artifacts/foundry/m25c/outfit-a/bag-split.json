@@ -1,0 +1,43 @@
+{
+ "fragmentFacesDropped": {
+  "body": 51,
+  "bag": 5
+ },
+ "holeFacesAdded": 11,
+ "gapFacesDeleted": 331,
+ "facesMoved": 318,
+ "bag": "bronze_bag",
+ "triangles": 313,
+ "shiftMm": [
+  -304.5,
+  102.6,
+  165.4
+ ],
+ "bone": "RightHand",
+ "box": {
+  "x": [
+   -0.06,
+   0.07
+  ],
+  "z": [
+   0.51,
+   0.785
+  ],
+  "yMax": -0.125,
+  "gap": {
+   "x": [
+    -0.04,
+    0.05
+   ],
+   "z": [
+    0.4,
+    0.74
+   ],
+   "y": [
+    -0.2,
+    0.06
+   ]
+  }
+ },
+ "outputSha256": "25c0ac662b74fb479ed9c68cf6b123076eaf6c691e8eba9c71cd2e2774311cd0"
+}

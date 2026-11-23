@@ -1,0 +1,77 @@
+{
+ "job": {
+  "outfit": "leluverse/assets/characters/lelu_character/meshes/v011_multi-image-to-3d_bronze_velocity/rigged.glb",
+  "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+  "output": "artifacts/foundry/m25c/steps/look-bronze_velocity.glb",
+  "report": "artifacts/foundry/m25c/outfit-a/assemble.json",
+  "cutZ": 1.465,
+  "lookId": "bronze_velocity",
+  "material": {
+   "metallicScale": 0.55,
+   "roughnessFloor": 0.32
+  }
+ },
+ "headOffsetMm": [
+  -7.42,
+  -4.68,
+  -3.07
+ ],
+ "outfitFacesRemovedAboveCut": 23423,
+ "outfitFacesBefore": 92841,
+ "material": {
+  "metallicMeanBefore": 0.1551,
+  "roughnessP10Before": 0.2471,
+  "metallicMeanAfter": 0.0853,
+  "roughnessFloor": 0.32,
+  "metallicScale": 0.55,
+  "packedMR": true
+ },
+ "objects": [
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair",
+   "triangles": 161673,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair_ringlets",
+   "triangles": 111228,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_hair_strands",
+   "triangles": 34818,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_scalp",
+   "triangles": 20882,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "shapeKeys": 0
+  },
+  {
+   "name": "look_bronze_velocity",
+   "triangles": 69418,
+   "shapeKeys": 0
+  }
+ ],
+ "outputSha256": "62e75ee7088d8e5634210688fe8dd5530b93fe76acef0515949328c2cec8a8d6"
+}

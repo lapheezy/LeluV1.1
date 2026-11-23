@@ -1,0 +1,212 @@
+{
+ "precedence": [
+  "photographs",
+  "meshy",
+  "cc0"
+ ],
+ "sources": [
+  {
+   "id": "meshy",
+   "label": "Meshy LÉLU (owned character)",
+   "role": "existing geometry, appearance, silhouette, proportion, rig, shape keys and animation; the preservation target",
+   "authority": [
+    "body.proportions",
+    "body.silhouette",
+    "rig",
+    "rig.shapekeys",
+    "animation",
+    "topology"
+   ],
+   "mustNotAuthor": [
+    "face.shape",
+    "hairline"
+   ],
+   "location": "leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+   "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+   "bytes": 49511140,
+   "files": 1,
+   "provenance": {
+    "pipeline": "Meshy multi-image body → Meshy auto-rig → Meshy head bust → Blender head swap + eye projection → Blender ARKit shape keys",
+    "jobs": [
+     {
+      "id": "fj_mvvfg2o3_ebd9c0",
+      "tool": "Meshy",
+      "what": "multi-image-to-3D body (ref11 + ref09), 60k tris",
+      "credits": 30
+     },
+     {
+      "id": "fj_mvvnf4v9_1ded97",
+      "tool": "Meshy",
+      "what": "auto-rig, 24 joints, walk/run clips",
+      "credits": 5
+     },
+     {
+      "id": "fj_mvvnvqa1_b5672e",
+      "tool": "Meshy",
+      "what": "head-and-shoulders bust (ref10 + ref18 + ref19), 8k texture, 300k tris",
+      "credits": 40
+     },
+     {
+      "id": "fj_mvwaqbim_55226d",
+      "tool": "Blender",
+      "what": "head swap, eye-only face projection, walk check",
+      "credits": 0
+     }
+    ],
+    "built": "2026-10-31T00:14:48.946Z",
+    "notes": [
+     "the first full-body model was withdrawn: its face collapsed in the 60k remesh",
+     "spent 75 Meshy credits in total, none in this pass"
+    ]
+   },
+   "facts": {
+    "format": "GLB (glTF 2.0 binary)",
+    "heightM": 1.7185012779564204,
+    "triangles": 224155,
+    "vertices": 443528,
+    "materials": 6,
+    "textures": 8,
+    "joints": 24,
+    "morphTargets": 36,
+    "animationClips": 31,
+    "credits": 75
+   },
+   "usable": true,
+   "blockedReason": null
+  },
+  {
+   "id": "photographs",
+   "label": "The 39 committed photographs",
+   "role": "facial identity, hair appearance, anatomy, expression, jewellery and clothing — the authority everything is corrected against",
+   "authority": [
+    "face.shape",
+    "face.skin",
+    "face.brows",
+    "face.lips",
+    "face.eyes",
+    "face.markings",
+    "hairline",
+    "hair.style",
+    "hair.strands",
+    "head.proportions",
+    "neck.proportions",
+    "clothing",
+    "jewelry"
+   ],
+   "mustNotAuthor": [
+    "topology",
+    "rig"
+   ],
+   "location": "lelu2/reference-39",
+   "sha256": null,
+   "bytes": null,
+   "files": 39,
+   "provenance": {
+    "pipeline": "reference-39 collection, measured by scripts/lelu2/measure-references.py",
+    "jobs": [],
+    "built": null,
+    "notes": [
+     "read-only; 39/39 hashes verified by the reference library"
+    ]
+   },
+   "facts": {
+    "photographs": 39,
+    "collections": "facial expressions, hair, anatomy, looks",
+    "readOnly": "true"
+   },
+   "usable": true,
+   "blockedReason": null
+  },
+  {
+   "id": "cc0",
+   "label": "CC0 anatomical base (the 2.3.1 foundry build)",
+   "role": "supplementary scaffold, rigging reference and comparison model — no longer an identity source",
+   "authority": [
+    "anatomy.scaffold",
+    "anatomy.reference"
+   ],
+   "mustNotAuthor": [
+    "face.shape",
+    "face.skin",
+    "face.eyes",
+    "hairline",
+    "hair.style",
+    "jewelry",
+    "clothing",
+    "body.proportions"
+   ],
+   "location": "lelu2/artifacts/lelu2/m23/youth/lelu2-m23-youth.glb",
+   "sha256": "d1483ce953c9779b8160378ec2bf79b914f35efca67496be8db7f33b3f4aa2bd",
+   "bytes": 41966316,
+   "files": 1,
+   "provenance": {
+    "pipeline": "PCI-FR parametric reconstruction measured against the photographs (2.3.1)",
+    "jobs": [],
+    "built": null,
+    "notes": [
+     "keeps the measured landmark targets; renders show it does not carry her identity"
+    ]
+   },
+   "facts": {
+    "format": "GLB",
+    "triangles": 1289906,
+    "identity": "lelu-canonical (parametric)"
+   },
+   "usable": true,
+   "blockedReason": null
+  }
+ ],
+ "authority": {
+  "face.shape": "photographs",
+  "face.skin": "photographs",
+  "face.brows": "photographs",
+  "face.lips": "photographs",
+  "face.eyes": "photographs",
+  "face.markings": "photographs",
+  "hairline": "photographs",
+  "hair.style": "photographs",
+  "hair.strands": "photographs",
+  "head.proportions": "photographs",
+  "neck.proportions": "photographs",
+  "body.proportions": "meshy",
+  "body.silhouette": "meshy",
+  "clothing": "photographs",
+  "jewelry": "photographs",
+  "rig": "meshy",
+  "rig.shapekeys": "meshy",
+  "animation": "meshy",
+  "topology": "meshy",
+  "anatomy.scaffold": "cc0",
+  "anatomy.reference": "cc0"
+ },
+ "conflicts": [
+  {
+   "component": "hairline",
+   "between": [
+    "cc0",
+    "photographs"
+   ],
+   "resolution": "the CC0 build measures 52.38 mm above the eye line against the photographs' 87.68 mm (−35.3 mm); the Meshy asset's hairline is not rebuilt from CC0"
+  },
+  {
+   "component": "face.skin",
+   "between": [
+    "cc0",
+    "meshy"
+   ],
+   "resolution": "the photographs decide; the Meshy texture already matches the deep warm tone, the CC0 vertex colour does not"
+  },
+  {
+   "component": "body.proportions",
+   "between": [
+    "cc0",
+    "meshy"
+   ],
+   "resolution": "the Meshy body is the one the app animates and the one her measurements were taken for"
+  }
+ ],
+ "notes": [
+  "precedence is per component, not per source: the Meshy asset is first for continuity and rig, the photographs are first for identity",
+  "the CC0 model is kept because its landmark targets are measured and usable, not because it looks like her"
+ ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118041618-099",
+  "at": 1794975378000,
+  "type": "architecture-change",
+  "workPackage": "WP07",
+  "summary": "feat(asre): M5.8 per-component mesh resolution, occupancy unchanged",
+  "detail": "32 file(s): artifacts/mission58/step2-adaptive/base-back.png, artifacts/mission58/step2-adaptive/base-back.png.json, artifacts/mission58/step2-adaptive/base-face-front.png, artifacts/mission58/step2-adaptive/base-face-front.png.json, artifacts/mission58/step2-adaptive/base-face-three-quarter.png, artifacts/mission58/step2-adaptive/base-face-three-quarter.png.json, artifacts/mission58/step2-adaptive/base-feet-front.png, artifacts/mission58/step2-adaptive/base-feet-front.png.json, …",
+  "interpretation": "Associated with WP07 by keyword \\bwp\\s*0?7\\b|render|image|vi. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "7650a82eba03601fbce72e0d7d9a729fdd1c5925",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925",
+      "note": "feat(asre): M5.8 per-component mesh resolution, occupancy unchanged"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-back.png",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-back.png.json",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-face-front.png",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-face-front.png.json",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-face-three-quarter.png",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-face-three-quarter.png.json",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-feet-front.png",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-feet-front.png.json",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-feet-three-quarter.png",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-feet-three-quarter.png.json",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-front.png",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/step2-adaptive/base-front.png.json",
+      "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+    }
+  ],
+  "commit": "7650a82eba03601fbce72e0d7d9a729fdd1c5925",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:7650a82eba03601fbce72e0d7d9a729fdd1c5925"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117220913-115",
+  "at": 1794953353000,
+  "type": "source-change",
+  "workPackage": "WP01",
+  "summary": "docs(asre): mission 4 report (WP1-WP5, integration); WP6 pending",
+  "detail": "1 file(s): docs/asre/02-MISSION-4-ASRE.md",
+  "interpretation": "Associated with WP01 by explicit WP1. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "199ea89ce402215d85a1589feb9f293c2900d33d",
+      "commit": "199ea89ce402215d85a1589feb9f293c2900d33d",
+      "note": "docs(asre): mission 4 report (WP1-WP5, integration); WP6 pending"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/02-MISSION-4-ASRE.md",
+      "commit": "199ea89ce402215d85a1589feb9f293c2900d33d"
+    }
+  ],
+  "commit": "199ea89ce402215d85a1589feb9f293c2900d33d",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:199ea89ce402215d85a1589feb9f293c2900d33d"
+}

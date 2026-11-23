@@ -1,0 +1,21 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/meshes/v015_look_bronze_velocity/lelu.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25c/final/bronze_velocity/rear.png",
+ "view": "back",
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 0.92,
+  "lens": 70
+ },
+ "resolution": [
+  1024,
+  1536
+ ],
+ "samples": 48,
+ "lighting": "neutral-studio",
+ "seed": 0
+}

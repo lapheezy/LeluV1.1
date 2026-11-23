@@ -16,6 +16,7 @@ import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAsreApi } from "./plugins/asreApi.ts";
+import { createFoundryApi } from "./plugins/foundryApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
@@ -23,6 +24,7 @@ import { createSpendApi } from "./plugins/spendPolicy.ts";
 import { createResourceApi } from "./plugins/resourceApi.ts";
 import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createSelfJournalApi } from "./plugins/selfJournalApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
@@ -111,6 +113,9 @@ export default defineConfig(({ mode, command }) => {
   // ASRE: local zero-spend reconstruction (TripoSR CPU, Blender) and the component character.
   // Its finished geometry is filed in the SAME Forge ledger (job kind "asre").
   const asreApi = createAsreApi(envReader, { forgeStore: forgeApi.forge.store });
+  // The Character Foundry: reference intelligence, immutable versions, Cycles renders.
+  // Same local, zero-spend posture as ASRE; its images appear in the conversation.
+  const foundryApi = createFoundryApi(envReader);
   function modelApiPlugin() {
     return {
       name: "model-api",
@@ -118,11 +123,13 @@ export default defineConfig(({ mode, command }) => {
         modelApi.attach(server.middlewares);
         forgeApi.attach(server.middlewares);
         asreApi.attach(server.middlewares);
+        foundryApi.attach(server.middlewares);
       },
       configurePreviewServer(server: any) {
         modelApi.attach(server.middlewares);
         forgeApi.attach(server.middlewares);
         asreApi.attach(server.middlewares);
+        foundryApi.attach(server.middlewares);
       },
     };
   }
@@ -267,6 +274,15 @@ export default defineConfig(({ mode, command }) => {
         name: "lelu-self-view",
         configureServer(server: any) {
           createSelfViewApi().attach(server.middlewares);
+        },
+      },
+
+      // Her self-knowledge: every change made to her (from git, whoever made it),
+      // the journal written for her, and playbooks she can run (plugins/selfJournalApi.ts).
+      {
+        name: "lelu-self-journal",
+        configureServer(server: any) {
+          createSelfJournalApi().attach(server.middlewares);
         },
       },
 

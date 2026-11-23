@@ -1,0 +1,106 @@
+{
+ "jobs": [
+  {
+   "look": "hair_copper_coils",
+   "kind": "image-to-image",
+   "task": "01a1f5d4-6a9e-7184-a003-97f86d91ce54",
+   "submittedAt": 1795125703.1022713,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Show exactly this hairstyle ALONE, worn on a smooth matte plain light-grey mannequin head and shoulders with NO face features, no skin, no clothes, no earrings, plain white background, front three-quarter view, the whole length of the hair visible from the crown to the ends. Copy every detail of the hair in the photographs: very long hip-length dense dark brown-black fine spiral curls with copper highlights, swept back sleek from the hairline with laid baby-hair swirls at the temples, half-up at the crown with large open shiny copper wire spiral coils wrapped around sections over the crown, and several long thin open copper spring coils wrapped around curly locks hanging down the back, one copper coil lock in front of the ear.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/05-catsuit-hair-profile-2.png",
+     "sha256": "de671e64496825f20e96eb2e473e050686094c9a3c17c6ed42294076ae5dbe7f"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/02-catsuit-hair-profile.png",
+     "sha256": "de671e64496825f20e96eb2e473e050686094c9a3c17c6ed42294076ae5dbe7f"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/04-catsuit-back.png",
+     "sha256": "f7af00ceb325ca0081216c4bc36d2fb3deec41998b48d8cb49e6177ce9186c7f"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d4-6a9e-7184-a003-97f86d91ce54",
+   "finished": 1795125735.4151006,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d4-6a9e-7184-a003-97f86d91ce54",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Show exactly this hairstyle ALONE, worn on a smooth matte plain light-grey mannequin head and shoulders with NO face features, no skin, no clothes, no earrings, plain white background, front three-quarter view, the whole length of the hair visible from the crown to the ends. Copy every detail of the hair in the photographs: very long hip-length dense dark brown-black fine spiral curls with copper highlights, swept back sleek from the hairline with laid baby-hair swirls at the temples, half-up at the crown with large open shiny copper wire spiral coils wrapped around sections over the crown, and several long thin open copper spring coils wrapped around curly locks hanging down the back, one copper coil lock in front of the ear.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125702858,
+    "started_at": 1795125702875,
+    "finished_at": 1795125718827,
+    "expires_at": 1795384918827,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d4-6a9e-7184-a003-97f86d91ce54_0.png?Expires=1795384918&Signature=NutCa8PyjXV-qUT1881Rn0zlaQpDemsdeWPkGNnjkadXS6gf-apyy9Pxvr2PeVMgmnCCdUYk0bI6-mI-kJwf5YlvY6rDNn8tyUED6bK78uxvjI3djShpjRTMwmqVuvWWYaqarjZPPHkZcEli99pFs0~fIBNi50vB4mxs86HpHqNDL8bwViWvCJ~pNqRaB6AkhTOikP~v4~lsMyLGWB4MedDjRS-qbk7iW7~AzU~RPTreJbwLpJiWj5-mjtA-HNEo1yqF02gRGy2YDfdE8XYYptkKo5UshSRL4RqB-bQNXnitAb6H5~fFiNrJ6-UNPf4D1oMGCRCo4ElIvNbKeNk-sQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d4_0.png",
+     "bytes": 915673,
+     "sha256": "174bd35b61dab0baf5b68764dfbe45666b970bc111d4d41f2b46d1efacb3b00e"
+    }
+   ]
+  },
+  {
+   "look": "hair_copper_coils",
+   "kind": "image-to-image",
+   "task": "01a1f5d5-7299-7704-b215-f8ce7b17fbe8",
+   "submittedAt": 1795125770.2265604,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same hairstyle on the same blank grey mannequin, identical in every detail. Show it from the left side, from the back, and from the right side, side by side, plain background, the full length of the hair visible.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v039_image-to-image_hair_copper_coils/view_01a1f5d4_0.png",
+     "sha256": "174bd35b61dab0baf5b68764dfbe45666b970bc111d4d41f2b46d1efacb3b00e"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d5-7299-7704-b215-f8ce7b17fbe8",
+   "finished": 1795125833.4194722,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d5-7299-7704-b215-f8ce7b17fbe8",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same hairstyle on the same blank grey mannequin, identical in every detail. Show it from the left side, from the back, and from the right side, side by side, plain background, the full length of the hair visible.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125770085,
+    "started_at": 1795125770095,
+    "finished_at": 1795125794094,
+    "expires_at": 1795384994094,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d5-7299-7704-b215-f8ce7b17fbe8_0.png?Expires=1795384994&Signature=mqAzs53pODn1Pdre007EDFdCzTs39gTFQ0ByPLjKJen~I9mpIRH1c06Eklmxx6Bm0E0n2xzhQIyuJ5ZwCrJBbBV~Hdc2Ncf-1GPCywUfKfdzfBxRYDuos40hKnHvaG7xHFmjU5q0LKQYGfIFXgQC-7LOKXg0LNTiaXETu21vWRtMp0WCaOekfOjV839kUk4XkbX5rk362JcP1mUkNKY5vy-fFGEDHiBe2NAiJ3BYiYTJ60jVdCEeOsFORdIrrg-18BVB7zIuP79vbN32gOkmjHx8txggsNbwndlKOLZIMHiiyGI8z~z5YKtw8M92yiVKyJJl7JHM8vAcnegdAc4YLw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d5_0.png",
+     "bytes": 1326318,
+     "sha256": "6a5a0579ad68ef00b96825ba31b9cb8b5eb3e30b5f3739e7eaf6717a7e15064f"
+    }
+   ]
+  }
+ ]
+}

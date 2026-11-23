@@ -1,0 +1,12 @@
+# Scratch renders, live server logs and the large binaries inside the runtime
+# store are reproducible: `npx tsx scripts/foundry/run.ts benchmark` rebuilds the
+# renders, and the store's own addVersion copies the model again. The records
+# (project.json, versions/*/record.json) ARE committed so the version history,
+# validation and render list stay auditable.
+_smoke/
+*.log
+*.pid
+store/**/model.glb
+store/**/renders/
+# 125 MB of Blender project, regenerated in ~20 s by lelu_meshy_verify.py
+meshy/*.blend

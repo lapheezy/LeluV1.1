@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118072000-095",
+  "at": 1794986400000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "fix(asre): cut fist non-manifold edges 334 -> 64 by fixing the field, not the pose",
+  "detail": "24 file(s): artifacts/mission58/articulation/articulation-report.json, artifacts/mission58/articulation/cameras.json, artifacts/mission58/articulation/hand-fist-back.job.json, artifacts/mission58/articulation/hand-fist-back.png, artifacts/mission58/articulation/hand-fist-back.png.json, artifacts/mission58/articulation/hand-fist-front.job.json, artifacts/mission58/articulation/hand-fist-front.png, artifacts/mission58/articulation/hand-fist-front.png.json, …",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "12218542db7060e53a42f8d517a9579146e9be42",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42",
+      "note": "fix(asre): cut fist non-manifold edges 334 -> 64 by fixing the field, not the pose"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/articulation-report.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/cameras.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-back.job.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-back.png",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-back.png.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-front.job.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-front.png",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-front.png.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-side.job.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-side.png",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist-side.png.json",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/mission58/articulation/hand-fist.glb",
+      "commit": "12218542db7060e53a42f8d517a9579146e9be42"
+    }
+  ],
+  "commit": "12218542db7060e53a42f8d517a9579146e9be42",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:12218542db7060e53a42f8d517a9579146e9be42"
+}

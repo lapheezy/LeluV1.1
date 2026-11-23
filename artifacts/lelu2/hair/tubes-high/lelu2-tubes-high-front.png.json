@@ -1,0 +1,45 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/hair/tubes-high/lelu2-tubes-high-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.01195843517780304,
+   -0.05238883197307587,
+   0.8541197776794434
+  ],
+  "radius": 1.034564003574982
+ },
+ "triangles": 1372096,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4906481206417084,
+   -0.3464626669883728,
+   -0.0010000000474974513
+  ],
+  "max": [
+   0.5145649909973145,
+   0.24168500304222107,
+   1.7092396020889282
+  ]
+ },
+ "render_seconds": 8.51,
+ "blender": "4.2.23 LTS"
+}

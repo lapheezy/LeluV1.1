@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118163225-038",
+  "at": 1795019545150.0234,
+  "type": "source-change",
+  "workPackage": "WP03",
+  "summary": "artifacts/lelu2/hair/voxel/lelu2-voxel-head.glb (18.0 MB)",
+  "detail": "a generated model — geometry that can be measured and rendered again; 18902716 bytes",
+  "interpretation": "classed as source-change · artifact evidence · associated with WP03 by artefact path \\/hair\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/hair/voxel/lelu2-voxel-head.glb",
+      "at": 1795019545150.0234
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/hair/voxel/lelu2-voxel-head.glb:18902716"
+}

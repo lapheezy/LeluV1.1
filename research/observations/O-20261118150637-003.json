@@ -1,0 +1,72 @@
+{
+  "id": "O-20261118150637-003",
+  "at": 1795014397000,
+  "type": "architecture-change",
+  "workPackage": "WP04",
+  "summary": "docs(lelu2): measure the golden geometry work and state what still fails",
+  "detail": "10 file(s): artifacts/lelu2/baseline/lelu2-baseline-metrics.json, artifacts/lelu2/golden/lelu2-golden-metrics.json, artifacts/lelu2/report.md, artifacts/lelu2/visualization-full.png, artifacts/lelu2/visualization.png, public/golden/index.html, public/golden/serve.mjs, research/mesh-verify.py, …",
+  "interpretation": "Associated with WP04 by keyword \\bwp\\s*0?4\\b|head|anatom|mea. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "2a645e2341ef91f68e415bc609d6dae81ff57f59",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59",
+      "note": "docs(lelu2): measure the golden geometry work and state what still fails"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/golden/lelu2-golden-metrics.json",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/report.md",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/visualization-full.png",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/visualization.png",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "public/golden/index.html",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "public/golden/serve.mjs",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "research/mesh-verify.py",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/lelu2/experiment.ts",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/reference/provider.ts",
+      "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59"
+    }
+  ],
+  "commit": "2a645e2341ef91f68e415bc609d6dae81ff57f59",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:2a645e2341ef91f68e415bc609d6dae81ff57f59"
+}

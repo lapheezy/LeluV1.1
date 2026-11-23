@@ -7,6 +7,9 @@
  * tool (her cognition decides when to use them):
  *
  *   world.state        risk 0  where she is, what is there
+ *   world.room         risk 0  turn her rotating room to a
+ *                              section, the bare stage or the
+ *                              floor plan
  *   world.environment  risk 1  create / enter / change an
  *                              environment, or make a sandbox
  *   world.object       risk 1  create, move, rotate, resize,
@@ -25,6 +28,7 @@ import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import ForgeClient, { type AvatarMood, type AvatarWorldState, type CosmosPlacement, type WorldState } from "../forge/ForgeClient";
 import { FURNITURE } from "./RoomGenerator";
+import RoomStore, { modeFromText, ROOM_MODES, ROOM_SECTIONS, type RoomMode } from "./RotatingRoom";
 
 interface WorldExecutor {
   id: string;
@@ -37,6 +41,14 @@ const tool = (id: string, name: string, description: string, riskLevel: number, 
 
 export const WORLD_TOOLS: ToolDefinition[] = [
   tool("world.state", "Where Am I", "The environment LÉLU is in (her circular room is home), its lighting and colours, every object in it, and the other environments she can go to", 0, ["READ"]),
+  tool(
+    "world.room",
+    "Turn My Room",
+    "Turn LÉLU's circular home room so a section stands at the back: lounge, theater, kitchen (kitchen & dining), bedroom, bathroom or studio (her creator studio); the furniture transforms as it turns. \"stage\" retracts all the furniture to the bare turntable; \"plan\" shows the whole room from above, like a floor plan. Spends nothing",
+    0,
+    ["WRITE"],
+    { section: "lounge|theater|kitchen|bedroom|bathroom|studio|stage|plan", request: "string" },
+  ),
   tool(
     "world.environment",
     "Shape an Environment",
@@ -118,6 +130,32 @@ function describeState(state: WorldState): string {
 }
 
 export const WORLD_EXECUTORS: WorldExecutor[] = [
+  {
+    id: "world.room",
+    parameters: OBJECT({
+      section: { type: "string", enum: [...ROOM_MODES], description: "The section to turn to, or stage / plan." },
+      request: { type: "string", description: "Or the person's own words (\"take me to the kitchen\"); the section is read from them." },
+    }),
+    run: async (args) => {
+      const asked = str(args, "section").toLowerCase();
+      const mode = (ROOM_MODES.includes(asked as RoomMode) ? asked : modeFromText(str(args, "request") || asked)) as RoomMode | null;
+      if (!mode) {
+        return { ok: false, content: `Which part of the room? Choose one of: ${ROOM_MODES.join(", ")}.` };
+      }
+      const before = RoomStore.get();
+      const after = RoomStore.goTo(mode);
+      const label = (id: string) => ROOM_SECTIONS.find((x) => x.id === id)?.label.toLowerCase() ?? id;
+      const content =
+        mode === "plan"
+          ? "Showing the whole room from above: every section stands, like the floor plan."
+          : mode === "stage"
+            ? "The furniture has retracted into the floor: the bare turntable."
+            : after.turn
+              ? `Turning the room from the ${label(before.section)} to the ${label(mode)}; its furniture rises as it arrives.`
+              : `The ${label(mode)} is already at the back of the room.`;
+      return { ok: true, content, data: { mode: after.mode, section: after.section, turningSeconds: after.turn?.seconds ?? 0 } };
+    },
+  },
   {
     id: "world.state",
     parameters: OBJECT({}),

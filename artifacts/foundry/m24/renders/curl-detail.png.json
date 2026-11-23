@@ -1,0 +1,73 @@
+{
+ "shot": "curl-detail",
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/m24/renders/curl-detail.png",
+ "view": "three-quarter",
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "focused": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "focus_missing": [
+  "hair"
+ ],
+ "triangles": 224233,
+ "materials_applied": [],
+ "warnings": [
+  "focus objects not found; framing the whole model: hair"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.09000000357627869,
+   -0.05999999865889549,
+   1.523800015449524
+  ],
+  "radius": 0.075,
+  "lens_mm": 135.0,
+  "distance_m": 0.6015266515292568
+ },
+ "framing": "explicit",
+ "bounds_blender_zup": {
+  "min": [
+   -0.44877931475639343,
+   -0.20893928408622742,
+   1.0677111959012109e-06
+  ],
+  "max": [
+   0.44877922534942627,
+   0.2089408040046692,
+   1.7185028791427612
+  ]
+ },
+ "render": {
+  "engine": "CYCLES",
+  "device": "CPU",
+  "samples": 16,
+  "threads": 7,
+  "resolution": [
+   768,
+   768
+  ],
+  "denoise": true,
+  "view_transform": "AgX"
+ },
+ "render_seconds": 18.49,
+ "blender": "4.2.23 LTS",
+ "job": {
+  "shot": "curl-detail",
+  "view": "three-quarter",
+  "ground": false
+ }
+}

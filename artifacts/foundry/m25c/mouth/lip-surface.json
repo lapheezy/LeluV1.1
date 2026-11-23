@@ -1,0 +1,20 @@
+{
+ "iterations": 4,
+ "clampMm": 0.8,
+ "movedPositions": 657,
+ "displacementMm": {
+  "p50": 0.067,
+  "max": 0.8
+ },
+ "normalLimitDeg": 70.0,
+ "objects": {
+  "lelu_scalp": {
+   "loopsRebuilt": 2889
+  },
+  "lelu_hair": {
+   "loopsRebuilt": 2877
+  }
+ },
+ "output": "artifacts/foundry/m25c/steps/s2-lipsurface.glb",
+ "outputSha256": "42fdbf550c3248037ddb4b6405c848df06de3db77e5deee678ce340a6688c65a"
+}

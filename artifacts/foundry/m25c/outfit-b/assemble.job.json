@@ -1,0 +1,18 @@
+{
+ "outfit": "leluverse/assets/characters/lelu_character/meshes/v013_multi-image-to-3d_rose_gold_sovereign/rigged.glb",
+ "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+ "output": "artifacts/foundry/m25c/steps/look-rose_gold_sovereign.glb",
+ "report": "artifacts/foundry/m25c/outfit-b/assemble.json",
+ "cutZ": 1.465,
+ "lookId": "rose_gold_sovereign",
+ "material": {
+  "metallicScale": 0.55,
+  "roughnessFloor": 0.32
+ },
+ "headOffset": [
+  -0.0074,
+  0.0093,
+  -0.0031
+ ],
+ "headOffsetSource": "Outfit A's Head-bone offset (-7.4,-4.7,-3.1 mm) plus the measured face-front difference between the two generated bodies at z 1.55 m (+14 mm in y); the coat body's Head bone sits 11 cm forward of its neck"
+}

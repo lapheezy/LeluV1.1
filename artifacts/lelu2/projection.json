@@ -1,0 +1,93 @@
+{
+  "generatedAt": "2026-11-18T16:49:25.250Z",
+  "note": "Structural projection cost only. No frame time was measured on a device, so no real-time or iPhone claim is made here. A browser/device benchmark has to run on that device; this file does not substitute for one.",
+  "files": [
+    {
+      "variant": "voxel",
+      "drawCalls": 15,
+      "triangles": 1398104,
+      "glbMB": 44.4,
+      "binMB": 44.4,
+      "jsonKB": 17,
+      "gpuMB": 27.6,
+      "parseMs": 105.7,
+      "loadedFromDiskMs": 44.4
+    },
+    {
+      "variant": "tubes-high",
+      "drawCalls": 15,
+      "triangles": 1284246,
+      "glbMB": 41.8,
+      "binMB": 41.8,
+      "jsonKB": 17,
+      "gpuMB": 26.3,
+      "parseMs": 56.8,
+      "loadedFromDiskMs": 41.8
+    },
+    {
+      "variant": "tubes-medium",
+      "drawCalls": 15,
+      "triangles": 1048696,
+      "glbMB": 34.1,
+      "binMB": 34.1,
+      "jsonKB": 17,
+      "gpuMB": 21.5,
+      "parseMs": 77.7,
+      "loadedFromDiskMs": 34.1
+    },
+    {
+      "variant": "tubes-low",
+      "drawCalls": 15,
+      "triangles": 910516,
+      "glbMB": 29.5,
+      "binMB": 29.5,
+      "jsonKB": 17,
+      "gpuMB": 18.5,
+      "parseMs": 72.7,
+      "loadedFromDiskMs": 29.5
+    }
+  ],
+  "lod": [
+    {
+      "variant": "voxel",
+      "hairTriangles": 540508,
+      "totalTriangles": 1398104,
+      "glbMB": 44.4
+    },
+    {
+      "variant": "tubes-high",
+      "hairTriangles": 426650,
+      "totalTriangles": 1284246,
+      "glbMB": 41.8
+    },
+    {
+      "variant": "tubes-medium",
+      "hairTriangles": 191100,
+      "totalTriangles": 1048696,
+      "glbMB": 34.1
+    },
+    {
+      "variant": "tubes-low",
+      "hairTriangles": 52920,
+      "totalTriangles": 910516,
+      "glbMB": 29.5
+    }
+  ],
+  "lodRatios": [
+    {
+      "variant": "tubes-high",
+      "hairShareOfVoxel": 0.789,
+      "totalShareOfVoxel": 0.919
+    },
+    {
+      "variant": "tubes-medium",
+      "hairShareOfVoxel": 0.354,
+      "totalShareOfVoxel": 0.75
+    },
+    {
+      "variant": "tubes-low",
+      "hairShareOfVoxel": 0.098,
+      "totalShareOfVoxel": 0.651
+    }
+  ]
+}

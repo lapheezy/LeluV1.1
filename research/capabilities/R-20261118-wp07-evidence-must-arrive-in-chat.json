@@ -1,0 +1,66 @@
+{
+  "id": "R-20261118-wp07-evidence-must-arrive-in-chat",
+  "kind": "capabilities",
+  "createdAt": 1795041058475,
+  "updatedAt": 1795041058475,
+  "mission": "LÉLU 2.3 — autonomous learning, visual creation and identity reconstruction",
+  "workPackage": "WP07",
+  "observed": "The mission requires renders, before/after comparisons and measurements to appear in the conversation itself. The chat renderer handled markdown images and SVG blocks, and no surface could load an image cited at a repository path.",
+  "studied": "How a chat bubble can carry structured evidence: a fenced block parsed into a validated block list, rendered by one component on every surface.",
+  "question": "How does evidence get into the conversation without an artifact directory or a dashboard?",
+  "hypothesis": "A fenced `evidence` block with validated blocks and a public-path mapping is enough for every surface.",
+  "method": "Define the block protocol in the research layer, render it in the chat bubble (image, compare, group, measure, commit), and copy every cited image into the app's public directory under the same mapping the renderer uses.",
+  "results": "Implemented: src/core/cognition/research/evidence.ts (parse, normalise, markdown, public-path mapping, evidenceFromEntry), src/app/scene/genesis/chat/ChatEvidence.tsx (inline images, expandable lightbox, labelled before/after, measurement tables), wired into ChatMarkdown so a message renders it, and scripts/lelu2/evidence.ts emits the blocks for this mission.",
+  "evidence": [
+    {
+      "kind": "test",
+      "ref": "tests/lelu2-m23.test.ts",
+      "note": "five guards: round-trip, refusal of a malformed block, labelled comparison, entry→blocks, public path"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/research/evidence-m23.json",
+      "note": "the blocks generated from this mission's own builds"
+    },
+    {
+      "kind": "measurement",
+      "ref": "artifacts/lelu2/research/evidence-m23.md",
+      "note": "the same evidence as markdown"
+    },
+    {
+      "kind": "commit",
+      "ref": "761d01c88633c664a376bd8605a351df3a626287",
+      "commit": "761d01c88633c664a376bd8605a351df3a626287",
+      "note": "mission commit"
+    }
+  ],
+  "learned": "Evidence delivery is a protocol, not a UI feature: the same blocks must render in the bubble, export as markdown, and be copied to a loadable path, or one surface silently becomes the only place the work can be seen.",
+  "confidence": 0.75,
+  "limitations": [
+    "The lightbox is a fixed overlay, not a pinch-zoom viewer.",
+    "The evidence CLI copies images for the app's public directory; a deployed build still needs that copy step to run."
+  ],
+  "applications": [
+    "Every future mission can deliver its evidence through the same fence and the same renderer."
+  ],
+  "nextQuestions": [
+    "Should the chat also be able to pull historical evidence back by entry id?"
+  ],
+  "answers": [
+    "How does evidence get into the conversation without an artifact directory or a dashboard?"
+  ],
+  "status": "verified",
+  "tags": [
+    "chat",
+    "evidence",
+    "capability",
+    "wp07"
+  ],
+  "commit": "761d01c88633c664a376bd8605a351df3a626287",
+  "session": "S-2026-11-18",
+  "assumptions": [],
+  "refutations": [],
+  "supersedes": [],
+  "supersededBy": [],
+  "verifiedAt": 1795041058475
+}

@@ -1,0 +1,815 @@
+{
+ "inspectedAt": "2026-11-19T12:36:14.843Z",
+ "relative": "leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+ "inspection": {
+  "file": "/workspace/chats/6d861f98cd849b149484323e/leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+  "fileName": "lelu.glb",
+  "bytes": 49511140,
+  "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+  "generatedBy": "Khronos glTF Blender I/O v5.2.41",
+  "gltfVersion": "2.0",
+  "counts": {
+   "nodes": 31,
+   "meshes": 6,
+   "primitives": 6,
+   "materials": 6,
+   "textures": 8,
+   "images": 8,
+   "skins": 1,
+   "joints": 24,
+   "animations": 1,
+   "animationChannels": 72,
+   "morphTargets": 36,
+   "vertices": 443521,
+   "triangles": 224233
+  },
+  "fused": false,
+  "primitives": [
+   {
+    "mesh": "Mesh_0",
+    "primitive": 0,
+    "vertices": 83133,
+    "indices": 117498,
+    "triangles": 39166,
+    "material": "Material_0",
+    "uvSets": [
+     "TEXCOORD_0"
+    ],
+    "colors": [],
+    "morphTargets": 0,
+    "bounds": {
+     "min": [
+      -0.448779433965683,
+      2.898841557907872e-7,
+      -0.2089412659406662
+     ],
+     "max": [
+      0.4487793743610382,
+      1.471941590309143,
+      0.208938866853714
+     ]
+    }
+   },
+   {
+    "mesh": "eye_patch_l",
+    "primitive": 0,
+    "vertices": 2052,
+    "indices": 3078,
+    "triangles": 1026,
+    "material": "eye_patch_l_mat",
+    "uvSets": [
+     "TEXCOORD_0"
+    ],
+    "colors": [],
+    "morphTargets": 12,
+    "bounds": {
+     "min": [
+      0.007436319254338741,
+      1.5842480659484863,
+      0.08943459391593933
+     ],
+     "max": [
+      0.038598619401454926,
+      1.6023423671722412,
+      0.0968223586678505
+     ]
+    }
+   },
+   {
+    "mesh": "eye_patch_r",
+    "primitive": 0,
+    "vertices": 2052,
+    "indices": 3078,
+    "triangles": 1026,
+    "material": "eye_patch_r_mat",
+    "uvSets": [
+     "TEXCOORD_0"
+    ],
+    "colors": [],
+    "morphTargets": 12,
+    "bounds": {
+     "min": [
+      -0.043197162449359894,
+      1.5836641788482666,
+      0.08943572640419006
+     ],
+     "max": [
+      -0.013097964227199554,
+      1.6011409759521484,
+      0.09693077206611633
+     ]
+    }
+   },
+   {
+    "mesh": "Mesh_0.001",
+    "primitive": 0,
+    "vertices": 355437,
+    "indices": 547665,
+    "triangles": 182555,
+    "material": "Material_0.001",
+    "uvSets": [
+     "TEXCOORD_0"
+    ],
+    "colors": [],
+    "morphTargets": 12,
+    "bounds": {
+     "min": [
+      -0.19901937246322632,
+      0.9838255643844604,
+      -0.1302434653043747
+     ],
+     "max": [
+      0.19301040470600128,
+      1.7185015678405762,
+      0.13579541444778442
+     ]
+    }
+   },
+   {
+    "mesh": "lelu_mouth",
+    "primitive": 0,
+    "vertices": 684,
+    "indices": 1104,
+    "triangles": 368,
+    "material": "lelu_mouth",
+    "uvSets": [],
+    "colors": [],
+    "morphTargets": 0,
+    "bounds": {
+     "min": [
+      -0.017293594777584076,
+      1.537605881690979,
+      0.08929910510778427
+     ],
+     "max": [
+      0.013833711855113506,
+      1.5556957721710205,
+      0.10161426663398743
+     ]
+    }
+   },
+   {
+    "mesh": "lelu_teeth",
+    "primitive": 0,
+    "vertices": 163,
+    "indices": 276,
+    "triangles": 92,
+    "material": "lelu_teeth",
+    "uvSets": [],
+    "colors": [],
+    "morphTargets": 0,
+    "bounds": {
+     "min": [
+      -0.008835086598992348,
+      1.5469253063201904,
+      0.10106424987316132
+     ],
+     "max": [
+      0.00537520507350564,
+      1.549445390701294,
+      0.10218402743339539
+     ]
+    }
+   }
+  ],
+  "materials": [
+   "Material_0",
+   "eye_patch_l_mat",
+   "eye_patch_r_mat",
+   "Material_0.001",
+   "lelu_mouth",
+   "lelu_teeth"
+  ],
+  "textures": [
+   {
+    "index": 0,
+    "name": "normal",
+    "mimeType": "image/jpeg",
+    "bytes": 1312488,
+    "width": 2048,
+    "height": 2048,
+    "embedded": true
+   },
+   {
+    "index": 1,
+    "name": "Image_0",
+    "mimeType": "image/jpeg",
+    "bytes": 3774812,
+    "width": 2048,
+    "height": 2048,
+    "embedded": true
+   },
+   {
+    "index": 2,
+    "name": "Image_1",
+    "mimeType": "image/jpeg",
+    "bytes": 2916764,
+    "width": 2048,
+    "height": 2048,
+    "embedded": true
+   },
+   {
+    "index": 3,
+    "name": "eye_patch_l_tex",
+    "mimeType": "image/png",
+    "bytes": 23355,
+    "width": 121,
+    "height": 83,
+    "embedded": true
+   },
+   {
+    "index": 4,
+    "name": "eye_patch_r_tex",
+    "mimeType": "image/png",
+    "bytes": 21684,
+    "width": 121,
+    "height": 78,
+    "embedded": true
+   },
+   {
+    "index": 5,
+    "name": "normal",
+    "mimeType": "image/jpeg",
+    "bytes": 3439263,
+    "width": 4096,
+    "height": 4096,
+    "embedded": true
+   },
+   {
+    "index": 6,
+    "name": "Image_0",
+    "mimeType": "image/jpeg",
+    "bytes": 2519361,
+    "width": 4096,
+    "height": 4096,
+    "embedded": true
+   },
+   {
+    "index": 7,
+    "name": "Image_1",
+    "mimeType": "image/jpeg",
+    "bytes": 8928018,
+    "width": 4096,
+    "height": 4096,
+    "embedded": true
+   }
+  ],
+  "uvSets": [
+   "TEXCOORD_0"
+  ],
+  "skins": [
+   {
+    "name": "Armature",
+    "joints": 24,
+    "skeleton": null
+   }
+  ],
+  "animations": [
+   {
+    "name": "Armature|clip0|baselayer",
+    "channels": 72,
+    "durationIsAuthored": true
+   }
+  ],
+  "morphTargets": [
+   {
+    "mesh": "eye_patch_l",
+    "targets": [
+     "target_0",
+     "target_1",
+     "target_2",
+     "target_3",
+     "target_4",
+     "target_5",
+     "target_6",
+     "target_7",
+     "target_8",
+     "target_9",
+     "target_10",
+     "target_11"
+    ],
+    "names": [
+     "eyeBlinkLeft",
+     "eyeBlinkRight",
+     "eyeWideLeft",
+     "eyeWideRight",
+     "jawOpen",
+     "mouthSmileLeft",
+     "mouthSmileRight",
+     "mouthFrownLeft",
+     "mouthFrownRight",
+     "browInnerUp",
+     "browDownLeft",
+     "browDownRight"
+    ]
+   },
+   {
+    "mesh": "eye_patch_r",
+    "targets": [
+     "target_0",
+     "target_1",
+     "target_2",
+     "target_3",
+     "target_4",
+     "target_5",
+     "target_6",
+     "target_7",
+     "target_8",
+     "target_9",
+     "target_10",
+     "target_11"
+    ],
+    "names": [
+     "eyeBlinkLeft",
+     "eyeBlinkRight",
+     "eyeWideLeft",
+     "eyeWideRight",
+     "jawOpen",
+     "mouthSmileLeft",
+     "mouthSmileRight",
+     "mouthFrownLeft",
+     "mouthFrownRight",
+     "browInnerUp",
+     "browDownLeft",
+     "browDownRight"
+    ]
+   },
+   {
+    "mesh": "Mesh_0.001",
+    "targets": [
+     "target_0",
+     "target_1",
+     "target_2",
+     "target_3",
+     "target_4",
+     "target_5",
+     "target_6",
+     "target_7",
+     "target_8",
+     "target_9",
+     "target_10",
+     "target_11"
+    ],
+    "names": [
+     "eyeBlinkLeft",
+     "eyeBlinkRight",
+     "eyeWideLeft",
+     "eyeWideRight",
+     "jawOpen",
+     "mouthSmileLeft",
+     "mouthSmileRight",
+     "mouthFrownLeft",
+     "mouthFrownRight",
+     "browInnerUp",
+     "browDownLeft",
+     "browDownRight"
+    ]
+   }
+  ],
+  "bounds": {
+   "min": [
+    -0.448779433965683,
+    2.898841557907872e-7,
+    -0.2089412659406662
+   ],
+   "max": [
+    0.4487793743610382,
+    1.7185015678405762,
+    0.208938866853714
+   ],
+   "heightM": 1.7185012779564204,
+   "widthM": 0.8975588083267212,
+   "depthM": 0.4178801327943802
+  },
+  "heightM": 1.7185012779564204,
+  "headToBodyRatio": null,
+  "headToBodyBasis": "no head landmark in the GLB; head measurements come from the Blender inspection (scripts/blender/lelu_meshy_inspect.py)",
+  "unsupported": [
+   {
+    "feature": "animation playback in Blender renders",
+    "reason": "renders use the rest pose; clips are inspected but not played"
+   },
+   {
+    "feature": "morph target geometry",
+    "reason": "counted and named; shape keys are not evaluated in the benchmark renders"
+   }
+  ],
+  "notes": [
+   "vertices/triangles are summed over primitives, so a vertex shared by two primitives counts twice — this is what the GPU draws",
+   "bounds come from the POSITION accessor min/max, which glTF requires to be exact",
+   "texture sizes are read from the PNG/JPEG/WebP headers inside the binary chunk"
+  ]
+ },
+ "provenance": [
+  {
+   "file": "leluverse/assets/characters/lelu_character/rig/v001_rigging_01a18f4e/provenance.json",
+   "content": {
+    "jobId": "fj_mvvnf4v9_1ded97",
+    "character": "lelu_character",
+    "kind": "rigging",
+    "purpose": "Phase G humanoid rig",
+    "meshyTaskId": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "request": {
+     "input_task_id": "01a18f49-94d7-777f-8f60-d072189c001a",
+     "height_meters": 1.75
+    },
+    "references": [],
+    "identityLock": null,
+    "estimatedCredits": 5,
+    "consumedCredits": 5,
+    "submittedAt": 1793405654679,
+    "finishedAt": 1793405688946
+   }
+  },
+  {
+   "file": "leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/report.json",
+   "content": {
+    "steps": [
+     {
+      "step": "meshes",
+      "head": "lelu_head",
+      "patches": [
+       "eye_patch_l",
+       "eye_patch_r"
+      ]
+     },
+     {
+      "step": "landmarks",
+      "count": 478
+     },
+     {
+      "step": "scale",
+      "mouthWidthM": 0.0338
+     },
+     {
+      "step": "lip-seam",
+      "facesRemoved": 128
+     },
+     {
+      "step": "mouth",
+      "parts": [
+       "lelu_mouth",
+       "lelu_teeth"
+      ]
+     },
+     {
+      "step": "shapes",
+      "shapes": {
+       "eyeBlinkLeft": {
+        "lelu_head": {
+         "verticesMoved": 1587,
+         "maxMm": 6.04
+        },
+        "eye_patch_l": {
+         "verticesMoved": 1160,
+         "maxMm": 6.05
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "eyeBlinkRight": {
+        "lelu_head": {
+         "verticesMoved": 2031,
+         "maxMm": 6.14
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 1264,
+         "maxMm": 6.18
+        }
+       },
+       "eyeWideLeft": {
+        "lelu_head": {
+         "verticesMoved": 558,
+         "maxMm": 1.88
+        },
+        "eye_patch_l": {
+         "verticesMoved": 588,
+         "maxMm": 1.88
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "eyeWideRight": {
+        "lelu_head": {
+         "verticesMoved": 847,
+         "maxMm": 1.9
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 674,
+         "maxMm": 1.92
+        }
+       },
+       "jawOpen": {
+        "lelu_head": {
+         "verticesMoved": 13055,
+         "maxMm": 5.42
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "mouthSmileLeft": {
+        "lelu_head": {
+         "verticesMoved": 4588,
+         "maxMm": 3.84
+        },
+        "eye_patch_l": {
+         "verticesMoved": 86,
+         "maxMm": 0.07
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "mouthSmileRight": {
+        "lelu_head": {
+         "verticesMoved": 4939,
+         "maxMm": 3.85
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 38,
+         "maxMm": 0.03
+        }
+       },
+       "mouthFrownLeft": {
+        "lelu_head": {
+         "verticesMoved": 2894,
+         "maxMm": 2.78
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "mouthFrownRight": {
+        "lelu_head": {
+         "verticesMoved": 2653,
+         "maxMm": 2.79
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "browInnerUp": {
+        "lelu_head": {
+         "verticesMoved": 2378,
+         "maxMm": 2.37
+        },
+        "eye_patch_l": {
+         "verticesMoved": 105,
+         "maxMm": 0.39
+        },
+        "eye_patch_r": {
+         "verticesMoved": 59,
+         "maxMm": 0.18
+        }
+       },
+       "browDownLeft": {
+        "lelu_head": {
+         "verticesMoved": 1695,
+         "maxMm": 2.17
+        },
+        "eye_patch_l": {
+         "verticesMoved": 191,
+         "maxMm": 0.27
+        },
+        "eye_patch_r": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        }
+       },
+       "browDownRight": {
+        "lelu_head": {
+         "verticesMoved": 1654,
+         "maxMm": 2.18
+        },
+        "eye_patch_l": {
+         "verticesMoved": 0,
+         "maxMm": 0
+        },
+        "eye_patch_r": {
+         "verticesMoved": 212,
+         "maxMm": 0.26
+        }
+       }
+      }
+     },
+     {
+      "step": "export",
+      "file": "lelu.glb",
+      "bytes": 49511140
+     }
+    ],
+    "warnings": [],
+    "shapes": {
+     "eyeBlinkLeft": {
+      "lelu_head": {
+       "verticesMoved": 1587,
+       "maxMm": 6.04
+      },
+      "eye_patch_l": {
+       "verticesMoved": 1160,
+       "maxMm": 6.05
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "eyeBlinkRight": {
+      "lelu_head": {
+       "verticesMoved": 2031,
+       "maxMm": 6.14
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 1264,
+       "maxMm": 6.18
+      }
+     },
+     "eyeWideLeft": {
+      "lelu_head": {
+       "verticesMoved": 558,
+       "maxMm": 1.88
+      },
+      "eye_patch_l": {
+       "verticesMoved": 588,
+       "maxMm": 1.88
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "eyeWideRight": {
+      "lelu_head": {
+       "verticesMoved": 847,
+       "maxMm": 1.9
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 674,
+       "maxMm": 1.92
+      }
+     },
+     "jawOpen": {
+      "lelu_head": {
+       "verticesMoved": 13055,
+       "maxMm": 5.42
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "mouthSmileLeft": {
+      "lelu_head": {
+       "verticesMoved": 4588,
+       "maxMm": 3.84
+      },
+      "eye_patch_l": {
+       "verticesMoved": 86,
+       "maxMm": 0.07
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "mouthSmileRight": {
+      "lelu_head": {
+       "verticesMoved": 4939,
+       "maxMm": 3.85
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 38,
+       "maxMm": 0.03
+      }
+     },
+     "mouthFrownLeft": {
+      "lelu_head": {
+       "verticesMoved": 2894,
+       "maxMm": 2.78
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "mouthFrownRight": {
+      "lelu_head": {
+       "verticesMoved": 2653,
+       "maxMm": 2.79
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "browInnerUp": {
+      "lelu_head": {
+       "verticesMoved": 2378,
+       "maxMm": 2.37
+      },
+      "eye_patch_l": {
+       "verticesMoved": 105,
+       "maxMm": 0.39
+      },
+      "eye_patch_r": {
+       "verticesMoved": 59,
+       "maxMm": 0.18
+      }
+     },
+     "browDownLeft": {
+      "lelu_head": {
+       "verticesMoved": 1695,
+       "maxMm": 2.17
+      },
+      "eye_patch_l": {
+       "verticesMoved": 191,
+       "maxMm": 0.27
+      },
+      "eye_patch_r": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      }
+     },
+     "browDownRight": {
+      "lelu_head": {
+       "verticesMoved": 1654,
+       "maxMm": 2.18
+      },
+      "eye_patch_l": {
+       "verticesMoved": 0,
+       "maxMm": 0
+      },
+      "eye_patch_r": {
+       "verticesMoved": 212,
+       "maxMm": 0.26
+      }
+     }
+    }
+   }
+  }
+ ],
+ "siblingVersions": [
+  {
+   "dir": "v004_headswap_mvvnvqa1",
+   "bytes": 48585500,
+   "sha256": "540c4c32a6d9ad830e4c53ccd2e4c380c96524cc16658e6f0149b326ca4df282"
+  }
+ ]
+}

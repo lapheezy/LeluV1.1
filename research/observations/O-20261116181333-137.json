@@ -1,0 +1,82 @@
+{
+  "id": "O-20261116181333-137",
+  "at": 1794852813000,
+  "type": "source-change",
+  "workPackage": "WP04",
+  "summary": "M15.3 WP04: final first-paint profiles (A/B, desktop/phone)",
+  "detail": "25 file(s): docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-03-world-+3s.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-04-world-+8s.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-05-world-+15s.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-06-end.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone.console.txt, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone.json, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-01-home-ready.png, docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-02-chat-over-unpainted-world.png, …",
+  "interpretation": "Associated with WP04 by explicit WP04. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38",
+      "note": "M15.3 WP04: final first-paint profiles (A/B, desktop/phone)"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-03-world-+3s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-04-world-+8s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-05-world-+15s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone-06-end.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone.console.txt",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/A-final-phone.json",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-01-home-ready.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-02-chat-over-unpainted-world.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-03-after-enter-+1s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-04-after-enter-+5s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-05-after-enter-+12s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-06-after-enter-+20s.png",
+      "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+    }
+  ],
+  "commit": "44ad88b9d4be61270cec40e937e0e42ffa7f1e38",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:44ad88b9d4be61270cec40e937e0e42ffa7f1e38"
+}

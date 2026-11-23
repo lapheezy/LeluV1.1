@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118222304-158",
+  "at": 1795040584301.2202,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "artifacts/lelu2/m23/youth/lelu2-m23-youth.glb (39.5 MB)",
+  "detail": "a generated model — geometry that can be measured and rendered again; 41399084 bytes",
+  "interpretation": "classed as source-change · artifact evidence · associated with MISSION by no work-package signal",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/m23/youth/lelu2-m23-youth.glb",
+      "at": 1795040584301.2202
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/m23/youth/lelu2-m23-youth.glb:41399084"
+}

@@ -1,0 +1,54 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look2-rose_gold_sovereign.glb",
+ "output": "artifacts/foundry/m25c/v2/rose_gold_sovereign-bustfront.png",
+ "view": "front",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.03999999910593033,
+   1.4500000476837158
+  ],
+  "radius": 0.3,
+  "lens": 85.0,
+  "distance": 1.448083024016387,
+  "location": [
+   0.0,
+   -1.4834712743759155,
+   1.565477728843689
+  ]
+ },
+ "resolution": [
+  640,
+  640
+ ],
+ "samples": 24,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.0355626828968525,
+  "exposureEV": -2.5243460712654735
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign"
+ ],
+ "triangles": 92884,
+ "materialsApplied": [
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 10.01,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

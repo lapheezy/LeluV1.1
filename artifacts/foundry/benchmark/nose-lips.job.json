@@ -1,0 +1,29 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/m23/youth/lelu2-m23-youth.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/nose-lips.png",
+ "shot": "nose-lips",
+ "view": "front",
+ "focus": [
+  "head",
+  "face"
+ ],
+ "camera": {
+  "center": [
+   0,
+   -0.1,
+   1.5583
+  ],
+  "radius": 0.07
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 32,
+ "threads": 7,
+ "ground": false,
+ "lens": 180,
+ "materials": true
+}

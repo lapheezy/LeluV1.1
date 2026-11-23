@@ -1,0 +1,27 @@
+{
+  "id": "O-20261117222625-111",
+  "at": 1794954385000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "chore(checkpoint): end-of-session checkpoint - full suite 2,345/2,351 pass, 0 fail",
+  "detail": "1 file(s): docs/SESSION_HANDOFF.md",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "ed5777ee64705e4e2e15ec5ec37832a32a5bd853",
+      "commit": "ed5777ee64705e4e2e15ec5ec37832a32a5bd853",
+      "note": "chore(checkpoint): end-of-session checkpoint - full suite 2,345/2,351 pass, 0 fail"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/SESSION_HANDOFF.md",
+      "commit": "ed5777ee64705e4e2e15ec5ec37832a32a5bd853"
+    }
+  ],
+  "commit": "ed5777ee64705e4e2e15ec5ec37832a32a5bd853",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:ed5777ee64705e4e2e15ec5ec37832a32a5bd853"
+}

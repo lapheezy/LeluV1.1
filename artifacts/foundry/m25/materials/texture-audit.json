@@ -1,0 +1,93 @@
+{
+ "images": [
+  {
+   "name": "eye_patch_l_tex",
+   "size": [
+    121,
+    83
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "eye_patch_r_tex",
+   "size": [
+    121,
+    78
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "m25_body_basecolor",
+   "size": [
+    2048,
+    2048
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "m25_body_metalrough",
+   "size": [
+    2048,
+    2048
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "m25_head_basecolor",
+   "size": [
+    4096,
+    4096
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "m25_head_metalrough",
+   "size": [
+    4096,
+    4096
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "normal",
+   "size": [
+    2048,
+    2048
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "normal.001",
+   "size": [
+    4096,
+    4096
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  }
+ ],
+ "changed": {
+  "m25_head_basecolor": "skin texels only (CIELAB)",
+  "m25_head_metalrough": "skin + hair texels",
+  "m25_body_basecolor": "skin texels only",
+  "m25_body_metalrough": "skin + hair-cape texels"
+ },
+ "unchanged": [
+  "normal maps",
+  "eye patch textures",
+  "metal texels"
+ ],
+ "eyeTexture": {
+  "size": "121 × 83 / 121 × 78",
+  "decision": "not enlarged",
+  "why": "no legitimate higher-detail source (empty sockets under the patches; reference photographs carry 40–84 px per eye)"
+ },
+ "encoding": "JPEG quality 90 on export (originals were JPEG; v0004 file keeps the originals)"
+}

@@ -1,0 +1,82 @@
+{
+  "id": "O-20261118145632-004",
+  "at": 1795013792000,
+  "type": "architecture-change",
+  "workPackage": "WP03",
+  "summary": "feat(lelu2): grow her hair and ornament from measured golden geometry",
+  "detail": "51 file(s): artifacts/lelu2/baseline/cameras.json, artifacts/lelu2/baseline/lelu2-baseline-back.job.json, artifacts/lelu2/baseline/lelu2-baseline-back.png, artifacts/lelu2/baseline/lelu2-baseline-back.png.json, artifacts/lelu2/baseline/lelu2-baseline-face-front.job.json, artifacts/lelu2/baseline/lelu2-baseline-face-front.png, artifacts/lelu2/baseline/lelu2-baseline-face-front.png.json, artifacts/lelu2/baseline/lelu2-baseline-front.job.json, …",
+  "interpretation": "Associated with WP03 by keyword \\bwp\\s*0?3\\b|hair|tube|curl|. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8",
+      "note": "feat(lelu2): grow her hair and ornament from measured golden geometry"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/cameras.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-back.job.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-back.png",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-back.png.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-face-front.job.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-face-front.png",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-face-front.png.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-front.job.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-front.png",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-front.png.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-metrics.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    },
+    {
+      "kind": "code",
+      "ref": "artifacts/lelu2/baseline/lelu2-baseline-three-quarter.job.json",
+      "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+    }
+  ],
+  "commit": "6bb3b025fcf9226d77d083e2ccab9df702dffbb8",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:6bb3b025fcf9226d77d083e2ccab9df702dffbb8"
+}

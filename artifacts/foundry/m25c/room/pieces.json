@@ -1,0 +1,134 @@
+{
+ "bed": {
+  "sizeM": [
+   2.4,
+   2.238,
+   0.77
+  ],
+  "triangles": 29999,
+  "sourceTriangles": 30550,
+  "bytes": 2033248,
+  "sha256": "e26e4c06b50c20913c6854ae67edd85927855d1dfcbf5d7860c28b76d089cd22"
+ },
+ "tub": {
+  "sizeM": [
+   2.0,
+   2.001,
+   0.536
+  ],
+  "triangles": 24000,
+  "sourceTriangles": 27548,
+  "bytes": 1682580,
+  "sha256": "48a527ccf02827674f6636ed24bfb8f53e3357883209a0aae75265b015355f99"
+ },
+ "dining": {
+  "sizeM": [
+   2.7,
+   2.472,
+   0.924
+  ],
+  "triangles": 28233,
+  "sourceTriangles": 28233,
+  "bytes": 1925508,
+  "sha256": "1acc991fc8bfc510f3d54bed8cd88eace212a2c79e90d04fbe07816797d39276"
+ },
+ "island": {
+  "sizeM": [
+   2.7,
+   1.49,
+   0.827
+  ],
+  "triangles": 25935,
+  "sourceTriangles": 25935,
+  "bytes": 1726004,
+  "sha256": "eb2354a07879b07f7707d7888e53b82ba5c499c54e30577bf6a1603ceb7745c5"
+ },
+ "desk": {
+  "sizeM": [
+   2.9,
+   1.367,
+   1.091
+  ],
+  "triangles": 26455,
+  "sourceTriangles": 26455,
+  "bytes": 1653768,
+  "sha256": "92796878edd9efbe882e9b0ca6c62e1b371ec1d04c48e94ec0ab8a2a6bfe3d3e"
+ },
+ "theater_sofa": {
+  "sizeM": [
+   4.2,
+   3.108,
+   0.778
+  ],
+  "triangles": 29999,
+  "sourceTriangles": 30207,
+  "bytes": 1943076,
+  "sha256": "9a61d08cbacae6dbd6734acd7a55a8de92aee48014a3c6d164dc68ad4fa8e3ae"
+ },
+ "lounge_ring": {
+  "sizeM": [
+   3.8,
+   3.797,
+   0.698
+  ],
+  "triangles": 29258,
+  "sourceTriangles": 29258,
+  "bytes": 2319840,
+  "sha256": "cd2c48c6bb3dc3ed2d7f625564c8f5dafa78a3221d4d4d6720c8d5daf5bfdb79"
+ },
+ "crystal": {
+  "sizeM": [
+   0.327,
+   0.349,
+   0.55
+  ],
+  "triangles": 3999,
+  "sourceTriangles": 29048,
+  "bytes": 306692,
+  "sha256": "d938d7222e3d58c9f8b64d42b03fc9eb9cbcd8fc9f92bfc8e1a7aee54d5754a8"
+ },
+ "chandelier": {
+  "sizeM": [
+   0.775,
+   0.789,
+   1.302
+  ],
+  "triangles": 16000,
+  "sourceTriangles": 30291,
+  "bytes": 1053008,
+  "sha256": "1f11f38f58739665a13fc64c7099f6338ae15d15f0ec43983e6a933d306bfb77"
+ },
+ "planter": {
+  "sizeM": [
+   1.372,
+   1.493,
+   1.5
+  ],
+  "triangles": 16000,
+  "sourceTriangles": 23688,
+  "bytes": 1356752,
+  "sha256": "56afcc4a47b4c98fcff55bad65234e961e7e8a4315f2703526e2ca5383f6f8fd"
+ },
+ "vanity": {
+  "sizeM": [
+   1.062,
+   1.002,
+   1.501
+  ],
+  "triangles": 12000,
+  "sourceTriangles": 27605,
+  "bytes": 722304,
+  "sha256": "a014cfe5d3233791d934e2a2a5f159a6204f97e72ce532a577503985722a249c"
+ },
+ "fridge": {
+  "sizeM": [
+   1.508,
+   0.271,
+   2.152
+  ],
+  "triangles": 12000,
+  "sourceTriangles": 19846,
+  "bytes": 1156380,
+  "sha256": "582d4a6078a34af92cf6803f7c7a632a72feb583eb07a13057ab90461eff5b4f"
+ }
+}

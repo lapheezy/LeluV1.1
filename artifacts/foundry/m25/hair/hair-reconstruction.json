@@ -1,0 +1,50 @@
+{
+ "representation": "hybrid",
+ "foundation": {
+  "objects": [
+   "lelu_hair (existing, Taubin 4 it ≤ 6 mm, normals 80°)",
+   "char1 hair cape (Taubin 12 it ≤ 15 mm)"
+  ],
+  "material": "m25_hair_foundation / m25_hair_body: asset albedo (near-black, sRGB mean 0.07/0.03/0.03), metallic 0, roughness ≥ 0.55, normal map strength 0.6",
+  "opacity": "opaque (no alpha)"
+ },
+ "primary": {
+  "object": "lelu_hair_ringlets",
+  "strands": 513,
+  "vertices": 163650,
+  "triangles": 321144,
+  "strandLengthMm": {
+   "p10": 26.0,
+   "p50": 122.5,
+   "p90": 302.2
+  },
+  "ringlets": 516,
+  "construction": "axis grown down the outer hair surface (4 mm steps, gravity + surface projection, skin push-out), helix of radius 3.4–6.2 mm and pitch 10–16 mm around it, root relaxed over 15 mm, tip tightened 15 %, swept as a 6-sided rounded tube of clump radius 1.3–2.0 mm with smooth normals",
+  "materials": {
+   "m25_hair_curl": "linear (0.010, 0.0055, 0.0048), roughness 0.42",
+   "m25_hair_highlight": "burgundy linear (0.075, 0.012, 0.022), 14 % of ringlets"
+  },
+  "truncatedAtFace": 10
+ },
+ "secondary": {
+  "object": "lelu_hair_strands",
+  "strands": 482,
+  "vertices": 31053,
+  "triangles": 59214,
+  "strandLengthMm": {
+   "p10": 27.1,
+   "p50": 55.7,
+   "p90": 95.3
+  },
+  "flyaways": 434,
+  "babyHairs": 48,
+  "construction": "flyaways: 20–70 mm curled 3-sided fibres (0.16–0.28 mm radius) leaving the outer surface; baby hairs: 8–20 mm spirals laid 0.4 mm off the forehead skin along the hairline"
+ },
+ "skinning": "Head weight 1 above 1.50 m, blended linearly to Spine02 by 1.30 m",
+ "rootsRejected": 1073,
+ "notDone": [
+  "no strand simulation or grooming tool",
+  "ringlets are not separated into editable clusters beyond one object per layer",
+  "no per-strand UVs / textures: colour variation is by material (curl vs highlight)"
+ ]
+}

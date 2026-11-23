@@ -1,0 +1,51 @@
+{
+ "input": "artifacts/foundry/m24/assets/lelu-m24-hair-split.glb",
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/acceptance/v0004/08-crown.png",
+ "view": "top",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.004999999888241291,
+   1.659999966621399
+  ],
+  "radius": 0.14,
+  "lens": 85.0,
+  "distance": 0.675772077874314,
+  "location": [
+   0.0,
+   -0.22824156284332275,
+   2.29783296585083
+  ]
+ },
+ "resolution": [
+  1024,
+  1024
+ ],
+ "samples": 64,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.3491715925435226,
+  "exposureEV": -2.90600503548324
+ },
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "triangles": 224233,
+ "materialsApplied": [],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 60.13,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

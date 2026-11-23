@@ -1,0 +1,110 @@
+{
+ "input": "artifacts/foundry/m25c/steps/s2-lipsurface.glb",
+ "output": "artifacts/foundry/m25c/outfit-current/walk-f12-before.png",
+ "view": "three-quarter",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   -0.05000000074505806,
+   0.8999999761581421
+  ],
+  "radius": 0.95,
+  "lens": 70.0,
+  "distance": 3.814632322136226,
+  "location": [
+   2.2184133529663086,
+   -3.131129503250122,
+   1.2697354555130005
+  ]
+ },
+ "resolution": [
+  768,
+  1152
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.2291912800735898,
+  "exposureEV": -2.771640625882587
+ },
+ "objects": [
+  "char1",
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_ringlets",
+  "lelu_hair_strands",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth"
+ ],
+ "triangles": 370279,
+ "materialsApplied": [
+  "m25_hair_body: anisotropy (Cycles extension)",
+  "m25_hair_body.001: anisotropy (Cycles extension)",
+  "m25_hair_curl: anisotropy (Cycles extension)",
+  "m25_hair_curl.001: anisotropy (Cycles extension)",
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_foundation.001: anisotropy (Cycles extension)",
+  "m25_hair_highlight: anisotropy (Cycles extension)",
+  "m25_hair_highlight.001: anisotropy (Cycles extension)",
+  "m25_hair_strand: anisotropy (Cycles extension)",
+  "m25_hair_strand.001: anisotropy (Cycles extension)",
+  "m25_skin_body: SSS (Cycles extension)",
+  "m25_skin_body.001: SSS (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)",
+  "m25_skin_head.001: SSS (Cycles extension)"
+ ],
+ "animation": {
+  "clip": "leluverse/assets/characters/lelu_character/animations/v021_animation_01a193c7/motion.glb",
+  "action": "walk",
+  "frameRange": [
+   0.8000000715255737,
+   24.0
+  ],
+  "frame": 12,
+  "channelsMerged": 66,
+  "unmatchedNodes": [],
+  "bonesMoved": 22,
+  "boneDelta": {
+   "Hips": 9.6879,
+   "LeftUpLeg": 2.9649,
+   "LeftLeg": 0.4825,
+   "LeftFoot": 1.1413,
+   "LeftToeBase": 0.8062,
+   "RightUpLeg": 2.2649,
+   "RightLeg": 2.7926,
+   "RightFoot": 1.6136,
+   "RightToeBase": 0.7543,
+   "Spine02": 0.0616,
+   "Spine01": 0.1419,
+   "Spine": 0.4112,
+   "LeftShoulder": 1.4631,
+   "LeftArm": 0.6812,
+   "LeftForeArm": 0.9194,
+   "LeftHand": 2.3394,
+   "neck": 0.1909,
+   "Head": 0.1172,
+   "head_end": 0.0,
+   "headfront": 0.0,
+   "RightShoulder": 0.6675,
+   "RightArm": 0.7638,
+   "RightForeArm": 2.0852,
+   "RightHand": 3.4052
+  },
+  "hipsWorld": [
+   0.045,
+   -0.0085,
+   1.0414
+  ]
+ },
+ "shapeKeys": null,
+ "renderSeconds": 21.79,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

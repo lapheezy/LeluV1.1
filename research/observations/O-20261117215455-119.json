@@ -1,0 +1,42 @@
+{
+  "id": "O-20261117215455-119",
+  "at": 1794952495000,
+  "type": "architecture-change",
+  "workPackage": "MISSION",
+  "summary": "feat(asre): geometry/material key split and worker-thread component pool",
+  "detail": "4 file(s): scripts/asre/component-worker.ts, scripts/asre/pool.ts, src/core/asre/character/build.ts, tests/asre-character.test.ts",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "ca981e6b392402e831ad4cf363047983178c5a16",
+      "commit": "ca981e6b392402e831ad4cf363047983178c5a16",
+      "note": "feat(asre): geometry/material key split and worker-thread component pool"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/component-worker.ts",
+      "commit": "ca981e6b392402e831ad4cf363047983178c5a16"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/pool.ts",
+      "commit": "ca981e6b392402e831ad4cf363047983178c5a16"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/character/build.ts",
+      "commit": "ca981e6b392402e831ad4cf363047983178c5a16"
+    },
+    {
+      "kind": "code",
+      "ref": "tests/asre-character.test.ts",
+      "commit": "ca981e6b392402e831ad4cf363047983178c5a16"
+    }
+  ],
+  "commit": "ca981e6b392402e831ad4cf363047983178c5a16",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:ca981e6b392402e831ad4cf363047983178c5a16"
+}

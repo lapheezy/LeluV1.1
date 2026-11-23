@@ -1,0 +1,105 @@
+{
+  "variant": "voxel",
+  "lod": null,
+  "ms": 64260,
+  "triangles": 1398104,
+  "hairTriangles": 540508,
+  "glbBytes": 44423440,
+  "occupancyCells": 375460,
+  "occupancyDigest": 15999,
+  "hair": {
+    "golden": true,
+    "roots": 1350,
+    "curl": "golden-spiral",
+    "rootCv": 0.847142777704976,
+    "meanSpacing": 0.005151661372423803,
+    "minSpacing": 0.000023672242883634266,
+    "maxSpacing": 0.021483353609208646
+  },
+  "tubes": {
+    "enabled": false,
+    "lod": null,
+    "strands": 0,
+    "triangles": 0,
+    "sides": 0,
+    "segments": 0,
+    "rootOffsetMinMm": 0,
+    "rootOffsetMaxMm": 0,
+    "rootPenetrations": 0,
+    "floatingRoots": 0,
+    "diameterMinMm": 0,
+    "diameterMaxMm": 0,
+    "diameterCv": 0,
+    "tipScaleMin": 0,
+    "tipScaleMax": 0,
+    "babyStrands": 0,
+    "babyMaxLengthMm": 0,
+    "rootsMeasured": 0,
+    "rootsOutsideFieldBox": 0,
+    "rootOffsetP50Mm": 0,
+    "rootOffsetP99Mm": 0
+  },
+  "components": [
+    {
+      "id": "torso",
+      "triangles": 26200
+    },
+    {
+      "id": "pelvis",
+      "triangles": 51044
+    },
+    {
+      "id": "neck",
+      "triangles": 20184
+    },
+    {
+      "id": "head",
+      "triangles": 57232
+    },
+    {
+      "id": "face",
+      "triangles": 2536
+    },
+    {
+      "id": "hair",
+      "triangles": 540508
+    },
+    {
+      "id": "arms",
+      "triangles": 26544
+    },
+    {
+      "id": "hands",
+      "triangles": 23868
+    },
+    {
+      "id": "legs",
+      "triangles": 97856
+    },
+    {
+      "id": "feet",
+      "triangles": 38172
+    },
+    {
+      "id": "clothing.top",
+      "triangles": 84872
+    },
+    {
+      "id": "clothing.bottom",
+      "triangles": 313796
+    },
+    {
+      "id": "clothing.shoes",
+      "triangles": 99836
+    },
+    {
+      "id": "accessories.head",
+      "triangles": 2636
+    },
+    {
+      "id": "accessories.body",
+      "triangles": 12820
+    }
+  ],
+  "rootClearance": null
+}

@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118204520-170",
+  "at": 1795034720492.654,
+  "type": "experiment-config",
+  "workPackage": "WP10",
+  "summary": "artifacts/lelu2/research/acceptance.json (5.7 KB)",
+  "detail": "an experiment configuration or result document; 5820 bytes",
+  "interpretation": "classed as experiment-config · artifact evidence · associated with WP10 by artefact path \\/research\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/research/acceptance.json",
+      "at": 1795034720492.654
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/research/acceptance.json:5820"
+}

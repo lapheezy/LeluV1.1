@@ -26,16 +26,58 @@ import AvatarStore from "../avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommandKind, type AvatarPlace } from "../avatar/AvatarCommandBus";
 import LeluCharacterStore from "../avatar/LeluCharacterStore";
 import { parseAvatarPresenceCommand } from "./avatarPresenceCommand";
+import { parseOutfitCommand, lookName } from "../avatar/outfitCommand";
+import OutfitDirector from "../avatar/OutfitDirector";
 import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import AgentEventBus, { type AgentEventListener } from "../agent/AgentEvents";
 
 export default class AvatarResolver {
+  /**
+   * "Wear the copper coat", "put on something comfy", "what can you wear?" —
+   * outfit changes in plain words, executed through the existing wardrobe
+   * (OutfitDirector → Forge /dress), model-free. Only a real wardrobe answer
+   * is reported; an unknown look is refused with the list of real ones.
+   */
+  private async executeOutfit(context: RouterContext): Promise<BrainResult> {
+    const director = OutfitDirector.get();
+    if (!director) return { handled: false };
+    const parsed = parseOutfitCommand(context.request.prompt ?? "");
+    if (!parsed) return { handled: false };
+    const events = AgentEventBus.getInstance();
+    const taskId = String(context.request.timestamp ?? Date.now());
+    let text: string;
+    try {
+      if (parsed.type === "wardrobe") {
+        const { current, looks } = await director.available();
+        text = `I can wear: ${looks.map((l) => (l === current ? `${lookName(l)} (wearing it)` : lookName(l))).join(", ")}.`;
+      } else {
+        const change = await director.dress(parsed.type === "dress" ? parsed.look : null, "chat", `asked in chat: “${(context.request.prompt ?? "").trim()}”`);
+        text = change.to ? `Done — I'm in the ${lookName(change.to)} now.` : "Back to my base look.";
+        events.emit({ type: "tool_result", taskId, tool: "forge.dress", result: `look ${change.from ?? "base"} → ${change.to ?? "base"} (chat)` });
+      }
+    } catch (error) {
+      text = error instanceof Error ? error.message : String(error);
+    }
+    return {
+      handled: true,
+      response: {
+        text,
+        provider: "brain",
+        model: "avatar-wardrobe",
+        processingTime: Date.now() - context.started,
+        metadata: { source: "AvatarResolver", avatar: true, outfit: parsed.type === "dress" ? parsed.look : parsed.type },
+      },
+    };
+  }
+
   /**
    * Her presence commands in plain words ("become a hologram", "walk to the
    * studio", "dance"), deterministic and model-free. Run early by AIRouter,
    * before any stage could read "hologram" or "studio" as something else.
    */
   public async executeDirect(context: RouterContext): Promise<BrainResult> {
+    const outfit = await this.executeOutfit(context);
+    if (outfit.handled) return outfit;
     const parsed = parseAvatarPresenceCommand(context.request.prompt ?? "");
     if (!parsed) return { handled: false };
     const events = AgentEventBus.getInstance();

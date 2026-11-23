@@ -1,0 +1,102 @@
+{
+ "jobs": [
+  {
+   "look": "hair_rose_gold_waves",
+   "kind": "image-to-image",
+   "task": "01a1f5d4-738b-709d-9cc7-b21a66280d1b",
+   "submittedAt": 1795125704.8692334,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "Show exactly this hairstyle ALONE, worn on a smooth matte plain light-grey mannequin head and shoulders with NO face features, no skin, no clothes, no earrings, plain white background, front three-quarter view, the whole length of the hair visible from the crown to the ends. Copy every detail of the hair in the photographs: very long voluminous dark brown loose wavy curls with copper-auburn highlights, swept back from the face and falling past the shoulders to mid-back, sleek laid edges with swirled baby hairs at the temple, a large gold flower-of-life medallion hair ornament with hanging gold chains, beads and a crystal drop clipped on the left side above the ear, and several small gold ring cuffs on curls near the crown.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "artifacts/foundry/m25c/references/batch3/03-coat-hair-profile.png",
+     "sha256": "5d461b3fded458df6cebe4bbca43fc5e731179a16ea8d08c7cb49d6c59591b5c"
+    },
+    {
+     "file": "artifacts/foundry/m25c/references/batch2/02-coat-fullbody-cropped.png",
+     "sha256": "a52b92101921abaad4a09ae31bdc9a913987def609adaf7cb5688c4f747137d4"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d4-738b-709d-9cc7-b21a66280d1b",
+   "finished": 1795125755.998118,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d4-738b-709d-9cc7-b21a66280d1b",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "Show exactly this hairstyle ALONE, worn on a smooth matte plain light-grey mannequin head and shoulders with NO face features, no skin, no clothes, no earrings, plain white background, front three-quarter view, the whole length of the hair visible from the crown to the ends. Copy every detail of the hair in the photographs: very long voluminous dark brown loose wavy curls with copper-auburn highlights, swept back from the face and falling past the shoulders to mid-back, sleek laid edges with swirled baby hairs at the temple, a large gold flower-of-life medallion hair ornament with hanging gold chains, beads and a crystal drop clipped on the left side above the ear, and several small gold ring cuffs on curls near the crown.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125704666,
+    "started_at": 1795125704679,
+    "finished_at": 1795125738156,
+    "expires_at": 1795384938156,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d4-738b-709d-9cc7-b21a66280d1b_0.png?Expires=1795384938&Signature=j6RmhFvQbjoPbH6keGTJOI8~PcSVkpLbwAp6zcVdDWhhzajH3T~zcvuwEsORQeBTXiSqOIH90CjQSKgFBOwIOc472HG4blpgQasiDgU55N6u5KRm4zk0mfHC~jHYEeec-mpzNlcNz7u79Lef91wHiOapMBehK~vVfYW-0QNO6~i2AC1aK57Y5-kHb0A~tojErCD5pHpEM9n1dl7ReIHw6cPrIBY0rckJD9vBXP1XFqMrWp6Qke0YOrJgIiBEeiyo3zSj566nhGhPggX946VmXfQ-Isfz9hdeg5kwvdhRqe0rRvpL4s9P8t1BGDdHNTqoZJV9CJkpE2wDYsXKmLZjYA__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d4_0.png",
+     "bytes": 955974,
+     "sha256": "b55a751f7ae2adbe06e9b552248ad2f4ae626da82d5a2b54965600d55e52a92a"
+    }
+   ]
+  },
+  {
+   "look": "hair_rose_gold_waves",
+   "kind": "image-to-image",
+   "task": "01a1f5d5-7928-7728-b6fb-cc4333979b46",
+   "submittedAt": 1795125771.5219305,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same hairstyle with the same hair ornaments on the same blank grey mannequin, identical in every detail. Show it from the left side, from the back, and from the right side, side by side, plain background, the full length of the hair visible.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v040_image-to-image_hair_rose_gold_waves/view_01a1f5d4_0.png",
+     "sha256": "b55a751f7ae2adbe06e9b552248ad2f4ae626da82d5a2b54965600d55e52a92a"
+    }
+   ]
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f5d5-7928-7728-b6fb-cc4333979b46",
+   "finished": 1795125833.6399088,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f5d5-7928-7728-b6fb-cc4333979b46",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same hairstyle with the same hair ornaments on the same blank grey mannequin, identical in every detail. Show it from the left side, from the back, and from the right side, side by side, plain background, the full length of the hair visible.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795125771344,
+    "started_at": 1795125771353,
+    "finished_at": 1795125786662,
+    "expires_at": 1795384986662,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f5d5-7928-7728-b6fb-cc4333979b46_0.png?Expires=1795384986&Signature=HWquNIyFLC67GtcyBDaj-pqhb6QgPE-07SfMl5SJX0yqQYFW1By-yeBl6Mh2iUW1J5TEz3iBf-ePubBRXEbC~TbXI0KuKtdXO7V-TW73ZSSVCVxU1wjRSqLKaOX1nlohT8RHBp9f4cMr1hCBj669L3Kl5o6uTb3i7yX42oN3fnn0CJR034VindAUT3PSgnufq386zSWLKj69b2rPwBsTrkwCPERbU27znsIh-az965e~hs1vYuX6-G2~yMdkMMoF~fqmPEn9z7igrMIxg81FE~TN7Kre62qN8VCKzRVy2hf6a6lv04IgFKZrJetK5~g7dVAS3KeBMkDpsfzJlMIl4A__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f5d5_0.png",
+     "bytes": 1002373,
+     "sha256": "11df3147ad3098a0520aa6d369b389f2eceae367ae63c0e6473f1134417cae6f"
+    }
+   ]
+  }
+ ]
+}

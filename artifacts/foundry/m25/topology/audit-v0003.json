@@ -1,0 +1,1235 @@
+{
+ "input": "leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+ "label": "v0003",
+ "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce",
+ "objects": [
+  {
+   "name": "Icosphere",
+   "vertices": 42,
+   "triangles": 80,
+   "uniquePositions": 42,
+   "weldRatio": 1.0,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 11.66593,
+   "edgeLengthMm": {
+    "p1": 546.52646,
+    "p10": 546.53051,
+    "p50": 582.28201,
+    "p90": 618.03815,
+    "p99": 618.04257
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 55.56792,
+     "p10": 55.56821,
+     "p50": 55.56898,
+     "p90": 59.99953,
+     "p99": 59.99981
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 80,
+    "flatShadedShare": 1.0,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 1e-05,
+     "p90": 1e-05,
+     "p99": 2e-05
+    },
+    "sharedPositions": 42,
+    "positionsWithNormalSpreadOver30deg": 0,
+    "hardShareOfShared": 0.0,
+    "hasCustomNormals": false
+   },
+   "weldedGraph": {
+    "boundaryEdges": 0,
+    "manifoldEdges": 120,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 18.02869,
+     "p10": 18.02886,
+     "p50": 20.24413,
+     "p90": 22.45915,
+     "p99": 22.45931
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 80.0,
+     "p10": 80.0,
+     "p50": 80.0,
+     "p90": 80.0,
+     "p99": 80.0
+    },
+    "largestComponent": 80
+   },
+   "materials": [],
+   "shapeKeys": [],
+   "vertexGroups": 0,
+   "bounds": {
+    "min": [
+     -0.9511,
+     -1.0,
+     -1.0
+    ],
+    "max": [
+     0.9511,
+     1.0,
+     1.0
+    ]
+   }
+  },
+  {
+   "name": "char1",
+   "vertices": 83133,
+   "triangles": 39166,
+   "uniquePositions": 18470,
+   "weldRatio": 4.501,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 4.30023,
+   "edgeLengthMm": {
+    "p1": 3.92471,
+    "p10": 6.5684,
+    "p50": 14.30044,
+    "p90": 34.24754,
+    "p99": 70.18073
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 4.28888,
+     "p10": 10.41508,
+     "p50": 25.57419,
+     "p90": 45.13281,
+     "p99": 55.11562
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 11256,
+    "flatShadedShare": 0.2874,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 2e-05,
+     "p10": 9e-05,
+     "p50": 2.30852,
+     "p90": 14.91906,
+     "p99": 27.10187
+    },
+    "sharedPositions": 18372,
+    "positionsWithNormalSpreadOver30deg": 16193,
+    "hardShareOfShared": 0.8814,
+    "hasCustomNormals": true
+   },
+   "weldedGraph": {
+    "boundaryEdges": 824,
+    "manifoldEdges": 57039,
+    "nonManifoldEdges": 718,
+    "windingInconsistentEdges": 18,
+    "dihedralDeg": {
+     "p1": 0.67372,
+     "p10": 6.48265,
+     "p50": 36.64004,
+     "p90": 100.81244,
+     "p99": 154.61272
+    },
+    "dihedralOver60Share": 0.2963,
+    "components": 87,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 7.0,
+     "p90": 60.0,
+     "p99": 5394.12
+    },
+    "largestComponent": 37522
+   },
+   "materials": [
+    {
+     "name": "Material_0",
+     "principled": true,
+     "blend_method": "HASHED",
+     "surface_render_method": "DITHERED",
+     "inputs": {
+      "Base Color": {
+       "linked": true,
+       "image": "Image_0",
+       "size": [
+        2048,
+        2048
+       ],
+       "colorspace": "sRGB",
+       "interpolation": "Linear"
+      },
+      "Metallic": {
+       "linked": true,
+       "image": "Image_1",
+       "size": [
+        2048,
+        2048
+       ],
+       "colorspace": "Non-Color",
+       "interpolation": "Linear"
+      },
+      "Roughness": {
+       "linked": true,
+       "image": "Image_1",
+       "size": [
+        2048,
+        2048
+       ],
+       "colorspace": "Non-Color",
+       "interpolation": "Linear"
+      },
+      "Normal": {
+       "linked": true,
+       "image": "normal",
+       "size": [
+        2048,
+        2048
+       ],
+       "colorspace": "Non-Color",
+       "interpolation": "Linear"
+      },
+      "Alpha": {
+       "linked": false,
+       "value": 1.0
+      },
+      "Specular IOR Level": {
+       "linked": false,
+       "value": 0.5
+      },
+      "Emission Color": {
+       "linked": false,
+       "value": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     }
+    }
+   ],
+   "shapeKeys": [],
+   "vertexGroups": 24,
+   "bounds": {
+    "min": [
+     -0.4488,
+     -0.2089,
+     0.0
+    ],
+    "max": [
+     0.4488,
+     0.2089,
+     1.4719
+    ]
+   },
+   "textureStats": {
+    "albedoLuminance": {
+     "p1": 0.02658,
+     "p10": 0.0766,
+     "p50": 0.17791,
+     "p90": 0.55928,
+     "p99": 0.68057
+    },
+    "albedoMeanRGB": [
+     0.3334,
+     0.231,
+     0.187
+    ],
+    "metallic": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 0.03137,
+     "p90": 0.75294,
+     "p99": 0.96078
+    },
+    "metallicMean": 0.2014,
+    "roughness": {
+     "p1": 0.29804,
+     "p10": 0.47059,
+     "p50": 0.95294,
+     "p90": 0.97255,
+     "p99": 0.99608
+    },
+    "roughnessMean": 0.8447
+   },
+   "regions": {
+    "shoulders": {
+     "triangles": 6624,
+     "hairDarkAlbedoShare": 0.3146,
+     "meanEdgeMm": 12.72,
+     "triangleMeanDihedralDeg": {
+      "p1": 7.48086,
+      "p10": 24.14147,
+      "p50": 51.66753,
+      "p90": 84.29964,
+      "p99": 115.9002
+     },
+     "dihedralOver45Share": 0.611,
+     "flatShadedShare": 0.3756,
+     "metallicMean": 0.1202,
+     "roughnessMean": 0.8965
+    },
+    "upperChest": {
+     "triangles": 1103,
+     "hairDarkAlbedoShare": 0.204,
+     "meanEdgeMm": 16.582,
+     "triangleMeanDihedralDeg": {
+      "p1": 6.91662,
+      "p10": 15.63229,
+      "p50": 42.45814,
+      "p90": 76.76988,
+      "p99": 110.23059
+     },
+     "dihedralOver45Share": 0.4555,
+     "flatShadedShare": 0.2811,
+     "metallicMean": 0.3446,
+     "roughnessMean": 0.7428
+    },
+    "neck": {
+     "triangles": 480,
+     "hairDarkAlbedoShare": 0.6646,
+     "meanEdgeMm": 14.153,
+     "triangleMeanDihedralDeg": {
+      "p1": 7.77674,
+      "p10": 19.56115,
+      "p50": 42.4157,
+      "p90": 80.74634,
+      "p99": 118.8567
+     },
+     "dihedralOver45Share": 0.4611,
+     "flatShadedShare": 0.2938,
+     "metallicMean": 0.1101,
+     "roughnessMean": 0.898
+    },
+    "upperBack": {
+     "triangles": 9143,
+     "hairDarkAlbedoShare": 0.5092,
+     "meanEdgeMm": 13.384,
+     "triangleMeanDihedralDeg": {
+      "p1": 9.0951,
+      "p10": 23.56038,
+      "p50": 48.90166,
+      "p90": 81.89608,
+      "p99": 114.52137
+     },
+     "dihedralOver45Share": 0.5616,
+     "flatShadedShare": 0.3552,
+     "metallicMean": 0.1116,
+     "roughnessMean": 0.9006
+    },
+    "arms": {
+     "triangles": 2087,
+     "hairDarkAlbedoShare": 0.2108,
+     "meanEdgeMm": 17.826,
+     "triangleMeanDihedralDeg": {
+      "p1": 8.53887,
+      "p10": 19.71218,
+      "p50": 42.96965,
+      "p90": 72.5478,
+      "p99": 108.83913
+     },
+     "dihedralOver45Share": 0.4612,
+     "flatShadedShare": 0.2717,
+     "metallicMean": 0.4387,
+     "roughnessMean": 0.6909
+    }
+   },
+   "darkAlbedoTriangles": {
+    "count": 11672,
+    "share": 0.298,
+    "zRange": {
+     "p1": 0.00415,
+     "p10": 0.15024,
+     "p50": 1.22524,
+     "p90": 1.40398,
+     "p99": 1.44758
+    }
+   }
+  },
+  {
+   "name": "eye_patch_l",
+   "vertices": 2052,
+   "triangles": 1026,
+   "uniquePositions": 560,
+   "weldRatio": 3.664,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 0.00059,
+   "edgeLengthMm": {
+    "p1": 0.95223,
+    "p10": 0.95375,
+    "p50": 1.18134,
+    "p90": 1.52182,
+    "p99": 1.56463
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 37.18806,
+     "p10": 38.26535,
+     "p50": 39.43046,
+     "p90": 40.12128,
+     "p99": 40.65649
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 1026,
+    "flatShadedShare": 1.0,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 0.23564,
+     "p10": 0.26699,
+     "p50": 0.30481,
+     "p90": 0.32178,
+     "p99": 0.33846
+    },
+    "sharedPositions": 558,
+    "positionsWithNormalSpreadOver30deg": 0,
+    "hardShareOfShared": 0.0,
+    "hasCustomNormals": true
+   },
+   "weldedGraph": {
+    "boundaryEdges": 92,
+    "manifoldEdges": 1493,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.47382,
+     "p10": 0.52208,
+     "p50": 0.61381,
+     "p90": 1.4157,
+     "p99": 1.44328
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 1026.0,
+     "p10": 1026.0,
+     "p50": 1026.0,
+     "p90": 1026.0,
+     "p99": 1026.0
+    },
+    "largestComponent": 1026
+   },
+   "materials": [
+    {
+     "name": "eye_patch_l_mat",
+     "principled": true,
+     "blend_method": "BLEND",
+     "surface_render_method": "BLENDED",
+     "inputs": {
+      "Base Color": {
+       "linked": true,
+       "image": "eye_patch_l_tex",
+       "size": [
+        121,
+        83
+       ],
+       "colorspace": "sRGB",
+       "interpolation": "Linear"
+      },
+      "Metallic": {
+       "linked": false,
+       "value": 0.0
+      },
+      "Roughness": {
+       "linked": false,
+       "value": 0.85
+      },
+      "Normal": {
+       "linked": false,
+       "value": [
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "Alpha": {
+       "linked": true,
+       "image": "eye_patch_l_tex",
+       "size": [
+        121,
+        83
+       ],
+       "colorspace": "sRGB",
+       "interpolation": "Linear"
+      },
+      "Specular IOR Level": {
+       "linked": false,
+       "value": 0.15
+      },
+      "Emission Color": {
+       "linked": false,
+       "value": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     }
+    }
+   ],
+   "shapeKeys": [
+    "Basis",
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ],
+   "vertexGroups": 24,
+   "bounds": {
+    "min": [
+     0.0074,
+     -0.0968,
+     1.5842
+    ],
+    "max": [
+     0.0386,
+     -0.0894,
+     1.6023
+    ]
+   },
+   "textureStats": {
+    "albedoLuminance": {
+     "p1": 0.00369,
+     "p10": 0.02921,
+     "p50": 0.26566,
+     "p90": 0.47743,
+     "p99": 0.63413
+    },
+    "albedoMeanRGB": [
+     0.4113,
+     0.2226,
+     0.1585
+    ]
+   }
+  },
+  {
+   "name": "eye_patch_r",
+   "vertices": 2052,
+   "triangles": 1026,
+   "uniquePositions": 560,
+   "weldRatio": 3.664,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 0.00055,
+   "edgeLengthMm": {
+    "p1": 0.9198,
+    "p10": 0.92127,
+    "p50": 1.13923,
+    "p90": 1.513,
+    "p99": 1.65922
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 34.07466,
+     "p10": 35.94401,
+     "p50": 38.79319,
+     "p90": 39.62312,
+     "p99": 39.96985
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 1026,
+    "flatShadedShare": 1.0,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 0.2579,
+     "p10": 0.27274,
+     "p50": 0.29794,
+     "p90": 0.31159,
+     "p99": 0.32806
+    },
+    "sharedPositions": 558,
+    "positionsWithNormalSpreadOver30deg": 0,
+    "hardShareOfShared": 0.0,
+    "hasCustomNormals": true
+   },
+   "weldedGraph": {
+    "boundaryEdges": 92,
+    "manifoldEdges": 1493,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.53286,
+     "p10": 0.58381,
+     "p50": 1.44856,
+     "p90": 2.14178,
+     "p99": 2.18203
+    },
+    "dihedralOver60Share": 0.0,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 1026.0,
+     "p10": 1026.0,
+     "p50": 1026.0,
+     "p90": 1026.0,
+     "p99": 1026.0
+    },
+    "largestComponent": 1026
+   },
+   "materials": [
+    {
+     "name": "eye_patch_r_mat",
+     "principled": true,
+     "blend_method": "BLEND",
+     "surface_render_method": "BLENDED",
+     "inputs": {
+      "Base Color": {
+       "linked": true,
+       "image": "eye_patch_r_tex",
+       "size": [
+        121,
+        78
+       ],
+       "colorspace": "sRGB",
+       "interpolation": "Linear"
+      },
+      "Metallic": {
+       "linked": false,
+       "value": 0.0
+      },
+      "Roughness": {
+       "linked": false,
+       "value": 0.85
+      },
+      "Normal": {
+       "linked": false,
+       "value": [
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "Alpha": {
+       "linked": true,
+       "image": "eye_patch_r_tex",
+       "size": [
+        121,
+        78
+       ],
+       "colorspace": "sRGB",
+       "interpolation": "Linear"
+      },
+      "Specular IOR Level": {
+       "linked": false,
+       "value": 0.15
+      },
+      "Emission Color": {
+       "linked": false,
+       "value": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     }
+    }
+   ],
+   "shapeKeys": [
+    "Basis",
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ],
+   "vertexGroups": 24,
+   "bounds": {
+    "min": [
+     -0.0432,
+     -0.0969,
+     1.5837
+    ],
+    "max": [
+     -0.0131,
+     -0.0894,
+     1.6011
+    ]
+   },
+   "textureStats": {
+    "albedoLuminance": {
+     "p1": 0.00559,
+     "p10": 0.033,
+     "p50": 0.25289,
+     "p90": 0.47784,
+     "p99": 0.65531
+    },
+    "albedoMeanRGB": [
+     0.4008,
+     0.2186,
+     0.1562
+    ]
+   }
+  },
+  {
+   "name": "lelu_head",
+   "vertices": 355437,
+   "triangles": 182555,
+   "uniquePositions": 89189,
+   "weldRatio": 3.985,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 1.3714,
+   "edgeLengthMm": {
+    "p1": 0.93079,
+    "p10": 1.74492,
+    "p50": 3.9969,
+    "p90": 8.49773,
+    "p99": 15.03318
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 4.41468,
+     "p10": 10.62878,
+     "p50": 25.79735,
+     "p90": 45.24514,
+     "p99": 55.32067
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 40578,
+    "flatShadedShare": 0.2223,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 9e-05,
+     "p10": 0.0006,
+     "p50": 3.81873,
+     "p90": 16.23767,
+     "p99": 29.19276
+    },
+    "sharedPositions": 88373,
+    "positionsWithNormalSpreadOver30deg": 71924,
+    "hardShareOfShared": 0.8139,
+    "hasCustomNormals": true
+   },
+   "weldedGraph": {
+    "boundaryEdges": 6825,
+    "manifoldEdges": 267068,
+    "nonManifoldEdges": 1918,
+    "windingInconsistentEdges": 68,
+    "dihedralDeg": {
+     "p1": 0.25031,
+     "p10": 5.68955,
+     "p50": 31.61458,
+     "p90": 88.80174,
+     "p99": 149.01343
+    },
+    "dihedralOver60Share": 0.2363,
+    "components": 328,
+    "componentTriangles": {
+     "p1": 1.0,
+     "p10": 1.0,
+     "p50": 2.0,
+     "p90": 45.0,
+     "p99": 701.44
+    },
+    "largestComponent": 168826
+   },
+   "materials": [
+    {
+     "name": "Material_0.001",
+     "principled": true,
+     "blend_method": "HASHED",
+     "surface_render_method": "DITHERED",
+     "inputs": {
+      "Base Color": {
+       "linked": true,
+       "image": "Image_0.001",
+       "size": [
+        4096,
+        4096
+       ],
+       "colorspace": "sRGB",
+       "interpolation": "Linear"
+      },
+      "Metallic": {
+       "linked": true,
+       "image": "Image_1.001",
+       "size": [
+        4096,
+        4096
+       ],
+       "colorspace": "Non-Color",
+       "interpolation": "Linear"
+      },
+      "Roughness": {
+       "linked": true,
+       "image": "Image_1.001",
+       "size": [
+        4096,
+        4096
+       ],
+       "colorspace": "Non-Color",
+       "interpolation": "Linear"
+      },
+      "Normal": {
+       "linked": true,
+       "image": "normal.001",
+       "size": [
+        4096,
+        4096
+       ],
+       "colorspace": "Non-Color",
+       "interpolation": "Linear"
+      },
+      "Alpha": {
+       "linked": false,
+       "value": 1.0
+      },
+      "Specular IOR Level": {
+       "linked": false,
+       "value": 0.5
+      },
+      "Emission Color": {
+       "linked": false,
+       "value": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     }
+    }
+   ],
+   "shapeKeys": [
+    "Basis",
+    "eyeBlinkLeft",
+    "eyeBlinkRight",
+    "eyeWideLeft",
+    "eyeWideRight",
+    "jawOpen",
+    "mouthSmileLeft",
+    "mouthSmileRight",
+    "mouthFrownLeft",
+    "mouthFrownRight",
+    "browInnerUp",
+    "browDownLeft",
+    "browDownRight"
+   ],
+   "vertexGroups": 24,
+   "bounds": {
+    "min": [
+     -0.199,
+     -0.1358,
+     0.9838
+    ],
+    "max": [
+     0.193,
+     0.1302,
+     1.7185
+    ]
+   },
+   "textureStats": {
+    "albedoLuminance": {
+     "p1": 0.00587,
+     "p10": 0.01764,
+     "p50": 0.02658,
+     "p90": 0.2828,
+     "p99": 0.73003
+    },
+    "albedoMeanRGB": [
+     0.132,
+     0.0773,
+     0.0641
+    ],
+    "metallic": {
+     "p1": 0.0,
+     "p10": 0.00392,
+     "p50": 0.02353,
+     "p90": 0.15686,
+     "p99": 0.79216
+    },
+    "metallicMean": 0.0725,
+    "roughness": {
+     "p1": 0.18039,
+     "p10": 0.63922,
+     "p50": 0.72941,
+     "p90": 0.77647,
+     "p99": 0.89804
+    },
+    "roughnessMean": 0.7046
+   }
+  },
+  {
+   "name": "lelu_mouth",
+   "vertices": 684,
+   "triangles": 368,
+   "uniquePositions": 216,
+   "weldRatio": 3.167,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 0.00066,
+   "edgeLengthMm": {
+    "p1": 1.35336,
+    "p10": 1.35749,
+    "p50": 2.15141,
+    "p90": 2.71006,
+    "p99": 5.22254
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 21.67114,
+     "p10": 31.53344,
+     "p50": 33.37762,
+     "p90": 40.65372,
+     "p99": 47.43539
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 166,
+    "flatShadedShare": 0.4511,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 0.0,
+     "p10": 0.00016,
+     "p50": 1.55798,
+     "p90": 12.2667,
+     "p99": 28.73936
+    },
+    "sharedPositions": 214,
+    "positionsWithNormalSpreadOver30deg": 3,
+    "hardShareOfShared": 0.014,
+    "hasCustomNormals": true
+   },
+   "weldedGraph": {
+    "boundaryEdges": 62,
+    "manifoldEdges": 521,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 6.33047,
+     "p90": 25.51711,
+     "p99": 43.28887
+    },
+    "dihedralOver60Share": 0.0038,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 368.0,
+     "p10": 368.0,
+     "p50": 368.0,
+     "p90": 368.0,
+     "p99": 368.0
+    },
+    "largestComponent": 368
+   },
+   "materials": [
+    {
+     "name": "lelu_mouth",
+     "principled": true,
+     "blend_method": "HASHED",
+     "surface_render_method": "DITHERED",
+     "inputs": {
+      "Base Color": {
+       "linked": false,
+       "value": [
+        0.07,
+        0.014,
+        0.02,
+        1.0
+       ]
+      },
+      "Metallic": {
+       "linked": false,
+       "value": 0.0
+      },
+      "Roughness": {
+       "linked": false,
+       "value": 0.6
+      },
+      "Normal": {
+       "linked": false,
+       "value": [
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "Alpha": {
+       "linked": false,
+       "value": 1.0
+      },
+      "Specular IOR Level": {
+       "linked": false,
+       "value": 0.5
+      },
+      "Emission Color": {
+       "linked": false,
+       "value": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     }
+    }
+   ],
+   "shapeKeys": [],
+   "vertexGroups": 24,
+   "bounds": {
+    "min": [
+     -0.0173,
+     -0.1016,
+     1.5376
+    ],
+    "max": [
+     0.0138,
+     -0.0893,
+     1.5557
+    ]
+   }
+  },
+  {
+   "name": "lelu_teeth",
+   "vertices": 163,
+   "triangles": 92,
+   "uniquePositions": 72,
+   "weldRatio": 2.264,
+   "isTriangleSoup": false,
+   "surfaceAreaM2": 3e-05,
+   "edgeLengthMm": {
+    "p1": 0.61784,
+    "p10": 0.61815,
+    "p50": 1.03992,
+    "p90": 1.26991,
+    "p99": 1.44028
+   },
+   "degenerate": {
+    "zeroArea": 0,
+    "collapsedAfterWeld": 0,
+    "sliverMinAngleBelow1deg": 0,
+    "minAngleDeg": {
+     "p1": 25.38715,
+     "p10": 25.45134,
+     "p50": 31.33876,
+     "p90": 32.22873,
+     "p99": 37.78954
+    }
+   },
+   "duplicateFaces": 0,
+   "normals": {
+    "flatShadedTriangles": 46,
+    "flatShadedShare": 0.5,
+    "invertedLoopNormals": 0,
+    "loopVsFaceDeviationDeg": {
+     "p1": 0.00055,
+     "p10": 0.00181,
+     "p50": 0.84158,
+     "p90": 11.49176,
+     "p99": 26.17679
+    },
+    "sharedPositions": 70,
+    "positionsWithNormalSpreadOver30deg": 0,
+    "hardShareOfShared": 0.0,
+    "hasCustomNormals": true
+   },
+   "weldedGraph": {
+    "boundaryEdges": 50,
+    "manifoldEdges": 113,
+    "nonManifoldEdges": 0,
+    "windingInconsistentEdges": 0,
+    "dihedralDeg": {
+     "p1": 0.0,
+     "p10": 0.0,
+     "p50": 2.97708,
+     "p90": 27.13164,
+     "p99": 49.49527
+    },
+    "dihedralOver60Share": 0.0088,
+    "components": 1,
+    "componentTriangles": {
+     "p1": 92.0,
+     "p10": 92.0,
+     "p50": 92.0,
+     "p90": 92.0,
+     "p99": 92.0
+    },
+    "largestComponent": 92
+   },
+   "materials": [
+    {
+     "name": "lelu_teeth",
+     "principled": true,
+     "blend_method": "HASHED",
+     "surface_render_method": "DITHERED",
+     "inputs": {
+      "Base Color": {
+       "linked": false,
+       "value": [
+        0.66,
+        0.6,
+        0.54,
+        1.0
+       ]
+      },
+      "Metallic": {
+       "linked": false,
+       "value": 0.0
+      },
+      "Roughness": {
+       "linked": false,
+       "value": 0.6
+      },
+      "Normal": {
+       "linked": false,
+       "value": [
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "Alpha": {
+       "linked": false,
+       "value": 1.0
+      },
+      "Specular IOR Level": {
+       "linked": false,
+       "value": 0.5
+      },
+      "Emission Color": {
+       "linked": false,
+       "value": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     }
+    }
+   ],
+   "shapeKeys": [],
+   "vertexGroups": 24,
+   "bounds": {
+    "min": [
+     -0.0088,
+     -0.1022,
+     1.5469
+    ],
+    "max": [
+     0.0054,
+     -0.1011,
+     1.5494
+    ]
+   }
+  }
+ ],
+ "images": [
+  {
+   "name": "eye_patch_l_tex",
+   "size": [
+    121,
+    83
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "eye_patch_r_tex",
+   "size": [
+    121,
+    78
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "Image_0",
+   "size": [
+    2048,
+    2048
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "Image_0.001",
+   "size": [
+    4096,
+    4096
+   ],
+   "colorspace": "sRGB",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "Image_1",
+   "size": [
+    2048,
+    2048
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "Image_1.001",
+   "size": [
+    4096,
+    4096
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "normal",
+   "size": [
+    2048,
+    2048
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  },
+  {
+   "name": "normal.001",
+   "size": [
+    4096,
+    4096
+   ],
+   "colorspace": "Non-Color",
+   "alphaMode": "CHANNEL_PACKED"
+  }
+ ]
+}

@@ -1,0 +1,59 @@
+{
+ "input": "artifacts/foundry/m25c/steps/look-rose_gold_sovereign.glb",
+ "output": "artifacts/foundry/m25c/outfit-b/look-three-quarter.png",
+ "view": "three-quarter",
+ "lighting": "neutral-studio",
+ "camera": {
+  "center": [
+   0.0,
+   0.0,
+   0.8799999952316284
+  ],
+  "radius": 0.92,
+  "lens": 70.0,
+  "distance": 3.694170248805609,
+  "location": [
+   2.148358106613159,
+   -2.983830451965332,
+   1.238059639930725
+  ]
+ },
+ "resolution": [
+  768,
+  1152
+ ],
+ "samples": 32,
+ "adaptiveThreshold": 0.01,
+ "denoise": "OpenImageDenoise",
+ "seed": 0,
+ "viewTransform": "AgX",
+ "look": "None",
+ "greyCard": {
+  "linearValue": 1.2291911749376192,
+  "exposureEV": -2.771640502485072
+ },
+ "objects": [
+  "eye_patch_l",
+  "eye_patch_r",
+  "lelu_hair",
+  "lelu_hair_ringlets",
+  "lelu_hair_strands",
+  "lelu_mouth",
+  "lelu_scalp",
+  "lelu_teeth",
+  "look_rose_gold_sovereign"
+ ],
+ "triangles": 395270,
+ "materialsApplied": [
+  "m25_hair_curl: anisotropy (Cycles extension)",
+  "m25_hair_foundation: anisotropy (Cycles extension)",
+  "m25_hair_highlight: anisotropy (Cycles extension)",
+  "m25_hair_strand: anisotropy (Cycles extension)",
+  "m25_skin_head: SSS (Cycles extension)"
+ ],
+ "animation": null,
+ "shapeKeys": null,
+ "renderSeconds": 18.61,
+ "blender": "4.5.9 LTS",
+ "threads": 4
+}

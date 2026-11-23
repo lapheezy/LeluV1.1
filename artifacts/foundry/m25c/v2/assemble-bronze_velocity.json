@@ -1,0 +1,110 @@
+{
+ "job": {
+  "outfit": "leluverse/assets/characters/lelu_character/meshes/v021_multi-image-to-3d_bronze_velocity_v2/rigged.glb",
+  "lelu": "artifacts/foundry/m25c/steps/s3-shoulders.glb",
+  "output": "artifacts/foundry/m25c/steps/look2-bronze_velocity.glb",
+  "report": "artifacts/foundry/m25c/v2/assemble-bronze_velocity.json",
+  "cutZ": 1.463,
+  "lookId": "bronze_velocity",
+  "hair": "outfit",
+  "skinClearMm": 6,
+  "material": {
+   "metallicScale": 0.55,
+   "roughnessFloor": 0.32
+  },
+  "headOffset": [
+   -0.009,
+   -0.008,
+   -0.002
+  ],
+  "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig"
+ },
+ "boneDirectionChangeDeg": {
+  "Hips": 1.59,
+  "Spine02": 1.59,
+  "Spine01": 1.59,
+  "Spine": 3.15,
+  "neck": 3.15,
+  "Head": 1.11,
+  "head_end": 1.11,
+  "headfront": 0.0,
+  "LeftShoulder": 6.55,
+  "LeftArm": 8.14,
+  "LeftForeArm": 7.15,
+  "LeftHand": 2.9,
+  "RightShoulder": 10.55,
+  "RightArm": 7.04,
+  "RightForeArm": 4.73,
+  "RightHand": 5.43,
+  "LeftUpLeg": 3.38,
+  "LeftLeg": 15.92,
+  "LeftFoot": 23.73,
+  "LeftToeBase": 1.86,
+  "RightUpLeg": 3.81,
+  "RightLeg": 6.46,
+  "RightFoot": 9.29,
+  "RightToeBase": 7.9
+ },
+ "headBoneOffsetIgnoredMm": [
+  -11.13,
+  -7.4,
+  -3.07
+ ],
+ "headOffsetSource": "mean of the neck- and Head-bone offsets between the outfit rig and L\u00c9LU's rig",
+ "headOffsetMm": [
+  -9.0,
+  -8.0,
+  -2.0
+ ],
+ "leluHairFacesRemoved": 159718,
+ "leluScalpFacesRemoved": 14848,
+ "hairMode": "outfit",
+ "outfitFacesRemovedAboveCut": 19314,
+ "outfitFacesBefore": 90010,
+ "material": {
+  "metallicMeanBefore": 0.3658,
+  "roughnessP10Before": 0.1843,
+  "metallicMeanAfter": 0.2012,
+  "roughnessFloor": 0.32,
+  "metallicScale": 0.55,
+  "packedMR": true
+ },
+ "objects": [
+  {
+   "name": "eye_patch_l",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "eye_patch_r",
+   "triangles": 1026,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_hair",
+   "triangles": 1955,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_mouth",
+   "triangles": 368,
+   "shapeKeys": 0
+  },
+  {
+   "name": "lelu_scalp",
+   "triangles": 6034,
+   "shapeKeys": 12
+  },
+  {
+   "name": "lelu_teeth",
+   "triangles": 92,
+   "shapeKeys": 0
+  },
+  {
+   "name": "look_bronze_velocity",
+   "triangles": 70696,
+   "shapeKeys": 0
+  }
+ ],
+ "outputSha256": "cf60d2818533c34f584ee42227ef1d01cbc3dc17b2774b7e909b6c6af1057748"
+}

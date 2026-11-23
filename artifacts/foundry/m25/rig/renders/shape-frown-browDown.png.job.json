@@ -1,0 +1,27 @@
+{
+ "input": "artifacts/foundry/m25/assets/lelu-m25-visual-fidelity.glb",
+ "view": "front",
+ "camera": {
+  "center": [
+   0,
+   -0.09,
+   1.565
+  ],
+  "radius": 0.135,
+  "lens": 105
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 48,
+ "lighting": "neutral-studio",
+ "seed": 0,
+ "shape_keys": {
+  "mouthFrownLeft": 0.8,
+  "mouthFrownRight": 0.8,
+  "browDownLeft": 0.8,
+  "browDownRight": 0.8
+ },
+ "output": "/home/user/LeluV1.1/artifacts/foundry/m25/rig/renders/shape-frown-browDown.png"
+}

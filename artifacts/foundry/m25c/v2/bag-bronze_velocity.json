@@ -1,0 +1,17 @@
+{
+ "bag": "bronze_lotus_bag",
+ "sourceSizeM": [
+  0.911,
+  0.6121,
+  1.9031
+ ],
+ "scale": 0.1366,
+ "triangles": 29846,
+ "hand": "RightHand",
+ "handWorld": [
+  -0.4119,
+  -0.0377,
+  0.9936
+ ],
+ "outputSha256": "04ccb458c542e253829f43a6602573db9a647ef0bfcd4d2993faddfbac03c0dd"
+}

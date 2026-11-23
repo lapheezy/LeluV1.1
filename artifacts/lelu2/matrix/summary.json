@@ -1,0 +1,669 @@
+{
+  "generatedAt": "2026-11-18T16:49:51.712Z",
+  "spec": {
+    "hair": {
+      "style": "long-wavy",
+      "length": 1,
+      "volume": 1.05
+    },
+    "points": 800
+  },
+  "applications": [
+    {
+      "application": "hair roots",
+      "cloud": "head (upper skull, no face)",
+      "cloudPoints": 20910,
+      "requested": 800,
+      "coverageRadius": 0.01602,
+      "methods": [
+        {
+          "id": "A-conventional",
+          "label": "ordered stride over the surface's vertex order (current builder)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 0.2,
+          "spacing": {
+            "n": 800,
+            "mean": 0.007283089644494288,
+            "min": 0.0015492774640693725,
+            "max": 0.016276050524354612,
+            "cv": 0.39245525615991156,
+            "duplicates": 0
+          },
+          "coverage": 0.9991391678622669,
+          "notes": [
+            "vertex order carries whatever density the source mesh had"
+          ]
+        },
+        {
+          "id": "B-fibonacci",
+          "label": "Fibonacci-sphere directions snapped to the surface",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 36.3,
+          "spacing": {
+            "n": 800,
+            "mean": 0.00837079815750659,
+            "min": 0.000024590641260147095,
+            "max": 0.01532291106445926,
+            "cv": 0.4089538847786911,
+            "duplicates": 16
+          },
+          "coverage": 0.8619799139167862,
+          "notes": [
+            "elevation range -1.000…1.000",
+            "collisions at the poles are dropped, never merged"
+          ]
+        },
+        {
+          "id": "C-vogel",
+          "label": "Vogel equal-area disc law over the surface's elevation range",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 25.9,
+          "spacing": {
+            "n": 800,
+            "mean": 0.008262439237824014,
+            "min": 0.000024590641260147095,
+            "max": 0.016693797928636095,
+            "cv": 0.4224832291917783,
+            "duplicates": 18
+          },
+          "coverage": 0.8582496413199426,
+          "notes": [
+            "elevation range -1.000…1.000",
+            "equal area per point"
+          ]
+        },
+        {
+          "id": "D-logspiral",
+          "label": "golden logarithmic spiral at equal arc length",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 23.4,
+          "spacing": {
+            "n": 800,
+            "mean": 0.0018719004077860399,
+            "min": 0.0013475943087536493,
+            "max": 0.003107756092758725,
+            "cv": 0.18520889303934032,
+            "duplicates": 0
+          },
+          "coverage": 0.08350071736011477,
+          "notes": [
+            "φ⁴ per turn × 3.2 turns",
+            "one continuous arm, so azimuthal coverage is deliberately uneven"
+          ]
+        },
+        {
+          "id": "E-hybrid",
+          "label": "golden-angle seed + farthest-point relaxation (density adaptive)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 344.2,
+          "spacing": {
+            "n": 800,
+            "mean": 0.011216954740414247,
+            "min": 0.009649688677724557,
+            "max": 0.015536606838727915,
+            "cv": 0.0967665956281501,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "candidates strided by 1",
+            "no snapping: farthest-point relaxation picks real vertices"
+          ]
+        }
+      ],
+      "verdicts": [
+        {
+          "id": "B-fibonacci",
+          "deltaCv": 0.042,
+          "deltaCoverage": -0.137,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "C-vogel",
+          "deltaCv": 0.077,
+          "deltaCoverage": -0.141,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "D-logspiral",
+          "deltaCv": -0.528,
+          "deltaCoverage": -0.916,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "E-hybrid",
+          "deltaCv": -0.753,
+          "deltaCoverage": 0.001,
+          "underDelivered": false,
+          "decision": "retain"
+        }
+      ],
+      "decision": {
+        "method": "E-hybrid",
+        "decision": "retain",
+        "reason": "CV -75.3 % lower than the conventional stride with coverage within 2 points"
+      },
+      "ms": 538
+    },
+    {
+      "application": "surface detail placement",
+      "cloud": "clothing.top (garment surface)",
+      "cloudPoints": 42370,
+      "requested": 800,
+      "coverageRadius": 0.02387,
+      "methods": [
+        {
+          "id": "A-conventional",
+          "label": "ordered stride over the surface's vertex order (current builder)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 0.2,
+          "spacing": {
+            "n": 800,
+            "mean": 0.010848769613926813,
+            "min": 0.002468167375508887,
+            "max": 0.029491580766267043,
+            "cv": 0.39432863787030636,
+            "duplicates": 0
+          },
+          "coverage": 0.9957053187974892,
+          "notes": [
+            "vertex order carries whatever density the source mesh had"
+          ]
+        },
+        {
+          "id": "B-fibonacci",
+          "label": "Fibonacci-sphere directions snapped to the surface",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 117.7,
+          "spacing": {
+            "n": 800,
+            "mean": 0.008571282362471663,
+            "min": 0.0001198500394821167,
+            "max": 0.034809372111989756,
+            "cv": 0.7088401256183815,
+            "duplicates": 0
+          },
+          "coverage": 0.85199867855963,
+          "notes": [
+            "elevation range -0.892…0.951",
+            "collisions at the poles are dropped, never merged"
+          ]
+        },
+        {
+          "id": "C-vogel",
+          "label": "Vogel equal-area disc law over the surface's elevation range",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 136.7,
+          "spacing": {
+            "n": 800,
+            "mean": 0.00873248864401893,
+            "min": 0.0001198500394821167,
+            "max": 0.03809049155105751,
+            "cv": 0.7527172725877794,
+            "duplicates": 0
+          },
+          "coverage": 0.8516683184671292,
+          "notes": [
+            "elevation range -0.892…0.951",
+            "equal area per point"
+          ]
+        },
+        {
+          "id": "D-logspiral",
+          "label": "golden logarithmic spiral at equal arc length",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 77.9,
+          "spacing": {
+            "n": 800,
+            "mean": 0.0025707389383999523,
+            "min": 0.00007100403308868408,
+            "max": 0.004376662005322025,
+            "cv": 0.27022511867909765,
+            "duplicates": 2
+          },
+          "coverage": 0.07466138090518665,
+          "notes": [
+            "φ⁴ per turn × 3.2 turns",
+            "one continuous arm, so azimuthal coverage is deliberately uneven"
+          ]
+        },
+        {
+          "id": "E-hybrid",
+          "label": "golden-angle seed + farthest-point relaxation (density adaptive)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 239.3,
+          "spacing": {
+            "n": 800,
+            "mean": 0.016932910279802368,
+            "min": 0.014905600634546611,
+            "max": 0.02445867645346873,
+            "cv": 0.08850176494777694,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "candidates strided by 3",
+            "no snapping: farthest-point relaxation picks real vertices"
+          ]
+        }
+      ],
+      "verdicts": [
+        {
+          "id": "B-fibonacci",
+          "deltaCv": 0.798,
+          "deltaCoverage": -0.144,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "C-vogel",
+          "deltaCv": 0.909,
+          "deltaCoverage": -0.144,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "D-logspiral",
+          "deltaCv": -0.315,
+          "deltaCoverage": -0.921,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "E-hybrid",
+          "deltaCv": -0.776,
+          "deltaCoverage": 0.004,
+          "underDelivered": false,
+          "decision": "retain"
+        }
+      ],
+      "decision": {
+        "method": "E-hybrid",
+        "decision": "retain",
+        "reason": "CV -77.6 % lower than the conventional stride with coverage within 2 points"
+      },
+      "ms": 669
+    },
+    {
+      "application": "jewelry (diadem)",
+      "cloud": "diadem disc r=55 mm",
+      "cloudPoints": 59356,
+      "requested": 800,
+      "coverageRadius": 0.0048,
+      "methods": [
+        {
+          "id": "A-conventional",
+          "label": "ordered stride over the surface's vertex order (current builder)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 0,
+          "spacing": {
+            "n": 800,
+            "mean": 0.002181631466362183,
+            "min": 0.00039999932050704956,
+            "max": 0.004560702693001083,
+            "cv": 0.4092328791437153,
+            "duplicates": 0
+          },
+          "coverage": 0.9996798975672215,
+          "notes": [
+            "vertex order carries whatever density the source mesh had"
+          ]
+        },
+        {
+          "id": "C-vogel",
+          "label": "Vogel equal-area disc (planar)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 28.8,
+          "spacing": {
+            "n": 800,
+            "mean": 0.0031927671787825517,
+            "min": 0.0028284271438439807,
+            "max": 0.0036221553071955647,
+            "cv": 0.03815136600068207,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "equal area per point",
+            "golden-angle turn"
+          ]
+        },
+        {
+          "id": "D-logspiral",
+          "label": "single golden spiral arm at equal arc length",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 16.5,
+          "spacing": {
+            "n": 800,
+            "mean": 0.0003999995280537405,
+            "min": 0.00039999932050704956,
+            "max": 0.000400003045797348,
+            "cv": 0.0000013162341976255212,
+            "duplicates": 0
+          },
+          "coverage": 0.2266325224071703,
+          "notes": [
+            "3.2 turns, 1/φ per turn inward",
+            "one arm: azimuthal coverage is deliberately uneven"
+          ]
+        },
+        {
+          "id": "E-hybrid",
+          "label": "golden-angle seed + farthest-point relaxation (density adaptive)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 253.8,
+          "spacing": {
+            "n": 800,
+            "mean": 0.003078838653070592,
+            "min": 0.00268328034682392,
+            "max": 0.004326660896579358,
+            "cv": 0.09976763877238037,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "candidates strided by 4",
+            "no snapping: farthest-point relaxation picks real vertices"
+          ]
+        }
+      ],
+      "verdicts": [
+        {
+          "id": "C-vogel",
+          "deltaCv": -0.907,
+          "deltaCoverage": 0,
+          "underDelivered": false,
+          "decision": "retain"
+        },
+        {
+          "id": "D-logspiral",
+          "deltaCv": -1,
+          "deltaCoverage": -0.773,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "E-hybrid",
+          "deltaCv": -0.756,
+          "deltaCoverage": 0,
+          "underDelivered": false,
+          "decision": "retain"
+        }
+      ],
+      "decision": {
+        "method": "C-vogel",
+        "decision": "retain",
+        "reason": "CV -90.7 % lower than the conventional stride with coverage within 2 points"
+      },
+      "ms": 375
+    },
+    {
+      "application": "procedural surface sampling",
+      "cloud": "sphere r=50 mm",
+      "cloudPoints": 24000,
+      "requested": 800,
+      "coverageRadius": 0.01225,
+      "methods": [
+        {
+          "id": "A-conventional",
+          "label": "ordered stride over the surface's vertex order (current builder)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 0,
+          "spacing": {
+            "n": 800,
+            "mean": 0.005567278881058041,
+            "min": 0.0035105638090738482,
+            "max": 0.006189191272814369,
+            "cv": 0.05189154132437035,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "vertex order carries whatever density the source mesh had"
+          ]
+        },
+        {
+          "id": "B-fibonacci",
+          "label": "Fibonacci-sphere directions snapped to the surface",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 9.6,
+          "spacing": {
+            "n": 800,
+            "mean": 0.005846009279022151,
+            "min": 0.00471646254772045,
+            "max": 0.006219333212456989,
+            "cv": 0.02765532569614914,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "elevation range -1.000…1.000",
+            "collisions at the poles are dropped, never merged"
+          ]
+        },
+        {
+          "id": "C-vogel",
+          "label": "Vogel equal-area disc law over the surface's elevation range",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 9.5,
+          "spacing": {
+            "n": 800,
+            "mean": 0.005841911196755448,
+            "min": 0.004702368867293774,
+            "max": 0.006205541455101457,
+            "cv": 0.029885667617682174,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "elevation range -1.000…1.000",
+            "equal area per point"
+          ]
+        },
+        {
+          "id": "D-logspiral",
+          "label": "golden logarithmic spiral at equal arc length",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 10.3,
+          "spacing": {
+            "n": 800,
+            "mean": 0.001089688531811354,
+            "min": 0.001081995417553762,
+            "max": 0.0011098242398935878,
+            "cv": 0.006937548043034682,
+            "duplicates": 0
+          },
+          "coverage": 0.112,
+          "notes": [
+            "φ⁴ per turn × 3.2 turns",
+            "one continuous arm, so azimuthal coverage is deliberately uneven"
+          ]
+        },
+        {
+          "id": "E-hybrid",
+          "label": "golden-angle seed + farthest-point relaxation (density adaptive)",
+          "achieved": 800,
+          "attempts": 800,
+          "ms": 531.2,
+          "spacing": {
+            "n": 800,
+            "mean": 0.005498747147898221,
+            "min": 0.0048068407894628325,
+            "max": 0.007312076809709508,
+            "cv": 0.09622057451435426,
+            "duplicates": 0
+          },
+          "coverage": 1,
+          "notes": [
+            "candidates strided by 1",
+            "no snapping: farthest-point relaxation picks real vertices"
+          ]
+        }
+      ],
+      "verdicts": [
+        {
+          "id": "B-fibonacci",
+          "deltaCv": -0.467,
+          "deltaCoverage": 0,
+          "underDelivered": false,
+          "decision": "retain"
+        },
+        {
+          "id": "C-vogel",
+          "deltaCv": -0.424,
+          "deltaCoverage": 0,
+          "underDelivered": false,
+          "decision": "retain"
+        },
+        {
+          "id": "D-logspiral",
+          "deltaCv": -0.866,
+          "deltaCoverage": -0.888,
+          "underDelivered": false,
+          "decision": "reject"
+        },
+        {
+          "id": "E-hybrid",
+          "deltaCv": 0.854,
+          "deltaCoverage": 0,
+          "underDelivered": false,
+          "decision": "reject"
+        }
+      ],
+      "decision": {
+        "method": "B-fibonacci",
+        "decision": "retain",
+        "reason": "CV -46.7 % lower than the conventional stride with coverage within 2 points"
+      },
+      "ms": 647
+    }
+  ],
+  "curls": [
+    {
+      "law": "A-helix",
+      "label": "constant-radius helix (2.0 baseline)",
+      "strands": 48,
+      "ms": 6,
+      "lengthCv": 9.811767490749583e-16,
+      "curvatureMean": 73.2276808818343,
+      "curvatureCv": 0.04573270338498087,
+      "minSelfDistance": 0.024768607005825397,
+      "logRadiusR2": 0.9879267348556197,
+      "growthPerTurn": 0.8621039052531109,
+      "strandDiameterCv": 3.5163313702232563e-16,
+      "bundle": {
+        "strands": 48,
+        "minStrandGap": 0.001368918734090916,
+        "meanStrandGap": 0.03358438336466254,
+        "clumpFraction": 0.10638297872340426
+      },
+      "decision": "retain",
+      "reason": "distinct curls kept (min self-approach 24.77 mm, touching pairs 11 %), log law R² 0.988 (baseline)"
+    },
+    {
+      "law": "B-conical",
+      "label": "linear taper cone",
+      "strands": 48,
+      "ms": 1.7,
+      "lengthCv": 3.40270280792816e-16,
+      "curvatureMean": 67.48108080311387,
+      "curvatureCv": 0.13129036763142363,
+      "minSelfDistance": 0.02405563881414604,
+      "logRadiusR2": 0.9753571290447068,
+      "growthPerTurn": 1.2335651613693912,
+      "strandDiameterCv": 3.5163313702232563e-16,
+      "bundle": {
+        "strands": 48,
+        "minStrandGap": 0.0010323869230295496,
+        "meanStrandGap": 0.03384192949868611,
+        "clumpFraction": 0.08687943262411348
+      },
+      "decision": "investigate",
+      "reason": "no measurable natural variation and log law R² 0.975"
+    },
+    {
+      "law": "C-vogel-phase",
+      "label": "helix, golden-angle phase per strand",
+      "strands": 48,
+      "ms": 2.3,
+      "lengthCv": 9.811767490749583e-16,
+      "curvatureMean": 73.2276808818343,
+      "curvatureCv": 0.04573270338498087,
+      "minSelfDistance": 0.024768607005825397,
+      "logRadiusR2": 0.9879267348556197,
+      "growthPerTurn": 0.8621039052531109,
+      "strandDiameterCv": 3.5163313702232563e-16,
+      "bundle": {
+        "strands": 48,
+        "minStrandGap": 0.001368918734090916,
+        "meanStrandGap": 0.03358438336466254,
+        "clumpFraction": 0.10638297872340426
+      },
+      "decision": "investigate",
+      "reason": "no measurable natural variation and log law R² 0.988"
+    },
+    {
+      "law": "D-golden-log",
+      "label": "golden logarithmic ringlet (1/φ per quarter turn)",
+      "strands": 48,
+      "ms": 4.7,
+      "lengthCv": 2.6020425065267797e-16,
+      "curvatureMean": 35.9042547642864,
+      "curvatureCv": 0.5645220663971218,
+      "minSelfDistance": 0.03030798248808276,
+      "logRadiusR2": 1,
+      "growthPerTurn": 0.6180339887498939,
+      "strandDiameterCv": 3.5163313702232563e-16,
+      "bundle": {
+        "strands": 48,
+        "minStrandGap": 0.001534439169975677,
+        "meanStrandGap": 0.014900306653554006,
+        "clumpFraction": 0.040780141843971635
+      },
+      "decision": "investigate",
+      "reason": "no measurable natural variation and log law R² 1.000"
+    },
+    {
+      "law": "E-adaptive",
+      "label": "droop-adaptive log ringlet with diameter envelope",
+      "strands": 48,
+      "ms": 1.8,
+      "lengthCv": 0.07652000080737169,
+      "curvatureMean": 67.39113723420743,
+      "curvatureCv": 0.17530721300198068,
+      "minSelfDistance": 0.02381976379166901,
+      "logRadiusR2": 0.9335556084782085,
+      "growthPerTurn": 1.312277424318678,
+      "strandDiameterCv": 0.15286188076798046,
+      "bundle": {
+        "strands": 48,
+        "minStrandGap": 0.0005116005198213807,
+        "meanStrandGap": 0.03284418077993594,
+        "clumpFraction": 0.09042553191489362
+      },
+      "decision": "investigate",
+      "reason": "no measurable natural variation and log law R² 0.934"
+    }
+  ]
+}

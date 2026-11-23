@@ -1,0 +1,82 @@
+{
+  "id": "O-20261117220738-117",
+  "at": 1794953258000,
+  "type": "architecture-change",
+  "workPackage": "WP01",
+  "summary": "fix(asre): make ASRE modules valid in the server's nodenext TypeScript project",
+  "detail": "28 file(s): plugins/asreApi.ts, scripts/asre/character-smoke.ts, scripts/asre/component-worker.ts, scripts/asre/io.ts, scripts/asre/pool.ts, scripts/asre/render-smoke.ts, scripts/asre/triposr-ingest.ts, scripts/asre/wp1-hypotheses.ts, …",
+  "interpretation": "Associated with WP01 by explicit wp1. Changes were architectural.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "942305cda05a390ca3396497b98dc9920905fc3f",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f",
+      "note": "fix(asre): make ASRE modules valid in the server's nodenext TypeScript project"
+    },
+    {
+      "kind": "code",
+      "ref": "plugins/asreApi.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/character-smoke.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/component-worker.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/io.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/pool.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/render-smoke.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/triposr-ingest.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/wp1-hypotheses.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/wp5-variations.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "scripts/asre/wp6-benchmark.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/AsreTools.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    },
+    {
+      "kind": "code",
+      "ref": "src/core/asre/analysis/coverage.ts",
+      "commit": "942305cda05a390ca3396497b98dc9920905fc3f"
+    }
+  ],
+  "commit": "942305cda05a390ca3396497b98dc9920905fc3f",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:942305cda05a390ca3396497b98dc9920905fc3f"
+}

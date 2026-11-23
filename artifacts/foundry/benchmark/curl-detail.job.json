@@ -1,0 +1,28 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/lelu2/m23/youth/lelu2-m23-youth.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/lelu2/artifacts/foundry/benchmark/curl-detail.png",
+ "shot": "curl-detail",
+ "view": "three-quarter",
+ "focus": [
+  "hair"
+ ],
+ "camera": {
+  "center": [
+   0.09,
+   -0.06,
+   1.5238
+  ],
+  "radius": 0.075
+ },
+ "resolution": [
+  768,
+  768
+ ],
+ "samples": 32,
+ "threads": 7,
+ "ground": false,
+ "lens": 135,
+ "materials": true
+}

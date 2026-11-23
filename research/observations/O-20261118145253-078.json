@@ -1,0 +1,21 @@
+{
+  "id": "O-20261118145253-078",
+  "at": 1795013573135.491,
+  "type": "experiment-config",
+  "workPackage": "WP01",
+  "summary": "artifacts/lelu2/golden/lelu2-golden-front.png.json (799 B)",
+  "detail": "an experiment configuration or result document; 799 bytes",
+  "interpretation": "classed as experiment-config · artifact evidence · associated with WP01 by artefact path \\/audit\\.json|\\/baseline\\/|\\/golden\\/|\\/ornament\\/",
+  "evidence": [
+    {
+      "kind": "artifact",
+      "ref": "artifacts/lelu2/golden/lelu2-golden-front.png.json",
+      "at": 1795013573135.491
+    }
+  ],
+  "commit": null,
+  "branch": null,
+  "session": "S-2026-11-18",
+  "source": "artifact",
+  "key": "artifact:artifacts/lelu2/golden/lelu2-golden-front.png.json:799"
+}

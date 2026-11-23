@@ -1,0 +1,32 @@
+{
+  "id": "O-20261117213421-126",
+  "at": 1794951261000,
+  "type": "source-change",
+  "workPackage": "MISSION",
+  "summary": "docs(asre): mission 3/3.5 rebuild results vs historical targets; handoff checkpoint",
+  "detail": "2 file(s): docs/SESSION_HANDOFF.md, docs/asre/01-MISSION-3-3.5-REBUILD.md",
+  "interpretation": "Associated with MISSION by no work-package signal. Changes were local to the affected code.",
+  "evidence": [
+    {
+      "kind": "commit",
+      "ref": "d4ee9e52e34bc6b9b4136b5b9610588a1183663d",
+      "commit": "d4ee9e52e34bc6b9b4136b5b9610588a1183663d",
+      "note": "docs(asre): mission 3/3.5 rebuild results vs historical targets; handoff checkpoint"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/SESSION_HANDOFF.md",
+      "commit": "d4ee9e52e34bc6b9b4136b5b9610588a1183663d"
+    },
+    {
+      "kind": "code",
+      "ref": "docs/asre/01-MISSION-3-3.5-REBUILD.md",
+      "commit": "d4ee9e52e34bc6b9b4136b5b9610588a1183663d"
+    }
+  ],
+  "commit": "d4ee9e52e34bc6b9b4136b5b9610588a1183663d",
+  "branch": "experiment/lelu-2-golden-geometry",
+  "session": "S-2026-11-18",
+  "source": "git",
+  "key": "commit:d4ee9e52e34bc6b9b4136b5b9610588a1183663d"
+}

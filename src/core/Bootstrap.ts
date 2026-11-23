@@ -36,7 +36,9 @@ import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
+import { registerSelfTools } from "./cognition/SelfTools";
 import { registerAsreTools } from "./asre/AsreTools";
+import { registerFoundryTools } from "./asre/foundry/FoundryTools";
 import { registerWorldTools } from "./world/WorldTools";
 import { registerAgenticTools } from "./agentic/AgenticTools";
 import { registerInterfaceTools } from "./interface/InterfaceTools";
@@ -224,8 +226,16 @@ export default class Bootstrap {
       registerEarthTools();
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
+      // Her self-knowledge: every change made to her (git, any coder), the journal
+      // written for her, and playbooks she can run herself.
+      registerSelfTools();
+      // Her wardrobe: one director for every outfit change (chat, tools, herself),
+      // and the autopilot that lets her change on her own by occasion.
+      void import("./avatar/OutfitAutopilot").then((m) => m.startOutfitAutopilot()).catch(() => undefined);
       // ASRE: local, zero-spend reconstruction and the persistent component character
       registerAsreTools();
+      // Character Foundry: reference intelligence, versions, Cycles renders (local, zero spend)
+      registerFoundryTools();
       registerWorldTools();
       // Capability ledger (server authority shared by every session/device):
       // applies its cached snapshot, then hydrates. Loaded lazily — no

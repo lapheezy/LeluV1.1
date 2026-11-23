@@ -1,0 +1,97 @@
+{
+ "method": "MediaPipe Face Landmarker (float16 v1, local CPU), iris centres for pupils, ratios only — no millimetre scale is assumed for any photograph",
+ "photographs": {
+  "ipd/faceWidth": 0.4889,
+  "mouthWidth/faceWidth": 0.3346,
+  "mouthWidth/ipd": 0.6865,
+  "noseWidth/ipd": 0.5543,
+  "eyeWidth/ipd": 0.4212,
+  "eyeToMouth/ipd": 0.9396,
+  "eyeToChin/ipd": 1.4923,
+  "jawWidth/faceWidth": 0.7569,
+  "lipHeight/mouthWidth": 0.523
+ },
+ "photoSpread": {
+  "ipd/faceWidth": [
+   0.4821,
+   0.5069
+  ],
+  "mouthWidth/faceWidth": [
+   0.3304,
+   0.336
+  ],
+  "mouthWidth/ipd": [
+   0.6625,
+   0.6886
+  ],
+  "noseWidth/ipd": [
+   0.5526,
+   0.564
+  ],
+  "eyeWidth/ipd": [
+   0.4172,
+   0.4335
+  ],
+  "eyeToMouth/ipd": [
+   0.9072,
+   0.9638
+  ],
+  "eyeToChin/ipd": [
+   1.4369,
+   1.5012
+  ],
+  "jawWidth/faceWidth": [
+   0.7505,
+   0.7686
+  ],
+  "lipHeight/mouthWidth": [
+   0.5104,
+   0.5347
+  ]
+ },
+ "v0004": {
+  "ipd/faceWidth": 0.517,
+  "mouthWidth/faceWidth": 0.3377,
+  "mouthWidth/ipd": 0.6531,
+  "noseWidth/ipd": 0.5471,
+  "eyeWidth/ipd": 0.4029,
+  "eyeToMouth/ipd": 0.9026,
+  "eyeToChin/ipd": 1.3983,
+  "jawWidth/faceWidth": 0.7505,
+  "lipHeight/mouthWidth": 0.5354
+ },
+ "v0005": {
+  "ipd/faceWidth": 0.5163,
+  "mouthWidth/faceWidth": 0.3397,
+  "mouthWidth/ipd": 0.6581,
+  "noseWidth/ipd": 0.5652,
+  "eyeWidth/ipd": 0.4065,
+  "eyeToMouth/ipd": 0.8972,
+  "eyeToChin/ipd": 1.4204,
+  "jawWidth/faceWidth": 0.751,
+  "lipHeight/mouthWidth": 0.5606
+ },
+ "v0005DeviationPct": {
+  "ipd/faceWidth": 5.6,
+  "mouthWidth/faceWidth": 1.52,
+  "mouthWidth/ipd": -4.14,
+  "noseWidth/ipd": 1.97,
+  "eyeWidth/ipd": -3.49,
+  "eyeToMouth/ipd": -4.51,
+  "eyeToChin/ipd": -4.82,
+  "jawWidth/faceWidth": -0.78,
+  "lipHeight/mouthWidth": 7.19
+ },
+ "m24Claims": {
+  "ipdMm": [
+   51.17,
+   63.0
+  ],
+  "mouthMm": [
+   31.13,
+   50.4
+  ]
+ },
+ "registration": "M24 compared model millimetres against a sheet whose scale came from an assumed 142 mm face width (confidence: low). In scale-free terms the model's mouth/IPD and IPD/face-width sit inside the photographs' own spread, so neither the eyes nor the mouth were moved.",
+ "deformationApplied": false
+}

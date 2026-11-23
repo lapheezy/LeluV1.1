@@ -1,0 +1,236 @@
+{
+ "jobs": [
+  {
+   "look": "shoes_worn_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f6a0-47a3-73fa-8ed3-30db133f7f15",
+   "submittedAt": 1795139062.6454575,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of bare deep-brown-skinned lower legs and feet wearing these exact copper open-toe spiral stiletto sandals, identical in every detail, seen from the left side, toes pointing left. Legs cut just below the knee, both legs side by side as in the reference, plain white background. Toes with nude glossy nails visible through the open toe. Same skin tone as the reference.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v041_image-to-image_shoes_rose_gold_spiral/view_01a1f5d6_0.png",
+     "sha256": "227b91d27232f4c2a424082b244673477b8bfeca2bda59d14b4842c9f3a0d612"
+    }
+   ],
+   "authorisation": "owner approved Meshy for the coat heels (pause report step 4) on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f6a0-47a3-73fa-8ed3-30db133f7f15",
+   "finished": 1795139124.64986,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f6a0-47a3-73fa-8ed3-30db133f7f15",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of bare deep-brown-skinned lower legs and feet wearing these exact copper open-toe spiral stiletto sandals, identical in every detail, seen from the left side, toes pointing left. Legs cut just below the knee, both legs side by side as in the reference, plain white background. Toes with nude glossy nails visible through the open toe. Same skin tone as the reference.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795139062522,
+    "started_at": 1795139062537,
+    "finished_at": 1795139119208,
+    "expires_at": 1795398319208,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f6a0-47a3-73fa-8ed3-30db133f7f15_0.png?Expires=1795398319&Signature=AOsVhFlL-mueGaH353gphC5Ey4KE7b7Ker~eUO8gtC0byHlPiDa0pQM5AX9QFuQHuZ804LWSHJzvXnIeEM2VVqHJpG4w0yHjjZ8-mLyeaUGDeGYeQDImnsct6y~MoeTzXNoj0BNmDhfj~wQ4-AwOBlduCXrn8jgQCmBG066gSsDpTPkAg-sAgXkPJcrU87bYyKpDHZqRQkETlGLPo~DapN5KNt~PzYcTOQtQDv6rO2HLkB0D5QybtNz0VmngPoT8ceO4yNUCt9GblA58fbyMkqmcEPW7v9u5VwTi-vilkB6eNwEIQgohywYchHP2eH6A5aH4YncicXLccNFF8LKKEg__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f6a0_0.png",
+     "bytes": 802069,
+     "sha256": "306b948f4d6fdb74197d42cb2ee8cc140ac06ed5d6bb8f9cb0c363d1a522e919"
+    }
+   ]
+  },
+  {
+   "look": "shoes_worn_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f6a1-3f6d-7571-bfd6-9e6c2cb7f935",
+   "submittedAt": 1795139129.7996864,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of bare deep-brown-skinned lower legs and feet wearing these exact copper open-toe spiral stiletto sandals, identical in every detail, seen from directly behind. Legs cut just below the knee, both legs side by side as in the reference, plain white background. Toes with nude glossy nails visible through the open toe. Same skin tone as the reference.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v041_image-to-image_shoes_rose_gold_spiral/view_01a1f5d6_0.png",
+     "sha256": "227b91d27232f4c2a424082b244673477b8bfeca2bda59d14b4842c9f3a0d612"
+    }
+   ],
+   "authorisation": "owner approved Meshy for the coat heels (pause report step 4) on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f6a1-3f6d-7571-bfd6-9e6c2cb7f935",
+   "finished": 1795139171.369333,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f6a1-3f6d-7571-bfd6-9e6c2cb7f935",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of bare deep-brown-skinned lower legs and feet wearing these exact copper open-toe spiral stiletto sandals, identical in every detail, seen from directly behind. Legs cut just below the knee, both legs side by side as in the reference, plain white background. Toes with nude glossy nails visible through the open toe. Same skin tone as the reference.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795139129663,
+    "started_at": 1795139129672,
+    "finished_at": 1795139158589,
+    "expires_at": 1795398358589,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f6a1-3f6d-7571-bfd6-9e6c2cb7f935_0.png?Expires=1795398358&Signature=G-y4RIsjzfLqhXBuY0IYpMMrr3oV7IURxGBWI-JEWwrqJEajxBdbtryOP9w-ExhLc~kFhmL8fZzSrmBBmLjX~-9Zzt3l~aGDF-6UxX2RlbJXYrTkZL0LdrfJwdBTIcB4cXTrhOsGKdcjc0OUWUZbeVWGz9eM-93KNRVPLH3~SRJC5q11QJAMnGamYrnFh4J3ea~zVS5Y54W4fGz4Bv2fDivpdxz9ZQ7NllIfyxJoUOyA7q0gz9MVwHfbTUgsquZSJ70vT89ivl4ql4fSSB5RgA295QvKaxmfkdWugFGliM-wqx0VxP3eeBLGLQ56CWOexWAmii0IrypdVRE6ZaKALw__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f6a1_0.png",
+     "bytes": 649470,
+     "sha256": "f94703227572c10ceffe6b924ba74fe62729eab7033694c201577f0077553a5c"
+    }
+   ]
+  },
+  {
+   "look": "shoes_worn_spiral",
+   "kind": "image-to-image",
+   "task": "01a1f6a1-f5cf-751d-984a-f87f15cc4f32",
+   "submittedAt": 1795139172.7506547,
+   "request": {
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of bare deep-brown-skinned lower legs and feet wearing these exact copper open-toe spiral stiletto sandals, identical in every detail, seen from the right side, toes pointing right. Legs cut just below the knee, both legs side by side as in the reference, plain white background. Toes with nude glossy nails visible through the open toe. Same skin tone as the reference.",
+    "generate_multi_view": false,
+    "remove_background": true
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v041_image-to-image_shoes_rose_gold_spiral/view_01a1f5d6_0.png",
+     "sha256": "227b91d27232f4c2a424082b244673477b8bfeca2bda59d14b4842c9f3a0d612"
+    }
+   ],
+   "authorisation": "owner approved Meshy for the coat heels (pause report step 4) on 2026-11-20"
+  },
+  {
+   "kind": "image-to-image",
+   "task": "01a1f6a1-f5cf-751d-984a-f87f15cc4f32",
+   "finished": 1795139193.8911316,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f6a1-f5cf-751d-984a-f87f15cc4f32",
+    "type": "image-to-image",
+    "ai_model": "nano-banana-pro",
+    "prompt": "The same pair of bare deep-brown-skinned lower legs and feet wearing these exact copper open-toe spiral stiletto sandals, identical in every detail, seen from the right side, toes pointing right. Legs cut just below the knee, both legs side by side as in the reference, plain white background. Toes with nude glossy nails visible through the open toe. Same skin tone as the reference.",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "created_at": 1795139172600,
+    "started_at": 1795139172611,
+    "finished_at": 1795139191669,
+    "expires_at": 1795398391669,
+    "image_urls": [
+     "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/uploads/image_01a1f6a1-f5cf-751d-984a-f87f15cc4f32_0.png?Expires=1795398391&Signature=M4yQw2J6w8hxiogi7FRmxsA9amXZ5vBBg9ErfJ4ca7bRuFKlPaq~yvDRFvaySzbim6IMcG0aLHICH5TsZFgJbNdVuQakSmiZwSYiPN1cpkvL2BPjr0w9blnj~KgniEr99~np7l7HwmJ-RFLAM9arqFl6UYBofJuMb7Ff71odGzV1n608SEW65h7qnqglRAFZa5~ZOgRlP3pIzjQOofadedKWO~IdoXyPQSGKJyzgQR7sTQ~X-B67shfNtVlrLlxGONyPEkCpR7NCg3eZR1kuS-FGMR8shJDyXFFRXx9RTtaSvQiQz~oT4uWssP~gpNYKHgmRXiH2FjTL7tYW8RnDNQ__&Key-Pair-Id=K1VGYTHIYLM9UM"
+    ],
+    "consumed_credits": 9
+   },
+   "files": [
+    {
+     "file": "view_01a1f6a1_0.png",
+     "bytes": 804047,
+     "sha256": "98f153fce4b6ae0a707eee55b8efcc07e5b7c9181b1e443821e797a1bdce0b5a"
+    }
+   ]
+  },
+  {
+   "look": "shoes_worn_spiral",
+   "kind": "multi-image-to-3d",
+   "task": "01a1f6a2-9861-74e4-91f6-5fef34f330d0",
+   "submittedAt": 1795139214.7775993,
+   "request": {
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 60000,
+    "image_enhancement": false
+   },
+   "images": [
+    {
+     "file": "leluverse/assets/characters/lelu_character/meshes/v045_multi-image-to-3d_shoes_worn_spiral/worn_pair_white.png",
+     "sha256": "28a764fd19ccf30df1f75889757fb649bc7c4552182a8393b637d2dbf7e6df3b"
+    }
+   ],
+   "authorisation": "owner approved Meshy for the coat heels (pause report step 4) on 2026-11-20"
+  },
+  {
+   "kind": "multi-image-to-3d",
+   "task": "01a1f6a2-9861-74e4-91f6-5fef34f330d0",
+   "finished": 1795139344.4549117,
+   "status": "SUCCEEDED",
+   "record": {
+    "id": "01a1f6a2-9861-74e4-91f6-5fef34f330d0",
+    "type": "multi-image-to-3d",
+    "name": "",
+    "art_style": "",
+    "object_prompt": "",
+    "style_prompt": "",
+    "negative_prompt": "",
+    "texture_prompt": "",
+    "texture_image_url": "",
+    "text_style_prompt": "",
+    "image_style_url": "",
+    "status": "SUCCEEDED",
+    "created_at": 1795139214669,
+    "progress": 100,
+    "started_at": 1795139214677,
+    "finished_at": 1795139328505,
+    "expires_at": 1795398528505,
+    "task_error": null,
+    "model_url": "https://assets.meshy.ai/7dc56cb1-9e82-4474-81a8-9ab087508e9e/tasks/01a1f6a2-9861-74e4-91f6-5fef34f330d0/output/model.glb?Expires=1795398528&Signature=MrYM6zCN7HJKsPfOCw9XlslcHVl3GWProtnQrXWlGvtwcM~zQyv6eZt7m0hSHIfPROVJ9CDe3XEE2v-vvf2~R6rAGpIJZW7opUkcobdZzCEvo9uW0xJszwF3VR49J6fKbWlgKjCTpPIRNpdX8jNGseRaO1twn7oxRjYq2R1Z0AQv6NQBqNcLgiFqKQB394DsvaxIKvLrq5LZ6ap1~aizSobt5pzqIKo2Whuj5joATKDPghP0Bho9xtRAGCghE5mzjnkAAx4ytqJklOiD-vd3caKt-m0ylBeLSjZpCvtgzeUjia7u6X4UvHSg65CCVoUxij7Z~rTU8HqOXEt7Gc6pZg__&Key-Pair-Id=K1VGYTHIYLM9UM",
+    "consumed_credits": 30
+   },
+   "files": [
+    {
+     "file": "model.glb",
+     "bytes": 12560584,
+     "sha256": "198a2bc90b87b46479aa2298c0b3b9bbc5e14b59245b51ee2ee9e88c91b5eae0"
+    },
+    {
+     "file": "model.fbx",
+     "bytes": 12725980,
+     "sha256": "1a4c2cb5b817315e649854a24d1a3c7332bb1bf5e3951421e19e4510ec7d4ce2"
+    },
+    {
+     "file": "texture_0_base_color.png",
+     "bytes": 3660510,
+     "sha256": "195153d416a68a6f6c02561d0273c66a32695f1b366de6d6493ece7aa2775979"
+    },
+    {
+     "file": "texture_0_metallic.png",
+     "bytes": 2328831,
+     "sha256": "c930be8a56f3535e029360d11bcedf864304e9ebc2afae10397f5a5d249322d1"
+    },
+    {
+     "file": "texture_0_roughness.png",
+     "bytes": 2580048,
+     "sha256": "79bf6ebe63f52aa217b5634d0b5a25f5e07ab1767d6e5861d911a5e9cc986dfe"
+    },
+    {
+     "file": "texture_0_normal.png",
+     "bytes": 4640825,
+     "sha256": "b49140522181ea27493d3f56e5c116b35b6dc0a79bb5969c6858e579f9c53e9e"
+    },
+    {
+     "file": "preview.png",
+     "bytes": 100874,
+     "sha256": "eb2d5a794c7429ac98548668672df2b71f183f4bad4fb6d342fb4ceb7621e2d9"
+    }
+   ]
+  }
+ ]
+}
