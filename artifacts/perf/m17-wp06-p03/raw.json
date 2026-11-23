@@ -1,0 +1,136 @@
+{
+  "mission": "M17-COE-WP06-P03",
+  "host": {
+    "kind": "Cloud VM, Chromium via Playwright over CDP, preview server on the same VM",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "rendererString": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "devicePixelRatio": 1,
+    "webgl": true,
+    "softwareRendererRegex": "swiftshader|llvmpipe|softpipe|software|basic render",
+    "softwareRegexMatches": false,
+    "physicalDevice": "none attached to this environment"
+  },
+  "automaticMode": [
+    {
+      "size": [1024, 768],
+      "search": "(none)",
+      "capability": { "renderer": "ANGLE (Intel, ... Iris Xe Graphics ... D3D11)", "webgl": true, "narrow": false, "saveData": false },
+      "profile": "light",
+      "reason": "measurement:slow",
+      "ceiling": "full",
+      "worldPainting": false,
+      "override": null,
+      "stats": { "painting": false, "fps": 0, "frames": 102, "calls": 146, "triangles": 207770 },
+      "cosmos": {
+        "probeAvailable": true,
+        "camera": { "aspect": 1.333, "surfaceAspect": 1.333, "position": [-0.8, 3.65, 2.36], "fov": 51 },
+        "masks": [
+          { "id": "obj_1", "area": 13602, "bbox": [357, 303, 475, 466] },
+          { "id": "obj_2", "area": 3748, "bbox": [725, 303, 836, 340] },
+          { "id": "obj_3", "area": 9646, "bbox": [263, 277, 358, 444] }
+        ],
+        "captureMs": [7076.8, 7479.1, 7353.4],
+        "note": "The world is NOT painting in this mode. The masks come from a direct render of a scene the user is not being shown, so they describe what would be drawn, not what was drawn."
+      }
+    },
+    {
+      "size": [1440, 900],
+      "search": "(none)",
+      "profile": "balanced",
+      "reason": "measurement:slow",
+      "ceiling": "full",
+      "worldPainting": true,
+      "override": null,
+      "stats": { "painting": true, "fps": 0, "frames": 38, "profile": "balanced", "profileReason": "measurement:slow" },
+      "cosmos": { "probeAvailable": false, "note": "the Cosmos entry control did not appear within the capture window; the world was painting at balanced with 0 fps" }
+    },
+    {
+      "size": [768, 1024],
+      "search": "(none)",
+      "profile": "full",
+      "reason": "capability",
+      "ceiling": "full",
+      "worldPainting": true,
+      "override": null,
+      "stats": { "painting": true, "fps": 55, "frames": 297 },
+      "cosmos": { "probeAvailable": false, "note": "recorded on the home surface before the Cosmos mounted" }
+    },
+    {
+      "size": [384, 661],
+      "search": "(none)",
+      "profile": "balanced",
+      "reason": "capability:narrow",
+      "worldPainting": true,
+      "override": null,
+      "ceiling": "balanced",
+      "cosmos": { "probeAvailable": false }
+    },
+    {
+      "size": [390, 844],
+      "search": "(none)",
+      "profile": "balanced",
+      "reason": "capability:narrow",
+      "worldPainting": true,
+      "override": null,
+      "ceiling": "balanced",
+      "cosmos": { "probeAvailable": false }
+    }
+  ],
+  "overrideMode": [
+    {
+      "size": [1024, 768],
+      "search": "?render=gpu",
+      "profile": "full",
+      "reason": "override",
+      "ceiling": "full",
+      "worldPainting": true,
+      "override": { "profile": "full", "source": "url:render=gpu" },
+      "overrideRefused": null,
+      "demotionsHeld": 4,
+      "stats": { "painting": true, "fps": 0, "frames": 46, "calls": 217, "triangles": 214386, "profile": "full", "profileReason": "override" },
+      "cosmos": {
+        "probeAvailable": true,
+        "camera": { "aspect": 1.333, "surfaceAspect": 1.333, "position": [-0.8, 3.65, 2.36], "fov": 51 },
+        "objects": [
+          { "id": "obj_1", "bounds": [328.5, 301.2, 492.9, 549.2], "centre": [420.2, 418.2], "onScreen": true },
+          { "id": "obj_2", "bounds": [715.7, 303.1, 874, 541.5], "centre": [787.5, 418.2], "onScreen": true },
+          { "id": "obj_3", "bounds": [258, 277, 361.4, 446], "centre": [313.2, 359.3], "onScreen": true }
+        ],
+        "masks": [
+          { "id": "obj_1", "area": 18346, "bbox": [352, 301, 490, 545] },
+          { "id": "obj_2", "area": 19462, "bbox": [720, 303, 862, 539] },
+          { "id": "obj_3", "area": 9535, "bbox": [263, 277, 356, 444] }
+        ],
+        "captureMs": [6834.5, 12144.1, 11955.6]
+      }
+    }
+  ],
+  "instrumentation": {
+    "visibilityBefore": { "obj_1": true, "obj_2": true, "obj_3": true },
+    "visibilityAfter": { "obj_1": true, "obj_2": true, "obj_3": true },
+    "repeatRepeatable": true,
+    "repeatMask": { "area": 18346, "bbox": [352, 301, 490, 545] },
+    "firstMask": { "area": 18346, "bbox": [352, 301, 490, 545] },
+    "statsBeforeCapture": { "frames": 46, "calls": 217, "triangles": 214386, "painting": true },
+    "statsAfterCapture": { "frames": 46, "calls": 217, "triangles": 214386, "painting": true },
+    "rendersPerCapture": 3,
+    "cleanupChange": "identityMask now restores visibility in a try/finally and repaints best-effort, so a throw between the two renders cannot leave an object hidden"
+  },
+  "sixViewportOverrideBaseline": {
+    "source": "artifacts/perf/m17-wp06-p02/measurements.json (override mode, same branch)",
+    "verdicts": {
+      "384x661": ["match", "match", "match"],
+      "390x844": ["match", "match", "match"],
+      "768x1024": ["match", "match", "match"],
+      "1024x768": ["match", "match", "match"],
+      "844x390": ["partial", "match", "match"],
+      "1440x900": ["partial", "match", "match"]
+    }
+  },
+  "physicalDevice": {
+    "available": false,
+    "iosVersion": null,
+    "safariVersion": null,
+    "result": "NOT VERIFIED — no physical iPhone is reachable from this cloud environment"
+  }
+}

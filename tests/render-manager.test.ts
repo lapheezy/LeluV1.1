@@ -24,6 +24,7 @@ import { join } from "node:path";
 
 import {
   DOWNGRADE_AFTER,
+  DOWNGRADE_TO_LIGHT_AFTER,
   SceneRenderManager,
   UPGRADE_AFTER,
   nextProfile,
@@ -128,10 +129,41 @@ test("three slow seconds step the profile down exactly once", () => {
   }
   state = nextProfile(state, { fps: 20, painting: true });
   assert.equal(state.profile, "balanced");
-  // And it does not cascade: light needs three MORE slow seconds.
+  // And it does not cascade: the step out of balanced that removes the world
+  // needs a far longer, contiguous run of evidence.
   state = nextProfile(state, { fps: 20, painting: true });
   assert.equal(state.profile, "balanced");
   assert.equal(state.slow, 1);
+});
+
+test("the step that removes the world needs a far longer run than the step that slows it", () => {
+  let state: AdaptationState = settle;
+  for (let second = 0; second < DOWNGRADE_AFTER; second += 1) {
+    state = nextProfile(state, { fps: 12, painting: true });
+  }
+  assert.equal(state.profile, "balanced", "three slow seconds animate less");
+
+  for (let second = 1; second < DOWNGRADE_TO_LIGHT_AFTER; second += 1) {
+    state = nextProfile(state, { fps: 12, painting: true });
+    assert.equal(state.profile, "balanced", `slow second ${second} must not take the world away`);
+  }
+  state = nextProfile(state, { fps: 12, painting: true });
+  assert.equal(state.profile, "light", "and a machine that really cannot paint still reaches it");
+  assert.ok(
+    DOWNGRADE_TO_LIGHT_AFTER >= DOWNGRADE_AFTER * 5,
+    "the destructive rung is not reachable on a shader compile or a GC pause",
+  );
+});
+
+test("one healthy second breaks the run toward light", () => {
+  const nearlyGone: AdaptationState = {
+    profile: "balanced",
+    slow: DOWNGRADE_TO_LIGHT_AFTER - 1,
+    fast: 0,
+  };
+  const state = nextProfile(nearlyGone, { fps: 60, painting: true });
+  assert.equal(state.profile, "balanced");
+  assert.equal(state.slow, 0, "a transient must not accumulate toward removing the world");
 });
 
 test("one healthy second resets the slow count", () => {
@@ -278,18 +310,33 @@ test("the measured frame rate reaches the manager with its painting flag", () =>
   assert.match(adaptive, /profile: manager\.profile\(\)/, "the profile is published for diagnostics");
 });
 
-test("the world paints only when the device can AND the budget allows", () => {
+test("the world animates only when the device can AND the budget allows", () => {
   const scene = source("src/app/scene/genesis/GenesisScene.tsx");
   assert.match(scene, /const forceWorld = Boolean\(perfWorld\);/);
   assert.match(
     scene,
-    /const paintWorld = \(forceWorld \|\| !softwareGL\) && \(forceWorld \|\| profile !== "light"\);/,
+    /const paintWorld = canPaintAtAll && \(forceWorld \|\| profile !== "light"\);/,
     "a software renderer refuses to paint unless the dev flag forces the world on",
+  );
+  assert.match(scene, /const canPaintAtAll = !softwareGL \|\| Boolean\(perfWorld\);/);
+  assert.match(
+    scene,
+    /const frameloop: Frameloop = paintWorld\s*\?\s*budgetedFrameloop\s*:\s*staticWorld\s*\?\s*"demand"\s*:\s*"never";/,
+    "the frameloop stays derived from the budget, never from a literal",
+  );
+});
+
+test("a measured light keeps the world, painted on demand instead of not at all", () => {
+  const scene = source("src/app/scene/genesis/GenesisScene.tsx");
+  assert.match(
+    scene,
+    /const measuredLight = profile === "light" && renderState\.reason === "measurement:slow";/,
+    "speed is not ability: only the capability verdict may blank the canvas",
   );
   assert.match(
     scene,
-    /const frameloop: Frameloop = paintWorld \? budgetedFrameloop : "never";/,
-    "the frameloop stays derived from the budget, never from a literal",
+    /const staticWorld = canPaintAtAll && measuredLight && budgetedFrameloop !== "never";/,
+    "on demand only where the budget allows painting: a covered world still never draws",
   );
 });
 

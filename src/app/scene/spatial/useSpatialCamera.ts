@@ -22,6 +22,8 @@ import { useEffect, useRef, type RefObject } from "react";
 import { useThree } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import SpatialRuntime from "./SpatialRuntime";
+import { cameraOwner } from "../genesis/cameraOwnership";
+import { spatialMayPose } from "../genesis/cameraAuthority";
 
 interface OrbitLike {
   target: { set: (x: number, y: number, z: number) => void };
@@ -43,13 +45,27 @@ export function useSpatialCamera(
       const controls = controlsRef.current;
       if (!controls) return;
 
-      const travelling = Boolean(state.transition);
-      if (!travelling && !engaged.current) return;
-
-      if (travelling) {
-        engaged.current = true;
-        controls.enabled = false;
+      /*
+       * Ask the shared authority, not the presence of a transition object.
+       * A runtime that was interrupted keeps its transition for `resume()`,
+       * but it is no longer flying: it must stop posing the camera (it used to
+       * keep re-applying the frozen pose on every notification and hold
+       * OrbitControls disabled, so the view could not be changed and every
+       * tap landed where the object used to be). A newer reveal also outranks
+       * an older flight.
+       */
+      const travelling = spatialMayPose(state.transition, cameraOwner());
+      if (!travelling) {
+        if (engaged.current) {
+          engaged.current = false;
+          // Hand the camera back — including after an interruption.
+          controls.enabled = true;
+        }
+        return;
       }
+
+      engaged.current = true;
+      controls.enabled = false;
 
       const { position, target, fov } = state.camera;
       camera.position.set(position.x, position.y, position.z);
@@ -59,11 +75,6 @@ export function useSpatialCamera(
         camera.updateProjectionMatrix();
       }
       controls.update?.();
-
-      if (!travelling) {
-        engaged.current = false;
-        controls.enabled = true;
-      }
     });
 
     // Taking hold of the camera during a flight stops it where it is —

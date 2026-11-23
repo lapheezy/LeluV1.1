@@ -1,0 +1,832 @@
+{
+  "mission": "M17-COE-WP06-P02",
+  "method": "identity mask read from the renderer's own frame buffer: the object is hidden for one direct render and the two buffers are diffed in the same task, so the mask is exactly the pixels the object covered. Independent of material colour and lighting; yaw-rotated silhouettes come out as silhouettes. Pointer selection at the projected centre is the second, independent identity oracle.",
+  "thresholds": {
+    "coverageMatch": 0.98,
+    "coveragePartial": 0.85,
+    "centreMatch": 12,
+    "centrePartial": 30,
+    "clippedFill": 0.35,
+    "minMaskArea": 40
+  },
+  "viewports": [
+    {
+      "size": [
+        384,
+        661
+      ],
+      "settled": true,
+      "viewport": {
+        "width": 384,
+        "height": 661,
+        "dpr": 1
+      },
+      "camera": {
+        "aspect": 0.581,
+        "surfaceAspect": 0.581,
+        "position": [
+          -0.8,
+          5.19,
+          9.38
+        ],
+        "fov": 55
+      },
+      "frame": "frame-384x661.png",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair near left",
+          "projected": [
+            124.97,
+            297.35,
+            184.17,
+            392.91
+          ],
+          "projectedCentre": [
+            156.24,
+            343.8
+          ],
+          "observedMask": [
+            128,
+            297,
+            172,
+            362
+          ],
+          "observedAreaPx": 2210,
+          "maskComponents": 1,
+          "fillRatio": 0.3906559342934396,
+          "pointerSelection": [
+            "obj_1"
+          ],
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 4.6 px, Δtop 0.4 px); the visible silhouette fills 50% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.2871493212669678,
+            "fill": 0.502832520674714,
+            "centreDelta": 15.602166516224612,
+            "deltaX": 4.569999999999993,
+            "deltaTop": 0.35000000000002274,
+            "raycastAgrees": true
+          }
+        },
+        {
+          "id": "obj_2",
+          "name": "chair near right",
+          "projected": [
+            274.89,
+            298.47,
+            325.99,
+            390.72
+          ],
+          "projectedCentre": [
+            299.27,
+            343.8
+          ],
+          "observedMask": [
+            276,
+            298,
+            322,
+            345
+          ],
+          "observedAreaPx": 1464,
+          "maskComponents": 1,
+          "fillRatio": 0.3105659236631504,
+          "pointerSelection": [
+            "obj_2"
+          ],
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 1.4 px, Δtop 0.5 px); the visible silhouette fills 45% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.4620081967213105,
+            "fill": 0.4540499260178507,
+            "centreDelta": 22.30163446924912,
+            "deltaX": 1.4399999999999977,
+            "deltaTop": 0.4700000000000273,
+            "raycastAgrees": true
+          }
+        },
+        {
+          "id": "obj_3",
+          "name": "chair far",
+          "projected": [
+            80.31,
+            281.49,
+            121.87,
+            358.27
+          ],
+          "projectedCentre": [
+            101.89,
+            319.33
+          ],
+          "observedMask": [
+            81,
+            281,
+            121,
+            357
+          ],
+          "observedAreaPx": 2007,
+          "maskComponents": 1,
+          "fillRatio": 0.6289610128158878,
+          "pointerSelection": [
+            "obj_3"
+          ],
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 0.1 px, Δtop 0.5 px)",
+            "coverage": 1.5049327354260087,
+            "fill": 0.946544017493327,
+            "centreDelta": 0.9492101980067379,
+            "deltaX": 0.09000000000000341,
+            "deltaTop": 0.4900000000000091,
+            "raycastAgrees": true
+          }
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "counts": {
+          "match": 3
+        },
+        "passed": true,
+        "failures": []
+      }
+    },
+    {
+      "size": [
+        390,
+        844
+      ],
+      "settled": true,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "camera": {
+        "aspect": 0.462,
+        "surfaceAspect": 0.462,
+        "position": [
+          -0.8,
+          5.87,
+          12.47
+        ],
+        "fov": 56
+      },
+      "frame": null,
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair near left",
+          "projected": [
+            126.48,
+            387.84,
+            187.54,
+            485.67
+          ],
+          "projectedCentre": [
+            158.45,
+            435.6
+          ],
+          "observedMask": [
+            129,
+            387,
+            175,
+            454
+          ],
+          "observedAreaPx": 2294,
+          "maskComponents": 1,
+          "fillRatio": 0.384029476321402,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 5.0 px, Δtop 0.8 px); the visible silhouette fills 50% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.3266608544027902,
+            "fill": 0.5094768731724073,
+            "centreDelta": 16.41988124195789,
+            "deltaX": 5.009999999999991,
+            "deltaTop": 0.839999999999975,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_2",
+          "name": "chair near right",
+          "projected": [
+            280.42,
+            389.15,
+            330.78,
+            483.37
+          ],
+          "projectedCentre": [
+            304.65,
+            435.6
+          ],
+          "observedMask": [
+            281,
+            389,
+            329,
+            444
+          ],
+          "observedAreaPx": 1722,
+          "maskComponents": 1,
+          "fillRatio": 0.3629145044240165,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 0.6 px, Δtop 0.1 px); the visible silhouette fills 55% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.5289198606271783,
+            "fill": 0.5548671935235489,
+            "centreDelta": 19.103206537123572,
+            "deltaX": 0.6000000000000227,
+            "deltaTop": 0.14999999999997726,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_3",
+          "name": "chair far",
+          "projected": [
+            78.13,
+            370.28,
+            120.72,
+            451.18
+          ],
+          "projectedCentre": [
+            100.12,
+            410.24
+          ],
+          "observedMask": [
+            79,
+            370,
+            119,
+            450
+          ],
+          "observedAreaPx": 2211,
+          "maskComponents": 1,
+          "fillRatio": 0.6417008002540099,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 0.4 px, Δtop 0.3 px)",
+            "coverage": 1.4422433288104934,
+            "fill": 0.9254886982587007,
+            "centreDelta": 1.1454256850621145,
+            "deltaX": 0.42499999999999716,
+            "deltaTop": 0.2799999999999727,
+            "raycastAgrees": false
+          }
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "counts": {
+          "match": 3
+        },
+        "passed": true,
+        "failures": []
+      }
+    },
+    {
+      "size": [
+        768,
+        1024
+      ],
+      "settled": true,
+      "viewport": {
+        "width": 768,
+        "height": 1024,
+        "dpr": 1
+      },
+      "camera": {
+        "aspect": 0.75,
+        "surfaceAspect": 0.75,
+        "position": [
+          -0.8,
+          4.58,
+          6.59
+        ],
+        "fov": 54
+      },
+      "frame": null,
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair near left",
+          "projected": [
+            249.11,
+            446.75,
+            368.68,
+            636.6
+          ],
+          "projectedCentre": [
+            313.14,
+            538.36
+          ],
+          "observedMask": [
+            258,
+            446,
+            345,
+            573
+          ],
+          "observedAreaPx": 8382,
+          "maskComponents": 1,
+          "fillRatio": 0.3692451722526306,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 7.4 px, Δtop 0.8 px); the visible silhouette fills 48% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.3103972798854688,
+            "fill": 0.48385786933068853,
+            "centreDelta": 31.118952424527414,
+            "deltaX": 7.394999999999982,
+            "deltaTop": 0.75,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_2",
+          "name": "chair near right",
+          "projected": [
+            546.48,
+            448.79,
+            652.82,
+            631.89
+          ],
+          "projectedCentre": [
+            596.59,
+            538.36
+          ],
+          "observedMask": [
+            550,
+            448,
+            635,
+            519
+          ],
+          "observedAreaPx": 4761,
+          "maskComponents": 1,
+          "fillRatio": 0.24451932103234914,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 7.2 px, Δtop 0.8 px); the visible silhouette fills 30% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.2534866624658683,
+            "fill": 0.3065017076292595,
+            "centreDelta": 55.01225045387619,
+            "deltaX": 7.150000000000091,
+            "deltaTop": 0.7900000000000205,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_3",
+          "name": "chair far",
+          "projected": [
+            169.47,
+            418.91,
+            251.41,
+            565.07
+          ],
+          "projectedCentre": [
+            212.35,
+            490.72
+          ],
+          "observedMask": [
+            172,
+            419,
+            249,
+            564
+          ],
+          "observedAreaPx": 7093,
+          "maskComponents": 1,
+          "fillRatio": 0.5922505406989428,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 0.1 px, Δtop 0.1 px)",
+            "coverage": 1.5740871281545186,
+            "fill": 0.9322539527567596,
+            "centreDelta": 2.007710138441288,
+            "deltaX": 0.060000000000002274,
+            "deltaTop": 0.08999999999997499,
+            "raycastAgrees": false
+          }
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "counts": {
+          "match": 3
+        },
+        "passed": true,
+        "failures": []
+      }
+    },
+    {
+      "size": [
+        1024,
+        768
+      ],
+      "settled": true,
+      "viewport": {
+        "width": 1024,
+        "height": 768,
+        "dpr": 1
+      },
+      "camera": {
+        "aspect": 1.333,
+        "surfaceAspect": 1.333,
+        "position": [
+          -0.8,
+          3.65,
+          2.36
+        ],
+        "fov": 51
+      },
+      "frame": null,
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair near left",
+          "projected": [
+            328.54,
+            301.17,
+            492.93,
+            549.17
+          ],
+          "projectedCentre": [
+            420.16,
+            418.16
+          ],
+          "observedMask": [
+            352,
+            301,
+            490,
+            545
+          ],
+          "observedAreaPx": 18337,
+          "maskComponents": 1,
+          "fillRatio": 0.449781106691601,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 10.3 px, Δtop 0.2 px); the visible silhouette fills 82% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.8350079075094072,
+            "fill": 0.8253518874274202,
+            "centreDelta": 4.912351778934375,
+            "deltaX": 10.264999999999986,
+            "deltaTop": 0.17000000000001592,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_2",
+          "name": "chair near right (tan-lit at this pose)",
+          "projected": [
+            715.72,
+            303.13,
+            874.04,
+            541.52
+          ],
+          "projectedCentre": [
+            787.51,
+            418.16
+          ],
+          "observedMask": [
+            720,
+            303,
+            862,
+            539
+          ],
+          "observedAreaPx": 19462,
+          "maskComponents": 1,
+          "fillRatio": 0.5156602482872038,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 3.9 px, Δtop 0.1 px); the visible silhouette fills 88% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.7209711232144693,
+            "fill": 0.8874363966918812,
+            "centreDelta": 4.499522196856009,
+            "deltaX": 3.8799999999999955,
+            "deltaTop": 0.12999999999999545,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_3",
+          "name": "chair far",
+          "projected": [
+            258,
+            277,
+            361.41,
+            445.96
+          ],
+          "projectedCentre": [
+            313.18,
+            359.35
+          ],
+          "observedMask": [
+            263,
+            277,
+            358,
+            444
+          ],
+          "observedAreaPx": 9631,
+          "maskComponents": 1,
+          "fillRatio": 0.5512199709599622,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 0.8 px, Δtop 0.0 px)",
+            "coverage": 1.6472848094694217,
+            "fill": 0.9080162848385215,
+            "centreDelta": 2.916316169416475,
+            "deltaX": 0.7949999999999591,
+            "deltaTop": 0,
+            "raycastAgrees": false
+          }
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "counts": {
+          "match": 3
+        },
+        "passed": true,
+        "failures": []
+      }
+    },
+    {
+      "size": [
+        844,
+        390
+      ],
+      "settled": true,
+      "viewport": {
+        "width": 844,
+        "height": 390,
+        "dpr": 1
+      },
+      "camera": {
+        "aspect": 2.164,
+        "surfaceAspect": 2.164,
+        "position": [
+          -0.8,
+          3.17,
+          0.19
+        ],
+        "fov": 48
+      },
+      "frame": "frame-844x390.png",
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair near left",
+          "projected": [
+            272.46,
+            130.94,
+            404.35,
+            328.14
+          ],
+          "projectedCentre": [
+            348.95,
+            222.17
+          ],
+          "observedMask": [
+            302,
+            131,
+            400,
+            324
+          ],
+          "observedAreaPx": 10895,
+          "maskComponents": 1,
+          "fillRatio": 0.4188981628768333,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "partial",
+            "reason": "the box contains the silhouette, but its edges are off (Δx 12.6 px, Δtop 0.1 px); the visible silhouette fills 72% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.7360256998623222,
+            "fill": 0.7272179763792955,
+            "centreDelta": 5.710639193645505,
+            "deltaX": 12.595000000000027,
+            "deltaTop": 0.060000000000002274,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_2",
+          "name": "chair near right",
+          "projected": [
+            577.91,
+            131.66,
+            724.35,
+            322.43
+          ],
+          "projectedCentre": [
+            641.15,
+            222.17
+          ],
+          "observedMask": [
+            583,
+            131,
+            710,
+            319
+          ],
+          "observedAreaPx": 13023,
+          "maskComponents": 1,
+          "fillRatio": 0.46616669313396686,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 4.6 px, Δtop 0.7 px); the visible silhouette fills 85% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.8269354219457883,
+            "fill": 0.8516564442177765,
+            "centreDelta": 6.05238795848385,
+            "deltaX": 4.6299999999999955,
+            "deltaTop": 0.6599999999999966,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_3",
+          "name": "chair far",
+          "projected": [
+            239.09,
+            120.13,
+            317.81,
+            239
+          ],
+          "projectedCentre": [
+            281.88,
+            177.63
+          ],
+          "observedMask": [
+            244,
+            120,
+            315,
+            237
+          ],
+          "observedAreaPx": 4899,
+          "maskComponents": 1,
+          "fillRatio": 0.5235402684219489,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 1.1 px, Δtop 0.1 px); the visible silhouette fills 88% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.693768115942029,
+            "fill": 0.8867558140648286,
+            "centreDelta": 2.5340284134160744,
+            "deltaX": 1.0500000000000114,
+            "deltaTop": 0.12999999999999545,
+            "raycastAgrees": false
+          }
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "counts": {
+          "partial": 1,
+          "match": 2
+        },
+        "passed": true,
+        "failures": []
+      }
+    },
+    {
+      "size": [
+        1440,
+        900
+      ],
+      "settled": true,
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "dpr": 1
+      },
+      "camera": {
+        "aspect": 1.6,
+        "surfaceAspect": 1.6,
+        "position": [
+          -0.8,
+          3.47,
+          1.54
+        ],
+        "fov": 49
+      },
+      "frame": null,
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "chair near left",
+          "projected": [
+            469.02,
+            336.13,
+            688.14,
+            678.84
+          ],
+          "projectedCentre": [
+            592.17,
+            497.55
+          ],
+          "observedMask": [
+            507,
+            336,
+            682,
+            674
+          ],
+          "observedAreaPx": 34702,
+          "maskComponents": 1,
+          "fillRatio": 0.462110364472578,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "partial",
+            "reason": "the box contains the silhouette, but its edges are off (Δx 15.9 px, Δtop 0.1 px); the visible silhouette fills 78% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.7038571263904099,
+            "fill": 0.7873700376854716,
+            "centreDelta": 7.805856775524389,
+            "deltaX": 15.920000000000073,
+            "deltaTop": 0.12999999999999545,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_2",
+          "name": "chair near right",
+          "projected": [
+            1000.35,
+            337.95,
+            1231.02,
+            670.34
+          ],
+          "projectedCentre": [
+            1103.49,
+            497.55
+          ],
+          "observedMask": [
+            1007,
+            338,
+            1213,
+            666
+          ],
+          "observedAreaPx": 38035,
+          "maskComponents": 1,
+          "fillRatio": 0.4960715897129467,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 5.7 px, Δtop 0.1 px); the visible silhouette fills 88% of the box, so part of the object is behind scene geometry",
+            "coverage": 1.776469041672144,
+            "fill": 0.8812558215781354,
+            "centreDelta": 7.8855944607873285,
+            "deltaX": 5.684999999999945,
+            "deltaTop": 0.05000000000001137,
+            "raycastAgrees": false
+          }
+        },
+        {
+          "id": "obj_3",
+          "name": "chair far",
+          "projected": [
+            376.93,
+            306.78,
+            519.17,
+            533.32
+          ],
+          "projectedCentre": [
+            453.28,
+            416.93
+          ],
+          "observedMask": [
+            385,
+            306,
+            515,
+            531
+          ],
+          "observedAreaPx": 17432,
+          "maskComponents": 1,
+          "fillRatio": 0.5409792125944529,
+          "pointerSelection": null,
+          "agreement": {
+            "verdict": "match",
+            "reason": "the drawn silhouette lies inside the box and its edges align (Δx 2.0 px, Δtop 0.8 px)",
+            "coverage": 1.6721317117944012,
+            "fill": 0.9045884968007498,
+            "centreDelta": 3.636385568115653,
+            "deltaX": 1.9500000000000455,
+            "deltaTop": 0.7799999999999727,
+            "raycastAgrees": false
+          }
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "counts": {
+          "partial": 1,
+          "match": 2
+        },
+        "passed": true,
+        "failures": []
+      }
+    }
+  ]
+}

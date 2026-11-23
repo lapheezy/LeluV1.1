@@ -1,0 +1,259 @@
+{
+  "mission": 17,
+  "workPackage": "M17-COE-WP03",
+  "promptId": "M17-COE-WP03-P01",
+  "parent": "M17-COE-WP02-P01",
+  "status": "PARTIAL \u2014 canvas verified at every viewport; ring side and Cosmos entry framing fixed and proven; an autonomous spatial camera pose remains an open blocker",
+  "baseCommit": "d8fb056b66f1d6906e71ad4e89c98c57beb19d1a",
+  "branch": "freebuff/m17-coe-wp03-responsive-canvas",
+  "canvasMeasurements": [
+    {
+      "viewport": [
+        384,
+        661
+      ],
+      "css": [
+        384,
+        661
+      ],
+      "buffer": [
+        384,
+        661
+      ],
+      "aspect": 0.581,
+      "fov": 55
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "css": [
+        390,
+        844
+      ],
+      "buffer": [
+        390,
+        844
+      ],
+      "aspect": 0.462,
+      "fov": 56
+    },
+    {
+      "viewport": [
+        844,
+        390
+      ],
+      "css": [
+        844,
+        390
+      ],
+      "buffer": [
+        844,
+        390
+      ],
+      "aspect": 2.164,
+      "fov": 48
+    },
+    {
+      "viewport": [
+        932,
+        430
+      ],
+      "css": [
+        932,
+        430
+      ],
+      "buffer": [
+        932,
+        430
+      ],
+      "aspect": 2.167,
+      "fov": 48
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "css": [
+        1280,
+        800
+      ],
+      "buffer": [
+        1280,
+        800
+      ],
+      "aspect": 1.6,
+      "fov": 49
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "css": [
+        1440,
+        900
+      ],
+      "buffer": [
+        1440,
+        900
+      ],
+      "aspect": 1.6,
+      "fov": 49
+    }
+  ],
+  "canvasVerdict": "The surface, drawing buffer, camera aspect and fov agree at every viewport. WP02's 'canvas stuck at 384x661' was a measurement artifact: the Cloud browser panel re-applies its viewport between tool calls.",
+  "rootCause": {
+    "primary": "WP02's ring depth (+7.2) put every object on the viewer's side of the resting camera (z 6.8, or sampled poses like (0,1.5,5)/(6,2.5,4)), 32 m past the core at z=-25; objects projected off-screen (screen x -542..-10583, inFrustum false) while the sky and core painted.",
+    "secondary": "The home orb's 'Look at the Cosmos' opened the Cosmos without requesting object framing, unlike the dock and the tool.",
+    "open": "useSpatialCamera writes camera position/target/fov whenever SpatialRuntime reports a transition (SpatialExperience calls runtime.start('core') on mount), overriding object framing and the user's orbit."
+  },
+  "fix": {
+    "ring": {
+      "RING_DEPTH": -7.2,
+      "VIEWER_DEPTH": 6.8,
+      "LEGACY_RING_DEPTH": 7.2
+    },
+    "placementVersion": 3,
+    "migration": "legacyRingSignature distinguishes 'cluster' (v1) from 'behind-camera' (v2); repairs are recorded as 'auto-placed' so they are never mistaken for a user move; v2's shipped 'relocated / placement v1 \u2192 v2' entries are still read as store moves",
+    "entry": "CosmosHome orb now issues cosmosViewBus.request({mode:'open', frame:true}), the same request the dock and the tool use",
+    "hazards": "setHazards(source, hazards) keeps per-source volumes; room markers publish from src/core/cosmos/roomHazards.ts (ROOMS_Z_OFFSET -25, drawn radii 1.2/0.7/0.4 + tube 0.05)",
+    "openSlot": "widens to 24 rings instead of falling back to an unchecked slot (a failing test caught the old fallback landing inside a 20 m hazard)"
+  },
+  "liveResults": {
+    "migrationV3": [
+      {
+        "id": "obj_legacy",
+        "from": [
+          3.2,
+          0.9,
+          7.2
+        ],
+        "to": [
+          3.2,
+          0.9,
+          -7.2
+        ],
+        "placementVersion": 3,
+        "provenance": "auto-placed"
+      },
+      {
+        "id": "obj_1",
+        "from": [
+          1.6,
+          0.9,
+          9.97
+        ],
+        "to": [
+          1.6,
+          0.9,
+          -4.43
+        ],
+        "placementVersion": 3
+      },
+      {
+        "id": "obj_2",
+        "from": [
+          -1.6,
+          0.9,
+          9.97
+        ],
+        "to": [
+          -1.6,
+          0.9,
+          -4.43
+        ],
+        "placementVersion": 3
+      }
+    ],
+    "userPlacementsPreserved": [
+      {
+        "id": "obj_5",
+        "position": [
+          -3.2,
+          0.9,
+          7.2
+        ],
+        "placementVersion": 2
+      },
+      {
+        "id": "obj_6",
+        "position": [
+          -1.6,
+          0.9,
+          4.43
+        ],
+        "placementVersion": 2
+      }
+    ],
+    "storePayloadVersion": 3,
+    "entryFraming": {
+      "camera": [
+        0.2,
+        7.58,
+        23.67
+      ],
+      "objectsInFrustum": 5,
+      "total": 5,
+      "dock": "5 objects"
+    },
+    "modelCalls": 0
+  },
+  "openBlocker": {
+    "where": "src/app/scene/spatial/useSpatialCamera.ts + SpatialExperience runtime.start('core')",
+    "observed": "camera moved (-0.02,1.5,5) \u2192 (6,2.5,4) \u2192 (0.2,7.58,23.67) \u2192 (-1.37,1.79,2.97) \u2192 (6,2.5,4) with no user input, moving objects out of frame after framing",
+    "consequence": [
+      "a capture can still show an empty Cosmos",
+      "taps can land where an object was"
+    ],
+    "state": "NOT FIXED \u2014 camera authority question, belongs in its own work package"
+  },
+  "tests": {
+    "cosmos-object-placement": "19 pass (was 14)",
+    "cosmos-objects": "10 pass",
+    "cosmos-object-experience": "11 pass",
+    "creative-build": "18 pass",
+    "creative-kit": "17 pass",
+    "creation-studio-tools": "9 pass",
+    "chat-surface": "31 pass",
+    "module-layout": "11 pass",
+    "security-containment": "18 pass",
+    "total": "144 pass / 0 fail",
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "notRun": [
+      "full suite",
+      "lint (no script)",
+      "WebGL-off matrix",
+      "memory profiling",
+      "physical devices"
+    ]
+  },
+  "screenshots": [
+    "artifacts/perf/m17-wp03-portrait-framed.png",
+    "artifacts/perf/m17-wp03-desktop-framed.png",
+    "artifacts/perf/m17-wp03-vp-844x390.png",
+    "artifacts/perf/m17-wp03-vp-1440x900.png",
+    "artifacts/perf/m17-wp03-viewports.json"
+  ],
+  "limitations": [
+    "Chromium viewport emulation only; no physical iPhone/iPad",
+    "pointer selection not proven end-to-end: the spatial pose moved the camera between probe and click",
+    "resize-after-remount measured only as canvas/aspect (same numbers as a live resize); the pose drift masks visual confirmation",
+    "the two objects a user had relocated remain on the far side by design and are only visible once framed"
+  ],
+  "gates": {
+    "O01": "MET \u2014 root cause isolated with measurements and probe output",
+    "O02": "MET \u2014 canvas, buffer, aspect and fov agree at six viewports",
+    "O03": "PARTIAL \u2014 canvas and aspect verified at 844x390 and 932x430; object pixels not confirmed while the spatial pose can move the camera",
+    "O04": "PARTIAL \u2014 same at 1280x800 and 1440x900",
+    "O05": "PARTIAL \u2014 dimensions survive; visual confirmation blocked by the pose drift",
+    "O06": "MET \u2014 room hazard volumes derive from the drawn geometry and are unit-tested",
+    "O07": "PARTIAL \u2014 placement/relocation/undo/hazard tests pass; pointer selection unproven",
+    "O08": "NOT DONE \u2014 no memory or WebGL-off measurements",
+    "O09": "MET \u2014 commit pushed, remote SHA verified",
+    "O10": "NOT VERIFIED \u2014 no physical devices"
+  }
+}

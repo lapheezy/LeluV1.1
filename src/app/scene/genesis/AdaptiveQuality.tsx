@@ -31,6 +31,24 @@ export interface RenderStats {
   mode: string;
   /** The manager's quality profile: full / balanced / light. */
   profile: string;
+  /** WHY that profile: capability, a measurement, or an explicit override. */
+  profileReason: string;
+  /** True only when the world can and does paint right now. */
+  painting: boolean;
+  /** The explicit render override in force (`url:render=gpu`), or null. */
+  override: string | null;
+  /** GL renderer the manager has evidence for. */
+  renderer: string;
+  /** Viewport in CSS pixels when this sample was taken. */
+  viewport: [number, number];
+  /** A canvas whose context is lost and not yet restored, or null. */
+  contextLost: string | null;
+  /** When capability was last assessed (ms epoch). */
+  assessedAt: number;
+  /** Consecutive slow samples behind the next demotion (0 when healthy). */
+  slowSamples: number;
+  /** When the profile last fell to "light" (ms epoch), or 0. */
+  lightSince: number;
 }
 
 declare global {
@@ -100,6 +118,12 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
     const manager = getSceneRenderManager();
     manager.reportFrameRate(fps, mode === "full");
 
+    /*
+     * Everything the question "is the cosmos actually being rendered, and if
+     * not, why" needs, read once per measured second — never per frame. The
+     * manager owns the answer; this only publishes it.
+     */
+    const snapshot = manager.getSnapshot();
     window.__leluRenderStats = {
       fps: Math.round(fps),
       dpr: gl.getPixelRatio(),
@@ -110,6 +134,15 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
       frames: painted.current,
       mode,
       profile: manager.profile(),
+      profileReason: snapshot.reason,
+      painting: snapshot.worldPainting,
+      override: snapshot.override?.source ?? null,
+      renderer: snapshot.capability.renderer,
+      viewport: [window.innerWidth, window.innerHeight],
+      contextLost: snapshot.lostContexts[0] ?? null,
+      assessedAt: snapshot.assessedAt,
+      slowSamples: manager.slowSamples(),
+      lightSince: snapshot.lightSince,
     };
   });
   return null;

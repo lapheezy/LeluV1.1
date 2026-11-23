@@ -1,0 +1,132 @@
+{
+  "mission": "M17 — Cosmos Object Experience",
+  "workPackage": "WP05 — Adaptive Rendering Capability & GPU Validation (P01)",
+  "baseCommit": "268e65952c28a1d0dcd4072c05a8710c0c45f6d3",
+  "date": "2026-11-16",
+  "machine": {
+    "glRenderer": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": true,
+    "measuredFpsWithoutOverride": "0–2 (window.__leluRenderStats)",
+    "measuredFpsWithOverride": "0–16 depending on viewport: 16 at 384x661 early in the run, 0 once a 1440x900 frame took longer than the one-second sample",
+    "note": "A real GPU behind a virtualised D3D11 path. The frame rate is a property of this host, not of the hardware's class."
+  },
+
+  "capabilityInventory": [
+    {
+      "where": "GenesisScene.tsx · GenesisV1Workspace",
+      "what": "A single useEffect(…, []) created one throwaway WebGL context, read WEBGL_debug_renderer_info, window.innerWidth<=720 and navigator.connection.saveData, then called manager.setCapability(...) and setSoftwareGL(...).",
+      "gap": "Ran once per mount. No resize, no orientation change, no context restoration, no renderer change could reach it again."
+    },
+    {
+      "where": "SceneRenderManager.setCapability",
+      "what": "ceiling = profileFor(input); adaptation = { profile: ceiling, slow: 0, fast: 0 }",
+      "gap": "No record of WHICH evidence produced the ceiling, and no way to revise it without a remount."
+    },
+    {
+      "where": "SceneRenderManager.reportFrameRate ← AdaptiveQuality.useFrame (1 sample/second)",
+      "what": "nextProfile(adaptation, { fps, painting: mode === \"full\" }, ceiling)",
+      "gap": "The only mechanism able to revise a measurement decision lives inside the canvas. When the decision is 'light', paintWorld is false → frameloop=\"never\" → useFrame never runs → no further samples. Giving up destroyed the evidence that could justify trying again."
+    },
+    {
+      "where": "AdaptiveQuality",
+      "what": "painting was derived from the budget's mode (`mode === \"full\"`), not from whether this canvas actually painted",
+      "gap": "A suspended-by-profile canvas would still have been reported as 'painting' had it ever sampled; the published stats also reported mode 'full' while nothing was drawn."
+    },
+    {
+      "where": "GenesisScene.paintWorld",
+      "what": "(!softwareGL || Boolean(perfWorld)) && profile !== \"light\"",
+      "gap": "?perf-world (development) could bypass the local softwareGL flag but NOT the manager's profile, so on this VM the harness flag did nothing."
+    }
+  ],
+
+  "frameloopNeverPaths": [
+    "paintWorld === false because profile === 'light' (no WebGL, software renderer, Save-Data, or a measured demotion)",
+    "paintWorld === false because the local softwareGL probe matched the driver string",
+    "budget paused: page hidden, world covered by the phone chat, Chat Universe workspace open, or a lost WebGL context"
+  ],
+
+  "conflation": {
+    "before": "Capability (what the hardware is), measurement (how this host is performing right now) and viewport (how wide the surface is) all collapsed into one `profile` string with no explanation, and a measurement could overwrite the capability answer permanently.",
+    "after": "Capability sets a CEILING; measurement may move the profile inside it with hysteresis; a capability-relevant change re-derives the profile because frames measured on the old surface are not evidence about the new one; the snapshot carries `reason` and `demotionsHeld` so the difference is visible."
+  },
+
+  "rootCause": "The capability decision was taken once, at mount, from evidence with a lifetime — and the only mechanism that could revise it (frame measurement) was destroyed by the decision it made. A single transient slow window therefore classified a real GPU as a light device for the life of the tab, with no observability into why and no way for an operator to state that the machine, not the GPU, is constrained.",
+
+  "implementation": {
+    "SceneRenderManager.ts": [
+      "CAPABILITY_RECHECK_MS = 250 (a burst of resize events is one decision)",
+      "capabilitySignature(input) — evidence comparison, so an unchanged reassessment is a no-op",
+      "CapabilityTrigger = mount | resize | orientation | context-restored | renderer | manual",
+      "reassessCapability(input, trigger) — re-derives ceiling + profile only when the evidence changed",
+      "observeRenderer(renderer) — a restored context that came back on a different renderer is new evidence; the same string is free",
+      "RenderOverride { profile, reason, source } + overrideVerdict() + readRenderOverride(search)",
+      "setOverride(override | null) — explicit, observable, reversible; refused where there is no GPU",
+      "floor() — an override is a FLOOR below the capability ceiling, never above it",
+      "reportFrameRate() holds the floor only when an override exists, and counts each held demotion",
+      "snapshot gains reason, override, overrideRefused, capability, assessedAt, worldPainting, demotionsHeld",
+      "lastSample() — read on demand so a per-second number never rebuilds the snapshot"
+    ],
+    "GenesisScene.tsx": [
+      "probeWebGL() — the evidence that cannot change, read once",
+      "readCapabilityView() — narrow / mobile / saveData, re-read per event",
+      "debounced reassessment on resize, visualViewport resize, orientationchange and screen.orientation change, all removed on unmount",
+      "explicit override from ?render=gpu | ?render=balanced (and the development ?perf-world), refused with a console warning when there is no GPU",
+      "paintWorld and the frameloop expression are unchanged: the budget is still the only authority on the frame loop"
+    ],
+    "render/RenderContextGuard.tsx": [
+      "on webglcontextrestored, reads the renderer from the LIVE context and reports it (never from the mount probe)"
+    ],
+    "AdaptiveQuality.tsx": [
+      "publishes profileReason, painting, override, renderer, viewport, contextLost, assessedAt once per measured second — never per frame"
+    ],
+    "tests/render-capability.test.ts": "17 tests covering the override contract, evidence comparison, recovery, hardware precedence, context-loss interaction and the architecture invariants"
+  },
+
+  "acceptanceMatrix": [
+    { "scenario": "Initial capable GPU", "result": "NOT AVAILABLE ON THIS HOST", "detail": "No machine in this environment sustains 30 fps, so 'a capable GPU starts at full and paints, with no override' could not be observed. What is verified is that when the evidence says capable (ceiling full) the world paints whenever it is allowed to, at all six viewports." },
+    { "scenario": "Initial low-capability device", "result": "PASS", "detail": "1440x900, no override: profile light, reason measurement:slow, painting false — the documented safety policy, unchanged." },
+    { "scenario": "Resize desktop viewport", "result": "PASS", "detail": "A burst of 25 identical resize events left profile, ceiling and assessedAt unchanged: one decision, no oscillation. A resize that crosses the narrow threshold re-reports narrow and re-derives the ceiling." },
+    { "scenario": "Mobile portrait → landscape", "result": "PASS", "detail": "384x661 (narrow, ceiling balanced) → 844x390 (wide, ceiling full, profile full) with no reload." },
+    { "scenario": "Mobile landscape → portrait", "result": "PASS", "detail": "844x390 (full) → 390x844 (balanced) live; unit test pins both directions." },
+    { "scenario": "GPU-capable constrained VM (override)", "result": "PASS", "detail": "?render=gpu: profile follows the ceiling (balanced when narrow, full when wide), painting true, override source url:render=gpu, demotionsHeld > 0 — the override is visibly doing work." },
+    { "scenario": "Explicit override disabled", "result": "PASS", "detail": "Reload without the parameter → override null, reason measurement:slow, profile light again. An unknown value (?render=auto, ?render=maybe) is not an override at all." },
+    { "scenario": "WebGL context lost", "result": "PASS", "detail": "Live: mode paused, lostContexts ['genesis-world'], worldPainting false — with the override active, so it does not bypass a dead context." },
+    { "scenario": "WebGL context restored", "result": "PASS", "detail": "Live: mode full, lostContexts [], worldPainting true, frames advancing again; the guard reports the renderer the context came back with." },
+    { "scenario": "Repeated resize events", "result": "PASS", "detail": "25 events: profile balanced → balanced, ceiling balanced → balanced, assessedAt identical. Unit test also asserts the snapshot object itself is unchanged." },
+    { "scenario": "Camera framing (WP04)", "result": "PASS (as far as this host allows)", "detail": "__cosmosCameraStatus ok:true with a framed pose at 384x661, 390x844, 768x1024 and 844x390. At 1440x900 the entry frame was never requested because the page stalled (see blocked)." },
+    { "scenario": "Object selection (WP02)", "result": "NOT RE-VERIFIED LIVE", "detail": "The object probe was not registered before the timeout in the two attempts made; geometry routing is unchanged by this work package and is covered by tests/cosmos-objects.test.ts (10)." },
+    { "scenario": "Multiple Cosmos objects", "result": "PASS", "detail": "3 chairs, all three in frame and visible at 390x844, 768x1024 and 1024x768; 3/3 inFrustum at every captured viewport." }
+  ],
+
+  "viewportResults": [
+    { "viewport": "384x661", "override": false, "profile": "light", "reason": "measurement:slow", "ceiling": "balanced", "painting": false, "objectsPainted": false },
+    { "viewport": "384x661", "override": true, "profile": "balanced", "reason": "override", "ceiling": "balanced", "painting": true, "frames": 320, "objectsInFrame": "3/3", "pixelPatches": [0.089, 0.185, 0.088], "screenshot": "m17-wp05-vp-384x661.png" },
+    { "viewport": "390x844", "override": true, "profile": "balanced", "reason": "override", "ceiling": "balanced", "painting": true, "frames": 31, "objectsVisibleInPixels": 3, "screenshot": "m17-wp05-vp-390x844.png" },
+    { "viewport": "768x1024", "override": true, "profile": "full", "reason": "override", "ceiling": "full", "painting": true, "frames": 24, "objectsInFrame": "3/3", "screenshot": "m17-wp05-vp-768x1024.png" },
+    { "viewport": "1024x768", "override": true, "profile": "full", "reason": "override", "ceiling": "full", "painting": true, "frames": 26, "objectsInFrame": "3/3", "screenshot": "m17-wp05-vp-1024x768.png" },
+    { "viewport": "844x390", "override": true, "profile": "full", "reason": "override", "ceiling": "full", "painting": true, "frames": 419, "objectsInFrame": "3/3 after re-entry", "screenshot": "m17-wp05-vp-844x390.png", "note": "Objects in frame but partly behind the floating dock alongside the Core; one chair is visible at the right edge." },
+    { "viewport": "1440x900", "override": false, "profile": "light", "reason": "measurement:slow", "ceiling": "full", "painting": false, "screenshot": "m17-wp05-baseline-1440x900.png" },
+    { "viewport": "1440x900", "override": true, "profile": "full", "reason": "override", "ceiling": "full", "painting": true, "frames": 24, "objectsVisibleInPixels": 3, "screenshot": "m17-wp05-vp-1440x900.png", "note": "Three chairs rendered large and correctly at desktop size. A later attempt at the same size stalled the page's CDP channel while it painted; the capture above is from the attempt that completed." }
+  ],
+
+  "pixelMethod": "A screenshot is decoded in the page and sampled: a chair pixel is warm (r > 90, r > b + 18, g > 55). Per-object patches are 45x45 boxes around the probe's reported screen position; the full-frame warm count is the cross-check against a baseline with no override.",
+  "pixelCaveat": "The object probe's `screen` coordinates are unreliable across viewports: at 390x844 the patches read 0 while three chairs are plainly visible, and at 1440x900 the probe reported x=-3114 while three chairs filled the frame. Where probe and image disagree the screenshot is the authority, and inFrustum alone is never treated as visual proof. The projection used by the probe looks computed against a stale viewport after a resize; that is a reporting bug in the probe, not in the scene — it is recorded, not fixed here.",
+
+  "observationsForNextWorkPackage": [
+    "Rotating or resizing while the Cosmos is open keeps the pose framed for the OLD aspect: at 844x390 the three objects sat at x=849/891/1204 after a portrait→landscape change until the Cosmos was re-entered. This is WP04's camera contract (a framed pose is owned and not re-applied); re-framing on aspect change would be a camera write and must not be bolted on here.",
+    "At 1440x900 with the override the world paints but this VM cannot service the page: screenshots and CDP evaluations time out. The override is not a free win on an incapable host, which is exactly why it is explicit, logged and reversible.",
+    "profileReason distinguishes 'capability:software', 'capability:no-webgl', 'capability:save-data', 'capability:narrow', 'measurement:slow' and 'override' — the vocabulary the diagnostics were missing."
+  ],
+
+  "checks": {
+    "typecheck": "npx tsc -b --force → 0",
+    "build": "npm run build → 0",
+    "newTests": "tests/render-capability.test.ts → 17 pass, 0 fail",
+    "fullSuite": "npm test → 2266 tests, 2256 pass, 2 fail",
+    "preExistingFailures": [
+      "tests/sandbox-security.test.ts › network: TCP, UDP, DNS and fetch all fail (empty sandbox output; reproduced identically at base commit 268e659 in a separate worktree)",
+      "tests/genesis-interface.test.tsx (ERR_PACKAGE_PATH_NOT_EXPORTED: @excalidraw/excalidraw/index.css; reproduced identically at base commit 268e659)"
+    ],
+    "lockfile": "unchanged"
+  }
+}

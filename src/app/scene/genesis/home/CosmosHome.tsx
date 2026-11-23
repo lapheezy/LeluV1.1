@@ -25,6 +25,7 @@ import { NeuralEmbedSlot, NeuralToggle } from "../neural/NeuralEmbedSlot";
 import HomeStore from "./homeStore";
 import { useCloud, useHomeStore, useNotifications } from "./useHomeLive";
 import { launch } from "./homeActions";
+import { cosmosViewBus } from "../../../../core/cosmos/objects/CosmosObjectCamera";
 import { announceHome } from "./homePresence";
 import { HomeIcon, useHomeSignals } from "./HomeModules";
 import HomeComposition from "./HomeComposition";
@@ -164,7 +165,20 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
             {notes.unread ? <span className="lch-badge">{notes.unread > 9 ? "9+" : notes.unread}</span> : null}
           </button>
           <NeuralToggle host="home" open={neural} onToggle={() => setNeural(!neural)} style={{ alignSelf: "center" }} />
-          <button type="button" className="lch-round lch-cosmos" aria-label="Look at the Cosmos" title="Look at the Cosmos" onClick={() => HomeStore.setImmersive(true)}>
+          <button
+            type="button"
+            className="lch-round lch-cosmos"
+            aria-label="Look at the Cosmos"
+            title="Look at the Cosmos"
+            /*
+             * The same door the dock and the tool use. Setting immersive mode
+             * alone opened the Cosmos WITHOUT framing the objects, so the
+             * camera stayed wherever the spatial runtime last sampled — and an
+             * object parked at the ring was simply not on screen. One entry,
+             * one behaviour: open, and frame what is there.
+             */
+            onClick={() => cosmosViewBus.request({ mode: "open", frame: true })}
+          >
             <span className="lch-cosmos-core" />
           </button>
         </div>

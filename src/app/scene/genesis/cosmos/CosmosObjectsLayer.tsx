@@ -29,11 +29,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import type { Object3D as ThreeObject } from "three";
-import { Frustum, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from "three";
+import { Box3, Frustum, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, Plane, Raycaster, Sphere, Vector2, Vector3 } from "three";
 import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore";
 import type { CosmosObject, CosmosObjectState } from "../../../../core/cosmos/objects/CosmosObjectTypes";
-import { cosmosCameraBus, poseFor, objectBounds, type CameraPose } from "../../../../core/cosmos/objects/CosmosObjectCamera";
+import { cosmosCameraBus, poseFor, objectBounds, type Bounds3, type CameraPose } from "../../../../core/cosmos/objects/CosmosObjectCamera";
+import {
+  VIEWPORT_SPACE,
+  freshenCamera,
+  insideViewport,
+  ndcToViewport,
+  projectBounds,
+  viewportOf,
+  viewportToCanvasLocal,
+  type ProjectedObject,
+} from "../../../../core/cosmos/objects/CosmosProjection";
 import { claimCinematicCamera, releaseCinematicCamera } from "../cameraOwnership";
+import SpatialRuntime from "../../spatial/SpatialRuntime";
 
 /** Enough of a draw-call budget per object, and no more. */
 const MAX_MESHES_PER_OBJECT = 160;
@@ -298,7 +309,7 @@ interface CameraStatus {
 }
 
 function ObjectCameraBridge() {
-  const { camera, size, scene, gl } = useThree();
+  const { camera, size, scene, gl, invalidate } = useThree();
   // The scene's own default OrbitControls (makeDefault), so a framed pose is
   // the pose the user can then orbit around — not a second camera.
   const controls = useThree((state) => state.controls) as unknown as { target?: Vector3; update?: () => void } | null;
@@ -333,6 +344,15 @@ function ObjectCameraBridge() {
       // pulls the controls target back to the origin every frame, and the
       // user takes it back the moment they drag.
       claimCinematicCamera();
+      /*
+       * A reveal supersedes an older flight. If the Cosmos is still travelling
+       * (an entry transition, say), it keeps its transition for `resume()` but
+       * stops posing the camera — otherwise its next frame, or its arrival,
+       * overwrites the pose that was just requested and the objects leave the
+       * frame. Newest request wins; the interrupted one is still resumable.
+       */
+      const spatial = SpatialRuntime.getInstance();
+      if (spatial.getState().transition) spatial.interrupt();
       window.dispatchEvent(new CustomEvent("cosmos-navigate", { detail: { pos: { x: pose.position[0], y: pose.position[1], z: pose.position[2] }, lookAt: { x: pose.lookAt[0], y: pose.lookAt[1], z: pose.lookAt[2] } } }));
       /*
        * The Cosmos navigator animates the fly. When something else is holding
@@ -388,26 +408,122 @@ function ObjectCameraBridge() {
     const perspective = camera as PerspectiveCamera;
     (window as unknown as { __cosmosObjectsProbe?: () => unknown }).__cosmosObjectsProbe = () => {
       const store = CosmosObjectStore.getInstance();
-      const height = Math.max(1, size.height);
+
+      /*
+       * THE VIEWPORT IS THE CANVAS' OWN BOX.
+       *
+       * Not `window.innerWidth`: the canvas can be offset, letterboxed or
+       * smaller than the window, and a screenshot is of the window. The
+       * ratio comes from the buffer the renderer actually allocated, because
+       * an adaptive `dpr` makes it differ from window.devicePixelRatio.
+       */
+      const element = gl.domElement;
+      const view = viewportOf(
+        element.getBoundingClientRect(),
+        { width: element.width, height: element.height },
+        gl.getPixelRatio(),
+      );
+      /* The camera's matrices must describe where it is NOW: three updates
+         `matrixWorldInverse` inside its render pass, so at 1 fps a camera that
+         has flown since the last frame still carries the old one. */
+      const aspectMismatch = freshenCamera(perspective, view);
+      const height = view.height;
       const frustum = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
 
-      /* 1. what the store has */
+      /* The rendered group for each canonical id, so a box is transformed by
+         what the scene graph applies — a scaled ring group, a rotating parent —
+         rather than by the store's numbers alone. */
+      const groupById = new Map<string, Group>();
+      scene.traverse((node: import("three").Object3D) => {
+        const id = (node.userData as { cosmosObjectId?: unknown } | undefined)?.cosmosObjectId;
+        if (typeof id === "string" && !groupById.has(id)) groupById.set(id, node as unknown as Group);
+      });
+      /*
+       * THE BOX THAT GETS PROJECTED IS THE BOX THAT GETS DRAWN.
+       *
+       * `objectBounds()` is a MODEL: it exists so the camera can fit an object
+       * before it is mounted, and it multiplies the object's scale into part
+       * positions and extents. The pixels come from the group's geometry under
+       * the scene graph's real transforms. When the two disagree, the pixels
+       * are right — so the rendered world box is what this projects, and the
+       * model is reported beside it for comparison rather than trusted.
+       */
+      const renderedBounds = (object: CosmosObject): Bounds3 | null => {
+        const group = groupById.get(object.id);
+        if (!group) return null;
+        group.updateWorldMatrix(true, true);
+        const box = new Box3().setFromObject(group, true);
+        if (box.isEmpty()) return null;
+        const center = box.getCenter(new Vector3());
+        const radius = box.getBoundingSphere(new Sphere()).radius;
+        return {
+          min: [box.min.x, box.min.y, box.min.z],
+          max: [box.max.x, box.max.y, box.max.z],
+          center: [center.x, center.y, center.z],
+          radius,
+        };
+      };
+      const project = (object: CosmosObject): ProjectedObject =>
+        projectBounds(perspective, renderedBounds(object), view);
+      /* The same object measured the model's way, for the record. */
+      const projectModel = (object: CosmosObject): ProjectedObject =>
+        projectBounds(perspective, objectBounds(object), view, groupById.get(object.id)?.parent?.matrixWorld);
+      /*
+       * The group's own place in the world, and where its ORIGIN projects to.
+       * A box centre and an object origin are different claims, and telling
+       * them apart is how a "projection is wrong" report turns into "the
+       * bounds are not what you assumed".
+       */
+      const groupWorld = (object: CosmosObject) => {
+        const group = groupById.get(object.id);
+        if (!group) return null;
+        const origin = new Vector3();
+        group.getWorldPosition(origin);
+        const worldBox = renderedBounds(object);
+        const corner = origin.clone().project(perspective);
+        return {
+          world: [Number(origin.x.toFixed(3)), Number(origin.y.toFixed(3)), Number(origin.z.toFixed(3))],
+          worldMin: worldBox ? worldBox.min.map((n) => Number(n.toFixed(3))) : null,
+          worldMax: worldBox ? worldBox.max.map((n) => Number(n.toFixed(3))) : null,
+          originCenter: ndcToViewport([corner.x, corner.y, corner.z], view),
+          scale: [group.scale.x, group.scale.y, group.scale.z],
+          rotationY: Number((group.rotation.y % (Math.PI * 2)).toFixed(3)),
+          parent: group.parent?.type ?? null,
+          parentPosition: group.parent ? [Number(group.parent.position.x.toFixed(3)), Number(group.parent.position.y.toFixed(3)), Number(group.parent.position.z.toFixed(3))] : null,
+        };
+      };
+
+      /* 1. what the store has, measured in viewport CSS pixels */
       const fromStore = store.list().map((object) => {
-        const point = new Vector3(...object.frame.position).project(camera);
         const distance = camera.position.distanceTo(new Vector3(...object.frame.position));
         const fovRad = ((perspective.fov ?? 50) * Math.PI) / 180;
+        const projected = project(object);
         return {
           id: object.id,
           name: object.name,
           place: object.place,
           visible: object.visible,
+          /* Drawn only when visible AND placed where this layer draws it. */
+          drawable: object.visible && (object.place === "cosmos" || object.place === "gallery"),
           scale: object.frame.scale,
           sceneParts: object.scene.objects.length,
           distance: Number(distance.toFixed(2)),
-          screen: [Math.round(((point.x + 1) / 2) * size.width), Math.round(((1 - point.y) / 2) * height)],
-          inFront: point.z < 1,
+          /* The coordinate contract, spelled out with every reading. */
+          space: projected.space,
+          center: projected.center,
+          bounds: projected.bounds,
+          bufferCenter: projected.bufferCenter,
+          behindCamera: projected.behindCamera,
+          onScreen: insideViewport(projected.center, view),
+          failure: projected.failure,
+          aspectMismatch: projected.aspectMismatch,
+          inFrustum: projected.inFrustum,
+          sceneGraph: groupWorld(object),
+          modelView: (() => {
+            const model = projectModel(object);
+            return { center: model.center, bounds: model.bounds && model.bounds.map((n) => Number(n.toFixed(1))) };
+          })(),
           pixelsPerMetre: Math.round((height / 2) / Math.tan(fovRad / 2) / Math.max(0.001, distance)),
-          inFrustum: frustum.containsPoint(new Vector3(...object.frame.position)),
         };
       });
 
@@ -480,9 +596,20 @@ function ObjectCameraBridge() {
           sameScene: (parentScene as unknown) === (scene as unknown),
           canvases,
         },
+        viewport: {
+          space: VIEWPORT_SPACE,
+          left: Number(view.left.toFixed(2)),
+          top: Number(view.top.toFixed(2)),
+          width: Number(view.width.toFixed(2)),
+          height: Number(view.height.toFixed(2)),
+          buffer: [view.bufferWidth, view.bufferHeight],
+          dpr: view.dpr,
+          aspectMismatch,
+        },
         camera: {
           aspect: Number((perspective.aspect ?? 0).toFixed(3)),
-          viewport: [size.width, size.height],
+          surfaceAspect: Number((view.width / Math.max(1, view.height)).toFixed(3)),
+          viewport: [view.width, view.height],
           position: [Number(camera.position.x.toFixed(2)), Number(camera.position.y.toFixed(2)), Number(camera.position.z.toFixed(2))],
           layersMask: camera.layers.mask,
           near: perspective.near,
@@ -494,7 +621,9 @@ function ObjectCameraBridge() {
            pointer handler does. */
         hit: (x: number, y: number) => {
           const ray = new Raycaster();
-          ray.setFromCamera(new Vector2((x / Math.max(1, size.width)) * 2 - 1, -(y / Math.max(1, height)) * 2 + 1), camera);
+          /* (x, y) are VIEWPORT CSS pixels, the same space `center` is in. */
+          const local = viewportToCanvasLocal({ x, y }, view);
+          ray.setFromCamera(new Vector2((local.x / view.width) * 2 - 1, -(local.y / view.height) * 2 + 1), camera);
           return ray.intersectObjects(scene.children, true).slice(0, 4).map((h) => {
             let owner: string | null = null;
             let cursor: ThreeObject | null = h.object;
@@ -518,7 +647,198 @@ function ObjectCameraBridge() {
         missing: storeIds.filter((id) => !sceneIds.includes(id)),
       };
     };
-  }, [camera, size.width, size.height]);
+
+    /*
+     * A MEASUREMENT HOOK, NOT A FEATURE.
+     *
+     * "Which pixels are this object" is a question only the renderer can
+     * answer truthfully. It answers by not drawing the object for one frame:
+     * the pixels that change between the two captures are exactly the ones the
+     * object was covering. That is an identity mask — no colour rule, no
+     * material or lighting assumption, and a yaw-rotated silhouette comes out
+     * as the silhouette itself rather than as its axis-aligned box.
+     *
+     * It touches nothing that persists: no store write, no canonical id, no
+     * placement, no selection, no renderer. The flag lives on the scene node
+     * and the caller restores it; a React re-render would restore it anyway,
+     * which is why the mask is only valid for the frame it was asked for.
+     */
+    const setObjectVisible = (id: string, on: boolean) => {
+      let found = false;
+      scene.traverse((node: import("three").Object3D) => {
+        if (found) return;
+        if ((node.userData as { cosmosObjectId?: unknown } | undefined)?.cosmosObjectId === id) {
+          node.visible = on;
+          found = true;
+        }
+      });
+      if (found) invalidate();
+      return found;
+    };
+
+    (window as unknown as { __cosmosObjectIdentity?: unknown }).__cosmosObjectIdentity = {
+      setVisible: setObjectVisible,
+      /*
+       * Read the identity mask straight out of the renderer's own frame buffer.
+       *
+       * A compositor screenshot costs seconds on this host and lets the
+       * animation move between the two frames, so the diff would contain every
+       * object that turned. Two direct renders in the same task cannot drift:
+       * nothing in the scene advances between them, and the pixels come from
+       * the renderer that drew the frame a person is looking at. No second
+       * renderer, no render target, no state kept. Rows come back bottom-up
+       * and are flipped here so the mask is in the same top-left space as a
+       * screenshot.
+       */
+      identityMask: (id: string) => {
+        const width = gl.domElement.width;
+        const height = gl.domElement.height;
+        const ctx = gl.getContext() as WebGLRenderingContext | WebGL2RenderingContext;
+        const grab = () => {
+          gl.render(scene, camera);
+          const buffer = new Uint8Array(width * height * 4);
+          ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+          return buffer;
+        };
+        const before = grab();
+        const found = setObjectVisible(id, false);
+        let after: Uint8Array;
+        try {
+          after = grab();
+        } finally {
+          /*
+           * Restored in a `finally`: a capture that throws halfway through
+           * (a lost context, a driver hiccup) must not leave an object
+           * invisible in a scene the user is looking at. The repaint after
+           * the restore is best-effort for the same reason.
+           */
+          setObjectVisible(id, true);
+          try {
+            gl.render(scene, camera);
+          } catch {
+            /* the frame loop will repaint when it next runs */
+          }
+        }
+        if (!found) return null;
+
+        const luminance = (buffer: Uint8Array, index: number) =>
+          0.2126 * buffer[index] + 0.7152 * buffer[index + 1] + 0.0722 * buffer[index + 2];
+        const mask = new Uint8Array(width * height);
+        let changed = 0;
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const topDown = y * width + x;
+            const bottomUp = (height - 1 - y) * width + x;
+            /* The two renders are consecutive in one task, so nothing in the
+               scene advanced between them: any difference at all is the
+               object. A generous threshold here is what dropped a chair's
+               thin legs from its own silhouette. */
+            if (Math.abs(luminance(before, bottomUp * 4) - luminance(after, bottomUp * 4)) > 2) {
+              mask[topDown] = 1;
+              changed += 1;
+            }
+          }
+        }
+        const seen = new Uint8Array(width * height);
+        const components: Array<{ area: number; box: [number, number, number, number]; centre: [number, number] }> = [];
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const start = y * width + x;
+            if (seen[start] || !mask[start]) continue;
+            const stack = [start];
+            seen[start] = 1;
+            let area = 0, left = x, right = x, top = y, bottom = y, sumX = 0, sumY = 0;
+            while (stack.length) {
+              const at = stack.pop() as number;
+              const ax = at % width;
+              const ay = (at / width) | 0;
+              area += 1;
+              sumX += ax;
+              sumY += ay;
+              if (ax < left) left = ax;
+              if (ax > right) right = ax;
+              if (ay < top) top = ay;
+              if (ay > bottom) bottom = ay;
+              const neighbours = [at - 1, at + 1, at - width, at + width];
+              for (let n = 0; n < neighbours.length; n += 1) {
+                const next = neighbours[n];
+                if (next < 0 || next >= mask.length) continue;
+                if (Math.abs((next % width) - ax) > 1) continue;
+                if (seen[next] || !mask[next]) continue;
+                seen[next] = 1;
+                stack.push(next);
+              }
+            }
+            if (area >= 20) components.push({ area, box: [left, top, right, bottom], centre: [Math.round(sumX / area), Math.round(sumY / area)] });
+          }
+        }
+        components.sort((a, b) => b.area - a.area);
+        const union = components.length
+          ? [
+              Math.min(...components.map((c) => c.box[0])),
+              Math.min(...components.map((c) => c.box[1])),
+              Math.max(...components.map((c) => c.box[2])),
+              Math.max(...components.map((c) => c.box[3])),
+            ] as [number, number, number, number]
+          : null;
+        const totalArea = components.reduce((sum, c) => sum + c.area, 0);
+        const centroid = totalArea
+          ? ([Math.round(components.reduce((sum, c) => sum + c.centre[0] * c.area, 0) / totalArea), Math.round(components.reduce((sum, c) => sum + c.centre[1] * c.area, 0) / totalArea)] as [number, number])
+          : null;
+        return {
+          buffer: [width, height] as [number, number],
+          dpr: gl.getPixelRatio(),
+          changedPixels: changed,
+          area: totalArea,
+          bbox: union,
+          centroid,
+          components: components.length,
+          largest: components.slice(0, 3),
+        };
+      },
+      /*
+       * The frame the mask was measured against, straight from the same
+       * buffer: a capture without a compositor round-trip, at the same instant
+       * as the numbers. Returned as a PNG data URL so it can be written beside
+       * the measurements.
+       */
+      capture: (scale = 1) => {
+        const width = gl.domElement.width;
+        const height = gl.domElement.height;
+        const ctx = gl.getContext() as WebGLRenderingContext | WebGL2RenderingContext;
+        gl.render(scene, camera);
+        const buffer = new Uint8Array(width * height * 4);
+        ctx.readPixels(0, 0, width, height, ctx.RGBA, ctx.UNSIGNED_BYTE, buffer);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const target = canvas.getContext("2d");
+        if (!target) return null;
+        const image = target.createImageData(width, height);
+        for (let y = 0; y < height; y += 1) {
+          const source = (height - 1 - y) * width * 4;
+          image.data.set(buffer.subarray(source, source + width * 4), y * width * 4);
+        }
+        target.putImageData(image, 0, 0);
+        if (scale === 1) return canvas.toDataURL("image/png");
+        const small = document.createElement("canvas");
+        small.width = Math.max(1, Math.round(width * scale));
+        small.height = Math.max(1, Math.round(height * scale));
+        const sctx = small.getContext("2d");
+        if (!sctx) return null;
+        sctx.drawImage(canvas, 0, 0, small.width, small.height);
+        return small.toDataURL("image/png");
+      },
+      visibility: () => {
+        const out: Record<string, boolean> = {};
+        scene.traverse((node: import("three").Object3D) => {
+          const id = (node.userData as { cosmosObjectId?: unknown } | undefined)?.cosmosObjectId;
+          if (typeof id === "string") out[id] = node.visible;
+        });
+        return out;
+      },
+    };
+  }, [camera, size.width, size.height, invalidate]);
 
   return null;
 }

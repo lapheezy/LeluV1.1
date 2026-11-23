@@ -1,0 +1,70 @@
+[
+  {
+    "size": [384, 661],
+    "viewport": { "width": 384, "height": 661, "dpr": 1 },
+    "camera": { "aspect": 0.581, "surfaceAspect": 0.581, "position": [-0.8, 5.19, 9.38], "fov": 55 },
+    "settled": true,
+    "frame": "frame-384x661.png",
+    "objects": [
+      { "id": "obj_1", "name": "chair near left", "bounds": [124.97, 297.35, 184.17, 392.91], "centre": [156.24, 343.8], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [384, 661], "dpr": 1, "area": 2210, "bbox": [128, 297, 172, 362], "centroid": [149, 325], "components": 1 }, "selection": ["obj_1"] },
+      { "id": "obj_2", "name": "chair near right", "bounds": [274.89, 298.47, 325.99, 390.72], "centre": [299.27, 343.8], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [384, 661], "dpr": 1, "area": 1464, "bbox": [276, 298, 322, 345], "centroid": [299, 315], "components": 1 }, "selection": ["obj_2"] },
+      { "id": "obj_3", "name": "chair far", "bounds": [80.31, 281.49, 121.87, 358.27], "centre": [101.89, 319.33], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [384, 661], "dpr": 1, "area": 2007, "bbox": [81, 281, 121, 357], "centroid": [102, 310], "components": 1 }, "selection": ["obj_3"] }
+    ]
+  },
+  {
+    "size": [390, 844],
+    "viewport": { "width": 390, "height": 844, "dpr": 1 },
+    "camera": { "aspect": 0.462, "surfaceAspect": 0.462, "position": [-0.8, 5.87, 12.47], "fov": 56 },
+    "settled": true,
+    "objects": [
+      { "id": "obj_1", "name": "chair near left", "bounds": [126.48, 387.84, 187.54, 485.67], "centre": [158.45, 435.6], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [390, 844], "dpr": 1, "area": 2294, "bbox": [129, 387, 175, 454], "centroid": [150, 416], "components": 1 } },
+      { "id": "obj_2", "name": "chair near right", "bounds": [280.42, 389.15, 330.78, 483.37], "centre": [304.65, 435.6], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [390, 844], "dpr": 1, "area": 1722, "bbox": [281, 389, 329, 444], "centroid": [305, 409], "components": 1 } },
+      { "id": "obj_3", "name": "chair far", "bounds": [78.13, 370.28, 120.72, 451.18], "centre": [100.12, 410.24], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [390, 844], "dpr": 1, "area": 2211, "bbox": [79, 370, 119, 450], "centroid": [100, 400], "components": 1 } }
+    ]
+  },
+  {
+    "size": [768, 1024],
+    "viewport": { "width": 768, "height": 1024, "dpr": 1 },
+    "camera": { "aspect": 0.75, "surfaceAspect": 0.75, "position": [-0.8, 4.58, 6.59], "fov": 54 },
+    "settled": true,
+    "objects": [
+      { "id": "obj_1", "name": "chair near left", "bounds": [249.11, 446.75, 368.68, 636.6], "centre": [313.14, 538.36], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [768, 1024], "dpr": 1, "area": 8382, "bbox": [258, 446, 345, 573], "centroid": [299, 501], "components": 1 } },
+      { "id": "obj_2", "name": "chair near right", "bounds": [546.48, 448.79, 652.82, 631.89], "centre": [596.59, 538.36], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [768, 1024], "dpr": 1, "area": 4761, "bbox": [550, 448, 635, 519], "centroid": [595, 477], "components": 1 } },
+      { "id": "obj_3", "name": "chair far", "bounds": [169.47, 418.91, 251.41, 565.07], "centre": [212.35, 490.72], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [768, 1024], "dpr": 1, "area": 7093, "bbox": [172, 419, 249, 564], "centroid": [213, 474], "components": 1 } }
+    ]
+  },
+  {
+    "size": [1024, 768],
+    "viewport": { "width": 1024, "height": 768, "dpr": 1 },
+    "camera": { "aspect": 1.333, "surfaceAspect": 1.333, "position": [-0.8, 3.65, 2.36], "fov": 51 },
+    "settled": true,
+    "objects": [
+      { "id": "obj_1", "name": "chair near left", "bounds": [328.54, 301.17, 492.93, 549.17], "centre": [420.16, 418.16], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [1024, 768], "dpr": 1, "area": 18337, "bbox": [352, 301, 490, 545], "centroid": [414, 396], "components": 1 } },
+      { "id": "obj_2", "name": "chair near right (tan-lit at this pose)", "bounds": [715.72, 303.13, 874.04, 541.52], "centre": [787.51, 418.16], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [1024, 768], "dpr": 1, "area": 19462, "bbox": [720, 303, 862, 539], "centroid": [784, 395], "components": 1 } },
+      { "id": "obj_3", "name": "chair far", "bounds": [258, 277, 361.41, 445.96], "centre": [313.18, 359.35], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [1024, 768], "dpr": 1, "area": 9631, "bbox": [263, 277, 358, 444], "centroid": [314, 341], "components": 1 } }
+    ]
+  },
+  {
+    "size": [844, 390],
+    "viewport": { "width": 844, "height": 390, "dpr": 1 },
+    "camera": { "aspect": 2.164, "surfaceAspect": 2.164, "position": [-0.8, 3.17, 0.19], "fov": 48 },
+    "settled": true,
+    "frame": "frame-844x390.png",
+    "objects": [
+      { "id": "obj_1", "name": "chair near left", "bounds": [272.46, 130.94, 404.35, 328.14], "centre": [348.95, 222.17], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [844, 390], "dpr": 1, "area": 10895, "bbox": [302, 131, 400, 324], "centroid": [348, 207], "components": 1 } },
+      { "id": "obj_2", "name": "chair near right", "bounds": [577.91, 131.66, 724.35, 322.43], "centre": [641.15, 222.17], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [844, 390], "dpr": 1, "area": 13023, "bbox": [583, 131, 710, 319], "centroid": [639, 207], "components": 1 } },
+      { "id": "obj_3", "name": "chair far", "bounds": [239.09, 120.13, 317.81, 239], "centre": [281.88, 177.63], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [844, 390], "dpr": 1, "area": 4899, "bbox": [244, 120, 315, 237], "centroid": [283, 166], "components": 1 } }
+    ]
+  },
+  {
+    "size": [1440, 900],
+    "viewport": { "width": 1440, "height": 900, "dpr": 1 },
+    "camera": { "aspect": 1.6, "surfaceAspect": 1.6, "position": [-0.8, 3.47, 1.54], "fov": 49 },
+    "settled": true,
+    "objects": [
+      { "id": "obj_1", "name": "chair near left", "bounds": [469.02, 336.13, 688.14, 678.84], "centre": [592.17, 497.55], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [1440, 900], "dpr": 1, "area": 34702, "bbox": [507, 336, 682, 674], "centroid": [588, 465], "components": 1 } },
+      { "id": "obj_2", "name": "chair near right", "bounds": [1000.35, 337.95, 1231.02, 670.34], "centre": [1103.49, 497.55], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [1440, 900], "dpr": 1, "area": 38035, "bbox": [1007, 338, 1213, 666], "centroid": [1099, 468], "components": 1 } },
+      { "id": "obj_3", "name": "chair far", "bounds": [376.93, 306.78, 519.17, 533.32], "centre": [453.28, 416.93], "onScreen": true, "inFrustum": true, "failure": null, "mask": { "buffer": [1440, 900], "dpr": 1, "area": 17432, "bbox": [385, 306, 515, 531], "centroid": [455, 393], "components": 1 } }
+    ]
+  }
+]

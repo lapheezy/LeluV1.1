@@ -32,6 +32,28 @@ import {
   type RenderSurfaceKind,
 } from "../SceneRenderManager";
 
+/**
+ * The renderer string from a LIVE context, or null when it cannot be read
+ * (no context, a context that is lost again, or an exception).
+ *
+ * This is asked after a restoration, which is the one moment a renderer can
+ * change while the page is open — a GPU process that crashed and came back on
+ * a software fallback — so the answer has to come from the context that will
+ * actually draw, not from the probe that ran at mount.
+ */
+function readLiveRenderer(gl: { getContext(): WebGLRenderingContext | null }): string | null {
+  try {
+    const context = gl.getContext() as
+      | (WebGLRenderingContext & { isContextLost?(): boolean })
+      | null;
+    if (!context || context.isContextLost?.()) return null;
+    const info = context.getExtension("WEBGL_debug_renderer_info");
+    return info ? String(context.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+  } catch {
+    return null;
+  }
+}
+
 export default function RenderContextGuard({
   id,
   kind,
@@ -50,7 +72,18 @@ export default function RenderContextGuard({
       event.preventDefault();
       manager.reportContextLost(id);
     };
-    const onRestored = () => manager.reportContextRestored(id);
+    const onRestored = () => {
+      manager.reportContextRestored(id);
+      /*
+       * Report what came BACK, not just that something did. A context that
+       * returns on a different renderer (a GPU process falling back to
+       * software, a driver re-initialised) is new capability evidence; the
+       * same string changes nothing, which is the ordinary case and must
+       * stay free.
+       */
+      const renderer = readLiveRenderer(gl);
+      if (renderer !== null) manager.observeRenderer(renderer);
+    };
 
     canvas.addEventListener("webglcontextlost", onLost);
     canvas.addEventListener("webglcontextrestored", onRestored);

@@ -1,0 +1,312 @@
+[
+  {
+    "requested": [
+      390,
+      844
+    ],
+    "inner": [
+      390,
+      844
+    ],
+    "dpr": 1,
+    "our": {
+      "connected": true,
+      "size": [
+        390,
+        844
+      ],
+      "style": "display: block; width: 390px; height: 844px;"
+    },
+    "viewport": [
+      390,
+      844
+    ],
+    "aspect": 0.462,
+    "fov": 56,
+    "canvases": [
+      {
+        "m": "-",
+        "css": [
+          390,
+          844
+        ],
+        "buf": [
+          480,
+          270
+        ]
+      },
+      {
+        "m": "genesis",
+        "css": [
+          390,
+          844
+        ],
+        "buf": [
+          390,
+          844
+        ]
+      },
+      {
+        "m": "three.js r185",
+        "css": [
+          76,
+          104
+        ],
+        "buf": [
+          76,
+          104
+        ]
+      }
+    ],
+    "visible": 2,
+    "total": 5
+  },
+  {
+    "requested": [
+      844,
+      390
+    ],
+    "inner": [
+      844,
+      390
+    ],
+    "dpr": 1,
+    "our": {
+      "connected": true,
+      "size": [
+        844,
+        390
+      ],
+      "style": "display: block; width: 844px; height: 390px;"
+    },
+    "viewport": [
+      844,
+      390
+    ],
+    "aspect": 2.164,
+    "fov": 48,
+    "canvases": [
+      {
+        "m": "-",
+        "css": [
+          844,
+          390
+        ],
+        "buf": [
+          480,
+          270
+        ]
+      },
+      {
+        "m": "genesis",
+        "css": [
+          844,
+          390
+        ],
+        "buf": [
+          844,
+          390
+        ]
+      },
+      {
+        "m": "three.js r185",
+        "css": [
+          76,
+          104
+        ],
+        "buf": [
+          76,
+          104
+        ]
+      }
+    ],
+    "visible": 3,
+    "total": 5
+  },
+  {
+    "requested": [
+      932,
+      430
+    ],
+    "inner": [
+      932,
+      430
+    ],
+    "dpr": 1,
+    "our": {
+      "connected": true,
+      "size": [
+        932,
+        430
+      ],
+      "style": "display: block; width: 932px; height: 430px;"
+    },
+    "viewport": [
+      932,
+      430
+    ],
+    "aspect": 2.167,
+    "fov": 48,
+    "canvases": [
+      {
+        "m": "-",
+        "css": [
+          932,
+          430
+        ],
+        "buf": [
+          480,
+          270
+        ]
+      },
+      {
+        "m": "genesis",
+        "css": [
+          932,
+          430
+        ],
+        "buf": [
+          932,
+          430
+        ]
+      },
+      {
+        "m": "three.js r185",
+        "css": [
+          120,
+          170
+        ],
+        "buf": [
+          120,
+          170
+        ]
+      }
+    ],
+    "visible": 4,
+    "total": 5
+  },
+  {
+    "requested": [
+      1280,
+      800
+    ],
+    "inner": [
+      1280,
+      800
+    ],
+    "dpr": 1,
+    "our": {
+      "connected": true,
+      "size": [
+        1280,
+        800
+      ],
+      "style": "display: block; width: 1280px; height: 800px;"
+    },
+    "viewport": [
+      1280,
+      800
+    ],
+    "aspect": 1.6,
+    "fov": 49,
+    "canvases": [
+      {
+        "m": "-",
+        "css": [
+          1280,
+          800
+        ],
+        "buf": [
+          480,
+          270
+        ]
+      },
+      {
+        "m": "genesis",
+        "css": [
+          1280,
+          800
+        ],
+        "buf": [
+          1280,
+          800
+        ]
+      },
+      {
+        "m": "three.js r185",
+        "css": [
+          100,
+          136
+        ],
+        "buf": [
+          101,
+          139
+        ]
+      }
+    ],
+    "visible": 2,
+    "total": 5
+  },
+  {
+    "requested": [
+      1440,
+      900
+    ],
+    "inner": [
+      1440,
+      900
+    ],
+    "dpr": 1,
+    "our": {
+      "connected": true,
+      "size": [
+        1440,
+        900
+      ],
+      "style": "display: block; width: 1440px; height: 900px;"
+    },
+    "viewport": [
+      1440,
+      900
+    ],
+    "aspect": 1.6,
+    "fov": 49,
+    "canvases": [
+      {
+        "m": "-",
+        "css": [
+          1440,
+          900
+        ],
+        "buf": [
+          480,
+          270
+        ]
+      },
+      {
+        "m": "genesis",
+        "css": [
+          1440,
+          900
+        ],
+        "buf": [
+          1440,
+          900
+        ]
+      },
+      {
+        "m": "three.js r185",
+        "css": [
+          100,
+          136
+        ],
+        "buf": [
+          101,
+          139
+        ]
+      }
+    ],
+    "visible": 2,
+    "total": 5
+  }
+]

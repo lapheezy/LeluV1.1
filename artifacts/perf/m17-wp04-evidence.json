@@ -1,0 +1,124 @@
+{
+  "mission": 17,
+  "workPackage": "M17-COE-WP04",
+  "promptId": "M17-COE-WP04-P01",
+  "status": "PARTIAL \u2014 camera authority fixed and tested; six-viewport visual acceptance BLOCKED by a 0\u20131 fps VM that the app's own render manager answers with the 'light' profile",
+  "baseCommit": "fd7971c5d414e27dab844cd5a7d58d2f25fdb7c8",
+  "parentOfBase": "d8fb056b66f1d6906e71ad4e89c98c57beb19d1a",
+  "branch": "freebuff/m17-coe-wp03-responsive-canvas",
+  "cameraWriters": [
+    {
+      "writer": "useSpatialCamera",
+      "defect": "treated an interrupted transition as flying: re-applied the frozen pose on every notification and left controls.enabled=false"
+    },
+    {
+      "writer": "GenesisCameraController drift",
+      "defect": "ran anywhere in the Cosmos, easing the target (and camera) back to the origin from a framed view"
+    },
+    {
+      "writer": "ObjectCameraBridge",
+      "defect": "did not cancel an in-flight entry transition, so the transition overwrote the requested pose"
+    },
+    {
+      "writer": "GenesisCameraController flyCameraTo / navigate / intent bus",
+      "defect": "none \u2014 the only correct writer"
+    },
+    {
+      "writer": "cameraOwnership",
+      "defect": "read only through an event flag, not by the other writers"
+    }
+  ],
+  "contract": {
+    "module": "src/app/scene/genesis/cameraAuthority.ts",
+    "precedence": [
+      "user",
+      "reveal (cinematic)",
+      "travelling transition",
+      "autonomous drift"
+    ],
+    "rules": [
+      "spatialMayPose(transition, owner)",
+      "driftMayMove(owner, distance, nearPlanet)",
+      "driftHasWork(target)"
+    ]
+  },
+  "filesChanged": [
+    "src/app/scene/genesis/cameraAuthority.ts (new)",
+    "src/app/scene/spatial/useSpatialCamera.ts",
+    "src/app/scene/genesis/GenesisCameraController.tsx",
+    "src/app/scene/genesis/cosmos/CosmosObjectsLayer.tsx",
+    "tests/camera-authority.test.ts (new)"
+  ],
+  "liveEvidence": {
+    "framingHolds": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "pose": [
+        -0.8,
+        3.47,
+        1.54
+      ],
+      "samples": 6,
+      "windowSeconds": 2.4,
+      "owner": "cinematic",
+      "objectsInFrustum": "3/3",
+      "transition": "none"
+    },
+    "beforeFix": {
+      "behaviour": "a different position on nearly every sample; owner already 'autonomous'"
+    },
+    "transitionStress": {
+      "cycles": 10,
+      "transitions": 20,
+      "stableWithinCycle": 7,
+      "distinctPoses": 8,
+      "note": "the 3 unstable cycles were the fly still in progress at the second sample at 1 fps"
+    }
+  },
+  "blockedGate": {
+    "renderer": "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "measuredFps": "0\u20131",
+    "renderProfile": "light",
+    "consequence": "paintWorld=false \u2192 frameloop='never' \u2192 the 3D world is not painted; the app is following its documented slow-device policy",
+    "cannotVerify": [
+      "rendered object pixels at any viewport",
+      "individual object focus",
+      "pointer selection vs displayed pixels"
+    ]
+  },
+  "gates": {
+    "O01": "MET",
+    "O02": "MET",
+    "O03": "MET (rules implemented + 9 tests)",
+    "O04": "PARTIAL (framing measured stable; entry paths share one request)",
+    "O05": "NOT VERIFIED (pointer vs pixels needs a painting canvas)",
+    "O06": "BLOCKED (profile light at every viewport)",
+    "O07": "PARTIAL (10 cycles, no runaway transition; dock did not appear at 1 fps)",
+    "O08": "NOT DONE (fps 0\u20131 measured; no memory profile)",
+    "O09": "MET (153 tests, tsc, build)",
+    "O10": "MET (below)"
+  },
+  "tests": {
+    "total": "153 pass / 0 fail",
+    "camera-authority": "9 new",
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "notRun": [
+      "lint (no script)",
+      "full suite",
+      "memory profiling",
+      "physical devices"
+    ]
+  },
+  "evidence": [
+    "artifacts/perf/m17-wp04-viewports.json",
+    "artifacts/perf/m17-wp04-vp-384x661.png",
+    "artifacts/perf/m17-wp04-vp-844x390.png",
+    "artifacts/perf/m17-wp04-vp-1440x900.png",
+    "artifacts/perf/m17-wp04-transitions.json",
+    "artifacts/perf/m17-wp04-desktop-framed.png"
+  ],
+  "installNote": "npm ci refused: package-lock.json is missing the paused LiveKit dependencies. Installed with `npm install --no-package-lock`; the lockfile is unchanged."
+}

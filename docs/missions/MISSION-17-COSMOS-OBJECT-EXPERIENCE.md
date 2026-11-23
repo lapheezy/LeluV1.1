@@ -330,3 +330,406 @@ cosmos-objects 10, cosmos-object-experience 11, creative-build 18,
 creative-kit 17, creation-studio-tools 9, chat-surface 31, module-layout 11,
 security-containment 18 — **139 pass, 0 fail**. No lint script exists.
 Not run: the full suite, WebGL-off, memory profiling, physical devices.
+
+---
+
+# WP03 — RESPONSIVE CANVAS, WIDE-VIEWPORT RENDERING & ROOM HAZARDS
+
+**Status: the canvas was never the defect — it tracks every viewport exactly (measured below). Two real causes of "wide screens are empty" were found and one was fixed: the ring was on the far side of the camera, and the Cosmos could be entered without framing the objects. One open blocker remains: an autonomous spatial transition writes the camera pose and can override both framing and the user's orbit.**
+
+## 1. Root cause, part 1 — the "canvas stuck at 384×661" was my instrument
+
+WP02 reported the world canvas staying 384×661 at 1440×900. That was a
+measurement error, not the app: the Cloud browser panel re-applies its own
+viewport between tool calls, so a size set in one call was gone by the next, and
+the reading of "384 × 661" was taken after the reset.
+
+Measured inside a single call, with the drawing buffer read from the canvas
+element itself:
+
+| viewport | canvas CSS | drawing buffer | camera aspect | fov | dpr |
+| --- | --- | --- | --- | --- | --- |
+| 384×661 | 384×661 | 384×661 | 0.581 | 55 | 1 |
+| 390×844 | 390×844 | 390×844 | 0.462 | 56 | 1 |
+| 844×390 | 844×390 | 844×390 | 2.164 | 48 | 1 |
+| 932×430 | 932×430 | 932×430 | 2.167 | 48 | 1 |
+| 1280×800 | 1280×800 | 1280×800 | 1.600 | 49 | 1 |
+| 1440×900 | 1440×900 | 1440×900 | 1.600 | 49 | 1 |
+
+Aspect equals width/height to three decimals at every size, the projection is
+rebuilt with it, and the field of view adapts (56° portrait → 48–49° wide). The
+surface, the renderer and the camera already agree. **No resize code was
+needed, and none was added.**
+
+## 2. Root cause, part 2 — the ring was behind the camera
+
+The real reason a wide window showed no objects: the resting camera is at
+z ≈ 6.8 looking at the origin (OrbitControls reset) and the spatial runtime
+samples poses like (0, 1.5, 5) or (6, 2.5, 4). WP02's ring sat at
+`RING_DEPTH = +7.2` — on the *viewer's* side of that camera, 32 m past the core
+at z = −25. Every object on it projected far outside the frame: at 1440×900 the
+probe reported screen x of −542, −4185 and −10583 px with `inFrustum: false`
+for four of five objects, while the core and the sky painted normally. That is
+exactly "the canvas renders but nothing is there".
+
+Fix (placement maths untouched otherwise):
+
+- `RING_DEPTH = −7.2`: between the viewer and the core cluster.
+  `VIEWER_DEPTH = 6.8` is now a named constant, and a test asserts every slot is
+  in front of it and clear of the core at −25.
+- `PLACEMENT_VERSION = 3`, and `legacyRingSignature()` distinguishes the two
+  earlier schemes: `"cluster"` (v1's depth divided by 100) from
+  `"behind-camera"` (v2's ring at +7.2), so the repair can say which it undid.
+- Migration records `action: "auto-placed"` — deliberately not one of the
+  user-move actions — so a store-written position may be repaired again while a
+  person's is never touched. v2's already-shipped repair entries
+  (`relocated`, detail `placement v1 → v2: …`) are still read as the store's own
+  move, so objects it repaired are not stranded on the far side.
+
+**Live proof (portrait, real app, existing store):** on load,
+`obj_legacy [3.2, 0.9, 7.2] → [3.2, 0.9, −7.2]`, `obj_1 [1.6, 0.9, 9.97] →
+[1.6, 0.9, −4.43]`, `obj_2 [−1.6, 0.9, 9.97] → [−1.6, 0.9, −4.43]`, all
+`placementVersion 3`, last provenance `auto-placed`; the two objects a person
+had relocated (`obj_5`, `obj_6`) kept their exact positions and `placementVersion
+2`. Store payload now says `placementVersion: 3`.
+
+## 3. Root cause, part 3 — entering the Cosmos did not frame the objects
+
+`CosmosObjectsDock.enter()` requests `camera("all")` (frame every object) with a
+retry until the scene's bridge is listening. The home orb's
+"Look at the Cosmos" button only called `HomeStore.setImmersive(true)` — it
+opened the Cosmos **without** framing, leaving the camera wherever the spatial
+runtime last sampled. Two doors, two behaviours.
+
+Now the orb issues the same `cosmosViewBus.request({ mode: "open", frame: true })`
+the dock and the tool use: one entry, one behaviour.
+
+**Live proof:** pressing the orb at 384×661 flew the camera to
+(0.2, 7.58, 23.67) and all five objects reported `inFrustum: true` inside the
+viewport, with the dock showing "5 objects".
+
+## 4. Room hazards from the real geometry
+
+`src/core/cosmos/roomHazards.ts` is the single source of the markers' placement
+facts: `ROOMS_Z_OFFSET` (−25, the depth the scene draws at),
+`roomMarkerRadius(level)` (1.2 galaxy / 0.7 planet / 0.4 room) and
+`roomHazardVolumes(nodes)` (centre `[x, y, z − 25]`, radius = drawn radius +
+the torus tube). `CosmosRooms3D` draws with those same helpers and publishes the
+volumes; the core publishes its own under a different key.
+
+`setHazards(source, hazards)` now stores volumes per source, so the core and the
+rooms cannot clear each other's. `openSlot` also stops relying on four fixed
+rings: it widens up to 24 rings, because the old last-resort `ringSlot(...)`
+return could land *inside* the hazard it was avoiding (found by a failing test,
+fixed, and now covered).
+
+## 5. Files changed
+
+- `src/core/cosmos/objects/CosmosObjectTypes.ts` — `RING_DEPTH` sign,
+  `LEGACY_RING_DEPTH`, `VIEWER_DEPTH`, `PLACEMENT_VERSION = 3`,
+  `legacyRingSignature`.
+- `src/core/cosmos/objects/CosmosObjectStore.ts` — per-source hazards,
+  `auto-placed` migration provenance, widening `openSlot`.
+- `src/core/cosmos/roomHazards.ts` — **new**, the markers' drawn geometry.
+- `src/app/scene/genesis/cosmos/CosmosRooms3D.tsx` — draws from and publishes
+  the same numbers.
+- `src/app/scene/genesis/cosmos/CosmosLayer.tsx` — `setHazards("core", …)`.
+- `src/app/scene/genesis/home/CosmosHome.tsx` — the orb opens and frames.
+- `tests/cosmos-object-placement.test.ts` — 19 tests (was 14).
+
+## 6. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · 144 tests pass, 0 fail
+(placement 19, cosmos-objects 10, cosmos-object-experience 11, creative-build
+18, creative-kit 17, creation-studio-tools 9, chat-surface 31, module-layout 11,
+security-containment 18). No lint script exists in this project.
+Not run: full suite, WebGL-off matrix, memory profiling, physical devices.
+
+## 7. Open blocker (honest)
+
+`useSpatialCamera` writes `camera.position`, the controls target and the fov
+whenever `SpatialRuntime` reports a transition — and `SpatialExperience` calls
+`runtime.start("core")` on mount. Observed live: the camera moved
+(−0.02, 1.5, 5) → (6, 2.5, 4) → (0.2, 7.58, 23.67) → (−1.37, 1.79, 2.97) →
+(6, 2.5, 4) without user input between my calls, overriding the object framing
+and moving objects out of frame again. This is the remaining reason a capture
+can show an empty Cosmos, and it also makes a tap land where the object *was*.
+
+Not fixed here: it is a camera-authority question (which system owns the camera
+while the user is standing in their own Cosmos) that wants its own work package.
+Pointer selection was verified only up to the point the pose moved.
+
+Viewport screenshots: `m17-wp03-vp-844x390.png`, `m17-wp03-vp-1440x900.png`,
+`m17-wp03-portrait-framed.png`, `m17-wp03-desktop-framed.png`; measurements in
+`m17-wp03-viewports.json`.
+
+---
+
+# WP04 — CAMERA AUTHORITY, FRAMING PERSISTENCE (2026-11-16)
+
+**Status: the competing camera writes are fixed at their source and pinned by
+tests. The six-viewport visual acceptance could NOT be completed on this
+machine: its WebGL renders at 0–1 fps, so the app's own render manager drops to
+`light` and deliberately stops painting the 3D world. That is reported as a
+blocked gate, not as a pass.**
+
+## 1. Preflight
+
+Branch `freebuff/m17-coe-wp03-responsive-canvas`, HEAD `fd7971c`, whose parent is
+WP03's `d8fb056`; worktree clean. Nothing was reset or rewritten, and no object
+position was touched: the WP03 migration, provenance and hazard publication are
+untouched by this work package.
+
+## 2. Camera-write inventory
+
+| Writer | Trigger | Intended authority | What it actually did |
+| --- | --- | --- | --- |
+| `useSpatialCamera` | any `SpatialRuntime` notification while `state.transition` exists | a spatial flight owns the camera until it ends | treated an **interrupted** transition as still flying: re-applied the frozen pose on every notification (hover included) and left `controls.enabled = false`, so the view could not be changed and taps landed where the object used to be |
+| `GenesisCameraController` (drift) | every frame, whenever nobody held the camera | keep a planet descent coherent | ran **anywhere in the Cosmos**: eased the controls target to the origin from a framed view, dragging the camera with it, and kept nudging a target already at the origin |
+| `GenesisCameraController` (`flyCameraTo`, navigate events, intent bus) | a real navigation | user intent | correct, and the only writer that was |
+| `ObjectCameraBridge` (`cosmosCameraBus`) | framing / focus / home request | newest request wins | dispatched the fly but never cancelled an in-flight entry transition, so the transition's next frame or its arrival overwrote the pose |
+| `cameraOwnership` | reveal claim, pointer start/end | one claim everyone reads | was read by the drift only through an event flag, and by nobody else |
+
+## 3. Root cause
+
+Two writers each believed they owned the camera. A **framed view was undone by
+the planet drift** (which ran from anywhere) and by **an interrupted transition
+that kept publishing its frozen pose**. That is the "camera moves on its own",
+"framing does not stick" and "my tap landed where the object was" report, in one
+sentence.
+
+## 4. The contract (implemented, one module, no new manager)
+
+`src/app/scene/genesis/cameraAuthority.ts` answers, for every writer:
+
+- `spatialMayPose(transition, owner)` — only while a transition is genuinely in
+  flight, never while interrupted, never while a reveal owns the view.
+- `driftMayMove(owner, distance, nearPlanet)` — only when the camera is actually
+  near the planet the drift exists to serve, and only while nobody holds the
+  camera.
+- `driftHasWork(target)` — stop nudging a target that is already home.
+
+Order of precedence: **user > reveal (cinematic) > travelling transition >
+autonomous drift**. An older flight yields to a newer reveal; the reveal lasts
+until a user gesture or an explicit release. `useSpatialCamera` now hands
+`controls.enabled` back the moment a flight stops being a flight.
+
+`ObjectCameraBridge` interrupts any in-flight transition before it flies, so a
+reveal supercedes an entry transition instead of racing it.
+
+## 5. Files changed
+
+- `src/app/scene/genesis/cameraAuthority.ts` — **new**, the contract (pure).
+- `src/app/scene/spatial/useSpatialCamera.ts` — asks the contract; restores
+  OrbitControls; interrupted flights never pose.
+- `src/app/scene/genesis/GenesisCameraController.tsx` — the drift is local,
+  claim-aware and idempotent.
+- `src/app/scene/genesis/cosmos/CosmosObjectsLayer.tsx` — a reveal supersedes an
+  older flight.
+- `tests/camera-authority.test.ts` — **new**, 9 tests.
+
+## 6. Evidence
+
+**Framing now holds (1440×900, live):** after "Look at the Cosmos" the camera
+flew to a framed pose and stayed at exactly `(-0.8, 3.47, 1.54)` across six
+samples over 2.4 s, `cameraOwner = "cinematic"`, three of three objects
+`inFrustum`, no transition active. Before the change the same flow produced a
+different position on nearly every sample and the owner had already fallen back
+to `"autonomous"`.
+
+**Transition stress (10 enter/leave cycles = 20 transitions):** camera stable
+within each settled cycle in 7/10 cycles; 8 distinct poses across cycles; no
+transition ran on after being interrupted. The three unstable cycles show the
+fly still in progress when the second sample was taken — the dwell was
+shortened by the 1 fps frame rate below, not by a second writer (owner stayed
+`cinematic`, no transition active).
+
+## 7. Blocked gate — the machine cannot paint the world
+
+| evidence | value |
+| --- | --- |
+| GL renderer | `ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)` |
+| measured fps | 0–1 (`window.__leluRenderStats`) |
+| render profile | `light` at every viewport |
+| consequence | `paintWorld` is false → `frameloop="never"` → the 3D world is not painted |
+
+`light` is the render manager's own documented policy for a device that cannot
+hold 30 fps, and it is chosen from measured frame rate, not from a user agent.
+On this VM the measurement is 0–1 fps, so the app is behaving as designed and
+the 3D objects cannot be photographed here. Captures for all six viewports were
+taken and are stored, but they show the DOM cosmos, not the objects:
+`m17-wp04-vp-384x661.png`, `-844x390.png`, `-1440x900.png`, with
+`m17-wp04-viewports.json` recording `profile: "light"` and fps 0–1 for each.
+
+**Therefore:** O03/O04/O05/O06 visual and pointer gates are NOT VERIFIED on this
+machine, and pointer selection was not re-tested at a frame rate where "the
+object where it is drawn" means anything.
+
+## 8. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · **153 tests pass, 0 fail**
+(camera-authority 9 new, placement 19, cosmos-objects 10,
+cosmos-object-experience 11, creative-build 18, creative-kit 17,
+creation-studio-tools 9, chat-surface 31, module-layout 11,
+security-containment 18). No lint script exists. The lockfile is out of sync
+with `package.json` (paused LiveKit dependencies), so dependencies were
+reinstalled with `npm install --no-package-lock`; `package-lock.json` is
+unchanged.
+
+## 9. Remaining limitations
+
+- Visual acceptance needs a machine that renders above the 30 fps gate.
+- The interrupted-transition latch is fixed, but `resume()` still restores an
+  older flight on purpose — that is the feature, not a regression.
+- `setCapability` is evaluated once per mount from the viewport at that moment;
+  it is not re-evaluated on resize. Not changed here, and worth its own look.
+
+---
+
+# WP05 — ADAPTIVE RENDERING CAPABILITY & GPU VALIDATION (P01)
+
+Base `268e659` (WP04). Branch `freebuff/m17-coe-wp03-responsive-canvas`.
+
+## 1. What this work package answers
+
+WP04 finished with a sentence it could not get past: the Cosmos was correctly
+framed and nobody could see it, because the render manager had classified a real
+GPU as a `light` device and stopped painting. The next question was not "is the
+profile right" but "why could nothing ever change it".
+
+## 2. Inventory — the capability path before this change
+
+| Where | What it did | Gap |
+| --- | --- | --- |
+| `GenesisScene.tsx` · `GenesisV1Workspace` | one `useEffect(…, [])` created a throwaway WebGL context, read the renderer string, `innerWidth <= 720` and Save-Data, then called `manager.setCapability()` | ran once per mount: resize, rotation, context restoration and a changed renderer could never reach it |
+| `SceneRenderManager.setCapability` | `ceiling = profileFor(input)`, profile = ceiling | kept no record of *which* evidence produced the ceiling |
+| `SceneRenderManager.reportFrameRate` ← `AdaptiveQuality` (1 Hz) | `nextProfile(adaptation, {fps, painting: mode === "full"}, ceiling)` | the only mechanism able to revise a measurement decision lived *inside the canvas*: at `light`, `paintWorld` is false → `frameloop="never"` → `useFrame` never runs → no further samples. Giving up destroyed the evidence that could justify trying again |
+| `AdaptiveQuality` | `painting` came from the budget's mode, not from whether the canvas painted | a profile-suspended canvas would have been reported as painting; stats said `mode: "full"` while nothing was drawn |
+| `GenesisScene.paintWorld` | `(!softwareGL \|\| perfWorld) && profile !== "light"` | `?perf-world` bypassed the local flag but not the profile, so the harness flag did nothing on this host |
+
+**Every path to `frameloop="never"`:** `profile === "light"`; the local
+`softwareGL` probe; and the budget's own `paused` state (hidden page, covered
+world, Chat Universe workspace, lost context).
+
+**Conflation.** Capability, measurement and viewport all collapsed into one
+`profile` string with no explanation, and a measurement could overwrite the
+capability answer permanently.
+
+## 3. Root cause
+
+The capability decision was taken once, at mount, from evidence that has a
+lifetime — and the only mechanism that could revise it was destroyed by the
+decision it made. One transient slow window therefore classified a real GPU as a
+light device for the life of the tab, with no observability into why, and no way
+for an operator to state that the *machine* is constrained rather than the GPU.
+
+## 4. The fix
+
+**One decision, three kinds of evidence, one record of which was used.**
+
+- `capabilitySignature()` compares evidence; a reassessment whose signature is
+  unchanged is not a new decision — it resets nothing and notifies nobody.
+- `reassessCapability(input, trigger)` re-derives the ceiling and the profile
+  only when the evidence changed. Capability (renderer, WebGL, narrow viewport)
+  sets a **ceiling**; measurement moves the profile inside it with the existing
+  hysteresis; a changed surface re-derives, because frames measured on the old
+  surface are not evidence about the new one.
+- `observeRenderer()` is called by the context guard after a restoration: a
+  context that returns on a *different* renderer (a GPU process falling back to
+  software) is new evidence, an identical string is free.
+- `setOverride()` takes an explicit request — `?render=gpu`, `?render=balanced`,
+  or the development `?perf-world` — and treats it as a **floor**, never a
+  ceiling: it cannot exceed what the hardware allows, it is refused outright
+  when there is no GPU to paint with (`refused:no-webgl`, `refused:software`),
+  it never bypasses a lost context (that suspends through the budget), it is
+  counted (`demotionsHeld`), and removing the parameter restores the automatic
+  policy.
+- The snapshot now explains itself: `reason` (`capability`,
+  `capability:narrow`, `capability:software`, `capability:no-webgl`,
+  `capability:save-data`, `measurement:slow`, `override`), `override`,
+  `overrideRefused`, `capability`, `assessedAt`, `worldPainting`,
+  `demotionsHeld`. `window.__leluRenderStats` publishes the same vocabulary once
+  per measured second — never per frame.
+
+**Lifecycle.** The evidence that cannot change (renderer, WebGL) is read once
+from one throwaway context; the viewport part is re-read on `resize`,
+`visualViewport.resize`, `orientationchange` and `screen.orientation change`,
+coalesced to one decision per `CAPABILITY_RECHECK_MS` (250 ms). Listeners are
+removed on unmount.
+
+**Unchanged on purpose.** `paintWorld` and the frameloop expression are
+byte-identical: the budget remains the only authority on the frame loop, and a
+lost context still suspends everything.
+
+## 5. Files changed
+
+- `src/app/scene/genesis/SceneRenderManager.ts` — the capability lifetime, the
+  override, the reasons, the snapshot.
+- `src/app/scene/genesis/GenesisScene.tsx` — split probe, debounced
+  reassessment, explicit override wiring.
+- `src/app/scene/genesis/render/RenderContextGuard.tsx` — reports the renderer a
+  restored context came back with.
+- `src/app/scene/genesis/AdaptiveQuality.tsx` — diagnostics.
+- `tests/render-capability.test.ts` — **new**, 17 tests.
+
+## 6. Live results (this VM, `ANGLE (Intel, Iris Xe)`, D3D11)
+
+| viewport | override | profile | reason | ceiling | painting |
+| --- | --- | --- | --- | --- | --- |
+| 384×661 | off | light | measurement:slow | balanced | false |
+| 384×661 | on | balanced | override | balanced | true — 3/3 chairs in frame, warm-pixel patches 0.089 / 0.185 / 0.088 |
+| 390×844 | on | balanced | override | balanced | true — three chairs plainly visible |
+| 768×1024 | on | full | override | full | true — 3/3 in frame |
+| 1024×768 | on | full | override | full | true — 3/3 in frame |
+| 844×390 | on | full | override | full | true — ceiling re-derived from portrait, 3/3 in frame after re-entry |
+| 1440×900 | off | light | measurement:slow | full | false |
+| 1440×900 | on | full | override | full | true — three chairs rendered large and correctly at desktop size |
+
+**Context loss/restoration, live, with the override active:** lost → `mode:
+paused`, `lostContexts: ["genesis-world"]`, `worldPainting: false`; restored →
+`mode: full`, `lostContexts: []`, `worldPainting: true`, frames advancing. The
+override does not bypass a dead context.
+
+**A burst of 25 identical `resize` events** left `profile`, `ceiling` and
+`assessedAt` unchanged: one decision, no oscillation.
+
+**Pixel method, and its limit.** Screenshots are decoded in the page; a chair
+pixel is warm (`r > 90 && r > b + 18 && g > 55`), sampled in 45×45 boxes around
+the probe's reported screen positions. The probe's `screen` coordinates do not
+map 1:1 onto screenshot pixels at every aspect (at 390×844 the patches read 0
+while three chairs are plainly visible), so where they disagree the screenshot is
+the authority and `inFrustum` alone is never treated as visual proof.
+
+## 7. Not verified, and why
+
+- **"Initial capable GPU paints without an override."** No machine here sustains
+  30 fps, so a genuinely capable device could not be observed starting at
+  `full`. What *is* verified is that when the evidence says capable and the
+  override is granted, the world paints at every viewport that could be
+  captured.
+- **Repeating the 1440×900 capture.** The first attempt at that size captured
+  three rendered chairs; a later attempt at the same size painted but stopped
+  servicing CDP, with screenshots and evaluations timing out. That is the
+  clearest statement that an override is not a free win on an incapable host —
+  which is why it is explicit, logged, counted and reversible.
+- **Object selection** was not re-clicked live this round (the object probe was
+  not registered before the timeout in two attempts). Geometry routing is
+  untouched by this work package and covered by `tests/cosmos-objects.test.ts`.
+
+## 8. Observation for the next work package
+
+Rotating while the Cosmos is open keeps the pose framed for the **old** aspect:
+at 844×390 the three objects sat at x = 849 / 891 / 1204 after a portrait →
+landscape change, until the Cosmos was re-entered. That is WP04's camera
+contract (a framed pose is owned and is not re-applied), and re-framing on an
+aspect change would be a camera write — it belongs in the camera work, not
+bolted onto capability.
+
+## 9. Checks
+
+`npx tsc -b --force` 0 · `npm run build` 0 · `tests/render-capability.test.ts`
+**17 pass** · full suite **2266 tests, 2256 pass, 2 fail**, both failures
+reproduced identically at base `268e659` in a separate worktree
+(`tests/sandbox-security.test.ts` network probe returns empty; 
+`tests/genesis-interface.test.tsx` cannot resolve `@excalidraw/excalidraw/index.css`).
+Lockfile unchanged.
