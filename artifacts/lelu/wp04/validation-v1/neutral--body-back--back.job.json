@@ -1,0 +1,27 @@
+{
+ "inputs": [
+  "/tmp/claude-0/wp4/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/wp04/validation/neutral--body-back--back.png",
+ "resolution": [
+  900,
+  900
+ ],
+ "samples": 48,
+ "view": "back",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 1
+ },
+ "ground": true,
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true,
+ "lighting": "neutral",
+ "hair_curves": "/tmp/claude-0/wp4/lelu-canon.hair.lhc"
+}

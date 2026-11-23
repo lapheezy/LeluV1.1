@@ -1,0 +1,195 @@
+# Session handoff — LÉLU ASRE
+
+## Mission 5 (native integration) — in progress
+
+| | |
+| --- | --- |
+| Branch | `claude/mission5-lelu-asre-integration-mm6xau` (pushed to origin; the mission asked for `mission5/lelu-native-asre-integration`, this session may only push to the branch above) |
+| Started from | `ed5777e` (preserved branch `claude/blissful-cray-lqhs6g`, untouched) |
+| Audit | `docs/asre/05_MISSION5_AUDIT.md` |
+
+| WP | Status | Commit |
+| --- | --- | --- |
+| WP00 audit | VERIFIED | `68cb322` |
+| WP01 native service, jobs, hypotheses, multi-view | VERIFIED (TripoSR job verified 50 s CPU) | `c8f9f0f` |
+| WP02 Forge intake / edit / export | VERIFIED (real Blender round trip) | `6feaf3d` |
+| WP04 persistent identity | VERIFIED | `5b97aac` |
+| WP05 temporal | VERIFIED (timeline memory cost noted) | `489ccae` |
+| WP03 Spatial Studio UI | VERIFIED | `f113e2a` |
+| WP06 agent tools | VERIFIED | `a0c1240` |
+| WP07 end-to-end creation | VERIFIED (A/B/C/D; TripoSR engine unexercised, in-app walkthrough blocked) | this commit |
+| WP08 performance / quality | NOT STARTED | — |
+| WP09 final acceptance | NOT STARTED | — |
+
+WP07 record: `docs/asre/06_MISSION5_WP07_E2E.md`. Evidence: `artifacts/mission5/WP07/`.
+Reproduce: start vite with `LELU_ASRE_ROOT`/`FORGE_ASSET_ROOT` pointing at scratch dirs and
+`LELU_TOOLS` at the Blender toolchain, then
+`node scripts/asre/wp7-e2e.mjs --only A,B,C,D` and
+`node scripts/asre/wp7-slices.mjs artifacts/mission5/WP07/A-image-to-3d/02-slices.json artifacts/mission5/WP07/A-image-to-3d/renders`.
+Blender headless here needs the X libraries on `LD_LIBRARY_PATH` (see the WP07 record).
+
+### Mission 5.7 — Spatial Studio is a Chat Universe capability
+
+Architecture change: spatial work is **summoned into the conversation** instead
+of being a destination. `src/core/asre/SpatialSummon.ts` owns the summon event
+and the per-conversation roster (persisted in `lelu.spatial.surfaces.v1`);
+`src/app/scene/genesis/chat/SpatialSurface.tsx` renders it in the thread and
+imports the existing `SpatialViewer`, `NumericalWorkspace`, `CreationWorkspace`
+and `RenderWorkspace` rather than reimplementing them. LÉLU's `asre.reconstruct`,
+`asre.observe`, `asre.job`, `asre.character`, `asre.history` (restore) and
+`asre.export` each raise a surface. The Visual Studio's Spatial mode stays as
+the direct, secondary entry point.
+
+Where it renders: `UniverseChatWindow` (a chat window in Chat Universe) and
+`GenesisChat` (the classic chat panel). Older surfaces fold to one line so a
+thread never holds several live WebGL canvases.
+
+Status: VERIFIED by `scripts/asre/m57-chat-surface.cjs` — **16/16 checks** in the
+real app, driving LÉLU's own pathway (`registerAsreTools()` +
+`dispatchToolCall(toolNameForModel(id))`). Evidence and the acceptance-criteria
+table: `docs/asre/07_MISSION5_7_CHAT_NATIVE_SPATIAL.md`, `artifacts/mission57/`.
+
+Remaining work: the model's *choice* of tool is still untested here (no provider
+key in this container); everything below that decision — dispatcher, gate,
+executor, service, render, export — is real. Also open: WP08 (benchmark) and
+WP09 (final report) from Mission 5.
+
+Environment note: this container has **no system fonts**, so every headless
+screenshot painted layout with no glyphs. `~/m57fonts/etc/fonts.conf` + DejaVu
+fixes it; the walkthrough needs `FONTCONFIG_FILE=$HOME/m57fonts/etc/fonts.conf`.
+The two Inter faces under `scripts/asre/fixtures/fonts/` are committed for the
+same reason.
+
+Order note: WP04/WP05 (server) were built before WP03 so the UI binds to real endpoints.
+
+Toolchain in a fresh container: `bash services/asre-reconstruct/setup.sh` (fixed in WP01), then the Depth-Anything download below. UI flow: run vite with `LELU_ASRE_ROOT`/`FORGE_ASSET_ROOT` pointing at scratch dirs, then `node scripts/asre/m5-ui-flow.cjs <dir>`.
+
+---
+
+
+Living document: update it and commit it at the end of every session. The next session must be able to continue from the repository and this file alone.
+
+## Repository state (end of session 1 of the rebuild, 2026-11-17)
+
+| | |
+| --- | --- |
+| Branch | `claude/blissful-cray-lqhs6g` |
+| Starting SHA | `f29071614aa27b07bd3c889fae32c7b73c81ede8` |
+| Ending SHA | the commit that adds this file (see `git log -1`; recorded in the session report) |
+| Pushed | **No.** Commits are local to the session container. A push to the branch was attempted once and refused under "no push without explicit authorization"; the owner must authorise a push or the work is lost when the container is reclaimed. |
+| Working tree | clean after the final checkpoint, except ignored reproducible outputs (`artifacts/asre/**/*.npy`, `*.lnre`, most `*.glb`) |
+
+Container restarts happened twice during this session; both times the committed work survived, and the uncommitted integration work (which survived by luck) was committed immediately afterwards. The WP6 benchmark is journaled so a restart only loses the trial in flight.
+
+## Completed work
+
+| Area | Status | Code | Tests |
+| --- | --- | --- | --- |
+| NRE: schema, provenance bitmask, Morton, sparse grid, noisy-OR with fingerprint dedup, `.lnre` container (CRC + SHA-256, codec, v1→v2 migration) | VERIFIED | `src/core/asre/nre/` | `tests/asre-nre.test.ts` |
+| Temporal: diff snapshots, verified replay, restore, change classification | VERIFIED | `src/core/asre/temporal/SnapshotStore.ts`, `compare.ts` | `tests/asre-temporal.test.ts` |
+| Volumetric: boundary/interior, fill, loss measurement, representation selector, exact EDT, motion-compensated SDF interpolation, uncertainty | VERIFIED | `src/core/asre/volume/volumetric.ts` | `tests/asre-volumetric.test.ts` |
+| Meshing (voxel faces, surface nets), mesh validation, GLB writer (Z-up→Y-up) | VERIFIED | `src/core/asre/volume/mesh.ts`, `gltf/GlbWriter.ts` | `tests/asre-geometry.test.ts` |
+| Blender Cycles CPU renderer | VERIFIED | `services/asre-reconstruct/blender_render.py`, `scripts/asre/runtime.ts` | smoke + every artifact |
+| Offline TripoSR CPU worker, NRE ingest, upstream validation | VERIFIED | `services/asre-reconstruct/triposr_worker.py`, `scripts/asre/triposr-ingest.ts` | `artifacts/asre/triposr/police_woman/ingest.json` |
+| WP1 analyses + hypotheses | VERIFIED | `analyze_worker.py`, `scripts/asre/wp1-hypotheses.ts` | `artifacts/asre/wp1/police_woman/` |
+| WP2 flipbook | VERIFIED (simulated views) | `src/core/asre/temporal/Flipbook.ts` | `tests/asre-flipbook.test.ts` |
+| WP3 components | VERIFIED | `src/core/asre/character/` | `tests/asre-character.test.ts` |
+| WP4 scheduler + worker pool | VERIFIED | `src/core/asre/scheduler/Scheduler.ts`, `scripts/asre/pool.ts` | `tests/asre-scheduler.test.ts` |
+| WP5 67 rendered variations, 40 hairstyles | VERIFIED | `scripts/asre/wp5-variations.ts` | `artifacts/asre/character/variations/` |
+| WP6 controlled benchmark | VERIFIED | `scripts/asre/wp6-benchmark.ts` | `artifacts/asre/wp6/` |
+| LÉLU integration: API + 4 tools + coverage/next-view | PARTIAL (no UI yet) | `plugins/asreApi.ts`, `src/core/asre/AsreTools.ts`, `analysis/coverage.ts` | `tests/asre-integration.test.ts` |
+| O-Voxel / `.vxz` adapter | NOT IMPLEMENTED (spec not available to verify) | — | — |
+
+Reports: `docs/asre/00-BASELINE-AUDIT.md`, `01-MISSION-3-3.5-REBUILD.md`, `02-MISSION-4-ASRE.md`.
+
+Checks at the end of this session: full `tsc -b --force` exit 0; full `npm test`: **2,351 tests, 2,345 pass, 0 fail, 6 skipped** (baseline before this session: 2,298 / 2,292 / 0 / 6; the difference is the new ASRE tests).
+
+## Known defects and gaps
+
+- Component meshes keep surfaces hidden under clothing/hair: +79% triangles vs a single mesh (same occupancy). Add an export-time merge/cull.
+- Adaptive parallel strategy does not help single-component edits (worker round trip > work); scheduler should run small edits inline. Not implemented.
+- Historical TripoSR figures (15,950 vertices, 45,475 cells, 9.84:1, 38.4 s) were not reproduced: the historical input is unknown; this session's numbers for `police_woman.png` are recorded with their reasons in `01-MISSION-3-3.5-REBUILD.md`.
+- `.lnre` compression is 5.42:1 for the TripoSR grid because each cell stores a float64 density-derived probability; quantising probabilities would shrink it (would be a schema v3 change).
+- Back-mounted hairstyles are hard to see in the front three-quarter renders; add a back view to the variation renders.
+- No UI: ASRE jobs are reachable through tools and the API, not yet from Genesis/Cosmos. ASRE GLBs are not yet placed through the Forge placement path; `identity.leluLook` is not linked to `LeluCharacterStore`.
+- `npm ci` fails because `package-lock.json` is out of sync with `package.json` (pre-existing); use `bun install --frozen-lockfile`.
+
+## Exact next step
+
+1. Get authorisation to push `claude/blissful-cray-lqhs6g`.
+2. Inline-vs-worker decision in the adaptive scheduler (predicted cost < IPC overhead → run inline); re-run WP6 to confirm per-edit latency ≤ incremental.
+3. Second real observation for WP2 on real images (e.g. a side view from another TripoSR example or a rendered side view of the reconstruction) through `Flipbook`, measuring coverage improvement with `assessCoverage`.
+4. UI surface for `asre.job` in Genesis (intermediate results, next-view request) and placement of ASRE GLBs via the Forge placement path.
+
+## Reproducibility
+
+```bash
+# dependencies (repo)
+bun install --frozen-lockfile
+# offline toolchain (Blender 4.2.23 LTS, CPU torch venv, TripoSR @107cefd, torchmcubes @a9ac95a, weights) → /opt/lelu-tools
+services/asre-reconstruct/setup.sh
+# Depth model for WP1 (Apache-2.0)
+HF_HOME=/opt/lelu-tools/hf-home /opt/lelu-tools/asre-venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download('depth-anything/Depth-Anything-V2-Small-hf', revision='5426e4f0f36572d16453bbda7a8389317b1bef99', allow_patterns=['*.json','*.safetensors'])"
+
+# tests and checks
+npx tsx --tsconfig tsconfig.test.json --test tests/asre-*.test.ts
+npm run typecheck
+npm test
+
+# experiments
+export HF_HOME=/opt/lelu-tools/hf-home HF_HUB_OFFLINE=1 LELU_TRIPOSR_SRC=/opt/lelu-tools/TripoSR
+/opt/lelu-tools/asre-venv/bin/python -I services/asre-reconstruct/triposr_worker.py '{"image":"/opt/lelu-tools/TripoSR/examples/police_woman.png","out_dir":"artifacts/asre/triposr/police_woman","upstream_check":true}'
+npx tsx scripts/asre/triposr-ingest.ts artifacts/asre/triposr/police_woman
+/opt/lelu-tools/asre-venv/bin/python -I services/asre-reconstruct/analyze_worker.py '{"image":"/opt/lelu-tools/TripoSR/examples/police_woman.png","triposr_dir":"artifacts/asre/triposr/police_woman","out_dir":"artifacts/asre/wp1/police_woman"}'
+npx tsx scripts/asre/wp1-hypotheses.ts artifacts/asre/triposr/police_woman artifacts/asre/wp1/police_woman
+npx tsx scripts/asre/wp5-variations.ts
+npx tsx scripts/asre/wp6-benchmark.ts --trials 5 --res 0.008   # resumable; delete artifacts/asre/wp6/raw-res0.008.jsonl to start over
+```
+
+Environment: Linux x86-64, Node 22, Python 3.13, ~6 GB free disk for the toolchain, no GPU needed. Licences: TripoSR code + weights MIT; Depth-Anything-V2-Small Apache-2.0; DINO ViT-B/16 config Apache-2.0; Blender GPL (separate program); no paid API, account or key anywhere.
+
+## Mission 5.8 — WP02.1 Hands (in progress)
+
+Read `docs/asre/08_MISSION58_AUDIT.md` first (measured audit + attribution) and
+`docs/asre/09_MISSION58_WP02_HANDS.md` (this step).
+
+- Branch `claude/mission5-lelu-asre-integration-mm6xau`. The character now has
+  parametric hands: palm, thenar/hypothenar, knuckle ridge, four 3-phalanx
+  digits and an opposed thumb, built in a real hand frame; hands are 29.5k
+  triangles (was 6.3k capsules), closed (0 boundary edges), surface error
+  0.09 mm, articulation measured at joint landmarks (100 mm fingertip travel
+  open → fist).
+- Architecture intact: only `hands` rebuilds on a hand edit, face/head/hair are
+  byte-identical, two cold builds give identical component hashes, and the
+  shared-lattice IoU against the whole-object build is still 1.000.
+- **Known defect**: 0–8 non-manifold edges of ~44k at some articulation values
+  (closed, no holes), caused by naive surface nets' one-vertex-per-cube where two
+  hand surfaces fall within a cell. Fix path: manifold dual contouring in
+  `src/core/asre/volume/mesh.ts`. Do not claim the hands are manifold.
+- Next in WP02: feet (heel, arch, forefoot, toes, ground contact), then head and
+  face, then the body joint transitions. Reuse
+  `scripts/asre/m58-family.ts --family <name>` and `m58-render.mjs` for the
+  per-family benchmark and renders; both already produce the before/after pair.
+
+## Mission 5.8 — WP03 reference anatomy (this step)
+
+Read `docs/asre/10_MISSION58_WP03_REFERENCE.md`. LÉLU now builds from a fitted
+CC0 human body instead of SDF primitives:
+
+- `CharacterSpec.anatomy = { source: "reference" | "procedural", targets }`.
+  Procedural is the default and is unchanged (13/13 tests pass, byte-identical).
+- `src/core/asre/reference/` holds the whole bridge: parsers, mesh→SDF field,
+  linear blend skinning, and the provider that clips anatomical regions and
+  places CC0 garments/hair/eyes.
+- Assets are in `resources/cc0/` (git-ignored, ~785 MB) with a fetcher and
+  hash list; every file's CC0 claim was verified from inside the file.
+- Base build: 1,273,680 tris, 45.5 MB GLB, 30–42 s, 0 boundary edges, IoU 0.975.
+- Articulation: hands 265 → 135 mm span open→fist; toes 191 → 168 mm reach.
+- Known defects (documented, not hidden): garments are the body's surface
+  offset inside the CC0 asset's coverage (so no garment folds/seams, and shoes
+  take the foot's shape); eyes are spheres at the reference eye joints; teeth,
+  tongue, brows and lashes are loaded but not meshed (open surfaces); pose does
+  not retarget reference arms yet; the clenched fist has 334 non-manifold edges
+  because the digits interpenetrate; no UV textures yet.
+- Next: bind the CC0 skin/hair/fabric maps to UVs, retarget the arm pose onto
+  the reference rig, and give garments real thickness from their own mesh.

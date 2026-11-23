@@ -1,0 +1,33 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/poses/t-pose.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "triangles": 307272,
+ "bounds_blender_zup": {
+  "min": [
+   -0.9706943035125732,
+   -0.21978797018527985,
+   -0.04413080960512161
+  ],
+  "max": [
+   0.9706943035125732,
+   0.12596073746681213,
+   1.7130552530288696
+  ]
+ },
+ "render_seconds": 0.82,
+ "blender": "4.2.23 LTS"
+}

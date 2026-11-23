@@ -1,0 +1,17 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference/reference-base.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/reference/reference-base-hands-front.png",
+ "resolution": [
+  640,
+  640
+ ],
+ "samples": 28,
+ "view": "front",
+ "wireframe": false,
+ "focus": [
+  "hands"
+ ],
+ "view_transform": "AgX"
+}

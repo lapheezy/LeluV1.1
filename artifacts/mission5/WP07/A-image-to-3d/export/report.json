@@ -1,0 +1,96 @@
+{
+  "input": "model.glb",
+  "formats": {
+    "blend": {
+      "file": "editable.blend",
+      "bytes": 1670800
+    },
+    "obj": {
+      "file": "source.obj",
+      "bytes": 881977
+    },
+    "stl": {
+      "file": "source.stl",
+      "bytes": 793084
+    }
+  },
+  "render": {
+    "file": "render.png",
+    "bytes": 360294
+  },
+  "runtime": {
+    "file": "runtime.glb",
+    "bytes": 381768,
+    "sourceTriangles": 15860,
+    "decimateRatio": 1.0
+  },
+  "source": {
+    "objects": 1,
+    "meshes": 1,
+    "armatures": 0,
+    "bones": 0,
+    "materials": 1,
+    "images": 0,
+    "triangles": 15860,
+    "actions": 0,
+    "height": 0.9948,
+    "min": [
+      -0.2812,
+      -0.1719,
+      0.0052
+    ],
+    "max": [
+      0.2812,
+      0.1719,
+      1.0
+    ]
+  },
+  "steps": [
+    {
+      "step": "loaded",
+      "objects": 1,
+      "meshes": 1,
+      "armatures": 0,
+      "bones": 0,
+      "materials": 1,
+      "images": 0,
+      "triangles": 15860,
+      "actions": 0,
+      "height": 0.9948,
+      "min": [
+        -0.2812,
+        -0.1719,
+        0.0052
+      ],
+      "max": [
+        0.2812,
+        0.1719,
+        1.0
+      ]
+    },
+    {
+      "step": "exported",
+      "format": "blend"
+    },
+    {
+      "step": "exported",
+      "format": "obj",
+      "bytes": 881977
+    },
+    {
+      "step": "exported",
+      "format": "stl",
+      "bytes": 793084
+    },
+    {
+      "step": "rendered",
+      "file": "render.png"
+    },
+    {
+      "step": "exported_runtime",
+      "bytes": 381768,
+      "ratio": 1.0
+    }
+  ],
+  "warnings": []
+}

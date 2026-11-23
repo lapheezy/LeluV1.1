@@ -1,0 +1,26 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/hair/lob-a.png",
+ "objects": [
+  "torso",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "clothing.top"
+ ],
+ "triangles": 108740,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2762562930583954,
+   -0.13102523982524872,
+   0.9255833029747009
+  ],
+  "max": [
+   0.2762562930583954,
+   0.12596073746681213,
+   1.7095890045166016
+  ]
+ },
+ "render_seconds": 0.45,
+ "blender": "4.2.23 LTS"
+}

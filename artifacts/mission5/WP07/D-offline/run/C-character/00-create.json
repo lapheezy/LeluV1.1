@@ -1,0 +1,395 @@
+{
+ "ok": true,
+ "version": {
+  "id": "v0001",
+  "characterId": "wp7-lelu",
+  "parentId": null,
+  "createdAt": 1794964527126,
+  "label": "created",
+  "operation": {
+   "kind": "create"
+  },
+  "spec": {
+   "identity": {
+    "id": "wp7-lelu",
+    "name": "WP07 LÉLU",
+    "leluLook": "gothic"
+   },
+   "body": {
+    "height": 1.7,
+    "shoulderWidth": 0.4,
+    "hipWidth": 0.34,
+    "build": 1,
+    "legRatio": 0.48,
+    "armRatio": 1
+   },
+   "face": {
+    "headScale": 1,
+    "eyeSize": 1,
+    "eyeSpacing": 1,
+    "noseSize": 1
+   },
+   "hair": {
+    "style": "long-straight",
+    "length": 1,
+    "volume": 1
+   },
+   "clothing": {
+    "top": "tshirt",
+    "bottom": "pants",
+    "shoes": true
+   },
+   "accessories": {
+    "head": [],
+    "body": []
+   },
+   "materials": {
+    "skin": [
+     0.62,
+     0.42,
+     0.32
+    ],
+    "hair": [
+     0.08,
+     0.06,
+     0.07
+    ],
+    "top": [
+     0.12,
+     0.1,
+     0.16
+    ],
+    "bottom": [
+     0.1,
+     0.1,
+     0.12
+    ],
+    "shoes": [
+     0.05,
+     0.05,
+     0.05
+    ],
+    "accessory": [
+     0.75,
+     0.68,
+     0.45
+    ],
+    "eyes": [
+     0.05,
+     0.03,
+     0.03
+    ]
+   },
+   "pose": "relaxed"
+  },
+  "specHash": "23646b7c6dc636bd78aba68c81c5bfe9faddb9b92caf2ed5a0c5a463e32387e4",
+  "builder": "68b417821f4b0a67",
+  "lattice": 0.006,
+  "impact": [
+   {
+    "id": "torso",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "pelvis",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "neck",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "head",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "face",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "hair",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "arms",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "hands",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "legs",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "feet",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "clothing.top",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "clothing.bottom",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "clothing.shoes",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "accessories.head",
+    "action": "rebuild",
+    "reason": "new character"
+   },
+   {
+    "id": "accessories.body",
+    "action": "rebuild",
+    "reason": "new character"
+   }
+  ],
+  "components": {
+   "torso": {
+    "key": "e29f3b1253801892",
+    "geometryKey": "d69dc43762686c76",
+    "geometrySha": "12a596f99c94556c41e24bc8d8ddcd88e7e451eead79bbd232e6983c46bec494",
+    "shapeSha": "896b3816054bd4b2528a0be610ac8157d364b27a30ad9ddaffcdfff6663160b2",
+    "materialSha": "052a6ec756a82ebde5db17be4e9a80872f466efea32d4d2444bdb6b6f265f63b",
+    "cells": 98912,
+    "triangles": 34720,
+    "action": "regenerated"
+   },
+   "pelvis": {
+    "key": "1c4abc8c06765d6b",
+    "geometryKey": "eb3f5ca570e76ac3",
+    "geometrySha": "bd260f23367c377cfcb95180d5fed13ba74149e72267dd6065d1d1491b530e54",
+    "shapeSha": "3b940bd0f0e3633609beec74a2e6019ab1ff96746f30df6e0b1d72b568a8a506",
+    "materialSha": "e59e60363d872bbab5d9fc0d1ceadf3c0cb4825202499629c53335b42d14d5cf",
+    "cells": 55172,
+    "triangles": 22340,
+    "action": "regenerated"
+   },
+   "neck": {
+    "key": "743b76614bd08260",
+    "geometryKey": "c8698b41c22978f4",
+    "geometrySha": "32998456beeb677fc504055d2da96a2b37ac19ef290e129f1844b99d93837e4d",
+    "shapeSha": "a5834e191f134ad68df0f68c19a7c5c014db5b93e18006766a60733a07bc2a1a",
+    "materialSha": "b97e817a119c2f9c7b4dfc1b9d66dfe712ed232fa086ee41a91938b28d851366",
+    "cells": 9850,
+    "triangles": 6940,
+    "action": "regenerated"
+   },
+   "head": {
+    "key": "d359413a7cb5f4bb",
+    "geometryKey": "18f59ce459dd90a3",
+    "geometrySha": "9afb28db7bdd7b6fef707573be1ce52aa563bd633220fea091cb0785ac5c8e30",
+    "shapeSha": "68a1b4f717d1eb2d5ce47e27732a206a7b9f32e11badaaee40cda92c0e796501",
+    "materialSha": "ed94e98c7780badec1300a3c9f3467312db8972b38254bf2a5ade6c7b9c04893",
+    "cells": 21218,
+    "triangles": 11304,
+    "action": "regenerated"
+   },
+   "face": {
+    "key": "bf8449b5e3b513df",
+    "geometryKey": "64e9cb51d6694e26",
+    "geometrySha": "817ed7e73b6fe5b621ea6d034b8fd491eb172f631703fe1582269f81db4e7535",
+    "shapeSha": "3d668c10dfdbf4234122e6747a3c9eb57a3335acb8e112911af2194bde86d2fc",
+    "materialSha": "bbc4d5aa054942f513c446d750c208b0b5dd5e33ef6145b7c73bea2e9c5f2c77",
+    "cells": 224,
+    "triangles": 900,
+    "action": "regenerated"
+   },
+   "hair": {
+    "key": "42ab1b4619d0240b",
+    "geometryKey": "f4c490ff1202b620",
+    "geometrySha": "0e6fcc41ecd53751204bb3f190d92cc5551ffb0def753bdca05a7c863dc2502f",
+    "shapeSha": "4c2c1e5d5e555221f557f3fae9f4469928b98204e78c55fcb0c1f8c0cb981554",
+    "materialSha": "bfe652866e73cee1c150667d86f5e2804adf1368d221b62ccdb6e25ba9ca53d0",
+    "cells": 67580,
+    "triangles": 27184,
+    "action": "regenerated"
+   },
+   "arms": {
+    "key": "18aa9206ec12b11b",
+    "geometryKey": "334582ae7e67bedc",
+    "geometrySha": "0ce9e71375a518172f09b8ccf7a3d794c2f6ca43bd404098a3a1ebbd7d4bb24f",
+    "shapeSha": "864116ba106cd57929755b3f3f33d3921045063518ec4bc893b83e9d8442e2f3",
+    "materialSha": "fe68116c31dd879a58877d546eb5180db0a4502cfbb1ca83f3a029c57dc6f4bf",
+    "cells": 26446,
+    "triangles": 23960,
+    "action": "regenerated"
+   },
+   "hands": {
+    "key": "b7290fc841da0c1a",
+    "geometryKey": "c04c0ae9e5c9db50",
+    "geometrySha": "0b7f832f68c062e27d35c9a3e335a5008e64767d0c3a32d17ec55c4bf5311d50",
+    "shapeSha": "ad6c30e0f79701c016fdcb6de8410309ae033c7e37c4a2f0a747f9ce29ddb696",
+    "materialSha": "4ecf5e695de84aaaf78ea3c1e6238f869d37e0fb1e1c0b63f2065f7dae7d7197",
+    "cells": 4640,
+    "triangles": 6296,
+    "action": "regenerated"
+   },
+   "legs": {
+    "key": "7d5bb6212dac19ae",
+    "geometryKey": "b0870110510f7de8",
+    "geometrySha": "160a971ad6dcacc6a69ae668260275fa4a713bd0de1f83c46f79f04e22c318b5",
+    "shapeSha": "449b7bc58152fc1b6db16fb021649da418c031ff01c7c69f7ed986b6e23c5afa",
+    "materialSha": "9f34b2f6aec7000dd8409f1fbe9b9c20ae76dca749105f91333e23241101ca4d",
+    "cells": 71376,
+    "triangles": 43856,
+    "action": "regenerated"
+   },
+   "feet": {
+    "key": "6586b293551845f0",
+    "geometryKey": "3348401c8496f9ab",
+    "geometrySha": "e3544688abe85721a8eaab33f26c5160e31da7f09bb05bdb0d0cba99af5a2043",
+    "shapeSha": "90cbde646cb866397699beb233f6e2b4e9cd820d09db13ae8a74a2672f48431b",
+    "materialSha": "46062dc988276e89b4f9cd4da1495bf78e8f2dd4ddf89d3e74fbfd1b6a123c93",
+    "cells": 9592,
+    "triangles": 9360,
+    "action": "regenerated"
+   },
+   "clothing.top": {
+    "key": "56ceca45d67da1e2",
+    "geometryKey": "157daff582df7169",
+    "geometrySha": "75619137af19656a6ee8d1e0e37335d74719ac4780cfad897f834bcc8229be7e",
+    "shapeSha": "f9f160fa9241706c19cd35906508370448ad03099b8e200b7e19f034310ffbca",
+    "materialSha": "6951f2a5d3a9fd5859608c7e14acef538f528d0a90669aaaa89f17ec1637fb01",
+    "cells": 131852,
+    "triangles": 42656,
+    "action": "regenerated"
+   },
+   "clothing.bottom": {
+    "key": "4bbfa28f9bc6700a",
+    "geometryKey": "ed05da7a387cca6b",
+    "geometrySha": "727f1726c761b6ef26d95332e419a2ab86627016310bbd1ce5db2f2066cdacf5",
+    "shapeSha": "9e70a2e70c43bc070a1b9877274016c43368eff61c2b8e36e7729daf366c9bc1",
+    "materialSha": "829d736e206e7a274d8eb3ea0191f821dc52162615622fb146135539c89aff3b",
+    "cells": 148038,
+    "triangles": 63300,
+    "action": "regenerated"
+   },
+   "clothing.shoes": {
+    "key": "af01be0c0a2e9b2a",
+    "geometryKey": "e93788a90ecc3b52",
+    "geometrySha": "d027cca868e15e252bc4fbede2866de5bfce241bff951ccf09412a363c0b5ed3",
+    "shapeSha": "f8a71ec8f87f0c5396b0b600737d0cf26bcbcc2665e02ae2c5fa500ba56a4ad6",
+    "materialSha": "4f553fc4979b629c4533de33d3944d272dc9634748830d82bce375b2ecea1b98",
+    "cells": 19216,
+    "triangles": 14488,
+    "action": "regenerated"
+   },
+   "accessories.head": {
+    "key": "44c989034971eaeb",
+    "geometryKey": "46b69f0fd98b4afb",
+    "geometrySha": "empty",
+    "shapeSha": "empty",
+    "materialSha": "empty",
+    "cells": 0,
+    "triangles": 0,
+    "action": "regenerated"
+   },
+   "accessories.body": {
+    "key": "6c8cdf7c9281838d",
+    "geometryKey": "dde742b8992d1793",
+    "geometrySha": "empty",
+    "shapeSha": "empty",
+    "materialSha": "empty",
+    "cells": 0,
+    "triangles": 0,
+    "action": "regenerated"
+   }
+  },
+  "build": {
+   "ms": 2141,
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "recolored": [],
+   "reused": []
+  },
+  "glb": {
+   "file": "characters/wp7-lelu/versions/v0001.glb",
+   "sha256": "7ec99c276248e93e16ae6da21810b3b1167fefe7e53dee6c5eaf06c8c30782ba",
+   "bytes": 9849748,
+   "triangles": 307304,
+   "meshValid": true
+  },
+  "evidence": "GENERATED",
+  "recordHash": "97eb40c76dd48cea9dda87f5380005adcc2b060581b51c93344d25dcde8c7dac"
+ },
+ "history": {
+  "character": {
+   "id": "wp7-lelu",
+   "name": "WP07 LÉLU",
+   "leluLook": "gothic",
+   "createdAt": 1794964524218,
+   "head": "v0001",
+   "redo": [],
+   "versions": [
+    "v0001"
+   ],
+   "exports": {}
+  },
+  "versions": [
+   {
+    "id": "v0001",
+    "parentId": null,
+    "label": "created",
+    "createdAt": 1794964527126,
+    "operation": "create",
+    "regenerated": [
+     "torso",
+     "pelvis",
+     "neck",
+     "head",
+     "face",
+     "hair",
+     "arms",
+     "hands",
+     "legs",
+     "feet",
+     "clothing.top",
+     "clothing.bottom",
+     "clothing.shoes",
+     "accessories.head",
+     "accessories.body"
+    ],
+    "recolored": [],
+    "reused": 0,
+    "buildMs": 2141,
+    "triangles": 307304,
+    "isHead": true,
+    "exportedAs": null
+   }
+  ]
+ }
+}

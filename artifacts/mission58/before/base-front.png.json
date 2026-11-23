@@ -1,0 +1,43 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/before/base-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.0468912273645401,
+   0.8340132236480713
+  ],
+  "radius": 0.9618410876714518
+ },
+ "triangles": 307304,
+ "bounds_blender_zup": {
+  "min": [
+   -0.35006508231163025,
+   -0.21974319219589233,
+   -0.045028842985630035
+  ],
+  "max": [
+   0.35006508231163025,
+   0.12596073746681213,
+   1.7130552530288696
+  ]
+ },
+ "render_seconds": 3.9,
+ "blender": "4.2.23 LTS"
+}

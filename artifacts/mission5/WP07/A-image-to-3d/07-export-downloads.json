@@ -1,0 +1,37 @@
+[
+ {
+  "file": "A-image-to-3d/export/editable.blend",
+  "bytes": 1670800,
+  "sha256": "f26905219bcd0a9a3714deb184d7627b7c11d13cb3e1fbb9c5ad60f0ce60bb67"
+ },
+ {
+  "file": "A-image-to-3d/export/render.png",
+  "bytes": 360294,
+  "sha256": "391d1ace4ca483b6faf92dde12a7802305e38f19fa90e4e9a41a0473069af068"
+ },
+ {
+  "file": "A-image-to-3d/export/report.json",
+  "bytes": 1549,
+  "sha256": "272ca647c20f0f58ac8703f04267f9f6ea31fda23ecdbbad988d1064c316e388"
+ },
+ {
+  "file": "A-image-to-3d/export/runtime.glb",
+  "bytes": 381768,
+  "sha256": "f1761afe8a801958751eb9319fcee26932aee46358d19b479eb7cd6a8e622c69"
+ },
+ {
+  "file": "A-image-to-3d/export/source.mtl",
+  "bytes": 268,
+  "sha256": "b72fae7f2c47827f7b04290b4e0a6990e8a64aa1be4cd4a131c59c2a8410090c"
+ },
+ {
+  "file": "A-image-to-3d/export/source.obj",
+  "bytes": 881977,
+  "sha256": "25a8057a1a394eff498bd9f60c10dab5116c928afc29cda81bd2320e3f6cf8f0"
+ },
+ {
+  "file": "A-image-to-3d/export/source.stl",
+  "bytes": 793084,
+  "sha256": "fe778cf390f58a599224dc7d5b904c0fd02309918a43cdc1c91eb4c54e1598bc"
+ }
+]

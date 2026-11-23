@@ -1,0 +1,160 @@
+{
+ "ok": true,
+ "history": [
+  {
+   "id": "fj_mwlfl0yp_49e587",
+   "character": "wp7-lelu",
+   "kind": "asre",
+   "purpose": "Character WP07 LÉLU v0007: restore hair from v0001",
+   "request": {
+    "operation": "asre",
+    "collection": "wp7-lelu",
+    "model": "24522184f3e3cc2c47842a10f811052b368f22812c689d749edca598f1304778",
+    "source": {
+     "kind": "character",
+     "characterId": "wp7-lelu",
+     "version": "v0007"
+    },
+    "parentJobId": null,
+    "provenance": {
+     "evidence": "GENERATED",
+     "note": "procedural component character: every cell is generated, none observed",
+     "specHash": "d153c4d9d90f233e19c9d7503550680b616aea4b6aaf9fc8cc2d8168849b2321",
+     "builder": "68b417821f4b0a67",
+     "operation": {
+      "kind": "restore",
+      "from": "v0001",
+      "components": [
+       "hair"
+      ]
+     },
+     "regenerated": []
+    },
+    "conventions": {
+     "upAxis": "+Y",
+     "units": "metres (assumed)",
+     "bounds": {
+      "min": [
+       -0.4475211203098297,
+       -0.04209037125110626,
+       -0.1396963894367218
+      ],
+      "max": [
+       0.382603257894516,
+       2.0376474857330322,
+       0.3534395396709442
+      ]
+     },
+     "standsOnFloor": false,
+     "centred": false,
+     "warnings": [
+      "lowest point is at y = -0.042 m, not on the floor (edit with ground: true)",
+      "not centred on x = z = 0 (edit with center: true)"
+     ]
+    },
+    "spend": "zero: local ASRE, no paid API"
+   },
+   "requestKey": "ae26e62d931fb7cb4360571af31f594a74424139e4c46bc445129f095a02cc6d",
+   "estimatedCredits": 0,
+   "status": "SUCCEEDED",
+   "meshyTaskId": null,
+   "progress": 100,
+   "consumedCredits": 0,
+   "error": null,
+   "identityLock": null,
+   "createdAt": 1794964609825,
+   "updatedAt": 1794964609852,
+   "submittedAt": 1794964609825,
+   "finishedAt": 1794964609825,
+   "output": {
+    "dir": "characters/wp7-lelu/meshes/v001_asre_wp7-lelu_v0007",
+    "files": [
+     {
+      "role": "model",
+      "file": "characters/wp7-lelu/meshes/v001_asre_wp7-lelu_v0007/model.glb",
+      "bytes": 11482128,
+      "sha256": "24522184f3e3cc2c47842a10f811052b368f22812c689d749edca598f1304778"
+     },
+     {
+      "role": "asre-metadata",
+      "file": "characters/wp7-lelu/meshes/v001_asre_wp7-lelu_v0007/asre.json",
+      "bytes": 1268,
+      "sha256": "28dd71393efd692de5d7a4cec37b709d1b8d693cf84cb98d9545e745f7fdac3c"
+     }
+    ]
+   },
+   "validation": {
+    "ok": true,
+    "problems": [],
+    "warnings": [],
+    "bytes": 11482128,
+    "generator": "LÉLU ASRE character",
+    "geometry": {
+     "meshes": 13,
+     "primitives": 13,
+     "vertices": 179203,
+     "triangles": 358320,
+     "bounds": {
+      "min": [
+       -0.4475211203098297,
+       -0.04209037125110626,
+       -0.1396963894367218
+      ],
+      "max": [
+       0.382603257894516,
+       2.0376474857330322,
+       0.3534395396709442
+      ],
+      "size": [
+       0.8301243782043457,
+       2.0797378569841385,
+       0.493135929107666
+      ]
+     },
+     "dracoCompressed": false
+    },
+    "surface": {
+     "materials": 13,
+     "textures": 0,
+     "images": 0,
+     "baseColorTextured": false,
+     "pbrMaps": false
+    },
+    "rig": {
+     "skins": 0,
+     "joints": 0,
+     "humanoidBonesFound": [],
+     "humanoidBonesMissing": [
+      "hips",
+      "spine",
+      "neck",
+      "head",
+      "leftUpperArm",
+      "rightUpperArm",
+      "leftForearm",
+      "rightForearm",
+      "leftHand",
+      "rightHand",
+      "leftUpperLeg",
+      "rightUpperLeg",
+      "leftLowerLeg",
+      "rightLowerLeg",
+      "leftFoot",
+      "rightFoot"
+     ],
+     "weightValidity": null,
+     "skinnedVertices": 0
+    },
+    "motion": {
+     "clips": []
+    },
+    "verdict": {
+     "meshValid": true,
+     "textured": false,
+     "rigValid": false,
+     "animated": false
+    }
+   }
+  }
+ ]
+}

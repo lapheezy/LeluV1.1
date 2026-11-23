@@ -34,6 +34,7 @@ import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
 import VoiceToggle from "./VoiceToggle";
 import Model3DView from "../Model3DView";
+import SpatialSurfaces from "../SpatialSurface";
 
 /** A file attached in this window; a 3D file keeps its bytes so the reply can open it in three.js. */
 interface PendingAttachment {
@@ -313,6 +314,8 @@ export default function UniverseChatWindow({
           </motion.div>
         ))}
       </AnimatePresence>
+      {/* Mission 5.7: spatial work lives in this thread, not in a destination. */}
+      <SpatialSurfaces conversationId={conversation.id} />
       {conversation.processing ? (
         <div className="lcu-typing" data-lelu-universe-typing role="status" aria-live="polite">
           <span /><span /><span />

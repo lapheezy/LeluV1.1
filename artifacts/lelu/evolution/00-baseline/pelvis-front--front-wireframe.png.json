@@ -1,0 +1,39 @@
+{
+ "output": "artifacts/lelu/evolution/00-baseline/pelvis-front--front-wireframe.png",
+ "wireframe": true,
+ "objects": [
+  "torso",
+  "pelvis",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "clothing.top",
+  "clothing.bottom",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   0.0,
+   0.8799999952316284
+  ],
+  "radius": 0.3
+ },
+ "triangles": 1153180,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4906481206417084,
+   -0.3256304860115051,
+   -0.0010000000474974513
+  ],
+  "max": [
+   0.5145649909973145,
+   0.16153186559677124,
+   1.7067160606384277
+  ]
+ },
+ "render_seconds": 6.13,
+ "blender": "4.2.23 LTS"
+}

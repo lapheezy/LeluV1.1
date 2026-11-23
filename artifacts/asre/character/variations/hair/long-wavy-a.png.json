@@ -1,0 +1,26 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/hair/long-wavy-a.png",
+ "objects": [
+  "torso",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "clothing.top"
+ ],
+ "triangles": 119416,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2762562930583954,
+   -0.13102523982524872,
+   0.9255833029747009
+  ],
+  "max": [
+   0.2762562930583954,
+   0.12596073746681213,
+   1.7153151035308838
+  ]
+ },
+ "render_seconds": 0.46,
+ "blender": "4.2.23 LTS"
+}

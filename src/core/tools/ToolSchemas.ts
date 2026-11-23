@@ -226,6 +226,10 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(research|investigate|study|literature|sources?|cite|citations?)\b/i, ["research_board", "data_query"]],
   [/\b(export|download|save as|svg|png|glb|excalidraw|file)\b/i, ["creative_export"]],
   [/\b(capabilit\w*|webgpu|webgl|webcodecs|what can you (?:do|run)|tools?|offline)\b/i, ["device_capabilities", "tools_catalog"]],
+  // Her spatial engine (ASRE): real reconstruction from images and her persistent
+  // character. Raised only when the turn is about turning views into 3D, the
+  // numerical record, or changing/restoring a character's components.
+  [/\b(reconstruct\w*|image[- ]to[- ]3d|photo[- ]to[- ]3d|(?:into|in|to) 3d|3d (?:scan|model of)|voxel\w*|hypothes[ie]s|silhouette|another (?:view|angle)|side view|back view|hairstyle|haircut|outfit|clothing|body proportions?|restore (?:the |her )?(?:original|earlier|previous)|character version|asre)\b/i, ["asre_reconstruct", "asre_job", "asre_observe", "asre_character", "asre_history", "asre_export"]],
   // 3D and her world: the world.* executors build real objects in the Cosmos.
   [/\b(3d|3-d|sculpt\w*|mesh|statue|hologram|world|cosmos|universe)\b/i, ["world_object", "world_generate", "world_state", "world_environment"]],
   // Exporting what she built: STL for printing, OBJ for other 3D tools.

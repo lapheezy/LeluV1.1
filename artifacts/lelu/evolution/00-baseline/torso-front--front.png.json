@@ -1,0 +1,45 @@
+{
+ "output": "artifacts/lelu/evolution/00-baseline/torso-front--front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   0.0,
+   1.1699999570846558
+  ],
+  "radius": 0.36
+ },
+ "triangles": 1373776,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4906481206417084,
+   -0.3256304860115051,
+   -0.0010000000474974513
+  ],
+  "max": [
+   0.5145649909973145,
+   0.16153186559677124,
+   1.7067160606384277
+  ]
+ },
+ "render_seconds": 10.24,
+ "blender": "4.2.23 LTS"
+}

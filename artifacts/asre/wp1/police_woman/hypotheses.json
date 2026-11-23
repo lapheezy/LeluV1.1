@@ -1,0 +1,89 @@
+{
+ "image": "/opt/lelu-tools/TripoSR/examples/police_woman.png",
+ "analyses": [
+  "rgb",
+  "silhouette",
+  "surface",
+  "landmarks",
+  "components",
+  "measurements"
+ ],
+ "concurrency": {
+  "wall_s": 4.34,
+  "sum_op_s": 7.111,
+  "gain": 1.64
+ },
+ "ranking": [
+  {
+   "hypothesis": "triposr",
+   "provenance": "SYNTHESIZED",
+   "cells": 706026,
+   "silhouette_iou": 0.8788526333575184,
+   "depth_rank_correlation": 0.8605470793388957,
+   "prior_confidence": 0.5,
+   "compute_seconds": 8.237,
+   "depthCheckCircular": false,
+   "quality": 0.8147,
+   "qualityPerSecond": 0.099
+  },
+  {
+   "hypothesis": "ellipse-hull",
+   "provenance": "INFERRED",
+   "cells": 1030802,
+   "silhouette_iou": 0.9342918216157653,
+   "depth_rank_correlation": 0.6566161787647812,
+   "prior_confidence": 0.5,
+   "compute_seconds": 0.348,
+   "depthCheckCircular": false,
+   "quality": 0.7581,
+   "qualityPerSecond": 2.178
+  },
+  {
+   "hypothesis": "depth-lift",
+   "provenance": "INFERRED",
+   "cells": 1298569,
+   "silhouette_iou": 0.9441995494795712,
+   "depth_rank_correlation": 0.9960436753997329,
+   "prior_confidence": 0.6,
+   "compute_seconds": 0.099,
+   "depthCheckCircular": true,
+   "quality": 0.5149,
+   "qualityPerSecond": 5.201
+  }
+ ],
+ "selected": "triposr",
+ "pairwiseIou": {
+  "triposr~ellipse-hull": 0.5385,
+  "triposr~depth-lift": 0.3739,
+  "ellipse-hull~depth-lift": 0.5775
+ },
+ "consensus": {
+  "cells": 1522652,
+  "supportedBy2plus": 1019278,
+  "supportedBy3": 493467,
+  "provenance": {
+   "OBSERVED": 16632,
+   "INFERRED": 1476666,
+   "SYNTHESIZED": 706026,
+   "INTERPOLATED": 0
+  },
+  "uncertainty": {
+   "INFERRED": {
+    "cells": 1476666,
+    "meanUncertainty": 0.23554654878100323
+   },
+   "SYNTHESIZED": {
+    "cells": 706026,
+    "meanUncertainty": 0.1501486205899638
+   },
+   "OBSERVED": {
+    "cells": 16632,
+    "meanUncertainty": 0.035866402116397626
+   }
+  }
+ },
+ "notes": [
+  "depth-lift is built from the depth map it is scored against: its depth correlation is circular and excluded from its quality score",
+  "triposr vs Depth-Anything depth agreement is between two independent models"
+ ]
+}

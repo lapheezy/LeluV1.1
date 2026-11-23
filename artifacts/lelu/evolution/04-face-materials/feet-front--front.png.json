@@ -1,0 +1,45 @@
+{
+ "output": "artifacts/lelu/evolution/04-face-materials/feet-front--front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.05000000074505806,
+   0.12999999523162842
+  ],
+  "radius": 0.3
+ },
+ "triangles": 2675684,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4912215769290924,
+   -0.32687968015670776,
+   -0.04500000178813934
+  ],
+  "max": [
+   0.5161850452423096,
+   0.2006591111421585,
+   1.7175750732421875
+  ]
+ },
+ "render_seconds": 29.41,
+ "blender": "4.2.23 LTS"
+}

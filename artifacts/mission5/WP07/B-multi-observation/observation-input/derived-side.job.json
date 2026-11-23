@@ -1,0 +1,13 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/B-multi-observation/base.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/B-multi-observation/observation-input/derived-side.png",
+ "resolution": [
+  512,
+  512
+ ],
+ "samples": 12,
+ "view": "side",
+ "wireframe": false
+}

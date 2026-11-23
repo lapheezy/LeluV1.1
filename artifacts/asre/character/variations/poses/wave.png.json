@@ -1,0 +1,33 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/poses/wave.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "triangles": 310212,
+ "bounds_blender_zup": {
+  "min": [
+   -0.43727198243141174,
+   -0.33839136362075806,
+   -0.04413080960512161
+  ],
+  "max": [
+   0.37548187375068665,
+   0.12596073746681213,
+   1.9458860158920288
+  ]
+ },
+ "render_seconds": 0.84,
+ "blender": "4.2.23 LTS"
+}

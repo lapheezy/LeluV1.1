@@ -15,6 +15,7 @@ import type { ToolDefinition } from "../src/core/tools/ToolRegistry";
 import { executableToolIds } from "../src/core/tools/ToolDispatcher";
 import { registerEarthTools } from "../src/core/earth/EarthTools";
 import { registerForgeTools } from "../src/core/forge/ForgeTools";
+import { registerAsreTools } from "../src/core/asre/AsreTools";
 import { registerWorldTools } from "../src/core/world/WorldTools";
 import { registerAgenticTools } from "../src/core/agentic/AgenticTools";
 import { registerInterfaceTools } from "../src/core/interface/InterfaceTools";
@@ -32,6 +33,7 @@ import { registerContinuityTools } from "../src/core/cognition/ContinuityTools";
 const REGISTRARS: Array<[string, () => void]> = [
   ["earth", registerEarthTools],
   ["forge", registerForgeTools],
+  ["asre", registerAsreTools],
   ["world", registerWorldTools],
   ["agentic", registerAgenticTools],
   ["interface", registerInterfaceTools],
@@ -108,4 +110,13 @@ test("registry ↔ executor coverage is reported, and executors never lack a def
   // offered or gated and is an orphaned integration.
   console.info(`[integrity] ${defined.size} definitions, ${executable.size} executors, ${unexecutable.length} definitions without executor`);
   assert.deepEqual(orphanExecutors, [], `executors with no registry definition: ${orphanExecutors.join(", ")}`);
+});
+
+test("this probe covers exactly the registrars Bootstrap calls", async () => {
+  const { readFileSync } = await import("node:fs");
+  const boot = readFileSync(new URL("../src/core/Bootstrap.ts", import.meta.url), "utf8");
+  const called = [...new Set([...boot.matchAll(/\b(register[A-Za-z]*Tools)\(\)/g)].map((m) => m[1]))].sort();
+  const probe = readFileSync(new URL(import.meta.url), "utf8");
+  const covered = [...new Set([...probe.matchAll(/^import \{ (register[A-Za-z]*Tools) \}/gm)].map((m) => m[1]))].sort();
+  assert.deepEqual(covered, called);
 });

@@ -36,6 +36,7 @@ import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
+import { registerAsreTools } from "./asre/AsreTools";
 import { registerWorldTools } from "./world/WorldTools";
 import { registerAgenticTools } from "./agentic/AgenticTools";
 import { registerInterfaceTools } from "./interface/InterfaceTools";
@@ -223,6 +224,8 @@ export default class Bootstrap {
       registerEarthTools();
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
+      // ASRE: local, zero-spend reconstruction and the persistent component character
+      registerAsreTools();
       registerWorldTools();
       // Capability ledger (server authority shared by every session/device):
       // applies its cached snapshot, then hydrates. Loaded lazily — no

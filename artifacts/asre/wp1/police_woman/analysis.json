@@ -1,0 +1,254 @@
+{
+ "image": "/opt/lelu-tools/TripoSR/examples/police_woman.png",
+ "models": {
+  "depth": "depth-anything/Depth-Anything-V2-Small-hf@5426e4f0 (Apache-2.0)"
+ },
+ "depth_to_width_prior": 0.75,
+ "analyses": {
+  "rgb": {
+   "palette": [
+    {
+     "rgb": [
+      0.216,
+      0.256,
+      0.312
+     ],
+     "fraction": 0.294
+    },
+    {
+     "rgb": [
+      0.042,
+      0.038,
+      0.054
+     ],
+     "fraction": 0.274
+    },
+    {
+     "rgb": [
+      0.149,
+      0.145,
+      0.165
+     ],
+     "fraction": 0.262
+    },
+    {
+     "rgb": [
+      0.4,
+      0.283,
+      0.235
+     ],
+     "fraction": 0.068
+    },
+    {
+     "rgb": [
+      0.501,
+      0.506,
+      0.527
+     ],
+     "fraction": 0.068
+    },
+    {
+     "rgb": [
+      0.831,
+      0.858,
+      0.864
+     ],
+     "fraction": 0.034
+    }
+   ],
+   "mean_luminance": 0.2075284585812417,
+   "contrast": 0.17934280817003395
+  },
+  "silhouette": {
+   "area_px": 99540,
+   "bbox": [
+    39,
+    56,
+    472,
+    455
+   ],
+   "contour_px": 1620
+  },
+  "surface": {
+   "mean_facing": 0.9166090488433838,
+   "frac_facing_camera_gt_0_7": 0.9158830620855938,
+   "curvature_abs_mean": 0.007383182644844055
+  },
+  "landmarks": {
+   "method": "silhouette width profile (no pose model)",
+   "head_top_row": 39,
+   "head_widest_row": 116,
+   "head_center_col": 253.5,
+   "neck_row": 281,
+   "shoulder_row": 316,
+   "bottom_row": 472,
+   "neck_width_px": 75.0,
+   "shoulder_width_px": 165.0
+  },
+  "components": [
+   {
+    "component": "head",
+    "rows": [
+     39,
+     281
+    ],
+    "evidence": "above the silhouette's narrowest row"
+   },
+   {
+    "component": "neck",
+    "rows": [
+     281,
+     316
+    ],
+    "evidence": "narrowest band to shoulder widening (\u00d71.6)"
+   },
+   {
+    "component": "torso",
+    "rows": [
+     316,
+     472
+    ],
+    "evidence": "below shoulder widening"
+   }
+  ],
+  "measurements": {
+   "units": "TripoSR units at the x=0 plane (camera d=1.9, fovy 40)",
+   "height": 1.1696809051984556,
+   "head_height": 0.6537246629515617,
+   "neck_width": 0.20260061868333526,
+   "shoulder_width": 0.4457213611033376,
+   "head_to_height_ratio": 0.558891454965358,
+   "silhouette_area": 0.7263679011856394
+  }
+ },
+ "hypotheses": [
+  {
+   "hypothesis": "triposr",
+   "provenance": "SYNTHESIZED",
+   "cells": 706026,
+   "silhouette_iou": 0.8788526333575184,
+   "depth_rank_correlation": 0.8605470793388957,
+   "prior_confidence": 0.5,
+   "compute_seconds": 8.237
+  },
+  {
+   "hypothesis": "ellipse-hull",
+   "provenance": "INFERRED",
+   "cells": 1030802,
+   "silhouette_iou": 0.9342918216157653,
+   "depth_rank_correlation": 0.6566161787647812,
+   "prior_confidence": 0.5,
+   "compute_seconds": 0.348
+  },
+  {
+   "hypothesis": "depth-lift",
+   "provenance": "INFERRED",
+   "cells": 1298569,
+   "silhouette_iou": 0.9441995494795712,
+   "depth_rank_correlation": 0.9960436753997329,
+   "prior_confidence": 0.6,
+   "compute_seconds": 0.099
+  }
+ ],
+ "timeline": [
+  {
+   "op": "load+crop",
+   "start_s": 0.251,
+   "end_s": 0.28,
+   "thread": "asre_0"
+  },
+  {
+   "op": "foreground-segmentation",
+   "start_s": 0.28,
+   "end_s": 0.281,
+   "thread": "asre_2"
+  },
+  {
+   "op": "rgb-analysis",
+   "start_s": 0.28,
+   "end_s": 1.14,
+   "thread": "asre_1"
+  },
+  {
+   "op": "depth-estimation",
+   "start_s": 0.28,
+   "end_s": 3.04,
+   "thread": "asre_0"
+  },
+  {
+   "op": "silhouette",
+   "start_s": 0.281,
+   "end_s": 0.555,
+   "thread": "asre_3"
+  },
+  {
+   "op": "landmarks",
+   "start_s": 0.555,
+   "end_s": 0.556,
+   "thread": "asre_3"
+  },
+  {
+   "op": "components",
+   "start_s": 0.556,
+   "end_s": 0.556,
+   "thread": "asre_3"
+  },
+  {
+   "op": "spatial-measurement",
+   "start_s": 0.556,
+   "end_s": 0.556,
+   "thread": "asre_3"
+  },
+  {
+   "op": "hypothesis:ellipse-hull",
+   "start_s": 0.556,
+   "end_s": 0.905,
+   "thread": "asre_3"
+  },
+  {
+   "op": "surface-analysis",
+   "start_s": 3.04,
+   "end_s": 3.067,
+   "thread": "asre_2"
+  },
+  {
+   "op": "hypothesis:depth-lift",
+   "start_s": 3.041,
+   "end_s": 3.14,
+   "thread": "asre_3"
+  },
+  {
+   "op": "score:triposr",
+   "start_s": 3.145,
+   "end_s": 3.639,
+   "thread": "asre_1"
+  },
+  {
+   "op": "score:ellipse-hull",
+   "start_s": 3.145,
+   "end_s": 3.962,
+   "thread": "asre_0"
+  },
+  {
+   "op": "score:depth-lift",
+   "start_s": 3.145,
+   "end_s": 4.089,
+   "thread": "asre_2"
+  },
+  {
+   "op": "mesh:ellipse-hull",
+   "start_s": 4.093,
+   "end_s": 4.321,
+   "thread": "asre_3"
+  },
+  {
+   "op": "mesh:depth-lift",
+   "start_s": 4.097,
+   "end_s": 4.325,
+   "thread": "asre_1"
+  }
+ ],
+ "wall_s": 4.34,
+ "sum_op_s": 7.111,
+ "concurrency_gain": 1.64
+}

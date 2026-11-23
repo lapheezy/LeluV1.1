@@ -1,0 +1,26 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/hair/ponytail-b.png",
+ "objects": [
+  "torso",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "clothing.top"
+ ],
+ "triangles": 109372,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2762562930583954,
+   -0.13102523982524872,
+   0.9255833029747009
+  ],
+  "max": [
+   0.2762562930583954,
+   0.14440244436264038,
+   1.7093037366867065
+  ]
+ },
+ "render_seconds": 0.41,
+ "blender": "4.2.23 LTS"
+}

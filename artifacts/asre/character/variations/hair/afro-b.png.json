@@ -1,0 +1,26 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/hair/afro-b.png",
+ "objects": [
+  "torso",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "clothing.top"
+ ],
+ "triangles": 125436,
+ "bounds_blender_zup": {
+  "min": [
+   -0.2762562930583954,
+   -0.17932918667793274,
+   0.9255833029747009
+  ],
+  "max": [
+   0.2762562930583954,
+   0.18890772759914398,
+   1.795407772064209
+  ]
+ },
+ "render_seconds": 0.47,
+ "blender": "4.2.23 LTS"
+}

@@ -1,0 +1,126 @@
+{
+ "ok": true,
+ "comparison": {
+  "a": "v0001",
+  "b": "v0006",
+  "specChanges": [
+   "body.height",
+   "body.build",
+   "hair.style",
+   "hair.volume",
+   "clothing.top",
+   "materials.hair",
+   "pose"
+  ],
+  "components": [
+   {
+    "id": "torso",
+    "change": "geometry",
+    "trianglesBefore": 34720,
+    "trianglesAfter": 37376
+   },
+   {
+    "id": "pelvis",
+    "change": "geometry",
+    "trianglesBefore": 22340,
+    "trianglesAfter": 23760
+   },
+   {
+    "id": "neck",
+    "change": "geometry",
+    "trianglesBefore": 6940,
+    "trianglesAfter": 7780
+   },
+   {
+    "id": "head",
+    "change": "moved",
+    "trianglesBefore": 11304,
+    "trianglesAfter": 11304
+   },
+   {
+    "id": "face",
+    "change": "moved",
+    "trianglesBefore": 900,
+    "trianglesAfter": 900
+   },
+   {
+    "id": "hair",
+    "change": "geometry",
+    "trianglesBefore": 27184,
+    "trianglesAfter": 30648
+   },
+   {
+    "id": "arms",
+    "change": "geometry",
+    "trianglesBefore": 23960,
+    "trianglesAfter": 27584
+   },
+   {
+    "id": "hands",
+    "change": "geometry",
+    "trianglesBefore": 6296,
+    "trianglesAfter": 6768
+   },
+   {
+    "id": "legs",
+    "change": "geometry",
+    "trianglesBefore": 43856,
+    "trianglesAfter": 48184
+   },
+   {
+    "id": "feet",
+    "change": "geometry",
+    "trianglesBefore": 9360,
+    "trianglesAfter": 9384
+   },
+   {
+    "id": "clothing.top",
+    "change": "geometry",
+    "trianglesBefore": 42656,
+    "trianglesAfter": 75448
+   },
+   {
+    "id": "clothing.bottom",
+    "change": "geometry",
+    "trianglesBefore": 63300,
+    "trianglesAfter": 68136
+   },
+   {
+    "id": "clothing.shoes",
+    "change": "geometry",
+    "trianglesBefore": 14488,
+    "trianglesAfter": 14512
+   },
+   {
+    "id": "accessories.head",
+    "change": "same",
+    "trianglesBefore": 0,
+    "trianglesAfter": 0
+   },
+   {
+    "id": "accessories.body",
+    "change": "same",
+    "trianglesBefore": 0,
+    "trianglesAfter": 0
+   }
+  ],
+  "geometry": {
+   "iou": 0.5695704084246049,
+   "change": "deformation",
+   "added": 182122,
+   "removed": 46443,
+   "cellsA": 348894,
+   "cellsB": 484573,
+   "centroidShift": [
+    -0.7532482788571429,
+    31.765083092052095,
+    -0.20233302162600353
+   ]
+  },
+  "triangles": {
+   "a": 307304,
+   "b": 361784
+  },
+  "evidence": "both versions are GENERATED (procedural): nothing in them was observed"
+ }
+}

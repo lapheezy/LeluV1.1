@@ -1,0 +1,3352 @@
+{
+ "mission": "Mission 5.8 — character fidelity baseline",
+ "startedAt": "2026-11-18T04:03:13.277Z",
+ "finishedAt": "2026-11-18T04:03:46.774Z",
+ "node": "v26.13.0",
+ "lattice": {
+  "resolution": 0.006,
+  "originCells": [
+   -160,
+   -12,
+   -110
+  ],
+  "dims": [
+   320,
+   360,
+   220
+  ]
+ },
+ "note": "surfaceErrorMm is |SDF(vertex)| — the distance from each mesh vertex to the true analytic surface. normalErrorDeg compares mesh normals with the analytic SDF gradient.",
+ "runs": [
+  {
+   "label": "base",
+   "file": "artifacts/mission58/before/base.glb",
+   "glbBytes": 9850044,
+   "latticeMm": 6,
+   "buildMs": 2123.1,
+   "totals": {
+    "cells": 664116,
+    "vertices": 153698,
+    "triangles": 307304,
+    "samples": 4029102,
+    "surfaceErrorMm": 0.083,
+    "normalErrorDeg": 1.184,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 274.5,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 174.2,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 9.7,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 47.8,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 4.1,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 155,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 106.6,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 21.2,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 131.8,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 14,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 131852,
+     "vertices": 21330,
+     "triangles": 42656,
+     "samples": 776952,
+     "buildMs": 479.8,
+     "trianglesPerCell": 0.32,
+     "surfaceErrorMm": {
+      "mean": 0.064,
+      "p95": 0.159,
+      "max": 2.419
+     },
+     "normalErrorDeg": {
+      "mean": 1.44,
+      "p95": 4.75,
+      "max": 114.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.028437
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148038,
+     "vertices": 31652,
+     "triangles": 63300,
+     "samples": 932480,
+     "buildMs": 672.9,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.124,
+      "max": 2.23
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.37,
+      "max": 83.72
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031841
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 25,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0.4,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0.1,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "hair-afro",
+   "file": "artifacts/mission58/before/hair-afro.glb",
+   "glbBytes": 10031176,
+   "latticeMm": 6,
+   "buildMs": 1896.5,
+   "totals": {
+    "cells": 695756,
+    "vertices": 156528,
+    "triangles": 312964,
+    "samples": 4009762,
+    "surfaceErrorMm": 0.081,
+    "normalErrorDeg": 1.168,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 227.6,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 89.5,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 5.1,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 40.6,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.5,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 99220,
+     "vertices": 16424,
+     "triangles": 32844,
+     "samples": 343000,
+     "buildMs": 122.6,
+     "trianglesPerCell": 0.33,
+     "surfaceErrorMm": {
+      "mean": 0.056,
+      "p95": 0.063,
+      "max": 2.185
+     },
+     "normalErrorDeg": {
+      "mean": 1.36,
+      "p95": 5.14,
+      "max": 64.67
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021207
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 120.2,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 26.1,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 107.4,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 13.3,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 131852,
+     "vertices": 21330,
+     "triangles": 42656,
+     "samples": 776952,
+     "buildMs": 453,
+     "trianglesPerCell": 0.32,
+     "surfaceErrorMm": {
+      "mean": 0.064,
+      "p95": 0.159,
+      "max": 2.419
+     },
+     "normalErrorDeg": {
+      "mean": 1.44,
+      "p95": 4.75,
+      "max": 114.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.028437
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148038,
+     "vertices": 31652,
+     "triangles": 63300,
+     "samples": 932480,
+     "buildMs": 666.6,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.124,
+      "max": 2.23
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.37,
+      "max": 83.72
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031841
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 21,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "hair-bob",
+   "file": "artifacts/mission58/before/hair-bob.glb",
+   "glbBytes": 9316668,
+   "latticeMm": 6,
+   "buildMs": 1824.3,
+   "totals": {
+    "cells": 614214,
+    "vertices": 145364,
+    "triangles": 290636,
+    "samples": 3740178,
+    "surfaceErrorMm": 0.085,
+    "normalErrorDeg": 1.206,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 234.2,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 100.1,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 9,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 45,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.5,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 17678,
+     "vertices": 5260,
+     "triangles": 10516,
+     "samples": 73416,
+     "buildMs": 28.7,
+     "trianglesPerCell": 0.59,
+     "surfaceErrorMm": {
+      "mean": 0.103,
+      "p95": 0.375,
+      "max": 2.183
+     },
+     "normalErrorDeg": {
+      "mean": 2.8,
+      "p95": 17.6,
+      "max": 78.49
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.003787
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 126.7,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 21,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 104.8,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 14.1,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 131852,
+     "vertices": 21330,
+     "triangles": 42656,
+     "samples": 776952,
+     "buildMs": 449.5,
+     "trianglesPerCell": 0.32,
+     "surfaceErrorMm": {
+      "mean": 0.064,
+      "p95": 0.159,
+      "max": 2.419
+     },
+     "normalErrorDeg": {
+      "mean": 1.44,
+      "p95": 4.75,
+      "max": 114.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.028437
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148038,
+     "vertices": 31652,
+     "triangles": 63300,
+     "samples": 932480,
+     "buildMs": 666.9,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.124,
+      "max": 2.23
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.37,
+      "max": 83.72
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031841
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 20.8,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "hair-ponytail",
+   "file": "artifacts/mission58/before/hair-ponytail.glb",
+   "glbBytes": 9369160,
+   "latticeMm": 6,
+   "buildMs": 1842.2,
+   "totals": {
+    "cells": 612388,
+    "vertices": 146184,
+    "triangles": 292276,
+    "samples": 3845058,
+    "surfaceErrorMm": 0.087,
+    "normalErrorDeg": 1.243,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 248.2,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 86.2,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 5,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 40.7,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.5,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 15852,
+     "vertices": 6080,
+     "triangles": 12156,
+     "samples": 178296,
+     "buildMs": 87.1,
+     "trianglesPerCell": 0.77,
+     "surfaceErrorMm": {
+      "mean": 0.157,
+      "p95": 0.501,
+      "max": 2.435
+     },
+     "normalErrorDeg": {
+      "mean": 3.49,
+      "p95": 20.47,
+      "max": 78.96
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.003393
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 104.1,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 20.7,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 111.9,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 17.8,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 131852,
+     "vertices": 21330,
+     "triangles": 42656,
+     "samples": 776952,
+     "buildMs": 434.1,
+     "trianglesPerCell": 0.32,
+     "surfaceErrorMm": {
+      "mean": 0.064,
+      "p95": 0.159,
+      "max": 2.419
+     },
+     "normalErrorDeg": {
+      "mean": 1.44,
+      "p95": 4.75,
+      "max": 114.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.028437
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148038,
+     "vertices": 31652,
+     "triangles": 63300,
+     "samples": 932480,
+     "buildMs": 662.1,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.124,
+      "max": 2.23
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.37,
+      "max": 83.72
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031841
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 20.9,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "pose-a",
+   "file": "artifacts/mission58/before/pose-a.glb",
+   "glbBytes": 10054068,
+   "latticeMm": 6,
+   "buildMs": 2194,
+   "totals": {
+    "cells": 665350,
+    "vertices": 156886,
+    "triangles": 313680,
+    "samples": 4616248,
+    "surfaceErrorMm": 0.082,
+    "normalErrorDeg": 1.169,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 247.3,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 86.9,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 5.6,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 40.9,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 3.6,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 152,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26434,
+     "vertices": 13048,
+     "triangles": 26088,
+     "samples": 407880,
+     "buildMs": 120.5,
+     "trianglesPerCell": 0.99,
+     "surfaceErrorMm": {
+      "mean": 0.117,
+      "p95": 0.231,
+      "max": 0.461
+     },
+     "normalErrorDeg": {
+      "mean": 1.45,
+      "p95": 3.57,
+      "max": 10.38
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.00566
+    },
+    {
+     "id": "hands",
+     "cells": 4662,
+     "vertices": 3364,
+     "triangles": 6720,
+     "samples": 161172,
+     "buildMs": 30,
+     "trianglesPerCell": 1.44,
+     "surfaceErrorMm": {
+      "mean": 0.182,
+      "p95": 0.379,
+      "max": 0.58
+     },
+     "normalErrorDeg": {
+      "mean": 2.07,
+      "p95": 4.79,
+      "max": 11.58
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71356,
+     "vertices": 22172,
+     "triangles": 44336,
+     "samples": 342720,
+     "buildMs": 115.4,
+     "trianglesPerCell": 0.62,
+     "surfaceErrorMm": {
+      "mean": 0.089,
+      "p95": 0.171,
+      "max": 0.371
+     },
+     "normalErrorDeg": {
+      "mean": 1.03,
+      "p95": 2.62,
+      "max": 7.93
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9602,
+     "vertices": 4720,
+     "triangles": 9432,
+     "samples": 74480,
+     "buildMs": 16.7,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.145,
+      "p95": 0.297,
+      "max": 0.377
+     },
+     "normalErrorDeg": {
+      "mean": 1.57,
+      "p95": 3.61,
+      "max": 6.94
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 133072,
+     "vertices": 22706,
+     "triangles": 45408,
+     "samples": 1136652,
+     "buildMs": 668.2,
+     "trianglesPerCell": 0.34,
+     "surfaceErrorMm": {
+      "mean": 0.059,
+      "p95": 0.132,
+      "max": 1.977
+     },
+     "normalErrorDeg": {
+      "mean": 1.3,
+      "p95": 3.96,
+      "max": 86.05
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.02869
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 147944,
+     "vertices": 31880,
+     "triangles": 63756,
+     "samples": 950708,
+     "buildMs": 682.7,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.067,
+      "p95": 0.123,
+      "max": 2.271
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.39,
+      "max": 83.15
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031846
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19324,
+     "vertices": 7280,
+     "triangles": 14552,
+     "samples": 104880,
+     "buildMs": 23.4,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.114,
+      "p95": 0.232,
+      "max": 0.287
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.8,
+      "max": 6.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "pose-wave",
+   "file": "artifacts/mission58/before/pose-wave.glb",
+   "glbBytes": 9943108,
+   "latticeMm": 6,
+   "buildMs": 2714.3,
+   "totals": {
+    "cells": 665016,
+    "vertices": 155152,
+    "triangles": 310212,
+    "samples": 7152131,
+    "surfaceErrorMm": 0.083,
+    "normalErrorDeg": 1.169,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 195.8,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 84.5,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 5.6,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 40.8,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.5,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 158.7,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26460,
+     "vertices": 12502,
+     "triangles": 24996,
+     "samples": 1210545,
+     "buildMs": 385.2,
+     "trianglesPerCell": 0.94,
+     "surfaceErrorMm": {
+      "mean": 0.121,
+      "p95": 0.24,
+      "max": 0.973
+     },
+     "normalErrorDeg": {
+      "mean": 1.49,
+      "p95": 3.56,
+      "max": 24.95
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005657
+    },
+    {
+     "id": "hands",
+     "cells": 4662,
+     "vertices": 3270,
+     "triangles": 6532,
+     "samples": 1899326,
+     "buildMs": 342.1,
+     "trianglesPerCell": 1.4,
+     "surfaceErrorMm": {
+      "mean": 0.184,
+      "p95": 0.376,
+      "max": 0.588
+     },
+     "normalErrorDeg": {
+      "mean": 2.07,
+      "p95": 4.84,
+      "max": 9.2
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71372,
+     "vertices": 21936,
+     "triangles": 43864,
+     "samples": 299880,
+     "buildMs": 101.9,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.167,
+      "max": 0.378
+     },
+     "normalErrorDeg": {
+      "mean": 1,
+      "p95": 2.54,
+      "max": 8.44
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9616,
+     "vertices": 4704,
+     "triangles": 9400,
+     "samples": 66640,
+     "buildMs": 14.8,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.145,
+      "p95": 0.3,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.53,
+      "p95": 3.55,
+      "max": 5.41
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 132610,
+     "vertices": 22152,
+     "triangles": 44300,
+     "samples": 1207008,
+     "buildMs": 682.3,
+     "trianglesPerCell": 0.33,
+     "surfaceErrorMm": {
+      "mean": 0.059,
+      "p95": 0.144,
+      "max": 2.071
+     },
+     "normalErrorDeg": {
+      "mean": 1.33,
+      "p95": 4.23,
+      "max": 121.5
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.028598
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148054,
+     "vertices": 31608,
+     "triangles": 63212,
+     "samples": 932480,
+     "buildMs": 676,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.129,
+      "max": 2.37
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.33,
+      "max": 82.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031842
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19286,
+     "vertices": 7264,
+     "triangles": 14520,
+     "samples": 98496,
+     "buildMs": 22.8,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.114,
+      "p95": 0.23,
+      "max": 0.28
+     },
+     "normalErrorDeg": {
+      "mean": 1.17,
+      "p95": 2.72,
+      "max": 4.38
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "outfit-0-tee-jeans",
+   "file": "artifacts/mission58/before/outfit-0-tee-jeans.glb",
+   "glbBytes": 9850072,
+   "latticeMm": 6,
+   "buildMs": 1910.9,
+   "totals": {
+    "cells": 664116,
+    "vertices": 153698,
+    "triangles": 307304,
+    "samples": 4029102,
+    "surfaceErrorMm": 0.083,
+    "normalErrorDeg": 1.184,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 204,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 101.4,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 7.5,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 41.1,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 3.7,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 148.2,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 108,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 21.4,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 129.8,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 13,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 131852,
+     "vertices": 21330,
+     "triangles": 42656,
+     "samples": 776952,
+     "buildMs": 431.3,
+     "trianglesPerCell": 0.32,
+     "surfaceErrorMm": {
+      "mean": 0.064,
+      "p95": 0.159,
+      "max": 2.419
+     },
+     "normalErrorDeg": {
+      "mean": 1.44,
+      "p95": 4.75,
+      "max": 114.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.028437
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148038,
+     "vertices": 31652,
+     "triangles": 63300,
+     "samples": 932480,
+     "buildMs": 679.6,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.124,
+      "max": 2.23
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.37,
+      "max": 83.72
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031841
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 20.9,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "outfit-1-tank-shorts",
+   "file": "artifacts/mission58/before/outfit-1-tank-shorts.glb",
+   "glbBytes": 8888792,
+   "latticeMm": 6,
+   "buildMs": 1484.8,
+   "totals": {
+    "cells": 605812,
+    "vertices": 138678,
+    "triangles": 277264,
+    "samples": 3703218,
+    "surfaceErrorMm": 0.082,
+    "normalErrorDeg": 1.113,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 200.3,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 93.5,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 6,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 41.4,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.6,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 184.3,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 112.7,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 21.4,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 108.7,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 14.8,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 122564,
+     "vertices": 19322,
+     "triangles": 38640,
+     "samples": 733788,
+     "buildMs": 282.9,
+     "trianglesPerCell": 0.32,
+     "surfaceErrorMm": {
+      "mean": 0.048,
+      "p95": 0.139,
+      "max": 1.114
+     },
+     "normalErrorDeg": {
+      "mean": 0.71,
+      "p95": 1.77,
+      "max": 28.83
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.026427
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 99022,
+     "vertices": 18640,
+     "triangles": 37276,
+     "samples": 649760,
+     "buildMs": 392.1,
+     "trianglesPerCell": 0.38,
+     "surfaceErrorMm": {
+      "mean": 0.064,
+      "p95": 0.104,
+      "max": 2.355
+     },
+     "normalErrorDeg": {
+      "mean": 1.26,
+      "p95": 3.78,
+      "max": 57.86
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021322
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 23.1,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "outfit-2-longsleeve-skirt",
+   "file": "artifacts/mission58/before/outfit-2-longsleeve-skirt.glb",
+   "glbBytes": 10970088,
+   "latticeMm": 6,
+   "buildMs": 2241.1,
+   "totals": {
+    "cells": 939188,
+    "vertices": 171198,
+    "triangles": 342304,
+    "samples": 4831718,
+    "surfaceErrorMm": 0.075,
+    "normalErrorDeg": 1.16,
+    "watertightComponents": 13,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 203.2,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 88.3,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 5.8,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 40.9,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.5,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 156.3,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 103.8,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 21.2,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 130.1,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 13.5,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 158284,
+     "vertices": 30394,
+     "triangles": 60784,
+     "samples": 990000,
+     "buildMs": 763.1,
+     "trianglesPerCell": 0.38,
+     "surfaceErrorMm": {
+      "mean": 0.072,
+      "p95": 0.157,
+      "max": 2.495
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.41,
+      "max": 134.73
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.034111
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 396678,
+     "vertices": 40088,
+     "triangles": 80172,
+     "samples": 1522048,
+     "buildMs": 690.1,
+     "trianglesPerCell": 0.2,
+     "surfaceErrorMm": {
+      "mean": 0.033,
+      "p95": 0.059,
+      "max": 1.796
+     },
+     "normalErrorDeg": {
+      "mean": 0.91,
+      "p95": 1.65,
+      "max": 69.67
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.085596
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 20.8,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  },
+  {
+   "label": "outfit-3-jacket-pants",
+   "file": "artifacts/mission58/before/outfit-3-jacket-pants.glb",
+   "glbBytes": 10615444,
+   "latticeMm": 6,
+   "buildMs": 2461.6,
+   "totals": {
+    "cells": 720612,
+    "vertices": 165656,
+    "triangles": 331224,
+    "samples": 4305742,
+    "surfaceErrorMm": 0.083,
+    "normalErrorDeg": 1.237,
+    "watertightComponents": 12,
+    "nonEmptyComponents": 13
+   },
+   "components": [
+    {
+     "id": "torso",
+     "cells": 98912,
+     "vertices": 17362,
+     "triangles": 34720,
+     "samples": 637980,
+     "buildMs": 201.4,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.052,
+      "p95": 0.135,
+      "max": 0.232
+     },
+     "normalErrorDeg": {
+      "mean": 0.6,
+      "p95": 1.57,
+      "max": 4.51
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.021365
+    },
+    {
+     "id": "pelvis",
+     "cells": 55172,
+     "vertices": 11172,
+     "triangles": 22340,
+     "samples": 312156,
+     "buildMs": 86,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.061,
+      "p95": 0.135,
+      "max": 0.168
+     },
+     "normalErrorDeg": {
+      "mean": 0.66,
+      "p95": 1.57,
+      "max": 5.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.011878
+    },
+    {
+     "id": "neck",
+     "cells": 9850,
+     "vertices": 3472,
+     "triangles": 6940,
+     "samples": 27072,
+     "buildMs": 5.1,
+     "trianglesPerCell": 0.7,
+     "surfaceErrorMm": {
+      "mean": 0.107,
+      "p95": 0.204,
+      "max": 0.251
+     },
+     "normalErrorDeg": {
+      "mean": 1.12,
+      "p95": 2.63,
+      "max": 4.27
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002111
+    },
+    {
+     "id": "head",
+     "cells": 21218,
+     "vertices": 5654,
+     "triangles": 11304,
+     "samples": 92928,
+     "buildMs": 40.9,
+     "trianglesPerCell": 0.53,
+     "surfaceErrorMm": {
+      "mean": 0.082,
+      "p95": 0.136,
+      "max": 0.546
+     },
+     "normalErrorDeg": {
+      "mean": 0.94,
+      "p95": 2.21,
+      "max": 9.02
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004563
+    },
+    {
+     "id": "face",
+     "cells": 224,
+     "vertices": 462,
+     "triangles": 900,
+     "samples": 5280,
+     "buildMs": 2.5,
+     "trianglesPerCell": 4.02,
+     "surfaceErrorMm": {
+      "mean": 0.715,
+      "p95": 1.931,
+      "max": 3.38
+     },
+     "normalErrorDeg": {
+      "mean": 13.47,
+      "p95": 53.37,
+      "max": 157.19
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000036
+    },
+    {
+     "id": "hair",
+     "cells": 67580,
+     "vertices": 13594,
+     "triangles": 27184,
+     "samples": 362340,
+     "buildMs": 147.3,
+     "trianglesPerCell": 0.4,
+     "surfaceErrorMm": {
+      "mean": 0.075,
+      "p95": 0.239,
+      "max": 2.177
+     },
+     "normalErrorDeg": {
+      "mean": 1.58,
+      "p95": 3.86,
+      "max": 89.77
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.01416
+    },
+    {
+     "id": "arms",
+     "cells": 26446,
+     "vertices": 11984,
+     "triangles": 23960,
+     "samples": 344520,
+     "buildMs": 103.1,
+     "trianglesPerCell": 0.91,
+     "surfaceErrorMm": {
+      "mean": 0.122,
+      "p95": 0.238,
+      "max": 0.465
+     },
+     "normalErrorDeg": {
+      "mean": 1.48,
+      "p95": 3.5,
+      "max": 8.74
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.005659
+    },
+    {
+     "id": "hands",
+     "cells": 4640,
+     "vertices": 3152,
+     "triangles": 6296,
+     "samples": 106640,
+     "buildMs": 21,
+     "trianglesPerCell": 1.36,
+     "surfaceErrorMm": {
+      "mean": 0.187,
+      "p95": 0.384,
+      "max": 0.582
+     },
+     "normalErrorDeg": {
+      "mean": 2.15,
+      "p95": 4.92,
+      "max": 9
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.000984
+    },
+    {
+     "id": "legs",
+     "cells": 71376,
+     "vertices": 21932,
+     "triangles": 43856,
+     "samples": 282744,
+     "buildMs": 97.1,
+     "trianglesPerCell": 0.61,
+     "surfaceErrorMm": {
+      "mean": 0.09,
+      "p95": 0.166,
+      "max": 0.379
+     },
+     "normalErrorDeg": {
+      "mean": 1.01,
+      "p95": 2.48,
+      "max": 8.61
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.015309
+    },
+    {
+     "id": "feet",
+     "cells": 9592,
+     "vertices": 4684,
+     "triangles": 9360,
+     "samples": 57722,
+     "buildMs": 13.3,
+     "trianglesPerCell": 0.98,
+     "surfaceErrorMm": {
+      "mean": 0.146,
+      "p95": 0.294,
+      "max": 0.374
+     },
+     "normalErrorDeg": {
+      "mean": 1.54,
+      "p95": 3.58,
+      "max": 6.12
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.002047
+    },
+    {
+     "id": "clothing.top",
+     "cells": 188348,
+     "vertices": 33288,
+     "triangles": 66576,
+     "samples": 1053592,
+     "buildMs": 1062.9,
+     "trianglesPerCell": 0.35,
+     "surfaceErrorMm": {
+      "mean": 0.071,
+      "p95": 0.158,
+      "max": 2.557
+     },
+     "normalErrorDeg": {
+      "mean": 1.61,
+      "p95": 5.65,
+      "max": 113.53
+     },
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0.040561
+    },
+    {
+     "id": "clothing.bottom",
+     "cells": 148038,
+     "vertices": 31652,
+     "triangles": 63300,
+     "samples": 932480,
+     "buildMs": 659.3,
+     "trianglesPerCell": 0.43,
+     "surfaceErrorMm": {
+      "mean": 0.068,
+      "p95": 0.124,
+      "max": 2.23
+     },
+     "normalErrorDeg": {
+      "mean": 1.08,
+      "p95": 2.37,
+      "max": 83.72
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.031841
+    },
+    {
+     "id": "clothing.shoes",
+     "cells": 19216,
+     "vertices": 7248,
+     "triangles": 14488,
+     "samples": 90288,
+     "buildMs": 20.9,
+     "trianglesPerCell": 0.75,
+     "surfaceErrorMm": {
+      "mean": 0.115,
+      "p95": 0.229,
+      "max": 0.286
+     },
+     "normalErrorDeg": {
+      "mean": 1.18,
+      "p95": 2.73,
+      "max": 5.03
+     },
+     "watertight": true,
+     "degenerate": 0,
+     "signedVolume": 0.004124
+    },
+    {
+     "id": "accessories.head",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    },
+    {
+     "id": "accessories.body",
+     "cells": 0,
+     "vertices": 0,
+     "triangles": 0,
+     "samples": 0,
+     "buildMs": 0,
+     "trianglesPerCell": 0,
+     "surfaceErrorMm": null,
+     "normalErrorDeg": null,
+     "watertight": false,
+     "degenerate": 0,
+     "signedVolume": 0
+    }
+   ]
+  }
+ ]
+}

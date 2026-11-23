@@ -1,0 +1,14 @@
+{
+ "status": "VERIFIED",
+ "exitCode": 0,
+ "guard": {
+  "guard": "offline-guard.mjs",
+  "policy": "only loopback/unix sockets allowed; every other TCP connect, DNS lookup and fetch is refused and counted",
+  "blockedAttempts": [],
+  "passed": true
+ },
+ "reconstructedOffline": true,
+ "characterBuiltOffline": true,
+ "evidence": "D-offline/run",
+ "log": "D-offline/run.log"
+}

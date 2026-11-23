@@ -1,0 +1,43 @@
+{
+ "output": "artifacts/lelu/wp04/model-before/head-ortho-front.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.10000000149011612,
+   1.5549999475479126
+  ],
+  "radius": 0.13
+ },
+ "triangles": 1128736,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4912215769290924,
+   -0.32687968015670776,
+   -0.04500000178813934
+  ],
+  "max": [
+   0.5161850452423096,
+   0.10746447741985321,
+   1.6963896751403809
+  ]
+ },
+ "render_seconds": 25.47,
+ "blender": "4.2.23 LTS"
+}

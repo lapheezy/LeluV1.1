@@ -1,0 +1,47 @@
+{
+ "mission": "Mission 5 — WP07 end-to-end creation",
+ "startedAt": "2026-11-18T01:15:08.513Z",
+ "base": "http://127.0.0.1:5173",
+ "sourceImage": "chair.png",
+ "engine": "silhouette (native TS) — TripoSR unavailable without the torch toolchain, recorded, not hidden",
+ "blender": "/workspace/homes/6d861f98cd849b149484323e/lelu-tools/blender-4.2.23-linux-x64/blender",
+ "tests": {
+  "D": {
+   "status": "VERIFIED",
+   "exitCode": 0,
+   "guard": {
+    "guard": "offline-guard.mjs",
+    "policy": "only loopback/unix sockets allowed; every other TCP connect, DNS lookup and fetch is refused and counted",
+    "blockedAttempts": [],
+    "passed": true
+   },
+   "reconstructedOffline": true,
+   "characterBuiltOffline": true,
+   "evidence": "D-offline/run",
+   "log": "D-offline/run.log"
+  }
+ },
+ "finishedAt": "2026-11-18T01:16:49.955Z",
+ "checks": [
+  {
+   "name": "D: pipeline completed with outbound network refused",
+   "ok": true,
+   "detail": " 21/21 checks passed "
+  },
+  {
+   "name": "D: no outbound connection was attempted",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "name": "D: the offline run produced the same artefacts",
+   "ok": true,
+   "detail": null
+  }
+ ],
+ "summary": {
+  "passed": 3,
+  "total": 3,
+  "failed": []
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m3/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/03-hair/pelvis-front--front.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "front",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 0.3
+ },
+ "view_transform": "AgX"
+}

@@ -1,0 +1,25 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m4/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/04-face-materials/legs-front--front.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 48,
+ "view": "front",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.5
+  ],
+  "radius": 0.5
+ },
+ "ground": true,
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true
+}

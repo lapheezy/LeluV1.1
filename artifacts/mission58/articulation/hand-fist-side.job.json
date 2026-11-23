@@ -1,0 +1,15 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/articulation/hand-fist.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/articulation/hand-fist-side.png",
+ "resolution": [
+  640,
+  640
+ ],
+ "samples": 24,
+ "view": "side",
+ "wireframe": false,
+ "ground": true,
+ "view_transform": "AgX"
+}

@@ -1,0 +1,139 @@
+{
+ "tool": "MediaPipe selfie_multiclass_256x256 (hair = class 1) + FaceLandmarker frame",
+ "units": "IOD, origin pupil midpoint, y down",
+ "grid": {
+  "x": [
+   -7,
+   7
+  ],
+  "y": [
+   -4,
+   16
+  ],
+  "cell": 0.05
+ },
+ "images": {
+  "ref17_head_front_unhooded": {
+   "source": "leluverse/assets/characters/lelu_character/references/ref17_head_front_unhooded.png",
+   "crop": null,
+   "iod_px": 96.16,
+   "crown_above_pupils": 2.2,
+   "extent": {
+    "-1.0": {
+     "left": 1.9,
+     "right": 1.8,
+     "width": 3.7
+    },
+    "0.0": {
+     "left": 2.15,
+     "right": 2.0,
+     "width": 4.15
+    },
+    "1.5": {
+     "left": 2.55,
+     "right": 2.15,
+     "width": 4.7
+    },
+    "2.5": {
+     "left": 2.55,
+     "right": 2.35,
+     "width": 4.9
+    },
+    "4.0": {
+     "left": 0.0,
+     "right": 2.3,
+     "width": 0.1
+    }
+   },
+   "valid_fraction": 0.11
+  },
+  "ref10_face_primary": {
+   "source": "leluverse/assets/characters/lelu_character/references/ref10_face_primary.png",
+   "crop": null,
+   "iod_px": 190.49,
+   "crown_above_pupils": 2.15,
+   "extent": {
+    "-1.0": {
+     "left": 2.15,
+     "right": 2.15,
+     "width": 4.3
+    },
+    "0.0": {
+     "left": 2.5,
+     "right": 2.4,
+     "width": 4.9
+    },
+    "1.5": {
+     "left": 2.75,
+     "right": 2.6,
+     "width": 5.35
+    },
+    "2.5": {
+     "left": 2.4,
+     "right": 2.55,
+     "width": 4.95
+    },
+    "4.0": {
+     "left": 2.55,
+     "right": 2.5,
+     "width": 5.05
+    }
+   },
+   "valid_fraction": 0.155
+  },
+  "ref01_front_fullbody_A": {
+   "source": "leluverse/assets/characters/lelu_character/references/ref01_front_fullbody_A.png",
+   "crop": [
+    0.3,
+    0.0,
+    0.7,
+    0.22
+   ],
+   "iod_px": 52.86,
+   "crown_above_pupils": 2.1,
+   "extent": {
+    "-1.0": {
+     "left": 2.4,
+     "right": 2.05,
+     "width": 4.45
+    },
+    "0.0": {
+     "left": 2.95,
+     "right": 2.3,
+     "width": 5.25
+    },
+    "1.5": {
+     "left": 3.55,
+     "right": 2.6,
+     "width": 6.15
+    },
+    "2.5": {
+     "left": 4.2,
+     "right": 2.85,
+     "width": 7.05
+    },
+    "4.0": {
+     "left": 4.5,
+     "right": 3.3,
+     "width": 7.8
+    },
+    "6.0": {
+     "left": 4.9,
+     "right": 3.4,
+     "width": 8.3
+    },
+    "8.0": {
+     "left": 3.5,
+     "right": 1.9,
+     "width": 5.4
+    }
+   },
+   "valid_fraction": 0.899,
+   "hair_bottom_below_pupils": 13.2
+  }
+ },
+ "excluded": {
+  "ref11_front_apose_B": "segmenter found no hair (dark hair on dark ground at 53 px IOD)",
+  "ref14_front_apose_hooded_B": "hooded: hair hidden"
+ }
+}

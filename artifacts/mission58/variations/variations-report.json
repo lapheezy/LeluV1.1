@@ -1,0 +1,227 @@
+{
+  "reference": {
+    "vertices": 19158,
+    "triangles": 26756,
+    "targets": [],
+    "proxies": [
+      "eyes",
+      "outfit:casualsuit01",
+      "outfit:casualsuit02",
+      "outfit:sportsuit01",
+      "outfit:elegantsuit01",
+      "shoes:shoes01",
+      "shoes:shoes02",
+      "shoes:shoes03",
+      "hair:buzz",
+      "hair:pixie",
+      "hair:bob",
+      "hair:lob",
+      "hair:long-straight",
+      "hair:long-wavy",
+      "hair:ponytail",
+      "hair:high-ponytail",
+      "hair:afro",
+      "hair:braids",
+      "hair:top-knot",
+      "hair:double-buns"
+    ]
+  },
+  "digest": "1c5d3024d57fde83",
+  "variations": [
+    {
+      "label": "v1-long",
+      "height": 1.7,
+      "hair": "long-straight",
+      "ms": 41973,
+      "regenerated": [
+        "torso",
+        "pelvis",
+        "neck",
+        "head",
+        "face",
+        "hair",
+        "arms",
+        "hands",
+        "legs",
+        "feet",
+        "clothing.top",
+        "clothing.bottom",
+        "clothing.shoes",
+        "accessories.head",
+        "accessories.body"
+      ],
+      "reused": 0,
+      "triangles": 1273680,
+      "glbBytes": 40742260,
+      "cells": 299159
+    },
+    {
+      "label": "v2-bob",
+      "height": 1.7,
+      "hair": "bob",
+      "ms": 1412,
+      "regenerated": [
+        "hair"
+      ],
+      "reused": 13,
+      "triangles": 1273680,
+      "glbBytes": 40742272,
+      "cells": 299159
+    },
+    {
+      "label": "v3-ponytail",
+      "height": 1.74,
+      "hair": "ponytail",
+      "ms": 29626,
+      "regenerated": [
+        "torso",
+        "pelvis",
+        "neck",
+        "hair",
+        "arms",
+        "hands",
+        "legs",
+        "feet",
+        "clothing.top",
+        "clothing.bottom",
+        "clothing.shoes",
+        "accessories.body"
+      ],
+      "reused": 3,
+      "triangles": 1175088,
+      "glbBytes": 37584424,
+      "cells": 290763
+    },
+    {
+      "label": "v4-braids-petite",
+      "height": 1.58,
+      "hair": "braids",
+      "ms": 29637,
+      "regenerated": [
+        "torso",
+        "pelvis",
+        "neck",
+        "hair",
+        "arms",
+        "hands",
+        "legs",
+        "feet",
+        "clothing.top",
+        "clothing.bottom",
+        "clothing.shoes",
+        "accessories.body"
+      ],
+      "reused": 3,
+      "triangles": 1245668,
+      "glbBytes": 39793436,
+      "cells": 287472
+    },
+    {
+      "label": "v5-afro-broad",
+      "height": 1.7,
+      "hair": "afro",
+      "ms": 29820,
+      "regenerated": [
+        "torso",
+        "pelvis",
+        "neck",
+        "hair",
+        "arms",
+        "hands",
+        "legs",
+        "feet",
+        "clothing.top",
+        "clothing.bottom",
+        "clothing.shoes",
+        "accessories.body"
+      ],
+      "reused": 3,
+      "triangles": 1273680,
+      "glbBytes": 40742260,
+      "cells": 299159
+    }
+  ],
+  "hands": [
+    {
+      "label": "open",
+      "width": 1.0011,
+      "verticalSpan": 0.2651,
+      "tris": 24708,
+      "bytes": 791684
+    },
+    {
+      "label": "relaxed",
+      "width": 1.0024,
+      "verticalSpan": 0.2649,
+      "tris": 24920,
+      "bytes": 798708
+    },
+    {
+      "label": "fist",
+      "width": 0.9811,
+      "verticalSpan": 0.1346,
+      "tris": 27804,
+      "bytes": 867676
+    }
+  ],
+  "feet": [
+    {
+      "label": "flat",
+      "toeReach": 0.1908,
+      "tris": 38116
+    },
+    {
+      "label": "grip",
+      "toeReach": 0.168,
+      "tris": 38768
+    }
+  ],
+  "handTopology": [
+    {
+      "variant": "hands-open",
+      "vertices": 12350,
+      "triangles": 24708,
+      "degenerateTriangles": 0,
+      "watertight": false,
+      "consistentlyOriented": false,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 8,
+      "signedVolume": 0.000522930652236884,
+      "bounds": {
+        "min": [
+          -0.5005763173103333,
+          0.9666315317153931,
+          0.15098977088928223
+        ],
+        "max": [
+          0.5005332231521606,
+          1.23172128200531,
+          0.32579702138900757
+        ]
+      }
+    },
+    {
+      "variant": "hands-fist",
+      "vertices": 13321,
+      "triangles": 27804,
+      "degenerateTriangles": 0,
+      "watertight": false,
+      "consistentlyOriented": false,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 334,
+      "signedVolume": 0.0003736964706027092,
+      "bounds": {
+        "min": [
+          -0.4905514419078827,
+          0.9777419567108154,
+          0.15098977088928223
+        ],
+        "max": [
+          0.49055811762809753,
+          1.1123437881469727,
+          0.27187904715538025
+        ]
+      }
+    }
+  ]
+}

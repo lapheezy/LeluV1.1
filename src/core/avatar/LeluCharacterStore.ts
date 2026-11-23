@@ -11,6 +11,11 @@
  * (avatar/presentationProfile.ts, read by her one presence, LeluCompanion).
  * A choice she or the person makes ("hologram", "face") is kept and wins
  * over the interface until it is set back to "auto".
+ *
+ * `asre` links her to a persistent ASRE character (server side:
+ * plugins/asreCharacters.ts) — which character and which version is
+ * "her" in the spatial workspace. The look/form/framing above are
+ * unchanged by it.
  * ==========================================================
  */
 
@@ -22,11 +27,24 @@ export type LeluFormChoice = LeluForm | "auto";
 /** Her framing: one of her framings, or "auto" (the interface decides). */
 export type LeluFramingChoice = LeluFraming | "auto";
 
+export interface AsreCharacterLink {
+  characterId: string;
+  version: string;
+}
+
 export interface LeluCharacterState {
   look: LeluLookId;
   form: LeluFormChoice;
   framing: LeluFramingChoice;
+  /** Her persistent ASRE character and the version selected as "her", if any. */
+  asre: AsreCharacterLink | null;
   updatedAt: number;
+}
+
+function validAsreLink(v: unknown): AsreCharacterLink | null {
+  if (!v || typeof v !== "object") return null;
+  const { characterId, version } = v as Record<string, unknown>;
+  return typeof characterId === "string" && /^[a-z0-9][a-z0-9_-]{0,63}$/.test(characterId) && typeof version === "string" && /^v\d{4}$/.test(version) ? { characterId, version } : null;
 }
 
 const KEY = "lelu.character.v1";
@@ -35,7 +53,7 @@ const FORMS: readonly LeluFormChoice[] = ["auto", "embodied", "hologram"];
 const FRAMINGS: readonly LeluFramingChoice[] = ["auto", "full", "face"];
 
 export function defaultCharacterState(): LeluCharacterState {
-  return { look: "gothic", form: "auto", framing: "auto", updatedAt: 0 };
+  return { look: "gothic", form: "auto", framing: "auto", asre: null, updatedAt: 0 };
 }
 
 type Listener = (state: LeluCharacterState) => void;
@@ -52,6 +70,7 @@ export default class LeluCharacterStore {
       look: LOOKS.includes(saved.look as LeluLookId) ? (saved.look as LeluLookId) : base.look,
       form: FORMS.includes(saved.form as LeluFormChoice) ? (saved.form as LeluFormChoice) : base.form,
       framing: FRAMINGS.includes(saved.framing as LeluFramingChoice) ? (saved.framing as LeluFramingChoice) : base.framing,
+      asre: validAsreLink(saved.asre),
       updatedAt: saved.updatedAt ?? 0,
     };
   }
@@ -87,6 +106,13 @@ export default class LeluCharacterStore {
 
   public setFraming(framing: LeluFramingChoice): LeluCharacterState {
     return FRAMINGS.includes(framing) ? this.patch({ framing }) : this.state;
+  }
+
+  /** Link (or unlink with null) her persistent ASRE character version. */
+  public setAsreCharacter(link: AsreCharacterLink | null): LeluCharacterState {
+    if (link === null) return this.patch({ asre: null });
+    const valid = validAsreLink(link);
+    return valid ? this.patch({ asre: valid }) : this.state;
   }
 
   private patch(patch: Partial<LeluCharacterState>): LeluCharacterState {

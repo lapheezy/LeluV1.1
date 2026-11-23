@@ -1,0 +1,47 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/before/base-face-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": [
+  "head",
+  "face",
+  "hair"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.010568175464868546,
+   1.399902582168579
+  ],
+  "radius": 0.35386445817653867
+ },
+ "triangles": 307304,
+ "bounds_blender_zup": {
+  "min": [
+   -0.11245262622833252,
+   -0.13102523982524872,
+   1.0867500305175781
+  ],
+  "max": [
+   0.11245262622833252,
+   0.10988888889551163,
+   1.7130552530288696
+  ]
+ },
+ "render_seconds": 2.8,
+ "blender": "4.2.23 LTS"
+}

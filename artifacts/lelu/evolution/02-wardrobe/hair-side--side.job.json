@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m2/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/02-wardrobe/hair-side--side.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "side",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   0,
+   1.4
+  ],
+  "radius": 0.4
+ },
+ "view_transform": "AgX"
+}

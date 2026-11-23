@@ -1,0 +1,354 @@
+{
+ "tool": "MediaPipe FaceLandmarker 478 (float16 v1)",
+ "units": "IOD-normalized lengths; y_* as fraction of face height (lm10..lm152); roll-corrected",
+ "images": {
+  "head-ortho-front": {
+   "source": "/tmp/claude-0/mf/head-ortho-front.png",
+   "detected": true,
+   "size": [
+    900,
+    900
+   ],
+   "yaw_deg": 0.25,
+   "iod_px": 207.01,
+   "roll_deg": 0.38,
+   "landmarks_normalized": {
+    "pupil_r": [
+     0.3901,
+     0.47742
+    ],
+    "pupil_l": [
+     0.62011,
+     0.47893
+    ],
+    "eye_r_outer": [
+     0.3469,
+     0.47441
+    ],
+    "eye_r_inner": [
+     0.4385,
+     0.48852
+    ],
+    "eye_l_inner": [
+     0.56371,
+     0.48948
+    ],
+    "eye_l_outer": [
+     0.65571,
+     0.47578
+    ],
+    "lid_r_up": [
+     0.3855,
+     0.46471
+    ],
+    "lid_r_lo": [
+     0.39059,
+     0.49322
+    ],
+    "lid_l_up": [
+     0.61886,
+     0.46569
+    ],
+    "lid_l_lo": [
+     0.6133,
+     0.49451
+    ],
+    "brow_r_inner": [
+     0.44673,
+     0.39811
+    ],
+    "brow_r_peak": [
+     0.34814,
+     0.37194
+    ],
+    "brow_r_outer": [
+     0.30798,
+     0.41174
+    ],
+    "brow_l_inner": [
+     0.55904,
+     0.39842
+    ],
+    "brow_l_peak": [
+     0.65666,
+     0.37158
+    ],
+    "brow_l_outer": [
+     0.6955,
+     0.41206
+    ],
+    "nasion": [
+     0.50167,
+     0.46673
+    ],
+    "nose_tip": [
+     0.5002,
+     0.60377
+    ],
+    "subnasale": [
+     0.50046,
+     0.62347
+    ],
+    "ala_r": [
+     0.44374,
+     0.60667
+    ],
+    "ala_l": [
+     0.55768,
+     0.60787
+    ],
+    "mouth_r": [
+     0.41883,
+     0.69088
+    ],
+    "mouth_l": [
+     0.57957,
+     0.69248
+    ],
+    "lip_up_top": [
+     0.49959,
+     0.67114
+    ],
+    "stomion_up": [
+     0.4993,
+     0.69685
+    ],
+    "stomion_lo": [
+     0.49999,
+     0.70729
+    ],
+    "lip_lo_bot": [
+     0.49911,
+     0.74474
+    ],
+    "forehead": [
+     0.50347,
+     0.30454
+    ],
+    "menton": [
+     0.49816,
+     0.83368
+    ],
+    "temple_r": [
+     0.25751,
+     0.46812
+    ],
+    "temple_l": [
+     0.7443,
+     0.47047
+    ],
+    "zygion_r": [
+     0.26369,
+     0.51328
+    ],
+    "zygion_l": [
+     0.73893,
+     0.51584
+    ],
+    "jaw_r": [
+     0.28311,
+     0.61138
+    ],
+    "jaw_l": [
+     0.72083,
+     0.61391
+    ],
+    "gonion_r": [
+     0.29842,
+     0.66711
+    ],
+    "gonion_l": [
+     0.7051,
+     0.66805
+    ],
+    "chin_r": [
+     0.37063,
+     0.7753
+    ],
+    "chin_l": [
+     0.62903,
+     0.77439
+    ]
+   },
+   "metrics": {
+    "face_width_temple": 2.1164,
+    "face_width_cheek": 2.0662,
+    "face_width_jaw": 1.903,
+    "face_width_gonion": 1.768,
+    "face_width_chin": 1.1234,
+    "face_height": 2.3006,
+    "eye_width": 0.4037,
+    "eye_height": 0.1246,
+    "canthal_tilt_deg": 8.6129,
+    "intercanthal": 0.5444,
+    "nose_width": 0.4954,
+    "nose_length": 0.6814,
+    "mouth_width": 0.6988,
+    "upper_lip": 0.1118,
+    "lower_lip": 0.1629,
+    "brow_height": 0.4062,
+    "y_brow": 0.127,
+    "y_eye": 0.3281,
+    "y_subnasale": 0.6027,
+    "y_stomion": 0.7513,
+    "y_lip_lo": 0.8319,
+    "jaw_to_cheek": 0.8557,
+    "face_aspect": 1.1134,
+    "eye_aspect": 0.3087,
+    "lip_ratio": 1.4568
+   }
+  }
+ },
+ "aggregate": {
+  "face_width_temple": {
+   "mean": 2.1164,
+   "std": 0.0,
+   "n": 1,
+   "definition": "temple width (127-356) / IOD"
+  },
+  "face_width_cheek": {
+   "mean": 2.0662,
+   "std": 0.0,
+   "n": 1,
+   "definition": "bizygomatic width (234-454) / IOD"
+  },
+  "face_width_jaw": {
+   "mean": 1.903,
+   "std": 0.0,
+   "n": 1,
+   "definition": "mid-jaw width (132-361) / IOD"
+  },
+  "face_width_gonion": {
+   "mean": 1.768,
+   "std": 0.0,
+   "n": 1,
+   "definition": "gonial width (58-288) / IOD"
+  },
+  "face_width_chin": {
+   "mean": 1.1234,
+   "std": 0.0,
+   "n": 1,
+   "definition": "chin width (150-379) / IOD"
+  },
+  "face_height": {
+   "mean": 2.3006,
+   "std": 0.0,
+   "n": 1,
+   "definition": "upper forehead to menton (10-152) / IOD"
+  },
+  "eye_width": {
+   "mean": 0.4037,
+   "std": 0.0,
+   "n": 1,
+   "definition": "palpebral fissure length (33-133, 362-263), mean / IOD"
+  },
+  "eye_height": {
+   "mean": 0.1246,
+   "std": 0.0,
+   "n": 1,
+   "definition": "lid aperture (159-145, 386-374), mean / IOD"
+  },
+  "canthal_tilt_deg": {
+   "mean": 8.6129,
+   "std": 0.0,
+   "n": 1,
+   "definition": "angle inner->outer canthus above horizontal, mean"
+  },
+  "intercanthal": {
+   "mean": 0.5444,
+   "std": 0.0,
+   "n": 1,
+   "definition": "inner canthi distance (133-362) / IOD"
+  },
+  "nose_width": {
+   "mean": 0.4954,
+   "std": 0.0,
+   "n": 1,
+   "definition": "alar width (64-294) / IOD"
+  },
+  "nose_length": {
+   "mean": 0.6814,
+   "std": 0.0,
+   "n": 1,
+   "definition": "nasion to subnasale (168-2) / IOD"
+  },
+  "mouth_width": {
+   "mean": 0.6988,
+   "std": 0.0,
+   "n": 1,
+   "definition": "commissure width (61-291) / IOD"
+  },
+  "upper_lip": {
+   "mean": 0.1118,
+   "std": 0.0,
+   "n": 1,
+   "definition": "upper lip height (0-13) / IOD"
+  },
+  "lower_lip": {
+   "mean": 0.1629,
+   "std": 0.0,
+   "n": 1,
+   "definition": "lower lip height (14-17) / IOD"
+  },
+  "brow_height": {
+   "mean": 0.4062,
+   "std": 0.0,
+   "n": 1,
+   "definition": "brow peak above upper lid (105-159, 334-386), mean / IOD"
+  },
+  "y_brow": {
+   "mean": 0.127,
+   "std": 0.0,
+   "n": 1,
+   "definition": "brow peak height, fraction of face height from 10"
+  },
+  "y_eye": {
+   "mean": 0.3281,
+   "std": 0.0,
+   "n": 1,
+   "definition": "pupil line, fraction of face height"
+  },
+  "y_subnasale": {
+   "mean": 0.6027,
+   "std": 0.0,
+   "n": 1,
+   "definition": "nose base, fraction of face height"
+  },
+  "y_stomion": {
+   "mean": 0.7513,
+   "std": 0.0,
+   "n": 1,
+   "definition": "mouth line, fraction of face height"
+  },
+  "y_lip_lo": {
+   "mean": 0.8319,
+   "std": 0.0,
+   "n": 1,
+   "definition": "lower lip bottom, fraction of face height"
+  },
+  "jaw_to_cheek": {
+   "mean": 0.8557,
+   "std": 0.0,
+   "n": 1,
+   "definition": "gonial width / bizygomatic width (taper of the jaw)"
+  },
+  "face_aspect": {
+   "mean": 1.1134,
+   "std": 0.0,
+   "n": 1,
+   "definition": "face height / bizygomatic width (oval vs round)"
+  },
+  "eye_aspect": {
+   "mean": 0.3087,
+   "std": 0.0,
+   "n": 1,
+   "definition": "eye height / eye width (almond)"
+  },
+  "lip_ratio": {
+   "mean": 1.4568,
+   "std": 0.0,
+   "n": 1,
+   "definition": "lower lip / upper lip"
+  }
+ }
+}

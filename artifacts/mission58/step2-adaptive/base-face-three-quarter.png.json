@@ -1,0 +1,47 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/step2-adaptive/base-face-three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "focused": [
+  "head",
+  "face",
+  "hair"
+ ],
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.010832160711288452,
+   1.3999258279800415
+  ],
+  "radius": 0.35401169998534426
+ },
+ "triangles": 612116,
+ "bounds_blender_zup": {
+  "min": [
+   -0.1125212162733078,
+   -0.1315971463918686,
+   1.0867500305175781
+  ],
+  "max": [
+   0.1125212162733078,
+   0.10993282496929169,
+   1.7131016254425049
+  ]
+ },
+ "render_seconds": 3.43,
+ "blender": "4.2.23 LTS"
+}

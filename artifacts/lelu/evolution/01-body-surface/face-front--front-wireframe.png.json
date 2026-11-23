@@ -1,0 +1,39 @@
+{
+ "output": "artifacts/lelu/evolution/01-body-surface/face-front--front-wireframe.png",
+ "wireframe": true,
+ "objects": [
+  "torso",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "clothing.top",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.029999999329447746,
+   1.565000057220459
+  ],
+  "radius": 0.15
+ },
+ "triangles": 798340,
+ "bounds_blender_zup": {
+  "min": [
+   -0.4912215769290924,
+   -0.32687968015670776,
+   -0.0010000000474974513
+  ],
+  "max": [
+   0.5161850452423096,
+   0.16153186559677124,
+   1.7067160606384277
+  ]
+ },
+ "render_seconds": 21.23,
+ "blender": "4.2.23 LTS"
+}

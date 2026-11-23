@@ -1,0 +1,66 @@
+{
+ "tool": "MediaPipe selfie_multiclass_256x256 (hair = class 1) + FaceLandmarker frame",
+ "units": "IOD, origin pupil midpoint, y down",
+ "grid": {
+  "x": [
+   -7,
+   7
+  ],
+  "y": [
+   -4,
+   16
+  ],
+  "cell": 0.05
+ },
+ "images": {
+  "upper-front": {
+   "source": "/tmp/claude-0/h2/sil/upper-front.png",
+   "crop": [
+    0.3,
+    0.0,
+    0.7,
+    0.3
+   ],
+   "iod_px": 72.5,
+   "crown_above_pupils": 1.95,
+   "extent": {
+    "-1.0": {
+     "left": 1.95,
+     "right": 2.0,
+     "width": 3.95
+    },
+    "0.0": {
+     "left": 2.65,
+     "right": 2.75,
+     "width": 5.4
+    },
+    "1.5": {
+     "left": 3.15,
+     "right": 3.2,
+     "width": 6.35
+    },
+    "2.5": {
+     "left": 3.65,
+     "right": 3.4,
+     "width": 7.05
+    },
+    "4.0": {
+     "left": 4.75,
+     "right": 3.8,
+     "width": 8.55
+    },
+    "6.0": {
+     "left": 3.75,
+     "right": 3.65,
+     "width": 7.4
+    },
+    "8.0": {
+     "left": 3.6,
+     "right": 3.75,
+     "width": 7.35
+    }
+   },
+   "valid_fraction": 0.985
+  }
+ }
+}

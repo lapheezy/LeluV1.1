@@ -1,0 +1,13 @@
+{
+ "inputs": [
+  "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/C-character/glb/v1-initial-v0001.glb"
+ ],
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/C-character/renders/v1-initial-back.png",
+ "resolution": [
+  512,
+  512
+ ],
+ "samples": 16,
+ "view": "back",
+ "wireframe": false
+}

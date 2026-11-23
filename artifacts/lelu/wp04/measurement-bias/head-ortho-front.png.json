@@ -1,0 +1,34 @@
+{
+ "output": "/tmp/claude-0/mf2/head-ortho-front.png",
+ "wireframe": false,
+ "objects": [
+  "head",
+  "face",
+  "neck"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.10000000149011612,
+   1.5549999475479126
+  ],
+  "radius": 0.13
+ },
+ "triangles": 174406,
+ "bounds_blender_zup": {
+  "min": [
+   -0.21523790061473846,
+   -0.16710731387138367,
+   1.3513036966323853
+  ],
+  "max": [
+   0.21523790061473846,
+   0.05486782640218735,
+   1.683246374130249
+  ]
+ },
+ "render_seconds": 18.07,
+ "hair_curves": null,
+ "blender": "4.2.23 LTS"
+}

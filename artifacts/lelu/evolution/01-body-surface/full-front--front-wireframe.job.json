@@ -1,0 +1,22 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m1/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/01-body-surface/full-front--front-wireframe.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 32,
+ "view": "front",
+ "wireframe": true,
+ "camera": {
+  "center": [
+   0,
+   0,
+   0.88
+  ],
+  "radius": 1
+ },
+ "view_transform": "AgX"
+}

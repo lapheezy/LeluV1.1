@@ -15,6 +15,7 @@ import { createModelApi } from "./plugins/modelApi.ts";
 import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
+import { createAsreApi } from "./plugins/asreApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
@@ -107,16 +108,21 @@ export default defineConfig(({ mode, command }) => {
   // LÉLU 3D Forge: Meshy jobs, the credit ledger and the asset store. The
   // Meshy key is read here, server-side, and nowhere else.
   const forgeApi = createMeshyForgeApi(envReader, { poll: command === "serve" });
+  // ASRE: local zero-spend reconstruction (TripoSR CPU, Blender) and the component character.
+  // Its finished geometry is filed in the SAME Forge ledger (job kind "asre").
+  const asreApi = createAsreApi(envReader, { forgeStore: forgeApi.forge.store });
   function modelApiPlugin() {
     return {
       name: "model-api",
       configureServer(server: any) {
         modelApi.attach(server.middlewares);
         forgeApi.attach(server.middlewares);
+        asreApi.attach(server.middlewares);
       },
       configurePreviewServer(server: any) {
         modelApi.attach(server.middlewares);
         forgeApi.attach(server.middlewares);
+        asreApi.attach(server.middlewares);
       },
     };
   }

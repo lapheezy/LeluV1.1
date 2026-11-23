@@ -1,0 +1,81 @@
+{
+ "ok": true,
+ "base": "v0001",
+ "impact": [
+  {
+   "id": "torso",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "pelvis",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "neck",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "head",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "face",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "hair",
+   "action": "rebuild",
+   "reason": "own parameters"
+  },
+  {
+   "id": "arms",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "hands",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "legs",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "feet",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "clothing.top",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "clothing.bottom",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "clothing.shoes",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "accessories.head",
+   "action": "keep",
+   "reason": "unchanged"
+  },
+  {
+   "id": "accessories.body",
+   "action": "keep",
+   "reason": "unchanged"
+  }
+ ]
+}

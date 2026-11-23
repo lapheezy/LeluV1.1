@@ -1,0 +1,160 @@
+{
+  "digest": "5989c10081b96467",
+  "height": 1.7,
+  "hairStyle": "long-straight",
+  "pose": "relaxed",
+  "ms": 49520,
+  "glbBytes": 47229244,
+  "triangles": 1488992,
+  "components": [
+    {
+      "id": "torso",
+      "action": "regenerated",
+      "triangles": 26200,
+      "ms": 1047
+    },
+    {
+      "id": "pelvis",
+      "action": "regenerated",
+      "triangles": 51044,
+      "ms": 1298
+    },
+    {
+      "id": "neck",
+      "action": "regenerated",
+      "triangles": 20184,
+      "ms": 345
+    },
+    {
+      "id": "head",
+      "action": "regenerated",
+      "triangles": 56576,
+      "ms": 2187
+    },
+    {
+      "id": "face",
+      "action": "regenerated",
+      "triangles": 2152,
+      "ms": 14
+    },
+    {
+      "id": "hair",
+      "action": "regenerated",
+      "triangles": 615488,
+      "ms": 4862
+    },
+    {
+      "id": "arms",
+      "action": "regenerated",
+      "triangles": 26544,
+      "ms": 5765
+    },
+    {
+      "id": "hands",
+      "action": "regenerated",
+      "triangles": 23924,
+      "ms": 6152
+    },
+    {
+      "id": "legs",
+      "action": "regenerated",
+      "triangles": 97856,
+      "ms": 3154
+    },
+    {
+      "id": "feet",
+      "action": "regenerated",
+      "triangles": 38172,
+      "ms": 2574
+    },
+    {
+      "id": "clothing.top",
+      "action": "regenerated",
+      "triangles": 177232,
+      "ms": 13182
+    },
+    {
+      "id": "clothing.bottom",
+      "action": "regenerated",
+      "triangles": 287368,
+      "ms": 7636
+    },
+    {
+      "id": "clothing.shoes",
+      "action": "regenerated",
+      "triangles": 66252,
+      "ms": 1299
+    },
+    {
+      "id": "accessories.head",
+      "action": "regenerated",
+      "triangles": 0,
+      "ms": 0
+    },
+    {
+      "id": "accessories.body",
+      "action": "regenerated",
+      "triangles": 0,
+      "ms": 0
+    }
+  ],
+  "emptyComponents": [
+    "accessories.head",
+    "accessories.body"
+  ],
+  "occupancy": {
+    "cells": 339714,
+    "iouVsWholeObject": 1
+  },
+  "reference": {
+    "vertices": 19158,
+    "triangles": 26756,
+    "targets": [],
+    "proxies": [
+      "eyes",
+      "teeth",
+      "outfit:casualsuit01",
+      "outfit:casualsuit02",
+      "outfit:sportsuit01",
+      "outfit:elegantsuit01",
+      "shoes:shoes01",
+      "shoes:shoes02",
+      "shoes:shoes03",
+      "hair:buzz",
+      "hair:pixie",
+      "hair:bob",
+      "hair:lob",
+      "hair:long-straight",
+      "hair:long-wavy",
+      "hair:ponytail",
+      "hair:high-ponytail",
+      "hair:afro",
+      "hair:braids",
+      "hair:top-knot",
+      "hair:double-buns"
+    ]
+  },
+  "proxies": [
+    "eyes",
+    "hair:afro",
+    "hair:bob",
+    "hair:braids",
+    "hair:buzz",
+    "hair:double-buns",
+    "hair:high-ponytail",
+    "hair:lob",
+    "hair:long-straight",
+    "hair:long-wavy",
+    "hair:pixie",
+    "hair:ponytail",
+    "hair:top-knot",
+    "outfit:casualsuit01",
+    "outfit:casualsuit02",
+    "outfit:elegantsuit01",
+    "outfit:sportsuit01",
+    "shoes:shoes01",
+    "shoes:shoes02",
+    "shoes:shoes03",
+    "teeth"
+  ]
+}

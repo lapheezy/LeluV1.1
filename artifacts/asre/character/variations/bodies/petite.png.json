@@ -1,0 +1,33 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/bodies/petite.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes"
+ ],
+ "triangles": 266260,
+ "bounds_blender_zup": {
+  "min": [
+   -0.3194422721862793,
+   -0.21969009935855865,
+   -0.048366278409957886
+  ],
+  "max": [
+   0.3194422721862793,
+   0.11445783823728561,
+   1.5750552415847778
+  ]
+ },
+ "render_seconds": 0.92,
+ "blender": "4.2.23 LTS"
+}

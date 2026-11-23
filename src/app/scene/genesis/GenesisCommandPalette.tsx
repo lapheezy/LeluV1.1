@@ -105,6 +105,7 @@ export default function GenesisCommandPalette({
       { id: "open-sketch", label: "Open Genesis Studios — Sketch", hint: "Visual environment", run: () => { openStudioMode("sketch"); openPanel("visualstudio"); } },
       { id: "open-render", label: "Open Genesis Studios — Render", hint: "Visual environment", run: () => { openStudioMode("render"); openPanel("visualstudio"); } },
       { id: "open-avatar", label: "Open Genesis Studios — Avatar", hint: "Visual environment", run: () => { openStudioMode("avatar"); openPanel("visualstudio"); } },
+      { id: "open-spatial", label: "Open Genesis Studios — Spatial (3D reconstruction & characters)", hint: "Visual environment", run: () => { openStudioMode("spatial"); openPanel("visualstudio"); } },
       { id: "open-video", label: "Open Video workspace", hint: "Motion Studio", run: () => openPanel("video") },
       { id: "open-projects-panel", label: "Open Projects", hint: "Projects", run: () => openPanel("projects") },
       { id: "open-settings", label: "Open Settings", hint: "System", run: () => openPanel("settings") },

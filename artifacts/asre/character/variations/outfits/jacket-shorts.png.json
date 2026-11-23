@@ -1,0 +1,32 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/character/variations/outfits/jacket-shorts.png",
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "hair",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom"
+ ],
+ "triangles": 290712,
+ "bounds_blender_zup": {
+  "min": [
+   -0.35006508231163025,
+   -0.19360536336898804,
+   -0.03176751732826233
+  ],
+  "max": [
+   0.35006508231163025,
+   0.13396218419075012,
+   1.7130552530288696
+  ]
+ },
+ "render_seconds": 0.78,
+ "blender": "4.2.23 LTS"
+}

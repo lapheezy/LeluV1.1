@@ -1,0 +1,25 @@
+{
+ "inputs": [
+  "/tmp/claude-0/m4/lelu-canon.glb"
+ ],
+ "output": "artifacts/lelu/evolution/04-face-materials/feet-three-quarter--three-quarter.png",
+ "resolution": [
+  720,
+  720
+ ],
+ "samples": 48,
+ "view": "three-quarter",
+ "wireframe": false,
+ "camera": {
+  "center": [
+   0,
+   -0.05,
+   0.13
+  ],
+  "radius": 0.3
+ },
+ "ground": true,
+ "view_transform": "AgX",
+ "materials": "classes",
+ "denoise": true
+}

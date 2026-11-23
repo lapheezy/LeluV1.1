@@ -1,0 +1,94 @@
+{
+ "generatedAt": "2026-11-18T05:08:17.625Z",
+ "dir": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission58/hands",
+ "size": 720,
+ "samples": 24,
+ "renders": [
+  {
+   "label": "hands-base",
+   "kind": "full",
+   "view": "front",
+   "png": "hands-base-wire-front-wireframe.png",
+   "triangles": 83536,
+   "seconds": 7.91,
+   "camera": {
+    "center": [
+     0,
+     -0.05698809400200844,
+     1.0203471183776855
+    ],
+    "radius": 0.5205725044571996
+   }
+  },
+  {
+   "label": "hands-base",
+   "kind": "full",
+   "view": "side",
+   "png": "hands-base-wire-side-wireframe.png",
+   "triangles": 83536,
+   "seconds": 6.79,
+   "camera": {
+    "center": [
+     0,
+     -0.05698809400200844,
+     1.0203471183776855
+    ],
+    "radius": 0.5205725044571996
+   }
+  },
+  {
+   "label": "hands-base",
+   "kind": "full",
+   "view": "back",
+   "png": "hands-base-wire-back-wireframe.png",
+   "triangles": 83536,
+   "seconds": 7.13,
+   "camera": {
+    "center": [
+     0,
+     -0.05698809400200844,
+     1.0203471183776855
+    ],
+    "radius": 0.5205725044571996
+   }
+  },
+  {
+   "label": "hands-base",
+   "kind": "full",
+   "view": "three-quarter",
+   "png": "hands-base-wire-three-quarter-wireframe.png",
+   "triangles": 83536,
+   "seconds": 7.97,
+   "camera": {
+    "center": [
+     0,
+     -0.05698809400200844,
+     1.0203471183776855
+    ],
+    "radius": 0.5205725044571996
+   }
+  },
+  {
+   "label": "hands-base",
+   "kind": "hands",
+   "view": "front",
+   "png": "hands-base-wire-hands-front.png",
+   "triangles": 83536,
+   "seconds": 1.2,
+   "focused": [
+    "hands"
+   ]
+  },
+  {
+   "label": "hands-base",
+   "kind": "hands",
+   "view": "three-quarter",
+   "png": "hands-base-wire-hands-three-quarter.png",
+   "triangles": 83536,
+   "seconds": 1.24,
+   "focused": [
+    "hands"
+   ]
+  }
+ ]
+}

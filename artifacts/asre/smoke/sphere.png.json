@@ -1,0 +1,21 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/smoke/sphere.png",
+ "objects": [
+  "sphere"
+ ],
+ "triangles": 11520,
+ "bounds_blender_zup": {
+  "min": [
+   -0.11249999701976776,
+   -0.11249999701976776,
+   0.08749999850988388
+  ],
+  "max": [
+   0.11249999701976776,
+   0.11249999701976776,
+   0.3125
+  ]
+ },
+ "render_seconds": 0.58,
+ "blender": "4.2.23 LTS"
+}

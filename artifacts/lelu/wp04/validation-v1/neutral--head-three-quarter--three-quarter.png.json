@@ -1,0 +1,48 @@
+{
+ "output": "artifacts/lelu/wp04/validation/neutral--head-three-quarter--three-quarter.png",
+ "wireframe": false,
+ "objects": [
+  "torso",
+  "pelvis",
+  "neck",
+  "head",
+  "face",
+  "arms",
+  "hands",
+  "legs",
+  "feet",
+  "clothing.top",
+  "clothing.bottom",
+  "clothing.shoes",
+  "accessories.head",
+  "accessories.body"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.05000000074505806,
+   1.5499999523162842
+  ],
+  "radius": 0.24
+ },
+ "triangles": 1128104,
+ "bounds_blender_zup": {
+  "min": [
+   -0.48765552043914795,
+   -0.3245066702365875,
+   -0.04500000178813934
+  ],
+  "max": [
+   0.5124377012252808,
+   0.10678594559431076,
+   1.683246374130249
+  ]
+ },
+ "render_seconds": 99.61,
+ "hair_curves": {
+  "strands": 16750,
+  "points": 3424392
+ },
+ "blender": "4.2.23 LTS"
+}

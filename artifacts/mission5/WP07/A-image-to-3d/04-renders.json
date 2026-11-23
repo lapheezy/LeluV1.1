@@ -1,0 +1,41 @@
+{
+ "views": [
+  {
+   "view": "front",
+   "wireframe": false,
+   "png": "A-image-to-3d/renders/front.png",
+   "triangles": 15860,
+   "render_seconds": 0.62
+  },
+  {
+   "view": "side",
+   "wireframe": false,
+   "png": "A-image-to-3d/renders/side.png",
+   "triangles": 15860,
+   "render_seconds": 0.59
+  },
+  {
+   "view": "back",
+   "wireframe": false,
+   "png": "A-image-to-3d/renders/back.png",
+   "triangles": 15860,
+   "render_seconds": 0.6
+  },
+  {
+   "view": "three-quarter",
+   "wireframe": false,
+   "png": "A-image-to-3d/renders/three-quarter.png",
+   "triangles": 15860,
+   "render_seconds": 0.66
+  }
+ ],
+ "wireframe": [
+  {
+   "view": "three-quarter",
+   "wireframe": true,
+   "png": "A-image-to-3d/renders/three-quarter-wireframe.png",
+   "triangles": 15860,
+   "render_seconds": 1.94
+  }
+ ]
+}

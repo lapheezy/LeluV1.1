@@ -1,0 +1,308 @@
+{
+  "character": "lelu-canonical",
+  "name": "LÉLU",
+  "identity": {
+    "id": "lelu-canonical",
+    "name": "LÉLU",
+    "primaryReference": "ref10_face_primary",
+    "faceShape": "Oval face, high defined cheekbones, softly tapered jaw and rounded chin.",
+    "eyes": "Almond-shaped warm brown eyes, slightly upturned outer corners, winged liner, long dense lashes, moderate spacing.",
+    "brows": "Full, dark, softly arched brows with a clean tail.",
+    "nose": "Straight bridge, softly rounded tip, moderately full alae.",
+    "lips": "Full lips, defined cupid's bow, fuller lower lip, glossy deep berry-brown colour.",
+    "skin": "Deep warm brown complexion with a soft sheen; light freckles across cheeks and nose.",
+    "markings": "Small star marks high on the cheekbones; dark swirl/curl markings at the forehead and temples; rose-quartz jewel at the hairline centre with a small crystal drop between the brows.",
+    "piercings": "Septum ring; centred lower-lip (labret) stud with small drop; large rose-gold hoop earrings.",
+    "tattoos": "Ornamental filigree across collarbones and chest; rose and filigree tattoos on hands and forearms.",
+    "hairline": "Centre part; dense black corkscrew curls framing the face, pink/magenta highlights.",
+    "mayChange": [
+      "outfit",
+      "hairstyle",
+      "pose",
+      "expression",
+      "accessories"
+    ]
+  },
+  "palette": {
+    "skin": [
+      0.44,
+      0.26,
+      0.165
+    ],
+    "skinShade": [
+      0.3,
+      0.165,
+      0.105
+    ],
+    "lip": [
+      0.33,
+      0.085,
+      0.1
+    ],
+    "lipHighlight": [
+      0.5,
+      0.16,
+      0.17
+    ],
+    "iris": [
+      0.32,
+      0.185,
+      0.085
+    ],
+    "irisRing": [
+      0.13,
+      0.065,
+      0.035
+    ],
+    "sclera": [
+      0.78,
+      0.735,
+      0.69
+    ],
+    "lidShadow": [
+      0.28,
+      0.2,
+      0.16
+    ],
+    "pupil": [
+      0.02,
+      0.02,
+      0.03
+    ],
+    "hair": [
+      0.055,
+      0.045,
+      0.05
+    ],
+    "hairRose": [
+      0.55,
+      0.16,
+      0.3
+    ],
+    "roseGold": [
+      0.86,
+      0.53,
+      0.43
+    ],
+    "copper": [
+      0.66,
+      0.34,
+      0.22
+    ],
+    "roseQuartz": [
+      0.93,
+      0.64,
+      0.68
+    ],
+    "ink": [
+      0.12,
+      0.09,
+      0.12
+    ],
+    "star": [
+      0.93,
+      0.78,
+      0.56
+    ],
+    "corset": [
+      0.17,
+      0.19,
+      0.14
+    ],
+    "corsetRose": [
+      0.66,
+      0.32,
+      0.3
+    ],
+    "cargo": [
+      0.16,
+      0.15,
+      0.13
+    ],
+    "boot": [
+      0.09,
+      0.085,
+      0.08
+    ]
+  },
+  "expression": "composed",
+  "spec": {
+    "hair": {
+      "style": "long-wavy",
+      "length": 1,
+      "volume": 1.05
+    },
+    "clothing": {
+      "top": "jacket",
+      "bottom": "pants",
+      "shoes": true
+    },
+    "body": {
+      "height": 1.7,
+      "shoulderWidth": 0.375,
+      "hipWidth": 0.335,
+      "build": 0.97,
+      "legRatio": 0.5,
+      "armRatio": 1
+    },
+    "anatomy": {
+      "source": "reference",
+      "targets": [
+        "targets/macrodetails/universal-female-young-african-average-1.target",
+        "targets/macrodetails/universal-female-young-average-1.target",
+        "targets/head/head-round.target@0.3",
+        "targets/cheek/l-cheek-bones-incr.target@0.5",
+        "targets/cheek/r-cheek-bones-incr.target@0.5",
+        "targets/eyes/l-eye-height2-incr.target@0.45",
+        "targets/eyes/r-eye-height2-incr.target@0.45",
+        "targets/eyes/l-eye-corner1-up.target@0.6",
+        "targets/eyes/r-eye-corner1-up.target@0.6",
+        "targets/eyes/l-eye-corner2-down.target@0.2",
+        "targets/eyes/r-eye-corner2-down.target@0.2",
+        "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
+        "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
+        "targets/mouth/mouth-cupidsbow-incr.target@0.6",
+        "targets/nose/nose-flaring-incr.target@0.3",
+        "targets/nose/nose-point-width-incr.target@0.25",
+        "targets/expression/units/african/mouth-corner-puller.target@0.14",
+        "targets/expression/units/african/eye-left-slit.target@0.12",
+        "targets/expression/units/african/eye-right-slit.target@0.12"
+      ]
+    },
+    "hands": {
+      "curl": 0.3,
+      "spread": 0.4,
+      "opposition": 0.55
+    },
+    "pose": "relaxed"
+  },
+  "reference": {
+    "vertices": 19158,
+    "triangles": 26756,
+    "targets": [
+      "targets/head/head-round.target@0.3",
+      "targets/cheek/l-cheek-bones-incr.target@0.5",
+      "targets/cheek/r-cheek-bones-incr.target@0.5",
+      "targets/eyes/l-eye-height2-incr.target@0.45",
+      "targets/eyes/r-eye-height2-incr.target@0.45",
+      "targets/eyes/l-eye-corner1-up.target@0.6",
+      "targets/eyes/r-eye-corner1-up.target@0.6",
+      "targets/eyes/l-eye-corner2-down.target@0.2",
+      "targets/eyes/r-eye-corner2-down.target@0.2",
+      "targets/mouth/mouth-lowerlip-volume-incr.target@0.7",
+      "targets/mouth/mouth-upperlip-volume-incr.target@0.5",
+      "targets/mouth/mouth-cupidsbow-incr.target@0.6",
+      "targets/nose/nose-flaring-incr.target@0.3",
+      "targets/nose/nose-point-width-incr.target@0.25",
+      "targets/expression/units/african/mouth-corner-puller.target@0.14",
+      "targets/expression/units/african/eye-left-slit.target@0.12",
+      "targets/expression/units/african/eye-right-slit.target@0.12"
+    ],
+    "proxies": [
+      "eyes",
+      "teeth",
+      "outfit:casualsuit01",
+      "outfit:casualsuit02",
+      "outfit:sportsuit01",
+      "outfit:elegantsuit01",
+      "shoes:shoes01",
+      "shoes:shoes02",
+      "shoes:shoes03",
+      "hair:long-wavy"
+    ]
+  },
+  "proxies": [
+    "eyes",
+    "hair:long-wavy",
+    "outfit:casualsuit01",
+    "outfit:casualsuit02",
+    "outfit:elegantsuit01",
+    "outfit:sportsuit01",
+    "shoes:shoes01",
+    "shoes:shoes02",
+    "shoes:shoes03",
+    "teeth"
+  ],
+  "ms": 47299,
+  "triangles": 2675684,
+  "glbBytes": 75106716,
+  "occupancyCells": 475712,
+  "components": [
+    {
+      "id": "torso",
+      "action": "regenerated",
+      "triangles": 8998
+    },
+    {
+      "id": "pelvis",
+      "action": "regenerated",
+      "triangles": 41028
+    },
+    {
+      "id": "neck",
+      "action": "regenerated",
+      "triangles": 9024
+    },
+    {
+      "id": "head",
+      "action": "regenerated",
+      "triangles": 137338
+    },
+    {
+      "id": "face",
+      "action": "regenerated",
+      "triangles": 28032
+    },
+    {
+      "id": "hair",
+      "action": "regenerated",
+      "triangles": 1544312
+    },
+    {
+      "id": "arms",
+      "action": "regenerated",
+      "triangles": 23936
+    },
+    {
+      "id": "hands",
+      "action": "regenerated",
+      "triangles": 104808
+    },
+    {
+      "id": "legs",
+      "action": "regenerated",
+      "triangles": 34806
+    },
+    {
+      "id": "feet",
+      "action": "regenerated",
+      "triangles": 68158
+    },
+    {
+      "id": "clothing.top",
+      "action": "regenerated",
+      "triangles": 65528
+    },
+    {
+      "id": "clothing.bottom",
+      "action": "regenerated",
+      "triangles": 263196
+    },
+    {
+      "id": "clothing.shoes",
+      "action": "regenerated",
+      "triangles": 339996
+    },
+    {
+      "id": "accessories.head",
+      "action": "regenerated",
+      "triangles": 2636
+    },
+    {
+      "id": "accessories.body",
+      "action": "regenerated",
+      "triangles": 3888
+    }
+  ],
+  "emptyComponents": []
+}

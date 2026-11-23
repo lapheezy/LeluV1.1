@@ -1,0 +1,514 @@
+{
+ "ok": true,
+ "version": {
+  "id": "v0007",
+  "characterId": "wp7-lelu",
+  "parentId": "v0006",
+  "createdAt": 1794964605873,
+  "label": "restore hair from v0001",
+  "operation": {
+   "kind": "restore",
+   "from": "v0001",
+   "components": [
+    "hair"
+   ]
+  },
+  "spec": {
+   "identity": {
+    "id": "wp7-lelu",
+    "name": "WP07 LÉLU",
+    "leluLook": "gothic"
+   },
+   "body": {
+    "height": 1.78,
+    "shoulderWidth": 0.4,
+    "hipWidth": 0.34,
+    "build": 1.05,
+    "legRatio": 0.48,
+    "armRatio": 1
+   },
+   "face": {
+    "headScale": 1,
+    "eyeSize": 1,
+    "eyeSpacing": 1,
+    "noseSize": 1
+   },
+   "hair": {
+    "style": "long-straight",
+    "length": 1,
+    "volume": 1
+   },
+   "clothing": {
+    "top": "jacket",
+    "bottom": "pants",
+    "shoes": true
+   },
+   "accessories": {
+    "head": [],
+    "body": []
+   },
+   "materials": {
+    "skin": [
+     0.62,
+     0.42,
+     0.32
+    ],
+    "hair": [
+     0.08,
+     0.06,
+     0.07
+    ],
+    "top": [
+     0.12,
+     0.1,
+     0.16
+    ],
+    "bottom": [
+     0.1,
+     0.1,
+     0.12
+    ],
+    "shoes": [
+     0.05,
+     0.05,
+     0.05
+    ],
+    "accessory": [
+     0.75,
+     0.68,
+     0.45
+    ],
+    "eyes": [
+     0.05,
+     0.03,
+     0.03
+    ]
+   },
+   "pose": "wave"
+  },
+  "specHash": "d153c4d9d90f233e19c9d7503550680b616aea4b6aaf9fc8cc2d8168849b2321",
+  "builder": "68b417821f4b0a67",
+  "lattice": 0.006,
+  "impact": [
+   {
+    "id": "torso",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "pelvis",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "neck",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "head",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "face",
+    "action": "recolor",
+    "reason": "materials only"
+   },
+   {
+    "id": "hair",
+    "action": "rebuild",
+    "reason": "own parameters"
+   },
+   {
+    "id": "arms",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "hands",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "legs",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "feet",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "clothing.top",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "clothing.bottom",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "clothing.shoes",
+    "action": "keep",
+    "reason": "unchanged"
+   },
+   {
+    "id": "accessories.head",
+    "action": "recolor",
+    "reason": "materials only"
+   },
+   {
+    "id": "accessories.body",
+    "action": "keep",
+    "reason": "unchanged"
+   }
+  ],
+  "components": {
+   "torso": {
+    "key": "4d237b35a8b709a4",
+    "geometryKey": "f0444360c985ee1f",
+    "geometrySha": "0ca417286b5f2ae5a2126e8b0d67ea70f8e74798f8ae0ce4da22af47261fc04f",
+    "shapeSha": "19f9619db12ce340a5318a161dff17fc37f1f6a171b3267dd23b9e2ad1197d00",
+    "materialSha": "7e05f8184d3d428410ff41b1ee922d61cb2ea79a3eeb67c7773911723f5ed115",
+    "cells": 107912,
+    "triangles": 37376,
+    "action": "reused"
+   },
+   "pelvis": {
+    "key": "574aac3716205605",
+    "geometryKey": "c9f9f8f2a276c795",
+    "geometrySha": "7386947f14e62e6f3132805e8eef59f036338e8c6f9457ce8311c7113e21ed34",
+    "shapeSha": "ea1237128148fbef13db807c73b1a21d6bf221ad0fd23eaa53a9c27d024e6822",
+    "materialSha": "cd00611b755209fdfb08931c3b7793d46645bfd4bbcda438b6ec8d3aace2cc74",
+    "cells": 59568,
+    "triangles": 23760,
+    "action": "reused"
+   },
+   "neck": {
+    "key": "9d81834995655b7d",
+    "geometryKey": "d047d5482bb52cbd",
+    "geometrySha": "7fab1bbd9f3e5f5286fa549f56df6992d035a20aa43c593a89272f71cc572378",
+    "shapeSha": "38385e9ecd048df8bf298c1c86b165719264c38d6e447bd8e044ffcf33da4db0",
+    "materialSha": "bdfd0a0d4661608e98c2e9ec35ac59983fd60304082d6a5ff3dcec055179a8d5",
+    "cells": 11694,
+    "triangles": 7780,
+    "action": "reused"
+   },
+   "head": {
+    "key": "d359413a7cb5f4bb",
+    "geometryKey": "18f59ce459dd90a3",
+    "geometrySha": "db8cd6ee1c1a17b344b3efb677153d9920b2617569ae946142f8b352170c893e",
+    "shapeSha": "68a1b4f717d1eb2d5ce47e27732a206a7b9f32e11badaaee40cda92c0e796501",
+    "materialSha": "ed94e98c7780badec1300a3c9f3467312db8972b38254bf2a5ade6c7b9c04893",
+    "cells": 21218,
+    "triangles": 11304,
+    "action": "reused"
+   },
+   "face": {
+    "key": "bf8449b5e3b513df",
+    "geometryKey": "64e9cb51d6694e26",
+    "geometrySha": "0cb9b16770ab00ea8461dc09304f5d0dd4f65a0263f45283392fe6eac22cf2e6",
+    "shapeSha": "3d668c10dfdbf4234122e6747a3c9eb57a3335acb8e112911af2194bde86d2fc",
+    "materialSha": "bbc4d5aa054942f513c446d750c208b0b5dd5e33ef6145b7c73bea2e9c5f2c77",
+    "cells": 224,
+    "triangles": 900,
+    "action": "reused"
+   },
+   "hair": {
+    "key": "42ab1b4619d0240b",
+    "geometryKey": "f4c490ff1202b620",
+    "geometrySha": "19a702821d5417957b3068af6e055edb145fb0d63530e4335cb87f067827d33e",
+    "shapeSha": "4c2c1e5d5e555221f557f3fae9f4469928b98204e78c55fcb0c1f8c0cb981554",
+    "materialSha": "bfe652866e73cee1c150667d86f5e2804adf1368d221b62ccdb6e25ba9ca53d0",
+    "cells": 67580,
+    "triangles": 27184,
+    "action": "reused"
+   },
+   "arms": {
+    "key": "0c3b13baf1e5b292",
+    "geometryKey": "8bfdebb25e4257b5",
+    "geometrySha": "3ecfe57e2c445f61217942adf6028ff67ba115d0303301fe1eb05f7d523a7697",
+    "shapeSha": "9be3046ae41d4003de4b3530c69dee3ad8bcfaa877b270d287d7fff92b975f54",
+    "materialSha": "eb3823f0bf2bbc14e6c21485177afbb83831d4c0e43407744d9b3a6500903156",
+    "cells": 30574,
+    "triangles": 27584,
+    "action": "reused"
+   },
+   "hands": {
+    "key": "f2ad5d97c1ee40e7",
+    "geometryKey": "bc8ff2d20559f312",
+    "geometrySha": "50363e7c47917e3d630110e0803c40bbde4652fcce6c4169db1260dd4278f7ab",
+    "shapeSha": "eceaae9760d2d5967474f5dc02376c1f5bf6af504c60d64549ea15759cc29297",
+    "materialSha": "040fcc6158c9ca42324a75a6c4b62560e6e55b92032b6b49fc82414103fab9f8",
+    "cells": 4839,
+    "triangles": 6768,
+    "action": "reused"
+   },
+   "legs": {
+    "key": "ba10809ffac81a76",
+    "geometryKey": "35cfae2b5069dbf4",
+    "geometrySha": "b7df2fda465374a083b343e94d1600dbf7b5c887f3032af29701209c2315fdee",
+    "shapeSha": "43b232e5b9c39a23734fd2b3990a6a1da8a8be5bf248dd542152fe2f086a285f",
+    "materialSha": "7f459ec5cccb45f2800f0a2e408e08208892b5da5c99edcba22b013aa5ae65cc",
+    "cells": 82352,
+    "triangles": 48184,
+    "action": "reused"
+   },
+   "feet": {
+    "key": "9c7c98be5aab401c",
+    "geometryKey": "4687ccf51947a8de",
+    "geometrySha": "61dc6b7467e15be824f50f7d776304274b156273d10579efd8ade03c23d4ad59",
+    "shapeSha": "42079f659d50b224835a10f5a81bb2ad1307c0c29af5ed0eb531c741ad997a3e",
+    "materialSha": "c4dcc35c5cbe7849ac1964d8c9744174f955415daf73b31766e6db4b5f976315",
+    "cells": 9594,
+    "triangles": 9384,
+    "action": "reused"
+   },
+   "clothing.top": {
+    "key": "2fc12272d685675a",
+    "geometryKey": "85a49199f3e67ab5",
+    "geometrySha": "66035504b98684e0f62558d2f2806297bc3151ec3f840759d2b817d3149ef25d",
+    "shapeSha": "5a7bab4f4b9a4f056bbb7a3cdc9307782af30757c253c6237b8ea8af0a47163c",
+    "materialSha": "00b5a7a63d79de18db9f9773c085ce37a59be249e22840c9ae3db3a6f8d0ef9d",
+    "cells": 207933,
+    "triangles": 75448,
+    "action": "reused"
+   },
+   "clothing.bottom": {
+    "key": "6b5da5337d36384b",
+    "geometryKey": "4e577fc9b4d82f0b",
+    "geometrySha": "6b9cc51c96148f666091da95b49e432b67372e38f820e810837e2e0d2f74a927",
+    "shapeSha": "cc4baef1e93ad6a2cab64f6433efbc579d92dd9dd28ebd6baa0d34cdf999a1d4",
+    "materialSha": "87c09d19ca7d9886c8813f4f7ec100cc9853b614403d521d1f2c4d95a522f51d",
+    "cells": 164124,
+    "triangles": 68136,
+    "action": "reused"
+   },
+   "clothing.shoes": {
+    "key": "ba2b85b5d50164c6",
+    "geometryKey": "187e07fa4d439614",
+    "geometrySha": "4930f0a1a2cdc823aca7458583d543319caac7819a22f429cc24af3e46836a49",
+    "shapeSha": "aa0076ba98f2d4dce27f59edbeadcb2196b072eb8ac2c3522dbd3a4cc528851b",
+    "materialSha": "cc894fa63d830350179f96429c133fb673ce7d5d30de2b45e3412640d6ee12d9",
+    "cells": 19272,
+    "triangles": 14512,
+    "action": "reused"
+   },
+   "accessories.head": {
+    "key": "44c989034971eaeb",
+    "geometryKey": "46b69f0fd98b4afb",
+    "geometrySha": "empty",
+    "shapeSha": "empty",
+    "materialSha": "empty",
+    "cells": 0,
+    "triangles": 0,
+    "action": "reused"
+   },
+   "accessories.body": {
+    "key": "4b746bf9903f15ab",
+    "geometryKey": "24a8111fd21b5b02",
+    "geometrySha": "empty",
+    "shapeSha": "empty",
+    "materialSha": "empty",
+    "cells": 0,
+    "triangles": 0,
+    "action": "reused"
+   }
+  },
+  "build": {
+   "ms": 1,
+   "regenerated": [],
+   "recolored": [],
+   "reused": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ]
+  },
+  "glb": {
+   "file": "characters/wp7-lelu/versions/v0007.glb",
+   "sha256": "24522184f3e3cc2c47842a10f811052b368f22812c689d749edca598f1304778",
+   "bytes": 11482128,
+   "triangles": 358320,
+   "meshValid": true
+  },
+  "evidence": "GENERATED",
+  "recordHash": "11f1536be45078b9758770c8f4516c12a566fec6f246702f0b0128f26cc9506f"
+ },
+ "character": {
+  "id": "wp7-lelu",
+  "name": "WP07 LÉLU",
+  "leluLook": "gothic",
+  "createdAt": 1794964524218,
+  "head": "v0007",
+  "redo": [],
+  "versions": [
+   "v0001",
+   "v0002",
+   "v0003",
+   "v0004",
+   "v0005",
+   "v0006",
+   "v0007"
+  ],
+  "exports": {}
+ },
+ "versions": [
+  {
+   "id": "v0001",
+   "parentId": null,
+   "label": "created",
+   "createdAt": 1794964527126,
+   "operation": "create",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "head",
+    "face",
+    "hair",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.head",
+    "accessories.body"
+   ],
+   "recolored": [],
+   "reused": 0,
+   "buildMs": 2141,
+   "triangles": 307304,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0002",
+   "parentId": "v0001",
+   "label": "WP7 hair",
+   "createdAt": 1794964534146,
+   "operation": "edit",
+   "regenerated": [
+    "hair"
+   ],
+   "recolored": [],
+   "reused": 14,
+   "buildMs": 81,
+   "triangles": 310768,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0003",
+   "parentId": "v0002",
+   "label": "WP7 clothing",
+   "createdAt": 1794964541001,
+   "operation": "edit",
+   "regenerated": [
+    "clothing.top"
+   ],
+   "recolored": [],
+   "reused": 14,
+   "buildMs": 1097,
+   "triangles": 334688,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0004",
+   "parentId": "v0003",
+   "label": "WP7 body",
+   "createdAt": 1794964549679,
+   "operation": "edit",
+   "regenerated": [
+    "torso",
+    "pelvis",
+    "neck",
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes",
+    "accessories.body"
+   ],
+   "recolored": [],
+   "reused": 4,
+   "buildMs": 2704,
+   "triangles": 355796,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0005",
+   "parentId": "v0004",
+   "label": "WP7 material",
+   "createdAt": 1794964556135,
+   "operation": "edit",
+   "regenerated": [],
+   "recolored": [
+    "face",
+    "hair"
+   ],
+   "reused": 13,
+   "buildMs": 15,
+   "triangles": 355796,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0006",
+   "parentId": "v0005",
+   "label": "WP7 pose",
+   "createdAt": 1794964565900,
+   "operation": "edit",
+   "regenerated": [
+    "arms",
+    "hands",
+    "legs",
+    "feet",
+    "clothing.top",
+    "clothing.bottom",
+    "clothing.shoes"
+   ],
+   "recolored": [],
+   "reused": 8,
+   "buildMs": 3929,
+   "triangles": 361784,
+   "isHead": false,
+   "exportedAs": null
+  },
+  {
+   "id": "v0007",
+   "parentId": "v0006",
+   "label": "restore hair from v0001",
+   "createdAt": 1794964605873,
+   "operation": "restore",
+   "regenerated": [],
+   "recolored": [],
+   "reused": 15,
+   "buildMs": 1,
+   "triangles": 358320,
+   "isHead": true,
+   "exportedAs": null
+  }
+ ]
+}

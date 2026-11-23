@@ -1,0 +1,27 @@
+{
+ "ok": true,
+ "lineage": [
+  {
+   "id": "e2762238-511",
+   "kind": "reconstruct",
+   "state": "succeeded",
+   "views": [
+    "front"
+   ],
+   "added": null,
+   "evidence": {
+    "OBSERVED": 1405,
+    "INFERRED": 9155,
+    "INTERPOLATED": 0,
+    "GENERATED": 10560,
+    "UNKNOWN": 0
+   },
+   "meanConfidence": 0.5239488636365239,
+   "cells": 21120,
+   "observation": null,
+   "snapshots": 1,
+   "forgeJobId": "fj_mwlfbglz_34fb86",
+   "finishedAt": 1794964163548
+  }
+ ]
+}

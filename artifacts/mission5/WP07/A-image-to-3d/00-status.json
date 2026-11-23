@@ -1,0 +1,13 @@
+{
+ "ok": true,
+ "blender": true,
+ "python": null,
+ "triposrSource": null,
+ "triposrWeights": false,
+ "engines": {
+  "silhouette": true,
+  "triposr": false
+ },
+ "spend": "zero: local CPU only, no paid API, no account, no key",
+ "setup": "services/asre-reconstruct/setup.sh"
+}

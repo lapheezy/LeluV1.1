@@ -1,0 +1,34 @@
+{
+ "output": "artifacts/lelu/wp04/model-fitted/head-ortho-bare-side.png",
+ "wireframe": false,
+ "objects": [
+  "head",
+  "face",
+  "neck"
+ ],
+ "focused": null,
+ "camera_blender_zup": {
+  "center": [
+   0.0,
+   -0.05000000074505806,
+   1.600000023841858
+  ],
+  "radius": 0.17
+ },
+ "triangles": 174406,
+ "bounds_blender_zup": {
+  "min": [
+   -0.21523790061473846,
+   -0.16710731387138367,
+   1.3513036966323853
+  ],
+  "max": [
+   0.21523790061473846,
+   0.05486782640218735,
+   1.683246374130249
+  ]
+ },
+ "render_seconds": 9.16,
+ "hair_curves": null,
+ "blender": "4.2.23 LTS"
+}

@@ -1,0 +1,21 @@
+{
+ "output": "/home/user/LeluV1.1/artifacts/asre/triposr/police_woman/render_side.png",
+ "objects": [
+  "triposr"
+ ],
+ "triangles": 153582,
+ "bounds_blender_zup": {
+  "min": [
+   -0.42140474915504456,
+   -0.3912813663482666,
+   -0.49122339487075806
+  ],
+  "max": [
+   0.44427192211151123,
+   0.37633365392684937,
+   0.49271905422210693
+  ]
+ },
+ "render_seconds": 1.5,
+ "blender": "4.2.23 LTS"
+}

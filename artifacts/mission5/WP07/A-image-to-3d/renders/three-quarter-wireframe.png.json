@@ -1,0 +1,22 @@
+{
+ "output": "/workspace/chats/6d861f98cd849b149484323e/artifacts/mission5/WP07/A-image-to-3d/renders/three-quarter-wireframe.png",
+ "wireframe": true,
+ "objects": [
+  "reconstruction"
+ ],
+ "triangles": 15860,
+ "bounds_blender_zup": {
+  "min": [
+   -0.28125,
+   -0.171875,
+   0.0052083334885537624
+  ],
+  "max": [
+   0.28125,
+   0.171875,
+   1.0
+  ]
+ },
+ "render_seconds": 1.94,
+ "blender": "4.2.23 LTS"
+}

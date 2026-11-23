@@ -119,3 +119,20 @@ __pycache__/
 
 # Character Foundry local runtime (Blender install, sysroot, caches)
 .foundry/
+
+# ASRE: reproducible bulk outputs (see services/asre-reconstruct/README.md)
+artifacts/asre/**/*.npy
+artifacts/asre/**/*.lnre
+artifacts/asre/**/*.job.json
+artifacts/asre/**/*.glb
+!artifacts/asre/triposr/**/*.glb
+
+# CC0 reference library: ~785 MB of meshes and textures, fetched and
+# hash-verified by scripts/asre/fetch-cc0.mjs. The audit and checksums are
+# tracked; the blobs are not.
+resources/cc0/makehuman/
+resources/cc0/blender/
+
+# Variation GLBs are ~38 MB each and fully regenerable; the metrics and the
+# renders that prove them are tracked instead.
+artifacts/mission58/variations/v[0-9]-*.glb
