@@ -1,0 +1,16 @@
+{
+  "runLabel": "m23.0-100-turn",
+  "durationSeconds": 1396,
+  "transcripts": 100,
+  "ledger": 100,
+  "spoken": 45,
+  "silent": 55,
+  "unexplainedLedger": 0,
+  "unexplainedTurns": 0,
+  "byOutcome": {
+    "spoke": 45,
+    "provider-unavailable": 55
+  },
+  "holdingLines": 35,
+  "plays": 92
+}

@@ -1,0 +1,3109 @@
+{
+  "ranAt": "2026-11-20T18:18:51.556Z",
+  "runLabel": "m23.0-100-turn",
+  "url": "http://127.0.0.1:4180/",
+  "simulatedMicrophone": "/workspace/chats/a194f0c9c3c58bfdf5946c17/.piper/fake-mic-100.wav",
+  "physicalMicrophone": false,
+  "physicalSpeaker": false,
+  "durationSeconds": 1396,
+  "turnsRequested": 100,
+  "transcriptsMeasured": 100,
+  "ledgerEntries": 100,
+  "outcomeSummary": {
+    "started": 100,
+    "recorded": 100,
+    "unexplained": 0,
+    "spoken": 45,
+    "silent": 55,
+    "noticeSpoken": 35,
+    "byOutcome": {
+      "spoke": 45,
+      "provider-unavailable": 55
+    },
+    "last": "provider-unavailable"
+  },
+  "holdingLinesSpoken": 35,
+  "holdingLineTexts": [
+    "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+  ],
+  "playback": {
+    "plays": 92,
+    "ended": 65,
+    "pauses": 65
+  },
+  "silentTurns": [
+    {
+      "index": 10,
+      "transcript": "How many sides does a hexagon half?",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 12,
+      "transcript": "Suggest a name for a pet cat.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 20,
+      "transcript": "Hello Lélu, are you listening?",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 28,
+      "transcript": "What does HTTP stand for?",
+      "outcome": "spoke"
+    },
+    {
+      "index": 31,
+      "transcript": "The water is the boiling point of water in Celsius.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 33,
+      "transcript": "Machine Learning in Simple Terms.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 45,
+      "transcript": "Name a planet with rings.",
+      "outcome": "spoke"
+    },
+    {
+      "index": 50,
+      "transcript": "Any sides does a hexagon half.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 54,
+      "transcript": "Tell me a very short joke.",
+      "outcome": "spoke"
+    },
+    {
+      "index": 65,
+      "transcript": "Name a planet with rings.",
+      "outcome": "spoke"
+    },
+    {
+      "index": 68,
+      "transcript": "What does HTTP stand for?",
+      "outcome": "spoke"
+    },
+    {
+      "index": 70,
+      "transcript": "How many sides does a hexagon half?",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 72,
+      "transcript": "Suggest a name for a pet cat.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 79,
+      "transcript": "Thank you, that is all for now.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 85,
+      "transcript": "Name a planet with rings.",
+      "outcome": "spoke"
+    },
+    {
+      "index": 88,
+      "transcript": "What does HTTP stand for?",
+      "outcome": "spoke"
+    },
+    {
+      "index": 90,
+      "transcript": "Many sides does a hexagon half.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 92,
+      "transcript": "Suggest a name for a pet cat.",
+      "outcome": "provider-unavailable"
+    },
+    {
+      "index": 94,
+      "transcript": "Tell me a very short joke.",
+      "outcome": "spoke"
+    },
+    {
+      "index": 99,
+      "transcript": "Thank you, that is all for now.",
+      "outcome": "provider-unavailable"
+    }
+  ],
+  "turns": [
+    {
+      "index": 1,
+      "transcript": "What is the capital of Peru?",
+      "asrMs": 452,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 2603,
+      "synthesisMs": 492,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 2,
+      "transcript": "Tell me one fact about the ocean.",
+      "asrMs": 480,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1508,
+      "synthesisMs": 702,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 3,
+      "transcript": "What time complexity does binary search half?",
+      "asrMs": 527,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 47,
+      "synthesisMs": 1467,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 4,
+      "transcript": "Can you explain what an API is in one sentence?",
+      "asrMs": 474,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1013,
+      "synthesisMs": 1751,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 5,
+      "transcript": "Name a planet with rings.",
+      "asrMs": 480,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 554,
+      "synthesisMs": 657,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 6,
+      "transcript": "What is 2 plus 2?",
+      "asrMs": 516,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1562,
+      "synthesisMs": 395,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 7,
+      "transcript": "Give me a short tip for better sleep.",
+      "asrMs": 533,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1065,
+      "synthesisMs": 1310,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 8,
+      "transcript": "What does HTTP stand for?",
+      "asrMs": 459,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1428,
+      "synthesisMs": 590,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 9,
+      "transcript": "Who wrote Pride and Prejudice?",
+      "asrMs": 489,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 543,
+      "synthesisMs": 815,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 10,
+      "transcript": "How many sides does a hexagon half?",
+      "asrMs": 517,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 11,
+      "transcript": "What is the boiling point of water in Celsius?",
+      "asrMs": 519,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1023,
+      "synthesisMs": 971,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 12,
+      "transcript": "Suggest a name for a pet cat.",
+      "asrMs": 486,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 13,
+      "transcript": "What is machine learning in simple terms?",
+      "asrMs": 475,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 2551,
+      "synthesisMs": 645,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 14,
+      "transcript": "Tell me a very short joke.",
+      "asrMs": 520,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 1086,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 15,
+      "transcript": "What is the largest desert on Earth?",
+      "asrMs": 507,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 2947,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 16,
+      "transcript": "How do you say hello in Japanese?",
+      "asrMs": 522,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1534,
+      "synthesisMs": 940,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 17,
+      "transcript": "What is the speed of light roughly?",
+      "asrMs": 496,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 10019,
+      "synthesisMs": 925,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 18,
+      "transcript": "Fruit for breakfast.",
+      "asrMs": 486,
+      "ttsRequests": 7,
+      "transcriptToFirstTtsMs": 1557,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 19,
+      "transcript": "Thank you, that is all for now.",
+      "asrMs": 450,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 536,
+      "synthesisMs": 534,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 20,
+      "transcript": "Hello Lélu, are you listening?",
+      "asrMs": 483,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 21,
+      "transcript": "What is the capital of Peru?",
+      "asrMs": 520,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 512,
+      "synthesisMs": 1055,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 22,
+      "transcript": "Tell me one fact about the ocean.",
+      "asrMs": 590,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1497,
+      "synthesisMs": 803,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 23,
+      "transcript": "What time complexity does binary search half?",
+      "asrMs": 446,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 470,
+      "synthesisMs": 1099,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 24,
+      "transcript": "Can you explain what an API is in one sentence?",
+      "asrMs": 470,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1876,
+      "synthesisMs": 1028,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 25,
+      "transcript": "Name a planet with rings.",
+      "asrMs": 526,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 574,
+      "synthesisMs": 537,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 26,
+      "transcript": "What is 2 plus 2?",
+      "asrMs": 519,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1023,
+      "synthesisMs": 907,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 27,
+      "transcript": "Give me a short tip for better sleep.",
+      "asrMs": 491,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 0,
+      "synthesisMs": 916,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 28,
+      "transcript": "What does HTTP stand for?",
+      "asrMs": 433,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 29,
+      "transcript": "Who wrote Pride and Prejudice?",
+      "asrMs": 481,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1446,
+      "synthesisMs": 317,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 30,
+      "transcript": "How many sides does a hexagon half?",
+      "asrMs": 482,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1016,
+      "synthesisMs": 641,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 31,
+      "transcript": "The water is the boiling point of water in Celsius.",
+      "asrMs": 476,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 32,
+      "transcript": "Just a name for a pet cat.",
+      "asrMs": 432,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 25,
+      "synthesisMs": 981,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 33,
+      "transcript": "Machine Learning in Simple Terms.",
+      "asrMs": 477,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 34,
+      "transcript": "Tell me a very short joke.",
+      "asrMs": 476,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 1088,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 35,
+      "transcript": "What is the largest desert on Earth?",
+      "asrMs": 494,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1400,
+      "synthesisMs": 1035,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 36,
+      "transcript": "How do you say hello in Japanese?",
+      "asrMs": 470,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 553,
+      "synthesisMs": 873,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 37,
+      "transcript": "What is the speed of light roughly?",
+      "asrMs": 941,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 16,
+      "synthesisMs": 348,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 38,
+      "transcript": "Recommend one fruit for breakfast.",
+      "asrMs": 460,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 1838,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 39,
+      "transcript": "Thank you, that is all for now.",
+      "asrMs": 458,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 1426,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 40,
+      "transcript": "Hello Lélu, are you listening?",
+      "asrMs": 452,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 952,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 41,
+      "transcript": "What is the capital of Peru?",
+      "asrMs": 476,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1036,
+      "synthesisMs": 930,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 42,
+      "transcript": "Tell me one fact about the ocean.",
+      "asrMs": 479,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 30,
+      "synthesisMs": 681,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 43,
+      "transcript": "Complexity does binary search half.",
+      "asrMs": 511,
+      "ttsRequests": 9,
+      "transcriptToFirstTtsMs": 12118,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 44,
+      "transcript": "Can you explain what an API is in one sentence?",
+      "asrMs": 923,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1703,
+      "synthesisMs": 862,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 45,
+      "transcript": "Name a planet with rings.",
+      "asrMs": 460,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 46,
+      "transcript": "What is 2 plus 2?",
+      "asrMs": 475,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 909,
+      "synthesisMs": 1150,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 47,
+      "transcript": "Give me a short tip for better sleep.",
+      "asrMs": 472,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 17,
+      "synthesisMs": 532,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 48,
+      "transcript": "What does HTTP stand for?",
+      "asrMs": 911,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 1016,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 49,
+      "transcript": "Who wrote Pride and Prejudice?",
+      "asrMs": 466,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 548,
+      "synthesisMs": 557,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 50,
+      "transcript": "Any sides does a hexagon half.",
+      "asrMs": 495,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 51,
+      "transcript": "Boiling point of water in Celsius.",
+      "asrMs": 493,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 525,
+      "synthesisMs": 610,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 52,
+      "transcript": "Suggest a name for a pet cat.",
+      "asrMs": 431,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1382,
+      "synthesisMs": 452,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 53,
+      "transcript": "What is machine learning in simple terms?",
+      "asrMs": 489,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1534,
+      "synthesisMs": 834,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 54,
+      "transcript": "Tell me a very short joke.",
+      "asrMs": 466,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 55,
+      "transcript": "What is the largest desert on Earth?",
+      "asrMs": 458,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 487,
+      "synthesisMs": 1223,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 56,
+      "transcript": "How do you say hello in Japanese?",
+      "asrMs": 446,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 947,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 57,
+      "transcript": "What is the speed of light roughly?",
+      "asrMs": 498,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 979,
+      "synthesisMs": 615,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 58,
+      "transcript": "Recommend one fruit for breakfast.",
+      "asrMs": 488,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 557,
+      "synthesisMs": 842,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 59,
+      "transcript": "Thank you, that is all for now.",
+      "asrMs": 486,
+      "ttsRequests": 3,
+      "transcriptToFirstTtsMs": 1483,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 60,
+      "transcript": "Hello Lélu, are you listening?",
+      "asrMs": 473,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 993,
+      "synthesisMs": 777,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 61,
+      "transcript": "What is the capital of Peru?",
+      "asrMs": 462,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1991,
+      "synthesisMs": 1123,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 62,
+      "transcript": "Only one fact about the ocean.",
+      "asrMs": 495,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 19,
+      "synthesisMs": 720,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 63,
+      "transcript": "What time complexity does binary search have?",
+      "asrMs": 476,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 34,
+      "synthesisMs": 1192,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 64,
+      "transcript": "You explain what an API is in one sentence.",
+      "asrMs": 464,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 413,
+      "synthesisMs": 655,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 65,
+      "transcript": "Name a planet with rings.",
+      "asrMs": 459,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 66,
+      "transcript": "What is 2 plus 2?",
+      "asrMs": 474,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 542,
+      "synthesisMs": 1220,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 67,
+      "transcript": "A short tip for better sleep.",
+      "asrMs": 456,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 926,
+      "synthesisMs": 738,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 68,
+      "transcript": "What does HTTP stand for?",
+      "asrMs": 462,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 69,
+      "transcript": "Who wrote Pride and Prejudice?",
+      "asrMs": 434,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 489,
+      "synthesisMs": 549,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 70,
+      "transcript": "How many sides does a hexagon half?",
+      "asrMs": 467,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 71,
+      "transcript": "What is the boiling point of water in Celsius?",
+      "asrMs": 917,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 516,
+      "synthesisMs": 843,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 72,
+      "transcript": "Suggest a name for a pet cat.",
+      "asrMs": 523,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 73,
+      "transcript": "What is machine learning in simple terms?",
+      "asrMs": 478,
+      "ttsRequests": 2,
+      "transcriptToFirstTtsMs": 557,
+      "synthesisMs": 812,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 74,
+      "transcript": "Tell me a very short joke.",
+      "asrMs": 510,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 488,
+      "synthesisMs": 1067,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 75,
+      "transcript": "What is the largest desert on Earth?",
+      "asrMs": 522,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 584,
+      "synthesisMs": 1169,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 76,
+      "transcript": "How do you say hello in Japanese?",
+      "asrMs": 480,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 550,
+      "synthesisMs": 653,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 77,
+      "transcript": "What is the speed of light roughly?",
+      "asrMs": 525,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 546,
+      "synthesisMs": 809,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 78,
+      "transcript": "Recommend one fruit for breakfast.",
+      "asrMs": 512,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1069,
+      "synthesisMs": 963,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 79,
+      "transcript": "Thank you, that is all for now.",
+      "asrMs": 490,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 80,
+      "transcript": "Hello Lélu, are you listening?",
+      "asrMs": 476,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 581,
+      "synthesisMs": 969,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 81,
+      "transcript": "What is the capital of Peru?",
+      "asrMs": 444,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 511,
+      "synthesisMs": 1199,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 82,
+      "transcript": "Tell me one fact about the ocean.",
+      "asrMs": 468,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 24,
+      "synthesisMs": 952,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 83,
+      "transcript": "What time complexity does binary search have?",
+      "asrMs": 493,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 500,
+      "synthesisMs": 1218,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 84,
+      "transcript": "Can you explain what an API is in one sentence?",
+      "asrMs": 502,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 974,
+      "synthesisMs": 618,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 85,
+      "transcript": "Name a planet with rings.",
+      "asrMs": 480,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 86,
+      "transcript": "What is 2 plus 2?",
+      "asrMs": 481,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 532,
+      "synthesisMs": 1509,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 87,
+      "transcript": "Me a short tip for better sleep.",
+      "asrMs": 509,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1009,
+      "synthesisMs": 1158,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 88,
+      "transcript": "What does HTTP stand for?",
+      "asrMs": 472,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 89,
+      "transcript": "Who wrote Pride and Prejudice?",
+      "asrMs": 444,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 549,
+      "synthesisMs": 908,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 90,
+      "transcript": "Many sides does a hexagon half.",
+      "asrMs": 476,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 91,
+      "transcript": "Boiling point of water in Celsius.",
+      "asrMs": 475,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 531,
+      "synthesisMs": 841,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 92,
+      "transcript": "Suggest a name for a pet cat.",
+      "asrMs": 474,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 93,
+      "transcript": "What is machine learning in simple terms?",
+      "asrMs": 493,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 575,
+      "synthesisMs": 845,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 94,
+      "transcript": "Tell me a very short joke.",
+      "asrMs": 485,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 95,
+      "transcript": "What is the largest desert on Earth?",
+      "asrMs": 509,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 589,
+      "synthesisMs": 1363,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 96,
+      "transcript": "Do you say hello in Japanese?",
+      "asrMs": 528,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1035,
+      "synthesisMs": 791,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 97,
+      "transcript": "What is the speed of light roughly?",
+      "asrMs": 472,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 520,
+      "synthesisMs": 754,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 98,
+      "transcript": "Recommend one fruit for breakfast.",
+      "asrMs": 456,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 53,
+      "synthesisMs": 950,
+      "provider": "local-piper:amy-low",
+      "outcome": "spoke",
+      "outcomeKnown": true
+    },
+    {
+      "index": 99,
+      "transcript": "Thank you, that is all for now.",
+      "asrMs": 446,
+      "ttsRequests": 0,
+      "transcriptToFirstTtsMs": null,
+      "synthesisMs": null,
+      "provider": null,
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    },
+    {
+      "index": 100,
+      "transcript": "Hello Lélu, are you listening?",
+      "asrMs": 484,
+      "ttsRequests": 1,
+      "transcriptToFirstTtsMs": 1042,
+      "synthesisMs": 648,
+      "provider": "local-piper:amy-low",
+      "outcome": "provider-unavailable",
+      "outcomeKnown": true
+    }
+  ],
+  "progress": [
+    {
+      "t": 1795197370478,
+      "asr": 1,
+      "spoken": 0,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197383159,
+      "asr": 2,
+      "spoken": 1,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197399488,
+      "asr": 3,
+      "spoken": 3,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197414425,
+      "asr": 4,
+      "spoken": 4,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197425557,
+      "asr": 5,
+      "spoken": 4,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197438133,
+      "asr": 6,
+      "spoken": 5,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197454108,
+      "asr": 7,
+      "spoken": 7,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197466941,
+      "asr": 8,
+      "spoken": 7,
+      "silent": 0,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197481102,
+      "asr": 9,
+      "spoken": 8,
+      "silent": 1,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197494552,
+      "asr": 10,
+      "spoken": 8,
+      "silent": 2,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197509201,
+      "asr": 11,
+      "spoken": 8,
+      "silent": 2,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197521825,
+      "asr": 12,
+      "spoken": 8,
+      "silent": 4,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197535776,
+      "asr": 13,
+      "spoken": 8,
+      "silent": 4,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197550940,
+      "asr": 14,
+      "spoken": 9,
+      "silent": 5,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197562428,
+      "asr": 15,
+      "spoken": 9,
+      "silent": 5,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197577277,
+      "asr": 16,
+      "spoken": 11,
+      "silent": 5,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197590224,
+      "asr": 17,
+      "spoken": 11,
+      "silent": 5,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197603695,
+      "asr": 18,
+      "spoken": 12,
+      "silent": 5,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197618413,
+      "asr": 19,
+      "spoken": 13,
+      "silent": 6,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197631057,
+      "asr": 20,
+      "spoken": 13,
+      "silent": 7,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197643144,
+      "asr": 21,
+      "spoken": 13,
+      "silent": 7,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197657831,
+      "asr": 22,
+      "spoken": 15,
+      "silent": 7,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197670952,
+      "asr": 23,
+      "spoken": 15,
+      "silent": 7,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197686005,
+      "asr": 24,
+      "spoken": 16,
+      "silent": 7,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197700138,
+      "asr": 25,
+      "spoken": 17,
+      "silent": 8,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197712024,
+      "asr": 26,
+      "spoken": 17,
+      "silent": 8,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197726430,
+      "asr": 27,
+      "spoken": 18,
+      "silent": 8,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197740757,
+      "asr": 28,
+      "spoken": 18,
+      "silent": 10,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197754103,
+      "asr": 29,
+      "spoken": 18,
+      "silent": 10,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197767133,
+      "asr": 30,
+      "spoken": 19,
+      "silent": 10,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197782289,
+      "asr": 31,
+      "spoken": 19,
+      "silent": 12,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197795286,
+      "asr": 32,
+      "spoken": 19,
+      "silent": 13,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197808895,
+      "asr": 33,
+      "spoken": 19,
+      "silent": 14,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197823388,
+      "asr": 34,
+      "spoken": 20,
+      "silent": 14,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197835759,
+      "asr": 35,
+      "spoken": 20,
+      "silent": 14,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197850507,
+      "asr": 36,
+      "spoken": 21,
+      "silent": 15,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197863643,
+      "asr": 37,
+      "spoken": 22,
+      "silent": 15,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197876359,
+      "asr": 38,
+      "spoken": 22,
+      "silent": 15,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197890072,
+      "asr": 39,
+      "spoken": 23,
+      "silent": 15,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197904887,
+      "asr": 40,
+      "spoken": 25,
+      "silent": 15,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197918086,
+      "asr": 41,
+      "spoken": 26,
+      "silent": 15,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197930277,
+      "asr": 42,
+      "spoken": 26,
+      "silent": 16,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197945266,
+      "asr": 43,
+      "spoken": 26,
+      "silent": 16,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197960123,
+      "asr": 44,
+      "spoken": 27,
+      "silent": 16,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197972976,
+      "asr": 45,
+      "spoken": 27,
+      "silent": 18,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197986719,
+      "asr": 46,
+      "spoken": 28,
+      "silent": 18,
+      "unexplained": 0
+    },
+    {
+      "t": 1795197999349,
+      "asr": 47,
+      "spoken": 28,
+      "silent": 19,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198014060,
+      "asr": 48,
+      "spoken": 29,
+      "silent": 19,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198027102,
+      "asr": 49,
+      "spoken": 29,
+      "silent": 20,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198039921,
+      "asr": 50,
+      "spoken": 29,
+      "silent": 21,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198054612,
+      "asr": 51,
+      "spoken": 29,
+      "silent": 21,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198067767,
+      "asr": 52,
+      "spoken": 29,
+      "silent": 22,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198082374,
+      "asr": 53,
+      "spoken": 30,
+      "silent": 22,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198095956,
+      "asr": 54,
+      "spoken": 30,
+      "silent": 23,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198109133,
+      "asr": 55,
+      "spoken": 30,
+      "silent": 24,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198124194,
+      "asr": 56,
+      "spoken": 32,
+      "silent": 24,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198136887,
+      "asr": 57,
+      "spoken": 32,
+      "silent": 24,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198149955,
+      "asr": 58,
+      "spoken": 33,
+      "silent": 24,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198165026,
+      "asr": 59,
+      "spoken": 34,
+      "silent": 25,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198177399,
+      "asr": 60,
+      "spoken": 34,
+      "silent": 26,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198190003,
+      "asr": 61,
+      "spoken": 34,
+      "silent": 26,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198204314,
+      "asr": 62,
+      "spoken": 35,
+      "silent": 27,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198218665,
+      "asr": 63,
+      "spoken": 36,
+      "silent": 27,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198232994,
+      "asr": 64,
+      "spoken": 36,
+      "silent": 28,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198245689,
+      "asr": 65,
+      "spoken": 36,
+      "silent": 29,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198257831,
+      "asr": 66,
+      "spoken": 36,
+      "silent": 29,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198273669,
+      "asr": 67,
+      "spoken": 37,
+      "silent": 30,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198286890,
+      "asr": 68,
+      "spoken": 37,
+      "silent": 30,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198300458,
+      "asr": 69,
+      "spoken": 37,
+      "silent": 32,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198313414,
+      "asr": 70,
+      "spoken": 37,
+      "silent": 32,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198329161,
+      "asr": 71,
+      "spoken": 37,
+      "silent": 34,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198341779,
+      "asr": 72,
+      "spoken": 37,
+      "silent": 34,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198354687,
+      "asr": 73,
+      "spoken": 37,
+      "silent": 35,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198369017,
+      "asr": 74,
+      "spoken": 38,
+      "silent": 35,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198383908,
+      "asr": 75,
+      "spoken": 39,
+      "silent": 36,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198395447,
+      "asr": 76,
+      "spoken": 39,
+      "silent": 36,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198409571,
+      "asr": 77,
+      "spoken": 39,
+      "silent": 37,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198423506,
+      "asr": 78,
+      "spoken": 40,
+      "silent": 37,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198437977,
+      "asr": 79,
+      "spoken": 40,
+      "silent": 39,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198449628,
+      "asr": 80,
+      "spoken": 40,
+      "silent": 39,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198463901,
+      "asr": 81,
+      "spoken": 41,
+      "silent": 40,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198477248,
+      "asr": 82,
+      "spoken": 41,
+      "silent": 41,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198490838,
+      "asr": 83,
+      "spoken": 42,
+      "silent": 41,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198505312,
+      "asr": 84,
+      "spoken": 42,
+      "silent": 41,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198519945,
+      "asr": 85,
+      "spoken": 42,
+      "silent": 43,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198531521,
+      "asr": 86,
+      "spoken": 42,
+      "silent": 43,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198546101,
+      "asr": 87,
+      "spoken": 43,
+      "silent": 43,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198559988,
+      "asr": 88,
+      "spoken": 43,
+      "silent": 45,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198572867,
+      "asr": 89,
+      "spoken": 43,
+      "silent": 46,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198586591,
+      "asr": 90,
+      "spoken": 43,
+      "silent": 47,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198601642,
+      "asr": 91,
+      "spoken": 43,
+      "silent": 48,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198614748,
+      "asr": 92,
+      "spoken": 43,
+      "silent": 49,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198629609,
+      "asr": 93,
+      "spoken": 43,
+      "silent": 50,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198642194,
+      "asr": 94,
+      "spoken": 43,
+      "silent": 51,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198656319,
+      "asr": 95,
+      "spoken": 44,
+      "silent": 51,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198668970,
+      "asr": 96,
+      "spoken": 44,
+      "silent": 51,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198683098,
+      "asr": 97,
+      "spoken": 44,
+      "silent": 52,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198697646,
+      "asr": 98,
+      "spoken": 45,
+      "silent": 53,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198710313,
+      "asr": 99,
+      "spoken": 45,
+      "silent": 54,
+      "unexplained": 0
+    },
+    {
+      "t": 1795198724882,
+      "asr": 100,
+      "spoken": 45,
+      "silent": 54,
+      "unexplained": 0
+    }
+  ],
+  "timeline": [
+    {
+      "t": 1795197335419,
+      "kind": "harness",
+      "text": "run started; SIMULATED mic /workspace/chats/a194f0c9c3c58bfdf5946c17/.piper/fake-mic-100.wav; target 100 turns"
+    },
+    {
+      "t": 1795197351554,
+      "kind": "harness",
+      "text": "voice session started"
+    },
+    {
+      "t": 1795197370478,
+      "kind": "turn",
+      "text": "transcript 1"
+    },
+    {
+      "t": 1795197383159,
+      "kind": "turn",
+      "text": "transcript 2"
+    },
+    {
+      "t": 1795197399488,
+      "kind": "turn",
+      "text": "transcript 3"
+    },
+    {
+      "t": 1795197414425,
+      "kind": "turn",
+      "text": "transcript 4"
+    },
+    {
+      "t": 1795197425557,
+      "kind": "turn",
+      "text": "transcript 5"
+    },
+    {
+      "t": 1795197438133,
+      "kind": "turn",
+      "text": "transcript 6"
+    },
+    {
+      "t": 1795197454108,
+      "kind": "turn",
+      "text": "transcript 7"
+    },
+    {
+      "t": 1795197466941,
+      "kind": "turn",
+      "text": "transcript 8"
+    },
+    {
+      "t": 1795197481102,
+      "kind": "turn",
+      "text": "transcript 9"
+    },
+    {
+      "t": 1795197494552,
+      "kind": "turn",
+      "text": "transcript 10"
+    },
+    {
+      "t": 1795197509201,
+      "kind": "turn",
+      "text": "transcript 11"
+    },
+    {
+      "t": 1795197521825,
+      "kind": "turn",
+      "text": "transcript 12"
+    },
+    {
+      "t": 1795197535776,
+      "kind": "turn",
+      "text": "transcript 13"
+    },
+    {
+      "t": 1795197550940,
+      "kind": "turn",
+      "text": "transcript 14"
+    },
+    {
+      "t": 1795197562428,
+      "kind": "turn",
+      "text": "transcript 15"
+    },
+    {
+      "t": 1795197577277,
+      "kind": "turn",
+      "text": "transcript 16"
+    },
+    {
+      "t": 1795197590224,
+      "kind": "turn",
+      "text": "transcript 17"
+    },
+    {
+      "t": 1795197603695,
+      "kind": "turn",
+      "text": "transcript 18"
+    },
+    {
+      "t": 1795197618413,
+      "kind": "turn",
+      "text": "transcript 19"
+    },
+    {
+      "t": 1795197631057,
+      "kind": "turn",
+      "text": "transcript 20"
+    },
+    {
+      "t": 1795197643144,
+      "kind": "turn",
+      "text": "transcript 21"
+    },
+    {
+      "t": 1795197657831,
+      "kind": "turn",
+      "text": "transcript 22"
+    },
+    {
+      "t": 1795197670952,
+      "kind": "turn",
+      "text": "transcript 23"
+    },
+    {
+      "t": 1795197686005,
+      "kind": "turn",
+      "text": "transcript 24"
+    },
+    {
+      "t": 1795197700138,
+      "kind": "turn",
+      "text": "transcript 25"
+    },
+    {
+      "t": 1795197712024,
+      "kind": "turn",
+      "text": "transcript 26"
+    },
+    {
+      "t": 1795197726430,
+      "kind": "turn",
+      "text": "transcript 27"
+    },
+    {
+      "t": 1795197740757,
+      "kind": "turn",
+      "text": "transcript 28"
+    },
+    {
+      "t": 1795197754103,
+      "kind": "turn",
+      "text": "transcript 29"
+    },
+    {
+      "t": 1795197767133,
+      "kind": "turn",
+      "text": "transcript 30"
+    },
+    {
+      "t": 1795197782289,
+      "kind": "turn",
+      "text": "transcript 31"
+    },
+    {
+      "t": 1795197795286,
+      "kind": "turn",
+      "text": "transcript 32"
+    },
+    {
+      "t": 1795197808895,
+      "kind": "turn",
+      "text": "transcript 33"
+    },
+    {
+      "t": 1795197823388,
+      "kind": "turn",
+      "text": "transcript 34"
+    },
+    {
+      "t": 1795197835759,
+      "kind": "turn",
+      "text": "transcript 35"
+    },
+    {
+      "t": 1795197850507,
+      "kind": "turn",
+      "text": "transcript 36"
+    },
+    {
+      "t": 1795197863643,
+      "kind": "turn",
+      "text": "transcript 37"
+    },
+    {
+      "t": 1795197876359,
+      "kind": "turn",
+      "text": "transcript 38"
+    },
+    {
+      "t": 1795197890072,
+      "kind": "turn",
+      "text": "transcript 39"
+    },
+    {
+      "t": 1795197904887,
+      "kind": "turn",
+      "text": "transcript 40"
+    },
+    {
+      "t": 1795197918086,
+      "kind": "turn",
+      "text": "transcript 41"
+    },
+    {
+      "t": 1795197930277,
+      "kind": "turn",
+      "text": "transcript 42"
+    },
+    {
+      "t": 1795197945266,
+      "kind": "turn",
+      "text": "transcript 43"
+    },
+    {
+      "t": 1795197960123,
+      "kind": "turn",
+      "text": "transcript 44"
+    },
+    {
+      "t": 1795197972976,
+      "kind": "turn",
+      "text": "transcript 45"
+    },
+    {
+      "t": 1795197986719,
+      "kind": "turn",
+      "text": "transcript 46"
+    },
+    {
+      "t": 1795197999349,
+      "kind": "turn",
+      "text": "transcript 47"
+    },
+    {
+      "t": 1795198014060,
+      "kind": "turn",
+      "text": "transcript 48"
+    },
+    {
+      "t": 1795198027102,
+      "kind": "turn",
+      "text": "transcript 49"
+    },
+    {
+      "t": 1795198039921,
+      "kind": "turn",
+      "text": "transcript 50"
+    },
+    {
+      "t": 1795198054612,
+      "kind": "turn",
+      "text": "transcript 51"
+    },
+    {
+      "t": 1795198067767,
+      "kind": "turn",
+      "text": "transcript 52"
+    },
+    {
+      "t": 1795198082374,
+      "kind": "turn",
+      "text": "transcript 53"
+    },
+    {
+      "t": 1795198095956,
+      "kind": "turn",
+      "text": "transcript 54"
+    },
+    {
+      "t": 1795198109133,
+      "kind": "turn",
+      "text": "transcript 55"
+    },
+    {
+      "t": 1795198124194,
+      "kind": "turn",
+      "text": "transcript 56"
+    },
+    {
+      "t": 1795198136887,
+      "kind": "turn",
+      "text": "transcript 57"
+    },
+    {
+      "t": 1795198149955,
+      "kind": "turn",
+      "text": "transcript 58"
+    },
+    {
+      "t": 1795198165026,
+      "kind": "turn",
+      "text": "transcript 59"
+    },
+    {
+      "t": 1795198177399,
+      "kind": "turn",
+      "text": "transcript 60"
+    },
+    {
+      "t": 1795198190003,
+      "kind": "turn",
+      "text": "transcript 61"
+    },
+    {
+      "t": 1795198204314,
+      "kind": "turn",
+      "text": "transcript 62"
+    },
+    {
+      "t": 1795198218665,
+      "kind": "turn",
+      "text": "transcript 63"
+    },
+    {
+      "t": 1795198232994,
+      "kind": "turn",
+      "text": "transcript 64"
+    },
+    {
+      "t": 1795198245689,
+      "kind": "turn",
+      "text": "transcript 65"
+    },
+    {
+      "t": 1795198257831,
+      "kind": "turn",
+      "text": "transcript 66"
+    },
+    {
+      "t": 1795198273669,
+      "kind": "turn",
+      "text": "transcript 67"
+    },
+    {
+      "t": 1795198286890,
+      "kind": "turn",
+      "text": "transcript 68"
+    },
+    {
+      "t": 1795198300458,
+      "kind": "turn",
+      "text": "transcript 69"
+    },
+    {
+      "t": 1795198313414,
+      "kind": "turn",
+      "text": "transcript 70"
+    },
+    {
+      "t": 1795198329161,
+      "kind": "turn",
+      "text": "transcript 71"
+    },
+    {
+      "t": 1795198341779,
+      "kind": "turn",
+      "text": "transcript 72"
+    },
+    {
+      "t": 1795198354687,
+      "kind": "turn",
+      "text": "transcript 73"
+    },
+    {
+      "t": 1795198369017,
+      "kind": "turn",
+      "text": "transcript 74"
+    },
+    {
+      "t": 1795198383908,
+      "kind": "turn",
+      "text": "transcript 75"
+    },
+    {
+      "t": 1795198395447,
+      "kind": "turn",
+      "text": "transcript 76"
+    },
+    {
+      "t": 1795198409571,
+      "kind": "turn",
+      "text": "transcript 77"
+    },
+    {
+      "t": 1795198423506,
+      "kind": "turn",
+      "text": "transcript 78"
+    },
+    {
+      "t": 1795198437977,
+      "kind": "turn",
+      "text": "transcript 79"
+    },
+    {
+      "t": 1795198449628,
+      "kind": "turn",
+      "text": "transcript 80"
+    },
+    {
+      "t": 1795198463901,
+      "kind": "turn",
+      "text": "transcript 81"
+    },
+    {
+      "t": 1795198477248,
+      "kind": "turn",
+      "text": "transcript 82"
+    },
+    {
+      "t": 1795198490838,
+      "kind": "turn",
+      "text": "transcript 83"
+    },
+    {
+      "t": 1795198505312,
+      "kind": "turn",
+      "text": "transcript 84"
+    },
+    {
+      "t": 1795198519945,
+      "kind": "turn",
+      "text": "transcript 85"
+    },
+    {
+      "t": 1795198531521,
+      "kind": "turn",
+      "text": "transcript 86"
+    },
+    {
+      "t": 1795198546101,
+      "kind": "turn",
+      "text": "transcript 87"
+    },
+    {
+      "t": 1795198559988,
+      "kind": "turn",
+      "text": "transcript 88"
+    },
+    {
+      "t": 1795198572867,
+      "kind": "turn",
+      "text": "transcript 89"
+    },
+    {
+      "t": 1795198586591,
+      "kind": "turn",
+      "text": "transcript 90"
+    },
+    {
+      "t": 1795198601642,
+      "kind": "turn",
+      "text": "transcript 91"
+    },
+    {
+      "t": 1795198614748,
+      "kind": "turn",
+      "text": "transcript 92"
+    },
+    {
+      "t": 1795198629609,
+      "kind": "turn",
+      "text": "transcript 93"
+    },
+    {
+      "t": 1795198642194,
+      "kind": "turn",
+      "text": "transcript 94"
+    },
+    {
+      "t": 1795198656319,
+      "kind": "turn",
+      "text": "transcript 95"
+    },
+    {
+      "t": 1795198668970,
+      "kind": "turn",
+      "text": "transcript 96"
+    },
+    {
+      "t": 1795198683098,
+      "kind": "turn",
+      "text": "transcript 97"
+    },
+    {
+      "t": 1795198697646,
+      "kind": "turn",
+      "text": "transcript 98"
+    },
+    {
+      "t": 1795198710313,
+      "kind": "turn",
+      "text": "transcript 99"
+    },
+    {
+      "t": 1795198724882,
+      "kind": "turn",
+      "text": "transcript 100"
+    },
+    {
+      "t": 1795198729224,
+      "kind": "harness",
+      "text": "voice session ended"
+    }
+  ],
+  "console": [
+    {
+      "t": 1795197359030,
+      "level": "info",
+      "text": "[VoiceEngine] Browser recognizer heard speech but returned nothing — switching to Whisper."
+    },
+    {
+      "t": 1795197368948,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":9770,\"spoke\":true,\"ms\":9917,\"peak\":0.257,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197382671,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12904,\"spoke\":true,\"ms\":13264,\"peak\":0.3335,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197397133,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13009,\"spoke\":true,\"ms\":13974,\"peak\":0.2735,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197412136,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13636,\"spoke\":true,\"ms\":14459,\"peak\":0.3539,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197425066,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11964,\"spoke\":true,\"ms\":12442,\"peak\":0.3158,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197437612,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12058,\"peak\":0.2786,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197448400,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10269,\"peak\":0.0323,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795197451521,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2456,\"spoke\":true,\"ms\":3105,\"peak\":0.3026,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197465526,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13322,\"spoke\":true,\"ms\":13470,\"peak\":0.308,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197479122,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12278,\"spoke\":true,\"ms\":13119,\"peak\":0.403,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197492969,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13061,\"spoke\":true,\"ms\":13326,\"peak\":0.2528,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197503539,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10045,\"peak\":0.2407,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795197507669,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":4127,\"peak\":0.2535,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197520809,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11755,\"spoke\":true,\"ms\":12141,\"peak\":0.3207,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197534792,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12591,\"spoke\":true,\"ms\":13492,\"peak\":0.3247,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197547995,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11912,\"spoke\":true,\"ms\":12724,\"peak\":0.2948,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197561383,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12330,\"spoke\":true,\"ms\":12363,\"peak\":0.2438,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197572121,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10229,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795197575210,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2403,\"spoke\":true,\"ms\":3077,\"peak\":0.2191,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197588633,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12330,\"spoke\":true,\"ms\":12407,\"peak\":0.2917,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197599184,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10049,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795197602664,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2038,\"spoke\":true,\"ms\":2501,\"peak\":0.2797,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197616093,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12591,\"spoke\":true,\"ms\":12940,\"peak\":0.2867,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197629018,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12434,\"spoke\":true,\"ms\":12457,\"peak\":0.3143,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197639562,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10054,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795197642123,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1933,\"spoke\":true,\"ms\":2552,\"peak\":0.19,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197655721,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12957,\"spoke\":true,\"ms\":13068,\"peak\":0.2798,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197670039,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13479,\"spoke\":true,\"ms\":13722,\"peak\":0.316,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197680624,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10132,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795197684574,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3918,\"spoke\":true,\"ms\":3945,\"peak\":0.272,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197698193,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12278,\"spoke\":true,\"ms\":12667,\"peak\":0.3438,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197710998,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12069,\"spoke\":true,\"ms\":12266,\"peak\":0.3118,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197724890,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12539,\"spoke\":true,\"ms\":13361,\"peak\":0.4486,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197738884,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13166,\"spoke\":true,\"ms\":13498,\"peak\":0.3096,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197752196,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12643,\"spoke\":true,\"ms\":12870,\"peak\":0.387,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197766121,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12748,\"spoke\":true,\"ms\":12984,\"peak\":0.2565,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197777000,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10391,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795197780331,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3082,\"spoke\":true,\"ms\":3328,\"peak\":0.2548,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197791006,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10192,\"peak\":0.0321,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795197793811,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2612,\"spoke\":true,\"ms\":2803,\"peak\":0.2302,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197804849,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10601,\"peak\":0.0173,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795197807887,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2299,\"spoke\":true,\"ms\":3037,\"peak\":0.1459,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197820910,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":12542,\"peak\":0.2848,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197831506,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10103,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795197834824,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2560,\"spoke\":true,\"ms\":3306,\"peak\":0.2409,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197848528,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":13199,\"peak\":0.2693,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197861993,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12748,\"spoke\":true,\"ms\":12991,\"peak\":0.2839,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197875454,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":12511,\"peak\":0.268,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197889098,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12591,\"spoke\":true,\"ms\":12740,\"peak\":0.2934,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197902692,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12643,\"spoke\":true,\"ms\":13118,\"peak\":0.3125,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197915583,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12069,\"spoke\":true,\"ms\":12434,\"peak\":0.2859,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197928898,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12748,\"spoke\":true,\"ms\":12830,\"peak\":0.2685,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197939890,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10497,\"peak\":0.0353,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795197943675,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":3782,\"peak\":0.192,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197958228,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13531,\"spoke\":true,\"ms\":14038,\"peak\":0.3464,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197971491,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10919,\"spoke\":true,\"ms\":12320,\"peak\":0.3197,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197984374,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12069,\"spoke\":true,\"ms\":12418,\"peak\":0.2875,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795197998043,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":12763,\"peak\":0.4454,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198012082,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13270,\"spoke\":true,\"ms\":13562,\"peak\":0.3083,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198025229,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12121,\"spoke\":true,\"ms\":12231,\"peak\":0.3856,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198036167,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10447,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198039387,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2926,\"spoke\":true,\"ms\":3218,\"peak\":0.211,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198050288,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10403,\"peak\":0.1439,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198053637,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2978,\"spoke\":true,\"ms\":3336,\"peak\":0.2511,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198066862,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12225,\"spoke\":true,\"ms\":12245,\"peak\":0.3215,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198077570,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10274,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198080869,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3291,\"spoke\":true,\"ms\":3296,\"peak\":0.1642,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198094515,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12278,\"spoke\":true,\"ms\":12687,\"peak\":0.2782,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198108214,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11860,\"spoke\":true,\"ms\":12260,\"peak\":0.2696,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198121880,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12852,\"spoke\":true,\"ms\":13201,\"peak\":0.2727,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198135419,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12748,\"spoke\":true,\"ms\":13087,\"peak\":0.2668,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198148923,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12330,\"spoke\":true,\"ms\":13003,\"peak\":0.2749,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198159709,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10294,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198162544,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2038,\"spoke\":true,\"ms\":2828,\"peak\":0.2253,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198175885,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11546,\"spoke\":true,\"ms\":12358,\"peak\":0.3112,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198188549,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11703,\"spoke\":true,\"ms\":11742,\"peak\":0.2658,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198199254,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10237,\"peak\":0.0257,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198202473,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":3216,\"peak\":0.2727,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198216540,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":13566,\"peak\":0.2729,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198227220,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10201,\"peak\":0.035,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198231321,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3291,\"spoke\":true,\"ms\":4083,\"peak\":0.2856,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198241973,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10179,\"peak\":0.0984,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198244716,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1881,\"spoke\":true,\"ms\":2740,\"peak\":0.2039,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198257306,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12121,\"spoke\":true,\"ms\":12125,\"peak\":0.2863,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198268203,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10416,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198271453,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2403,\"spoke\":true,\"ms\":3234,\"peak\":0.3005,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198285510,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13166,\"spoke\":true,\"ms\":13596,\"peak\":0.306,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198298711,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12734,\"peak\":0.4088,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198312463,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12748,\"spoke\":true,\"ms\":13299,\"peak\":0.254,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198326732,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13166,\"spoke\":true,\"ms\":13790,\"peak\":0.2957,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198340776,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12434,\"spoke\":true,\"ms\":13118,\"peak\":0.305,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198354156,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12278,\"spoke\":true,\"ms\":12383,\"peak\":0.3245,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198364709,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10069,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198367586,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2612,\"spoke\":true,\"ms\":2876,\"peak\":0.2759,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198381852,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":13312,\"peak\":0.2825,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198394918,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12330,\"spoke\":true,\"ms\":12533,\"peak\":0.2647,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198405515,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10105,\"peak\":0.2501,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198408507,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2717,\"spoke\":true,\"ms\":2989,\"peak\":0.1951,\"threshold\":0.0535,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198421936,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12800,\"spoke\":true,\"ms\":12897,\"peak\":0.2747,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198435906,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12434,\"spoke\":true,\"ms\":12958,\"peak\":0.2934,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198449107,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12225,\"spoke\":true,\"ms\":12700,\"peak\":0.3108,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198461913,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12320,\"peak\":0.2486,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198475727,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12904,\"spoke\":true,\"ms\":13367,\"peak\":0.2799,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198489788,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13270,\"spoke\":true,\"ms\":13583,\"peak\":0.3112,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198504317,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13427,\"spoke\":true,\"ms\":13572,\"peak\":0.3511,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198517905,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11651,\"spoke\":true,\"ms\":12591,\"peak\":0.3292,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198530525,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12016,\"spoke\":true,\"ms\":12132,\"peak\":0.3039,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198541245,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10234,\"peak\":0.0705,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198544607,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2978,\"spoke\":true,\"ms\":3359,\"peak\":0.3047,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198558483,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12121,\"spoke\":true,\"ms\":12382,\"peak\":0.3067,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198571812,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12121,\"spoke\":true,\"ms\":12843,\"peak\":0.3876,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198582507,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10237,\"peak\":0.0364,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+    },
+    {
+      "t": 1795198585572,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3030,\"spoke\":true,\"ms\":3058,\"peak\":0.1932,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198596338,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10281,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198599671,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":2892,\"peak\":0.2616,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198610436,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10287,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198613285,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2837,\"peak\":0.2567,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198623884,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10121,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198627552,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":3651,\"peak\":0.1677,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198640695,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12434,\"spoke\":true,\"ms\":12635,\"peak\":0.296,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198654263,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12539,\"spoke\":true,\"ms\":12594,\"peak\":0.2471,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198665118,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10318,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198667970,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2403,\"spoke\":true,\"ms\":2850,\"peak\":0.2177,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198682130,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":13165,\"peak\":0.2851,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198695713,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":13092,\"peak\":0.276,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198708883,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12434,\"spoke\":true,\"ms\":12709,\"peak\":0.2943,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198719494,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10154,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 1795198723360,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3396,\"spoke\":true,\"ms\":3861,\"peak\":0.2932,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 1795198729223,
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":4389,\"spoke\":false,\"ms\":5366,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":4127}"
+    }
+  ]
+}

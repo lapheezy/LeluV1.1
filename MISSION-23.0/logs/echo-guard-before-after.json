@@ -1,0 +1,145 @@
+{
+  "ranAt": "2026-11-20T17:56:51.569Z",
+  "measures": "software echo guard only; NOT browser AEC, NOT acoustic proof",
+  "physicalHardware": false,
+  "herSentences": 12,
+  "userUtterances": 19,
+  "comparisons": 48,
+  "interactions": 228,
+  "before": {
+    "echo": {
+      "total": 48,
+      "caught": 48,
+      "catchRatePct": 100
+    },
+    "user": {
+      "total": 228,
+      "falselyRejected": 37,
+      "falseRejectRatePct": 16.2,
+      "byKind": {
+        "short-interrupt": {
+          "total": 96,
+          "rejected": 36,
+          "rejectRatePct": 37.5
+        },
+        "ordinary": {
+          "total": 48,
+          "rejected": 0,
+          "rejectRatePct": 0
+        },
+        "overlap": {
+          "total": 48,
+          "rejected": 1,
+          "rejectRatePct": 2.1
+        },
+        "closing": {
+          "total": 36,
+          "rejected": 0,
+          "rejectRatePct": 0
+        }
+      },
+      "rejectedSamples": [
+        {
+          "kind": "short-interrupt",
+          "text": "no",
+          "spoken": "Lima is the capital of Peru, and it sits on the Pacific coast."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no!",
+          "spoken": "Lima is the capital of Peru, and it sits on the Pacific coast."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "hey",
+          "spoken": "Lima is the capital of Peru, and it sits on the Pacific coast."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no",
+          "spoken": "Binary search halves the search space each step, so it runs in logarithmic time."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no!",
+          "spoken": "Binary search halves the search space each step, so it runs in logarithmic time."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "hey",
+          "spoken": "Binary search halves the search space each step, so it runs in logarithmic time."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no",
+          "spoken": "An API is a contract that lets one program ask another for something."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no!",
+          "spoken": "An API is a contract that lets one program ask another for something."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "hey",
+          "spoken": "An API is a contract that lets one program ask another for something."
+        },
+        {
+          "kind": "overlap",
+          "text": "is an API a contract or a protocol?",
+          "spoken": "An API is a contract that lets one program ask another for something."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no",
+          "spoken": "Saturn is the planet best known for its rings."
+        },
+        {
+          "kind": "short-interrupt",
+          "text": "no!",
+          "spoken": "Saturn is the planet best known for its rings."
+        }
+      ]
+    }
+  },
+  "after": {
+    "echo": {
+      "total": 48,
+      "caught": 48,
+      "catchRatePct": 100
+    },
+    "user": {
+      "total": 228,
+      "falselyRejected": 0,
+      "falseRejectRatePct": 0,
+      "byKind": {
+        "short-interrupt": {
+          "total": 96,
+          "rejected": 0,
+          "rejectRatePct": 0
+        },
+        "ordinary": {
+          "total": 48,
+          "rejected": 0,
+          "rejectRatePct": 0
+        },
+        "overlap": {
+          "total": 48,
+          "rejected": 0,
+          "rejectRatePct": 0
+        },
+        "closing": {
+          "total": 36,
+          "rejected": 0,
+          "rejectRatePct": 0
+        }
+      },
+      "rejectedSamples": []
+    }
+  },
+  "delta": {
+    "echoCatchRatePct": 0,
+    "falseRejectRatePct": -16.2,
+    "interruptionsRecovered": 37
+  }
+}

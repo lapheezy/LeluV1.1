@@ -1,0 +1,1521 @@
+{
+  "ranAt": "2026-11-20T18:57:08.977Z",
+  "minutes": 30,
+  "base": "http://127.0.0.1:4180",
+  "requests": 373,
+  "rateLimited": 887,
+  "errors": [],
+  "errorCount": 0,
+  "rssMiB": {
+    "baseline": 51,
+    "final": 65,
+    "min": 51,
+    "max": 71,
+    "firstHalfAvg": 66.6,
+    "secondHalfAvg": 66.5,
+    "growthMiB": 14
+  },
+  "synthesisMs": {
+    "count": 374,
+    "min": 73,
+    "median": 154,
+    "p90": 335,
+    "max": 1058
+  },
+  "runtime": {
+    "persistent": true,
+    "warmWorkers": 0,
+    "modelLoads": 3,
+    "modelLoadFailures": 0,
+    "restarts": 3,
+    "requests": 1789,
+    "failures": 2,
+    "cancelled": 0,
+    "queueDepth": 0,
+    "active": 0,
+    "workers": [
+      {
+        "profile": "warm",
+        "state": "dead",
+        "pid": null,
+        "uptimeMs": 0,
+        "requests": 1789,
+        "medianSynthesisMs": 137,
+        "rssMiB": null,
+        "lastError": "worker exited (code null, signal SIGKILL) after 89466 ms"
+      }
+    ]
+  },
+  "recovery": {
+    "attempted": true,
+    "ok": false,
+    "ms": 491,
+    "note": "pid 449890 killed; workers=0 restarts=3 loads=3"
+  },
+  "samples": [
+    {
+      "at": 1795199225971,
+      "elapsedMs": 95,
+      "rssServerMiB": 51,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 6,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 2174,
+          "requests": 6,
+          "medianSynthesisMs": 377,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199256861,
+      "elapsedMs": 30985,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 61,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 33093,
+          "requests": 61,
+          "medianSynthesisMs": 207,
+          "rssMiB": 125,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199287690,
+      "elapsedMs": 61814,
+      "rssServerMiB": 62,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 92,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "busy",
+          "pid": 445046,
+          "uptimeMs": 63922,
+          "requests": 92,
+          "medianSynthesisMs": 131,
+          "rssMiB": 115,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199318563,
+      "elapsedMs": 92687,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 121,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 94796,
+          "requests": 121,
+          "medianSynthesisMs": 134,
+          "rssMiB": 113,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199349129,
+      "elapsedMs": 123253,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 164,
+      "failures": 0,
+      "queueDepth": 1,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "busy",
+          "pid": 445046,
+          "uptimeMs": 125363,
+          "requests": 164,
+          "medianSynthesisMs": 130,
+          "rssMiB": 132,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199380248,
+      "elapsedMs": 154372,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 181,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 156481,
+          "requests": 181,
+          "medianSynthesisMs": 138,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199410572,
+      "elapsedMs": 184696,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 237,
+      "failures": 0,
+      "queueDepth": 1,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "busy",
+          "pid": 445046,
+          "uptimeMs": 186805,
+          "requests": 237,
+          "medianSynthesisMs": 130,
+          "rssMiB": 127,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199441952,
+      "elapsedMs": 216076,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 241,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 218185,
+          "requests": 241,
+          "medianSynthesisMs": 134,
+          "rssMiB": 113,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199472272,
+      "elapsedMs": 246396,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 301,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 248505,
+          "requests": 301,
+          "medianSynthesisMs": 122,
+          "rssMiB": 115,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199502339,
+      "elapsedMs": 276463,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 301,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 278573,
+          "requests": 301,
+          "medianSynthesisMs": 122,
+          "rssMiB": 115,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199532658,
+      "elapsedMs": 306782,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 361,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 308891,
+          "requests": 361,
+          "medianSynthesisMs": 142,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199562737,
+      "elapsedMs": 336861,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 361,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 338970,
+          "requests": 361,
+          "medianSynthesisMs": 142,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199593048,
+      "elapsedMs": 367172,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 421,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 369282,
+          "requests": 421,
+          "medianSynthesisMs": 138,
+          "rssMiB": 100,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199623114,
+      "elapsedMs": 397238,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 421,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 399347,
+          "requests": 421,
+          "medianSynthesisMs": 138,
+          "rssMiB": 100,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199654432,
+      "elapsedMs": 428556,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 481,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 430665,
+          "requests": 481,
+          "medianSynthesisMs": 229,
+          "rssMiB": 114,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199684499,
+      "elapsedMs": 458623,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 481,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 460732,
+          "requests": 481,
+          "medianSynthesisMs": 229,
+          "rssMiB": 114,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199715817,
+      "elapsedMs": 489941,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 541,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 492049,
+          "requests": 541,
+          "medianSynthesisMs": 144,
+          "rssMiB": 113,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199745889,
+      "elapsedMs": 520013,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 541,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 522121,
+          "requests": 541,
+          "medianSynthesisMs": 144,
+          "rssMiB": 113,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199777259,
+      "elapsedMs": 551383,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 601,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 553491,
+          "requests": 601,
+          "medianSynthesisMs": 138,
+          "rssMiB": 115,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199807333,
+      "elapsedMs": 581457,
+      "rssServerMiB": 64,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 601,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 583566,
+          "requests": 601,
+          "medianSynthesisMs": 138,
+          "rssMiB": 115,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199837407,
+      "elapsedMs": 611531,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 661,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 613639,
+          "requests": 661,
+          "medianSynthesisMs": 126,
+          "rssMiB": 99,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199867484,
+      "elapsedMs": 641608,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 661,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 643717,
+          "requests": 661,
+          "medianSynthesisMs": 126,
+          "rssMiB": 99,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199897558,
+      "elapsedMs": 671682,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 721,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 673792,
+          "requests": 721,
+          "medianSynthesisMs": 138,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199927639,
+      "elapsedMs": 701763,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 721,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 703872,
+          "requests": 721,
+          "medianSynthesisMs": 138,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199957702,
+      "elapsedMs": 731826,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 781,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 733935,
+          "requests": 781,
+          "medianSynthesisMs": 142,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795199987779,
+      "elapsedMs": 761903,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 781,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 764012,
+          "requests": 781,
+          "medianSynthesisMs": 142,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200017858,
+      "elapsedMs": 791982,
+      "rssServerMiB": 70,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 841,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 794090,
+          "requests": 841,
+          "medianSynthesisMs": 133,
+          "rssMiB": 125,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200047927,
+      "elapsedMs": 822051,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 841,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 824161,
+          "requests": 841,
+          "medianSynthesisMs": 133,
+          "rssMiB": 125,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200079284,
+      "elapsedMs": 853408,
+      "rssServerMiB": 70,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 901,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 855516,
+          "requests": 901,
+          "medianSynthesisMs": 205,
+          "rssMiB": 113,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200109356,
+      "elapsedMs": 883480,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 901,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 885590,
+          "requests": 901,
+          "medianSynthesisMs": 205,
+          "rssMiB": 113,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200139415,
+      "elapsedMs": 913539,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 961,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 915648,
+          "requests": 961,
+          "medianSynthesisMs": 138,
+          "rssMiB": 117,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200169478,
+      "elapsedMs": 943602,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 961,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 945712,
+          "requests": 961,
+          "medianSynthesisMs": 138,
+          "rssMiB": 117,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200199539,
+      "elapsedMs": 973663,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1021,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 975772,
+          "requests": 1021,
+          "medianSynthesisMs": 134,
+          "rssMiB": 117,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200229605,
+      "elapsedMs": 1003729,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1021,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1005838,
+          "requests": 1021,
+          "medianSynthesisMs": 134,
+          "rssMiB": 117,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200259913,
+      "elapsedMs": 1034037,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1081,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1036146,
+          "requests": 1081,
+          "medianSynthesisMs": 130,
+          "rssMiB": 101,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200289986,
+      "elapsedMs": 1064110,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1081,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1066218,
+          "requests": 1081,
+          "medianSynthesisMs": 130,
+          "rssMiB": 101,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200320306,
+      "elapsedMs": 1094430,
+      "rssServerMiB": 70,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1141,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1096539,
+          "requests": 1141,
+          "medianSynthesisMs": 132,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200350385,
+      "elapsedMs": 1124509,
+      "rssServerMiB": 68,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1141,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1126618,
+          "requests": 1141,
+          "medianSynthesisMs": 132,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200380451,
+      "elapsedMs": 1154575,
+      "rssServerMiB": 70,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1201,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1156684,
+          "requests": 1201,
+          "medianSynthesisMs": 134,
+          "rssMiB": 114,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200410534,
+      "elapsedMs": 1184658,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1201,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1186766,
+          "requests": 1201,
+          "medianSynthesisMs": 134,
+          "rssMiB": 114,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200440592,
+      "elapsedMs": 1214716,
+      "rssServerMiB": 70,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1261,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1216825,
+          "requests": 1261,
+          "medianSynthesisMs": 129,
+          "rssMiB": 114,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200470660,
+      "elapsedMs": 1244784,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1261,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1246893,
+          "requests": 1261,
+          "medianSynthesisMs": 129,
+          "rssMiB": 114,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200500717,
+      "elapsedMs": 1274841,
+      "rssServerMiB": 69,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1321,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1276950,
+          "requests": 1321,
+          "medianSynthesisMs": 130,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200530797,
+      "elapsedMs": 1304921,
+      "rssServerMiB": 67,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1321,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1307030,
+          "requests": 1321,
+          "medianSynthesisMs": 130,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200562109,
+      "elapsedMs": 1336233,
+      "rssServerMiB": 71,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1381,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1338343,
+          "requests": 1381,
+          "medianSynthesisMs": 213,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200592182,
+      "elapsedMs": 1366306,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 1,
+      "modelLoadFailures": 0,
+      "restarts": 0,
+      "requests": 1381,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 445046,
+          "uptimeMs": 1368415,
+          "requests": 1381,
+          "medianSynthesisMs": 213,
+          "rssMiB": 116,
+          "lastError": null
+        }
+      ]
+    },
+    {
+      "at": 1795200622996,
+      "elapsedMs": 1397120,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1411,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 18760,
+          "requests": 1411,
+          "medianSynthesisMs": 192,
+          "rssMiB": 113,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200653800,
+      "elapsedMs": 1427924,
+      "rssServerMiB": 64,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1441,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 49566,
+          "requests": 1441,
+          "medianSynthesisMs": 209,
+          "rssMiB": 126,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200684357,
+      "elapsedMs": 1458481,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1473,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 80122,
+          "requests": 1473,
+          "medianSynthesisMs": 146,
+          "rssMiB": 113,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200715418,
+      "elapsedMs": 1489542,
+      "rssServerMiB": 63,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1501,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 111183,
+          "requests": 1501,
+          "medianSynthesisMs": 142,
+          "rssMiB": 115,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200745718,
+      "elapsedMs": 1519842,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1535,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 141483,
+          "requests": 1535,
+          "medianSynthesisMs": 138,
+          "rssMiB": 99,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200777027,
+      "elapsedMs": 1551151,
+      "rssServerMiB": 63,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1561,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 172792,
+          "requests": 1561,
+          "medianSynthesisMs": 140,
+          "rssMiB": 115,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200807076,
+      "elapsedMs": 1581200,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1597,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 202841,
+          "requests": 1597,
+          "medianSynthesisMs": 134,
+          "rssMiB": 99,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200837143,
+      "elapsedMs": 1611267,
+      "rssServerMiB": 63,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1621,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 232908,
+          "requests": 1621,
+          "medianSynthesisMs": 145,
+          "rssMiB": 115,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200867193,
+      "elapsedMs": 1641317,
+      "rssServerMiB": 64,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1657,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 262957,
+          "requests": 1657,
+          "medianSynthesisMs": 137,
+          "rssMiB": 112,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200897249,
+      "elapsedMs": 1671373,
+      "rssServerMiB": 64,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1681,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 293014,
+          "requests": 1681,
+          "medianSynthesisMs": 142,
+          "rssMiB": 117,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200927297,
+      "elapsedMs": 1701421,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 2,
+      "modelLoadFailures": 0,
+      "restarts": 1,
+      "requests": 1717,
+      "failures": 0,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 448972,
+          "uptimeMs": 323062,
+          "requests": 1717,
+          "medianSynthesisMs": 134,
+          "rssMiB": 99,
+          "lastError": "worker exited (code null, signal SIGKILL) after 1375331 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200958099,
+      "elapsedMs": 1732223,
+      "rssServerMiB": 64,
+      "warmWorkers": 1,
+      "modelLoads": 3,
+      "modelLoadFailures": 0,
+      "restarts": 2,
+      "requests": 1740,
+      "failures": 1,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 449890,
+          "uptimeMs": 20584,
+          "requests": 1740,
+          "medianSynthesisMs": 131,
+          "rssMiB": 99,
+          "lastError": "worker exited (code null, signal SIGKILL) after 333280 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795200988151,
+      "elapsedMs": 1762275,
+      "rssServerMiB": 66,
+      "warmWorkers": 1,
+      "modelLoads": 3,
+      "modelLoadFailures": 0,
+      "restarts": 2,
+      "requests": 1758,
+      "failures": 1,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 449890,
+          "uptimeMs": 50635,
+          "requests": 1758,
+          "medianSynthesisMs": 130,
+          "rssMiB": 112,
+          "lastError": "worker exited (code null, signal SIGKILL) after 333280 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795201018187,
+      "elapsedMs": 1792311,
+      "rssServerMiB": 65,
+      "warmWorkers": 1,
+      "modelLoads": 3,
+      "modelLoadFailures": 0,
+      "restarts": 2,
+      "requests": 1782,
+      "failures": 1,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "ready",
+          "pid": 449890,
+          "uptimeMs": 80671,
+          "requests": 1782,
+          "medianSynthesisMs": 136,
+          "rssMiB": 113,
+          "lastError": "worker exited (code null, signal SIGKILL) after 333280 ms"
+        }
+      ]
+    },
+    {
+      "at": 1795201028960,
+      "elapsedMs": 1803084,
+      "rssServerMiB": 65,
+      "warmWorkers": 0,
+      "modelLoads": 3,
+      "modelLoadFailures": 0,
+      "restarts": 3,
+      "requests": 1789,
+      "failures": 2,
+      "queueDepth": 0,
+      "workers": [
+        {
+          "profile": "warm",
+          "state": "dead",
+          "pid": null,
+          "uptimeMs": 0,
+          "requests": 1789,
+          "medianSynthesisMs": 137,
+          "rssMiB": null,
+          "lastError": "worker exited (code null, signal SIGKILL) after 89466 ms"
+        }
+      ]
+    }
+  ]
+}

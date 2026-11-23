@@ -1,0 +1,7 @@
+[LÉLU runtime] env files loaded: .env.local | VITE_ANTHROPIC_API_KEY=absent | ANTHROPIC_API_KEY=absent | LELU_ANTHROPIC_API_KEY=absent | VITE_FIRMS_API_KEY=absent | SUPABASE_URL=SET | SUPABASE_PUBLISHABLE_KEY=SET | AISSTREAM_API_KEY=absent | INSTAGRAM_ACCESS_TOKEN=absent | INSTAGRAM_USER_ID=absent | INSTAGRAM_API_VERSION=absent | VITE_SAPIOLINGO_RSS_URL=absent | VITE_ELPHERU_RSS_URL=absent | VITE_GOOGLE_NEWS_RSS_URL=absent | VITE_GOOGLE_NEWS_RSS_URL_2=absent | VITE_GOOGLE_NEWS_TEMPLATE=absent | INSTAGRAM_USERNAME=absent | QUAD9_ECS=absent | QUAD9_ECS_MASK=absent | NEKO_PASSWORD=absent | VITE_NEKO_URL=absent | NEKO_URL=absent
+[LÉLU runtime] runtime key bridge: SUPABASE_URL → __LELU_SUPABASE_URL__, SUPABASE_ANON_KEY → __LELU_SUPABASE_PUBLISHABLE_KEY__
+[LÉLU access] WARNING: LELU_ACCESS_PASSWORD is not set — every page and API is open to anyone who can reach this port.
+[LÉLU runtime] serving /workspace/chats/a194f0c9c3c58bfdf5946c17/dist on http://0.0.0.0:4180 — engineering API DISABLED — LELU_ENGINEER_TOKEN is not set, every /api/engineer/* route answers 503, AIS bridge not configured (AISSTREAM_API_KEY missing), /api/ai proxy ready, access gate OFF, version b46b0aa3.
+[LÉLU runtime] listening on all interfaces with the engineering API disabled (fail-closed). That is the correct posture for a public host.
+[LÉLU runtime] warm speech ready: 1 worker(s), 1 model load(s), warm=461ms
+[LÉLU runtime] SIGTERM: closing (in-flight requests finish, max 10 s).

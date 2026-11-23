@@ -41,6 +41,11 @@ declare global {
       active: boolean;
       diagnostics: VoiceDiagnostics;
       turnLatency: ReturnType<VoiceEngine["getTurnLatency"]>;
+      /**
+       * Every turn of this session with the reason it did or did not speak
+       * (M23.0). A turn still without an outcome is an unexplained silence.
+       */
+      turns: ReturnType<VoiceEngine["getTurnLog"]>;
     };
   }
 }
@@ -59,6 +64,7 @@ export default function VoiceBridge() {
         active: state.active,
         diagnostics,
         turnLatency: engine.getTurnLatency(),
+        turns: engine.getTurnLog(),
       };
     };
 
