@@ -1,0 +1,30 @@
+{
+  "preset": "preview",
+  "samples": 40,
+  "renders": {
+    "face_closeup": {
+      "file": "face_closeup.png",
+      "seconds": 27.4,
+      "width": 540,
+      "height": 720
+    },
+    "full_body": {
+      "file": "full_body.png",
+      "seconds": 14.9,
+      "width": 540,
+      "height": 720
+    },
+    "three_quarter": {
+      "file": "three_quarter.png",
+      "seconds": 17.9,
+      "width": 540,
+      "height": 720
+    },
+    "back": {
+      "file": "back.png",
+      "seconds": 10.0,
+      "width": 540,
+      "height": 720
+    }
+  }
+}

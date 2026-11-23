@@ -1,0 +1,213 @@
+{
+ "objectId": "lelu-apose",
+ "frames": [
+  {
+   "index": 0,
+   "id": "obs-front#0",
+   "state": "initial",
+   "cells": 41058,
+   "meanConfidence": 0.46990342929514883,
+   "componentsUpdated": [
+    "head",
+    "neck",
+    "torso",
+    "arms",
+    "pelvis",
+    "legs",
+    "feet"
+   ],
+   "componentsPreserved": [],
+   "newCells": 41058,
+   "lostCells": 0,
+   "preservedCells": 0,
+   "imageDigest": "a02428e383b09285"
+  },
+  {
+   "index": 1,
+   "id": "obs-front-again#1",
+   "state": "duplicate",
+   "cells": 41058,
+   "meanConfidence": 0.46990342929514883,
+   "componentsUpdated": [
+    "head",
+    "neck",
+    "torso",
+    "arms",
+    "pelvis",
+    "legs",
+    "feet"
+   ],
+   "componentsPreserved": [],
+   "newCells": 0,
+   "lostCells": 0,
+   "preservedCells": 41058,
+   "imageDigest": "a02428e383b09285"
+  },
+  {
+   "index": 2,
+   "id": "obs-back#2",
+   "state": "refined",
+   "cells": 23177,
+   "meanConfidence": 0.42010268800972767,
+   "componentsUpdated": [
+    "head",
+    "neck",
+    "torso"
+   ],
+   "componentsPreserved": [
+    "arms",
+    "pelvis",
+    "legs",
+    "feet"
+   ],
+   "newCells": 868,
+   "lostCells": 18749,
+   "preservedCells": 22309,
+   "imageDigest": "27db95591db912d2"
+  }
+ ],
+ "duplicateBehaviour": {
+  "duplicateAccepted": true,
+  "why": "the same image (identical pixel digest) was already accepted; repeated evidence cannot raise confidence",
+  "frameState": "duplicate",
+  "confidenceBefore": 0.46990342929514883,
+  "confidenceAfter": 0.46990342929514883,
+  "confidenceDelta": 0
+ },
+ "backObservation": {
+  "available": true,
+  "image": "leluverse/assets/characters/lelu_character/references/PRIMARY_SOURCE/03_back_upper_body.png",
+  "backHypothesis": "H2-inflated-symmetric",
+  "backConfidence": 0.8708765203386695,
+  "registration": "silhouette-bbox normalisation into the front lattice; depths scaled by the lattice cell size",
+  "duplicate": false,
+  "why": "3 components updated from new evidence",
+  "registeredCells": 3608,
+  "against": 0.03386338911649654
+ },
+ "changes": [
+  {
+   "index": 0,
+   "state": "initial",
+   "hypothesis": "H2-inflated-symmetric",
+   "componentsUpdated": [
+    "head",
+    "neck",
+    "torso",
+    "arms",
+    "pelvis",
+    "legs",
+    "feet"
+   ],
+   "componentsPreserved": [],
+   "change": {
+    "newCells": 41058,
+    "lostCells": 0,
+    "preservedCells": 0,
+    "updatedCells": 41058,
+    "affectedBBox": {
+     "minX": 0,
+     "minY": 1428,
+     "maxX": 332,
+     "maxY": 1466
+    },
+    "confidenceRaisedCells": 0,
+    "meanConfidenceDelta": 0
+   },
+   "meanConfidenceBefore": 0,
+   "meanConfidenceAfter": 0.46990342929514883,
+   "notes": [
+    "H2-inflated-symmetric wins on composite confidence (0.8134), ahead of H3-shading-relief by 0.0282. 23.0% of its cells are observed; 77.0% are inferred or synthesised and are labelled as such."
+   ]
+  },
+  {
+   "index": 1,
+   "state": "duplicate",
+   "hypothesis": "H2-inflated-symmetric",
+   "componentsUpdated": [
+    "head",
+    "neck",
+    "torso",
+    "arms",
+    "pelvis",
+    "legs",
+    "feet"
+   ],
+   "componentsPreserved": [],
+   "change": {
+    "newCells": 0,
+    "lostCells": 0,
+    "preservedCells": 41058,
+    "updatedCells": 0,
+    "affectedBBox": null,
+    "confidenceRaisedCells": 0,
+    "meanConfidenceDelta": 0
+   },
+   "meanConfidenceBefore": 0.46990342929514883,
+   "meanConfidenceAfter": 0.46990342929514883,
+   "notes": [
+    "identical image digest: no geometry changed and confidence was left exactly as it was"
+   ]
+  },
+  {
+   "index": 2,
+   "state": "refined",
+   "hypothesis": "H2-inflated-symmetric",
+   "componentsUpdated": [
+    "head",
+    "neck",
+    "torso"
+   ],
+   "componentsPreserved": [
+    "arms",
+    "pelvis",
+    "legs",
+    "feet"
+   ],
+   "change": {
+    "newCells": 868,
+    "lostCells": 18749,
+    "preservedCells": 22309,
+    "updatedCells": 23177,
+    "affectedBBox": {
+     "minX": 0,
+     "minY": 1402,
+     "maxX": 332,
+     "maxY": 1466
+    },
+    "confidenceRaisedCells": 0,
+    "meanConfidenceDelta": -0.04980074128542117
+   },
+   "meanConfidenceBefore": 0.46990342929514883,
+   "meanConfidenceAfter": 0.42010268800972767,
+   "notes": [
+    "back view registered by silhouette bounding box, not by camera calibration: the two views are not metrically aligned",
+    "H2-inflated-symmetric wins on composite confidence (0.8709), ahead of H3-shading-relief by 0.0800. 50.1% of its cells are observed; 49.9% are inferred or synthesised and are labelled as such.",
+    "components replaced: head, neck, torso",
+    "components carried forward unchanged: arms, pelvis, legs, feet",
+    "confidence fused by noisy-OR over 2 distinct observations"
+   ]
+  }
+ ],
+ "framesRestorable": 3,
+ "assets": [
+  {
+   "file": "artifacts/mission4/glb/flipbook_0_initial.glb",
+   "bytes": 1840840,
+   "triangles": 107140,
+   "accepted": true
+  },
+  {
+   "file": "artifacts/mission4/glb/flipbook_1_duplicate.glb",
+   "bytes": 1840844,
+   "triangles": 107140,
+   "accepted": true
+  },
+  {
+   "file": "artifacts/mission4/glb/flipbook_2_refined.glb",
+   "bytes": 895344,
+   "triangles": 51544,
+   "accepted": true
+  }
+ ]
+}

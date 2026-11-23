@@ -1,0 +1,393 @@
+{
+ "cases": [
+  {
+   "name": "solid-box-12³",
+   "cells": 1728,
+   "boundaryCells": 728,
+   "interiorCells": 1000,
+   "interiorFraction": 0.5787037037037037,
+   "bboxCells": 1728,
+   "fillRatio": 1,
+   "components": 1,
+   "containerCells": 1728,
+   "containerIou": 1,
+   "containerBytes": 5391,
+   "compressionRatio": 5.140419217213875,
+   "glbCells": 728,
+   "glbLossFraction": 0.5787037037037037,
+   "glbBytes": 53472,
+   "glbValid": true,
+   "solidifiedCells": 1728,
+   "solidifiedClosed": true,
+   "solidifyIou": 1,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 728,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 1728,
+    "iou": 1,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 728 of 1728 cells (42.13%).",
+     "1000 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.5082529999999963,
+    "containerMs": 47.29423400000002,
+    "glbMs": 7.787832999999978,
+    "solidifyMs": 14.611977999999965,
+    "roundTripMs": 32.451843
+   },
+   "notes": [
+    "1000 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "solid-sphere-r8",
+   "cells": 2176,
+   "boundaryCells": 632,
+   "interiorCells": 1544,
+   "interiorFraction": 0.7095588235294118,
+   "bboxCells": 4096,
+   "fillRatio": 0.53125,
+   "components": 1,
+   "containerCells": 2176,
+   "containerIou": 1,
+   "containerBytes": 6197,
+   "compressionRatio": 5.631111828304018,
+   "glbCells": 632,
+   "glbLossFraction": 0.7095588235294118,
+   "glbBytes": 75368,
+   "glbValid": true,
+   "solidifiedCells": 2176,
+   "solidifiedClosed": true,
+   "solidifyIou": 1,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 632,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 2176,
+    "iou": 1,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 632 of 2176 cells (29.04%).",
+     "1544 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them."
+    ]
+   },
+   "timings": {
+    "measureMs": 6.285093000000018,
+    "containerMs": 13.90871900000002,
+    "glbMs": 4.648151999999982,
+    "solidifyMs": 8.664968999999985,
+    "roundTripMs": 23.238485000000026
+   },
+   "notes": [
+    "1544 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "hollow-box-shell",
+   "cells": 728,
+   "boundaryCells": 728,
+   "interiorCells": 0,
+   "interiorFraction": 0,
+   "bboxCells": 1728,
+   "fillRatio": 0.4212962962962963,
+   "components": 1,
+   "containerCells": 728,
+   "containerIou": 1,
+   "containerBytes": 3175,
+   "compressionRatio": 3.678740157480315,
+   "glbCells": 728,
+   "glbLossFraction": 0,
+   "glbBytes": 53476,
+   "glbValid": true,
+   "solidifiedCells": 1728,
+   "solidifiedClosed": true,
+   "solidifyIou": 0.4212962962962963,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 728,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 1728,
+    "iou": 0.4212962962962963,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 728 of 728 cells (100.00%).",
+     "1000 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.4315199999999777,
+    "containerMs": 6.126887000000011,
+    "glbMs": 5.072416999999973,
+    "solidifyMs": 6.660639000000003,
+    "roundTripMs": 19.470444999999984
+   },
+   "notes": [
+    "1000 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "thin-sphere-shell",
+   "cells": 488,
+   "boundaryCells": 488,
+   "interiorCells": 0,
+   "interiorFraction": 0,
+   "bboxCells": 2744,
+   "fillRatio": 0.17784256559766765,
+   "components": 7,
+   "containerCells": 488,
+   "containerIou": 1,
+   "containerBytes": 2912,
+   "compressionRatio": 2.6895604395604398,
+   "glbCells": 488,
+   "glbLossFraction": 0,
+   "glbBytes": 53432,
+   "glbValid": true,
+   "solidifiedCells": 1328,
+   "solidifiedClosed": true,
+   "solidifyIou": 0.3674698795180723,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 432,
+    "iou": 0.8852459016393442,
+    "lossFraction": 0.11475409836065574
+   },
+   "volumeRoundTrip": {
+    "cells": 1328,
+    "iou": 0.3674698795180723,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 488 of 488 cells (100.00%).",
+     "840 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.29806899999999814,
+    "containerMs": 3.834594999999979,
+    "glbMs": 4.769710000000032,
+    "solidifyMs": 6.040805000000034,
+    "roundTripMs": 16.439678000000015
+   },
+   "notes": [
+    "840 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "thick-torus",
+   "cells": 304,
+   "boundaryCells": 224,
+   "interiorCells": 80,
+   "interiorFraction": 0.2631578947368421,
+   "bboxCells": 784,
+   "fillRatio": 0.3877551020408163,
+   "components": 1,
+   "containerCells": 304,
+   "containerIou": 1,
+   "containerBytes": 2674,
+   "compressionRatio": 1.8279730740463724,
+   "glbCells": 224,
+   "glbLossFraction": 0.2631578947368421,
+   "glbBytes": 28264,
+   "glbValid": true,
+   "solidifiedCells": 304,
+   "solidifiedClosed": true,
+   "solidifyIou": 1,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 224,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 304,
+    "iou": 1,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 224 of 304 cells (73.68%).",
+     "80 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.1850769999999784,
+    "containerMs": 3.5281910000000494,
+    "glbMs": 1.553465000000017,
+    "solidifyMs": 2.6951570000000515,
+    "roundTripMs": 6.586048000000005
+   },
+   "notes": [
+    "80 interior cells were inferred by closure; they carry confidence 0 and inferred=1 because nothing observed them.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "irregular-blob",
+   "cells": 590,
+   "boundaryCells": 590,
+   "interiorCells": 0,
+   "interiorFraction": 0,
+   "bboxCells": 4096,
+   "fillRatio": 0.14404296875,
+   "components": 2,
+   "containerCells": 590,
+   "containerIou": 1,
+   "containerBytes": 3198,
+   "compressionRatio": 2.961851156973108,
+   "glbCells": 590,
+   "glbLossFraction": 0,
+   "glbBytes": 61152,
+   "glbValid": true,
+   "solidifiedCells": 590,
+   "solidifiedClosed": false,
+   "solidifyIou": 1,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 590,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 590,
+    "iou": 1,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 590 of 590 cells (100.00%).",
+     "No enclosed interior was found: the surface is open (or the input was already solid), so nothing was filled."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.3852929999999901,
+    "containerMs": 4.464778000000024,
+    "glbMs": 3.7140889999999445,
+    "solidifyMs": 4.032656999999972,
+    "roundTripMs": 13.64265899999998
+   },
+   "notes": [
+    "No enclosed interior was found: the surface is open (or the input was already solid), so nothing was filled.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "sparse-cloud",
+   "cells": 400,
+   "boundaryCells": 400,
+   "interiorCells": 0,
+   "interiorFraction": 0,
+   "bboxCells": 13824,
+   "fillRatio": 0.028935185185185185,
+   "components": 369,
+   "containerCells": 400,
+   "containerIou": 1,
+   "containerBytes": 3114,
+   "compressionRatio": 2.062941554271034,
+   "glbCells": 400,
+   "glbLossFraction": 0,
+   "glbBytes": 91952,
+   "glbValid": true,
+   "solidifiedCells": 400,
+   "solidifiedClosed": false,
+   "solidifyIou": 1,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 400,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 400,
+    "iou": 1,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 400 of 400 cells (100.00%).",
+     "No enclosed interior was found: the surface is open (or the input was already solid), so nothing was filled.",
+     "Occupied cells touch the lattice boundary, so closure cannot be guaranteed from this grid alone."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.7509079999999813,
+    "containerMs": 3.2945419999999785,
+    "glbMs": 4.054667999999992,
+    "solidifyMs": 2.664751000000024,
+    "roundTripMs": 8.760949000000096
+   },
+   "notes": [
+    "No enclosed interior was found: the surface is open (or the input was already solid), so nothing was filled.",
+    "Occupied cells touch the lattice boundary, so closure cannot be guaranteed from this grid alone.",
+    "GLB accepted by the export gate."
+   ]
+  },
+  {
+   "name": "punched-shell (open)",
+   "cells": 719,
+   "boundaryCells": 719,
+   "interiorCells": 0,
+   "interiorFraction": 0,
+   "bboxCells": 1728,
+   "fillRatio": 0.41608796296296297,
+   "components": 1,
+   "containerCells": 719,
+   "containerIou": 1,
+   "containerBytes": 3185,
+   "compressionRatio": 3.621978021978022,
+   "glbCells": 719,
+   "glbLossFraction": 0,
+   "glbBytes": 53244,
+   "glbValid": true,
+   "solidifiedCells": 719,
+   "solidifiedClosed": false,
+   "solidifyIou": 1,
+   "solidifyLossFraction": 0,
+   "surfaceRoundTrip": {
+    "cells": 719,
+    "iou": 1,
+    "lossFraction": 0
+   },
+   "volumeRoundTrip": {
+    "cells": 719,
+    "iou": 1,
+    "lossFraction": 0,
+    "notes": [
+     "The boundary alone holds 719 of 719 cells (100.00%).",
+     "No enclosed interior was found: the surface is open (or the input was already solid), so nothing was filled."
+    ]
+   },
+   "timings": {
+    "measureMs": 0.7374439999999822,
+    "containerMs": 4.296191999999905,
+    "glbMs": 4.1331050000000005,
+    "solidifyMs": 3.0686379999999644,
+    "roundTripMs": 11.208181000000081
+   },
+   "notes": [
+    "A hole is punched in one face: solidification must refuse to invent an interior.",
+    "No enclosed interior was found: the surface is open (or the input was already solid), so nothing was filled.",
+    "GLB accepted by the export gate."
+   ]
+  }
+ ],
+ "summary": {
+  "cases": 8,
+  "volumetricCases": 3,
+  "meanInteriorFraction": 0.19392755274624468,
+  "containerPreservedAll": true,
+  "boundaryLossMeanFraction": 0.19392755274624468,
+  "recoveredFromBoundaryMean": 0.848595771976796,
+  "status": "VERIFIED",
+  "statement": "The container keeps every cell it is given, interior included, in all cases. A boundary mesh does not, and how much it loses is reported per case. Solidifying a boundary recovers a closed solid's interior exactly — but only when the boundary is closed; a punched shell is reported open instead of being filled."
+ }
+}

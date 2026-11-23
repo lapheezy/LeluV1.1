@@ -1,0 +1,430 @@
+{
+  "source": "LELU_COMPLETE_STYLE_HAIR_TURNAROUND_FRAMEBOOK_FOR_FREEBUFF.pdf, LELU_STYLE_WARDROBE_FRAMEBOOK_FOR_FREEBUFF.pdf, LELU_HAIR_FRAMEBOOK_FOR_FREEBUFF.pdf",
+  "received": "2026-11-16",
+  "rule": "L\u00c9LU is one identity with many looks. The face, hairline and body are fixed by PRIMARY_SOURCE; wardrobe family and hairstyle are swappable variables. Every look is captured in the same six views: front, left 3/4, left profile, back, right 3/4, right profile, plus a detail set.",
+  "identity_locked_by": "references/PRIMARY_SOURCE/ (face, hairline, proportions)",
+  "render_views": [
+    "front",
+    "left_3q",
+    "left_profile",
+    "back",
+    "right_3q",
+    "right_profile",
+    "detail_set"
+  ],
+  "style_families": [
+    {
+      "id": "01",
+      "name": "Casual / Street",
+      "direction": "everyday layered streetwear",
+      "garments": "oversized hoodie or jacket, fitted or ribbed base top, relaxed cargo trousers, utility pockets, chunky sneakers, drawcords",
+      "jewelry": "rose-gold chain layers, small hoops, charm clips, belt hardware, understated rings",
+      "materials": "fleece, jersey, cotton, washed denim, canvas, mesh",
+      "palette": [
+        "cream",
+        "taupe",
+        "charcoal",
+        "blush",
+        "olive",
+        "copper"
+      ],
+      "index": 1
+    },
+    {
+      "id": "02",
+      "name": "Reserved / Minimal",
+      "direction": "quiet, refined, intentional",
+      "garments": "high-neck knit or clean fitted top, longline coat, relaxed tailored trousers, clean low-profile footwear",
+      "jewelry": "fine chain, small hoops, one pendant, slim rings, one hair pin or cuff",
+      "materials": "rib knit, wool, cotton poplin, matte leather",
+      "palette": [
+        "ivory",
+        "stone",
+        "taupe",
+        "espresso",
+        "muted rose"
+      ],
+      "index": 2
+    },
+    {
+      "id": "03",
+      "name": "Formal / Elegant",
+      "direction": "tailored luxury and evening polish",
+      "garments": "structured suit, sculpted dress or gown, tailored jacket, internal corsetry, optional train, refined heels or dress boots",
+      "jewelry": "gem pendant, drop earrings, layered fine chains, rings, hair ornament, belt clasp",
+      "materials": "silk, satin, brocade, velvet, crepe, metallic trim",
+      "palette": [
+        "ivory",
+        "champagne",
+        "blush",
+        "plum",
+        "black",
+        "antique gold"
+      ],
+      "index": 3
+    },
+    {
+      "id": "04",
+      "name": "Steampunk / Industrial",
+      "direction": "Victorian mechanics meets utility",
+      "garments": "structured corset or waistcoat, layered blouse, fitted industrial jacket, harness belts, utility trousers or layered skirt, substantial boots",
+      "jewelry": "goggles, gear pendant, copper chains, watch details, brass cuffs, riveted belt hardware, gemstone drops",
+      "materials": "aged leather, brass, copper, canvas, brocade, mesh",
+      "palette": [
+        "tobacco",
+        "sepia",
+        "dark plum",
+        "warm ivory",
+        "oxidized copper"
+      ],
+      "index": 4
+    },
+    {
+      "id": "05",
+      "name": "Regal / Royal",
+      "direction": "majestic, ceremonial, nomadic couture",
+      "garments": "crown or diadem, embroidered robe or coat, structured bodice, layered trousers or gown, cape, overskirt or train, ornate footwear",
+      "jewelry": "crown gems, medallions, shoulder chains, layered necklaces, brooches, jeweled combs, cuffs",
+      "materials": "brocade, embroidered velvet, satin, metallic thread, fine mesh",
+      "palette": [
+        "ivory",
+        "rose",
+        "burgundy",
+        "plum",
+        "black",
+        "antique gold"
+      ],
+      "index": 5
+    },
+    {
+      "id": "06",
+      "name": "Exotic / Cultural Fusion",
+      "direction": "vibrant ornate editorial fusion, designed not claimed",
+      "garments": "layered wrap panels, dramatic sleeves, mixed textile jacket, sculptural skirt or wide-leg trousers, street-couture footwear",
+      "jewelry": "layered chains, gemstone drops, cuffs, floral clips, waist chains, textile-linked ornaments",
+      "materials": "patterned textiles, embroidery, mesh, leather, velvet, metallic trims",
+      "palette": [
+        "rose",
+        "plum",
+        "ochre",
+        "copper",
+        "jewel tones"
+      ],
+      "index": 6
+    },
+    {
+      "id": "07",
+      "name": "Afrocentric / Diaspora",
+      "direction": "contemporary Black cultural expression with provenance",
+      "garments": "contemporary tailored or wrapped silhouettes, sculptural outer layer, woven or printed panels, utility styling kept distinct from ceremonial",
+      "jewelry": "beadwork, copper/brass pieces, cuffs, braid ornaments, woven belts",
+      "materials": "woven textures, cotton, linen, leather, beads, metallic thread",
+      "palette": [
+        "terracotta",
+        "indigo",
+        "ochre",
+        "green",
+        "cream",
+        "copper"
+      ],
+      "index": 7
+    },
+    {
+      "id": "08",
+      "name": "Asian-inspired / region-specific",
+      "direction": "name the region; never blend regions into one costume",
+      "garments": "kimono-inspired outer layer, hanbok-inspired volume, mandarin collar, sari-inspired drape, regional tailoring",
+      "jewelry": "hairpins, combs, jeweled ornaments, chains, brooches, textile-specific closures",
+      "materials": "silk, brocade, jacquard, cotton, lacquer-like finish",
+      "palette": [
+        "defined by the named region"
+      ],
+      "index": 8
+    },
+    {
+      "id": "09",
+      "name": "Indigenous / Earth",
+      "direction": "researched by nation/community; no pan-Indigenous costume, feathers or headdress",
+      "garments": "contemporary garments informed by researched regional shapes, functional layers, weather-ready pieces",
+      "jewelry": "only community-appropriate researched adornments, silver/copper, beadwork",
+      "materials": "natural fibers, woven cloth, leather, beadwork, metals with provenance",
+      "palette": [
+        "earth palette or specified community palette"
+      ],
+      "index": 9
+    },
+    {
+      "id": "10",
+      "name": "Futuristic / Cyber",
+      "direction": "advanced techwear and luminous modular design",
+      "garments": "technical coat, articulated panels, fitted underlayer, modular cargo trousers, translucent or reflective outer panels, sculptural boots",
+      "jewelry": "integrated metal connectors, luminous accents, tech ear pieces, modular belt hardware, geometric pendants",
+      "materials": "technical knit, reflective textile, translucent polymer-like panels, mesh, coated canvas",
+      "palette": [
+        "onyx",
+        "graphite",
+        "iridescent rose",
+        "violet",
+        "chrome"
+      ],
+      "index": 10
+    },
+    {
+      "id": "11",
+      "name": "Ritual / Mythic Fantasy",
+      "direction": "invented earth-connected symbolic fantasy, labelled as L\u00c9LU worldbuilding",
+      "garments": "layered robes and wraps, cape or mantle, protective outerwear, symbolic belt, fitted base layer, grounded footwear",
+      "jewelry": "talismans, stones, botanical metalwork, symbolic embroidery",
+      "materials": "natural textures, woven cloth, distressed canvas, leather, metalwork",
+      "palette": [
+        "earth",
+        "moss",
+        "copper",
+        "plum",
+        "bone"
+      ],
+      "index": 11
+    },
+    {
+      "id": "12",
+      "name": "Performance / Stage",
+      "direction": "movement-ready, dramatic, collision-tested",
+      "garments": "stage suit or bodysuit, detachable train, fringe or layered skirt, statement jacket, secure footwear",
+      "jewelry": "secure body chains, stage earrings, cuffs, crystal accents, fastened hair ornaments",
+      "materials": "stretch mesh, sequins, metallic textiles, stretch velvet, flexible trim",
+      "palette": [
+        "high-contrast colorways"
+      ],
+      "index": 12
+    },
+    {
+      "id": "13",
+      "name": "Modular / Transformable",
+      "direction": "one base outfit, multiple configurations",
+      "garments": "convertible jacket, detachable sleeves, reversible panels, swappable closures",
+      "jewelry": "interchangeable charms, clip-on chains, modular belt hardware, swappable headpieces",
+      "materials": "per configuration",
+      "palette": [
+        "per configuration"
+      ],
+      "index": 13
+    }
+  ],
+  "hairstyles": [
+    {
+      "id": "01",
+      "name": "Natural Afro Crown",
+      "family": "African / Afro-diasporic",
+      "shape": "rounded halo silhouette, dense defined coils, shaped/tapered and high-volume options",
+      "ornaments": "copper hair cuffs or small floral pins, sparing",
+      "index": 1
+    },
+    {
+      "id": "02",
+      "name": "Locs, waist length",
+      "family": "African / Afro-diasporic",
+      "shape": "long individual locs, natural thickness variation, tapered ends, visible scalp pattern",
+      "ornaments": "copper/rose-gold loc cuffs, beads, chain accents",
+      "index": 2
+    },
+    {
+      "id": "03",
+      "name": "Box braids, jeweled",
+      "family": "African / Afro-diasporic",
+      "shape": "square or diamond parting, medium box braids, consistent taper",
+      "ornaments": "braid cuffs, gemstone beads, end ornaments",
+      "index": 3
+    },
+    {
+      "id": "04",
+      "name": "Fulani braids with beads and rings",
+      "family": "African / Fulani-inspired",
+      "shape": "central and side feed-in braid pattern, resolved scalp geometry, braid direction",
+      "ornaments": "beads, rings, fine braid jewelry",
+      "index": 4
+    },
+    {
+      "id": "05",
+      "name": "Sculpted cornrows",
+      "family": "African / Afro-diasporic",
+      "shape": "raised scalp braids with curved or geometric paths, tapering to a bun or braid fall",
+      "ornaments": "minimal cuffs or one accent chain",
+      "index": 5
+    },
+    {
+      "id": "06",
+      "name": "Ornamented bantu knots",
+      "family": "African / Afro-diasporic",
+      "shape": "multiple sectioned knots with dimensional coil wrapping, even spacing",
+      "ornaments": "small copper rings, beads, floral pins",
+      "index": 6
+    },
+    {
+      "id": "07",
+      "name": "Goddess twists",
+      "family": "African / Afro-diasporic",
+      "shape": "full rope twists with soft curly ends, long cascade, varied but coherent thickness",
+      "ornaments": "rose-gold twist cuffs, tiny gemstones, flower accents",
+      "index": 7
+    },
+    {
+      "id": "08",
+      "name": "Japanese-inspired ornamental updo",
+      "family": "Asian-inspired / Japanese",
+      "shape": "sculptural updo, clean silhouette, controlled tendrils, labelled as contemporary interpretation",
+      "ornaments": "hair sticks, kanzashi-inspired floral pins",
+      "index": 8
+    },
+    {
+      "id": "09",
+      "name": "Hime cut",
+      "family": "Asian-inspired / Japanese",
+      "shape": "long straight or softly textured hair, cheek/jaw-length side sections, fringe",
+      "ornaments": "minimal clips or a single pin",
+      "index": 9
+    },
+    {
+      "id": "10",
+      "name": "Layered wolf cut",
+      "family": "Contemporary editorial",
+      "shape": "layered crown volume, textured ends, face-framing layers, optional curtain fringe",
+      "ornaments": "small ear cuffs or subtle clips",
+      "index": 10
+    },
+    {
+      "id": "11",
+      "name": "Indigenous-inspired braids",
+      "family": "Indigenous, nation/community specific",
+      "shape": "researched nation-specific braiding; no generic pan-Indigenous styling",
+      "ornaments": "community-appropriate only",
+      "index": 11
+    },
+    {
+      "id": "12",
+      "name": "Royal braid crown",
+      "family": "Regal / fantasy couture",
+      "shape": "braided crown structure with controlled volume",
+      "ornaments": "gem pins, medallion, fine chains",
+      "index": 12
+    },
+    {
+      "id": "13",
+      "name": "Braided high ponytail",
+      "family": "Afrocentric / couture",
+      "shape": "high ponytail with braided base and clean hairline",
+      "ornaments": "cuff at the base, chain accent",
+      "index": 13
+    },
+    {
+      "id": "14",
+      "name": "Fusion space buns",
+      "family": "Afrocentric / experimental",
+      "shape": "two high buns combining curls, braids or twists with loose face-framing texture",
+      "ornaments": "small rings, twin pins, optional rose accents",
+      "index": 14
+    },
+    {
+      "id": "15",
+      "name": "Double ornamental buns",
+      "family": "Asian-inspired / region-specific",
+      "shape": "twin buns with named regional research",
+      "ornaments": "combs, pins or ribbons tied to the region",
+      "index": 15
+    },
+    {
+      "id": "16",
+      "name": "Sculptural loop updo",
+      "family": "Couture / editorial",
+      "shape": "interlocking hair loops and braided structures forming an architectural silhouette",
+      "ornaments": "fine chains or gem pins at junctions",
+      "index": 16
+    },
+    {
+      "id": "17",
+      "name": "Half-up, half-down",
+      "family": "Versatile / natural texture",
+      "shape": "upper section braided, twisted or knotted; lower length loose in curls, coils or waves",
+      "ornaments": "barrette, jeweled clip, braid cuff or flower cluster",
+      "index": 17
+    },
+    {
+      "id": "18",
+      "name": "Curly updo with tendrils",
+      "family": "Natural / formal",
+      "shape": "pinned curls in a high or low updo with released tendrils at face and nape",
+      "ornaments": "pearl/crystal pins, floral clips, small hair chains",
+      "index": 18
+    },
+    {
+      "id": "19",
+      "name": "Asymmetric sleek bob",
+      "family": "Contemporary editorial",
+      "shape": "jaw-to-chin length bob with intentional side-to-side difference, controlled shine",
+      "ornaments": "minimal ear jewelry, one optional side clip",
+      "index": 19
+    },
+    {
+      "id": "20",
+      "name": "Long straight silk finish",
+      "family": "Contemporary / formal",
+      "shape": "long smooth straight hair, natural weight, clean part, waist or hip length",
+      "ornaments": "fine hair chain, small clips or none",
+      "index": 20
+    },
+    {
+      "id": "21",
+      "name": "Defined curl pattern",
+      "family": "Natural texture",
+      "shape": "defined spring curls, visible strand grouping, controlled frizz, consistent curl scale",
+      "ornaments": "subtle cuffs, flower pins, chain accents",
+      "index": 21
+    },
+    {
+      "id": "22",
+      "name": "Colour-accented curls",
+      "family": "Experimental / colour",
+      "shape": "dark base curls with rose, copper, plum or magenta accent sections, believable root transitions",
+      "ornaments": "secondary only",
+      "index": 22
+    },
+    {
+      "id": "23",
+      "name": "Wild freeform locs",
+      "family": "African / Afro-diasporic",
+      "shape": "organic freeform locs, varied thickness, irregular but intentional silhouette",
+      "ornaments": "sparse loc jewelry, copper wraps, beads",
+      "index": 23
+    },
+    {
+      "id": "24",
+      "name": "Braided mohawk",
+      "family": "Afrocentric / editorial",
+      "shape": "close braided sides with a raised central ridge, clean transitions, scalp pattern",
+      "ornaments": "central chain, small rings, metallic braid cuffs",
+      "index": 24
+    }
+  ],
+  "asset_classes": [
+    "neck and chest: chokers, layered chains, torques, pendants, medallions, bib necklaces, body chains, sternum ornaments",
+    "ears: hoops, drops, cuffs, climbers, studs, ear chains, linked multi-piercing sets",
+    "hair and head: braid cuffs, loc rings, beads, hairpins, combs, floral pieces, crowns, headpieces",
+    "hands: rings, knuckle plates, cuffs, nail sets",
+    "waist and hips: belts, harnesses, D-rings, pouches, sashes, chain swags",
+    "feet and legs: platform boots, buckles, sole hardware, anklets, crystal drops",
+    "garment components: buckles, clasps, zippers, detachable panels, buckles, printed panels"
+  ],
+  "per_asset_capture": [
+    "isolated front",
+    "side thickness",
+    "rear clasp and attachment",
+    "on-character scale",
+    "material close-up",
+    "alternate finish"
+  ],
+  "verified_against": {
+    "wardrobe_framebook": "13 families, 13 gallery fits, 6 views per outfit",
+    "hair_framebook": "24 styles, 6 views per style incl. overhead/top",
+    "checked": "2026-11-17"
+  },
+  "view_union_note": "wardrobe book uses 06 detail set; hair book uses overhead/top. Union = 7 views."
+}

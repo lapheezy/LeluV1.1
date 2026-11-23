@@ -1,0 +1,23 @@
+Attached source: LELU_Character_References_10_Images.pdf
+Received: 2026-11-16, in chat.
+Text layer visible from this workspace (the embedded image streams are NOT
+readable here - the binary never landed on the sandbox filesystem):
+
+  LÉLU CHARACTER REFERENCE | IMAGE 01 OF 10
+  ... IMAGE 02 ... IMAGE 10 OF 10
+
+The ten images it contains correspond to the tracked primary set in
+leluverse/assets/characters/lelu_character/references/ (ref01..ref10):
+  01 ref01_front_fullbody_A.png     front full body
+  02 ref02_hip_harness_detail_A.png hip / harness / sashes
+  03 ref03_boots_detail_A.png       platform boots
+  04 ref04_hands_jewelry.png        hands, nails, rings
+  05 ref05_lower_body_A.png         lower body, pants, boots
+  06 ref06_torso_corset_A.png       bodice, cups, neckline
+  07 ref07_signature_pendant.png    pendant, choker, chains
+  08 ref08_face_upper_body.png      face and upper body
+  09 ref09_back_upper_body.png      back, hair mass, harness
+  10 ref10_face_primary.png         face close-up, primary
+
+To also archive the PDF binary, drop the file into
+references/PRIMARY_SOURCE/ - it cannot be recovered from the text layer.

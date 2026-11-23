@@ -1,0 +1,137 @@
+{
+ "model": {
+  "id": "triposr",
+  "displayName": "TripoSR",
+  "provider": "Tripo AI & Stability AI",
+  "tasks": [
+   "image-to-3d"
+  ],
+  "repository": "https://github.com/VAST-AI-Research/TripoSR",
+  "weightsRepository": "https://huggingface.co/stabilityai/TripoSR",
+  "codeLicence": {
+   "id": "MIT",
+   "commercial": "permitted"
+  },
+  "weightsLicence": {
+   "id": "MIT",
+   "commercial": "permitted",
+   "statedForWeights": true
+  },
+  "gating": "none",
+  "redistribution": "allowed",
+  "minVramGb": 6,
+  "runsOnCpu": true,
+  "costClass": "free",
+  "publishedPerformance": {
+   "note": "<0.5 s per image on an NVIDIA A100",
+   "source": "https://github.com/VAST-AI-Research/TripoSR"
+  },
+  "caveats": [
+   "Single-shell output: fused fingers, no separation of hair from clothing, no rig.",
+   "The model card still carries leftover extra_gated_fields metadata while the Hub reports gated:false and no access request exists.",
+   "run.py falls back to CPU when CUDA is absent; --chunk-size lowers VRAM."
+  ],
+  "verifiedAgainst": [
+   "https://github.com/VAST-AI-Research/TripoSR/blob/main/LICENSE",
+   "https://github.com/VAST-AI-Research/TripoSR/blob/main/README.md",
+   "https://huggingface.co/stabilityai/TripoSR"
+  ],
+  "verifiedAt": "2026-11-17"
+ },
+ "candidates": [
+  {
+   "id": "triposr",
+   "displayName": "TripoSR",
+   "provider": "Tripo AI & Stability AI",
+   "tasks": [
+    "image-to-3d"
+   ],
+   "repository": "https://github.com/VAST-AI-Research/TripoSR",
+   "weightsRepository": "https://huggingface.co/stabilityai/TripoSR",
+   "codeLicence": {
+    "id": "MIT",
+    "commercial": "permitted"
+   },
+   "weightsLicence": {
+    "id": "MIT",
+    "commercial": "permitted",
+    "statedForWeights": true
+   },
+   "gating": "none",
+   "redistribution": "allowed",
+   "minVramGb": 6,
+   "runsOnCpu": true,
+   "costClass": "free",
+   "publishedPerformance": {
+    "note": "<0.5 s per image on an NVIDIA A100",
+    "source": "https://github.com/VAST-AI-Research/TripoSR"
+   },
+   "caveats": [
+    "Single-shell output: fused fingers, no separation of hair from clothing, no rig.",
+    "The model card still carries leftover extra_gated_fields metadata while the Hub reports gated:false and no access request exists.",
+    "run.py falls back to CPU when CUDA is absent; --chunk-size lowers VRAM."
+   ],
+   "verifiedAgainst": [
+    "https://github.com/VAST-AI-Research/TripoSR/blob/main/LICENSE",
+    "https://github.com/VAST-AI-Research/TripoSR/blob/main/README.md",
+    "https://huggingface.co/stabilityai/TripoSR"
+   ],
+   "verifiedAt": "2026-11-17"
+  }
+ ],
+ "stages": [
+  {
+   "id": "image-input",
+   "label": "Image input",
+   "status": "BLOCKED",
+   "detail": "no image bytes were supplied or hashed",
+   "ms": null
+  },
+  {
+   "id": "image-analysis",
+   "label": "Image analysis",
+   "status": "BLOCKED",
+   "detail": "requires the TripoSR worker, which is not installed here",
+   "ms": null
+  },
+  {
+   "id": "numerical-representation",
+   "label": "Numerical representation",
+   "status": "VERIFIED",
+   "detail": "NRE sparse lattice available: voxelisation, Morton ordering, serialisation and checksums are implemented and measured (see Experiment B).",
+   "ms": null
+  },
+  {
+   "id": "spatial-reconstruction",
+   "label": "Spatial reconstruction",
+   "status": "BLOCKED",
+   "detail": "depends on the image-analysis stage",
+   "ms": null
+  },
+  {
+   "id": "geometry-export",
+   "label": "3D geometry export",
+   "status": "VERIFIED",
+   "detail": "GLB writer and GlbInspector gate are implemented; output is validated before it is offered (see Experiment B).",
+   "ms": null
+  }
+ ],
+ "blockers": [
+  "The TripoSR worker is not installed on this machine (Torch and the checkpoint are absent), so no reconstruction can be attempted here."
+ ],
+ "worker": {
+  "interpreter": "python3",
+  "script": "scripts/foundry/triposr_to_glb.py",
+  "argv": [
+   "--image",
+   "<path>",
+   "--out",
+   "<path>.glb",
+   "--mc-resolution",
+   "256",
+   "--grid-size",
+   "0.5"
+  ]
+ },
+ "status": "BLOCKED"
+}

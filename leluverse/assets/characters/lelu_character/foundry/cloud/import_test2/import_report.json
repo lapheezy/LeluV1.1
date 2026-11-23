@@ -1,0 +1,73 @@
+{
+  "mesh": "/workspace/chats/dabd4582007a8c6e487b4757/leluverse/assets/characters/lelu_character/foundry/base/base.obj",
+  "import": {
+    "imported_height": 16.9455,
+    "scale": 0.1015,
+    "final_height": 1.72
+  },
+  "topology": {
+    "objects": 1,
+    "vertices": 19158,
+    "triangles": 36972,
+    "connected_components": 154
+  },
+  "silhouette": {
+    "hairline": {
+      "z": 1.6675,
+      "width_m": 0.1606,
+      "width_over_height": 0.0934
+    },
+    "eye": {
+      "z": 1.6061,
+      "width_m": 0.184,
+      "width_over_height": 0.107
+    },
+    "chin": {
+      "z": 1.4634,
+      "width_m": 0.3112,
+      "width_over_height": 0.1809
+    },
+    "shoulder": {
+      "z": 1.4183,
+      "width_m": 0.4367,
+      "width_over_height": 0.2539
+    },
+    "bust": {
+      "z": 1.3388,
+      "width_m": 0.5469,
+      "width_over_height": 0.3179
+    },
+    "waist": {
+      "z": 1.2375,
+      "width_m": 0.7361,
+      "width_over_height": 0.4279
+    },
+    "belt": {
+      "z": 1.1564,
+      "width_m": 0.861,
+      "width_over_height": 0.5006
+    },
+    "crotch": {
+      "z": 0.9322,
+      "width_m": 0.3639,
+      "width_over_height": 0.2116
+    },
+    "knee": {
+      "z": 0.4558,
+      "width_m": 0.4901,
+      "width_over_height": 0.285
+    },
+    "ankle": {
+      "z": 0.172,
+      "width_m": 0.6095,
+      "width_over_height": 0.3544
+    }
+  },
+  "renders": {
+    "front": "foundry/cloud/import_test2/renders/front.png",
+    "three_quarter": "foundry/cloud/import_test2/renders/three_quarter.png",
+    "profile": "foundry/cloud/import_test2/renders/profile.png",
+    "back": "foundry/cloud/import_test2/renders/back.png"
+  },
+  "comparison": "foundry/cloud/import_test2/compare.png"
+}

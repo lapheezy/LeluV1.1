@@ -117,6 +117,5 @@ __pycache__/
 .venv-perception/
 .libs/
 
-# M22.7 local runtime (downloaded runtimes, ~500 MB)
-.browser-libs/
-.piper/
+# Character Foundry local runtime (Blender install, sysroot, caches)
+.foundry/

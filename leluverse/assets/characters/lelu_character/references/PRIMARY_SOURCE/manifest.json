@@ -1,0 +1,43 @@
+{
+  "set": "L\u00c9LU primary source photographs",
+  "saved_at": "2026-11-16T23:34:16.148658+00:00",
+  "note": "The canonical three photographs supplied in chat. Copies are kept here so the reconstruction can always be re-measured from the original pixels. Do not replace these with renders or with the older jpeg studies.",
+  "files": [
+    {
+      "file": "01_front_full_body.png",
+      "role": "front full body \u2014 silhouette, bodysuit, pants, boots, harness",
+      "source_path": "leluverse/assets/characters/lelu_character/references/ref01_front_fullbody_A.png",
+      "bytes": 2178067,
+      "sha256": "1da6e4599cc034dd11ea64a247f554276bdda826deca81a0327c107c99234dca",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "file": "02_face_closeup.png",
+      "role": "face \u2014 skull, brows, eyes, liner, nose, lips, hairline, jewelry",
+      "source_path": "leluverse/assets/characters/lelu_character/references/ref10_face_primary.png",
+      "bytes": 3720994,
+      "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "file": "03_back_upper_body.png",
+      "role": "back \u2014 hair mass, braids, hair chains, back harness, sashes",
+      "source_path": "leluverse/assets/characters/lelu_character/references/ref09_back_upper_body.png",
+      "bytes": 3102735,
+      "sha256": "bec0f68f49ed752e21597b251cc95909ca6265197e454288a8f93bff746f5355",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "file": "04_front_apose.png",
+      "role": "front A-pose \u2014 proportions, arm and leg lengths",
+      "source_path": "leluverse/assets/characters/lelu_character/references/ref11_front_apose_B.png",
+      "bytes": 2070376,
+      "sha256": "1e01242a0a2729614e8d97da418077df3279daab8a08daee6b01a1e056ba6f02",
+      "width": 1024,
+      "height": 1536
+    }
+  ]
+}

@@ -1,0 +1,382 @@
+{
+ "graph": [
+  {
+   "id": "head",
+   "label": "Head",
+   "parent": "neck",
+   "dependents": [
+    "face",
+    "hair"
+   ],
+   "articulated": true,
+   "deformable": false,
+   "costUnits": 4,
+   "role": "structural",
+   "note": "skull and jaw; the anchor for hair and face overlays"
+  },
+  {
+   "id": "neck",
+   "label": "Neck",
+   "parent": "torso",
+   "dependents": [
+    "head"
+   ],
+   "articulated": true,
+   "deformable": false,
+   "costUnits": 1,
+   "role": "structural",
+   "note": "short connector; a head-scale change stretches it rather than rebuilding the torso"
+  },
+  {
+   "id": "torso",
+   "label": "Torso",
+   "parent": "pelvis",
+   "dependents": [
+    "neck",
+    "arms",
+    "clothing",
+    "accessories"
+   ],
+   "articulated": true,
+   "deformable": true,
+   "costUnits": 5,
+   "role": "structural",
+   "note": "spine and ribcage; carries the shoulders and the neck"
+  },
+  {
+   "id": "arms",
+   "label": "Arms",
+   "parent": "torso",
+   "dependents": [
+    "hands"
+   ],
+   "articulated": true,
+   "deformable": false,
+   "costUnits": 4,
+   "role": "structural",
+   "note": "shoulder to wrist; the most expensive part to infer from a silhouette"
+  },
+  {
+   "id": "pelvis",
+   "label": "Pelvis",
+   "parent": null,
+   "dependents": [
+    "torso",
+    "legs"
+   ],
+   "articulated": false,
+   "deformable": false,
+   "costUnits": 3,
+   "role": "structural",
+   "note": "root of the articulation tree; body proportions are anchored here"
+  },
+  {
+   "id": "legs",
+   "label": "Legs",
+   "parent": "pelvis",
+   "dependents": [
+    "feet"
+   ],
+   "articulated": true,
+   "deformable": false,
+   "costUnits": 5,
+   "role": "structural",
+   "note": "hip to ankle; two limbs sharing one node, split at reconstruction time"
+  },
+  {
+   "id": "feet",
+   "label": "Feet",
+   "parent": "legs",
+   "dependents": [],
+   "articulated": true,
+   "deformable": false,
+   "costUnits": 1,
+   "role": "structural",
+   "note": "contact with the ground; the only part whose height is pinned by the scene"
+  }
+ ],
+ "dependencies": [
+  {
+   "from": "neck",
+   "to": "head",
+   "kind": "parent-of",
+   "note": "Head is carried by Neck"
+  },
+  {
+   "from": "head",
+   "to": "face",
+   "kind": "worn-over",
+   "note": "Face is worn over Head"
+  },
+  {
+   "from": "head",
+   "to": "hair",
+   "kind": "worn-over",
+   "note": "Hair is worn over Head"
+  },
+  {
+   "from": "torso",
+   "to": "neck",
+   "kind": "parent-of",
+   "note": "Neck is carried by Torso"
+  },
+  {
+   "from": "pelvis",
+   "to": "torso",
+   "kind": "parent-of",
+   "note": "Torso is carried by Pelvis"
+  },
+  {
+   "from": "torso",
+   "to": "arms",
+   "kind": "parent-of",
+   "note": "Arms is carried by Torso"
+  },
+  {
+   "from": "arms",
+   "to": "hands",
+   "kind": "worn-over",
+   "note": "Hands is worn over Arms"
+  },
+  {
+   "from": "pelvis",
+   "to": "legs",
+   "kind": "parent-of",
+   "note": "Legs is carried by Pelvis"
+  },
+  {
+   "from": "legs",
+   "to": "feet",
+   "kind": "parent-of",
+   "note": "Feet is carried by Legs"
+  },
+  {
+   "from": "torso",
+   "to": "clothing",
+   "kind": "worn-over",
+   "note": "Clothing is worn over Torso"
+  },
+  {
+   "from": "torso",
+   "to": "accessories",
+   "kind": "worn-over",
+   "note": "Accessories is worn over Torso"
+  },
+  {
+   "from": "arms",
+   "to": "clothing",
+   "kind": "worn-over",
+   "note": "a garment follows arms"
+  },
+  {
+   "from": "pelvis",
+   "to": "clothing",
+   "kind": "worn-over",
+   "note": "a garment follows pelvis"
+  },
+  {
+   "from": "legs",
+   "to": "clothing",
+   "kind": "worn-over",
+   "note": "a garment follows legs"
+  }
+ ],
+ "split": {
+  "counts": {
+   "head": 38,
+   "face": 0,
+   "hair": 0,
+   "neck": 0,
+   "torso": 15199,
+   "arms": 0,
+   "hands": 0,
+   "pelvis": 11204,
+   "legs": 10544,
+   "feet": 1,
+   "clothing": 0,
+   "accessories": 0
+  },
+  "unassignedCells": 4072,
+  "contestedCells": 24108,
+  "notes": [
+   "36986 of 41058 cells were assigned to a structural part; 4072 fell outside every measured region",
+   "24108 cells fell inside overlapping regions and were given to the smallest region",
+   "overlays (hair, face, hands, clothing, accessories) are not part of the partition: they overlap the parts by construction"
+  ]
+ },
+ "anatomy": [],
+ "invalidation": [
+  {
+   "change": "hairstyle",
+   "structural": false,
+   "dirty": [
+    "hair"
+   ],
+   "reused": [
+    "head",
+    "face",
+    "neck",
+    "torso",
+    "arms",
+    "hands",
+    "pelvis",
+    "legs",
+    "feet",
+    "clothing",
+    "accessories"
+   ]
+  },
+  {
+   "change": "sleeve geometry",
+   "structural": false,
+   "dirty": [
+    "arms"
+   ],
+   "reused": [
+    "head",
+    "face",
+    "hair",
+    "neck",
+    "torso",
+    "hands",
+    "pelvis",
+    "legs",
+    "feet",
+    "clothing",
+    "accessories"
+   ]
+  },
+  {
+   "change": "body proportions (pelvis)",
+   "structural": true,
+   "dirty": [
+    "head",
+    "face",
+    "hair",
+    "neck",
+    "torso",
+    "arms",
+    "hands",
+    "pelvis",
+    "legs",
+    "feet",
+    "clothing",
+    "accessories"
+   ],
+   "reused": []
+  },
+  {
+   "change": "head scale",
+   "structural": true,
+   "dirty": [
+    "head",
+    "face",
+    "hair"
+   ],
+   "reused": [
+    "neck",
+    "torso",
+    "arms",
+    "hands",
+    "pelvis",
+    "legs",
+    "feet",
+    "clothing",
+    "accessories"
+   ]
+  }
+ ],
+ "refinement": {
+  "changed": [
+   "torso"
+  ],
+  "preserved": [
+   "head",
+   "neck",
+   "arms",
+   "pelvis",
+   "legs",
+   "feet"
+  ],
+  "preservedByDigest": [],
+  "digestsBefore": {
+   "torso": "1234911304349e35",
+   "pelvis": "86ef3969029410c1",
+   "legs": "b9c1288e02fdf47e",
+   "feet": "999d67df0101ff0b"
+  },
+  "digestsAfter": {
+   "head": "1ada05e90110c799",
+   "torso": "249948711c9999f5",
+   "pelvis": "570d8e550ff9c321",
+   "legs": "56869ed7107129fd",
+   "feet": "15a6b60701018d57"
+  },
+  "change": {
+   "newCells": 11382,
+   "lostCells": 864,
+   "preservedCells": 22313,
+   "updatedCells": 33695,
+   "affectedBBox": {
+    "minX": 0,
+    "minY": 1428,
+    "maxX": 332,
+    "maxY": 1466
+   },
+   "confidenceRaisedCells": 11873,
+   "meanConfidenceDelta": 0.07795423200807161
+  }
+ },
+ "assets": [
+  {
+   "component": "head",
+   "cells": 38,
+   "file": "artifacts/mission4/glb/component_head.glb",
+   "bytes": 4392,
+   "triangles": 204,
+   "accepted": true
+  },
+  {
+   "component": "neck",
+   "cells": 0,
+   "file": null
+  },
+  {
+   "component": "torso",
+   "cells": 15199,
+   "file": "artifacts/mission4/glb/component_torso.glb",
+   "bytes": 545740,
+   "triangles": 30288,
+   "accepted": true
+  },
+  {
+   "component": "arms",
+   "cells": 0,
+   "file": null
+  },
+  {
+   "component": "pelvis",
+   "cells": 11204,
+   "file": "artifacts/mission4/glb/component_pelvis.glb",
+   "bytes": 371428,
+   "triangles": 20604,
+   "accepted": true
+  },
+  {
+   "component": "legs",
+   "cells": 10544,
+   "file": "artifacts/mission4/glb/component_legs.glb",
+   "bytes": 262928,
+   "triangles": 14560,
+   "accepted": true
+  },
+  {
+   "component": "feet",
+   "cells": 1,
+   "file": "artifacts/mission4/glb/component_feet.glb",
+   "bytes": 932,
+   "triangles": 12,
+   "accepted": true
+  }
+ ]
+}

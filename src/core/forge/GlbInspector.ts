@@ -196,6 +196,69 @@ function parseContainer(buffer: ArrayBuffer): { gltf: Gltf; bin: DataView | null
   return { gltf, bin };
 }
 
+/**
+ * Geometry readable from a GLB, with no node transforms applied.
+ *
+ * The inspector deliberately reports measurements; the Numerical
+ * Reconstruction Engine also needs the raw triangles to voxelise them
+ * back into a lattice. Sharing this reader keeps one parser in the
+ * codebase instead of two that can disagree about a malformed file.
+ */
+export interface GlbGeometry {
+  /** xyz triples, local mesh space. */
+  positions: Float32Array;
+  indices: Uint32Array;
+  primitives: number;
+  /** Primitives whose POSITION could not be read (Draco, bad offsets). */
+  unreadablePrimitives: number;
+}
+
+export function readGlbGeometry(input: ArrayBuffer | Uint8Array): GlbGeometry {
+  const buffer =
+    input instanceof Uint8Array
+      ? (input.buffer.slice(input.byteOffset, input.byteOffset + input.byteLength) as ArrayBuffer)
+      : input;
+  const { gltf, bin } = parseContainer(buffer);
+  const positions: number[] = [];
+  const indices: number[] = [];
+  let primitives = 0;
+  let unreadablePrimitives = 0;
+
+  for (const mesh of gltf.meshes ?? []) {
+    for (const prim of mesh.primitives ?? []) {
+      primitives++;
+      const positionIndex = prim.attributes.POSITION;
+      if (positionIndex === undefined) {
+        unreadablePrimitives++;
+        continue;
+      }
+      const read = readAccessor(gltf, bin, positionIndex);
+      if (!read) {
+        unreadablePrimitives++;
+        continue;
+      }
+      const base = positions.length / 3;
+      for (const row of read) positions.push(row[0], row[1], row[2]);
+      if (prim.indices !== undefined) {
+        const idx = readAccessor(gltf, bin, prim.indices);
+        if (!idx) {
+          unreadablePrimitives++;
+          continue;
+        }
+        for (const row of idx) indices.push(base + row[0]);
+      } else {
+        for (let v = 0; v < read.length; v++) indices.push(base + v);
+      }
+    }
+  }
+  return {
+    positions: new Float32Array(positions),
+    indices: new Uint32Array(indices),
+    primitives,
+    unreadablePrimitives,
+  };
+}
+
 export function inspectGlb(input: ArrayBuffer | Uint8Array): GlbReport {
   const buffer =
     input instanceof Uint8Array

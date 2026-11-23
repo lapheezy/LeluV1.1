@@ -1,0 +1,705 @@
+{
+ "thresholds": {
+  "surfaceIou": 0.98,
+  "surfaceContainment": 0.98
+ },
+ "cases": [
+  {
+   "name": "cube-shell-16",
+   "kind": "surface",
+   "description": "Hollow cube: the simplest irregular-free topology.",
+   "grid": {
+    "resolution": [
+     16,
+     16,
+     16
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 728,
+   "boundaryCells": 728,
+   "recoveredCells": 728,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 728,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 1468,
+    "triangles": 2928
+   },
+   "glbBytes": 53476,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 3.0958290000000375,
+    "encodeMs": 0.9986239999999498,
+    "inspectMs": 0.7609180000000038,
+    "decodeMs": 2.312088000000017,
+    "voxelizeMs": 11.586641999999983,
+    "compareMs": 9.925785000000019,
+    "totalMs": 28.798428
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "torus-24",
+   "kind": "surface",
+   "description": "Genus-1 surface with a hole: winding and connectivity stress.",
+   "grid": {
+    "resolution": [
+     24,
+     24,
+     24
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 304,
+   "boundaryCells": 224,
+   "recoveredCells": 224,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 224,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 0.7368421052631579,
+   "totalContainment": 0.7368421052631579,
+   "maxDisplacementCells": 1,
+   "meanDisplacementCells": 0.2631578947368421,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 0.7368421052631579,
+   "mesh": {
+    "vertices": 568,
+    "triangles": 1152
+   },
+   "glbBytes": 21304,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 1.4660910000000058,
+    "encodeMs": 0.13132600000000139,
+    "inspectMs": 0.12011499999999842,
+    "decodeMs": 0.43995599999999513,
+    "voxelizeMs": 5.213221999999973,
+    "compareMs": 1.6500859999999875,
+    "totalMs": 9.097219999999993
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "irregular-blob-24",
+   "kind": "surface",
+   "description": "Non-convex seeded blob: no analytic inverse, closest to character geometry.",
+   "grid": {
+    "resolution": [
+     24,
+     24,
+     24
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 590,
+   "boundaryCells": 590,
+   "recoveredCells": 590,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 590,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 1488,
+    "triangles": 3552
+   },
+   "glbBytes": 61164,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 1.9854649999999765,
+    "encodeMs": 0.28115799999994806,
+    "inspectMs": 0.19185000000004493,
+    "decodeMs": 1.9475340000000188,
+    "voxelizeMs": 4.664172000000008,
+    "compareMs": 3.6846439999999916,
+    "totalMs": 12.785090000000025
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "sparse-random-24",
+   "kind": "surface",
+   "description": "400 pseudo-random cells: no surface at all, the worst case for a boundary mesh.",
+   "grid": {
+    "resolution": [
+     24,
+     24,
+     24
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 400,
+   "boundaryCells": 400,
+   "recoveredCells": 400,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 400,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 2931,
+    "triangles": 4676
+   },
+   "glbBytes": 91964,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 3.3877970000000346,
+    "encodeMs": 0.49891700000000583,
+    "inspectMs": 0.1157880000000091,
+    "decodeMs": 1.2834680000000276,
+    "voxelizeMs": 3.7972149999999942,
+    "compareMs": 1.6563179999999988,
+    "totalMs": 10.772113000000047
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "filled-box-16",
+   "kind": "volume",
+   "description": "Solid 12³ block: interior cells a boundary mesh cannot hold.",
+   "grid": {
+    "resolution": [
+     16,
+     16,
+     16
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 1728,
+   "boundaryCells": 728,
+   "recoveredCells": 728,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 728,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 0.4212962962962963,
+   "totalContainment": 0.4212962962962963,
+   "maxDisplacementCells": 4,
+   "meanDisplacementCells": 1.037037037037037,
+   "unmatchedBeyondProbe": 8,
+   "representableFraction": 0.4212962962962963,
+   "mesh": {
+    "vertices": 866,
+    "triangles": 1728
+   },
+   "glbBytes": 31852,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 1.02370099999996,
+    "encodeMs": 0.05812900000000809,
+    "inspectMs": 0.06780699999995932,
+    "decodeMs": 0.8653840000000059,
+    "voxelizeMs": 3.4141970000000015,
+    "compareMs": 9.518912,
+    "totalMs": 14.996248999999978
+   },
+   "pass": true,
+   "notes": [
+    "Interior cells cannot be represented by a boundary mesh: 42.13% of the input is recoverable, while 100.00% of its BOUNDARY is. This is the irreducible information loss of a surface encoding, measured rather than assumed.",
+    "8 input cells had no recovered cell within the 4-cell probe radius."
+   ]
+  },
+  {
+   "name": "filled-sphere-20",
+   "kind": "volume",
+   "description": "Solid sphere: interior loss at a curved boundary.",
+   "grid": {
+    "resolution": [
+     20,
+     20,
+     20
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 2176,
+   "boundaryCells": 632,
+   "recoveredCells": 632,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 632,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 0.29044117647058826,
+   "totalContainment": 0.29044117647058826,
+   "maxDisplacementCells": 4,
+   "meanDisplacementCells": 1.4541514794207964,
+   "unmatchedBeyondProbe": 160,
+   "representableFraction": 0.29044117647058826,
+   "mesh": {
+    "vertices": 1250,
+    "triangles": 2496
+   },
+   "glbBytes": 45684,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 1.4718020000000251,
+    "encodeMs": 0.05437200000000075,
+    "inspectMs": 0.07733500000000504,
+    "decodeMs": 0.32440900000000283,
+    "voxelizeMs": 3.644719000000009,
+    "compareMs": 14.310161999999991,
+    "totalMs": 19.93548800000002
+   },
+   "pass": true,
+   "notes": [
+    "Interior cells cannot be represented by a boundary mesh: 29.04% of the input is recoverable, while 100.00% of its BOUNDARY is. This is the irreducible information loss of a surface encoding, measured rather than assumed.",
+    "160 input cells had no recovered cell within the 4-cell probe radius."
+   ]
+  },
+  {
+   "name": "sphere-shell-48",
+   "kind": "surface",
+   "description": "Higher resolution sphere shell (48³): does fidelity survive scale?",
+   "grid": {
+    "resolution": [
+     48,
+     48,
+     48
+    ],
+    "cellSize": 0.04
+   },
+   "inputCells": 4784,
+   "boundaryCells": 4784,
+   "recoveredCells": 4784,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 4784,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 11956,
+    "triangles": 28656
+   },
+   "glbBytes": 488080,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 15.409284000000014,
+    "encodeMs": 0.8708240000000274,
+    "inspectMs": 0.43559800000002724,
+    "decodeMs": 11.737414000000001,
+    "voxelizeMs": 53.604333999999994,
+    "compareMs": 23.616945999999984,
+    "totalMs": 105.72418199999998
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "line-32",
+   "kind": "degenerate",
+   "description": "One-cell-wide open curve: a surface with no volume.",
+   "grid": {
+    "resolution": [
+     32,
+     32,
+     32
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 24,
+   "boundaryCells": 24,
+   "recoveredCells": 24,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 24,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 144,
+    "triangles": 276
+   },
+   "glbBytes": 5748,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 1.0944539999999847,
+    "encodeMs": 0.05913100000003624,
+    "inspectMs": 0.13449199999996608,
+    "decodeMs": 0.05916100000001734,
+    "voxelizeMs": 0.220312999999976,
+    "compareMs": 0.1526269999999954,
+    "totalMs": 1.7474289999999542
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "plane-16",
+   "kind": "degenerate",
+   "description": "Flat one-cell sheet: zero thickness.",
+   "grid": {
+    "resolution": [
+     16,
+     16,
+     16
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 144,
+   "boundaryCells": 144,
+   "recoveredCells": 144,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 144,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 338,
+    "triangles": 672
+   },
+   "glbBytes": 12832,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 0.6453109999999924,
+    "encodeMs": 0.04881199999999808,
+    "inspectMs": 0.05609500000002754,
+    "decodeMs": 0.09636000000000422,
+    "voxelizeMs": 0.7122659999999996,
+    "compareMs": 0.6645369999999957,
+    "totalMs": 2.2536890000000085
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "single-cell",
+   "kind": "degenerate",
+   "description": "One cell: the smallest possible representation.",
+   "grid": {
+    "resolution": [
+     16,
+     16,
+     16
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 1,
+   "boundaryCells": 1,
+   "recoveredCells": 1,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 1,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 8,
+    "triangles": 12
+   },
+   "glbBytes": 948,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 0.026961000000028434,
+    "encodeMs": 0.022713000000010197,
+    "inspectMs": 0.03406400000000076,
+    "decodeMs": 0.01889499999998634,
+    "voxelizeMs": 0.025917999999990116,
+    "compareMs": 0.020988999999985936,
+    "totalMs": 0.18192099999998845
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "empty",
+   "kind": "degenerate",
+   "description": "No cells: absence of observed geometry.",
+   "grid": {
+    "resolution": [
+     16,
+     16,
+     16
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 0,
+   "boundaryCells": 0,
+   "recoveredCells": 0,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 0,
+   "surfaceIou": 0,
+   "surfaceContainment": 1,
+   "totalIou": 0,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 0,
+   "mesh": {
+    "vertices": 0,
+    "triangles": 0
+   },
+   "glbBytes": 584,
+   "gateAccepted": false,
+   "gateProblems": [
+    "No measurable, non-degenerate mesh geometry."
+   ],
+   "timings": {
+    "meshMs": 0.14759599999996453,
+    "encodeMs": 0.01900599999999031,
+    "inspectMs": 0.055363999999997304,
+    "decodeMs": 0.01564899999999625,
+    "voxelizeMs": 0.008726999999964846,
+    "compareMs": 0.17171200000001363,
+    "totalMs": 0.43174999999996544
+   },
+   "pass": true,
+   "notes": [
+    "An empty numerical set produced a mesh the export gate REJECTED, which is the correct outcome: no geometry exists to export."
+   ]
+  },
+  {
+   "name": "resolution-16",
+   "kind": "surface",
+   "description": "Sphere shell on a 16³ lattice — resolution comparison.",
+   "grid": {
+    "resolution": [
+     16,
+     16,
+     16
+    ],
+    "cellSize": 0.0625
+   },
+   "inputCells": 416,
+   "boundaryCells": 416,
+   "recoveredCells": 416,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 416,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 1060,
+    "triangles": 2544
+   },
+   "glbBytes": 43896,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 3.0891070000000127,
+    "encodeMs": 0.07348799999999756,
+    "inspectMs": 0.03933400000005349,
+    "decodeMs": 0.24249500000001944,
+    "voxelizeMs": 2.3238910000000033,
+    "compareMs": 2.3041339999999764,
+    "totalMs": 8.078890000000001
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "resolution-24",
+   "kind": "surface",
+   "description": "Sphere shell on a 24³ lattice — resolution comparison.",
+   "grid": {
+    "resolution": [
+     24,
+     24,
+     24
+    ],
+    "cellSize": 0.041666666666666664
+   },
+   "inputCells": 1040,
+   "boundaryCells": 1040,
+   "recoveredCells": 1040,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 1040,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 2596,
+    "triangles": 6192
+   },
+   "glbBytes": 106184,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 5.784013000000016,
+    "encodeMs": 0.1698289999999929,
+    "inspectMs": 0.11509599999999409,
+    "decodeMs": 1.0128309999999487,
+    "voxelizeMs": 5.745409999999993,
+    "compareMs": 5.246125000000006,
+    "totalMs": 18.08176800000001
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "resolution-32",
+   "kind": "surface",
+   "description": "Sphere shell on a 32³ lattice — resolution comparison.",
+   "grid": {
+    "resolution": [
+     32,
+     32,
+     32
+    ],
+    "cellSize": 0.03125
+   },
+   "inputCells": 1872,
+   "boundaryCells": 1872,
+   "recoveredCells": 1872,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 1872,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 4772,
+    "triangles": 11568
+   },
+   "glbBytes": 196740,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 4.617294000000015,
+    "encodeMs": 0.34238300000004074,
+    "inspectMs": 0.1802789999999277,
+    "decodeMs": 3.9205560000000332,
+    "voxelizeMs": 13.056219000000056,
+    "compareMs": 7.645827000000054,
+    "totalMs": 29.77696400000002
+   },
+   "pass": true,
+   "notes": []
+  },
+  {
+   "name": "confidence-carrying-24",
+   "kind": "surface",
+   "description": "Sphere shell carrying a confidence channel: the detour must not fabricate confidence.",
+   "grid": {
+    "resolution": [
+     24,
+     24,
+     24
+    ],
+    "cellSize": 0.05
+   },
+   "inputCells": 488,
+   "boundaryCells": 488,
+   "recoveredCells": 488,
+   "onlyOriginal": 0,
+   "onlyRecovered": 0,
+   "sharedCells": 488,
+   "surfaceIou": 1,
+   "surfaceContainment": 1,
+   "totalIou": 1,
+   "totalContainment": 1,
+   "maxDisplacementCells": 0,
+   "meanDisplacementCells": 0,
+   "unmatchedBeyondProbe": 0,
+   "representableFraction": 1,
+   "mesh": {
+    "vertices": 1276,
+    "triangles": 3120
+   },
+   "glbBytes": 53448,
+   "gateAccepted": true,
+   "gateProblems": [],
+   "timings": {
+    "meshMs": 1.6280639999999948,
+    "encodeMs": 0.0679969999999912,
+    "inspectMs": 0.0715139999999792,
+    "decodeMs": 0.29504399999996167,
+    "voxelizeMs": 2.808179999999993,
+    "compareMs": 2.0277050000000827,
+    "totalMs": 6.906199000000015
+   },
+   "pass": true,
+   "notes": []
+  }
+ ],
+ "summary": {
+  "cases": 15,
+  "passed": 15,
+  "failed": 0,
+  "surfaceCases": 9,
+  "meanSurfaceIou": 1,
+  "worstSurfaceIou": 1,
+  "worstCase": "cube-shell-16",
+  "totalGlbBytes": 1213904,
+  "status": "VERIFIED",
+  "statement": "Reversibility is measured, not claimed: every case reports the boundary intersection, the recovered cells and the displacement. Surface encodings are lossless within the stated tolerance; dense volumes are not, and the size of that loss is reported per case."
+ }
+}

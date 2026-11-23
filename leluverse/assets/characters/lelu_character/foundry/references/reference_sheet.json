@@ -1,0 +1,362 @@
+{
+  "front": {
+    "file": "01_front_full_body.png",
+    "width": 1024,
+    "height": 1536,
+    "provenance": "/workspace/chats/dabd4582007a8c6e487b4757/leluverse/assets/characters/lelu_character/references/PRIMARY_SOURCE/01_front_full_body.png",
+    "landmarks_px": {
+      "hair_top": [
+        512.0,
+        30.7
+      ],
+      "hairline": [
+        512.0,
+        95.2
+      ],
+      "eye_line": [
+        512.0,
+        141.3
+      ],
+      "nose_base": [
+        512.0,
+        184.3
+      ],
+      "lip_line": [
+        512.0,
+        215.0
+      ],
+      "chin": [
+        512.0,
+        242.7
+      ],
+      "neck_base": [
+        512.0,
+        314.9
+      ],
+      "shoulder_l": [
+        327.7,
+        325.6
+      ],
+      "shoulder_r": [
+        696.3,
+        325.6
+      ],
+      "bust": [
+        512.0,
+        445.4
+      ],
+      "underbust": [
+        512.0,
+        537.6
+      ],
+      "waist": [
+        512.0,
+        606.7
+      ],
+      "hip": [
+        512.0,
+        714.2
+      ],
+      "crotch": [
+        512.0,
+        775.7
+      ],
+      "knee": [
+        512.0,
+        1105.9
+      ],
+      "ankle": [
+        512.0,
+        1390.1
+      ],
+      "sole": [
+        512.0,
+        1477.6
+      ]
+    },
+    "head_px": 212.0,
+    "figure_px": 1446.8999999999999,
+    "heads_tall": 6.825,
+    "landmarks_head_units": {
+      "neck_base": 1.341,
+      "shoulder_l": 1.391,
+      "bust": 1.956,
+      "underbust": 2.391,
+      "waist": 2.717,
+      "hip": 3.224,
+      "crotch": 3.514,
+      "knee": 5.072,
+      "ankle": 6.412,
+      "sole": 6.825
+    },
+    "shoulder_width_head_units": 1.739,
+    "palette": {
+      "skin_chest": {
+        "hex": "#3d2e29",
+        "rgb": [
+          61,
+          46,
+          41
+        ]
+      },
+      "skin_arm": {
+        "hex": "#1c1712",
+        "rgb": [
+          28,
+          23,
+          18
+        ]
+      },
+      "hair": {
+        "hex": "#271107",
+        "rgb": [
+          39,
+          17,
+          7
+        ]
+      },
+      "camo_fabric": {
+        "hex": "#352a24",
+        "rgb": [
+          53,
+          42,
+          36
+        ]
+      },
+      "camo_pants": {
+        "hex": "#261e18",
+        "rgb": [
+          38,
+          30,
+          24
+        ]
+      },
+      "bone_panel": {
+        "hex": "#1d110d",
+        "rgb": [
+          29,
+          17,
+          13
+        ]
+      },
+      "copper": {
+        "hex": "#221511",
+        "rgb": [
+          34,
+          21,
+          17
+        ]
+      },
+      "boot": {
+        "hex": "#2f1c13",
+        "rgb": [
+          47,
+          28,
+          19
+        ]
+      },
+      "background": {
+        "hex": "#1b1611",
+        "rgb": [
+          27,
+          22,
+          17
+        ]
+      }
+    }
+  },
+  "face": {
+    "file": "02_face_closeup.png",
+    "width": 1024,
+    "height": 1536,
+    "provenance": "/workspace/chats/dabd4582007a8c6e487b4757/leluverse/assets/characters/lelu_character/references/PRIMARY_SOURCE/02_face_closeup.png",
+    "landmarks_px": {},
+    "palette": {
+      "skin_forehead": {
+        "hex": "#ab5d42",
+        "rgb": [
+          171,
+          93,
+          66
+        ]
+      },
+      "skin_cheek": {
+        "hex": "#060000",
+        "rgb": [
+          6,
+          0,
+          0
+        ]
+      },
+      "skin_chest": {
+        "hex": "#401003",
+        "rgb": [
+          64,
+          16,
+          3
+        ]
+      },
+      "skin_arm": {
+        "hex": "#22110f",
+        "rgb": [
+          34,
+          17,
+          15
+        ]
+      },
+      "hair": {
+        "hex": "#2c1815",
+        "rgb": [
+          44,
+          24,
+          21
+        ]
+      },
+      "hair_streak": {
+        "hex": "#30150b",
+        "rgb": [
+          48,
+          21,
+          11
+        ]
+      },
+      "lips": {
+        "hex": "#833a19",
+        "rgb": [
+          131,
+          58,
+          25
+        ]
+      },
+      "eyeliner": {
+        "hex": "#2e130b",
+        "rgb": [
+          46,
+          19,
+          11
+        ]
+      },
+      "iris": {
+        "hex": "#9b432d",
+        "rgb": [
+          155,
+          67,
+          45
+        ]
+      },
+      "brow": {
+        "hex": "#26100a",
+        "rgb": [
+          38,
+          16,
+          10
+        ]
+      },
+      "blush": {
+        "hex": "#431808",
+        "rgb": [
+          67,
+          24,
+          8
+        ]
+      },
+      "copper_hoop": {
+        "hex": "#170a08",
+        "rgb": [
+          23,
+          10,
+          8
+        ]
+      },
+      "camo_fabric": {
+        "hex": "#321f1a",
+        "rgb": [
+          50,
+          31,
+          26
+        ]
+      },
+      "rose_in_hair": {
+        "hex": "#1b0e0e",
+        "rgb": [
+          27,
+          14,
+          14
+        ]
+      },
+      "septum": {
+        "hex": "#68351e",
+        "rgb": [
+          104,
+          53,
+          30
+        ]
+      }
+    }
+  },
+  "back": {
+    "file": "03_back_upper_body.png",
+    "width": 1024,
+    "height": 1536,
+    "provenance": "/workspace/chats/dabd4582007a8c6e487b4757/leluverse/assets/characters/lelu_character/references/PRIMARY_SOURCE/03_back_upper_body.png",
+    "landmarks_px": {},
+    "palette": {
+      "hair": {
+        "hex": "#080503",
+        "rgb": [
+          8,
+          5,
+          3
+        ]
+      },
+      "hair_plum": {
+        "hex": "#6e3e30",
+        "rgb": [
+          110,
+          62,
+          48
+        ]
+      },
+      "rose_in_hair": {
+        "hex": "#451a0d",
+        "rgb": [
+          69,
+          26,
+          13
+        ]
+      },
+      "copper_chain": {
+        "hex": "#0b0404",
+        "rgb": [
+          11,
+          4,
+          4
+        ]
+      },
+      "camo_fabric": {
+        "hex": "#5c4934",
+        "rgb": [
+          92,
+          73,
+          52
+        ]
+      },
+      "bone_panel": {
+        "hex": "#d4b294",
+        "rgb": [
+          212,
+          178,
+          148
+        ]
+      },
+      "skin_arm": {
+        "hex": "#1e1c1a",
+        "rgb": [
+          30,
+          28,
+          26
+        ]
+      }
+    }
+  }
+}

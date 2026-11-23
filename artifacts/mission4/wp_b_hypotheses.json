@@ -1,0 +1,280 @@
+{
+ "lattice": {
+  "resX": 213,
+  "resY": 96,
+  "resZ": 55,
+  "cellSize": 0.017708333333333333,
+  "imageBox": {
+   "minX": 0,
+   "minY": 1383,
+   "maxX": 332,
+   "maxY": 1535
+  },
+  "maxDepthCells": 25.098039215686274,
+  "observedColumns": 9432
+ },
+ "hypotheses": [
+  {
+   "id": "H1-silhouette-slab",
+   "kind": "silhouette-slab",
+   "label": "Silhouette slab (one-view visual hull)",
+   "rule": "every column extends as deep as its own image row is wide, centred on the mid-plane",
+   "notes": [
+    "This is the largest volume consistent with the silhouette. It cannot be wrong about what the silhouette covers and is almost certainly wrong about how deep the body is at the neck and ankles."
+   ],
+   "cells": 338088,
+   "provenanceCounts": {
+    "OBSERVED": 9432,
+    "INFERRED": 319517,
+    "SYNTHESIZED": 9139,
+    "INTERPOLATED": 0
+   },
+   "provenance": {
+    "OBSERVED": {
+     "cells": 9432,
+     "share": 0.027898062043018385
+    },
+    "INFERRED": {
+     "cells": 319517,
+     "share": 0.9450705141856558
+    },
+    "SYNTHESIZED": {
+     "cells": 9139,
+     "share": 0.027031423771325808
+    },
+    "INTERPOLATED": {
+     "cells": 0,
+     "share": 0
+    }
+   },
+   "score": {
+    "silhouetteAgreement": 1,
+    "landmarkConsistency": 0.8337992618639867,
+    "geometricPlausibility": 0.9999917181325572,
+    "depthConsistency": 0.4272891992672677,
+    "informationRetention": 1,
+    "quality": 0.8605260727595632,
+    "confidence": 0.6903146045437669,
+    "costMs": 1432.616067,
+    "depthRoughness": 0,
+    "cells": 338088,
+    "observedShare": 0.027898062043018385,
+    "notes": [
+     "silhouette IoU 1.0000 on a 213x96 projection",
+     "front-depth roughness 0.000 cells between neighbours",
+     "2.8% of cells are observed; the rest is inferred or synthesised"
+    ]
+   }
+  },
+  {
+   "id": "H2-inflated-symmetric",
+   "kind": "inflated-symmetric",
+   "label": "Inflated symmetric body",
+   "rule": "half-depth equals the largest disc that fits inside the silhouette at that pixel (distance transform), mirrored front and back",
+   "notes": [
+    "This is the rule a sculptural inflation would use: a limb of half-width r becomes a cylinder of radius r. It is derived from measured silhouette geometry, which is why its cells are INFERRED rather than SYNTHESIZED where they are inside the silhouette."
+   ],
+   "cells": 41058,
+   "provenanceCounts": {
+    "OBSERVED": 9432,
+    "INFERRED": 28243,
+    "SYNTHESIZED": 3383,
+    "INTERPOLATED": 0
+   },
+   "provenance": {
+    "OBSERVED": {
+     "cells": 9432,
+     "share": 0.22972380534853135
+    },
+    "INFERRED": {
+     "cells": 28243,
+     "share": 0.687880559208924
+    },
+    "SYNTHESIZED": {
+     "cells": 3383,
+     "share": 0.08239563544254469
+    },
+    "INTERPOLATED": {
+     "cells": 0,
+     "share": 0
+    }
+   },
+   "score": {
+    "silhouetteAgreement": 1,
+    "landmarkConsistency": 0.8337992618639867,
+    "geometricPlausibility": 0.9996590189488042,
+    "depthConsistency": 0.9921738277763975,
+    "informationRetention": 1,
+    "quality": 0.9734364586246385,
+    "confidence": 0.8134476079613461,
+    "costMs": 165.15174399999978,
+    "depthRoughness": 0.12658227848101267,
+    "cells": 41058,
+    "observedShare": 0.22972380534853135,
+    "notes": [
+     "silhouette IoU 1.0000 on a 213x96 projection",
+     "front-depth roughness 0.127 cells between neighbours",
+     "23.0% of cells are observed; the rest is inferred or synthesised"
+    ]
+   }
+  },
+  {
+   "id": "H3-shading-relief",
+   "kind": "shading-relief",
+   "label": "Shading relief with a flat back",
+   "rule": "front surface follows the shading bulge (luminance and inradius), the back is a single flat cap one cell behind the mid-plane",
+   "notes": [
+    "Lighting direction is unknown, so the shading term is a proxy, not a measurement of depth. The flat back is the cheapest defensible closure and is labelled SYNTHESIZED."
+   ],
+   "cells": 36594,
+   "provenanceCounts": {
+    "OBSERVED": 9432,
+    "INFERRED": 17730,
+    "SYNTHESIZED": 9432,
+    "INTERPOLATED": 0
+   },
+   "provenance": {
+    "OBSERVED": {
+     "cells": 9432,
+     "share": 0.25774717166748645
+    },
+    "INFERRED": {
+     "cells": 17730,
+     "share": 0.48450565666502704
+    },
+    "SYNTHESIZED": {
+     "cells": 9432,
+     "share": 0.25774717166748645
+    },
+    "INTERPOLATED": {
+     "cells": 0,
+     "share": 0
+    }
+   },
+   "score": {
+    "silhouetteAgreement": 1,
+    "landmarkConsistency": 0.8337992618639867,
+    "geometricPlausibility": 1,
+    "depthConsistency": 0.916570407518351,
+    "informationRetention": 1,
+    "quality": 0.9583839707832684,
+    "confidence": 0.785233733464678,
+    "costMs": 143.9482170000001,
+    "depthRoughness": 0.06492797904845046,
+    "cells": 36594,
+    "observedShare": 0.25774717166748645,
+    "notes": [
+     "silhouette IoU 1.0000 on a 213x96 projection",
+     "front-depth roughness 0.065 cells between neighbours",
+     "25.8% of cells are observed; the rest is inferred or synthesised"
+    ]
+   }
+  },
+  {
+   "id": "H4-block-prismatic",
+   "kind": "block-prismatic",
+   "label": "Block-prismatic cut-out",
+   "rule": "each anatomical region becomes a slab of constant thickness equal to 80% of its own widest inscribed radius",
+   "notes": [
+    "A deliberate simplification: it keeps each component rigid and cheap, at the cost of rounded cross-sections. Useful as the lower bound on depth fidelity."
+   ],
+   "cells": 48756,
+   "provenanceCounts": {
+    "OBSERVED": 9432,
+    "INFERRED": 29892,
+    "SYNTHESIZED": 9432,
+    "INTERPOLATED": 0
+   },
+   "provenance": {
+    "OBSERVED": {
+     "cells": 9432,
+     "share": 0.1934531134629584
+    },
+    "INFERRED": {
+     "cells": 29892,
+     "share": 0.6130937730740832
+    },
+    "SYNTHESIZED": {
+     "cells": 9432,
+     "share": 0.1934531134629584
+    },
+    "INTERPOLATED": {
+     "cells": 0,
+     "share": 0
+    }
+   },
+   "score": {
+    "silhouetteAgreement": 1,
+    "landmarkConsistency": 0.8337992618639867,
+    "geometricPlausibility": 1,
+    "depthConsistency": 0.833117957550693,
+    "informationRetention": 1,
+    "quality": 0.9416934807897368,
+    "confidence": 0.7670177998157803,
+    "costMs": 196.12698600000022,
+    "depthRoughness": 0.07311217808817111,
+    "cells": 48756,
+    "observedShare": 0.1934531134629584,
+    "notes": [
+     "silhouette IoU 1.0000 on a 213x96 projection",
+     "front-depth roughness 0.073 cells between neighbours",
+     "19.3% of cells are observed; the rest is inferred or synthesised"
+    ]
+   }
+  }
+ ],
+ "ranked": [
+  "H2-inflated-symmetric",
+  "H3-shading-relief",
+  "H4-block-prismatic",
+  "H1-silhouette-slab"
+ ],
+ "chosen": "H2-inflated-symmetric",
+ "rules": [
+  "silhouetteAgreement: H1-silhouette-slab (1.0000)",
+  "landmarkConsistency: H1-silhouette-slab (0.8338)",
+  "geometricPlausibility: H3-shading-relief (1.0000)",
+  "depthConsistency: H2-inflated-symmetric (0.9922)",
+  "informationRetention: H1-silhouette-slab (1.0000)",
+  "cheapest: H3-shading-relief (143.9 ms)"
+ ],
+ "statement": "H2-inflated-symmetric wins on composite confidence (0.8134), ahead of H3-shading-relief by 0.0282. 23.0% of its cells are observed; 77.0% are inferred or synthesised and are labelled as such.",
+ "assets": [
+  {
+   "id": "H1-silhouette-slab",
+   "kind": "silhouette-slab",
+   "rule": "every column extends as deep as its own image row is wide, centred on the mid-plane",
+   "file": "artifacts/mission4/glb/H1-silhouette-slab.glb",
+   "bytes": 3935640,
+   "triangles": 218852,
+   "accepted": true
+  },
+  {
+   "id": "H2-inflated-symmetric",
+   "kind": "inflated-symmetric",
+   "rule": "half-depth equals the largest disc that fits inside the silhouette at that pixel (distance transform), mirrored front and back",
+   "file": "artifacts/mission4/glb/H2-inflated-symmetric.glb",
+   "bytes": 1310088,
+   "triangles": 72760,
+   "accepted": true
+  },
+  {
+   "id": "H3-shading-relief",
+   "kind": "shading-relief",
+   "rule": "front surface follows the shading bulge (luminance and inradius), the back is a single flat cap one cell behind the mid-plane",
+   "file": "artifacts/mission4/glb/H3-shading-relief.glb",
+   "bytes": 1032392,
+   "triangles": 57324,
+   "accepted": true
+  },
+  {
+   "id": "H4-block-prismatic",
+   "kind": "block-prismatic",
+   "rule": "each anatomical region becomes a slab of constant thickness equal to 80% of its own widest inscribed radius",
+   "file": "artifacts/mission4/glb/H4-block-prismatic.glb",
+   "bytes": 1343588,
+   "triangles": 74620,
+   "accepted": true
+  }
+ ]
+}
