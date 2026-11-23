@@ -1,0 +1,72 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "steps": [
+    {
+      "step": "rendered",
+      "entries": 2,
+      "stages": [
+        "awaiting-acceptance",
+        "awaiting-approval"
+      ]
+    },
+    {
+      "step": "return disabled without feedback",
+      "disabled": true
+    },
+    {
+      "step": "returned",
+      "status": "Ready",
+      "decision": "returned",
+      "note": "The count is still off by one on an empty list.",
+      "history": [],
+      "stageShown": 1
+    },
+    {
+      "step": "develop-again offered on returned",
+      "visible": true
+    },
+    {
+      "step": "accepted",
+      "status": "Ready",
+      "decision": "accepted",
+      "note": null,
+      "history": [
+        "The count is still off by one on an empty list."
+      ],
+      "stageShown": 1
+    },
+    {
+      "step": "no gate buttons once accepted",
+      "buttons": 0
+    },
+    {
+      "step": "retry after acceptance refused",
+      "success": false,
+      "summary": "You accepted this implementation at Gate 2; it is not developed again. Propose a new change instead.",
+      "status": "Ready",
+      "decision": "accepted",
+      "note": null,
+      "history": [
+        "The count is still off by one on an empty list."
+      ]
+    },
+    {
+      "step": "approved at Gate 1",
+      "status": "Approved",
+      "decision": null,
+      "note": null,
+      "history": []
+    }
+  ],
+  "pageErrors": [],
+  "blockedRequests": [
+    "GET cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+    "GET 127.0.0.1/api/model/status",
+    "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories",
+    "GET localhost/v1/models",
+    "GET localhost/v1/models",
+    "GET localhost/v1/models",
+    "GET localhost/v1/models",
+    "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories"
+  ]
+}

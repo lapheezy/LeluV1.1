@@ -89,11 +89,31 @@ export interface LeluIdentityState {
   selfConcept: string;
   relationshipContext: RelationshipContext;
   developmentHistory: IdentitySnapshot[];  // max 90
+  /**
+   * When true, personality development is STAGED for the owner's review
+   * instead of applied. On by default: her identity does not change on its
+   * own. Only the owner turning it off (setSandboxMode) applies directly.
+   */
   sandboxMode: boolean;
+  /** Set when the owner explicitly chose the sandbox setting. */
+  sandboxModeChosenAt?: number;
   pendingSandboxChanges: SandboxChange[];
 }
 
 const KEY = "identity.v1";
+
+/**
+ * Personality changes are staged unless the owner has explicitly chosen
+ * otherwise. Identities stored before that choice existed carry
+ * `sandboxMode: false` only because it was the old default, not because
+ * anyone chose it, so they are read as staged.
+ */
+function withOwnerConsent(state: LeluIdentityState): LeluIdentityState {
+  if (state.sandboxModeChosenAt === undefined && state.sandboxMode !== true) {
+    return { ...state, sandboxMode: true };
+  }
+  return state;
+}
 const MAX_OBSERVATIONS = 20;
 const MAX_SNAPSHOTS = 90;
 const MAX_CURIOSITIES = 20;
@@ -186,7 +206,7 @@ function seedIdentity(): LeluIdentityState {
       uncertainties: [],
     },
     developmentHistory: [],
-    sandboxMode: false,
+    sandboxMode: true,
     pendingSandboxChanges: [],
   };
 }
@@ -222,11 +242,11 @@ export default class LeluIdentity {
     for (const item of [...local.developmentHistory, ...(remote.developmentHistory ?? [])]) history.set(item.snapshotAt, item);
     const pending = new Map<string, SandboxChange>();
     for (const item of [...local.pendingSandboxChanges, ...(remote.pendingSandboxChanges ?? [])]) pending.set(item.id, item);
-    const merged: LeluIdentityState = {
+    const merged: LeluIdentityState = withOwnerConsent({
       ...base,
       developmentHistory: [...history.values()].sort((a, b) => a.snapshotAt - b.snapshotAt).slice(-MAX_SNAPSHOTS),
       pendingSandboxChanges: [...pending.values()],
-    };
+    });
     if (JSON.stringify(merged) === JSON.stringify(local)) return;
     this.cache = merged;
     this.persisted = true;
@@ -253,7 +273,8 @@ export default class LeluIdentity {
 
   public getState(): LeluIdentityState {
     if (this.cache !== null) return this.cache;
-    this.cache = this.kv.get<LeluIdentityState>(KEY) ?? seedIdentity();
+    const stored = this.kv.get<LeluIdentityState>(KEY);
+    this.cache = stored ? withOwnerConsent(stored) : seedIdentity();
     return this.cache;
   }
 
@@ -440,6 +461,7 @@ export default class LeluIdentity {
   public setSandboxMode(on: boolean): void {
     const state = this.getState();
     state.sandboxMode = on;
+    state.sandboxModeChosenAt = Date.now();
     this.save(state);
   }
 

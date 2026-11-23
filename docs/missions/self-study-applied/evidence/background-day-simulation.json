@@ -1,0 +1,144 @@
+{
+  "normal": {
+    "attempted": {
+      "curiosity": 2880,
+      "self-study": 720,
+      "autonomous-objective": 288,
+      "generate": 90,
+      "owner-objective": 6
+    },
+    "sent": {
+      "curiosity": 1,
+      "self-study": 8,
+      "generate": 90,
+      "owner-objective": 1
+    },
+    "backgroundSentAt": [
+      {
+        "purpose": "curiosity",
+        "at": "00:00"
+      },
+      {
+        "purpose": "self-study",
+        "at": "02:24"
+      },
+      {
+        "purpose": "self-study",
+        "at": "04:48"
+      },
+      {
+        "purpose": "self-study",
+        "at": "07:12"
+      },
+      {
+        "purpose": "owner-objective",
+        "at": "10:00"
+      },
+      {
+        "purpose": "self-study",
+        "at": "12:20"
+      },
+      {
+        "purpose": "self-study",
+        "at": "14:40"
+      },
+      {
+        "purpose": "self-study",
+        "at": "17:00"
+      },
+      {
+        "purpose": "self-study",
+        "at": "19:20"
+      },
+      {
+        "purpose": "self-study",
+        "at": "21:40"
+      }
+    ],
+    "purposes": [
+      {
+        "purpose": "conversation",
+        "calls": 90,
+        "failed": 0
+      },
+      {
+        "purpose": "self-study",
+        "calls": 8,
+        "failed": 0
+      },
+      {
+        "purpose": "curiosity",
+        "calls": 1,
+        "failed": 0
+      },
+      {
+        "purpose": "owner-objective",
+        "calls": 1,
+        "failed": 0
+      }
+    ]
+  },
+  "dailyLimitAt1400": {
+    "attempted": {
+      "curiosity": 2880,
+      "self-study": 720,
+      "autonomous-objective": 288,
+      "generate": 90,
+      "owner-objective": 6
+    },
+    "sent": {
+      "curiosity": 1,
+      "self-study": 4,
+      "generate": 90,
+      "owner-objective": 1
+    },
+    "backgroundSentAt": [
+      {
+        "purpose": "curiosity",
+        "at": "00:00"
+      },
+      {
+        "purpose": "self-study",
+        "at": "02:24"
+      },
+      {
+        "purpose": "self-study",
+        "at": "04:48"
+      },
+      {
+        "purpose": "self-study",
+        "at": "07:12"
+      },
+      {
+        "purpose": "owner-objective",
+        "at": "10:00"
+      },
+      {
+        "purpose": "self-study",
+        "at": "12:20"
+      }
+    ],
+    "purposes": [
+      {
+        "purpose": "conversation",
+        "calls": 90,
+        "failed": 1
+      },
+      {
+        "purpose": "self-study",
+        "calls": 4,
+        "failed": 0
+      },
+      {
+        "purpose": "curiosity",
+        "calls": 1,
+        "failed": 0
+      },
+      {
+        "purpose": "owner-objective",
+        "calls": 1,
+        "failed": 0
+      }
+    ]
+  }
+}

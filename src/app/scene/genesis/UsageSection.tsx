@@ -13,8 +13,28 @@
  * browser. Budgets are checked before every call (UsageBudgetGate).
  */
 import { useEffect, useMemo, useState } from "react";
-import UsageLedger, { ALL_SOURCES, type UsageBudget, type UsageKind, type UsageTotals } from "../../../core/observability/UsageLedger";
+import UsageLedger, {
+  ALL_SOURCES,
+  BACKGROUND_BUDGET_SOURCE,
+  DEFAULT_BACKGROUND_DAILY_CALLS,
+  type UsageBudget,
+  type UsageKind,
+  type UsageTotals,
+} from "../../../core/observability/UsageLedger";
 import UsageSync from "../../../core/observability/UsageSync";
+import UsageBudgetGate from "../../../core/observability/UsageBudgetGate";
+
+/** What each purpose label means to the owner. */
+const PURPOSE_LABELS: Record<string, string> = {
+  conversation: "Conversation",
+  "self-study": "Self-study (background)",
+  curiosity: "Curiosity (background)",
+  "owner-objective": "Your objectives (background)",
+  "autonomous-objective": "Her own objectives (background)",
+  "self-development": "Approved development",
+  "health-probe": "Provider checks",
+  "read-source": "Reading sources",
+};
 
 type Period = "session" | "day" | "week" | "month";
 type Row = { kind: UsageKind; source: string; totals: UsageTotals };
@@ -78,6 +98,7 @@ export default function UsageSection() {
   const [fields, setFields] = useState<Record<string, string>>({});
   const [saveError, setSaveError] = useState<string | null>(null);
   const [account, setAccount] = useState<Row[] | null>(null);
+  const [backgroundCap, setBackgroundCap] = useState("");
 
   useEffect(() => ledger.subscribe(() => setVersion((v) => v + 1)), [ledger]);
   useEffect(() => sync.subscribe(() => setVersion((v) => v + 1)), [sync]);
@@ -99,10 +120,28 @@ export default function UsageSection() {
   const api = sumKind(rows, "api");
   const budgets = ledger.budgetsSnapshot();
   const cost = costLabel(ai);
+  const purposes = ledger.summaryByPurpose(period);
+  const allowance = UsageBudgetGate.getInstance().backgroundAllowance();
   const sources = [ALL_SOURCES, ...new Set([
     ...rows.filter((r) => r.kind === budgetKind).map((r) => r.source),
     ...Object.keys(budgets).filter((k) => k.startsWith(`${budgetKind}:`)).map((k) => k.slice(budgetKind.length + 1)),
-  ])].filter((s, i, all) => all.indexOf(s) === i);
+  ])].filter((s, i, all) => all.indexOf(s) === i && s !== BACKGROUND_BUDGET_SOURCE);
+
+  async function saveBackgroundCap(clear: boolean) {
+    const value = Math.floor(Number(backgroundCap));
+    setSaveError(null);
+    try {
+      await sync.saveBudget(
+        "ai",
+        BACKGROUND_BUDGET_SOURCE,
+        clear || !Number.isFinite(value) || value < 0 || backgroundCap === "" ? null : { dailyCalls: value },
+      );
+      setBackgroundCap("");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : String(error));
+    }
+    setVersion((v) => v + 1);
+  }
 
   function chooseSource(kind: UsageKind, source: string) {
     setBudgetKind(kind);
@@ -195,6 +234,62 @@ export default function UsageSection() {
           })}
         </div>
       )}
+
+      <div style={heading}>By purpose</div>
+      {purposes.length === 0 ? (
+        <div style={{ fontSize: 12, opacity: 0.6 }}>No model calls recorded for this period yet.</div>
+      ) : (
+        <div role="table" data-testid="usage-by-purpose" style={{ display: "grid", gap: 4 }}>
+          {purposes.map(({ purpose, background, totals: t }) => (
+            <div
+              role="row"
+              key={purpose}
+              style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "2px 10px", fontSize: 12, padding: "6px 8px", borderRadius: 8, background: background ? "rgba(167,139,250,0.08)" : "rgba(255,255,255,0.03)" }}
+            >
+              <span>{PURPOSE_LABELS[purpose] ?? purpose}</span>
+              <span style={{ opacity: 0.8, fontVariantNumeric: "tabular-nums" }}>
+                {fmt(t.calls)} call(s) · {fmt(t.failed)} failed · {fmt(t.rateLimited)} rate-limited
+                {` · ${t.tokenReportedCalls ? `${fmt(t.inputTokens + t.outputTokens)} tok` : "tokens n/a"}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ fontSize: 10.5, opacity: 0.5, marginTop: 4 }}>From this device.</div>
+
+      <div style={heading}>Background allowance</div>
+      <div data-testid="background-allowance" style={{ fontSize: 12, padding: "8px 10px", borderRadius: 10, background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.25)" }}>
+        <div>
+          <strong>{fmt(allowance.usedToday)}</strong> of <strong>{fmt(allowance.cap)}</strong> background model call(s) used today
+          {allowance.ownerSet ? " (your cap)" : ` (starting allowance: ${DEFAULT_BACKGROUND_DAILY_CALLS})`}.
+        </div>
+        <div style={{ opacity: 0.75, marginTop: 2 }}>
+          {allowance.blockedBy === "paused"
+            ? `Paused until ${new Date(allowance.nextAllowedAt).toLocaleString()}: ${allowance.paused?.reason}.`
+            : allowance.blockedBy === "cap"
+              ? `Used up; resets ${new Date(allowance.nextAllowedAt).toLocaleString()}.`
+              : allowance.blockedBy === "pacing"
+                ? `Next background call allowed ${new Date(allowance.nextAllowedAt).toLocaleTimeString()} — calls are spread across the day.`
+                : "A background call may be made now."}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+          <input
+            aria-label="Background calls per day"
+            inputMode="numeric"
+            placeholder={`calls/day (now ${allowance.cap})`}
+            value={backgroundCap}
+            onChange={(e) => setBackgroundCap(e.target.value.replace(/[^0-9]/g, ""))}
+            style={inputStyle}
+          />
+          <button type="button" onClick={() => void saveBackgroundCap(false)} disabled={backgroundCap === ""} style={buttonStyle}>Set allowance</button>
+          {allowance.ownerSet ? (
+            <button type="button" onClick={() => void saveBackgroundCap(true)} style={buttonStyle}>Back to {DEFAULT_BACKGROUND_DAILY_CALLS}</button>
+          ) : null}
+        </div>
+        <div style={{ fontSize: 10.5, opacity: 0.55, marginTop: 6 }}>
+          Covers the work LÉLU does on her own on this device. First claim on each call: your objectives, then self-study, then her own objectives, then curiosity. Your conversations are never limited by it. When any provider reports its daily limit, background model use stops until the next UTC day so what remains is kept for conversation. Only you can change it.
+        </div>
+      </div>
 
       <div style={heading}>Budgets</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>

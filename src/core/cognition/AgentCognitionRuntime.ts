@@ -42,6 +42,8 @@ import { verifyCompletion, type CompletionResult } from "./CompletionVerifier";
 import { describeEvidence, objectiveEvidence } from "./ObjectiveEvidence";
 import { executableToolIds } from "../tools/ToolDispatcher";
 import DailyRecord from "../identity/DailyRecord";
+import UsageBudgetGate from "../observability/UsageBudgetGate";
+import { BACKGROUND_BUDGET_SOURCE } from "../observability/UsageLedger";
 
 /**
  * A verified completion is behaviour LÉLU actually showed, so it is
@@ -661,6 +663,9 @@ export default class AgentCognitionRuntime {
             "You are working autonomously toward an objective, without a user watching each step. " +
             "Take one concrete step per cycle. Do not repeat an action already taken above. " +
             "Never claim work you did not actually perform — your tool results are the record.",
+          // Work the owner asked for has first claim on the background
+          // allowance; objectives LÉLU set herself come after self-study.
+          operation: objective.source === "user" ? "owner-objective" : "autonomous-objective",
         },
       );
 
@@ -673,6 +678,21 @@ export default class AgentCognitionRuntime {
           "Abandoned: the runtime was stopped, paused or the objective cancelled while this cycle was in flight. Nothing was recorded.",
           { objectiveId, data: { abandoned: true } },
         );
+        return null;
+      }
+
+      // THE BACKGROUND BUDGET SAID NO. Nothing was sent, so nothing
+      // happened: this is not a failed cycle and not a decision. The
+      // objective waits — as runtime state, visibly — until the next
+      // background call is allowed, then picks up where it was.
+      const refused = response.metadata?.budgetExhausted as { source?: string; reason?: string } | undefined;
+      if (refused?.source === BACKGROUND_BUDGET_SOURCE) {
+        const resumeAt = UsageBudgetGate.getInstance().backgroundAllowance().nextAllowedAt;
+        this.objectives.schedule(objectiveId, Math.max(resumeAt, Date.now() + 60_000), `Waiting for background budget: ${refused.reason ?? "not allowed now"}`);
+        emitCognition("cycle-completed", `Not sent: ${refused.reason ?? "background budget"}. Resumes ${new Date(resumeAt).toISOString()}.`, {
+          objectiveId,
+          data: { budgetRefused: true, resumeAt },
+        });
         return null;
       }
 

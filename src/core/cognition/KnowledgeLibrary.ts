@@ -59,6 +59,14 @@ export interface KnowledgeEntry {
   status: KnowledgeStatus;
   source?: string;
   updatedAt: number;
+  /**
+   * The real thing this entry is about (a path, subsystem or capability id).
+   * Self-study writes by subject, so a second study of the same thing
+   * updates this entry instead of adding a parallel one.
+   */
+  subject?: string;
+  /** architecture | technical | cognitive | personality | operational */
+  category?: "architecture" | "technical" | "cognitive" | "personality" | "operational";
 }
 
 const KEY = "lelu.knowledge.v1";
@@ -210,6 +218,24 @@ export default class KnowledgeLibrary {
     this.entries = [created, ...this.entries];
     this.persist();
     return created;
+  }
+
+  /** The entry recorded for a subject, if one exists. */
+  public bySubject(subject: string): KnowledgeEntry | undefined {
+    return this.entries.find((entry) => entry.subject === subject);
+  }
+
+  /**
+   * Write knowledge about a subject: update the existing entry for it, or
+   * create one. Repeated study converges on one entry per subject.
+   */
+  public upsertBySubject(subject: string, entry: Omit<KnowledgeEntry, "id" | "updatedAt" | "subject">): KnowledgeEntry {
+    const existing = this.bySubject(subject);
+    if (existing) {
+      this.update(existing.id, { ...entry, subject });
+      return this.get(existing.id) as KnowledgeEntry;
+    }
+    return this.add({ ...entry, subject });
   }
 
   public update(id: string, patch: Partial<Omit<KnowledgeEntry, "id">>): void {

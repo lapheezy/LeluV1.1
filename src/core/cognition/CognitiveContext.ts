@@ -32,6 +32,9 @@ import Sentinel from "../sentinel/Sentinel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
 import ToolRegistry from "../tools/ToolRegistry";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
+import UsageBudgetGate, { type BackgroundAllowance } from "../observability/UsageBudgetGate";
+import StudyObjectivesStore from "./StudyObjectives";
+import { buildDevelopmentRecord, formatDevelopmentRecord } from "../selfdev/DevelopmentRecord";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import WorkspaceEngine from "../workspace/WorkspaceEngine";
 import { describeWorkspace } from "../workspace/WorkspaceArtifacts";
@@ -856,6 +859,26 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // of inventing one.
   sections.push(formatSelfStudyState(ctx.selfStudy));
 
+  // Her background model allowance — a fact she works within, set by the
+  // owner. Guarded: accounting must never break context assembly.
+  try {
+    sections.push(formatBackgroundAllowance(UsageBudgetGate.getInstance().backgroundAllowance()));
+  } catch {
+    // allowance unavailable — omit rather than guess
+  }
+
+  // Her development record: what her study concluded, what she proposed,
+  // and where each proposal stands with the owner. Read from the stores.
+  try {
+    sections.push(
+      formatDevelopmentRecord(
+        buildDevelopmentRecord(StudyObjectivesStore.getInstance().list(), ImprovementQueue.getInstance().list()),
+      ),
+    );
+  } catch {
+    // record unavailable — omit rather than guess
+  }
+
   // Autonomy
   sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
 
@@ -904,6 +927,24 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // at its own source, and this pass catches anything assembled from a source
   // this build has not met yet. It removes only sentences a tombstone proves.
   return DeletionGuard.getInstance().sanitizeContext(sections.join("\n\n")).context;
+}
+
+/** The background allowance as she should understand it. */
+export function formatBackgroundAllowance(allowance: BackgroundAllowance): string {
+  const state =
+    allowance.blockedBy === "paused"
+      ? `paused until ${new Date(allowance.nextAllowedAt).toISOString()} (${allowance.paused?.reason})`
+      : allowance.blockedBy === "cap"
+        ? `used up for today; resets ${new Date(allowance.nextAllowedAt).toISOString()}`
+        : allowance.blockedBy === "pacing"
+          ? `next call allowed ${new Date(allowance.nextAllowedAt).toISOString()} (calls are spread over the day)`
+          : "a call may be made now";
+  return [
+    "## BACKGROUND MODEL ALLOWANCE",
+    `Background work shares ${allowance.cap} model call(s) per day on this device${allowance.ownerSet ? " (set by the owner)" : " (the owner's minimal starting allowance)"}. Used today: ${allowance.usedToday}; remaining: ${allowance.remaining}; ${state}.`,
+    "First claim on each call: objectives the owner gave me, then self-study conclusions, then objectives I set myself, then curiosity.",
+    "Conversation with the owner is never limited by this. Only the owner can raise it; spend it where a model's judgement matters, and conclude from evidence otherwise.",
+  ].join("\n");
 }
 
 /**
@@ -963,6 +1004,33 @@ export function formatSelfStudyState(study: CognitiveStateView): string {
         study.investigation.memoryConsolidated ? "written" : "not written"
       }`,
       study.investigation.conclusion ? `Conclusion: ${study.investigation.conclusion}` : "",
+    );
+  }
+
+  // What finished studies concluded, and what is waiting on the owner.
+  // Read from persisted objectives and the improvement queue: these are
+  // the outcomes of study, as opposed to the questions it is carrying.
+  const conclusions = study.conclusions ?? [];
+  if (conclusions.length > 0) {
+    lines.push(
+      "",
+      "### CONCLUSIONS FROM SELF-STUDY (newest first)",
+      ...conclusions.map((item) => {
+        const outcome =
+          item.verdict === "change"
+            ? item.proposalId
+              ? `proposed a change (proposal ${item.proposalId.slice(0, 8)}, status ${item.proposalStatus ?? "unknown"}): ${item.change ?? ""}`
+              : `a change is warranted but held: ${item.held ?? "not yet proposed"} — ${item.change ?? ""}`
+            : "no change needed";
+        return `- [${item.category}] ${item.subject} (cycle ${item.cycle}, ${item.synthesizedBy}): ${item.learned} → ${outcome}`;
+      }),
+    );
+  }
+  if (study.pendingProposal) {
+    lines.push(
+      "",
+      "### PROPOSAL AWAITING THE OWNER'S DECISION",
+      `${study.pendingProposal.title} (status ${study.pendingProposal.status}, about ${study.pendingProposal.subject}). It is in the Self-Development panel. Nothing changes until it is approved.`,
     );
   }
 

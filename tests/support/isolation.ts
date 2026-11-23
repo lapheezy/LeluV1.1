@@ -59,3 +59,13 @@ export function backgroundCognitionIsQuiet(): boolean {
   const study = SelfStudyEngine.getInstance();
   return !study.isRunning() && !study.isBusy() && !AgentCognitionRuntime.getInstance().isRunning();
 }
+
+/**
+ * The owner's explicit grant of a large background allowance, for tests that
+ * exercise autonomous behaviour rather than the budget. Production starts at
+ * the minimal allowance (10/day, paced); only the owner raises it.
+ */
+export async function grantBackgroundAllowance(dailyCalls = 1_000_000): Promise<void> {
+  const { default: UsageLedger, BACKGROUND_BUDGET_SOURCE } = await import("../../src/core/observability/UsageLedger");
+  UsageLedger.getInstance().setBudget("ai", BACKGROUND_BUDGET_SOURCE, { dailyCalls });
+}

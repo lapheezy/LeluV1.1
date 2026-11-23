@@ -753,7 +753,7 @@ export default class ProviderResolver {
         ...this.withRungSignal(context.request, rungSignal),
         messages: fitted.messages,
         ...(resumeTurn ? { context: requestContext ?? "" } : {}),
-      });
+      }, context.request.operation);
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -778,7 +778,7 @@ export default class ProviderResolver {
       messages,
       tools,
       ...(resumeTurn ? { context: requestContext ?? "" } : {}),
-    });
+    }, context.request.operation);
     // A round that came back is proof the rung is alive.
     onProgress?.();
     let promptMaterialized = false;
@@ -990,7 +990,7 @@ export default class ProviderResolver {
           ? { promptAlreadyInHistory: true }
           : {}),
         ...(finalFit.tools.length ? { tools: finalFit.tools } : {}),
-      });
+      }, context.request.operation, { continuation: true });
       onProgress?.();
 
       if (stopReason) break;

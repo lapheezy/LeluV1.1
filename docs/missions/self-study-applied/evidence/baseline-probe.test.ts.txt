@@ -1,0 +1,47 @@
+import test from "node:test";
+if (typeof globalThis.window === "undefined") (globalThis as any).window = globalThis;
+if (typeof localStorage === "undefined") {
+  const s: Record<string,string> = {};
+  (globalThis as any).localStorage = { getItem:(k:string)=>s[k]??null, setItem:(k:string,v:string)=>{s[k]=v}, removeItem:(k:string)=>{delete s[k]}, clear:()=>{for(const k of Object.keys(s)) delete s[k]}, get length(){return Object.keys(s).length}, key:(i:number)=>Object.keys(s)[i]??null };
+}
+import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
+import StudyObjectives from "../src/core/cognition/StudyObjectives";
+import KnowledgeLibrary from "../src/core/cognition/KnowledgeLibrary";
+import ImprovementQueue from "../src/core/selfdev/ImprovementQueue";
+import WorkQueue from "../src/core/cognition/WorkQueue";
+import AIService from "../src/core/AIService";
+import { stopBackgroundCognition } from "./support/isolation";
+import { writeFileSync } from "node:fs";
+
+test("baseline probe", { timeout: 600_000 }, async () => {
+  await stopBackgroundCognition();
+  const ai = AIService.getInstance() as any;
+  let calls = 0; const prompts: number[] = [];
+  ai.reason = async (prompt: string) => { calls++; prompts.push(prompt.length);
+    return { text: "ANSWER: the evidence shows the module exists and is wired.\nCONFIDENCE: learned — read from source.\nNEXT: How does this module interact with the rest of the runtime?", provider: "stub", model: "stub", processingTime: 1, metadata: { success: true } }; };
+  const engine = SelfStudyEngine.getInstance();
+  const k0 = KnowledgeLibrary.getInstance().list().length;
+  const iq0 = ImprovementQueue.getInstance().list().length;
+  const wq0 = WorkQueue.getInstance().list().length;
+  const rows: any[] = [];
+  const N = Number(process.env.N ?? 40);
+  for (let i = 0; i < N; i++) {
+    const r = await engine.runCycle();
+    rows.push({ c: r.cycle, q: r.objective?.question, origin: r.objective?.origin, tool: r.tool, ev: r.evidence.length, learned: r.learned, prov: r.provider, derived: r.derived.length, buf: r.bufferRemaining });
+  }
+  const kl = KnowledgeLibrary.getInstance().list();
+  const out = {
+    cycles: N, providerCalls: calls, avgPromptChars: Math.round(prompts.reduce((a,b)=>a+b,0)/Math.max(1,prompts.length)),
+    learnedCycles: rows.filter(r=>r.learned).length,
+    knowledgeEntriesAdded: kl.length - k0,
+    improvementProposalsAdded: ImprovementQueue.getInstance().list().length - iq0,
+    workQueueAdded: WorkQueue.getInstance().list().length - wq0,
+    objectivesOpenAtEnd: StudyObjectives.getInstance().open().length,
+    derivedTotal: rows.reduce((a,r)=>a+r.derived,0),
+    originCounts: rows.reduce((m:any,r)=>{m[r.origin]=(m[r.origin]??0)+1;return m},{}),
+    toolCounts: rows.reduce((m:any,r)=>{m[r.tool]=(m[r.tool]??0)+1;return m},{}),
+    entriesWithChangeRecommendation: kl.slice(0, kl.length-k0).filter(e=>/should change|recommend|propos/i.test(e.detail)).length,
+    rows,
+  };
+  writeFileSync(process.env.OUT!, JSON.stringify(out, null, 2));
+});

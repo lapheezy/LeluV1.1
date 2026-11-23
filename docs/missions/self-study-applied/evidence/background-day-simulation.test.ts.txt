@@ -1,0 +1,51 @@
+import test from "node:test";
+import { writeFileSync } from "node:fs";
+import UsageLedger from "../src/core/observability/UsageLedger";
+import UsageBudgetGate, { BudgetExhaustedError } from "../src/core/observability/UsageBudgetGate";
+
+// Demand pattern taken from the callers' own ceilings in code: curiosity up to
+// 2 model calls per 60 s cognition tick; self-study one judgement conclusion
+// every ~2 minutes (a 45 s cycle, judgement-worthy origins only); one decision
+// for an objective LÉLU set herself every 5 minutes, and one for an objective
+// the OWNER gave her every 30 minutes from 09:00 to 12:00. Conversation: one
+// turn every 10 minutes from 08:00 to 23:00.
+async function simulate(dailyLimitAt: number | null) {
+  const day = Date.UTC(2026, 10, 18);
+  const clock = { t: day };
+  const ledger = new UsageLedger(() => clock.t, null);
+  const gate = new UsageBudgetGate(ledger);
+  gate.setClock(() => clock.t);
+  const attempted: Record<string, number> = {}, sent: Record<string, number> = {};
+  const sentAt: { purpose: string; at: string }[] = [];
+  let selfStudyThisHour = 0, hour = -1;
+  const tryCall = async (purpose: string, error?: string) => {
+    attempted[purpose] = (attempted[purpose] ?? 0) + 1;
+    try {
+      const r = await gate.reserve("ai", "Groq", { operation: purpose });
+      await gate.settle(r, { operation: purpose, ok: !error, ...(error ? { error } : {}) });
+      sent[purpose] = (sent[purpose] ?? 0) + 1;
+      if (purpose !== "generate") sentAt.push({ purpose, at: new Date(clock.t).toISOString().slice(11, 16) });
+    } catch (e) { if (!(e instanceof BudgetExhaustedError)) throw e; }
+  };
+  for (let m = 0; m < 24 * 60; m += 1) {
+    clock.t = day + m * 60_000;
+    const h = Math.floor(m / 60);
+    if (h !== hour) { hour = h; selfStudyThisHour = 0; }
+    await tryCall("curiosity"); await tryCall("curiosity");
+    // Self-study's own 12/h cap counts calls that reached a provider; under the
+    // gate those are rare, so it keeps asking every ~2 minutes.
+    if (m % 2 === 0) { selfStudyThisHour += 1; await tryCall("self-study"); }
+    if (m % 5 === 0) await tryCall("autonomous-objective");
+    if (h >= 9 && h < 12 && m % 30 === 0) await tryCall("owner-objective");
+    if (h >= 8 && h < 23 && m % 10 === 0) {
+      await tryCall("generate", dailyLimitAt !== null && m === dailyLimitAt ? "Groq failed 429: Rate limit reached on tokens per day (TPD)" : undefined);
+    }
+  }
+  return { attempted, sent, backgroundSentAt: sentAt, purposes: ledger.summaryByPurpose("day").map((r) => ({ purpose: r.purpose, calls: r.totals.calls, failed: r.totals.failed })) };
+}
+
+test("day simulation", async () => {
+  const normal = await simulate(null);
+  const withDailyLimit = await simulate(14 * 60);
+  writeFileSync(process.env.OUT!, JSON.stringify({ normal, dailyLimitAt1400: withDailyLimit }, null, 2));
+});

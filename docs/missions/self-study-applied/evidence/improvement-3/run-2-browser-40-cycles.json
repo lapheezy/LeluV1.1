@@ -1,0 +1,1276 @@
+{
+  "started": "2026-11-17T00:07:38.718Z",
+  "base": "http://127.0.0.1:5173",
+  "harness": {
+    "modelBudget": 10,
+    "modelRequestsByDay": {
+      "2026-11-17": 4
+    },
+    "thisRun": [
+      {
+        "at": "2026-11-17T00:07:27.539Z",
+        "path": "/api/model/openrouter/chat/completions",
+        "status": 200
+      }
+    ],
+    "blockedRequests": [
+      "GET cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+      "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories",
+      "GET localhost/v1/models",
+      "GET localhost/v1/models",
+      "GET localhost/v1/models",
+      "GET localhost/v1/models",
+      "GET export.arxiv.org/api/query",
+      "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories",
+      "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories",
+      "GET nrehsldbfxthspikaxvr.supabase.co/rest/v1/legacy_memories"
+    ]
+  },
+  "pageErrors": [],
+  "autonomy": {
+    "level": 3,
+    "source": "local"
+  },
+  "sourceStatus": {
+    "reachable": true,
+    "runtime": "vite-dev",
+    "operations": [
+      "typecheck",
+      "build",
+      "test",
+      "inspect"
+    ],
+    "workspace": "LeluV1.1",
+    "tokenRequired": true,
+    "tokenConfigured": true,
+    "baseUrl": "http://127.0.0.1:5173",
+    "info": {
+      "engine": "node",
+      "version": "22.23.4",
+      "platform": "linux",
+      "cwd": "/home/user/LeluV1.1",
+      "startedAt": 1794873998021
+    },
+    "checkedAt": 1794874047136,
+    "snapshotFiles": 745
+  },
+  "selfTests": {
+    "summary": {
+      "passed": 23,
+      "failed": 0,
+      "total": 23
+    },
+    "failing": []
+  },
+  "allowance": {
+    "slotOpenedAt": 1794882651855.3,
+    "rationed": true,
+    "cap": 10,
+    "ownerSet": false,
+    "usedToday": 1,
+    "inFlight": 0,
+    "remaining": 9,
+    "paused": null,
+    "nextAllowedAt": 1794882651855.3,
+    "blockedBy": "pacing"
+  },
+  "usageEvents": [
+    {
+      "at": "2026-11-17T00:07:37.617Z",
+      "source": "OpenRouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "operation": "self-study",
+      "ok": true,
+      "inputTokens": 1034,
+      "outputTokens": 465
+    }
+  ],
+  "rows": [
+    {
+      "cycle": 1,
+      "question": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "origin": "knowledge-gap",
+      "target": "Latest frontier model architectures Current SOTA model families, benchmarks and pricing — needs provider docs + research to stay current.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 2,
+      "question": "What is causing this failure: youtube failed: YouTube?",
+      "origin": "contradiction",
+      "target": "youtube failed: YouTube",
+      "tool": "runtime-status",
+      "verdict": "insufficient",
+      "by": "provider:OpenRouter",
+      "held": false
+    },
+    {
+      "cycle": 3,
+      "question": "What is causing this failure: Self-diagnostics: ok, warning(s), error(s)?",
+      "origin": "contradiction",
+      "target": "Self-diagnostics: ok, warning(s), error(s)",
+      "tool": "runtime-status",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 4,
+      "question": "What do I actually know about Self-modifying systems, and is it true?",
+      "origin": "knowledge-gap",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 5,
+      "question": "What do I actually know about Procedural environment generation, and is it true?",
+      "origin": "knowledge-gap",
+      "target": "Procedural environment generation Techniques for generating terrain, textures and environments from rules rather than hand-authoring.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 6,
+      "question": "What do I actually know about State-of-the-art agent memory, and is it true?",
+      "origin": "knowledge-gap",
+      "target": "memory",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 7,
+      "question": "What is causing this failure: youtube failed: YouTube?",
+      "origin": "contradiction",
+      "target": "youtube failed: YouTube",
+      "tool": "runtime-status",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 8,
+      "question": "What does src/core/memory/MemoryStore.ts contribute to memory?",
+      "origin": "discovery",
+      "target": "src/core/memory/MemoryStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 9,
+      "question": "Where are tool-level diagnostics (including YouTube) surfaced in the runtime-status or workspace, and why are they absent from this evidence?",
+      "origin": "discovery",
+      "tool": "runtime-status",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 10,
+      "question": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "origin": "knowledge-gap",
+      "target": "Latest frontier model architectures Current SOTA model families, benchmarks and pricing — needs provider docs + research to stay current.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 11,
+      "question": "What is the state of creative?",
+      "origin": "discovery",
+      "target": "creative",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 12,
+      "question": "Do my own self-tests still pass?",
+      "origin": "revalidation",
+      "target": "self-tests@2026-11-17T00",
+      "tool": "self-test-runner",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 13,
+      "question": "What is causing this failure: Self-test suite: / passed, failed?",
+      "origin": "contradiction",
+      "target": "Self-test suite: / passed, failed",
+      "tool": "self-test-runner",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 14,
+      "question": "What is the state of providers?",
+      "origin": "discovery",
+      "target": "providers",
+      "tool": "runtime-status",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 15,
+      "question": "What do I actually know about Procedural environment generation, and is it true?",
+      "origin": "knowledge-gap",
+      "target": "Procedural environment generation Techniques for generating terrain, textures and environments from rules rather than hand-authoring.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 16,
+      "question": "What does src/brain/PatternMemory.ts contribute to memory?",
+      "origin": "discovery",
+      "target": "src/brain/PatternMemory.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 17,
+      "question": "Why can I not answer “What do I actually know about Procedural environment generation, and is it true” with the tools I have?",
+      "origin": "unresolved",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 18,
+      "question": "What exactly is incomplete in the Creative systems subsystem?",
+      "origin": "architecture",
+      "target": "creative",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 11; nothing new to conclude."
+    },
+    {
+      "cycle": 19,
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/core/memory/MemoryStore.ts?",
+      "origin": "discovery",
+      "target": "src/brain/ResponsePattern.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 20,
+      "question": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "origin": "knowledge-gap",
+      "target": "Latest frontier model architectures Current SOTA model families, benchmarks and pricing — needs provider docs + research to stay current.",
+      "tool": "knowledge-providers",
+      "verdict": "insufficient",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 21,
+      "question": "What does src/core/creative/CreativeToolInterface.ts contribute to creative?",
+      "origin": "discovery",
+      "target": "src/core/creative/CreativeToolInterface.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 22,
+      "question": "What is the state of render?",
+      "origin": "discovery",
+      "target": "render",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 23,
+      "question": "What exactly is incomplete in the AI provider registry subsystem?",
+      "origin": "architecture",
+      "target": "providers",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 24,
+      "question": "What does src/core/creative/SketchDocument.ts contribute to creative?",
+      "origin": "discovery",
+      "target": "src/core/creative/SketchDocument.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 25,
+      "question": "What is the state of video?",
+      "origin": "discovery",
+      "target": "video",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 26,
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/brain/PatternMemory.ts?",
+      "origin": "discovery",
+      "target": "src/brain/ResponsePattern.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 19; nothing new to conclude."
+    },
+    {
+      "cycle": 27,
+      "question": "Why can I not answer “What do I actually know about Latest frontier model architectures, and is it true” with the tools I have?",
+      "origin": "unresolved",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 28,
+      "question": "What do I still not understand that “Fashion: Garment concepts, fabric direction, styling and editorial renders.” depends on?",
+      "origin": "mission",
+      "target": "Fashion: Garment concepts, fabric direction, styling and editorial renders.",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 29,
+      "question": "What does src/core/creative/SketchDocument.ts contribute to src/core/creative/CreativeToolInterface.ts?",
+      "origin": "discovery",
+      "target": "src/core/creative/SketchDocument.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 24; nothing new to conclude."
+    },
+    {
+      "cycle": 30,
+      "question": "What is genuinely missing before “Avatar identity” works?",
+      "origin": "architecture",
+      "target": "avatar",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 31,
+      "question": "What does src/providers/AIProvider.ts contribute to providers?",
+      "origin": "discovery",
+      "target": "src/providers/AIProvider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 32,
+      "question": "What is the state of cognition?",
+      "origin": "discovery",
+      "target": "cognition",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 33,
+      "question": "What do I still not understand that “Jewelry: Collection concepts, pendants, renders and reference material.” depends on?",
+      "origin": "mission",
+      "target": "Jewelry: Collection concepts, pendants, renders and reference material.",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "cycle": 34,
+      "question": "What does src/providers/BaseProvider.ts contribute to providers?",
+      "origin": "discovery",
+      "target": "src/providers/BaseProvider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 35,
+      "question": "What is genuinely missing before “Video projects” works?",
+      "origin": "architecture",
+      "target": "video",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 25; nothing new to conclude."
+    },
+    {
+      "cycle": 36,
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/creative/SketchDocument.ts?",
+      "origin": "discovery",
+      "target": "src/core/storage/KvStore.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 37,
+      "question": "What is genuinely missing before “Render” works?",
+      "origin": "architecture",
+      "target": "render",
+      "tool": "capability-registry",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false,
+      "note": "Same evidence as the study concluded in cycle 22; nothing new to conclude."
+    },
+    {
+      "cycle": 38,
+      "question": "What does src/core/router/AIIntent.ts contribute to src/providers/AIProvider.ts?",
+      "origin": "discovery",
+      "target": "src/core/router/AIIntent.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 39,
+      "question": "What does src/providers/Provider.ts contribute to src/providers/BaseProvider.ts?",
+      "origin": "discovery",
+      "target": "src/providers/Provider.ts",
+      "tool": "source-read",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    },
+    {
+      "cycle": 40,
+      "question": "Is what I believe about Filesystems & permissions still true?",
+      "origin": "revalidation",
+      "tool": "architecture-map",
+      "verdict": "no-change",
+      "by": "deterministic",
+      "held": false
+    }
+  ],
+  "conclusions": [
+    {
+      "question": "Is what I believe about Filesystems & permissions still true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:computing-filesystems-permissions",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 40,
+      "concludedAt": 1794874058625
+    },
+    {
+      "question": "What does src/providers/Provider.ts contribute to src/providers/BaseProvider.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/Provider.ts (840 bytes) from the development runtime. Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/Provider.ts: 63 line(s). Exports: interface KnowledgeResult, interface Provider.",
+      "evidence": [
+        "Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/Provider.ts: 63 line(s).",
+        "Exports: interface KnowledgeResult, interface Provider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/Provider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1otlnyw1bgbnx8",
+      "cycle": 39,
+      "concludedAt": 1794874058617
+    },
+    {
+      "question": "What does src/core/router/AIIntent.ts contribute to src/providers/AIProvider.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/router/AIIntent.ts (307 bytes) from the development runtime. Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/router/AIIntent.ts: 18 line(s). Exports: type AIIntent.",
+      "evidence": [
+        "Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/router/AIIntent.ts: 18 line(s).",
+        "Exports: type AIIntent.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/router/AIIntent.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1wsv4811twn0s",
+      "cycle": 38,
+      "concludedAt": 1794874058601
+    },
+    {
+      "question": "What is genuinely missing before “Render” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Render” (partial). Capability “Render” (render) — status partial. Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys. Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+      "evidence": [
+        "Capability “Render” (render) — status partial.",
+        "Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys.",
+        "Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "render",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1f0pxpr1f36rsz",
+      "cycle": 37,
+      "concludedAt": 1794874058545,
+      "note": "Same evidence as the study concluded in cycle 22; nothing new to conclude."
+    },
+    {
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/creative/SketchDocument.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/storage/KvStore.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1b1kix1ohj4fl",
+      "cycle": 36,
+      "concludedAt": 1794874058538
+    },
+    {
+      "question": "What is genuinely missing before “Video projects” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Video projects” (partial). Capability “Video projects” (video) — status partial. Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation. Limitations: no actual video generation yet; no editing layer yet.",
+      "evidence": [
+        "Capability “Video projects” (video) — status partial.",
+        "Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation.",
+        "Limitations: no actual video generation yet; no editing layer yet.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "video",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "lfn0qh37pra5",
+      "cycle": 35,
+      "concludedAt": 1794874058498,
+      "note": "Same evidence as the study concluded in cycle 25; nothing new to conclude."
+    },
+    {
+      "question": "What does src/providers/BaseProvider.ts contribute to providers?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/BaseProvider.ts (1104 bytes) from the development runtime. Read src/providers/BaseProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/BaseProvider.ts: 64 line(s). Exports: class BaseProvider.",
+      "evidence": [
+        "Read src/providers/BaseProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/BaseProvider.ts: 64 line(s).",
+        "Exports: class BaseProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/BaseProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "4vs54z98aqa7",
+      "cycle": 34,
+      "concludedAt": 1794874058489
+    },
+    {
+      "question": "What do I still not understand that “Jewelry: Collection concepts, pendants, renders and reference material.” depends on?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Jewelry: Collection concepts, pendants, renders and reference material.",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 33,
+      "concludedAt": 1794874058444,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is the state of cognition?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Cognition” (available). Capability “Cognition” (cognition) — status available. Description: Context enrichment, reasoning and planning resolvers, and the cognitive loop. Limitations: reasoning is heuristic, not a model call.",
+      "evidence": [
+        "Capability “Cognition” (cognition) — status available.",
+        "Description: Context enrichment, reasoning and planning resolvers, and the cognitive loop.",
+        "Limitations: reasoning is heuristic, not a model call.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "cognition",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "dgua0p1s6vg2d",
+      "cycle": 32,
+      "concludedAt": 1794874058416
+    },
+    {
+      "question": "What does src/providers/AIProvider.ts contribute to providers?",
+      "verdict": "no-change",
+      "learned": "Read src/providers/AIProvider.ts (10972 bytes) from the development runtime. Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/AIProvider.ts: 580 line(s). Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+      "evidence": [
+        "Read src/providers/AIProvider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/AIProvider.ts: 580 line(s).",
+        "Exports: const DEFAULT_OUTPUT_TOKENS, interface AIMessage, interface ProviderBlocks, interface ToolSchema, interface ToolCall, interface MediaAttachment, interface AIRequest, interface AIResponse, interface AIProviderHealth, interface AIProvider.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/providers/AIProvider.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "svh5t1t4a18d",
+      "cycle": 31,
+      "concludedAt": 1794874058408
+    },
+    {
+      "question": "What is genuinely missing before “Avatar identity” works?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Avatar identity” (partial). Capability “Avatar identity” (avatar) — status partial. Description: Persistent avatar identity (appearance, identity, presence) with a reference image. Limitations: 2D config only — no animation or embodied avatar yet.",
+      "evidence": [
+        "Capability “Avatar identity” (avatar) — status partial.",
+        "Description: Persistent avatar identity (appearance, identity, presence) with a reference image.",
+        "Limitations: 2D config only — no animation or embodied avatar yet.",
+        "Dependencies: cognition."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "avatar",
+      "category": "personality",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1tio1q6pu5c8a",
+      "cycle": 30,
+      "concludedAt": 1794874058354,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/core/creative/SketchDocument.ts contribute to src/core/creative/CreativeToolInterface.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/SketchDocument.ts (11944 bytes) from the development runtime. Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/creative/SketchDocument.ts: 407 line(s). Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, ",
+      "evidence": [
+        "Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/creative/SketchDocument.ts: 407 line(s).",
+        "Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, function exportDocument, class SketchStore.",
+        "Public methods: list, subscribe, get, save, create, remove."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/SketchDocument.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "9lxcwz84hghz",
+      "cycle": 29,
+      "concludedAt": 1794874058348,
+      "note": "Same evidence as the study concluded in cycle 24; nothing new to conclude."
+    },
+    {
+      "question": "What do I still not understand that “Fashion: Garment concepts, fabric direction, styling and editorial renders.” depends on?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Fashion: Garment concepts, fabric direction, styling and editorial renders.",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 28,
+      "concludedAt": 1794874058328,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Why can I not answer “What do I actually know about Latest frontier model architectures, and is it true” with the tools I have?",
+      "verdict": "no-change",
+      "learned": "Inspected the capability registry and live manifest (8 not available). Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0. partial: Render — cloud rendering requires provider keys; no photorealistic local generation partial: Video projects — no actual video generation yet; no editing layer yet",
+      "evidence": [
+        "Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0.",
+        "partial: Render — cloud rendering requires provider keys; no photorealistic local generation",
+        "partial: Video projects — no actual video generation yet; no editing layer yet",
+        "partial: Avatar identity — 2D config only — no animation or embodied avatar yet"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:why-can-i-not-answer-what-do-i-actually-know-about-latest-frontier-model-archite",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y4pnwu191664i",
+      "cycle": 27,
+      "concludedAt": 1794874058315,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/brain/PatternMemory.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/ResponsePattern.ts (3897 bytes) from the development runtime. Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/brain/ResponsePattern.ts: 204 line(s). Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+      "evidence": [
+        "Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/brain/ResponsePattern.ts: 204 line(s).",
+        "Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/ResponsePattern.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "z4wxx11kt0ort",
+      "cycle": 26,
+      "concludedAt": 1794874058309,
+      "note": "Same evidence as the study concluded in cycle 19; nothing new to conclude."
+    },
+    {
+      "question": "What is the state of video?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Video projects” (partial). Capability “Video projects” (video) — status partial. Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation. Limitations: no actual video generation yet; no editing layer yet.",
+      "evidence": [
+        "Capability “Video projects” (video) — status partial.",
+        "Description: Video project architecture: storyboards, scenes, shots, assets, timeline foundation.",
+        "Limitations: no actual video generation yet; no editing layer yet.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "video",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "lfn0qh37pra5",
+      "cycle": 25,
+      "concludedAt": 1794874058292
+    },
+    {
+      "question": "What does src/core/creative/SketchDocument.ts contribute to creative?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/SketchDocument.ts (11944 bytes) from the development runtime. Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/creative/SketchDocument.ts: 407 line(s). Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, ",
+      "evidence": [
+        "Read src/core/creative/SketchDocument.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/creative/SketchDocument.ts: 407 line(s).",
+        "Exports: type SketchStrokeTool, type SketchShapeKind, interface SketchPoint, interface SketchStroke, interface SketchTextElement, interface SketchImageElement, type SketchElement, interface SketchLayer, interface SketchDocument, type SketchExportFormat, function emptyDocument, function renderDocumentToCanvas, function preloadSketchImages, function exportDocument, class SketchStore.",
+        "Public methods: list, subscribe, get, save, create, remove."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/SketchDocument.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "9lxcwz84hghz",
+      "cycle": 24,
+      "concludedAt": 1794874058285
+    },
+    {
+      "question": "What exactly is incomplete in the AI provider registry subsystem?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “AI provider registry”: provider-dependent, 4 file(s). AI provider registry (providers) — kind service, status provider-dependent. Description: Priority/cooldown/fallback registry of AI + knowledge providers, with per-agent provider preference. Files (4): src/providers/AIProvider.ts, src/providers/BaseProvider.ts, src/core/AIProviderRegistry.ts, src/core/router/ProviderResolver.ts",
+      "evidence": [
+        "AI provider registry (providers) — kind service, status provider-dependent.",
+        "Description: Priority/cooldown/fallback registry of AI + knowledge providers, with per-agent provider preference.",
+        "Files (4): src/providers/AIProvider.ts, src/providers/BaseProvider.ts, src/core/AIProviderRegistry.ts, src/core/router/ProviderResolver.ts",
+        "Depends on: nothing."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "providers",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "dvdknvr2zc9j",
+      "cycle": 23,
+      "concludedAt": 1794874058262,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is the state of render?",
+      "verdict": "no-change",
+      "learned": "Inspected capability “Render” (partial). Capability “Render” (render) — status partial. Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys. Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+      "evidence": [
+        "Capability “Render” (render) — status partial.",
+        "Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys.",
+        "Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "Dependencies: none."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "render",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1f0pxpr1f36rsz",
+      "cycle": 22,
+      "concludedAt": 1794874058253
+    },
+    {
+      "question": "What does src/core/creative/CreativeToolInterface.ts contribute to creative?",
+      "verdict": "no-change",
+      "learned": "Read src/core/creative/CreativeToolInterface.ts (14593 bytes) from the development runtime. Read src/core/creative/CreativeToolInterface.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/creative/CreativeToolInterface.ts: 456 line(s). Exports: interface ToolCommandResult, interface ToolCommandInput, type ToolExecutor, function executeToolCommand, function toolCommandExamples.",
+      "evidence": [
+        "Read src/core/creative/CreativeToolInterface.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/creative/CreativeToolInterface.ts: 456 line(s).",
+        "Exports: interface ToolCommandResult, interface ToolCommandInput, type ToolExecutor, function executeToolCommand, function toolCommandExamples.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/creative/CreativeToolInterface.ts",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "ova596g1gr3y",
+      "cycle": 21,
+      "concludedAt": 1794874058248
+    },
+    {
+      "question": "What do I actually know about Latest frontier model architectures, and is it true?",
+      "verdict": "insufficient",
+      "learned": "Tried 2 provider(s) (guardian, newsdata) — none returned results.",
+      "evidence": [
+        "guardian: no results.",
+        "newsdata: no results.",
+        "Skipped during failure cooldown: youtube, arxiv, news."
+      ],
+      "relevance": "The question “What do I actually know about Latest frontier model architectures, and is it true?” is still open; the evidence did not address it.",
+      "subject": "knowledge:ai-latest-frontier-model-architectures",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "idjb3j1x8u0q3",
+      "cycle": 20,
+      "concludedAt": 1794874058238
+    },
+    {
+      "question": "What does src/brain/ResponsePattern.ts contribute to src/core/memory/MemoryStore.ts?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/ResponsePattern.ts (3897 bytes) from the development runtime. Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/brain/ResponsePattern.ts: 204 line(s). Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+      "evidence": [
+        "Read src/brain/ResponsePattern.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/brain/ResponsePattern.ts: 204 line(s).",
+        "Exports: type MemoryCategory, const CATEGORY_RECALL_SYNONYMS, type MemoryType, interface ResponsePattern.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/ResponsePattern.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "z4wxx11kt0ort",
+      "cycle": 19,
+      "concludedAt": 1794874058222
+    },
+    {
+      "question": "What exactly is incomplete in the Creative systems subsystem?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Creative systems”: partial, 6 file(s). Creative systems (creative) — kind creative, status partial. Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity. Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+      "evidence": [
+        "Creative systems (creative) — kind creative, status partial.",
+        "Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity.",
+        "Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "creative",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8er06ckhjai",
+      "cycle": 18,
+      "concludedAt": 1794874058198,
+      "note": "Same evidence as the study concluded in cycle 11; nothing new to conclude."
+    },
+    {
+      "question": "Why can I not answer “What do I actually know about Procedural environment generation, and is it true” with the tools I have?",
+      "verdict": "no-change",
+      "learned": "Inspected the capability registry and live manifest (8 not available). Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0. partial: Render — cloud rendering requires provider keys; no photorealistic local generation partial: Video projects — no actual video generation yet; no editing layer yet",
+      "evidence": [
+        "Capability registry: available 18, partial 4, experimental 2, offline 0, provider-dependent 2, disabled 0, broken 0, planned 0.",
+        "partial: Render — cloud rendering requires provider keys; no photorealistic local generation",
+        "partial: Video projects — no actual video generation yet; no editing layer yet",
+        "partial: Avatar identity — 2D config only — no animation or embodied avatar yet"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:why-can-i-not-answer-what-do-i-actually-know-about-procedural-environment-genera",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "y4pnwu191664i",
+      "cycle": 17,
+      "concludedAt": 1794874058182,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What does src/brain/PatternMemory.ts contribute to memory?",
+      "verdict": "no-change",
+      "learned": "Read src/brain/PatternMemory.ts (11307 bytes) from the development runtime. Read src/brain/PatternMemory.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/brain/PatternMemory.ts: 843 line(s). Exports: class PatternMemory.",
+      "evidence": [
+        "Read src/brain/PatternMemory.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/brain/PatternMemory.ts: 843 line(s).",
+        "Exports: class PatternMemory.",
+        "Public methods: initialize, add, get, update, remove, clear, getAll, mergeRemote, search."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/brain/PatternMemory.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "bqz6h12rm49h",
+      "cycle": 16,
+      "concludedAt": 1794874058175
+    },
+    {
+      "question": "What do I actually know about Procedural environment generation, and is it true?",
+      "verdict": "insufficient",
+      "learned": "Tried 2 provider(s) (guardian, newsdata) — none returned results.",
+      "evidence": [
+        "guardian: no results.",
+        "newsdata: no results.",
+        "Skipped during failure cooldown: youtube, arxiv, news."
+      ],
+      "relevance": "The question “What do I actually know about Procedural environment generation, and is it true?” is still open; the evidence did not address it.",
+      "subject": "knowledge:creative-procedural-environment-generation",
+      "category": "technical",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "idjb3j1x8u0q3",
+      "cycle": 15,
+      "concludedAt": 1794874058161
+    },
+    {
+      "question": "What is the state of providers?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "providers",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 14,
+      "concludedAt": 1794874058142
+    },
+    {
+      "question": "What is causing this failure: Self-test suite: / passed, failed?",
+      "verdict": "no-change",
+      "learned": "Testing: 23/23 in-browser tests passed (development runtime reachable). Self-test suite: 23/23 passed, 0 failed. Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop.",
+      "evidence": [
+        "Self-test suite: 23/23 passed, 0 failed.",
+        "Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Self-test suite: / passed, failed",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "13p0y4a1lhte06",
+      "cycle": 13,
+      "concludedAt": 1794874058104,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "Do my own self-tests still pass?",
+      "verdict": "no-change",
+      "learned": "Testing: 23/23 in-browser tests passed (development runtime reachable). Self-test suite: 23/23 passed, 0 failed. Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop.",
+      "evidence": [
+        "Self-test suite: 23/23 passed, 0 failed.",
+        "Development runtime is live (vite-dev). The project's full test suite is not run from background study (it outlasts a study step and spends provider quota outside the background allowance); a change's relevant tests run in the development loop."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "self-tests",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "13p0y4a1lhte06",
+      "cycle": 12,
+      "concludedAt": 1794874057990
+    },
+    {
+      "question": "What is the state of creative?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Creative systems”: partial, 6 file(s). Creative systems (creative) — kind creative, status partial. Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity. Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+      "evidence": [
+        "Creative systems (creative) — kind creative, status partial.",
+        "Description: Sketch (offline canvas + document model), Render (pluggable engine registry + local engine), Video (project/storyboard/scene/asset architecture), Avatar identity.",
+        "Files (6): src/core/creative/SketchDocument.ts, src/core/creative/CreativeToolInterface.ts, src/core/creative/RenderEngine.ts, src/core/creative/RenderStore.ts, src/core/creative/VideoProject.ts, src/core/avatar/AvatarProfile.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "creative",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "8er06ckhjai",
+      "cycle": 11,
+      "concludedAt": 1794874057880
+    },
+    {
+      "question": "Where are tool-level diagnostics (including YouTube) surfaced in the runtime-status or workspace, and why are they absent from this evidence?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "question:where-are-tool-level-diagnostics-including-youtube-surfaced-in-the-runtime-statu",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 9,
+      "concludedAt": 1794874057859
+    },
+    {
+      "question": "What does src/core/memory/MemoryStore.ts contribute to memory?",
+      "verdict": "no-change",
+      "learned": "Read src/core/memory/MemoryStore.ts (1626 bytes) from the development runtime. Read src/core/memory/MemoryStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/memory/MemoryStore.ts: 227 line(s). Exports: type MemorySpace, interface MemoryMetadata, interface MemoryRecord, interface MemoryStore.",
+      "evidence": [
+        "Read src/core/memory/MemoryStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/memory/MemoryStore.ts: 227 line(s).",
+        "Exports: type MemorySpace, interface MemoryMetadata, interface MemoryRecord, interface MemoryStore.",
+        "Public methods: none detected."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "src/core/memory/MemoryStore.ts",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1e7ap0ia51wxa",
+      "cycle": 8,
+      "concludedAt": 1794874057839
+    },
+    {
+      "question": "What is causing this failure: youtube failed: YouTube?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "youtube failed: YouTube",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 7,
+      "concludedAt": 1794874057814,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What do I actually know about State-of-the-art agent memory, and is it true?",
+      "verdict": "no-change",
+      "learned": "Inspected subsystem “Memory system (STM/LTM)”: working, 6 file(s). Memory system (STM/LTM) (memory) — kind core, status working. Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed. Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+      "evidence": [
+        "Memory system (STM/LTM) (memory) — kind core, status working.",
+        "Description: PatternMemory (IndexedDB), memory engines, reflection, synthesis, conversation engine, and identity seed.",
+        "Files (6): src/brain/PatternMemory.ts, src/core/memory/MemoryStore.ts, src/core/memory/IndexedDBStore.ts, src/core/MemoryBridge.ts, src/brain/LeluIdentity.ts, src/brain/Brain.ts",
+        "Depends on: storage."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "memory",
+      "category": "cognitive",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "1348sal8e2a1t",
+      "cycle": 6,
+      "concludedAt": 1794874057772,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What do I actually know about Self-modifying systems, and is it true?",
+      "verdict": "no-change",
+      "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "knowledge:software-self-modifying-systems",
+      "category": "architecture",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "djrbsr1s3hifb",
+      "cycle": 4,
+      "concludedAt": 1794874057688,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    },
+    {
+      "question": "What is causing this failure: Self-diagnostics: ok, warning(s), error(s)?",
+      "verdict": "no-change",
+      "learned": "Runtime reachable: vite-dev, 0 diagnostic error(s). REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect. Active AI provider: OpenRouter. provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+      "evidence": [
+        "REAL DEVELOPMENT RUNTIME — vite-dev (node 22.23.4) at http://127.0.0.1:5173, workspace “LeluV1.1”, operations: typecheck, build, test, inspect.",
+        "Active AI provider: OpenRouter.",
+        "provider Local (on-device) — priority 0, enabled, ready, never succeeded.",
+        "provider OpenRouter — priority 2, enabled, ready, last success 2026-11-17T00:07:37.617Z."
+      ],
+      "relevance": "Recorded so later work starts from this rather than re-reading it. Nothing in the evidence calls for a change.",
+      "subject": "Self-diagnostics: ok, warning(s), error(s)",
+      "category": "operational",
+      "synthesizedBy": "deterministic",
+      "evidenceFingerprint": "16cix20rl0o30",
+      "cycle": 3,
+      "concludedAt": 1794874057681,
+      "note": "Background budget pacing (9 of 10 left today); concluded from the evidence alone."
+    }
+  ],
+  "selfStudyProposals": [],
+  "development": null,
+  "developmentRecord": [
+    {
+      "objectiveId": "acac8a79-9a9f-467c-85c9-ad545ebd8959",
+      "question": "Is what I believe about Filesystems & permissions still true?",
+      "why": "My belief about this part of my system may have drifted from the code. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui]",
+        "core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning]",
+        "providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "memory — Memory system (STM/LTM): working, 6 file(s), provides [memory, identity-context]"
+      ],
+      "conclusion": {
+        "subject": "knowledge:computing-filesystems-permissions",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Architecture map: 13 subsystem(s) across 928 source file(s). ui — Frontend & interface: working, 10 file(s), provides [ui, navigation, chat-ui] core-ai — AI service & runtime: working, 9 file(s), provides [chat, delegation, reasoning, planning] providers — AI provider registry: provider-dependent, 4 file(s), provides [chat, delegation, research]",
+        "synthesizedBy": "deterministic",
+        "cycle": 40,
+        "concludedAt": 1794874058625
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "60a63dab-7eca-4964-8e40-7785fbd5662d",
+      "question": "What does src/providers/Provider.ts contribute to src/providers/BaseProvider.ts?",
+      "why": "src/providers/Provider.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/providers/Provider.ts: 63 line(s).",
+        "Exports: interface KnowledgeResult, interface Provider.",
+        "Public methods: none detected."
+      ],
+      "conclusion": {
+        "subject": "src/providers/Provider.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/providers/Provider.ts (840 bytes) from the development runtime. Read src/providers/Provider.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/providers/Provider.ts: 63 line(s). Exports: interface KnowledgeResult, interface Provider.",
+        "synthesizedBy": "deterministic",
+        "cycle": 39,
+        "concludedAt": 1794874058617
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "bee5eb32-b881-459f-bb92-e2029d8e7c77",
+      "question": "What does src/core/router/AIIntent.ts contribute to src/providers/AIProvider.ts?",
+      "why": "src/core/router/AIIntent.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/router/AIIntent.ts: 18 line(s).",
+        "Exports: type AIIntent.",
+        "Public methods: none detected."
+      ],
+      "conclusion": {
+        "subject": "src/core/router/AIIntent.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/router/AIIntent.ts (307 bytes) from the development runtime. Read src/core/router/AIIntent.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/router/AIIntent.ts: 18 line(s). Exports: type AIIntent.",
+        "synthesizedBy": "deterministic",
+        "cycle": 38,
+        "concludedAt": 1794874058601
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "1c31d6dc-1570-4b49-9281-e9e498d426ce",
+      "question": "What is genuinely missing before “Render” works?",
+      "why": "I cannot describe render from evidence. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Capability “Render” (render) — status partial.",
+        "Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys.",
+        "Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "Dependencies: none."
+      ],
+      "conclusion": {
+        "subject": "render",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Inspected capability “Render” (partial). Capability “Render” (render) — status partial. Description: Pluggable render engine registry with a local procedural engine; cloud engines wait on keys. Limitations: cloud rendering requires provider keys; no photorealistic local generation.",
+        "synthesizedBy": "deterministic",
+        "cycle": 37,
+        "concludedAt": 1794874058545
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    },
+    {
+      "objectiveId": "f1da2c5a-7169-4277-900c-dada3374b9cf",
+      "question": "What does src/core/storage/KvStore.ts contribute to src/core/creative/SketchDocument.ts?",
+      "why": "src/core/storage/KvStore.ts was touched by an earlier investigation and I have no record of it. Knowledge I cannot rely on is knowledge I cannot act on.",
+      "evidence": [
+        "Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now.",
+        "src/core/storage/KvStore.ts: 208 line(s).",
+        "Exports: class KvStore.",
+        "Public methods: get, set, remove, keys."
+      ],
+      "conclusion": {
+        "subject": "src/core/storage/KvStore.ts",
+        "category": "architecture",
+        "verdict": "no-change",
+        "learned": "Read src/core/storage/KvStore.ts (6380 bytes) from the development runtime. Read src/core/storage/KvStore.ts from the REAL DEVELOPMENT RUNTIME (vite-dev) — this is the file on disk right now. src/core/storage/KvStore.ts: 208 line(s). Exports: class KvStore.",
+        "synthesizedBy": "deterministic",
+        "cycle": 36,
+        "concludedAt": 1794874058538
+      },
+      "stage": "concluded-no-change",
+      "stageLabel": "Concluded — nothing to change"
+    }
+  ],
+  "developmentRecordAsSheReadsIt": "## MY DEVELOPMENT RECORD\nNo self-study conclusion has called for a change yet."
+}

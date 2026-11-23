@@ -206,6 +206,9 @@ const failureSignal = (tool = "project.read", cause: "unavailable" | "missing-co
 function freshIdentity(): void {
   KvStore.getInstance().remove("identity.v1");
   LeluIdentity.reset();
+  // Personality changes are staged for the owner by default. These tests
+  // exercise the apply-directly path, which the owner has to choose.
+  LeluIdentity.getInstance().setSandboxMode(false);
 }
 
 /* ------------------------------------------------------------------ */

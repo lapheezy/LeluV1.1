@@ -174,6 +174,11 @@ function describeProposal(proposal: ImprovementProposal): string {
     `Expected benefit: ${proposal.expectedBenefit}`,
     proposal.capabilityId ? `Target capability id: ${proposal.capabilityId}` : "",
     `Test plan: ${proposal.testPlan}`,
+    ...(proposal.ownerFeedbackHistory ?? [])
+      .filter((decision) => decision.note)
+      .map((decision, index, all) =>
+        `Owner feedback on ${index === all.length - 1 ? "the previous" : "an earlier"} implementation (address this): ${decision.note}`,
+      ),
   ]
     .filter(Boolean)
     .join("\n");
@@ -185,7 +190,10 @@ function strings(value: unknown): string[] {
 
 export default class ProposalEngineer {
   constructor(
-    private readonly reason: Reason = (prompt, options) => AIService.getInstance().reason(prompt, options),
+    // Code generation only runs after the owner approved a proposal, so it is
+    // labelled as its own purpose rather than as background work.
+    private readonly reason: Reason = (prompt, options) =>
+      AIService.getInstance().reason(prompt, { ...options, operation: "self-development" }),
   ) {}
 
   public async generate(
