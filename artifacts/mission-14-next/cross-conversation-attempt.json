@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-11-15T15:50:26.078Z",
+  "status": "BLOCKED",
+  "objective": "Prove model-authored resumption from a genuinely new conversation using persisted mission data",
+  "historicalMission": "m-406ecd7d",
+  "conversations": [
+    {
+      "id": "2b00d60b-0b94-40dd-8b8e-7dcd8a689b76",
+      "createdAt": 1794756876109,
+      "title": "Pick up the open Mission 14 conversa",
+      "attempt": "open mission, no id supplied",
+      "assistantProvider": "offline",
+      "toolUsed": "mission.list",
+      "toolSucceeded": true,
+      "toolLastRunAt": 1794756984854,
+      "observedResult": "Selected m-4863de4f (the active duplicate) and summarised its objective/next action. No mission.brief call. Final text was local fallback, not model-authored."
+    },
+    {
+      "id": "3f7239b8-798e-4448-a050-3cc0a6c7cc58",
+      "createdAt": 1794757140614,
+      "title": "Pick up the blocked Mission 14 conve",
+      "attempt": "blocked record with duplicate-title guidance",
+      "assistantProvider": "offline",
+      "toolUsed": null,
+      "observedResult": "Groq openai/gpt-oss-20b failed before a usable final answer (TPM 429, then 400 tool_use_failed). Local projector text only."
+    },
+    {
+      "id": "28986e12-9651-4356-8568-7109ba5de973",
+      "createdAt": 1794757551926,
+      "title": "Resume the blocked Mission 14 conver",
+      "attempt": "short resume prompt, no id",
+      "assistantProvider": "project",
+      "toolUsed": null,
+      "observedResult": "No remote completion; text parser created a local project card. No mission retrieval."
+    }
+  ],
+  "providerErrors": [
+    "openrouter: 429 free-models-per-day (all three credentials)",
+    "groq openai/gpt-oss-20b: 429 TPM Limit 8000 (retry windows 27-43s)",
+    "groq openai/gpt-oss-120b: 429 TPM Limit 8000 (retry windows 13-27s)",
+    "groq openai/gpt-oss-20b: 400 tool_use_failed — \"Tool choice is none, but model called a tool\""
+  ],
+  "missionBeforeAfter": {
+    "id": "m-406ecd7d",
+    "status": "blocked",
+    "nextSafeAction": "read the resume brief and continue",
+    "decisions": [
+      "chat tool loop works end to end"
+    ],
+    "blockers": [
+      "providers are rate limited"
+    ],
+    "updatedAt": 1794704556762,
+    "durability": "persisted",
+    "changed": false,
+    "note": "No model-authored continuation was persisted because none completed."
+  },
+  "conclusion": "Cross-conversation tool access was observed once (mission.list succeeded), but model-authored retrieval of the correct record and a model-authored continuation were not. Recorded BLOCKED rather than claiming success."
+}

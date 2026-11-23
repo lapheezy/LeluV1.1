@@ -27,7 +27,7 @@
  */
 
 import { resolveFirst } from "../resolveEnv";
-import { classifyProviderFailure, type ProviderFailureKind } from "../AIProviderRegistry";
+import { classifyProviderFailure, retryAfterMsFrom, type ProviderFailureKind } from "../AIProviderRegistry";
 
 /** How long a refused credential or a spent window keeps a key out. */
 const AUTH_COOLDOWN_MS = 15 * 60_000;
@@ -216,7 +216,11 @@ export default class ProviderKeyRing {
     const kind = classifyProviderFailure(reason);
     record.failures += 1;
     record.lastFailureKind = kind;
-    record.cooldownUntil = this.now() + cooldownFor(kind);
+    // A key told to wait 35 minutes must not be handed out again after the
+    // generic transient window. Keep the longer of the policy cooldown and
+    // the provider's own reset.
+    record.cooldownUntil =
+      this.now() + Math.max(cooldownFor(kind), retryAfterMsFrom(reason) ?? 0);
   }
 
   markSuccess(label: string): void {

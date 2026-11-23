@@ -30,6 +30,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { noteContinuityChange } from "../sync/ContinuitySignals";
 
 export type NavLevel = "core" | "galaxy" | "planet" | "room";
 
@@ -456,6 +457,35 @@ export default class CosmosNavigation {
     if (this.restoredArrival_ === id) this.restoredArrival_ = null;
   }
 
+  /** Every room including archived rooms, so deletion can be synchronized. */
+  allRooms(): NavNode[] {
+    return [...this.nodes.values()].filter((node) => node.level === "room" && node.origin !== "system");
+  }
+
+  /**
+   * Apply rooms from a reconciled cloud copy. The union is preserved:
+   * a missing room in one snapshot is not permission to delete it here.
+   */
+  applyRemoteRooms(rooms: NavNode[]): void {
+    let changed = false;
+    for (const remote of rooms) {
+      if (!remote || !remote.id || remote.level !== "room" || remote.origin === "system") continue;
+      const current = this.nodes.get(remote.id);
+      if (!current) {
+        this.nodes.set(remote.id, { ...remote, level: "room", removable: true });
+        changed = true;
+      } else if (remote.archived !== current.archived || remote.label !== current.label || remote.parentId !== current.parentId) {
+        this.nodes.set(remote.id, { ...current, ...remote, level: "room", removable: true });
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.version += 1;
+      this.persist("remote");
+      this.notify();
+    }
+  }
+
   /** Re-read persisted visits and rooms (a fresh start sees the same map). */
   reload(): void {
     this.load();
@@ -485,7 +515,7 @@ export default class CosmosNavigation {
     }
   }
 
-  private persist(): void {
+  private persist(origin: "local" | "remote" = "local"): void {
     try {
       const rooms = [...this.nodes.values()]
         .filter((node) => node.level === "room" && node.origin !== "system")
@@ -504,6 +534,13 @@ export default class CosmosNavigation {
         trail: this.pendingTrail ?? this.trail,
       };
       KvStore.getInstance().set(KEY, payload);
+      const allRooms = [...this.nodes.values()]
+        .filter((node) => node.level === "room" && node.origin !== "system");
+      noteContinuityChange("cosmosNavigation", origin, [{
+        id: "rooms",
+        updatedAt: Date.now(),
+        data: allRooms,
+      }]);
     } catch {
       /* persistence must never break navigation */
     }

@@ -42,6 +42,13 @@ import SelfStudy, {
 } from "../../../core/cognition/SelfStudy";
 import ProjectMission, { type MissionState } from "../../../core/cognition/ProjectMission";
 import ProactiveCore from "../../../core/proactive/ProactiveCore";
+import OperationalSelfModel, {
+  type OperationalSelfSnapshot,
+} from "../../../core/cognition/OperationalSelfModel";
+import MissionLedgerStore from "../../../core/projects/MissionLedger";
+import CognitivePulseStore from "../../../core/cognition/CognitivePulse";
+import { BrokerHealthStore, type BrokerHealthSnapshot } from "../../../core/model/ProviderHealth";
+import type { MissionEvidence } from "../../../core/operational-intelligence/evidence";
 
 const labelStyle: CSSProperties = {
   fontSize: 10.5,
@@ -76,16 +83,27 @@ const chipButton: CSSProperties = {
   fontFamily: "inherit",
 };
 
-type Tab = "self" | "study" | "knowledge" | "queue" | "system" | "autonomy";
+type Tab = "self" | "study" | "continuity" | "knowledge" | "queue" | "system" | "autonomy";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "self", label: "Self" },
   { id: "study", label: "Self-study" },
+  { id: "continuity", label: "Continuity" },
   { id: "knowledge", label: "Knowledge" },
   { id: "queue", label: "Queue" },
   { id: "system", label: "System" },
   { id: "autonomy", label: "Autonomy" },
 ];
+
+const EVIDENCE_COLORS: Record<MissionEvidence, string> = {
+  VERIFIED: "#34d399",
+  REPORTED: "#93c5fd",
+  PARTIAL: "#fbbf24",
+  BLOCKED: "#f87171",
+  UNAVAILABLE: "#94a3b8",
+  PROPOSED: "#c4b5fd",
+  SIMULATED: "#f0abfc",
+};
 
 interface GenesisCognitionPanelProps {
   onClose: () => void;
@@ -118,6 +136,10 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
   const [studyProposals, setStudyProposals] = useState<SelfStudyProposal[]>(() => study.pendingAuthorization());
   const [missionState, setMissionState] = useState<MissionState>(() => mission.get());
   const [studyBusy, setStudyBusy] = useState(false);
+  const [continuity, setContinuity] = useState<OperationalSelfSnapshot | null>(null);
+  const [providerHealth, setProviderHealth] = useState<BrokerHealthSnapshot | null>(() =>
+    BrokerHealthStore.getInstance().get(),
+  );
   const [loopRunning, setLoopRunning] = useState(true);
   const [search, setSearch] = useState("");
   const [addField, setAddField] = useState("");
@@ -144,6 +166,14 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
     setStudyProposals(study.pendingAuthorization());
     setMissionState(mission.get());
   }, [environment, gate, knowledge, mission, queue, selfModel, study]);
+
+  // The operational self-model is assembled on demand, not polled: it reads
+  // several live stores, and a 2 s refresh would turn an observation into a
+  // background scan. The user re-reads it with the button in the tab.
+  useEffect(() => {
+    if (tab !== "continuity") return;
+    setContinuity(OperationalSelfModel.getInstance().snapshot());
+  }, [tab]);
 
   useEffect(() => {
     refresh();
@@ -829,6 +859,177 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                   No gaps computed yet — run a study cycle.
                 </div>
               ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ------------------------------------------------ CONTINUITY */}
+        {tab === "continuity" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  Operational self · evidence-labelled
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Read immediately from the last observation, then ask the
+                    // broker and re-read: the button must never imply a fresh
+                    // provider check it did not make.
+                    setContinuity(OperationalSelfModel.getInstance().snapshot());
+                    void BrokerHealthStore.getInstance().refresh().then((health) => {
+                      setProviderHealth(health);
+                      setContinuity(OperationalSelfModel.getInstance().snapshot());
+                    });
+                  }}
+                  style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(34, 211, 238, 0.2)" }}
+                >
+                  Read now
+                </button>
+                <span style={{ fontSize: 10.5, opacity: 0.55 }}>
+                  {continuity ? new Date(continuity.at).toLocaleTimeString() : "not read yet"}
+                </span>
+              </div>
+              {continuity ? (
+                <>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+                    {(Object.keys(EVIDENCE_COLORS) as MissionEvidence[]).map((state) => (
+                      <span
+                        key={state}
+                        style={{
+                          fontSize: 10,
+                          borderRadius: 999,
+                          padding: "3px 9px",
+                          border: `1px solid ${EVIDENCE_COLORS[state]}55`,
+                          color: EVIDENCE_COLORS[state],
+                          background: `${EVIDENCE_COLORS[state]}12`,
+                        }}
+                      >
+                        {state}: {continuity.counts[state]}
+                      </span>
+                    ))}
+                  </div>
+                  {providerHealth && providerHealth.providers.length > 0 ? (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={labelStyle}>
+                        Providers · observed {new Date(providerHealth.at).toLocaleTimeString()}
+                        {providerHealth.probeError ? ` · probe failed: ${providerHealth.probeError}` : ""}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        {providerHealth.providers.map((provider) => {
+                          const color =
+                            provider.availability === "verified"
+                              ? "#4ade80"
+                              : provider.availability === "unverified"
+                                ? "#facc15"
+                                : provider.availability === "failing"
+                                  ? "#fb923c"
+                                  : "#f87171";
+                          return (
+                            <div key={provider.id} style={{ display: "flex", gap: 8, fontSize: 11.5 }}>
+                              <span style={{ color, minWidth: 74, fontWeight: 700 }}>{provider.availability}</span>
+                              <span style={{ flex: 1 }}>
+                                {provider.id} · {provider.state}
+                                <span style={{ opacity: 0.55 }}>
+                                  {" "}· last success {provider.lastSuccessAt ? new Date(provider.lastSuccessAt).toLocaleString() : "never observed"}
+                                  {provider.lastFailureAt
+                                    ? ` · last failure ${new Date(provider.lastFailureAt).toLocaleString()}${provider.lastFailureStatus ? ` (HTTP ${provider.lastFailureStatus})` : ""}`
+                                    : ""}
+                                  {provider.retryAfterAt
+                                    ? ` · retry in ${provider.retryAfterSeconds ?? "?"}s`
+                                    : ""}
+                                </span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div style={{ marginTop: 10, fontSize: 11, opacity: 0.7 }}>
+                    {continuity.identity.name} · autonomy {continuity.autonomyLevel === null ? "unreadable" : `L${continuity.autonomyLevel}`} ·{" "}
+                    network {continuity.environment.online === null ? "unknown" : continuity.environment.online ? "online" : "offline"}
+                    {continuity.sourceFailures.length > 0
+                      ? ` · unreadable: ${continuity.sourceFailures.map((failure) => failure.source).join(", ")}`
+                      : ""}
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {continuity.claims.slice(0, 16).map((claim) => (
+                      <div key={claim.id} style={{ display: "flex", gap: 8, alignItems: "baseline", fontSize: 11.5, lineHeight: 1.45 }}>
+                        <span
+                          style={{
+                            flex: "0 0 auto",
+                            fontSize: 9.5,
+                            fontWeight: 700,
+                            letterSpacing: "0.06em",
+                            color: EVIDENCE_COLORS[claim.state],
+                            minWidth: 74,
+                          }}
+                        >
+                          {claim.state}
+                        </span>
+                        <span style={{ flex: 1, opacity: 0.86 }}>
+                          {claim.statement}
+                          <span style={{ opacity: 0.45 }}> · {claim.source}</span>
+                        </span>
+                      </div>
+                    ))}
+                    {continuity.claims.length > 16 ? (
+                      <div style={{ fontSize: 11, opacity: 0.5 }}>
+                        … {continuity.claims.length - 16} more claim(s) are held by the model; the full list is returned by self_operational.
+                      </div>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 11.5, opacity: 0.6, marginTop: 8 }}>Reading the live stores…</div>
+              )}
+            </div>
+
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
+                Mission continuity · {MissionLedgerStore.getInstance().open().length} open
+              </div>
+              {MissionLedgerStore.getInstance().open().length === 0 ? (
+                <div style={{ fontSize: 11.5, opacity: 0.6 }}>
+                  No open workstreams are recorded yet. LÉLU opens one with mission_record; it then survives this conversation.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {MissionLedgerStore.getInstance().open().slice(0, 8).map((mission) => (
+                    <div key={mission.id} style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "8px 10px", background: "rgba(255,255,255,0.02)" }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 600 }}>{mission.title}</span>
+                        <span style={{ fontSize: 9.5, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.65 }}>
+                          {mission.status} · {mission.evidence} · {mission.durability}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 11, opacity: 0.75, marginTop: 3 }}>
+                        Next safe action: {mission.nextSafeAction ?? "none recorded"}
+                      </div>
+                      {mission.blockers.some((blocker) => blocker.clearedAt === undefined) ? (
+                        <div style={{ fontSize: 11, color: "#fca5a5", marginTop: 3 }}>
+                          Blocked:{" "}
+                          {mission.blockers
+                            .filter((blocker) => blocker.clearedAt === undefined)
+                            .map((blocker) => blocker.text)
+                            .join("; ")}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
+                Cognitive pulse · event-driven
+              </div>
+              <pre style={{ margin: 0, fontSize: 10.5, lineHeight: 1.6, whiteSpace: "pre-wrap", opacity: 0.8, fontFamily: "inherit" }}>
+                {CognitivePulseStore.getInstance().digest(8)}
+              </pre>
             </div>
           </div>
         ) : null}

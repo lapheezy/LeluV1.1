@@ -8,6 +8,8 @@
 import type UserProfile
   from "./UserProfile";
 
+import KvStore from "../storage/KvStore";
+
 
 export default class UserProfileStore {
 
@@ -26,6 +28,17 @@ export default class UserProfileStore {
 
 
   private db?: IDBDatabase;
+
+  /**
+   * IndexedDB is the preferred local backend, but it is not always
+   * available (private windows, embedded frames, storage-denied
+   * contexts). The profile is local identity, not a Supabase concern, so
+   * an unavailable database must fall back to the same KvStore every
+   * other local store uses instead of taking identity offline.
+   */
+  private readonly fallback = KvStore.getInstance();
+  private fallbackActive = false;
+  private static readonly FALLBACK_KEY = "user.profile.v1";
 
 
 
@@ -52,6 +65,13 @@ export default class UserProfileStore {
 
     }
 
+    if (this.fallbackActive) return;
+
+    if (typeof indexedDB === "undefined") {
+      this.fallbackActive = true;
+      return;
+    }
+
 
 
 
@@ -61,8 +81,6 @@ export default class UserProfileStore {
       (
 
         resolve,
-
-        reject,
 
       ) => {
 
@@ -171,12 +189,11 @@ export default class UserProfileStore {
 
           () => {
 
-
-            reject(
-
-              request.error,
-
-            );
+            // A local database that cannot open is an unavailable backend,
+            // not a fatal identity failure. Use KvStore and say so once.
+            console.warn("[Lélu] IndexedDB profile store unavailable; using KvStore");
+            this.fallbackActive = true;
+            resolve();
 
           };
 
@@ -206,6 +223,11 @@ export default class UserProfileStore {
 
 
     await this.initialize();
+
+    if (this.fallbackActive) {
+      this.fallback.set(UserProfileStore.FALLBACK_KEY, profile);
+      return;
+    }
 
 
 
@@ -291,6 +313,10 @@ export default class UserProfileStore {
 
 
     await this.initialize();
+
+    if (this.fallbackActive) {
+      return this.fallback.get<UserProfile>(UserProfileStore.FALLBACK_KEY);
+    }
 
 
 
@@ -388,6 +414,11 @@ export default class UserProfileStore {
 
     await this.initialize();
 
+    if (this.fallbackActive) {
+      this.fallback.remove(UserProfileStore.FALLBACK_KEY);
+      return;
+    }
+
 
 
 
@@ -472,6 +503,11 @@ export default class UserProfileStore {
 
 
     await this.initialize();
+
+    if (this.fallbackActive) {
+      this.fallback.remove(UserProfileStore.FALLBACK_KEY);
+      return;
+    }
 
 
 

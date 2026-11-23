@@ -62,6 +62,26 @@ test("ordinary conversation is not dragged into the project path", () => {
   }
 });
 
+test("resuming a mission stays with the continuity tools, not project creation", () => {
+  const detector = new IntentDetector();
+  for (const phrase of [
+    "Resume the blocked Mission 14 conversational-proof workstream. Find the right record yourself.",
+    "Pick up the Mission 14 continuity mission and read its brief.",
+    "What is blocking the continuity workstream?",
+  ]) {
+    assert.equal(
+      detector.detect(phrase),
+      "chat",
+      `"${phrase}" must reach the mission tools, not ProjectResolver`,
+    );
+  }
+  assert.equal(
+    detector.detect("Resume the pendant project"),
+    "project",
+    "a real project resume must keep its existing route",
+  );
+});
+
 // ============================================================
 // UNRESOLVED REFERENCES MUST NEVER BE PERSISTED
 // ============================================================

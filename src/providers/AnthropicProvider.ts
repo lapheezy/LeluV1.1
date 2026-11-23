@@ -300,7 +300,7 @@ export default class AnthropicProvider implements AIProvider {
     // of the conversation. Mid-tool-loop the last turn is a tool_result
     // and re-appending the original prompt would ask the question twice.
     const tail = history[history.length - 1];
-    if (!(tail?.role === "tool")) {
+    if (request.promptAlreadyInHistory !== true && !(tail?.role === "tool")) {
       turns.push({ role: "user", content: this.buildUserContent(request) });
     }
 

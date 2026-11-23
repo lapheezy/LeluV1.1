@@ -63,6 +63,18 @@ export const SUPABASE_KEY_NAMES = [
   "SUPABASE_ANON_KEY",
 ] as const;
 
+/**
+ * The built-in project identity is an OPT-IN convenience, never a default.
+ *
+ * A deployment with no Supabase variables must be local-only, including no
+ * client creation and no auth probe. An operator who intentionally wants the
+ * project's public identity can ask for it with this flag.
+ */
+export const SUPABASE_PUBLIC_DEFAULT_FLAG_NAMES = [
+  "SUPABASE_USE_PUBLIC_DEFAULT",
+  "VITE_SUPABASE_USE_PUBLIC_DEFAULT",
+] as const;
+
 export interface SupabaseConfig {
   url: string;
   publishableKey: string;
@@ -86,6 +98,8 @@ export interface SupabaseConfigGap {
 export function resolveSupabaseConfig(extra: {
   url?: Array<string | undefined>;
   key?: Array<string | undefined>;
+  /** The browser's public snapshot of VITE_SUPABASE_USE_PUBLIC_DEFAULT. */
+  usePublicDefault?: string | boolean;
 } = {}): SupabaseConfig | null {
   const { url, key } = resolveHalves(extra);
   if (!url || !key) return null;
@@ -135,7 +149,20 @@ export function refusedSupabaseKeyNames(): string[] {
   });
 }
 
-function resolveHalves(extra: { url?: Array<string | undefined>; key?: Array<string | undefined> } = {}): {
+function usesPublicDefault(extra: { usePublicDefault?: string | boolean } = {}): boolean {
+  if (extra.usePublicDefault === true) return true;
+  const configured = typeof extra.usePublicDefault === "string"
+    ? extra.usePublicDefault
+    : resolveFirst(...SUPABASE_PUBLIC_DEFAULT_FLAG_NAMES);
+  const value = configured?.toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
+function resolveHalves(extra: {
+  url?: Array<string | undefined>;
+  key?: Array<string | undefined>;
+  usePublicDefault?: string | boolean;
+} = {}): {
   url: string;
   key: string;
 } {
@@ -143,13 +170,17 @@ function resolveHalves(extra: { url?: Array<string | undefined>; key?: Array<str
   const configuredKey = firstValue(
     [...SUPABASE_KEY_NAMES.map((n) => resolveEnvValue(n)), ...(extra.key ?? [])].filter(isBrowserSafeSupabaseKey),
   );
+  // The built-in project identity is used ONLY when the operator explicitly
+  // asks for it. Without that flag, missing configuration means local-only:
+  // no client, no auth probe, no network request.
+  const usePublicDefault = usesPublicDefault(extra);
   // The default URL fills in only when no key from some OTHER project is
   // configured — a foreign key must be reported as missing its URL, never
   // silently paired with this project.
   const keyIsOurs = !configuredKey || configuredKey === SUPABASE_PUBLIC_DEFAULT.publishableKey;
-  const url = configuredUrl || (keyIsOurs ? SUPABASE_PUBLIC_DEFAULT.url : "");
+  const url = configuredUrl || (usePublicDefault && keyIsOurs ? SUPABASE_PUBLIC_DEFAULT.url : "");
   // The default key only ever travels with the default project.
-  const key = configuredKey || (sameProject(url, SUPABASE_PUBLIC_DEFAULT.url) ? SUPABASE_PUBLIC_DEFAULT.publishableKey : "");
+  const key = configuredKey || (usePublicDefault && sameProject(url, SUPABASE_PUBLIC_DEFAULT.url) ? SUPABASE_PUBLIC_DEFAULT.publishableKey : "");
   return { url, key };
 }
 

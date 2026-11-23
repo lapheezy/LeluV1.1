@@ -1,0 +1,32 @@
+{
+  "mission": "M14.4",
+  "baselineBranch": "mission-14.3/independent-runtime-acceptance",
+  "baselineCommit": "9363966",
+  "startedAt": "2026-11-16T11:33:39.862Z",
+  "finishedAt": "2026-11-16T11:33:40.188Z",
+  "realCloud": false,
+  "cloudCredential": "not present in this environment",
+  "evidenceBoundary": "All cloud behavior below is produced by SimulatedTransport and is labelled SIMULATED. No Supabase request was made.",
+  "status": "PASS",
+  "evidenceClass": [
+    "DETERMINISTIC",
+    "SIMULATED_TRANSPORT"
+  ],
+  "lostAcknowledgementReported": true,
+  "pendingAfterLostAck": 1,
+  "cloudRows": 1,
+  "duplicateSuppressed": true,
+  "note": "The simulated transport applied the first write, lost its acknowledgement, and returned the same idempotent result on retry.",
+  "knowledge": {
+    "status": "PASS",
+    "evidenceClass": [
+      "DETERMINISTIC"
+    ],
+    "nodesAfterRepeatedSync": 1,
+    "edgesAfterRepeatedSync": 1,
+    "revision": 2,
+    "spatialObjectId": "obj-67da71a4",
+    "spatialObjectPreserved": true,
+    "note": "The local knowledge graph remains the authority; repeated application does not duplicate node or edge identities."
+  }
+}

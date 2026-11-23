@@ -1,0 +1,23 @@
+{
+  "mission": "M14.4",
+  "baselineBranch": "mission-14.3/independent-runtime-acceptance",
+  "baselineCommit": "9363966",
+  "startedAt": "2026-11-16T11:33:39.862Z",
+  "finishedAt": "2026-11-16T11:33:40.188Z",
+  "realCloud": false,
+  "cloudCredential": "not present in this environment",
+  "evidenceBoundary": "All cloud behavior below is produced by SimulatedTransport and is labelled SIMULATED. No Supabase request was made.",
+  "status": "PASS",
+  "evidenceClass": [
+    "DETERMINISTIC",
+    "SIMULATED_TRANSPORT"
+  ],
+  "projectId": "4aecb129-bd4a-4c58-a814-4da51bdca47d",
+  "localName": "M144 Offline-1794828819871-e6a2da",
+  "localWritePreserved": true,
+  "outboxBeforeReload": 1,
+  "outboxAfterReload": 1,
+  "pendingSurvivesReload": true,
+  "reportedState": "pending_upload",
+  "note": "Transport was simulated as authentication_required; no network was contacted."
+}

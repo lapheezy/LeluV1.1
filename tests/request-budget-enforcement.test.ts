@@ -148,6 +148,23 @@ test("an operator override wins, because it is the only exact number", () => {
   assert.equal(ceiling.bytes, 9_000);
 });
 
+test("the fitter applies the ceiling to provider overhead as well as the request", () => {
+  const fit = fitRequestBudget({
+    messages: [{ role: "user", content: "hello" }],
+    prompt: "hello",
+    promptIncluded: true,
+    context: "context",
+    providerOverheadBytes: 5_000,
+    tools: [tool("a", 2_000)],
+    tier: "FULL",
+    provider: "Groq",
+    limitBytes: 6_000,
+  });
+  assert.equal(fit.tools.length, 0, "the overhead was not counted before withholding schemas");
+  assert.ok(fit.budget.totalBytes <= 6_000);
+  assert.equal(fit.budget.providerOverheadBytes, 5_000);
+});
+
 test("the fitted budget is the byte count that will actually be sent", () => {
   const fit = fitRequestBudget({
     messages: [
@@ -162,13 +179,37 @@ test("the fitted budget is the byte count that will actually be sent", () => {
   });
   assert.equal(fit.changed, false, "nothing to trim at this ceiling");
   const bytes = (value: unknown) => new TextEncoder().encode(String(value)).length;
+  // The budget measures the whole message object (role, content and any tool
+  // metadata), because that is what is serialized onto the wire.
   const expected =
-    fit.messages.reduce((sum: number, message: { content?: unknown }) => sum + bytes(message.content), 0) +
-    bytes("question") +
-    bytes("system") +
-    bytes("user");
+    fit.messages.reduce((sum: number, message: { content?: unknown }) => sum + bytes(JSON.stringify(message)), 0) +
+    bytes("question");
   const measured: RequestBudget = fit.budget;
   assert.equal(measured.totalBytes, expected);
+});
+
+test("the user's prompt is never dropped just because it is old history", () => {
+  const prompt = "resume the blocked mission and read its brief";
+  const messages = [
+    { role: "system", content: "identity" },
+    { role: "user", content: prompt },
+    ...Array.from({ length: 20 }, (_, index) => ({ role: "assistant", content: `older observation ${index} ${"x".repeat(400)}` })),
+  ];
+  const fit = fitRequestBudget({
+    messages,
+    prompt,
+    promptIncluded: true,
+    tools: [],
+    tier: "NONE",
+    provider: "Groq",
+    limitBytes: 8_000,
+    protectedTail: 2,
+  });
+  assert.ok(
+    fit.messages.some((message) => message.role === "user" && message.content === prompt),
+    "the fitter removed the only copy of the user's request while suppressing the provider's append",
+  );
+  assert.equal(fit.budget.promptBytes, 0, "the surviving prompt was still charged twice");
 });
 
 test("nothing is dropped when there is nothing left to drop, and it says so", () => {

@@ -1,0 +1,46 @@
+{
+  "mission": "M14.5",
+  "evidenceClass": [
+    "DETERMINISTIC",
+    "LOCAL"
+  ],
+  "realCloud": false,
+  "environment": "Node + in-memory localStorage shim, 2026-11-16",
+  "localReadMs": {
+    "count": 1000,
+    "median": 0.003,
+    "p95": 0.008,
+    "max": 0.512
+  },
+  "localWriteMs": {
+    "count": 40,
+    "median": 0.379,
+    "p95": 0.778,
+    "max": 0.836
+  },
+  "outboxInsert": "included in localWriteMs; signal + hash + durable outbox append",
+  "syncProcessingMs": 3.587,
+  "conflictDetectionMs": 5.899,
+  "pendingAfterWrites": 0,
+  "note": "The production browser cold boot measured 1941 ms and reload 2064 ms on the final M14.5 build; see artifacts/m145/offline-acceptance.json.",
+  "baseline": "M14.4 b17c119",
+  "comparison": {
+    "m144": {
+      "readMedian": 0.005,
+      "readP95": 0.013,
+      "writeMedian": 0.541,
+      "writeP95": 1.063,
+      "syncMs": 2.596,
+      "conflictMs": 3.894
+    },
+    "m145": {
+      "readMedian": 0.003,
+      "readP95": 0.008,
+      "writeMedian": 0.379,
+      "writeP95": 0.778,
+      "syncMs": 3.587,
+      "conflictMs": 5.899
+    },
+    "note": "Deterministic local microbenchmarks; real-cloud latency is BLOCKED."
+  }
+}

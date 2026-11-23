@@ -32,6 +32,7 @@ import TaskExecutor from "../agentic/TaskExecutor";
 import { createTask, planTask } from "../agentic/TaskPlanner";
 import ProjectStore from "../projects/ProjectStore";
 import GitHubIntegration from "../engineering/GitHubIntegration";
+import { isMissionResume } from "../router/continuationContext";
 
 // ---------- TYPES ----------
 
@@ -192,8 +193,14 @@ export default class Orchestrator {
       }
 
       // For simple requests, delegate to the existing chat pipeline
-      // For complex multi-step requests, create a task
-      const needsMultiStep = this.isMultiStepRequest(request);
+      // For complex multi-step requests, create a task.
+      //
+      // A mission resume is ONE conversational continuity turn: the model
+      // must find the record, read it, and answer. The length heuristic used
+      // to send a natural-language resume into task planning (measured: a
+      // 260-char request produced memory.recall + task.resume and never
+      // reached the mission tools), so it keeps the direct chat path.
+      const needsMultiStep = !isMissionResume(request) && this.isMultiStepRequest(request);
       if (needsMultiStep) {
         const planned = await this.planAndExecute(request, context, taskId);
         if (planned) {

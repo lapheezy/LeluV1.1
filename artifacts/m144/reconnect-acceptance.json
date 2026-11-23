@@ -1,0 +1,22 @@
+{
+  "mission": "M14.4",
+  "baselineBranch": "mission-14.3/independent-runtime-acceptance",
+  "baselineCommit": "9363966",
+  "startedAt": "2026-11-16T11:33:39.862Z",
+  "finishedAt": "2026-11-16T11:33:40.188Z",
+  "realCloud": false,
+  "cloudCredential": "not present in this environment",
+  "evidenceBoundary": "All cloud behavior below is produced by SimulatedTransport and is labelled SIMULATED. No Supabase request was made.",
+  "status": "PASS",
+  "evidenceClass": [
+    "DETERMINISTIC",
+    "SIMULATED_TRANSPORT"
+  ],
+  "projectId": "737005e3-caea-4a6a-85b8-646fe66523ac",
+  "cloudRevisionBefore": "cloud-32",
+  "pendingAtAuthLoss": 1,
+  "pendingAfterRecovery": 0,
+  "cloudNameAfter": "M144 Reconnect-1794828819881-8104b1 edited offline",
+  "projectState": "synced",
+  "note": "Authentication loss was simulated; the outbox was retained, then replayed after availability returned."
+}

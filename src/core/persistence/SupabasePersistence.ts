@@ -21,6 +21,7 @@ import CuriosityLedger, { type LedgerSnapshot } from "../curiosity/CuriosityLedg
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import DeletionLedger, { MAX_REMOTE_ATTEMPTS } from "../memory/DeletionLedger";
 import DeletionGuard from "../memory/DeletionGuard";
+import { requestEmailLink, verifyEmailCode } from "./emailAuth";
 
 /**
  * LÉLU's development records, synced as per-user documents in the EXISTING
@@ -55,17 +56,18 @@ export interface SupabaseAuthState {
 type RemoteRow = Record<string, any>;
 
 /**
+ * Upper bound on a persisted message body. Chosen above the longest message
+ * in the existing store so hydrate → persist is lossless; exceeding it is
+ * recorded as metadata.originalLength rather than dropped quietly. The
+ * continuity transport imports this same limit.
+ */
+export const MESSAGE_TEXT_LIMIT = 48_000;
+
+/**
  * Optional cloud persistence under the existing local-first runtime.
  * Local stores remain authoritative for immediate UI/cognition work. Supabase
  * is a durable mirror and recovery source; all failures are contained.
  */
-/**
- * Upper bound on a persisted message body. Chosen above the longest message in
- * the existing store so hydrate → persist is lossless; exceeding it is flagged
- * in the row metadata rather than dropped quietly.
- */
-const MESSAGE_TEXT_LIMIT = 48_000;
-
 /**
  * Rows per hydration request.
  *
@@ -183,6 +185,17 @@ export default class SupabasePersistence {
   }
 
   /**
+   * The connected client for conditional continuity writes. Unlike the
+   * usage channel, this waits for a successful session so a continuity
+   * upload cannot race hydration with an unverified identity.
+   */
+  public continuitySession(): { client: SupabaseClient; userId: string } | null {
+    return this.isConnected() && this.client && this.userId
+      ? { client: this.client, userId: this.userId }
+      : null;
+  }
+
+  /**
    * Turn a Supabase auth error into something an operator can act on.
    *
    * "Invalid API key" is not a user's problem and must not be shown as one:
@@ -206,6 +219,27 @@ export default class SupabasePersistence {
       return "Could not reach Supabase. Check the network and that SUPABASE_URL is correct.";
     }
     return message;
+  }
+
+  /**
+   * Passwordless email sign-in. Supabase sends a normal sign-in link (and,
+   * where the project's template includes one, a one-time code). This is the
+   * browser-facing path; no password is collected, stored or transmitted.
+   */
+  public async requestEmailSignIn(email: string): Promise<{ error: string | null }> {
+    if (!this.client) await this.initialize(this.runtimeBrain ?? undefined, this.runtimeUser ?? undefined);
+    if (!this.client) return { error: "Supabase is not configured." };
+    const redirectTo = typeof window !== "undefined"
+      ? `${window.location.origin}${window.location.pathname}`
+      : undefined;
+    return requestEmailLink(this.client.auth, email, redirectTo);
+  }
+
+  /** Verify an emailed one-time code when one is present in the email. */
+  public async verifyEmailCode(email: string, token: string): Promise<{ error: string | null }> {
+    if (!this.client) await this.initialize(this.runtimeBrain ?? undefined, this.runtimeUser ?? undefined);
+    if (!this.client) return { error: "Supabase is not configured." };
+    return verifyEmailCode(this.client.auth, email, token);
   }
 
   public async signInWithEmail(email: string, password: string): Promise<{ error: string | null }> {
@@ -262,6 +296,7 @@ export default class SupabasePersistence {
     const config = resolveSupabaseConfig({
       url: [env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL],
       key: [env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY],
+      usePublicDefault: env.VITE_SUPABASE_USE_PUBLIC_DEFAULT,
     });
     if (!config) {
       this.status = "disabled";
@@ -348,6 +383,27 @@ export default class SupabasePersistence {
     }
   }
 
+  /**
+   * Test seam: return the optional adapter to its unconfigured state.
+   * Never called by production code, and it performs no network request.
+   */
+  public resetForTests(): void {
+    this.detachRuntime();
+    this.authSubscription?.unsubscribe();
+    this.authSubscription = null;
+    for (const timer of this.developmentTimers.values()) timer.stop();
+    this.developmentTimers.clear();
+    this.client = null;
+    this.userId = null;
+    this.status = "disabled";
+    this.authSession = null;
+    this.configError = null;
+    this.hydrated = false;
+    this.historyHydrated = false;
+    this.historyProgress = { loaded: 0, total: 0 };
+    this.authListeners.clear();
+  }
+
   private async applySession(session: Session | null): Promise<void> {
     const nextUserId = session?.user?.id ?? null;
     const changedUser = nextUserId !== this.userId;
@@ -373,6 +429,19 @@ export default class SupabasePersistence {
       );
     }
     this.attachRuntime();
+    // Continuity is separate from hydration: it must see every local write
+    // and only upload after a real session exists. Dynamic imports keep the
+    // sync adapters out of the local-only boot path.
+    void import("../sync/ContinuityEngine")
+      .then(async ({ default: Engine }) => {
+        const { default: Transport } = await import("../sync/SupabaseContinuityTransport");
+        const engine = Engine.getInstance();
+        engine.start({ transport: new Transport(), autoProcess: false });
+        await engine.synchronize();
+      })
+      .catch((error) => {
+        console.warn("[Lélu] Continuity synchronization deferred", error);
+      });
   }
 
   /**
@@ -571,23 +640,21 @@ export default class SupabasePersistence {
   public attachRuntime(): void {
     if (this.attached || !this.isConnected()) return;
     this.attached = true;
-    const projects = ProjectStore.getInstance();
     const agents = AgentStore.getInstance();
     const proactive = ProactiveCore.getInstance();
-    const chats = MultiChatStore.getInstance();
     const ui = UIStateStore.getInstance();
     const improvements = ImprovementQueue.getInstance();
     const events = AgentEventBus.getInstance();
 
+    // Projects, conversations and the knowledge library are now written by
+    // ContinuityEngine with conditional revisions. Their old subscriptions
+    // were blind `upsert` calls and are deliberately not attached here.
     this.runtimeUnsubscribers.push(
-      projects.subscribe((value) => void this.persistProjects(value)),
       agents.subscribe((value) => void this.persistAgents(value)),
       proactive.subscribeQuestions((value) => void this.persistQuestion(value)),
       proactive.subscribeQuestionChanges((value) => void this.persistQuestion(value)),
-      chats.subscribe((value) => void this.persistConversations(value)),
       ui.subscribe((value) => void this.persistUiState(value)),
       improvements.subscribe((value) => void this.persistImprovements(value)),
-      KnowledgeLibrary.getInstance().subscribe((value) => void this.persistKnowledge(value)),
       events.subscribe((event) => void this.persistCognitiveEvent(event)),
       LeluIdentity.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.identity)),
       DailyRecord.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.daily)),
@@ -595,10 +662,8 @@ export default class SupabasePersistence {
     );
     for (const key of Object.values(DEVELOPMENT_SYNC_KEYS)) this.scheduleDevelopmentSync(key, 0);
 
-    void this.persistProjects(projects.list());
     void this.persistAgents(agents.list());
     void this.persistQuestion(proactive.getActiveQuestion());
-    void this.persistConversations(chats.list());
     void this.persistUiState(ui.get());
     void this.persistImprovements(improvements.list());
     if (this.runtimeUser) {
@@ -852,28 +917,6 @@ export default class SupabasePersistence {
     })), "api_health");
   }
 
-  private async persistProjects(projects: LeluProject[]): Promise<void> {
-    if (!this.isConnected()) return;
-    await this.write("projects", projects.map((project) => ({
-      id: project.id, user_id: this.userId, name: project.name, description: project.description,
-      status: project.status, agent_ids: project.agentIds, items: project.items, queries: project.queries ?? [],
-      schedule: project.schedule ?? null,
-      // Structured request fields round-trip through the metadata jsonb
-      // column (added by migration 202608240002) so the full user
-      // instruction and execution plan survive sync/recovery.
-      metadata: {
-        originalRequest: project.originalRequest ?? null,
-        objective: project.objective ?? null,
-        context: project.context ?? null,
-        actionableTasks: project.actionableTasks ?? [],
-        priority: project.priority ?? null,
-        location: project.location ?? null,
-        executionPlan: project.executionPlan ?? [],
-      },
-      created_at: new Date(project.createdAt).toISOString(), updated_at: new Date(project.updatedAt).toISOString(),
-    })), "projects");
-  }
-
   private async persistAgents(agents: LeluAgent[]): Promise<void> {
     if (!this.isConnected()) return;
     await this.write("agents", agents.map((agent) => ({
@@ -899,33 +942,6 @@ export default class SupabasePersistence {
       resolved_at: question.resolvedAt ? new Date(question.resolvedAt).toISOString() : null,
       created_at: new Date(question.createdAt).toISOString(), updated_at: new Date(question.updatedAt).toISOString(),
     }], "proactive_questions");
-  }
-
-  private async persistConversations(conversations: ChatConversation[]): Promise<void> {
-    if (!this.isConnected()) return;
-    await this.write("conversations", conversations.map((conversation) => ({
-      id: conversation.id, user_id: this.userId, title: conversation.title, project_id: conversation.projectId,
-      metadata: { pinned: conversation.pinned, linkedIds: conversation.linkedIds, tags: conversation.tags, topic: conversation.topic, unread: conversation.unread, processing: conversation.processing },
-      created_at: new Date(conversation.createdAt).toISOString(), updated_at: new Date(conversation.updatedAt).toISOString(),
-    })), "conversations");
-    const messages = conversations.flatMap((conversation) => conversation.messages.map((message) => {
-      // Hydrate reads whatever is stored, so a cap below the longest existing
-      // message would silently shorten real history on every round trip.
-      // The cap stays well above observed content, and when it does bite the
-      // loss is recorded instead of being invisible.
-      const truncated = message.text.length > MESSAGE_TEXT_LIMIT;
-      return {
-        id: message.id, user_id: this.userId, conversation_id: conversation.id, role: message.role,
-        text: truncated ? message.text.slice(0, MESSAGE_TEXT_LIMIT) : message.text,
-        provider: message.provider ?? null, confidence: message.confidence ?? null,
-        metadata: {
-          source: message.source, reasoning: message.reasoning, plan: message.plan,
-          ...(truncated ? { truncated: true, originalLength: message.text.length } : {}),
-        },
-        created_at: new Date(message.timestamp).toISOString(),
-      };
-    }));
-    await this.write("messages", messages, "messages");
   }
 
   private async persistUiState(state: UIStateSnapshot): Promise<void> {
@@ -1156,7 +1172,11 @@ export default class SupabasePersistence {
 
   private startRealtime(): void {
     if (!this.client || !this.userId || this.realtimeChannel) return;
-    const tables = ["projects", "agents", "proactive_questions", "ui_state"];
+    // Projects are reconciled by ContinuityEngine, which compares the
+    // last synchronized revision before applying anything. Keeping the old
+    // realtime snapshot merge here would reintroduce an unconditional
+    // newer-timestamp overwrite beside the conditional path.
+    const tables = ["agents", "proactive_questions", "ui_state"];
     let channel = this.client.channel("lelu-runtime-state");
     for (const table of tables) {
       channel = channel.on("postgres_changes", { event: "*", schema: "public", table, filter: `user_id=eq.${this.userId}` }, (payload) => {

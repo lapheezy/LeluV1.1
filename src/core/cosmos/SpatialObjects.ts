@@ -21,6 +21,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { noteContinuityChange } from "../sync/ContinuitySignals";
 
 export type SpatialKind =
   | "message"
@@ -187,11 +188,34 @@ export default class SpatialObjects {
 
   remove(id: string): boolean {
     const before = this.objects.length;
+    const removed = this.objects.find((object) => object.id === id);
     this.objects = this.objects.filter((object) => object.id !== id);
-    if (this.objects.length === before) return false;
-    this.persist();
+    if (this.objects.length === before || !removed) return false;
+    this.persist("local", [{ ...removed, updatedAt: Date.now(), deleted: true }]);
     this.notify();
     return true;
+  }
+
+  /** Apply one reconciled object, or a tombstone from another device. */
+  applyRemote(object: SpatialObject & { deleted?: boolean }, options: { force?: boolean } = {}): void {
+    if (object.deleted) {
+      const before = this.objects.length;
+      this.objects = this.objects.filter((item) => item.id !== object.id);
+      if (this.objects.length !== before) {
+        this.persist("remote", [object]);
+        this.notify();
+      }
+      return;
+    }
+    const current = this.get(object.id);
+    if (!current || options.force || object.updatedAt > current.updatedAt) {
+      const next = current
+        ? this.objects.map((item) => item.id === object.id ? object : item)
+        : [...this.objects, object].slice(-MAX_OBJECTS);
+      this.objects = next;
+      this.persist("remote", [object]);
+      this.notify();
+    }
   }
 
   subscribe(listener: (objects: SpatialObject[]) => void): () => void {
@@ -231,12 +255,25 @@ export default class SpatialObjects {
     }
   }
 
-  private persist(): void {
+  private persist(
+    origin: "local" | "remote" = "local",
+    applied: Array<SpatialObject & { deleted?: boolean }> = this.objects,
+  ): void {
     try {
       KvStore.getInstance().set(KEY, this.objects);
     } catch {
       /* best-effort */
     }
+    noteContinuityChange(
+      "spatialObjects",
+      origin,
+      applied.map((object) => ({
+        id: object.id,
+        updatedAt: object.updatedAt,
+        data: object,
+        ...(object.deleted !== undefined ? { deleted: object.deleted } : {}),
+      })),
+    );
   }
 
   private load(): void {

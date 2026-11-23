@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-11-15T15:51:13.574Z",
+  "live": true,
+  "notes": [
+    "No credential, prompt text or response body is stored here beyond short provider error summaries.",
+    "Groq content was empty at max_tokens=5 because reasoning consumed the budget; the HTTP 200 carried a real completion object and usage."
+  ],
+  "sequenceA_failover_and_recovery": {
+    "statusBefore": {
+      "anthropic": {
+        "state": "UNCONFIGURED"
+      },
+      "groq": {
+        "state": "CONFIGURED"
+      },
+      "openrouter": {
+        "state": "CONFIGURED"
+      },
+      "cerebras": {
+        "state": "UNCONFIGURED"
+      },
+      "mistral": {
+        "state": "UNCONFIGURED"
+      },
+      "fireworks": {
+        "state": "UNCONFIGURED"
+      },
+      "gemini": {
+        "state": "UNCONFIGURED"
+      },
+      "githubModels": {
+        "state": "CONFIGURED"
+      }
+    },
+    "openrouterAttempt": {
+      "http": 429,
+      "body": "{\"error\":{\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit\",\"code\":429,\"metadata\":{\"headers\":{\"X-RateLimit-Limit\":\"50\",\"X-RateLimit-Remaining\":\"0\",\"X-RateLimit-Reset\":\"1794787200000\"},\"limit_source\":\"openrouter_free_tier_daily\",\"remedy_hint\":\"Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.\",\"provider_name\":null}},\"user_id\":\"user_3LqT8Df7N8KI7M0DKbpsum5u9Xv\"}"
+    },
+    "openrouterSecondAttempt": {
+      "http": 429,
+      "body": "{\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"openrouter is cooling down after a rate limit; retry in 29760s.\",\"provider\":\"openrouter\",\"retryAfterAt\":1794787200000,\"retryAfterSeconds\":29760}",
+      "note": "provider cooldown served locally; upstream not called"
+    },
+    "groqCompletion": {
+      "http": 200,
+      "body": "{\"id\":\"chatcmpl-02a01544-f8d7-48ca-9812-70f387d81645\",\"object\":\"chat.completion\",\"created\":1794757441,\"model\":\"openai/gpt-oss-20b\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"\",\"reasoning\":\"User says\"},\"logprobs\":null,\"finish_reason\":\"length\"}],\"usage\":{\"queue_time\":0.177255621,\"prompt_tokens\":75,\"prompt_time\":0.004196571,\"completion_tokens\":5,\"completion_time\":0.005220958,\"total_tokens\":80,\"total_time\":0.009417529,\"completion_tokens_details\":{\"reasoning_tokens\":3}},\"usage_breakdown\":null,\"system_fingerprint\":\"fp_feb9b278f1\",\"x_groq\":{\"id\":\"req_01m7fy2dfteasss7v528cbcwd0\",\"seed\":1445537455},\"service_tier\":\"on_demand\"}\n"
+    },
+    "statusAfter": {
+      "anthropic": {
+        "state": "UNCONFIGURED"
+      },
+      "groq": {
+        "state": "COMPLETION_VERIFIED",
+        "at": 1794757441225,
+        "httpStatus": 200,
+        "lastSuccessAt": 1794757441225
+      },
+      "openrouter": {
+        "state": "CAPACITY_LIMITED",
+        "at": 1794757440962,
+        "httpStatus": 429,
+        "note": "provider cooldown; request not sent",
+        "lastFailureAt": 1794757440962,
+        "lastFailureStatus": 429,
+        "lastFailureNote": "provider cooldown; request not sent",
+        "retryAfterAt": 1794787200000,
+        "retryAfterSeconds": 29759
+      },
+      "cerebras": {
+        "state": "UNCONFIGURED"
+      },
+      "mistral": {
+        "state": "UNCONFIGURED"
+      },
+      "fireworks": {
+        "state": "UNCONFIGURED"
+      },
+      "gemini": {
+        "state": "UNCONFIGURED"
+      },
+      "githubModels": {
+        "state": "CONFIGURED"
+      }
+    }
+  },
+  "sequenceB_status_selection_after_final_code": {
+    "statusBefore": {
+      "available": true,
+      "state": {
+        "state": "CONFIGURED"
+      }
+    },
+    "openrouterAttempt": {
+      "http": 429,
+      "body": "{\"error\":{\"message\":\"Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit\",\"code\":429,\"metadata\":{\"headers\":{\"X-RateLimit-Limit\":\"50\",\"X-RateLimit-Remaining\":\"0\",\"X-RateLimit-Reset\":\"1794787200000\"},\"limit_source\":\"openrouter_free_tier_daily\",\"remedy_hint\":\"Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.\",\"provider_name\":null}},\"user_id\":\"user_3LqT8Df7N8KI7M0DKbpsum5u9Xv\"}"
+    },
+    "openrouterSecondAttempt": {
+      "http": 429,
+      "body": "{\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"openrouter is cooling down after a rate limit; retry in 29334s.\",\"provider\":\"openrouter\",\"retryAfterAt\":1794787200000,\"retryAfterSeconds\":29334}",
+      "note": "upstream not called again"
+    },
+    "statusAfter": {
+      "available": false,
+      "state": {
+        "state": "CAPACITY_LIMITED",
+        "at": 1794757866748,
+        "httpStatus": 429,
+        "note": "provider cooldown; request not sent",
+        "lastFailureAt": 1794757866748,
+        "lastFailureStatus": 429,
+        "lastFailureNote": "provider cooldown; request not sent",
+        "retryAfterAt": 1794787200000,
+        "retryAfterSeconds": 29334
+      }
+    }
+  },
+  "observed": {
+    "openrouterCooldownUntil": 1794787200000,
+    "openrouterRetryAfterSeconds": 29334,
+    "groqLastSuccessAt": 1794757441225,
+    "groqState": "COMPLETION_VERIFIED"
+  }
+}

@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import SupabasePersistence, {
   type SupabaseAuthState,
 } from "../../../core/persistence/SupabasePersistence";
+import { EMAIL_SIGN_IN_NOTICE, authCallbackError } from "../../../core/persistence/emailAuth";
 import KvStore from "../../../core/storage/KvStore";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
@@ -55,8 +56,10 @@ export default function LeluSignInGate() {
     () => skippedThisSession || KvStore.getInstance().get<boolean>(SKIP_KEY) === true,
   );
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -88,6 +91,16 @@ export default function LeluSignInGate() {
     };
   }, []);
 
+  useEffect(() => {
+    // A cancelled or expired magic link comes back as an error in the URL
+    // fragment. Read only that error; never retain or display the fragment.
+    const message = authCallbackError(window.location.hash);
+    if (message) {
+      setError(message);
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+  }, []);
+
   const skip = useCallback(() => {
     skippedThisSession = true;
     KvStore.getInstance().set(SKIP_KEY, true);
@@ -95,27 +108,39 @@ export default function LeluSignInGate() {
   }, []);
 
   const submit = useCallback(
-    async (event: FormEvent, mode: "in" | "up") => {
+    async (event: FormEvent) => {
       event.preventDefault();
       setBusy(true);
       setError(null);
       setNotice(null);
       try {
-        if (mode === "up") {
-          const result = await persistence.signUpWithEmail(email, password);
-          if (result.error) setError(result.error);
-          else if (result.requiresConfirmation) {
-            setNotice("Check your email to confirm the account, then sign in.");
-          }
-        } else {
-          const result = await persistence.signInWithEmail(email, password);
-          if (result.error) setError(result.error);
+        const result = await persistence.requestEmailSignIn(email);
+        if (result.error) setError(result.error);
+        else {
+          setSent(true);
+          setNotice(EMAIL_SIGN_IN_NOTICE);
         }
       } finally {
         setBusy(false);
       }
     },
-    [email, password],
+    [email],
+  );
+
+  const verify = useCallback(
+    async (event: FormEvent) => {
+      event.preventDefault();
+      setVerifying(true);
+      setError(null);
+      try {
+        const result = await persistence.verifyEmailCode(email, code);
+        if (result.error) setError(result.error);
+        else setNotice("Signed in. Your cloud identity is connected.");
+      } finally {
+        setVerifying(false);
+      }
+    },
+    [code, email],
   );
 
   // Already signed in, already answered, or still working it out — say nothing.
@@ -211,27 +236,18 @@ export default function LeluSignInGate() {
             </p>
 
             <form
-              onSubmit={(event) => void submit(event, "in")}
+              data-lelu-auth-form
+              onSubmit={(event) => void submit(event)}
               style={{ display: "flex", flexDirection: "column", gap: 8 }}
             >
               <input
+                data-lelu-auth-email
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="Email address"
                 autoComplete="email"
                 required
-                disabled={busy}
-                style={inputStyle}
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Password"
-                autoComplete="current-password"
-                required
-                minLength={6}
                 disabled={busy}
                 style={inputStyle}
               />
@@ -260,19 +276,34 @@ export default function LeluSignInGate() {
                 <div style={{ color: "rgba(167, 243, 208, 0.95)", fontSize: 12 }}>{notice}</div>
               ) : null}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
-                <button type="submit" disabled={busy} style={primaryStyle}>
-                  {busy ? "Signing in…" : "Sign in"}
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={(event) => void submit(event, "up")}
-                  style={secondaryStyle}
-                >
-                  Create account
+                <button data-lelu-auth-submit type="submit" disabled={busy} style={primaryStyle}>
+                  {busy ? "Sending…" : "Email me a sign-in link"}
                 </button>
               </div>
             </form>
+
+            {sent ? (
+              <form
+                data-lelu-auth-code-form
+                onSubmit={(event) => void verify(event)}
+                style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}
+              >
+                <input
+                  data-lelu-auth-code
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  placeholder="Code from the email (if included)"
+                  disabled={verifying}
+                  style={inputStyle}
+                />
+                <button data-lelu-auth-verify type="submit" disabled={verifying || !code.trim()} style={secondaryStyle}>
+                  {verifying ? "Checking…" : "Verify code"}
+                </button>
+              </form>
+            ) : null}
         </>
 
         <button

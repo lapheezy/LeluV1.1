@@ -9,7 +9,8 @@
  * configured provider is attempted immediately.
  */
 
-import { continuationContext } from "./continuationContext";
+import { continuationContext, isMissionResume, missionResumeContext } from "./continuationContext";
+import { finalRoundGuard, flattenToolHistory } from "./finalRound";
 import { resolveFirst } from "../resolveEnv";
 import { classifyChainFailure } from "../voice/turnFailure";
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
@@ -21,7 +22,9 @@ import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { reducedToolSchemas, toolSchemasForRequest } from "../tools/ToolSchemas";
-import { describeRequestBudget, fitRequestBudget, type SchemaTier } from "./RequestBudget";
+import { fitRequestBudget, type SchemaTier } from "./RequestBudget";
+import { contextMessages } from "../../providers/contextMessages";
+import { LELU_SYSTEM_PROMPT } from "../../providers/LeluSystemPrompt";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 import { stripChatbotisms } from "../identity/voice/ChatbotismFilter";
@@ -112,6 +115,33 @@ function configuredMs(name: string): number | undefined {
 /** Too little left to be worth starting another provider. */
 const MIN_RUNG_SLICE_MS = 1_500;
 
+const utf8Bytes = (value: string): number => new TextEncoder().encode(value).length;
+
+/**
+ * Bytes every provider adds around the request it is handed: the shared LÉLU
+ * identity prompt and the envelope contextMessages() puts around `context`.
+ *
+ * The budget used to measure only request.messages and the raw context. The
+ * provider then prepended ~1.5 KB of identity text and a context wrapper, so
+ * the request that actually left the process was larger than the one the
+ * fitter had approved. Count it before choosing what to keep.
+ */
+function providerOverheadBytes(contextText?: string): number {
+  const envelope = contextText
+    ? contextMessages({ context: contextText } as AIRequest).reduce(
+        (total, message) => total + utf8Bytes(message.content),
+        0,
+      )
+    : 0;
+  return utf8Bytes(LELU_SYSTEM_PROMPT) + envelope;
+}
+
+/** Is the person's exact prompt already one of the history turns? */
+function promptAlreadyInHistory(messages: AIMessage[], prompt: string | undefined): boolean {
+  if (!prompt) return false;
+  return messages.some((message) => message.role === "user" && message.content === prompt);
+}
+
 export default class ProviderResolver {
   private readonly rungBudgetMs: number;
   private readonly chainBudgetMs: number;
@@ -146,14 +176,18 @@ export default class ProviderResolver {
     messages: AIMessage[],
     tools: Array<{ name: string; description?: string; parameters?: unknown }>,
     tier: SchemaTier,
+    contextText?: string,
   ) {
     const fitted = fitRequestBudget({
       messages,
       prompt: context.request.prompt,
+      promptIncluded: promptAlreadyInHistory(messages, context.request.prompt),
       tools,
       tier,
       provider: provider.name,
       model: context.request.model,
+      ...(contextText ? { context: contextText } : {}),
+      providerOverheadBytes: providerOverheadBytes(contextText),
       ...(context.request.maxTokens ? { maxTokens: context.request.maxTokens } : {}),
       ...(this.requestCeilingBytes ? { limitBytes: this.requestCeilingBytes } : {}),
       protectedTail: 12,
@@ -686,12 +720,21 @@ export default class ProviderResolver {
     const requestedTier: SchemaTier =
       toolMode === "reduced" ? "REDUCED" : toolMode === "none" ? "NONE" : "FULL";
 
+    // A resume turn is answered from the ledger, not from the self-description
+    // block the provider appends as a second system message. Keeping that
+    // block off the request is the difference between two small mission
+    // records fitting Groq's minute and a 23 KB request that cannot.
+    const resumeTurn = isMissionResume(context.request.prompt);
+    const requestContext = resumeTurn ? missionResumeContext(context.request.context) : context.request.context;
+
     /**
      * THE CEILING, APPLIED HERE — the last point before a provider sees it.
      * Everything below sends `fitted`, not the raw context, so a request that
-     * can only be refused is made acceptable first.
+     * can only be refused is made acceptable first. The provider-appended
+     * context is counted too; it used to arrive after the fitter and blow the
+     * ceiling it had just measured.
      */
-    const fitted = this.fitFor(provider, context, context.request.messages ?? [], offeredTools, requestedTier);
+    const fitted = this.fitFor(provider, context, context.request.messages ?? [], offeredTools, requestedTier, requestContext);
     const tools = fitted.tools;
 
     // The request as it will actually be sent, measured at the boundary where
@@ -699,14 +742,7 @@ export default class ProviderResolver {
     context.logger.info(
       "ProviderResolver",
       "Request budget",
-      describeRequestBudget({
-        messages: fitted.messages as never,
-        prompt: context.request.prompt,
-        tools,
-        tier: fitted.tier,
-        provider: provider.name,
-        model: context.request.model,
-      }) as unknown as Record<string, unknown>,
+      fitted.budget as unknown as Record<string, unknown>,
     );
 
     // No native tool support, or nothing currently executable to offer:
@@ -716,6 +752,7 @@ export default class ProviderResolver {
       return gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
         messages: fitted.messages,
+        ...(resumeTurn ? { context: requestContext ?? "" } : {}),
       });
     }
 
@@ -740,6 +777,7 @@ export default class ProviderResolver {
       ...this.withRungSignal(context.request, rungSignal),
       messages,
       tools,
+      ...(resumeTurn ? { context: requestContext ?? "" } : {}),
     });
     // A round that came back is proof the rung is alive.
     onProgress?.();
@@ -920,14 +958,38 @@ export default class ProviderResolver {
         messages,
         stopReason ? [] : tools,
         stopReason ? "NONE" : tools.length === offeredTools.length ? requestedTier : "REDUCED",
+        requestContext,
       );
+      const finalContext = continuationContext(requestContext);
+      // With no tools offered, the tool-call protocol has no channel left.
+      // Keeping `assistant.tool_calls` / `role:"tool"` in history makes some
+      // providers answer 400 tool_use_failed instead of a final reply; the
+      // same results become an untrusted, nonce-delimited evidence block.
+      const noTools = refitted.tools.length === 0;
+      const flattened = noTools ? flattenToolHistory(refitted.messages) : refitted.messages;
+      // A tool result is untrusted data, and the last turn must be a trusted
+      // runtime instruction, not whatever a page or file ended with. The
+      // guard is part of the measured payload and the protected tail.
+      const guarded = noTools ? [...flattened, finalRoundGuard()] : flattened;
+      // The conversion changes the payload (it removes the tool envelope and
+      // adds the untrusted-data boundary). Measure AGAIN after it, with the
+      // exact context this call will carry, instead of trusting the size of
+      // the pre-conversion history.
+      const finalFit = noTools
+        ? this.fitFor(provider, context, guarded, [], "NONE", finalContext)
+        : refitted;
       response = await gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
         // A continuation round re-reads tool results; LÉLU's full self-state
         // was given on round 0 and is not re-sent (see continuationContext).
-        context: continuationContext(context.request.context),
-        messages: refitted.messages,
-        ...(refitted.tools.length ? { tools: refitted.tools } : {}),
+        context: finalContext,
+        messages: finalFit.messages,
+        // The materialized question is already in the flattened history. A
+        // plain user tail would otherwise make the provider append it again.
+        ...(noTools && promptAlreadyInHistory(finalFit.messages, context.request.prompt)
+          ? { promptAlreadyInHistory: true }
+          : {}),
+        ...(finalFit.tools.length ? { tools: finalFit.tools } : {}),
       });
       onProgress?.();
 

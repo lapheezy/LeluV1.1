@@ -68,6 +68,7 @@ function publicEnvRecord(): Record<string, string | undefined> {
       NEXT_PUBLIC_SUPABASE_URL: import.meta.env.NEXT_PUBLIC_SUPABASE_URL,
       VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      VITE_SUPABASE_USE_PUBLIC_DEFAULT: import.meta.env.VITE_SUPABASE_USE_PUBLIC_DEFAULT,
       VITE_VAPID_PUBLIC_KEY: import.meta.env.VITE_VAPID_PUBLIC_KEY,
 
       /* ---- browser-called service keys: NONE ----

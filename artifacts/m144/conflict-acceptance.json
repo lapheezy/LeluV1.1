@@ -1,0 +1,33 @@
+{
+  "mission": "M14.4",
+  "baselineBranch": "mission-14.3/independent-runtime-acceptance",
+  "baselineCommit": "9363966",
+  "startedAt": "2026-11-16T11:33:39.862Z",
+  "finishedAt": "2026-11-16T11:33:40.188Z",
+  "realCloud": false,
+  "cloudCredential": "not present in this environment",
+  "evidenceBoundary": "All cloud behavior below is produced by SimulatedTransport and is labelled SIMULATED. No Supabase request was made.",
+  "status": "PASS",
+  "evidenceClass": [
+    "DETERMINISTIC",
+    "SIMULATED_TRANSPORT"
+  ],
+  "projectConflict": {
+    "detected": true,
+    "local": "Local-side edit",
+    "cloud": "Cloud-side edit",
+    "bothVersionsRetained": true,
+    "resolution": "keep_local",
+    "cloudAfter": "Local-side edit"
+  },
+  "messageMerge": {
+    "localMessage": true,
+    "cloudMessage": true,
+    "uniqueIds": true
+  },
+  "spatial": {
+    "placed": true,
+    "objectId": "obj-67da71a4",
+    "note": "Spatial concurrent-transform conflict is covered by the deterministic unit test; this run verifies stable placement identity."
+  }
+}

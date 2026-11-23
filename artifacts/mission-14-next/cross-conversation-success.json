@@ -1,0 +1,101 @@
+{
+  "generatedAt": "2026-11-15T16:49:03.551Z",
+  "status": "VERIFIED",
+  "objective": "Prove LÉLU can resume an existing mission from a genuinely new conversation using only persisted mission data",
+  "conversation": {
+    "id": "4903d20a-4cbb-4389-a441-16ac463ed39a",
+    "createdAt": 1794761160102,
+    "title": "Resume the blocked Mission 14 conver",
+    "prompt": "Resume the blocked Mission 14 conversational-proof workstream. Find the right record yourself, read its brief, and tell me what is done, what is blocked and what the next safe action is. Then perform that next safe action and save the progress. Do not ask me for an id.",
+    "missionIdSupplied": false
+  },
+  "provider": {
+    "stored": "Groq",
+    "source": "ai",
+    "model": "openai/gpt-oss-20b",
+    "proof": "the persisted assistant message carries provider=Groq and source=ai; the final text is a natural reply, not the partial-work or text-project fallback"
+  },
+  "toolCalls": [
+    {
+      "tool": "mission.find",
+      "ok": true,
+      "ranAt": 1794761170889,
+      "activity": "Running mission.find (Mission 14 conversational-proof workstream)"
+    },
+    {
+      "tool": "mission.brief",
+      "ok": true,
+      "ranAt": 1794761171836,
+      "activity": "Running mission.brief"
+    },
+    {
+      "tool": "mission.update",
+      "ok": true,
+      "ranAt": 1794761173354,
+      "activity": "Running mission.update (note)"
+    }
+  ],
+  "resolvedRecord": {
+    "id": "m-406ecd7d",
+    "title": "Mission 14 conversational proof",
+    "status": "blocked",
+    "objective": "Prove the continuity tools work in a real conversation",
+    "blocker": "providers are rate limited",
+    "nextSafeAction": "continue"
+  },
+  "modelAuthoredReply": "Mission 14 – conversational-proof workstream (m-406ecd7d)\n\nWhat’s done: The objective is still pending – we haven’t yet advanced past the “blocked” state.\nWhat’s blocked: Provider rate limits are preventing the continuation step.\nNext safe action: continue – attempt to resume the workstream once the rate limits clear.\n\nI’ve added a note that the continuation attempt failed due to provider limits and updated the record accordingly. The mission ledger now reflects this status.",
+  "persistedUpdate": {
+    "kind": "note",
+    "detail": "Attempted to continue but providers are rate limited",
+    "at": 1794761173354,
+    "evidence": "REPORTED",
+    "durability": "persisted"
+  },
+  "missionBefore": {
+    "updatedAt": 1794760988624,
+    "nextSafeAction": "continue",
+    "lastLog": "next-action: continue"
+  },
+  "missionAfterReload": {
+    "updatedAt": 1794761173354,
+    "nextSafeAction": "continue",
+    "durability": "persisted",
+    "lastLog": "Attempted to continue but providers are rate limited"
+  },
+  "duplicateRepair": {
+    "duplicateId": "m-4863de4f",
+    "canonicalId": "m-406ecd7d",
+    "status": "abandoned",
+    "duplicateOf": "m-406ecd7d",
+    "survivedReload": true
+  },
+  "providerPath": [
+    "OpenRouter attempted first and returned 429 free-models-per-day",
+    "Groq openai/gpt-oss-20b then ran the three mission tools and wrote the final answer",
+    "No local text projector or partial-work reply authored the final text"
+  ],
+  "limitations": [
+    "The UI persisted tool names, success and labels, not the raw tool-call argument JSON. The resolved id and persisted note are the evidence of those arguments.",
+    "The successful provider call was not broker-trace-logged; the stored message provider/source and the natural final text are the evidence, plus the preceding 429/failover logs."
+  ],
+  "providerStatusAfterRun": {
+    "checkedAt": "2026-11-15T16:58:04.000Z",
+    "groq": {
+      "state": "COMPLETION_VERIFIED",
+      "httpStatus": 200,
+      "lastSuccessAt": 1794761830984
+    },
+    "openrouter": {
+      "state": "CAPACITY_LIMITED",
+      "retryAfterSeconds": 25326
+    },
+    "githubModels": {
+      "state": "CONTRACT_VIOLATION"
+    },
+    "providersOffered": {
+      "groq": true,
+      "openrouter": false,
+      "githubModels": true
+    }
+  }
+}

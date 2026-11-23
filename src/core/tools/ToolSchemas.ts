@@ -28,6 +28,7 @@ import {
   toolNameForModel,
   toolPermitted,
 } from "./ToolDispatcher";
+import { isMissionResume } from "../router/continuationContext";
 
 /**
  * Every tool that is registered, executable and currently permitted,
@@ -129,8 +130,40 @@ export const DISCOVERY_TOOL_NAMES: readonly string[] = [
   "system_config",
 ];
 
+/**
+ * The continuity family, pinned as a set.
+ *
+ * Measured in a real turn: "call mission_update on m-…, then mission_brief"
+ * offered mission_update, mission_brief and mission_list, but not
+ * self_operational — the read that proves what state the work is in. A turn
+ * that can advance a workstream must also be able to inspect and resume it,
+ * so when continuity is the subject these travel together.
+ */
+export const CONTINUITY_TOOL_NAMES: readonly string[] = [
+  "self_operational",
+  "mission_list",
+  "mission_find",
+  "mission_record",
+  "mission_update",
+  "mission_brief",
+];
+
 /** How many schemas one conversational turn may carry. */
 export const TURN_TOOL_LIMIT = 14;
+
+/**
+ * A resume turn needs these four, and nothing else: find the record, read its
+ * brief, advance it, and list if the find is ambiguous. Discovery tools and
+ * self.operational are useful on open-ended turns but were measured as spent
+ * Groq TPM on a blocked Mission 14 retry (system.config + self.operational
+ * before any mission read).
+ */
+export const MISSION_RESUME_TOOL_NAMES: readonly string[] = [
+  "mission_list",
+  "mission_find",
+  "mission_brief",
+  "mission_update",
+];
 
 /**
  * How many bytes of schema one conversational turn may carry.
@@ -172,6 +205,12 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(avatar|body|gesture|wave|dance|companion)\b/i, ["avatar_gesture", "avatar_companion"]],
   [/\b(artifact|diagram|table|chart|note|document)\b/i, ["artifact_create", "artifact_edit", "artifact_read", "environment_present_artifact"]],
   [/\b(agent|delegate|workforce|task force)\b/i, ["agent_delegate", "agent_status", "agent_resume"]],
+  // Continuity is its own family. Without this, a turn saying "call
+  // mission_update on m-..." matched no hint, so only the accidentally
+  // lexical tools were offered and the model truthfully answered that it
+  // could not see mission_update. The five tools are one set: a turn that
+  // can open a workstream must also be able to advance and resume it.
+  [/(?:\b(missions?|workstreams?|continuity|resuming?|brief|ledger|blockers?)\b|\boperational state\b|mission_(?:list|find|record|update|brief)|self_operational)/i, ["self_operational", "mission_list", "mission_find", "mission_record", "mission_update", "mission_brief"]],
   // Measured: "Draw me a quick sketch of a cat…" matched no family, so the
   // drawing tool (studio_create, kind "drawing") was never offered and the
   // model answered with an invented image link, then ASCII art.
@@ -241,6 +280,14 @@ export function selectToolSchemas(
   prompt = "",
   intent?: string,
 ): ToolSchema[] {
+  // A mission resume is a closed read/advance turn. Offering the discovery
+  // and self-inspection families alongside it invited detours that consumed
+  // the provider's minute before the ledger was read.
+  if (isMissionResume(prompt)) {
+    const resume = schemas.filter((schema) => MISSION_RESUME_TOOL_NAMES.includes(String(schema.name)));
+    if (resume.length > 0) return resume;
+  }
+
   // An environment turn keeps its existing, narrower contract.
   const environmentTurn = Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt);
   if (environmentTurn) {
@@ -254,9 +301,15 @@ export function selectToolSchemas(
   for (const [pattern, names] of FAMILY_HINTS) {
     if (pattern.test(prompt)) for (const name of names) hinted.add(name);
   }
+  const continuityHinted = [...hinted].some((name) => CONTINUITY_TOOL_NAMES.includes(name));
+  const pinned = continuityHinted
+    ? schemas.filter((schema) => CONTINUITY_TOOL_NAMES.includes(String(schema.name)))
+    : [];
+  const pinnedNames = new Set(pinned.map((schema) => String(schema.name)));
 
   const ranked = schemas
     .filter((schema) => !DISCOVERY_TOOL_NAMES.includes(String(schema.name)))
+    .filter((schema) => !pinnedNames.has(String(schema.name)))
     .map((schema) => {
       const name = String(schema.name);
       const boost = hinted.has(name) ? 3 : 0;
@@ -265,10 +318,10 @@ export function selectToolSchemas(
     .sort((a, b) => b.score - a.score || a.cost - b.cost || String(a.schema.name).localeCompare(String(b.schema.name)));
 
   const chosen: ToolSchema[] = [];
-  let spent = discovery.reduce((total, schema) => total + schemaBytes(schema), 0);
-  const nothingMatched = ranked.every((entry) => entry.score === 0);
+  let spent = [...discovery, ...pinned].reduce((total, schema) => total + schemaBytes(schema), 0);
+  const nothingMatched = ranked.every((entry) => entry.score === 0) && pinned.length === 0;
   for (const entry of ranked) {
-    if (chosen.length + discovery.length >= TURN_TOOL_LIMIT) break;
+    if (chosen.length + discovery.length + pinned.length >= TURN_TOOL_LIMIT) break;
     if (spent + entry.cost > TURN_TOOL_BUDGET_BYTES && chosen.length > 0) break;
     // A turn with no signal at all keeps the conversational core, not the
     // cheapest four — remembering and looking something up matter more
@@ -281,10 +334,10 @@ export function selectToolSchemas(
 
   // Fails OPEN like the environment narrowing: never leave a turn with no
   // tool at all just because the budget was already spent.
-  if (chosen.length === 0 && schemas.length > 0) {
+  if (chosen.length === 0 && pinned.length === 0 && schemas.length > 0) {
     return schemas.slice(0, Math.min(TURN_TOOL_LIMIT, schemas.length));
   }
-  return [...discovery, ...chosen];
+  return [...discovery, ...pinned, ...chosen];
 }
 
 /** What a turn's selection decided — for diagnostics, never for content. */

@@ -24,7 +24,11 @@ import test from "node:test";
 
 import { readFileSync } from "node:fs";
 
-import { describe as describeState } from "../src/core/persistence/PersistenceState";
+import {
+  describe as describeState,
+  EMPTY_MISSION_SYNC_SUMMARY,
+  type PersistenceSnapshot,
+} from "../src/core/persistence/PersistenceState";
 
 test("no cloud configuration is local operation, not an error", () => {
   const snapshot = describeState("disabled");
@@ -48,12 +52,80 @@ test("connecting reads as syncing", () => {
   assert.equal(snapshot.cloud, true);
 });
 
-test("connected means local and cloud agree", () => {
+test("connected means the cloud-backed stores agree, not that every domain is synchronized", () => {
   const snapshot = describeState("connected");
   assert.equal(snapshot.mode, "connected");
   assert.equal(snapshot.cloud, true);
   assert.equal(snapshot.identified, true);
   assert.equal(snapshot.actionable, false);
+  assert.equal(snapshot.domains.cloud.remote, "connected");
+  assert.equal(snapshot.domains.cloud.synchronized, false, "connection is not proof of completed reconciliation");
+  assert.equal(snapshot.domains.missionLedger.synchronized, false);
+  assert.equal(snapshot.domains.missionLedger.remote, "local-only");
+  assert.doesNotMatch(
+    snapshot.detail,
+    /local and cloud state are in sync/i,
+    "the old wording falsely promised MissionLedger sync",
+  );
+});
+
+test("a successful unrelated cloud connection cannot mark MissionLedger synchronized", () => {
+  const snapshot = describeState("connected", true, {
+    ...EMPTY_MISSION_SYNC_SUMMARY,
+    total: 2,
+    synchronized: 2,
+  });
+  assert.equal(snapshot.mode, "connected");
+  assert.equal(snapshot.domains.missionLedger.synchronized, false);
+  assert.equal(snapshot.domains.missionLedger.remote, "local-only");
+  assert.match(snapshot.domains.missionLedger.detail, /not remotely synchronized/i);
+});
+
+test("mission records stay visibly local when there is no authenticated session", () => {
+  const snapshot = describeState("signed_out", true, {
+    ...EMPTY_MISSION_SYNC_SUMMARY,
+    total: 1,
+    local: 1,
+  });
+  assert.equal(snapshot.domains.missionLedger.remote, "signed-out");
+  assert.equal(snapshot.domains.missionLedger.synchronized, false);
+  assert.match(snapshot.detail, /mission records remain local-only/i);
+});
+
+test("mission sync can only be reported when the gate is open and every record is synchronized", () => {
+  const allSynchronized = { ...EMPTY_MISSION_SYNC_SUMMARY, total: 2, synchronized: 2 };
+  const withoutGate = describeState("connected", true, allSynchronized, false);
+  assert.equal(withoutGate.domains.missionLedger.synchronized, false);
+
+  const withGate = describeState("connected", true, allSynchronized, true);
+  assert.equal(withGate.domains.missionLedger.synchronized, true);
+  assert.equal(withGate.domains.missionLedger.remote, "synchronized");
+
+  const onePending = describeState(
+    "connected",
+    true,
+    { ...EMPTY_MISSION_SYNC_SUMMARY, total: 2, local: 1, queued: 1 },
+    true,
+  );
+  assert.equal(onePending.domains.missionLedger.synchronized, false);
+  assert.equal(onePending.domains.missionLedger.remote, "queued");
+});
+
+test("offline still says what happens to mission records without promising a future sync", () => {
+  const snapshot = describeState("connected", false, { ...EMPTY_MISSION_SYNC_SUMMARY, total: 1, local: 1 });
+  assert.equal(snapshot.mode, "offline");
+  assert.equal(snapshot.domains.missionLedger.remote, "offline");
+  assert.equal(snapshot.domains.missionLedger.synchronized, false);
+  assert.match(snapshot.detail, /mission records remain local-only/i);
+});
+
+test("every snapshot carries both persistence domains", () => {
+  for (const status of ["disabled", "connecting", "connected", "signed_out", "degraded"] as const) {
+    const snapshot: PersistenceSnapshot = describeState(status);
+    assert.equal(snapshot.domains.cloud.local, true);
+    assert.equal(snapshot.domains.missionLedger.local, true);
+    assert.ok(snapshot.domains.missionLedger.detail.length > 10);
+  }
 });
 
 test("degraded says local is authoritative, not that data is lost", () => {

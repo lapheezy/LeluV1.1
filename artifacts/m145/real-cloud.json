@@ -1,0 +1,16 @@
+{
+  "mission": "M14.5",
+  "status": "BLOCKED",
+  "evidenceClass": [
+    "REAL_AUTHENTICATED_SUPABASE"
+  ],
+  "realCloud": false,
+  "startedAt": "2026-11-16T15:49:33.005Z",
+  "finishedAt": "2026-11-16T15:49:33.005Z",
+  "missingNames": [
+    "LELU_M145_SUPABASE_PUBLISHABLE_KEY"
+  ],
+  "reason": "Missing LELU_M145_SUPABASE_PUBLISHABLE_KEY.",
+  "checks": [],
+  "note": "No request was attempted. Only the isolated lelu-v11-test project is accepted."
+}

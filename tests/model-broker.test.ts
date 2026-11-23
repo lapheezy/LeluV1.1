@@ -282,3 +282,110 @@ test("a stream that fails after its headers went out ends the response — it do
     globalThis.fetch = realFetch;
   }
 });
+
+test("a provider-wide 429 cooldown is answered without another upstream call", async () => {
+  const realFetch = globalThis.fetch;
+  let upstreamCalls = 0;
+  const refusal = () => {
+    const body = JSON.stringify({ error: { message: "rate limit reached" } });
+    return {
+      status: 429,
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["retry-after", "30"],
+      ]) as never,
+      text: async () => body,
+      clone() {
+        return { ...this, text: async () => body };
+      },
+      body: { cancel: async () => undefined },
+    };
+  };
+  globalThis.fetch = (async () => {
+    upstreamCalls += 1;
+    return refusal();
+  }) as never;
+
+  try {
+    const api = createModelApi((name) =>
+      name === "GROQ_API_KEY" ? "key-a" : name === "GROQ_API_KEY_1" ? "key-b" : undefined,
+    );
+    const body = JSON.stringify({ model: "m", messages: [{ role: "user", content: "hi" }] });
+    const first = await call(api, "/groq/chat/completions", { body });
+    assert.equal(first.response.status, 429);
+    assert.equal(upstreamCalls, 2, "each configured credential was tried once");
+
+    const second = await call(api, "/groq/chat/completions", { body });
+    assert.equal(second.response.status, 429);
+    assert.equal(upstreamCalls, 2, "a cooling provider was not called upstream again");
+    assert.match(second.response.headers["retry-after"] ?? "", /^\d+$/);
+    const payload = JSON.parse(second.response.body) as { code: string; retryAfterSeconds: number };
+    assert.equal(payload.code, "PROVIDER_COOLDOWN");
+    assert.ok(payload.retryAfterSeconds >= 1);
+
+    const status = await call(api, "/status", { method: "GET" });
+    const observed = JSON.parse(status.response.body) as {
+      providers: Record<string, boolean>;
+      states: Record<string, { retryAfterSeconds?: number }>;
+    };
+    assert.ok((observed.states.groq?.retryAfterSeconds ?? 0) >= 1, "status exposes the reset window");
+    assert.equal(observed.providers.groq, false, "a cooling provider is not offered to the chain");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("a 5xx is recorded as a provider outage, not a credential failure", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    status: 503,
+    headers: new Map([["content-type", "application/json"]]) as never,
+    text: async () => JSON.stringify({ error: { message: "upstream unavailable" } }),
+    clone() {
+      return this;
+    },
+    body: { cancel: async () => undefined },
+  })) as never;
+  try {
+    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? "key-a" : undefined));
+    const { response } = await call(api, "/groq/chat/completions", {
+      body: JSON.stringify({ model: "m", messages: [] }),
+    });
+    assert.equal(response.status, 503);
+    const status = await call(api, "/status", { method: "GET" });
+    const observed = JSON.parse(status.response.body) as { states: Record<string, { state: string }> };
+    assert.equal(observed.states.groq?.state, "UNREACHABLE");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("a 200 body that is not a completion is a contract violation, not success", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    ok: true,
+    status: 200,
+    headers: new Map([["content-type", "text/plain"]]) as never,
+    text: async () => "OK ",
+    clone() {
+      return this;
+    },
+    body: { cancel: async () => undefined },
+  })) as never;
+  try {
+    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? "key-a" : undefined));
+    const { response } = await call(api, "/groq/chat/completions", {
+      body: JSON.stringify({ model: "m", messages: [] }),
+    });
+    assert.equal(response.status, 502);
+    assert.match(response.body, /BROKER_CONTRACT_VIOLATION/);
+    const status = await call(api, "/status", { method: "GET" });
+    const observed = JSON.parse(status.response.body) as {
+      states: Record<string, { state: string; lastSuccessAt?: number }>;
+    };
+    assert.equal(observed.states.groq?.state, "CONTRACT_VIOLATION");
+    assert.equal(observed.states.groq?.lastSuccessAt, undefined, "the transient 200 was removed");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});

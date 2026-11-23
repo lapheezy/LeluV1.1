@@ -72,10 +72,21 @@ const RULES: ClaimRule[] = [
     label: "the commit",
     claim: /\b(committed|created (?:a |the )?commit)\b/i,
   },
+  {
+    tools: ["mission_update"],
+    label: "the mission update",
+    claim:
+      /\b(?:mission|workstream|m-[a-z0-9]+)\b[^\n]{0,140}\b(updated|recorded|saved|persisted|logged|marked|set|cleared|abandoned)\b|\b(updated|recorded|saved|persisted|logged|marked|set|cleared|abandoned)\b[^\n]{0,140}\b(?:mission|workstream|m-[a-z0-9]+)\b/i,
+  },
+  {
+    tools: ["mission_record"],
+    label: "the new workstream",
+    claim: /\b(?:mission|workstream)\b[^\n]{0,60}\b(recorded|created|opened)\b|\b(recorded|created|opened|saved)\s+(?:a|the|this|new)\s+(?:mission|workstream)\b/i,
+  },
 ];
 
 /** Lines that describe what did NOT happen, or what could happen. */
-const NOT_A_CLAIM = /\b(would have|not reached|wasn[’']?t|was not|didn[’']?t|did not|couldn[’']?t|could not|never|unable|not run|no\s+(?:run|change|edit)|nothing (?:was|to)|next steps?|if you[’']?d like|i can|i will|i[’']ll|will run|to do|remains?|pending|planned|should)\b/i;
+const NOT_A_CLAIM = /\b(would have|not reached|wasn[’']?t|was not|didn[’']?t|did not|couldn[’']?t|could not|never|unable|not run|attempted|tried|(?<!0\s)failed|no\s+(?:run|change|edit)|nothing (?:was|to)|next steps?|if you[’']?d like|i can|i will|i[’']ll|will run|to do|remains?|pending|planned|should)\b/i;
 
 export interface UngroundedClaim {
   label: string;

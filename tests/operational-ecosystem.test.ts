@@ -214,6 +214,18 @@ describe("chat intelligence intent", () => {
   test("ordinary conversation is left to the model", () => {
     assert.equal(detectIntelligenceIntent("write me a poem about the sea"), null);
     assert.equal(detectIntelligenceIntent("remind me to call my sister"), null);
+    assert.equal(
+      detectIntelligenceIntent(
+        "Resume the blocked Mission 14 conversational-proof workstream and tell me what is blocked.",
+      ),
+      null,
+      "a mission resume must reach the ledger, not the operational snapshot",
+    );
+    assert.equal(
+      detectIntelligenceIntent("Which studios are blocked?")?.kind,
+      "snapshot",
+      "a genuine studio status question keeps its snapshot route",
+    );
   });
 });
 

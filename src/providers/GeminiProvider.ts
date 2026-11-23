@@ -146,7 +146,7 @@ export default class GeminiProvider implements AIProvider {
     }
     // Mid-tool-loop the tail is a functionResponse turn; re-appending
     // the original prompt there would ask the question a second time.
-    if (history[history.length - 1]?.role !== "tool") {
+    if (request.promptAlreadyInHistory !== true && history[history.length - 1]?.role !== "tool") {
       parts.push({ text: request.prompt });
       contents.push({ role: "user", parts });
     }

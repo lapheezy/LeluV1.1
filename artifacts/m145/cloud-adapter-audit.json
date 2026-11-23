@@ -1,0 +1,74 @@
+{
+  "mission": "M14.5",
+  "baselineBranch": "mission-14.4/local-first-continuity",
+  "baselineCommit": "b17c1190d5fcd0ee4f1f637d40a8736d5d2adef5",
+  "status": "PARTIAL",
+  "evidenceClass": [
+    "SOURCE_AUDIT",
+    "MIGRATION_STATIC",
+    "LOCAL_TESTS"
+  ],
+  "realCloud": false,
+  "inspected": [
+    "src/core/sync/SupabaseContinuityTransport.ts",
+    "src/core/sync/ContinuityEngine.ts",
+    "src/core/sync/ContinuityStore.ts",
+    "src/core/sync/AuthorityAdapters.ts",
+    "src/core/persistence/SupabasePersistence.ts",
+    "src/core/persistence/PersistenceState.ts",
+    "supabase/migrations/202608240001_lelu_runtime.sql",
+    "supabase/migrations/202608240002_project_metadata.sql"
+  ],
+  "schema": {
+    "projects": "primary key (id,user_id); updated_at timestamptz client-writable before M14.5; metadata jsonb after 202608240002",
+    "conversations": "primary key (id,user_id); updated_at timestamptz client-writable before M14.5",
+    "messages": "primary key (id,user_id); created_at only; FK to conversation owner with cascade",
+    "knowledge_items": "primary key (id,user_id); updated_at timestamptz client-writable before M14.5",
+    "user_preferences": "primary key (user_id,preference_key); value jsonb; updated_at client-writable before M14.5",
+    "rls": "all listed tables enable RLS with one owner policy: using/with check user_id = auth.uid()",
+    "triggers_before": "no updated_at or revision trigger in the repository migrations"
+  },
+  "timestamp_findings": {
+    "conditional_predicate": "WHERE updated_at = observed_value",
+    "stale_write_protection": "works when the timestamp actually changes and differs",
+    "same_millisecond_collision": "two clients can use the same millisecond; the second condition can match, allowing a lost update",
+    "client_supplied_timestamp": "the update payload includes the client updated_at; it can fail to advance",
+    "zero_row_delete": "M14.4 delete did not inspect affected rows, so a conditional delete that matched nothing could be reported as applied",
+    "rls_vs_missing_row": "M14.4 mapped all read errors to retry_required; a 401/403 was not classified as authentication_required"
+  },
+  "correction": {
+    "migration": "supabase/migrations/202611160001_continuity_revisions.sql",
+    "mechanism": "continuity_revision bigint + lelu_continuity_touch() BEFORE INSERT OR UPDATE trigger on projects, conversations, knowledge_items, user_preferences",
+    "properties": [
+      "revision starts at 1",
+      "each update increments by exactly 1",
+      "updated_at is server clock_timestamp()",
+      "client cannot choose the new revision"
+    ],
+    "fallback": "adapter reads continuity_revision when present; a project without the migration falls back to updated_at with a monotonic client timestamp",
+    "token_format": "rev:<n> for strict revisions; ts:<timestamp> for legacy fallback; plain M14.4 timestamps remain accepted"
+  },
+  "defects_fixed": [
+    "lost insert acknowledgement retried into a false conflict; now content-equal retry is applied",
+    "lost update acknowledgement with an old base retried into a conflict; now content-equal retry is applied",
+    "first sync of a hydrated cloud record enqueued an upload with expected=null; now adopted or rebased",
+    "a pre-engine local edit newer than the cloud copy is rebased onto the observed cloud revision",
+    "document changes caused by another record no longer conflict when the target record is still at its base hash",
+    "conditional delete now verifies that a row was actually deleted",
+    "401/403/PGRST301/42501 are reported as authentication_required",
+    "conversation message retries use ignoreDuplicates so a lost ack cannot overwrite a newer message"
+  ],
+  "residual_limits": [
+    "the revision migration must be applied to the real project before strict atomic acceptance",
+    "messages have no independent revision; the conversation row remains the conditional boundary",
+    "the OG server functions still write conversations directly and are outside the continuity engine",
+    "document-backed authorities share a row-level revision; separate records rebase only when the target record is unchanged",
+    "real cloud execution is BLOCKED by missing isolated credentials"
+  ],
+  "artifacts": {
+    "migration": "supabase/migrations/202611160001_continuity_revisions.sql",
+    "transportTests": "tests/supabase-continuity-transport.test.ts",
+    "migrationTests": "tests/continuity-migration.test.ts",
+    "focusedLog": "/tmp/m145-focused2.log"
+  }
+}

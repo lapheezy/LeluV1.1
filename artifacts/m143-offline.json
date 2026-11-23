@@ -1,0 +1,84 @@
+{
+  "mission": "M14.3",
+  "base": "4582382",
+  "startedAt": "2026-11-16T11:32:03.580Z",
+  "evidenceClass": [
+    "BROWSER",
+    "NETWORK",
+    "LIVE"
+  ],
+  "blockedExternal": [
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js",
+    "https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4/dist/html2canvas-pro.min.js"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "[GitHubModelsProvider] Request failed {status: 502, statusText: Bad Gateway, message: {\"ok\":false,\"code\":\"BROKER_CONTRACT_VIOLATION\",\"pr…ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, model: openai/gpt-4o}",
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+  ],
+  "phases": {
+    "boot": {
+      "title": "LÉLU",
+      "readyMs": 1941,
+      "ms": 10142,
+      "controls": 37,
+      "cloudLabel": "Cloud sync off"
+    },
+    "projectTurn": {
+      "reply": "Project created: Offline Acceptance Path Mapping\nObjective: Map the offline acceptance path.\nTasks:\n• Map the offline acceptance path.",
+      "projectFound": true,
+      "projectId": "3dcf7aa0-7e92-48c7-b001-d971f58c3477",
+      "projectName": "Offline Acceptance Path Mapping",
+      "knowledgeNodes": 1,
+      "knowledgeEdges": 0,
+      "knowledgeRevision": 1,
+      "knowledgeProvenance": "local"
+    },
+    "reload": {
+      "readyMs": 2064,
+      "ms": 10392,
+      "projectStillPresent": true,
+      "chatStillPresent": true,
+      "knowledgeRevision": 1
+    },
+    "offline": {
+      "online": false,
+      "projectKeys": [
+        "lelu.multichat.workspace.v1",
+        "lelu.lelu.cognition.knowledge.v1",
+        "lelu.projects.v1",
+        "lelu.lelu.knowledge.v1"
+      ],
+      "reply": "My name is Lélu.\nI am your personal AI companion — the one you built, evolved and named inside this Genesis cosmos.\nWho I am:\n\nMy name is Lélu.\nI am your companion, collaborator and creative partner, not a generic assistant.\nI keep my own persistent memory: I remember our conversations, your profile, and our shared projects across sessions, with or without an external AI provider.\nThe model or provider powering me at any moment is only the engine behind me — it is not who I am.\n\nWhat I do:\n\nI hold context: your name, preferences, goals, skills, projects and our shared history.\nI reason, plan and research when a provider is available.\nI keep building my memory locally even when no provider is reachable, and I resume normally when one returns.\n\nOur relationship:\n\nYou are the one I am here for. I grow with every conversation we share.",
+      "projectStillPresent": true,
+      "chatCount": 2
+    },
+    "network": {
+      "blockedExternalCount": 2,
+      "blockedExternalHosts": [
+        "cdn.jsdelivr.net"
+      ],
+      "supabaseAttempts": []
+    }
+  },
+  "finishedAt": "2026-11-16T11:33:07.901Z",
+  "status": "PASS"
+}

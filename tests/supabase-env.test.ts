@@ -33,6 +33,7 @@ import test from "node:test";
 import {
   SUPABASE_URL_NAMES,
   SUPABASE_KEY_NAMES,
+  SUPABASE_PUBLIC_DEFAULT_FLAG_NAMES,
   resolveSupabaseConfig,
   supabaseConfigGap,
   projectRefFromUrl,
@@ -52,7 +53,12 @@ function anonKeyForProject(ref: string): string {
 
 /** Run `body` with exactly these env names set, and nothing Supabase-ish else. */
 function withEnv(values: Record<string, string>, body: () => void): void {
-  const touched = new Set([...SUPABASE_URL_NAMES, ...SUPABASE_KEY_NAMES, ...Object.keys(values)]);
+  const touched = new Set([
+    ...SUPABASE_URL_NAMES,
+    ...SUPABASE_KEY_NAMES,
+    ...SUPABASE_PUBLIC_DEFAULT_FLAG_NAMES,
+    ...Object.keys(values),
+  ]);
   const saved = new Map<string, string | undefined>();
   for (const name of touched) {
     saved.set(name, process.env[name]);
@@ -137,12 +143,26 @@ test("a key with no URL is reported as missing the URL", () => {
   });
 });
 
-test("nothing set falls back to the project's public identity, never a guess", () => {
-  // The platform supplies no URL, so with nothing set the project's own
-  // public URL + publishable key (src/core/config/supabasePublic.ts) apply.
+test("nothing set means local-only, never an implicit cloud project", () => {
+  // The built-in project identity must not activate merely because the
+  // environment is empty. That was an automatic network dependency, not a
+  // local-first default.
   withEnv({}, () => {
+    assert.equal(resolveSupabaseConfig(), null);
+    const gap = supabaseConfigGap();
+    assert.deepEqual(gap?.missing, ["url", "key"]);
+    assert.ok(gap?.looked.includes("SUPABASE_URL"));
+    assert.ok(gap?.looked.includes("SUPABASE_PUBLISHABLE_KEY"));
+  });
+});
+
+test("the project's public identity is available only by explicit opt-in", () => {
+  withEnv({ SUPABASE_USE_PUBLIC_DEFAULT: "true" }, () => {
     assert.deepEqual(resolveSupabaseConfig(), { ...SUPABASE_PUBLIC_DEFAULT });
     assert.equal(supabaseConfigGap(), null);
+  });
+  withEnv({ VITE_SUPABASE_USE_PUBLIC_DEFAULT: "1" }, () => {
+    assert.deepEqual(resolveSupabaseConfig(), { ...SUPABASE_PUBLIC_DEFAULT });
   });
 });
 
@@ -155,7 +175,7 @@ test("an admin credential filed as the publishable key is refused, never used or
     withEnv({ SUPABASE_PUBLISHABLE_KEY: admin }, () => {
       const config = resolveSupabaseConfig();
       assert.notEqual(config?.publishableKey, admin);
-      assert.deepEqual(config, { ...SUPABASE_PUBLIC_DEFAULT });
+      assert.equal(config, null, "a refused admin key must not silently open the public project");
     });
   }
   assert.equal(classifySupabaseKey("sb_publishable_x"), "publishable");

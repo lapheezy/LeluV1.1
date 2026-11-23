@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getSupabase, isSupabaseConfigured } from "@og/integrations/supabase/client";
+import { EMAIL_SIGN_IN_NOTICE, requestEmailLink, verifyEmailCode } from "../../../../core/persistence/emailAuth";
 import { toast } from "sonner";
 import { useNavigate } from "@og/compat/router";
 import { useSession } from "@og/hooks/use-session";
@@ -103,77 +104,101 @@ function Empty({ title, text }: { title: string; text: string }) {
 }
 
 /**
- * Email sign-in for the OG surface.
+ * Passwordless email sign-in for the OG surface.
  *
  * Uses the same Supabase client every other OG call uses — there is one
  * client in the app and this is not a second auth path.
  */
 function SignInForm() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  async function submit(event: React.FormEvent, mode: "in" | "up") {
+  async function submit(event: React.FormEvent) {
     event.preventDefault();
     const client = getSupabase();
     if (!client) return;
     setBusy(true);
+    setError(null);
+    setNotice(null);
     try {
-      const { error } =
-        mode === "up"
-          ? await client.auth.signUp({ email: email.trim().toLowerCase(), password })
-          : await client.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
-      if (error) toast.error(error.message);
-      else if (mode === "up") toast.success("Check your email to confirm, then sign in.");
-      else toast.success("Signed in");
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const result = await requestEmailLink(client.auth, email, redirectTo);
+      if (result.error) setError(result.error);
+      else {
+        setSent(true);
+        setNotice(EMAIL_SIGN_IN_NOTICE);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verify(event: React.FormEvent) {
+    event.preventDefault();
+    const client = getSupabase();
+    if (!client) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await verifyEmailCode(client.auth, email, code);
+      if (result.error) setError(result.error);
+      else setNotice("Signed in.");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <form onSubmit={(event) => void submit(event, "in")} className="max-w-xs space-y-2">
+    <div className="max-w-xs space-y-2">
       <p className="text-xs leading-relaxed text-foreground/60">
         Sign in to carry memory, projects and conversations across devices.
       </p>
-      <input
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email address"
-        autoComplete="email"
-        required
-        disabled={busy}
-        className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="Password"
-        autoComplete="current-password"
-        required
-        minLength={6}
-        disabled={busy}
-        className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
-      />
-      <div className="flex flex-wrap gap-2">
+      <form onSubmit={(event) => void submit(event)} className="space-y-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="Email address"
+          autoComplete="email"
+          required
+          disabled={busy}
+          className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
+        />
         <button
           type="submit"
           disabled={busy}
           className="rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs hover:bg-white/15 disabled:opacity-50"
         >
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? "Sending…" : "Email me a sign-in link"}
         </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={(event) => void submit(event, "up")}
-          className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10 disabled:opacity-50"
-        >
-          Create account
-        </button>
-      </div>
-    </form>
+      </form>
+      {sent ? (
+        <form onSubmit={(event) => void verify(event)} className="space-y-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            placeholder="Code from the email (if included)"
+            disabled={busy}
+            className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={busy || !code.trim()}
+            className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10 disabled:opacity-50"
+          >
+            {busy ? "Checking…" : "Verify code"}
+          </button>
+        </form>
+      ) : null}
+      {notice ? <p className="text-xs leading-relaxed text-emerald-300/90">{notice}</p> : null}
+      {error ? <p className="text-xs leading-relaxed text-red-300/90">{error}</p> : null}
+    </div>
   );
 }
