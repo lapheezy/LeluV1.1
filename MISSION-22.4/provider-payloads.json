@@ -1,0 +1,46 @@
+{
+  "mission": "LÉLU 22.4 — provider payload evidence",
+  "capture_mechanism": "window.fetch wrapped in the page before each turn; request URL, status, body length and phrase occurrence positions recorded; no header, key or full body committed",
+  "providers": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "reached": true,
+      "statuses": [200, 413],
+      "note": "413 was a request the broker refused as too large; the retry (smaller request) answered 200. The 413 body was still captured and checked."
+    },
+    {
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reached": true,
+      "statuses": [429],
+      "note": "The provider was reached and refused with its free-models-per-day limit; the fallback then answered on Groq. No OpenRouter completion is claimed."
+    },
+    {
+      "provider": "anthropic",
+      "reached": false,
+      "note": "not authorized, not attempted"
+    }
+  ],
+  "requests": {
+    "run_1_before_delete": [
+      { "when": "fresh conversation asked for the phrase", "status": 200, "payload_chars": 32337, "deleted_memory_phrase_present": true, "where": "PROJECT CHECKPOINTS" }
+    ],
+    "run_1_after_delete": [
+      { "when": "another fresh conversation asked for the phrase", "status": 200, "payload_chars": 33086, "deleted_memory_phrase_present": true, "where": "PROJECT CHECKPOINTS (legacy checkpoint)", "verdict": "FAIL before the fix" }
+    ],
+    "run_2_after_delete_with_fix": [
+      { "when": "fresh conversation asked for the spare key", "status": 413, "payload_chars": 32628, "deleted_memory_phrase_present": false },
+      { "when": "same turn, retried smaller", "status": 200, "payload_chars": 25288, "deleted_memory_phrase_present": false }
+    ],
+    "run_2_after_reload": [
+      { "when": "new conversation after reload", "provider": "openrouter", "status": 429, "payload_chars": 25534, "deleted_memory_phrase_present": false },
+      { "when": "fallback answered", "provider": "groq", "status": 200, "payload_chars": 25482, "deleted_memory_phrase_present": false }
+    ]
+  },
+  "conversation_b_isolation": {
+    "evidence": "every request in run 2 was a brand-new conversation with no other chat's material; the labelled “RESEARCH FROM OTHER CHATS” block appeared only in the pre-fix run, and then only because it quoted the user's own question (see cross-chat-indicator.json). After the fix no request in run 2 contained that block.",
+    "related_but_unused": "the earlier chats were listed in “RELATED CHATS (not authorized)” and in the activity as “Related, not used (not linked)” — visible, not injected"
+  },
+  "redaction": "Bodies are not stored. Only status, length, occurrence counts and short labelled excerpts are recorded."
+}

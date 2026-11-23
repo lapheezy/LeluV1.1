@@ -1,0 +1,111 @@
+{
+  "mission": "LÉLU 2.2 — memory boundary findings",
+  "rootCause": "Memories were written and recalled without provenance. Relevance and authorization were the same test, so a high-scoring memory from any conversation was treated as current context.",
+  "severityScale": ["P0 isolation", "P1 chronology", "P2 delivery"],
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "P0",
+      "title": "No provenance written with a memory",
+      "component": "src/brain/MemoryEngine.ts (create), src/core/MemoryBridge.ts (learn)",
+      "evidence": "ResponsePattern had no origin field; MemoryEngine.create wrote context: {source:'memory-engine', memoryCategory, consolidated} and nothing about conversation, session, user or time beyond createdAt.",
+      "fix": "MemoryEngine.create writes context.origin built by MemorySovereignty.createOrigin from the seed MemoryBridge supplies (userId, conversationId, sessionId, title, sourceType).",
+      "tests": ["A: a loss stated in chat A is not retrieved into chat B", "D: a memory with no recorded owner is not claimed by anyone"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-02",
+      "severity": "P0",
+      "title": "Recall and context assembly were unscoped; relevance was authorization",
+      "component": "PatternMemory.search, MemoryEngine.recall, Brain.recall, MemoryBridge.enrich, MemoryOrchestrator.gather",
+      "evidence": "brain.recall(request.prompt) received no conversation or session. Everything in the store was a candidate for every prompt.",
+      "fix": "Scope threaded from AIService.chat through MemoryBridge.enrich to Brain.recall → MemoryEngine.recall → PatternMemory.search, where isEligible() filters before ranking; authorize() then decides RETRIEVE / RETRIEVE_WITH_CONTEXT / DEFER / REJECT.",
+      "tests": ["A: one user's memory is never eligible for another user", "E: an irrelevant memory from another conversation is deferred", "F: simultaneous conversations do not share recalled context"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-03",
+      "severity": "P0",
+      "title": "Context rendered global cognitive state without attribution",
+      "component": "MemoryBridge.buildContext → formatCognition",
+      "evidence": "buildContext printed 'Recent knowledge nodes' from brain.cognitiveState() on every turn.",
+      "fix": "cognitiveState(conversationId) is called with the request's conversation; nodes carry their conversation and are filtered.",
+      "tests": ["A: cognitive observations are rendered only in the conversation that made them"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-04",
+      "severity": "P0",
+      "title": "Cognitive observations had no conversation at all (LIVE)",
+      "component": "Brain.learn → CognitionRuntime.observe → CognitiveCore.observe",
+      "evidence": "Live run 2 (MISSION-22/live-validation.json, run before the fix): chat B's provider context matched \"Recent knowledge nodes: My father died last month and I can't focus on anything.\" while zero memories were recalled for that turn.",
+      "fix": "Brain.learn passes the originating conversationId to CognitionRuntime.observe; CognitiveCore stores it on the node; CognitiveCore.state(conversationId) returns only that conversation's nodes.",
+      "tests": ["A: cognitive observations are rendered only in the conversation that made them"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-05",
+      "severity": "P0",
+      "title": "threadContext fell back to the shared conversation window",
+      "component": "MemoryBridge.threadContext",
+      "evidence": "If the conversation id was not in MultiChatStore, lastTopic and recentMessages came from Brain.getConversation().context() — whichever chat spoke last.",
+      "fix": "With an id but no stored chat, the thread is built from the request's own messages and prompt.",
+      "tests": ["covered by A/F suites; exercised live (all probe turns use created conversations)"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-06",
+      "severity": "P0",
+      "title": "AIService used the shared window for an unknown conversation id",
+      "component": "src/core/AIService.ts (priorTurns)",
+      "evidence": "priorTurnsFor(...) ?? conversation.modelMessages() meant a stale id received the last chat's transcript.",
+      "fix": "An unknown id with chats present receives no history instead of another chat's; the shared window remains only for callers with no conversation at all.",
+      "tests": ["full regression suite (2026-11-19)"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-07",
+      "severity": "P1",
+      "title": "A high-overlap correction was reinforced instead of superseded",
+      "component": "src/brain/MemoryEngine.ts (learn branch order)",
+      "evidence": "\"I prefer platinum, not rose gold\" overlaps \"I prefer rose gold\" above the 0.6 threshold, so REINFORCE ran first and the old value stayed current.",
+      "fix": "The correction branch is evaluated before the high-overlap reinforce branch; the superseded value is retained in context.history and labelled as superseded.",
+      "tests": ["C: a correction supersedes, and the original origin never moves", "E: an outdated summary is never presented as current"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-08",
+      "severity": "P1",
+      "title": "Possessives were tokenised as distinct words (LIVE)",
+      "component": "src/brain/MemorySynthesizer.ts (concepts, sigWords)",
+      "evidence": "Live run: \"How am I handling my father's death now?\" produced concepts [handling, father's, death]; the memory said \"father died\", so nothing matched, the authorized memory was rejected (synthesizedMemoriesUsed: 0) and the model answered \"I don't have any memory of your father\". A possessive is stripped before tokenisation now.",
+      "fix": "Strip 's before splitting, in both concepts() and sigWords().",
+      "tests": ["E: a possessive question still matches the stored statement"],
+      "status": "fixed"
+    },
+    {
+      "id": "F-09",
+      "severity": "P2",
+      "title": "Provenance instruction was too far away and worded against the memory (LIVE)",
+      "component": "MemoryBridge (note placement), MemorySovereignty.memoryContextNote",
+      "evidence": "Live run: the note sat after a 10-14k char self-state block and said historical lines are \"not something the user said here\"; the model read that as the user never having said it and denied a memory present in its payload.",
+      "fix": "The note is prepended AND appended when labelled material exists, and says the lines ARE things the user told you — in a different chat.",
+      "tests": ["B: the model is told how to speak about historical material"],
+      "status": "fixed"
+    }
+  ],
+  "notDefects": [
+    {
+      "item": "labelOtherChats",
+      "why": "It labels transcript quotes in assembled context and already worked; it cannot see structured memory records, which is why the fix belongs in the memory layer."
+    },
+    {
+      "item": "composeVoice / EmotionAppraisal",
+      "why": "Already driven only by the current prompt and messages. Verified: historical grief does not change present appraisal or add support language."
+    },
+    {
+      "item": "OgArchiveProvider snapshot",
+      "why": "Keyed by signed-in user, not by prompt. No cross-user reuse."
+    }
+  ]
+}

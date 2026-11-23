@@ -127,6 +127,53 @@ export default class KnowledgeGraph {
 
 
 
+  /**
+   * Remove one node and every edge touching it. A deleted memory must not
+   * survive in the graph as an orphan observation (M22.1, WP06).
+   */
+  public removeNode(
+    id:
+      string,
+  ):
+    boolean {
+
+    const removed =
+      this.nodes.delete(
+        id,
+      );
+
+    if (!removed) {
+      return false;
+    }
+
+    for (const [edgeId, edge] of this.edges) {
+      if (edge.from === id || edge.to === id) {
+        this.edges.delete(edgeId);
+      }
+    }
+
+    return true;
+  }
+
+  /** Remove every node matching a predicate; returns how many were removed. */
+  public purge(
+    predicate:
+      (node: KnowledgeNode) => boolean,
+  ):
+    number {
+
+    let removed = 0;
+
+    for (const [id, node] of this.nodes) {
+      if (predicate(node)) {
+        this.removeNode(id);
+        removed += 1;
+      }
+    }
+
+    return removed;
+  }
+
   public all():
 
     KnowledgeNode[] {

@@ -1,0 +1,109 @@
+{
+  "mission": "LÉLU 2.2.2 — global state and cache audit",
+  "auditedAt": "2026-11-19",
+  "method": "grep for module-level mutable maps, singletons, static registries, shared arrays and caches in src/core, src/brain, src/app; each hit classified as shared-by-design, shared-but-scoped, or removed",
+  "components": [
+    {
+      "component": "SelfModel (singleton)",
+      "shared_because": "one persistent self-representation for the installation",
+      "data": "identity, capabilities, knows, goals, projects, discoveries",
+      "access": "every snapshot; project NAMES filtered per scope",
+      "authorization": "durable self-knowledge only; no conversation content",
+      "invalidation": "KvStore persistence; edited by the cognitive loop",
+      "isolation": "no per-turn mutation"
+    },
+    {
+      "component": "ProjectStore (singleton)",
+      "shared_because": "projects are long-lived work objects",
+      "data": "projects, ownerId, origin.scope, conversationId, checkpoints",
+      "access": "list(), then isProjectVisible / decideProject per turn",
+      "authorization": "ownership + scope + originating conversation, labelled when foreign",
+      "invalidation": "ProjectStore.remove; owner mismatch rejects",
+      "isolation": "filtered at every read; no cached lists handed to callers"
+    },
+    {
+      "component": "AgentStore (singleton)",
+      "shared_because": "agents are installation-level specialists",
+      "data": "agent definitions, status, projectId, prompts",
+      "access": "snapshot lists definitions only",
+      "authorization": "definitions are operational; an agent's task content is scoped by the runner (M22.1)",
+      "invalidation": "remove/archive",
+      "isolation": "per-task scope passed to toolContext and delegate"
+    },
+    {
+      "component": "AgentEventBus (singleton)",
+      "shared_because": "one execution stream for UI and cognition",
+      "data": "tool events, task lifecycle events",
+      "access": "recent(n) — filtered by ownerForTask per snapshot",
+      "authorization": "event ownership; ownerless events are no longer rendered",
+      "invalidation": "bounded ring buffer",
+      "isolation": "ownerForTask(taskId) is set when the task is created"
+    },
+    {
+      "component": "WorkspaceManager (instance of CognitiveCore singleton)",
+      "shared_because": "workspace names are installation-level placeholders",
+      "data": "names, purposes, scoped observations",
+      "access": "all() → summaries; itemsFor(scope) → authorized text",
+      "authorization": "observation origin (see workspace-observation-audit.json)",
+      "invalidation": "forgetConversation / forgetMemory / session scope",
+      "isolation": "no shared text array remains"
+    },
+    {
+      "component": "MultiChatStore (singleton)",
+      "shared_because": "all conversations live in one store",
+      "data": "conversation records, background sessions",
+      "access": "by id; the shared conversation window is scoped per conversation (M22.1)",
+      "authorization": "conversation lookup + background flag",
+      "invalidation": "remove(conversationId) cascades to memories",
+      "isolation": "no module-level 'current conversation' state"
+    },
+    {
+      "component": "ExecutiveRuntime state (singleton)",
+      "shared_because": "one embodied runtime state (mode, task, avatar, UI)",
+      "data": "current mode/task/action, approvals, last verified action",
+      "access": "getSelfStateText(conversationId)",
+      "authorization": "last action shown only to its owning conversation",
+      "invalidation": "patch() on each event",
+      "isolation": "concurrent conversations may interleave currentAction; it carries no conversation content after 2.2.2"
+    },
+    {
+      "component": "MemoryBridge / MemoryStore",
+      "shared_because": "one memory database",
+      "data": "memories with origin",
+      "access": "retrieve(scope) + authorization checkpoint",
+      "authorization": "M22 ownership/scope rules",
+      "invalidation": "forget(memoryId), forgetConversation",
+      "isolation": "per-turn scope object"
+    },
+    {
+      "component": "CognitiveTrace (singleton)",
+      "shared_because": "one decision log for UI and debugging",
+      "data": "trace records incl. CONTEXT_INJECTION decisions",
+      "access": "append + bounded read",
+      "authorization": "records ids/kinds/counts, not context text",
+      "invalidation": "bounded buffer",
+      "isolation": "append-only, no turn mutation"
+    },
+    {
+      "component": "UIStateStore / CapabilityManifest / Sentinel / ImprovementQueue",
+      "shared_because": "operational runtime telemetry",
+      "data": "UI layout, capability status, errors, proposals",
+      "access": "read-only in the snapshot",
+      "authorization": "operational, carries no user content",
+      "invalidation": "own stores",
+      "isolation": "read-only assembly"
+    }
+  ],
+  "removed_or_narrowed": [
+    "Workspace.items: string[] — replaced by scoped observations",
+    "buildCognitiveContext() global default — now requires a scope for conversation-derived content",
+    "Unscoped recent execution events — ownerless events excluded",
+    "Executive last action rendered globally — now conversation-scoped"
+  ],
+  "not_eliminated": "shared singletons that hold durable or operational state were kept; only their unauthorized CONTENT was removed. No duplicate memory system was introduced.",
+  "acceptance": {
+    "global_mutable_state_audited": true,
+    "shared_caches_validated": true,
+    "useful_shared_infrastructure_preserved": true
+  }
+}

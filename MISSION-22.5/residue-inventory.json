@@ -1,0 +1,124 @@
+{
+  "mission": "LÉLU 22.5 — historical memory-bearing persistence inventory",
+  "method": "code audit of every write path for memory-derived text (KvStore.set, localStorage, IndexedDB, in-memory maps), followed by a live check of the keys present in the running app",
+  "liveKeys": {
+    "observed": [
+      "lelu.projects.v1",
+      "lelu.multichat.workspace.v1",
+      "lelu.lelu.world.lifecycle.v2",
+      "lelu.agents.v1",
+      "lelu.memory.deletions.v1 (added by M22.5)",
+      "lelu.memory.migration.v1 (added by M22.5)"
+    ],
+    "notPresent": ["lelu.memory.migration.progress.v1 (only while a bounded run is interrupted)"],
+    "database": "IndexedDB \"lelu-memory\", object store \"memories\""
+  },
+  "carriers": [
+    {
+      "artifact": "IndexedDB lelu-memory / memories (ResponsePattern)",
+      "provenance": "Brain.learn → MemoryEngine → PatternMemory.add",
+      "persistence": "survives reload and restart",
+      "ownership": "PatternMemory / IndexedDBStore",
+      "deletionPathway": "PatternMemory.remove (Brain.forgetMemory, panel delete)",
+      "risk": "the canonical record; no deleted record can be re-read after removal",
+      "verdict": "handled",
+      "evidence": "M22.4 payload 0/0 after reload; M22.5 unit + browser delete"
+    },
+    {
+      "artifact": "Project checkpoints in lelu.projects.v1 (summary, completed[], pending[], blockers[], nextAction)",
+      "provenance": "Orchestrator.persistCheckpointFromRequest (old answered-turn writer; still used for planned work) and project.checkpoint()",
+      "persistence": "survives reload and restart (localStorage)",
+      "ownership": "ProjectStore",
+      "deletionPathway": "M22.4 ProjectStore.forgetText at deletion time; M22.5 ResidueMigration (tombstone-proven); clearCheckpoint via explicit review",
+      "risk": "highest — CognitiveContext re-injects checkpoints into every later prompt; this is the M22.4 residue",
+      "verdict": "handled, with quarantine for unprovable legacy entries"
+    },
+    {
+      "artifact": "Project text and items in lelu.projects.v1 (originalRequest, objective, context, executionPlan[], actionableTasks[], items[].title/text/ref)",
+      "provenance": "project creation from a conversation, notes, run outputs",
+      "persistence": "survives reload and restart",
+      "ownership": "ProjectStore",
+      "deletionPathway": "M22.5 ResidueMigration removes only fields whose text matches a tombstone; items are dropped whole when they quote one",
+      "risk": "a project created out of a memory statement can quote it in its objective or notes",
+      "verdict": "handled for provable copies; the rest stays as project content"
+    },
+    {
+      "artifact": "Workspace observations",
+      "provenance": "WorkspaceManager.add from cognition",
+      "persistence": "in-memory only (no KvStore/localStorage write found)",
+      "ownership": "WorkspaceManager",
+      "deletionPathway": "WorkspaceManager.forgetMemory / forgetObservation",
+      "risk": "gone on reload; cleaned at deletion while alive",
+      "verdict": "handled"
+    },
+    {
+      "artifact": "Cognitive knowledge graph nodes/edges",
+      "provenance": "CognitionRuntime.observe",
+      "persistence": "in-memory only (KnowledgeGraph holds Maps; no persistence call)",
+      "ownership": "CognitiveCore / KnowledgeGraph",
+      "deletionPathway": "CognitiveCore.forgetMemory(id) → graph.purge(memoryId)",
+      "risk": "gone on reload; cleaned at deletion while alive",
+      "verdict": "handled"
+    },
+    {
+      "artifact": "Cognitive trace (last 20 turns, MEMORY_WRITE entries)",
+      "provenance": "CognitiveTrace.record",
+      "persistence": "in-memory only, dev builds",
+      "ownership": "CognitiveTrace",
+      "deletionPathway": "not persisted; not injected into prompts",
+      "risk": "audit only; contains deletion ids/counts, not memory text",
+      "verdict": "no carrier"
+    },
+    {
+      "artifact": "Memory synthesizer output and reflection summary",
+      "provenance": "MemorySynthesizer.synthesize / Brain.reflect",
+      "persistence": "rebuilt per turn — no cache found (no cache field, no KvStore write)",
+      "ownership": "MemorySynthesizer / ReflectionEngine",
+      "deletionPathway": "nothing to purge: the next turn derives from the cleaned store",
+      "risk": "none observed; verified by M22.4 post-reload request",
+      "verdict": "no stale copy"
+    },
+    {
+      "artifact": "Conversation transcripts and activity in lelu.multichat.workspace.v1",
+      "provenance": "user messages and Lélu replies",
+      "persistence": "survives reload and restart",
+      "ownership": "MultiChatStore",
+      "deletionPathway": "deleting a conversation only; deleting a memory must NOT touch it",
+      "risk": "the user's own words remain by design; the payload parser separates transcript from context",
+      "verdict": "intentionally preserved"
+    },
+    {
+      "artifact": "Task / background / tool ledgers (lelu.tasks.v1, lelu.background.v1, lelu.executions.inflight.v1, runtime.local.jobs.v1)",
+      "provenance": "the user's own requests and tool runs",
+      "persistence": "survives reload (bounded)",
+      "ownership": "TaskEngine / BackgroundEngine / ExecutionLedger / LocalJobQueue",
+      "deletionPathway": "none tied to memory; these are user work records",
+      "risk": "a task description may quote a forgotten statement, but it is the user's instruction, not a memory copy — same policy as the transcript",
+      "verdict": "out of scope, documented"
+    },
+    {
+      "artifact": "Deletion ledger lelu.memory.deletions.v1 (new)",
+      "provenance": "Brain.forgetMemory, before the record is removed",
+      "persistence": "survives reload and restart (localStorage, 400-entry bound)",
+      "ownership": "DeletionLedger",
+      "deletionPathway": "append-only; entries are not readable text",
+      "risk": "stores hashed 6-token windows and provenance ids only — verified in unit B and in the browser that the phrase does not appear",
+      "verdict": "proof source, not a copy"
+    },
+    {
+      "artifact": "Migration report lelu.memory.migration.v1 (new)",
+      "provenance": "ResidueMigration.run",
+      "persistence": "survives reload (counts, findings previews of quarantined text, dismissed ids)",
+      "ownership": "ResidueMigration",
+      "deletionPathway": "overwritten on each executed run",
+      "risk": "quarantine previews quote the text they report (first 80 chars); this is deliberate so the user can decide, and it is a local record",
+      "verdict": "documented"
+    }
+  ],
+  "deletionRecordGap": {
+    "finding": "Before M22.5 there was no durable record that a memory had been deleted: Brain.forgetMemory wrote a trace entry (in-memory, dev only) with a truncated id and no text.",
+    "consequence": "For a deletion that happened before this build, no stored artifact can prove which text belonged to the deleted record. The migration therefore does not guess: it quarantines legacy auto-checkpoints for review.",
+    "mitigation": "From this build on, every deletion records hashed windows (DeletionLedger), so residue written later by any subsystem is identifiable.",
+    "verified": "M22.5 test B (ledger has no plaintext); browser evidence: a pre-ledger copy could only be reached through explicit review"
+  }
+}

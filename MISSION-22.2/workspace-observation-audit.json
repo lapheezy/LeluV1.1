@@ -1,0 +1,61 @@
+{
+  "mission": "LÉLU 2.2.2 — workspace observation audit",
+  "auditedAt": "2026-11-19",
+  "surface": "src/core/cognition/WorkspaceManager.ts (+ CognitiveCore.observe / recordReasoning / recordPlan)",
+  "before": {
+    "shape": "Workspace { id, name, purpose, items: string[] }",
+    "problem": "every observation's TEXT was pushed into one global array per workspace, with no owner, conversation, session or source; `state()` returned those arrays to every consumer",
+    "reachable_by": ["CognitiveCore.state()", "CognitionRuntime events", "MemoryBridge.formatCognition (names only)", "any caller reading the state object"]
+  },
+  "after": {
+    "shape": "Workspace { id, name, purpose, createdAt, observations: [{ id, text, origin }] }",
+    "origin": {
+      "userId": "string | null",
+      "conversationId": "string | null",
+      "sessionId": "string | null",
+      "workspaceId": "string",
+      "sourceType": "user-said | lelu-observed | agent-reported | inferred | external-tool",
+      "createdAt": "number",
+      "confidence": "0..1",
+      "retention": "durable | session | expires",
+      "scope": "conversation-local | session-local | user-persistent | project-associated | agent-reported | historical | inferred",
+      "memoryId": "optional link so deleting the memory deletes the observation"
+    },
+    "classification": {
+      "conversation-local": "readable only in the conversation that filed it",
+      "session-local": "readable only in the same runtime session",
+      "user-persistent": "readable, never attributed to another conversation unless labelled",
+      "project-associated": "readable where it was filed",
+      "agent-reported": "readable in the run's conversation only",
+      "historical": "readable with its origin stated",
+      "inferred": "readable in the conversation that inferred it; never presented as fact"
+    },
+    "access": {
+      "WorkspaceManager.all()": "names, purpose and counts only — never text",
+      "WorkspaceManager.itemsFor(workspaceId, scope)": "authorized text for this turn",
+      "CognitiveCore.workspaceItems(id, scope)": "the same, through the core",
+      "CognitiveCore.state(conversationId)": "workspaces as summaries; no observation text"
+    }
+  },
+  "findings": [
+    { "id": "W-01", "severity": "high", "finding": "Observation text was global and unattributed.", "fixed": true },
+    { "id": "W-02", "severity": "medium", "finding": "Reasoning and plan text was filed with no scope at all, so it was available to every conversation.", "fixed": true, "policy": "filed as session-local and never injected into another conversation" },
+    { "id": "W-03", "severity": "medium", "finding": "A legacy observation with no origin could be claimed by any conversation.", "fixed": true, "policy": "unattributed observations are retained for the workspace display and never shown as a conversation's context" },
+    { "id": "W-04", "severity": "low", "finding": "Workspace names could leak content if a name carried it.", "fixed": false, "policy": "default workspace names are fixed; a user-created title is not observation content" }
+  ],
+  "lifecycle": {
+    "delete_memory": "observations carrying that memoryId are removed (WorkspaceManager.forgetMemory)",
+    "delete_conversation": "observations filed in it are removed (WorkspaceManager.forgetConversation)",
+    "retention": "session-scope observations do not survive their session; durable ones survive conversation deletion, as memory does"
+  },
+  "evidence": {
+    "tests": "tests/context-sovereignty.test.ts group W — 7/7",
+    "live": "MISSION-22.2/workspace-observation-live.json — 3/3"
+  },
+  "acceptance": {
+    "observation_ownership": true,
+    "labels_scope_aware": true,
+    "global_text_leak_eliminated": true,
+    "continuity_preserved": true
+  }
+}

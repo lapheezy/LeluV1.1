@@ -19,7 +19,7 @@ import {
   trailingUserTurn,
   readOpenAIStream,
 } from "./openaiTools";
-import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import ProviderKeyRing from "../core/model/ProviderKeyRing";
 import { resolveFirst } from "../core/resolveEnv";
@@ -203,7 +203,7 @@ export default class GroqProvider implements AIProvider {
     const messages = [
       {
         role: "system" as const,
-        content: LELU_SYSTEM_PROMPT,
+        content: leluSystemPrompt(request, "groq"),
       },
       ...contextMessages(request),
       ...toOpenAIMessages(request.messages),

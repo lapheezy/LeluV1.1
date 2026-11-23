@@ -17,6 +17,10 @@ import WorkspaceManager
   from "./WorkspaceManager";
 
 import type {
+  MemoryScopeContext,
+} from "../memory/MemorySovereignty";
+
+import type {
   ReasoningResult,
 } from "../reasoning/ReasoningEngine";
 
@@ -130,7 +134,7 @@ export default class CognitiveCore {
     void {
 
 
-    this.workspaces.add(
+    this.workspaces.ensure(
 
       "core",
 
@@ -140,7 +144,7 @@ export default class CognitiveCore {
 
 
 
-    this.workspaces.add(
+    this.workspaces.ensure(
 
       "projects",
 
@@ -150,7 +154,7 @@ export default class CognitiveCore {
 
 
 
-    this.workspaces.add(
+    this.workspaces.ensure(
 
       "knowledge",
 
@@ -160,7 +164,7 @@ export default class CognitiveCore {
 
 
 
-    this.workspaces.add(
+    this.workspaces.ensure(
 
       "creative",
 
@@ -170,7 +174,7 @@ export default class CognitiveCore {
 
 
 
-    this.workspaces.add(
+    this.workspaces.ensure(
 
       "growth",
 
@@ -207,6 +211,16 @@ export default class CognitiveCore {
     text:
       string,
 
+    /** The conversation this observation came from. Without it the node is
+     *  unattributable, and state() refuses to show it to any conversation. */
+    conversationId?:
+      string,
+
+    /** The memory this observation was derived from, when it came with one.
+     *  Deleting that memory removes this node too (M22.1, WP06). */
+    memoryId?:
+      string,
+
   ):
     void {
 
@@ -233,14 +247,17 @@ export default class CognitiveCore {
         text,
 
 
-      data:
-
+            data:
       {
-
         source:
-
           "conversation",
 
+        ...(conversationId
+          ? { conversationId }
+          : {}),
+        ...(memoryId
+          ? { memoryId }
+          : {}),
       },
 
 
@@ -254,14 +271,77 @@ export default class CognitiveCore {
 
 
 
+    // SCOPED. The workspace used to hold every observation's text in one
+    // global array with no origin. It is now filed with the conversation that
+    // made it and the memory it came from, and only authorized text is ever
+    // read back (M22.2).
     this.workspaces.add(
 
       "core",
 
       text,
 
+      {
+        conversationId: conversationId ?? null,
+        ...(memoryId ? { memoryId } : {}),
+        sourceType: "lelu-observed",
+        scope: conversationId ? "conversation-local" : "session-local",
+      },
+
     );
 
+  }
+
+  /**
+   * Workspace observation TEXT, authorized for this turn. `state()` lists
+   * names and counts only, so nothing that reads the state object can quote
+   * another conversation's observations by accident.
+   */
+  public workspaceItems(
+    workspaceId:
+      string,
+
+    scope:
+      MemoryScopeContext,
+  ):
+    string[] {
+
+    return this.workspaces.itemsFor(
+      workspaceId,
+      scope,
+    );
+  }
+
+  /**
+   * Drop every observation made in a conversation. Used when a conversation
+   * is deleted: a graph node is content, and content outliving its chat is
+   * the leak 2.2 removed from the memory store now removed here too.
+   */
+  public forgetConversation(
+    conversationId:
+      string,
+  ):
+    number {
+
+    this.workspaces.forgetConversation(conversationId);
+
+    return this.graph.purge(
+      (node) => node.data?.conversationId === conversationId,
+    );
+  }
+
+  /** Drop nodes derived from one deleted memory. */
+  public forgetMemory(
+    memoryId:
+      string,
+  ):
+    number {
+
+    this.workspaces.forgetMemory(memoryId);
+
+    return this.graph.purge(
+      (node) => node.data?.memoryId === memoryId,
+    );
   }
 
 
@@ -311,10 +391,17 @@ export default class CognitiveCore {
    * Current cognitive state
    * ==========================================================
    */
-  public state():
+    public state(
+
+    /** When given, only nodes from this conversation (and unattributed
+     *  system nodes are NOT included — a node nobody can attribute must
+     *  not be shown as this conversation's context). */
+    conversationId?:
+      string,
+
+  ):
 
     {
-
       nodes: unknown[];
 
       connections: unknown[];
@@ -333,9 +420,13 @@ export default class CognitiveCore {
     return {
 
 
-      nodes:
-
-        this.graph.all(),
+            nodes:
+        (this.graph.all() as Array<{ data?: Record<string, unknown> }>)
+          .filter((node) =>
+            conversationId
+              ? node.data?.conversationId === conversationId
+              : true,
+          ),
 
 
 
@@ -401,9 +492,13 @@ export default class CognitiveCore {
     this.latestReasoning = reasoning;
 
     if (reasoning.selected) {
+      // Turn reasoning has no conversation id at this layer, so it is filed
+      // as session material: visible to the workspace's own display, never
+      // injected into another conversation's context.
       this.workspaces.add(
         "core",
         `Reasoning: ${reasoning.explanation}`,
+        { scope: "session-local", sourceType: "inferred", retention: "session", confidence: 0.6 },
       );
     }
   }
@@ -430,6 +525,7 @@ export default class CognitiveCore {
     this.workspaces.add(
       "core",
       `Plan: ${plan.goal} (${plan.steps.length} step(s))`,
+      { scope: "session-local", sourceType: "inferred", retention: "session", confidence: 0.6 },
     );
   }
 

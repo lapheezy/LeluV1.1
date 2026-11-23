@@ -1,0 +1,13 @@
+
+=== M22.7 live acceptance ===
+{
+  "kind": "live acceptance",
+  "at": "2026-11-20T18:11:08.625Z",
+  "checks": [],
+  "ran": false,
+  "blocked": {
+    "reason": "sign-in rejected",
+    "status": 400,
+    "message": "Invalid login credentials"
+  }
+}

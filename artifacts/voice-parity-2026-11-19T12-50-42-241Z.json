@@ -1,0 +1,293 @@
+{
+  "mission": "Personality Evolution 2.1 — provider parity",
+  "verificationLevel": "provider API (direct provider.generate with the canonical voice directive)",
+  "startedAt": "2026-11-19T12:50:42.241Z",
+  "profileDigest": "Voice v1: warmth 0.62, directness 0.74, playfulness 0.55, sarcasm 0.22; length 0.42, formality 0.30, emoji 0.08. Her moves: right — so / anyway, / hang on / huh / fair.",
+  "rows": [
+    {
+      "scenario": "p1-casual",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 870,
+      "raw": "Right — so I’m good, just ready for whatever you’ve got. Anything on your mind?",
+      "transformed": "Right — so I’m good, just ready for whatever you’ve got. Anything on your mind?",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 3.5"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2259,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p1-casual",
+      "engine": "OpenRouter",
+      "available": true,
+      "error": "OpenRouter network error: Cannot read properties of undefined (reading 'origin')"
+    },
+    {
+      "scenario": "p2-frustration",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 1145,
+      "raw": "The usual culprits are a missing dependency, an incorrect path, or a mis‑typed option—often the error shows up in the console or a log file. Run the command with a verbose flag (e.g., `--verbose` or `-v`) and check the output for the exact error line. If you paste the full command you used and the resulting error message here, I can pinpoint the problem and give a precise fix.",
+      "transformed": "The usual culprits are a missing dependency, an incorrect path, or a mis‑typed option—often the error shows up in the console or a log file. Run the command with a verbose flag (e.g., `--verbose` or `-v`) and check the output for the exact error line. If you paste the full command you used and the resulting error message here, I can pinpoint the problem and give a precise fix.",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 0.921"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 9.24"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2612,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p2-frustration",
+      "engine": "OpenRouter",
+      "available": true,
+      "error": "OpenRouter network error: Cannot read properties of undefined (reading 'origin')"
+    },
+    {
+      "scenario": "p3-disagreement",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 1259,
+      "raw": "right — so I disagree with the blanket claim that React is always better than Vue. “Always” ignores the trade‑offs that matter in real projects. Vue’s single‑file components give a tighter, more opinionated structure, which can speed up onboarding and reduce boilerplate for smaller teams. Its reactivity system is built‑in and often feels more intuitive than React’s hook patterns, especially for developers less familiar with functional programming concepts.\n\nReact does excel in large‑scale ecosystems, has a massive library pool, and its virtual DOM handling can",
+      "transformed": "right — so I disagree with the blanket claim that React is always better than Vue. “Always” ignores the trade‑offs that matter in real projects. Vue’s single‑file components give a tighter, more opinionated structure, which can speed up onboarding and reduce boilerplate for smaller teams. Its reactivity system is built‑in and often feels more intuitive than React’s hook patterns, especially for developers less familiar with functional programming concepts.\n\nReact does excel in large‑scale ecosystems, has a massive library pool, and its virtual DOM handling can",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 0.903"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 4.69"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2374,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p3-disagreement",
+      "engine": "OpenRouter",
+      "available": true,
+      "error": "OpenRouter network error: Cannot read properties of undefined (reading 'origin')"
+    },
+    {
+      "scenario": "p4-support",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 517,
+      "raw": "I’m really sorry you’re going through this. It’s understandable that focusing feels hard right now. I'm here whenever you need to talk.",
+      "transformed": "I’m really sorry you’re going through this. It’s understandable that focusing feels hard right now. I'm here whenever you need to talk.",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 0.47",
+            "note": "evenly paced sentences read as generated"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2609,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p4-support",
+      "engine": "OpenRouter",
+      "available": true,
+      "error": "OpenRouter network error: Cannot read properties of undefined (reading 'origin')"
+    }
+  ]
+}

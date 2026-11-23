@@ -1,0 +1,14 @@
+MISSION 2.2 — MEMORY SOVEREIGNTY
+Branch: freebuff/4fe6237b54885c7ced31f590
+Base:   aa8b1bd
+
+Implementation commit (code, tests, scripts, artifacts, reports,
+and the prior 2.0/2.1 work this mission builds on):
+  2c3d1496156581aa3f0f49bef274b1309dac573f
+  "Add memory sovereignty to Lélu's memory pipeline"
+
+This file (and the commit hash in the report's section 16) is the
+only content of the follow-up commit; its hash is the branch HEAD
+reported alongside this mission.
+
+Pushed: no.

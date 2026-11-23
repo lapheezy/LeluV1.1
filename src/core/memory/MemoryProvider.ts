@@ -28,6 +28,8 @@
  * ==========================================================
  */
 
+import type { MemoryScopeContext } from "./MemorySovereignty";
+
 /** Where a piece of context came from, and how much it should be trusted. */
 export interface ContextItem {
   /** Provider id that supplied it. */
@@ -67,8 +69,14 @@ export interface MemoryProvider {
   readonly id: string;
   /** False when the provider cannot serve right now (unconfigured, offline). */
   isAvailable(): boolean;
-  /** Context relevant to this query. Must not throw; may return []. */
-  context?(query: string, limit: number): Promise<ContextItem[]>;
+  /**
+   * Context relevant to this query. Must not throw; may return [].
+   *
+   * `scope` is the current turn's identity. A provider that reads durable
+   * memory MUST pass it to the recall it performs — without it the store
+   * cannot enforce ownership or session isolation (MemorySovereignty).
+   */
+  context?(query: string, limit: number, scope?: MemoryScopeContext): Promise<ContextItem[]>;
   /** Durably keep a candidate. Must not throw. */
   persist?(candidate: MemoryCandidate): Promise<void>;
 }
@@ -80,6 +88,8 @@ export interface GatherOptions {
   bands?: Array<ContextItem["band"]>;
   /** How long any one provider may take before it is skipped. */
   timeoutMs?: number;
+  /** The current turn's identity, forwarded to every provider that reads memory. */
+  scope?: MemoryScopeContext;
 }
 
 /** Resolve, or give up quietly — a slow provider must not stall a turn. */
@@ -128,7 +138,7 @@ export class MemoryOrchestrator {
    * first.
    */
   async gather(query: string, options: GatherOptions = {}): Promise<ContextItem[]> {
-    const { limit = 8, bands, timeoutMs = 4_000 } = options;
+    const { limit = 8, bands, timeoutMs = 4_000, scope } = options;
 
     const readable = [...this.providers.values()].filter(
       (provider) => typeof provider.context === "function" && provider.isAvailable(),
@@ -138,7 +148,7 @@ export class MemoryOrchestrator {
       readable.map(async (provider) => {
         try {
           return await withTimeout(
-            provider.context!(query, limit).catch((error) => {
+            provider.context!(query, limit, scope).catch((error) => {
               console.warn("[MemoryOrchestrator] %s failed to supply context:", provider.id, error);
               return [] as ContextItem[];
             }),

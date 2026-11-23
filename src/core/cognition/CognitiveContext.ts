@@ -46,6 +46,11 @@ import {
   type VisualReport,
 } from "../selfdev/VisualInspection";
 import LeluIdentity from "../identity/LeluIdentity";
+import { isProjectVisible, projectLabel } from "../projects/ProjectSovereignty";
+import type { ProjectAccess } from "../projects/ProjectSovereignty";
+import { currentSessionId } from "../memory/MemorySovereignty";
+import DeletionGuard from "../memory/DeletionGuard";
+import LinguisticProfile from "../identity/voice/LinguisticProfile";
 import { describeStudioWork, pendingStudioApprovals } from "../studio/StudioMemory";
 
 /**
@@ -246,6 +251,35 @@ export interface CognitiveContextSnapshot {
 
   /** Timestamp of this snapshot. */
   builtAt: number;
+
+  /**
+   * The scope this snapshot was assembled for. `null` means the caller
+   * supplied no identity: operational state only, no conversation-derived
+   * content (M22.2).
+   */
+  contextScope: {
+    userId: string | null;
+    conversationId: string | null;
+    sessionId: string | null;
+  };
+}
+
+/** Identity a context is assembled for. A bare string is a conversation id. */
+export interface ContextScope {
+  userId?: string | null;
+  conversationId?: string | null;
+  sessionId?: string | null;
+}
+
+function normalizeScope(scope?: string | ContextScope): Required<ContextScope> {
+  if (typeof scope === "string" || scope === undefined) {
+    return { userId: null, conversationId: scope ?? null, sessionId: currentSessionId() };
+  }
+  return {
+    userId: scope.userId ?? null,
+    conversationId: scope.conversationId ?? null,
+    sessionId: scope.sessionId ?? currentSessionId(),
+  };
 }
 
 
@@ -254,7 +288,9 @@ export interface CognitiveContextSnapshot {
  * Build a fresh CognitiveContextSnapshot from live singleton state.
  * Called by AIRuntime on every process() invocation.
  */
-export function buildCognitiveContext(conversationId?: string): CognitiveContextSnapshot {
+export function buildCognitiveContext(scope?: string | ContextScope): CognitiveContextSnapshot {
+  const access: ProjectAccess = normalizeScope(scope);
+  const conversationId = access.conversationId ?? undefined;
   const selfModel = SelfModel.getInstance();
   const projectStore = ProjectStore.getInstance();
   const agentStore = AgentStore.getInstance();
@@ -273,9 +309,14 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
   const recentEvents = AgentEventBus.getInstance()
     .recent(conversationId ? 40 : 8)
     .filter((event) => {
-      if (!conversationId) return true;
       const owner = ownerForTask(event.taskId);
-      return owner === null || owner === conversationId;
+      // OWNED ONLY (M22.2). An ownerless tool result often quotes work done
+      // inside a conversation (a project name, a file, a message) and was
+      // therefore a back door around the project and conversation boundaries:
+      // "Project 'Aurelia — private commission' created" reached every scope.
+      // With no identity, no execution events are shown at all.
+      if (!conversationId) return false;
+      return owner === conversationId;
     })
     .slice(-8)
     .map((event) => ({
@@ -285,19 +326,58 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
       timestamp: Date.now(),
     }));
 
-  const projects = projectStore
-    .list()
-    .filter((p) => p.status === "active" || p.status === "paused");
+  // PROJECT SOVEREIGNTY APPLIES TO THE SNAPSHOT TOO. Before 2.2.2 this list
+  // was every active/paused project, so the cognitive snapshot quietly
+  // bypassed the boundary M22.1 put around project context: another user's
+  // project, or a conversation-local one from another chat, arrived here.
+  // A caller with NO identity at all gets operational state only. An
+  // unowned legacy project is visible to a real turn (that is continuity),
+  // but an anonymous snapshot is not a turn and must not become one.
+  const fullyAnonymous = !access.userId && !access.conversationId;
+
+  /**
+   * DELETION-AWARE CONTEXT (M22.6, WP05.2/WP05.3).
+   *
+   * A checkpoint is the turn's own request persisted as work state, and this
+   * snapshot is re-injected into every later prompt. Until now a statement the
+   * user deleted still reached the model from here — the deletion changed the
+   * Memory panel and nothing else. Two things change that:
+   *
+   *   1. a project whose NAME quotes a deleted memory is not visible at all
+   *      (the old auto-created projects were named after the request);
+   *   2. summary, pending steps and next action lose exactly the sentences a
+   *      tombstone proves, even if the stored copy has not been migrated yet.
+   *
+   * Filtering here rather than only in the migration matters: the migration can
+   * be interrupted, skipped, or still running, and recall must be safe anyway.
+   */
+  const guard = DeletionGuard.getInstance();
+  const projects = fullyAnonymous
+    ? []
+    : projectStore
+        .list()
+        .filter((p) => p.status === "active" || p.status === "paused")
+        .filter((project) => isProjectVisible(project, access))
+        .filter((project) => !guard.quotes(project.name))
+        .map((project) => {
+          if (!project.queries?.length) return project;
+          return { ...project, queries: guard.filterList(project.queries) };
+        });
   const checkpoints = projects
     .filter((project) => project.checkpoint)
     .map((project) => ({
       projectId: project.id,
       projectName: project.name,
       status: project.checkpoint?.status ?? project.status,
-      summary: project.checkpoint?.summary ?? "",
-      nextAction: project.checkpoint?.nextAction ?? null,
-      pending: project.checkpoint?.pending ?? [],
-    }));
+      summary: guard.scrub(project.checkpoint?.summary ?? "").text,
+      nextAction: guard.scrubField(project.checkpoint?.nextAction) ?? null,
+      pending: guard.filterList(project.checkpoint?.pending ?? []),
+    }))
+    // A checkpoint whose summary quoted the deleted memory has nothing left to
+    // say; its project, name and status still appear in ACTIVE PROJECTS.
+    .filter((checkpoint) => checkpoint.summary || checkpoint.nextAction || checkpoint.pending.length > 0);
+
+  const authorizedProjectNames = new Set(projects.map((project) => project.name));
 
   const agents = agentStore
     .list()
@@ -342,7 +422,16 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     .map((tool) => ({ id: tool.id, name: tool.name, riskLevel: tool.riskLevel }));
 
   return {
-    self,
+    // Self-model project names are a second, independent copy of the project
+    // registry; keep only names this scope may see.
+    self: {
+      ...self,
+      projects: (self.projects ?? []).filter((name) => authorizedProjectNames.has(name)),
+      // Self-model knowledge and goals are derived from memory too; a deleted
+      // statement must not survive inside her description of herself.
+      knows: guard.filterList(self.knows ?? []),
+      goals: guard.filterList(self.goals ?? []),
+    },
     projects,
     agents,
     capabilities,
@@ -356,7 +445,11 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     recentEvents,
     toolsRequiringConfirmation,
     // Measured operational state — never assumed, never fabricated.
-    executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
+    // Scoped: the last verified action is only shown to the conversation
+    // that caused it (M22.2). No identity → operational self-state only.
+    executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(
+      fullyAnonymous ? undefined : access.conversationId,
+    ),
     // Earth Core spatial context — canonical state from the one Earth runtime.
     earthContext: EarthCore.getInstance().buildSpatialContext(),
     // Autonomous self-study state, READ ONLY. getCognitiveState() runs no
@@ -382,6 +475,7 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     recentErrors,
     pendingImprovements,
     builtAt: Date.now(),
+    contextScope: access,
   };
 }
 
@@ -575,7 +669,10 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // Active projects
   if (ctx.projects.length > 0) {
     const projLines = ctx.projects
-      .map((p) => `- ${p.name} (${p.status})${p.queries?.length ? ` — tracks: ${p.queries.join(", ")}` : ""}`)
+      .map((p) => {
+        const label = projectLabel(p, ctx.contextScope?.conversationId ?? null);
+        return `- ${label ? `${label} ` : ""}${p.name} (${p.status})${p.queries?.length ? ` — tracks: ${p.queries.join(", ")}` : ""}`;
+      })
       .join("\n");
     sections.push(`## ACTIVE PROJECTS\n${projLines}`);
   }
@@ -770,14 +867,29 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     const activeTraits = istate.traits.filter(
       (t) => t.status === "established" || t.status === "emerging",
     );
-    if (activeTraits.length > 0 || istate.curiosities.length > 0) {
+    // Her LINGUISTIC identity, as measured — dials, adopted moves, and
+    // the user's vocabulary she understands but does not parrot.
+    //
+    // Read OUTSIDE the trait/curiosity condition below: a freshly seeded
+    // identity has no established traits yet, and skipping the section on
+    // that basis is exactly how her voice used to disappear from context.
+    // The per-turn directive is the authority on how to speak; this section
+    // keeps the same facts visible to cognition itself, so a reply about her
+    // own voice cannot contradict what she is actually doing.
+    let voiceLine = "";
+    try {
+      voiceLine = LinguisticProfile.getInstance().digest();
+    } catch {
+      voiceLine = "";
+    }
+    if (activeTraits.length > 0 || istate.curiosities.length > 0 || voiceLine.length > 0) {
       const traitLine = activeTraits.length > 0
         ? `Active traits: ${activeTraits.slice(0, 4).map((t) => `${t.name} (${t.status})`).join(", ")}.`
         : "";
       const curiosityLine = istate.curiosities.length > 0
         ? `Current curiosity: ${istate.curiosities[istate.curiosities.length - 1]}.`
         : "";
-      const lines = [traitLine, curiosityLine].filter(Boolean);
+      const lines = [traitLine, curiosityLine, voiceLine].filter(Boolean);
       if (lines.length > 0) {
         sections.push(`## LÉLU PERSONALITY\n${lines.join(" ")}`);
       }
@@ -786,7 +898,12 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     // personality is optional — never let it break context assembly
   }
 
-  return sections.join("\n\n");
+  // FINAL BACKSTOP (M22.6, WP05). Sections above read from a dozen subsystems —
+  // self-study state, executive self-description, Studio work, autonomous
+  // objectives, cosmos inspection. Each one that reads project text is guarded
+  // at its own source, and this pass catches anything assembled from a source
+  // this build has not met yet. It removes only sentences a tombstone proves.
+  return DeletionGuard.getInstance().sanitizeContext(sections.join("\n\n")).context;
 }
 
 /**

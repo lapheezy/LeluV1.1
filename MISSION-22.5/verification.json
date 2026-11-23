@@ -1,0 +1,132 @@
+{
+  "mission": "LÉLU 22.5 — residue migration verification",
+  "at": "2026-11-20T02:28:52.926Z",
+  "scenarioA": {
+    "statementStoredThenDeleted": true,
+    "dryRun": {
+      "findings": 1,
+      "cleaned": 0,
+      "storageUnchanged": true
+    },
+    "applied": {
+      "cleanedFields": 1,
+      "durationMs": 0.52
+    },
+    "persistedAfter": {
+      "containsDeletedPhrase": false,
+      "legacyCheckpointSummary": "",
+      "unrelatedCheckpoint": {
+        "status": "active",
+        "summary": "Ship the pricing page by Friday.",
+        "completed": [
+          "copy approved"
+        ],
+        "pending": [
+          "send the draft"
+        ],
+        "blockers": [],
+        "nextAction": "send the draft",
+        "updatedAt": 1795141732932
+      }
+    }
+  },
+  "scenarioB": {
+    "ledgerEntries": 2,
+    "containsDeletedPhrase": false,
+    "keepsProvenance": true,
+    "windowSize": 6
+  },
+  "scenarioC": {
+    "limit": 1,
+    "run1": {
+      "cleaned": 1,
+      "remaining": 2,
+      "cursor": true
+    },
+    "run2": {
+      "cleaned": 2,
+      "resumed": true
+    },
+    "run3": {
+      "cleaned": 3,
+      "completed": true
+    },
+    "perProjectPendingKept": [
+      [
+        "step alpha"
+      ],
+      [
+        "step beta"
+      ],
+      [
+        "step gamma"
+      ]
+    ],
+    "deletedPhraseStillPersisted": false
+  },
+  "scenarioD": {
+    "unrelatedPending": [
+      "Book the venue",
+      "Confirm catering"
+    ],
+    "unrelatedCompleted": [
+      "press release approved"
+    ],
+    "unrelatedBlocker": [
+      "waiting on legal"
+    ],
+    "unrelatedNextAction": "call the venue",
+    "notePreserved": true,
+    "summaryCleared": true
+  },
+  "scenarioE": {
+    "quarantinedNotDeleted": true,
+    "keptDismissed": true,
+    "forgetClearedCheckpoint": true,
+    "projectPreserved": true
+  },
+  "scenarioF": {
+    "boundaryPrefixNotNamed": false,
+    "exactTitleNamed": true,
+    "shortTitleNamed": true,
+    "similarTitleOneWordNotNamed": false,
+    "sameTopicNamedByDistinctiveTokens": true,
+    "note": "same-topic naming is intentional; M22.4's own-turn exclusion is what stops that chat's own question being injected as research",
+    "conversationRecordsTouchedByMigration": 0
+  },
+  "scenarioG": {
+    "firstRunCleaned": 1,
+    "secondRunCleaned": 0,
+    "storageIdentical": true
+  },
+  "performance": {
+    "projects": 60,
+    "dryRunMs": 7.19,
+    "applyMs": 10.43,
+    "cleanedFields": 20,
+    "scannedFields": 180,
+    "contextBuildMeanMs": 1.62,
+    "contextBuildMaxMs": 8.61
+  },
+  "migrationReport": {
+    "at": 1795141732977,
+    "dryRun": false,
+    "durationMs": 10.41,
+    "tombstones": 6,
+    "scannedProjects": 60,
+    "scannedFields": 180,
+    "findings": [],
+    "cleanedFields": 20,
+    "cleanedByTombstone": {
+      "17fa78d4-cd68-4849-9d5c-b06379242516": 20
+    },
+    "quarantined": [],
+    "dismissed": [
+      "6263fa74-82e3-4a99-8655-ee8c2ea71a11:checkpoint"
+    ],
+    "reviewed": 1,
+    "cursor": null,
+    "remainingProjects": 0,
+    "resumed": false
+  }
+}

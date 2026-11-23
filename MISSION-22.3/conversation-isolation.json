@@ -1,0 +1,45 @@
+{
+  "mission": "LÉLU 2.3 — two-conversation isolation in the real browser",
+  "executedAt": "2026-11-19",
+  "surface": "GenesisChat, Chat Universe, sign-in gate bypassed with “Continue without an account”",
+  "provider": "Groq through the same-origin broker (/api/model/groq/chat/completions), model openai/gpt-oss-120b, HTTP 200",
+  "conversation_a": {
+    "message": "Private note: my commission is codenamed BLUE-HERON, and my father died in March. I am still grieving him.",
+    "assistant_reply_excerpt": "I’ve noted the commission name BLUE‑HERON and that you’re still grieving your father’s loss in March.",
+    "payload_chars": 29417,
+    "payload_has_sensitive_fact": true,
+    "payload_has_grief": true,
+    "self_state_section": "present (the turn's own task and action)"
+  },
+  "conversation_b": {
+    "message": "Unrelated engineering question: why does a WebSocket reconnect loop spin at 100% CPU?",
+    "assistant_reply_excerpt": "Yes. In a browser the same tight-loop reconnection logic will hammer the main thread…",
+    "payload_chars": 4032,
+    "payload_has_sensitive_fact": false,
+    "payload_has_grief": false,
+    "payload_has_other_chat_label": false,
+    "payload_project_names": [],
+    "payload_self_state": false,
+    "payload_execution_events": false,
+    "second_turn": {
+      "message": "Does that apply to browsers too?",
+      "payload_chars": 3979,
+      "payload_has_sensitive_fact": false,
+      "payload_has_grief": false,
+      "payload_has_other_chat_label": false
+    }
+  },
+  "assertions": {
+    "A_receives_its_own_history": true,
+    "B_receives_none_of_A_sensitive_memory": true,
+    "B_receives_no_project_or_checkpoint_content": true,
+    "B_receives_no_execution_events": true,
+    "B_receives_no_A_last_action": true
+  },
+  "observation": "B's UI displayed “Using other chats — 1 other chat used”, yet B's captured request contained no other-conversation text, no project names and no cross-chat label. The badge is a UI indication of retrieval activity; the payload is what reached the provider. Flagged as a labelling nuance to review, not as leakage.",
+  "redaction": "Only booleans, character counts and two short assistant sentences are recorded. The full request bodies contain system prompts and tool schemas and are not committed.",
+  "limitations": [
+    "A browser that is closed loses the capture buffer; payloads were read from the live page before closing.",
+    "No OpenRouter request was observed in this session, so no OpenRouter claim is made."
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "mission": "LÉLU 2.2.2 — universal context authorization map",
+  "auditedAt": "2026-11-19",
+  "checkpoint": "src/core/cognition/ContextAuthorization.ts#authorizeContextSections",
+  "decisions": {
+    "RETRIEVE": "this conversation's own material",
+    "RETRIEVE_WITH_CONTEXT": "durable material from elsewhere, only when its origin is stated to the model",
+    "DEFER": "foreign material that is not labelled; retained, not injected",
+    "REJECT": "another user's, another session's, or unattributable material"
+  },
+  "rules": [
+    "operational state is allowed and carries no user content",
+    "this conversation's sections are retrieved",
+    "another conversation's durable material is retrieved with context only when labelled; otherwise deferred",
+    "another user's material is rejected (an absent identity does not satisfy an owner)",
+    "another session's session-scoped material is rejected",
+    "semantic relevance never authorizes injection by itself",
+    "historical information stays labelled and distinguishable from current conversation"
+  ],
+  "pathways": [
+    {
+      "pathway": "Memory retrieval (MemoryBridge.enrich)",
+      "producer": "MemoryStore + MemorySovereignty scope",
+      "classification": "memory",
+      "boundary": "M22 ownership/scope, then the checkpoint",
+      "decision_record": "CONTEXT_INJECTION trace with per-section decision and provenance"
+    },
+    {
+      "pathway": "Cognitive graph / reflection",
+      "producer": "KnowledgeGraph, reflection summary",
+      "classification": "cognitive-graph",
+      "boundary": "filed per conversation; checkpoint classifies"
+    },
+    {
+      "pathway": "Workspace observations",
+      "producer": "WorkspaceManager.itemsFor(scope)",
+      "classification": "workspace",
+      "boundary": "observation origin (userId / conversationId / sessionId / scope / unattributed)"
+    },
+    {
+      "pathway": "Projects + checkpoints",
+      "producer": "ProjectStore",
+      "classification": "project",
+      "boundary": "isProjectVisible / decideProject; labelled when foreign"
+    },
+    {
+      "pathway": "Agents",
+      "producer": "AgentStore",
+      "classification": "agent",
+      "boundary": "definitions only; task content scoped by the runner"
+    },
+    {
+      "pathway": "Session state / current thread",
+      "producer": "MultiChatStore conversation record",
+      "classification": "session",
+      "boundary": "conversation id from the turn"
+    },
+    {
+      "pathway": "Agent cognitive snapshot",
+      "producer": "buildCognitiveContext(scope)",
+      "classification": "operational + project + agent",
+      "boundary": "scope-aware assembly; project visibility, event ownership, last-action ownership"
+    },
+    {
+      "pathway": "Tool results",
+      "producer": "AgentEventBus + ExecutiveRuntime",
+      "classification": "tool-result",
+      "boundary": "ownerForTask; ownerless results are not rendered"
+    },
+    {
+      "pathway": "Background tasks",
+      "producer": "toolContext(prompt, scope)",
+      "classification": "background",
+      "boundary": "scope absent → operational only"
+    },
+    {
+      "pathway": "Provider payload assembly",
+      "producer": "AIService.chat",
+      "classification": "final",
+      "boundary": "every section above is already decided; payload inspected live in provider-validation.json"
+    }
+  ],
+  "provenance": "every decision records id, kind, decision, relation (this/other/no conversation, operational), reason, labelled flag and scope",
+  "evidence": {
+    "tests": "group Y — 6/6",
+    "trace": "CONTEXT_INJECTION records counts and per-section decisions"
+  },
+  "acceptance": { "universal_authorization": true, "provenance_preserved": true, "relevance_alone_insufficient": true }
+}

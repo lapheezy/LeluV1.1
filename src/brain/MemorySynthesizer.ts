@@ -29,6 +29,7 @@ import type ResponsePattern from "./ResponsePattern";
 import type { MemoryType } from "./ResponsePattern";
 import { CATEGORY_RECALL_SYNONYMS } from "./ResponsePattern";
 import { isLeluIdentityQuestion, isUserProfileQuestion } from "./LeluIdentity";
+import { originLabel } from "../core/memory/MemorySovereignty";
 
 export interface SynthesisInput {
   /** The user's actual request. */
@@ -42,6 +43,12 @@ export interface SynthesisInput {
     lastTopic?: string;
     recentMessages?: string[];
   };
+  /**
+   * The conversation this synthesis is FOR. A memory whose origin names a
+   * different conversation is rendered with that origin, so the model can
+   * never mistake it for something said here.
+   */
+  conversationId?: string | null;
   /** Request a deeper subset (progressive disclosure). */
   deep?: boolean;
   /** Hard cap on how many memories are used. */
@@ -148,19 +155,19 @@ export default class MemorySynthesizer {
     const sections: string[] = [];
 
     if (byType.user.length > 0) {
-      sections.push(`## About the user\n${this.formatGroup(byType.user)}`);
+      sections.push(`## About the user\n${this.formatGroup(byType.user, input.conversationId)}`);
     }
     if (byType.self.length > 0) {
-      sections.push(`## About me\n${this.formatGroup(byType.self)}`);
+      sections.push(`## About me\n${this.formatGroup(byType.self, input.conversationId)}`);
     }
     if (byType.conversation.length > 0) {
-      sections.push(`## Recent conversation\n${this.formatGroup(byType.conversation)}`);
+      sections.push(`## Recent conversation\n${this.formatGroup(byType.conversation, input.conversationId)}`);
     }
     if (byType.knowledge.length > 0) {
-      sections.push(`## Knowledge\n${this.formatGroup(byType.knowledge)}`);
+      sections.push(`## Knowledge\n${this.formatGroup(byType.knowledge, input.conversationId)}`);
     }
     if (byType.system.length > 0) {
-      sections.push(`## System state\n${this.formatGroup(byType.system)}`);
+      sections.push(`## System state\n${this.formatGroup(byType.system, input.conversationId)}`);
     }
 
     if (contradictions.length > 0) {
@@ -217,6 +224,10 @@ export default class MemorySynthesizer {
   private concepts(text: string): string[] {
     return text
       .toLowerCase()
+      // A possessive is the same concept: "my father's death" must match a
+      // memory that says "my father died", or a directly asked question is
+      // scored as having no concept in common with the fact it is about.
+      .replace(/'s(?=\s|$)/g, "")
       .replace(/[^a-z0-9'\s-]/g, " ")
       .split(/\s+/)
       .filter((word) => word.length > 3 && !STOPWORDS.has(word))
@@ -333,6 +344,7 @@ export default class MemorySynthesizer {
   private sigWords(text: string): string[] {
     return text
       .toLowerCase()
+      .replace(/'s(?=\s|$)/g, "")
       .replace(/[^a-z0-9'\s-]/g, " ")
       .split(/\s+/)
       .filter((word) => word.length > 3 && !STOPWORDS.has(word));
@@ -409,9 +421,16 @@ export default class MemorySynthesizer {
     }
   }
 
-  private formatGroup(memories: ResponsePattern[]): string {
+  /**
+   * One line per memory, carrying the provenance label that applies to THIS
+   * conversation. A durable fact first learned elsewhere keeps its origin.
+   */
+  private formatGroup(memories: ResponsePattern[], conversationId?: string | null): string {
     return memories
-      .map((memory) => `- ${this.shorten(memory.response)}`)
+      .map((memory) => {
+        const label = originLabel(memory, conversationId);
+        return `- ${label ? `${label} ` : ""}${this.shorten(memory.response)}`;
+      })
       .join("\n");
   }
 

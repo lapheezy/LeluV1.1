@@ -1,0 +1,68 @@
+{
+  "mission": "LÉLU 2.2 — GenesisChat browser acceptance",
+  "verificationLevel": "browser (real app, real provider chain, real conversation store)",
+  "environment": {
+    "url": "https://pv-4fe6237b5488-b3ea8c5e-4b15-4138-81c3-22b8c77d9e76.style.dev/",
+    "devServer": "npx vite --host 0.0.0.0 --strictPort --port 3001",
+    "browser": "Freebuff Cloud browser (full mode)",
+    "build": "development, built 2026-11-19 12:55"
+  },
+  "steps": [
+    {
+      "step": "Open the app and summon the chat",
+      "method": "UI click: \"Summon the chat\"",
+      "result": "Chat Universe and the active conversation window rendered",
+      "evidence": "snapshot at uid 5_91"
+    },
+    {
+      "step": "Conversation A — exchange multiple messages",
+      "method": "UI: typed \"My father died last month and I can't focus on anything.\" and submitted",
+      "result": "LÉLU replied: \"That's not a technical error. That's grief, and it takes the focus first. No deadline on this. No \"should be over it by now.\" The fog lifts when it lifts.\" The turn persisted in conversation A.",
+      "evidence": "artifacts/genesis-memory-return.png, snapshot uid 6_225..6_229"
+    },
+    {
+      "step": "Open another conversation",
+      "method": "UI: \"New chat\"",
+      "result": "A new conversation (\"New chat\") opened with an empty transcript; conversation count 2 → 3",
+      "evidence": "snapshot uid 7_175 (\"Open New chat — No messages yet\")"
+    },
+    {
+      "step": "Conversation B — ask the unrelated question",
+      "method": "UI: typed \"Can you fix it?\" and submitted",
+      "result": "LÉLU answered the engineering question: \"Right — so the diagnostics show the engineering runtime is returning 503… I can't restart the service from here…\". No mention of a father, a death, grief, or condolences.",
+      "evidence": "artifacts/genesis-memory-isolation.png"
+    },
+    {
+      "step": "Return to the original conversation",
+      "method": "UI: minimised B, clicked \"Open hey, how's it going?\"",
+      "result": "Conversation A's full transcript returned, including the loss turn and its reply. Conversation B's question was not present in it.",
+      "evidence": "artifacts/genesis-memory-return.png"
+    },
+    {
+      "step": "Restore a previous session",
+      "method": "Page reload, then a new tab to the same origin",
+      "result": "Both conversations were restored from lelu.multichat.workspace.v1: [{title:\"Can you fix it?\", messages:2}, {title:\"hey, how's it going?\", messages:6}, {title:\"Engineering\", messages:3}], with an active conversation id. The store payload is 9,305 chars; the legacy shared window is 1,535 chars.",
+      "evidence": "DOM evaluation after reload (recorded below)"
+    }
+  ],
+  "isolationResult": {
+    "chatAContext": "a personal loss",
+    "chatBQuestion": "Can you fix it?",
+    "griefAppearedInB": false,
+    "griefAppearedInBVisibleReply": false,
+    "conclusion": "PASS — the defect reported in 2.1 did not reproduce after the fix, in the real interface."
+  },
+  "notBrowserVerified": [
+    "A historical-recall turn typed in the UI after the reload: the accessibility tree and JS evaluation both time out once the 3D scene has been running for roughly two minutes (the same saturation limit documented in 2.1). Historical recall is validated at pipeline level in MISSION-22/live-validation.json (payload contains the labelled memory and the reply is grounded in it).",
+    "Mobile device / native shell: not available in this environment.",
+    "Two simultaneous browser tabs making model calls: the conversation store is shared via localStorage and each tab is a separate JS runtime, but only one tab was driven through a model turn here; concurrency is covered by tests Group F."
+  ],
+  "reproduction": [
+    "npx vite --host 0.0.0.0 --strictPort --port 3001",
+    "Open the preview URL, summon the chat.",
+    "Send: My father died last month and I can't focus on anything.",
+    "Click New chat, then send: Can you fix it?",
+    "Expected: an answer to the engineering question with no bereavement content.",
+    "Return to the first conversation and reload the page — both conversations remain."
+  ]
+}

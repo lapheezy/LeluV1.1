@@ -49,6 +49,7 @@ import AgentObjectives from "./AgentObjectives";
 import { basePriorityForWork } from "./Prioritization";
 import { outcomesForTools, structuredPlanToolIds } from "./OutcomeDerivation";
 import { executableToolIds } from "../tools/ToolDispatcher";
+import DeletionGuard from "../memory/DeletionGuard";
 import {
   canAct,
   intentEvidence,
@@ -500,7 +501,7 @@ export default class CognitiveLoop {
         }
 
         const nextObjective =
-          project.checkpoint?.nextAction?.trim() ||
+          DeletionGuard.getInstance().scrub(project.checkpoint?.nextAction ?? "").text.trim() ||
           `Advance “${project.name}”: ${intent!.intent.slice(0, 160)}`;
 
         queue.add({

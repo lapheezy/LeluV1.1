@@ -1,0 +1,24 @@
+M22.4 — MEMORY DELETION END-TO-END VERIFICATION & CONTEXT TRANSPARENCY
+
+Branch:            freebuff/m22-4-memory-deletion-browser-verification
+Base (M22.3 HEAD): 92ea2d2  (M22.3 implementation ee0e339)
+Implementation:    363312b  Give memory deletion a way out, and stop checkpoint and self-chat leaks
+
+Verification at 363312b:
+  focused suites        64/64 pass  (tests/live-agent.test.ts, tests/context-sovereignty.test.ts)
+  full suite            2378 tests, 2368 pass, 2 fail — the same two known failures
+                        (genesis-interface CSS export, sandbox-security network probe)
+  typecheck             0 new errors (2 pre-existing FeatureUnderstanding.ts:455 errors)
+
+Browser evidence: MISSION-22.4/screenshots/01..05 (deletion before/after for two
+memories, and the post-reload conversation that no longer recalls the deleted
+phrase). Provider: Groq answered 200; OpenRouter was reached and refused with 429.
+
+Deliverables: docs/missions/MISSION-22.4-MEMORY-DELETION-VERIFICATION.md,
+browser-deletion.json, cross-chat-indicator.json, deletion-propagation.json,
+provider-payloads.json, performance.json, regression.json, reproduction.md,
+perf-deletion.ts.
+
+Not verified: native iOS/Android; a successful OpenRouter completion; removal of
+the pre-fix COPPER-LANTERN project checkpoint already on disk (recorded as a
+residual in deletion-propagation.json).

@@ -46,8 +46,21 @@ export type AgentTaskStatus = "queued" | "running" | "complete" | "failed" | "in
  */
 export type DelegatorId = string;
 
+/**
+ * The cognitive turn an agent run belongs to. Persisted with the task so a
+ * resumed run cannot silently regain access to another conversation's
+ * memories, project contents or cognitive state (M22.1).
+ */
+export interface AgentTaskScope {
+  userId: string | null;
+  conversationId: string | null;
+  sessionId: string | null;
+}
+
 export interface AgentTask {
   id: string;
+  /** Scope this task was run in; absent on records written before 2.2.1. */
+  scope?: AgentTaskScope;
   /** Human label, e.g. "Draft three pendant concepts". */
   label: string;
   status: AgentTaskStatus;

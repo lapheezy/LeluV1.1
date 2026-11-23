@@ -258,8 +258,15 @@ export default class Orchestrator {
       events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
       this.emit({ type: "complete", message: "Response generated" });
 
-      // CHECKPOINT: persist task state so LÉLU can resume after close/reopen
-      this.persistCheckpointFromRequest(request, response.text, intent.category, []);
+      // NO CHECKPOINT FOR AN ANSWERED TURN.
+      //
+      // A checkpoint is resumable work state, and this path has none: the
+      // request was answered, there are no pending steps and no next action.
+      // Writing one anyway copied the user's own message into a durable
+      // "project checkpoint", which CognitiveContext then re-injected into
+      // every later prompt in every chat — a statement the user later deleted
+      // from memory kept reaching the model from here (M22.4). The planned
+      // path above still checkpoints, because a plan is real resumable state.
 
       return {
         response: response.text,

@@ -1,0 +1,39 @@
+{
+  "mission": "LÉLU 2.2.2 — agent cognitive snapshot",
+  "executedAt": "2026-11-19T16:06:16.743Z",
+  "checks": [
+    {
+      "name": "scoped snapshot states another chat's durable project as such",
+      "passed": true,
+      "evidence": {
+        "chars": 6104
+      }
+    },
+    {
+      "name": "scoped snapshot keeps its own project",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "a snapshot with no identity carries no project content",
+      "passed": true,
+      "evidence": {
+        "chars": 5942,
+        "matches": []
+      }
+    },
+    {
+      "name": "a snapshot with no identity carries no execution events",
+      "passed": true,
+      "evidence": {}
+    },
+    {
+      "name": "self-model project names are filtered",
+      "passed": true,
+      "evidence": {
+        "names": []
+      }
+    }
+  ],
+  "pass": true
+}

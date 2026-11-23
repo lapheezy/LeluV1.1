@@ -53,6 +53,7 @@ import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
+import MemoryHealing from "./memory/MemoryHealing";
 
 // -- types ---------------------------------------------------------------
 
@@ -60,6 +61,7 @@ export type BootstrapStep =
   | "environment"
   | "providers"
   | "runtime"
+  | "memory-integrity"
   | "services"
   | "cognition"
   | "world"
@@ -178,7 +180,27 @@ export default class Bootstrap {
       steps.push(step("runtime", "FAILED", String(error)));
     }
 
-    // ---------- Step 4: START SERVICES ----------
+    // ---------- Step 4: MEMORY INTEGRITY (scheduled, never blocking) ----------
+    //
+    // Deleting a memory has to propagate through historical copies without a
+    // person opening a panel (M22.6, WP01). The ledger is already readable
+    // (localStorage), and the runtime step above has finished opening the
+    // stores, so this is the earliest safe point.
+    //
+    // schedule() returns immediately: the work runs in bounded idle batches,
+    // and recall is already protected by the deletion gate whether or not the
+    // migration has finished. A failure is recorded, not thrown — memory
+    // healing must never be the reason LÉLU does not start.
+    steps.push(step("memory-integrity", "RUNNING", "Scheduling historical memory healing…"));
+    try {
+      const healing = MemoryHealing.getInstance().schedule();
+      steps.push(step("memory-integrity", "DONE",
+        `scheduled off the startup path — ${healing.tombstones} deletion fingerprint(s) available`));
+    } catch (error) {
+      steps.push(step("memory-integrity", "FAILED", String(error)));
+    }
+
+    // ---------- Step 5: START SERVICES ----------
     steps.push(step("services", "RUNNING", "Starting services…"));
     try {
       // Background event loop (proactive notifications)

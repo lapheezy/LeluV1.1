@@ -13,6 +13,7 @@
 
 import KvStore from "../storage/KvStore";
 import AgentEventBus from "../agent/AgentEvents";
+import { isProjectVisible, type ProjectAccess, type ProjectScope } from "./ProjectSovereignty";
 
 export type ProjectItemKind =
   | "conversation"
@@ -65,6 +66,15 @@ export interface LeluProject {
   name: string;
   description: string;
   status: "active" | "paused" | "archived" | "completed";
+  /** Who owns this project. Null = pre-sovereignty record, not claimed by anyone. */
+  ownerId?: string | null;
+  /** The conversation that created it, when it came from a chat. */
+  originConversationId?: string | null;
+  /** The runtime session that created it. */
+  originSessionId?: string | null;
+  originConversationTitle?: string | null;
+  /** Defaults to user-persistent; see ProjectSovereignty. */
+  scope?: ProjectScope;
   /** Agent ids assigned to this project. */
   agentIds: string[];
   items: ProjectItem[];
@@ -217,7 +227,17 @@ export default class ProjectStore {
     return this.list().find((project) => project.id === id);
   }
 
-  public create(input: { name: string; description?: string }): LeluProject {
+  public create(
+    input: { name: string; description?: string },
+    /** Where it came from. Omitted by system seeds; recorded by every chat path. */
+    origin: {
+      ownerId?: string | null;
+      conversationId?: string | null;
+      sessionId?: string | null;
+      conversationTitle?: string | null;
+      scope?: ProjectScope;
+    } = {},
+  ): LeluProject {
     const now = Date.now();
     const project: LeluProject = {
       id: crypto.randomUUID(),
@@ -226,6 +246,11 @@ export default class ProjectStore {
       status: "active",
       agentIds: [],
       items: [],
+      ownerId: origin.ownerId ?? null,
+      originConversationId: origin.conversationId ?? null,
+      originSessionId: origin.sessionId ?? null,
+      originConversationTitle: origin.conversationTitle ?? null,
+      scope: origin.scope ?? "user-persistent",
       createdAt: now,
       updatedAt: now,
     };
@@ -268,6 +293,64 @@ export default class ProjectStore {
   /** Persist the current cognitive/task position without duplicating chat history. */
   public checkpoint(id: string, checkpoint: Omit<ProjectCheckpoint, "updatedAt">): LeluProject | undefined {
     return this.update(id, { checkpoint: { ...checkpoint, updatedAt: Date.now() } });
+  }
+
+  /**
+   * Remove one forgotten statement from durable project checkpoints.
+   *
+   * A checkpoint's summary is the turn's own request (Orchestrator), and the
+   * whole checkpoint is re-injected into later prompts by CognitiveContext.
+   * So a statement the user deleted from memory was still reaching the model
+   * from here. This removes exactly the fields that quote the forgotten text
+   * and drops a checkpoint left with nothing in it; no other project state,
+   * checkpoint or memory is touched. Returns how many checkpoints changed.
+   */
+  public forgetText(text: string): number {
+    const needle = text.replace(/\s+/g, " ").trim().toLowerCase();
+    if (!needle) return 0;
+    const quotes = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase().includes(needle);
+    let changed = 0;
+    for (const project of this.list()) {
+      const checkpoint = project.checkpoint;
+      if (!checkpoint) continue;
+      const next: ProjectCheckpoint = {
+        ...checkpoint,
+        summary: quotes(checkpoint.summary) ? "" : checkpoint.summary,
+        completed: checkpoint.completed.filter((entry) => !quotes(entry)),
+        pending: checkpoint.pending.filter((entry) => !quotes(entry)),
+        blockers: checkpoint.blockers.filter((entry) => !quotes(entry)),
+        nextAction: checkpoint.nextAction && quotes(checkpoint.nextAction) ? null : checkpoint.nextAction,
+      };
+      const emptied =
+        !next.summary.trim() &&
+        next.completed.length === 0 &&
+        next.pending.length === 0 &&
+        next.blockers.length === 0 &&
+        !next.nextAction;
+      if (
+        emptied === false &&
+        next.summary === checkpoint.summary &&
+        next.completed.length === checkpoint.completed.length &&
+        next.pending.length === checkpoint.pending.length &&
+        next.blockers.length === checkpoint.blockers.length &&
+        next.nextAction === checkpoint.nextAction
+      ) {
+        continue;
+      }
+      this.update(project.id, { checkpoint: emptied ? undefined : next });
+      changed += 1;
+    }
+    return changed;
+  }
+
+  /**
+   * Forget one project's checkpoint — explicit review only (M22.5).
+   * The project, its items and every other field stay exactly as they are:
+   * a checkpoint written for a single answered turn is not project state.
+   */
+  public clearCheckpoint(id: string): void {
+    if (!this.get(id)?.checkpoint) return;
+    this.update(id, { checkpoint: undefined });
   }
 
   /** Case-insensitive lookup by (partial) name — "tampa news" → project. */
@@ -400,9 +483,14 @@ export default class ProjectStore {
    * Format a project's real content into context text for cognition /
    * agent delegation. Only returns data that actually exists.
    */
-  public contextFor(projectId: string): string {
+  public contextFor(projectId: string, access?: ProjectAccess): string {
     const project = this.get(projectId);
     if (!project) {
+      return "";
+    }
+    // A project's CONTENTS are stricter than its name: another user's project,
+    // or a conversation-local project outside its chat, returns nothing at all.
+    if (access && !isProjectVisible(project, access)) {
       return "";
     }
     const sections: string[] = [`## Project: ${project.name}`];

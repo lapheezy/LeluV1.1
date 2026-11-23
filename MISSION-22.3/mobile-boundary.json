@@ -1,0 +1,42 @@
+{
+  "mission": "LÉLU 2.3 — mobile verification boundary",
+  "executedAt": "2026-11-19",
+  "verified": [
+    {
+      "level": "desktop browser",
+      "status": "VERIFIED",
+      "evidence": "full GenesisChat conversation, reload and persistence at 1280×800"
+    },
+    {
+      "level": "mobile viewport (browser)",
+      "status": "VERIFIED AT DOM LEVEL",
+      "evidence": "viewport 390×844; window.innerWidth 390; document.scrollWidth 390 (no horizontal overflow); both conversations and their transcripts remained visible; screenshot MISSION-22.3/screenshots/02-mobile-viewport-390x844.png"
+    },
+    {
+      "level": "touch simulation",
+      "status": "NOT VERIFIED",
+      "note": "no touch tap/swipe gesture was driven; interactions in this run were pointer clicks"
+    },
+    {
+      "level": "native iOS",
+      "status": "NOT VERIFIED",
+      "note": "no iOS runtime, simulator or device in this environment; the repository has no ios/ project"
+    },
+    {
+      "level": "native Android",
+      "status": "NOT VERIFIED",
+      "note": "no Android runtime, emulator or device; the repository has no android/ project"
+    }
+  ],
+  "capacitor": {
+    "config_present": true,
+    "native_projects_present": false,
+    "conclusion": "a Capacitor config exists, but without native platform projects and a device or emulator no native acceptance is possible; none is claimed"
+  },
+  "to_close_the_native_gap": [
+    "add the Android and/or iOS platform projects (cap add) and build a package",
+    "run on a physical device or an emulator with a real provider key",
+    "repeat conversation isolation, reload persistence and provider-payload checks on the device",
+    "verify the share-screen and voice surfaces, which have no browser equivalent"
+  ]
+}

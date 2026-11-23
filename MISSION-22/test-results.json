@@ -1,0 +1,129 @@
+{
+  "mission": "LÉLU 2.2 — memory sovereignty",
+  "executedAt": "2026-11-19",
+  "environment": "Node (tsx), test runner: node:test, --test-concurrency=1",
+  "fullSuite": {
+    "command": "npm test",
+    "tests": 2336,
+    "suites": 19,
+    "pass": 2326,
+    "fail": 2,
+    "skipped": 8,
+    "durationMs": 236987,
+    "failures": [
+      {
+        "test": "tests/genesis-interface.test.tsx",
+        "error": "ERR_PACKAGE_PATH_NOT_EXPORTED: @excalidraw/excalidraw/index.css",
+        "classification": "pre-existing environmental",
+        "introducedByThisMission": false,
+        "note": "Same failure documented in the 2.1 handoff; the CSS export is not resolvable in this Node harness."
+      },
+      {
+        "test": "tests/sandbox-security.test.ts — network: TCP, UDP, DNS and fetch all fail",
+        "error": "expected /^denied:/, received ''",
+        "classification": "pre-existing environmental",
+        "introducedByThisMission": false,
+        "note": "The sandbox's own failure string differs from the assertion; unrelated to memory."
+      }
+    ],
+    "runHistory": [
+      {
+        "run": 1,
+        "result": "2336 tests, 2324 pass, 4 fail, 8 skipped",
+        "note": "Two of the four failures were introduced by this mission (MemoryBridge.learn assumed a UserManager in a headless test) and were fixed; the two above remained."
+      },
+      {
+        "run": 2,
+        "result": "interrupted by a Cloud runner restart — no summary recorded",
+        "note": "Not counted."
+      },
+      {
+        "run": 3,
+        "result": "2336 tests, 2326 pass, 2 fail, 8 skipped",
+        "note": "Completed run after the final code change; the counted result above."
+      }
+    ]
+  },
+  "missionSuite": {
+    "file": "tests/memory-sovereignty.test.ts",
+    "command": "npx tsx --tsconfig tsconfig.test.json --import ./tests/support/ignore-css.mjs --test tests/memory-sovereignty.test.ts",
+    "tests": 28,
+    "pass": 28,
+    "fail": 0,
+    "durationMs": 434,
+    "groups": {
+      "A_conversation_isolation": { "tests": 7, "pass": 7 },
+      "B_historical_recall": { "tests": 4, "pass": 4 },
+      "C_chronology": { "tests": 2, "pass": 2 },
+      "D_memory_ownership": { "tests": 4, "pass": 4 },
+      "E_context_contamination": { "tests": 7, "pass": 7 },
+      "F_concurrency": { "tests": 2, "pass": 2 },
+      "G_personality_regression": { "tests": 2, "pass": 2 }
+    }
+  },
+  "relatedSuites": [
+    {
+      "files": [
+        "tests/memory-sovereignty.test.ts",
+        "tests/personality-voice.test.ts",
+        "tests/personality-voice-2_1.test.ts",
+        "tests/conversation-memory.test.ts",
+        "tests/memory-model.test.ts",
+        "tests/memory-providers.test.ts",
+        "tests/memory-safety.test.ts"
+      ],
+      "tests": 100,
+      "pass": 100,
+      "fail": 0
+    },
+    {
+      "files": [
+        "tests/runtime-integration.test.ts",
+        "tests/memory-sovereignty.test.ts",
+        "tests/conversation-memory.test.ts",
+        "tests/personality-voice-2_1.test.ts"
+      ],
+      "tests": 70,
+      "pass": 70,
+      "fail": 0,
+      "note": "Re-run after the final MemoryBridge fix."
+    }
+  ],
+  "typecheck": {
+    "command": "NODE_OPTIONS=--max-old-space-size=3072 npx tsc -p tsconfig.app.json --noEmit",
+    "errors": 2,
+    "bothPreExisting": true,
+    "details": [
+      "src/core/perception/FeatureUnderstanding.ts(455,20) TS18047: 'landmarks.measurements.count' is possibly 'null'.",
+      "src/core/perception/FeatureUnderstanding.ts(455,20) TS2365: Operator '<' cannot be applied to types 'string | number' and 'number'."
+    ],
+    "newErrorsIntroduced": 0
+  },
+  "live": {
+    "file": "MISSION-22/live-validation.json",
+    "turnsAnswered": 8,
+    "turnsTotal": 8,
+    "scenarios": { "total": 4, "pass": 4 },
+    "providerObserved": ["OpenRouter"],
+    "probeLatencyMs": [4912, 6104, 2342, 7369]
+  },
+  "parity": {
+    "file": "MISSION-22/live-parity.json",
+    "providers": ["groq", "openrouter"],
+    "answered": 2,
+    "griefInContext": false,
+    "pass": 2
+  },
+  "browser": {
+    "file": "MISSION-22/browser-acceptance.json",
+    "stepsExecuted": 6,
+    "isolationPass": true,
+    "returnPass": true,
+    "restorePass": true,
+    "historicalRecallInUiAfterReload": "not verified — browser saturation",
+    "screenshots": [
+      "artifacts/genesis-memory-isolation.png",
+      "artifacts/genesis-memory-return.png"
+    ]
+  }
+}

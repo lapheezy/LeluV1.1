@@ -1,0 +1,14 @@
+{
+  "ran": true,
+  "at": "2026-11-20T18:03:41.351Z",
+  "project": "ugshflwlyakipeduifkd.supabase.co",
+  "keyKind": "publishable",
+  "signIn": {
+    "ok": false,
+    "error": "Invalid login credentials",
+    "status": 400
+  },
+  "tables": {},
+  "rls": {},
+  "anonAccess": {}
+}

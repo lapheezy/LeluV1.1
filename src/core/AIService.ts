@@ -32,7 +32,13 @@ import { fitPlannerPrompt } from "./agentic/PlannerContextBudget";
 import type { AIIntent } from "./router/AIIntent";
 import type { ReasoningResult } from "./reasoning/ReasoningEngine";
 import type { Plan } from "./planning/PlanningEngine";
-import type { LeluAgent } from "./agents/AgentTypes";
+import type { LeluAgent, AgentTaskScope } from "./agents/AgentTypes";
+import { currentSessionId } from "./memory/MemorySovereignty";
+import { resolveTurnHistory } from "./memory/SharedWindowAdapter";
+import ResidueMigration, { type ResidueReport } from "./memory/ResidueMigration";
+import MemoryHealing, { type HealingStatus } from "./memory/MemoryHealing";
+import DeletionGuard, { type GuardStats } from "./memory/DeletionGuard";
+import DeletionLedger from "./memory/DeletionLedger";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
 import Shaman from "./agents/Shaman";
@@ -619,6 +625,7 @@ export default class AIService {
             `Proactive question: ${pendingQuestion.question}`,
             `User answer: ${message}`,
             taskId,
+            options?.conversationId,
           );
         } catch (error) {
           console.error("[AIService] Proactive answer learning failed (contained)", error);
@@ -655,6 +662,13 @@ export default class AIService {
           delegatedBy: "lelu",
           // Attribute the agent's work to THIS cognitive turn.
           parentTaskId: taskId,
+          // …and to THIS conversation. Without it the agent read memory with
+          // no identity and could be handed the legacy shared window.
+          scope: {
+            userId: this.memory.scopeFor(options?.conversationId, delegation.task).userId,
+            conversationId: options?.conversationId ?? null,
+            sessionId: currentSessionId(),
+          },
         });
         const response: AIResponse =
           result.ok && result.response
@@ -710,7 +724,9 @@ export default class AIService {
       // capabilities, UI) as part of the conversation context.
       let cognitiveContextText = "";
       try {
-        const snapshot = buildCognitiveContext(options?.conversationId);
+        // Identity, not just an id: project authorization needs the owner,
+        // and the snapshot must not be assembled globally (M22.2).
+        const snapshot = buildCognitiveContext(this.memory.scopeFor(options?.conversationId, message));
         cognitiveContextText = formatCognitiveContext(snapshot);
         trace.record(
           "SELF_CONTEXT",
@@ -782,7 +798,36 @@ export default class AIService {
       // so a question asked in chat B arrived after chat A's unanswered
       // question — and was answered as if it were A's (measured: "two
       // paragraphs about the telescope" came back as AI-video research).
-      const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
+      // A supplied conversation id that this store does not hold is NOT an
+      // invitation to use the shared window: that window holds whichever chat
+      // spoke last, which is precisely the cross-conversation inheritance
+      // 2.2 exists to stop. With chats present, an unknown id gets no history
+      // rather than someone else's. With no chats at all (first turn, a
+      // headless caller) the shared window is still the only history there is.
+      const perChatTurns = priorTurnsFor(options?.conversationId, message);
+      const storeHasChats = (() => {
+        try {
+          return MultiChatStore.getInstance().listAll().length > 0;
+        } catch {
+          return false;
+        }
+      })();
+      // The ONE place history may come from is the explicit adapter: it
+      // names its source, and the only way to reach the shared window is a
+      // first run with no chats at all. There is no implicit `?? shared`.
+      const history = resolveTurnHistory({
+        conversationId: options?.conversationId,
+        perChatTurns,
+        storeHasChats,
+        sharedWindow: () => conversation.modelMessages(),
+      });
+      const priorTurns = history.turns;
+      if (history.source !== "conversation") {
+        CognitiveTrace.getInstance().record("TASK_CONTEXT", `history: ${history.source} — ${history.reason}`, {
+          source: history.source,
+          conversationId: options?.conversationId ?? null,
+        });
+      }
       conversation.record("user", message);
 
       // TWO controllers, by design, combined at the request: one per
@@ -907,16 +952,19 @@ export default class AIService {
             message,
             response.text,
             taskId,
-            options?.transcript
-              ? {
-                  transcriptSource: options.transcript.source,
-                  transcriptFinal: options.transcript.final,
-                  transcriptAt: options.transcript.at,
-                  ...(typeof options.transcript.confidence === "number"
-                    ? { transcriptConfidence: options.transcript.confidence }
-                    : {}),
-                }
-              : undefined,
+            options?.conversationId,
+            {
+              provenance: options?.transcript
+                ? {
+                    transcriptSource: options.transcript.source,
+                    transcriptFinal: options.transcript.final,
+                    transcriptAt: options.transcript.at,
+                    ...(typeof options.transcript.confidence === "number"
+                      ? { transcriptConfidence: options.transcript.confidence }
+                      : {}),
+                  }
+                : undefined,
+            },
           );
           // Refresh active memories now that this turn is recorded.
           await conversation.refresh(message);
@@ -924,7 +972,14 @@ export default class AIService {
           // Post-write profile sync: second recall so the user profile
           // picks up the fact just learned, which the pre-response recall
           // could not have seen.
-          const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
+          // Same conversation scope as the turn's own recall: the post-write
+          // profile sync must not pull another chat's facts into this user's
+          // profile either.
+          const memories = await this.runtime.brain.recall(
+            message,
+            "post-write-profile-sync",
+            this.memory.scopeFor(options?.conversationId, message),
+          );
           for (const memory of memories) {
             await this.user.learn(memory.category, memory.response);
           }
@@ -1080,10 +1135,141 @@ export default class AIService {
    * orchestration primitive LÉLU uses to hand work to specialists —
    * chat, agents, and creative tools all share the same architecture.
    */
+  /**
+   * A conversation was deleted: purge its session memories and the cognitive
+   * observations made in it. Durable user facts survive, with their origin
+   * intact — deleting a chat is not a request to forget the user (WP06).
+   */
+  public async forgetConversation(conversationId: string): Promise<{
+    memories: number;
+    nodes: number;
+    cloud: { attempted: number; removed: number; queued: number; tombstoned: boolean };
+  }> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    const result = await this.runtime.brain.forgetConversation(conversationId);
+    // The cloud mirror is a persistence pathway too (M22.6, WP02): removing the
+    // rows is best-effort and never blocks or fails the local deletion. What
+    // could not be removed is queued, not forgotten (M22.7, WP02).
+    const cloud = await this.eraseRemoteMemories(result.memoryIds);
+    return { memories: result.memories, nodes: result.nodes, cloud };
+  }
+
+  /**
+   * Remove a set of ids from the cloud, or queue them for retry.
+   *
+   * One place decides what "the cloud copy is gone" means, so a single delete
+   * and a conversation purge cannot report it differently.
+   */
+  private async eraseRemoteMemories(ids: string[]): Promise<{
+    attempted: number; removed: number; queued: number; tombstoned: boolean;
+  }> {
+    const ledger = DeletionLedger.getInstance();
+    let removed = 0;
+    let queued = 0;
+    let tombstoned = false;
+    for (const id of ids) {
+      const result = await SupabasePersistence.getInstance().forgetMemory(id, ledger.fingerprintFor(id));
+      if (result.ok) {
+        removed += 1;
+        tombstoned = tombstoned || result.tombstoned;
+      } else {
+        // Signed out is not a failure to retry — there is no user to act for.
+        // Anything else is queued durably and retried after the next sign-in.
+        if (result.reason !== "signed_out") ledger.queueRemote(id, ledger.fingerprintFor(id));
+        queued += 1;
+      }
+    }
+    return { attempted: ids.length, removed, queued, tombstoned };
+  }
+
+  /**
+   * The user deleted ONE memory from the Memory panel. This is the same
+   * authoritative path the brain already used (store record + cognitive
+   * observation + graph node); the panel is only a caller of it. Deleting a
+   * conversation is forgetConversation — this never touches anything else.
+   */
+  public async forgetMemory(id: string): Promise<{
+    removed: boolean;
+    nodes: number;
+    checkpoints: number;
+    ledgerRecorded: boolean;
+    cloud: { attempted: number; removed: number; queued: number; tombstoned: boolean };
+  }> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    const result = await this.runtime.brain.forgetMemory(id);
+    // The deleted record's cloud copy goes with it, and this time the answer is
+    // reported rather than assumed (M22.7). A copy that survives is queued for
+    // retry, and the panel is told — a local delete is not a universal one.
+    const cloud = await this.eraseRemoteMemories([id]);
+    return { ...result, cloud };
+  }
+
+  /**
+   * M22.6: what automatic memory healing has actually done, what the deletion
+   * gate has filtered, and how many deletions are provable. Counts and ids of
+   * deletions only — never the text of a deleted statement.
+   */
+  public memoryIntegrityStatus(): {
+    healing: HealingStatus | null;
+    guard: GuardStats;
+    ledger: { entries: number; oldest: number | null; newest: number | null };
+    cloud: { connected: boolean; tombstones: boolean; pendingDeletions: number; exhausted: number };
+  } {
+    const remote = DeletionLedger.getInstance().remoteSummary();
+    return {
+      healing: MemoryHealing.getInstance().status(),
+      guard: DeletionGuard.getInstance().stats(),
+      ledger: DeletionLedger.getInstance().summary(),
+      cloud: {
+        ...SupabasePersistence.getInstance().memoryCloudStatus(),
+        exhausted: remote.exhausted,
+      },
+    };
+  }
+
+  /** Retry the deletions the cloud has not confirmed (maintenance path). */
+  public async flushUnconfirmedDeletions(): Promise<{ attempted: number; cleared: number; remaining: number }> {
+    return SupabasePersistence.getInstance().flushDeletionOutbox();
+  }
+
+  /** Run the boot-time healer now (maintenance/verification; the boot path schedules it). */
+  public async healMemoryNow(): Promise<HealingStatus> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return MemoryHealing.getInstance().heal();
+  }
+
+  /**
+   * M22.5: what historical residue exists, and (unless dryRun) clean the part
+   * that the deletion ledger can prove. Defaults to a dry run — reading never
+   * changes storage.
+   */
+  public async residueReport(options: { dryRun?: boolean; limit?: number } = {}): Promise<ResidueReport> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return ResidueMigration.getInstance().run(options);
+  }
+
+  /** Explicit review of one quarantined checkpoint: forget it, or keep it. */
+  public async reviewMemoryResidue(projectId: string, action: "forget" | "keep"): Promise<ResidueReport> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return ResidueMigration.getInstance().review(projectId, action);
+  }
+
   public async delegate(
     agent: LeluAgent,
     task: string,
     projectContext?: string,
+    /** The turn this agent runs inside (M22.1). */
+    scope?: AgentTaskScope,
   ): Promise<AIResponse> {
     const message = task.trim();
     const events = AgentEventBus.getInstance();
@@ -1117,11 +1303,23 @@ export default class AIService {
       ],
       prompt: message,
       timestamp: Number(taskId),
+      ...(scope?.conversationId ? { conversationId: scope.conversationId } : {}),
       ...(() => {
         const parts: string[] = [];
         if (projectContext?.trim()) parts.push(projectContext.trim());
         try {
-          parts.push(formatCognitiveContext(buildCognitiveContext()));
+          // The agent snapshot is built for THIS invocation, or not at all.
+          // An agent with no conversation gets operational state only; it no
+          // longer receives every project and checkpoint on the install.
+          parts.push(
+            formatCognitiveContext(
+              buildCognitiveContext(
+                scope
+                  ? { userId: scope.userId, conversationId: scope.conversationId, sessionId: scope.sessionId }
+                  : undefined,
+              ),
+            ),
+          );
         } catch { /* contained */ }
         return parts.length > 0 ? { context: parts.join("\n\n") } : {};
       })(),
@@ -1156,7 +1354,11 @@ export default class AIService {
       // A read-only agent never writes; a read-write agent learns the
       // same way the main dialogue does (through the ONE memory path).
       if (agent.permissions.canWriteMemory && agent.memoryAccess === "read-write") {
-        await this.memory.learn(message, response.text, taskId);
+        // An agent's report is DERIVED material about its own work, never the
+        // user's words; it is stored with that provenance and the run's scope.
+        await this.memory.learn(message, response.text, taskId, request.conversationId, {
+          sourceType: "agent-reported",
+        });
       }
 
       // LÉLU always remembers that the agent worked, so cognition can
@@ -1537,8 +1739,11 @@ export default class AIService {
    * pipeline uses — no duplicate provider system.
    */
   /** The runtime's own router context, for a tool call outside a turn. Null until initialized. */
-  public toolContext(prompt: string): import("./router/RouterContext").default | null {
-    return this.initialized ? this.runtime.toolContext(prompt) : null;
+  public toolContext(
+    prompt: string,
+    scope?: { conversationId?: string | null },
+  ): import("./router/RouterContext").default | null {
+    return this.initialized ? this.runtime.toolContext(prompt, scope ?? undefined) : null;
   }
 
   public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {

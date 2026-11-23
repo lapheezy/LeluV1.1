@@ -1,0 +1,1774 @@
+/**
+ * ==========================================================
+ * LÉLU
+ * AI SERVICE
+ *
+ * Final cognition learning loop
+ *
+ * Connects:
+ * - AI Runtime
+ * - Memory
+ * - User profile
+ * - Genesis actions
+ * - Cognition updates
+ * ==========================================================
+ */
+
+import UsageSync, { type UsageChannel } from "./observability/UsageSync";
+import AIRuntime from "./AIRuntime";
+import MemoryBridge from "./MemoryBridge";
+import { bindMessage, bindTask } from "./multichat/TurnOwnership";
+import MultiChatStore from "./multichat/MultiChatStore";
+import UserManager from "./user/UserManager";
+import AgentEventBus from "./agent/AgentEvents";
+import {
+  registerAllNativeCapabilities,
+  NativeCapabilityRegistry,
+  type CapabilityStatus,
+  type CapabilityResult,
+} from "./native";
+import type { AIRequest, AIResponse, MediaAttachment } from "../providers/AIProvider";
+import { fitPlannerPrompt } from "./agentic/PlannerContextBudget";
+import type { AIIntent } from "./router/AIIntent";
+import type { ReasoningResult } from "./reasoning/ReasoningEngine";
+import type { Plan } from "./planning/PlanningEngine";
+import type { LeluAgent, AgentTaskScope } from "./agents/AgentTypes";
+import { currentSessionId } from "./memory/MemorySovereignty";
+import { resolveTurnHistory } from "./memory/SharedWindowAdapter";
+import { agentSystemPrompt } from "./agents/AgentTypes";
+import AgentStore from "./agents/AgentStore";
+import Shaman from "./agents/Shaman";
+import ProactiveCore from "./proactive/ProactiveCore";
+import CuriosityEngine from "./curiosity/CuriosityEngine";
+import PromptInjectionGuard from "./security/PromptInjectionGuard";
+import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
+import HealthIntelligence from "./caretaker/HealthIntelligence";
+import { buildCognitiveContext, formatCognitiveContext } from "./cognition/CognitiveContext";
+import CognitiveTrace from "./cognition/CognitiveTrace";
+import SupabasePersistence from "./persistence/SupabasePersistence";
+import { markPerf } from "./perf/StartupTelemetry";
+import { mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "./perf/LatencyProbe";
+
+export interface AIActionEvent {
+  id: string;
+  type: "browse" | "search" | "build" | "learn" | "create";
+  label: string;
+  status: "running" | "complete" | "error";
+  timestamp: number;
+}
+
+export interface CognitionEvent {
+  agents: unknown[];
+  workspaces: unknown[];
+  nodes: unknown[];
+  reasoning?: ReasoningResult | null;
+  plan?: Plan | null;
+}
+
+export interface AIMessageEvent {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  timestamp: number;
+  provider?: string;
+  confidence?: number;
+  reasoning?: ReasoningResult | null;
+  plan?: Plan | null;
+  /** The conversation this reply belongs to — present when sent via ai.chat({ conversationId }). */
+  conversationId?: string;
+}
+
+/** How many earlier turns of a conversation the model is given. */
+const CONVERSATION_TURN_WINDOW = 16;
+
+function sameTurn(stored: string, prompt: string): boolean {
+  const a = stored.replace(/\s+/g, " ").trim();
+  const b = prompt.replace(/\s+/g, " ").trim();
+  if (!a || !b) return false;
+  // The stored line is what was shown (it may carry an attachment label);
+  // the prompt is what is sent (it may carry file context). They share
+  // the words the user typed.
+  const n = Math.min(60, a.length, b.length);
+  return a.slice(0, n) === b.slice(0, n);
+}
+
+/**
+ * The turns of one conversation before the current message, from the
+ * conversation store — the same history the user sees in that chat.
+ * Null when there is no conversation to read (the caller falls back).
+ */
+export function priorTurnsFor(
+  conversationId: string | undefined,
+  message: string,
+): { role: "user" | "assistant"; content: string }[] | null {
+  if (!conversationId) return null;
+  try {
+    const stored = MultiChatStore.getInstance().get(conversationId);
+    if (!stored) return null;
+    const turns = stored.messages.filter((item) => typeof item.text === "string" && item.text.trim().length > 0);
+    let anchor = -1;
+    for (let index = turns.length - 1; index >= 0; index -= 1) {
+      if (turns[index].role === "user" && sameTurn(turns[index].text, message)) {
+        anchor = index;
+        break;
+      }
+    }
+    // The current message is already stored (the chat writes it before
+    // sending); everything before it is the history.
+    let before = anchor >= 0 ? turns.slice(0, anchor) : turns;
+    if (anchor < 0 && before.at(-1)?.role === "user") before = before.slice(0, -1);
+    // In a merged chat each earlier message says which chat it came from,
+    // so the model can keep the sources apart.
+    return before
+      .slice(-CONVERSATION_TURN_WINDOW)
+      .map((item) => ({
+        role: item.role,
+        content: item.origin ? `[from the chat “${item.origin.title}”] ${item.text}` : item.text,
+      }));
+  } catch {
+    return null;
+  }
+}
+
+export default class AIService {
+  private static instance: AIService | null = null;
+
+  private readonly runtime: AIRuntime;
+  private readonly user: UserManager;
+  private readonly memory: MemoryBridge;
+
+  private readonly actionListeners = new Set<(event: AIActionEvent) => void>();
+  private readonly cognitionListeners = new Set<(state: CognitionEvent) => void>();
+  private readonly messageListeners = new Set<(message: AIMessageEvent) => void>();
+  /** Post-response memory consolidation and profile-sync work, awaitable by callers and tests. */
+  private readonly pendingConsolidations = new Set<Promise<void>>();
+
+  /** Wait for any pending post-response memory consolidation or profile sync tasks to finish. */
+  public async waitForPendingConsolidations(): Promise<void> {
+    while (this.pendingConsolidations.size > 0) {
+      await Promise.allSettled([...this.pendingConsolidations]);
+    }
+  }
+
+  /** Progressive assistant output during generation — same id as the final message. */
+  private readonly streamListeners = new Set<(event: { id: string; text: string; conversationId?: string }) => void>();
+  private readonly thinkingListeners = new Set<(value: boolean) => void>();
+  private readonly speakingListeners = new Set<(value: boolean) => void>();
+  private readonly listeningListeners = new Set<(value: boolean) => void>();
+  private readonly notificationListeners = new Set<(notification: { title: string; description?: string }) => void>();
+
+  private initialized = false;
+  /** In-flight initialize() promise — see AIProviderRegistry for why
+   * this guard exists: without it, two concurrent callers would each
+   * pass the synchronous `if (this.initialized)` check before either
+   * finished, and each independently re-run the whole Promise.allSettled
+   * bundle (runtime/user init, Supabase attach, capability registration). */
+  private initializingPromise: Promise<void> | null = null;
+
+  /** One AbortController per active conversationId. cancelTurn() aborts it. */
+  private readonly convControllers = new Map<string, AbortController>();
+  /**
+   * Stop pressed before the turn reached chat() — while the Orchestrator was
+   * still routing or researching. There was no controller to abort yet, so
+   * the request was lost and the reply arrived anyway. It is held here and
+   * honoured the moment the turn's chat() starts.
+   */
+  private readonly pendingCancels = new Set<string>();
+  /**
+   * Messages the user sent to a conversation while its turn was working,
+   * waiting for the turn's tool loop to pick them up (see steerTurn).
+   */
+  private readonly steering = new Map<string, string[]>();
+
+  /**
+   * How many user turns are being processed right now.
+   *
+   * USER COMMUNICATION HAS PRIORITY. Autonomous cognition consults this
+   * and defers while it is non-zero, so a self-study cycle can never
+   * consume the provider slot, the runtime, or the conversation state
+   * that a pending user message needs. It is a counter rather than a
+   * flag so overlapping turns cannot clear it early.
+   */
+  private activeUserTurns = 0;
+  /** When the last user turn finished — used to hold autonomy briefly after a reply. */
+  private lastUserTurnAt = 0;
+
+  /** Device/native capability registry — same singleton the ToolResolver uses. */
+  private readonly native = NativeCapabilityRegistry.getInstance();
+
+  private constructor() {
+    this.runtime = new AIRuntime();
+    this.user = new UserManager();
+    this.memory = new MemoryBridge(this.runtime.brain, this.user);
+  }
+
+  public static getInstance(): AIService {
+    if (!AIService.instance) {
+      AIService.instance = new AIService();
+    }
+
+    return AIService.instance;
+  }
+
+  public subscribeActions(listener: (event: AIActionEvent) => void): () => void {
+    this.actionListeners.add(listener);
+    return () => {
+      this.actionListeners.delete(listener);
+    };
+  }
+
+  public subscribeCognition(listener: (state: CognitionEvent) => void): () => void {
+    this.cognitionListeners.add(listener);
+    return () => {
+      this.cognitionListeners.delete(listener);
+    };
+  }
+
+  public subscribeMessages(listener: (message: AIMessageEvent) => void): () => void {
+    this.messageListeners.add(listener);
+    return () => {
+      this.messageListeners.delete(listener);
+    };
+  }
+
+  /** Live token-stream updates while LÉLU is generating. */
+  public subscribeStream(listener: (event: { id: string; text: string; conversationId?: string }) => void): () => void {
+    this.streamListeners.add(listener);
+    return () => {
+      this.streamListeners.delete(listener);
+    };
+  }
+
+  public subscribeThinking(listener: (value: boolean) => void): () => void {
+    this.thinkingListeners.add(listener);
+    return () => {
+      this.thinkingListeners.delete(listener);
+    };
+  }
+
+  public subscribeSpeaking(listener: (value: boolean) => void): () => void {
+    this.speakingListeners.add(listener);
+    return () => {
+      this.speakingListeners.delete(listener);
+    };
+  }
+
+  public subscribeListening(listener: (value: boolean) => void): () => void {
+    this.listeningListeners.add(listener);
+    return () => {
+      this.listeningListeners.delete(listener);
+    };
+  }
+
+  public subscribeNotifications(listener: (notification: { title: string; description?: string }) => void): () => void {
+    this.notificationListeners.add(listener);
+    return () => {
+      this.notificationListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Cancel the in-flight turn for `conversationId`. The provider's
+   * fetch is aborted; the response arrives as `provider: "cancelled"`
+   * with no error notification. Other conversations are not affected.
+   */
+  public cancelTurn(conversationId: string): void {
+    const controller = this.convControllers.get(conversationId);
+    if (controller) controller.abort();
+    else this.pendingCancels.add(conversationId);
+  }
+
+  /**
+   * A new turn starts with no Stop pending. Called by the chat at the start
+   * of each turn, so a Stop that its own turn never consumed (an answer that
+   * did not go through chat()) can never cancel the next message.
+   */
+  public beginTurn(conversationId: string): void {
+    this.pendingCancels.delete(conversationId);
+  }
+
+  /**
+   * The user spoke while this conversation's turn is working.
+   *
+   * Accepted only while the turn is inside chat() — the only place that
+   * can still use it. The tool loop hands it to the model before its next
+   * round, so the instruction changes the work in progress. Returns false
+   * when no turn is running here; the caller then sends it as a turn of
+   * its own.
+   */
+  public steerTurn(conversationId: string, text: string): boolean {
+    const trimmed = text.trim();
+    if (!conversationId || !trimmed || !this.convControllers.has(conversationId)) return false;
+    const queue = this.steering.get(conversationId) ?? [];
+    queue.push(trimmed);
+    this.steering.set(conversationId, queue);
+    return true;
+  }
+
+  /**
+   * Steering the turn never consumed — it finished its last tool round
+   * before the message arrived. The caller answers these as turns of
+   * their own, so nothing the user said is lost.
+   */
+  public takeSteering(conversationId: string): string[] {
+    const queue = this.steering.get(conversationId) ?? [];
+    this.steering.delete(conversationId);
+    return queue;
+  }
+
+  private emitAction(type: AIActionEvent["type"], label: string, status: AIActionEvent["status"]): string {
+    const event: AIActionEvent = {
+      id: crypto.randomUUID(),
+      type,
+      label,
+      status,
+      timestamp: Date.now(),
+    };
+
+    for (const listener of this.actionListeners) {
+      try {
+        listener(event);
+      } catch (error) {
+        console.error("[AIService] action listener threw (contained)", error);
+      }
+    }
+
+    return event.id;
+  }
+
+  private emitCognition(cognition: CognitionEvent): void {
+    for (const listener of this.cognitionListeners) {
+      try {
+        listener(cognition);
+      } catch (error) {
+        console.error("[AIService] cognition listener threw (contained)", error);
+      }
+    }
+  }
+
+  /**
+   * Deliver a reply that was produced outside ai.chat: a planned task's
+   * report or an engineering run, which the Orchestrator returns as text.
+   * Without this the reply never reached the message channel, so the
+   * conversation stored only the user's message, the turn's artifact card
+   * had no reply to attach to, and the chat looked as if it never finished.
+   * The same channel and shape as every other reply; returns its id.
+   */
+  public deliverReply(text: string, conversationId?: string, provider = "orchestrator"): string {
+    const id = crypto.randomUUID();
+    if (conversationId) bindMessage(id, conversationId);
+    this.emitMessage({ id, role: "assistant", text, timestamp: Date.now(), provider, ...(conversationId ? { conversationId } : {}) });
+    return id;
+  }
+
+  private emitMessage(message: AIMessageEvent): void {
+    for (const listener of this.messageListeners) {
+      try {
+        listener(message);
+      } catch (error) {
+        console.error("[AIService] message listener threw (contained)", error);
+      }
+    }
+  }
+
+  private emitStream(id: string, text: string, conversationId?: string): void {
+    // T5: stream event emitted to all listeners.
+    latencyMark("T5");
+    for (const listener of this.streamListeners) {
+      try {
+        listener({ id, text, conversationId });
+      } catch (error) {
+        console.error("[AIService] stream listener threw (contained)", error);
+      }
+    }
+  }
+
+  private emitThinking(value: boolean): void {
+    for (const listener of this.thinkingListeners) {
+      try {
+        listener(value);
+      } catch (error) {
+        console.error("[AIService] thinking listener threw (contained)", error);
+      }
+    }
+  }
+
+  private emitSpeaking(value: boolean): void {
+    for (const listener of this.speakingListeners) {
+      try {
+        listener(value);
+      } catch (error) {
+        console.error("[AIService] speaking listener threw (contained)", error);
+      }
+    }
+  }
+
+  private emitListening(value: boolean): void {
+    for (const listener of this.listeningListeners) {
+      try {
+        listener(value);
+      } catch (error) {
+        console.error("[AIService] listening listener threw (contained)", error);
+      }
+    }
+  }
+
+  private emitNotification(notification: { title: string; description?: string }): void {
+    for (const listener of this.notificationListeners) {
+      try {
+        listener(notification);
+      } catch (error) {
+        console.error("[AIService] notification listener threw (contained)", error);
+      }
+    }
+  }
+
+  public async initialize(): Promise<void> {
+    if (this.initialized) {
+      return;
+    }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
+    }
+
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
+
+  private async doInitialize(): Promise<void> {
+    // Provider or memory initialization must never take the whole
+    // application down (white-screen protection). The three INDEPENDENT
+    // core subsystems now initialize in PARALLEL — none of them needs
+    // another's result — so first-message latency drops to the slowest,
+    // not the sum. Failures report through the notification channel
+    // instead of throwing; chat degrades gracefully per-request.
+    const [runtimeResult, userResult] = await Promise.allSettled([
+      // AIRuntime owns Brain initialization. Keeping that ownership here
+      // prevents the service and runtime from racing the same lifecycle.
+      this.runtime.initialize(),
+      this.user.initialize(),
+      // Measure whether a real development runtime is serving
+      // /api/engineer, and mark the project.* tools available only if it
+      // is. Contained and parallel: an unreachable runtime simply means
+      // those tools are not offered this session.
+      import("./engineering/EngineeringWorkspace")
+        .then((module) => module.default.getInstance().syncToolAvailability())
+        .catch(() => false),
+    ]);
+
+    if (runtimeResult.status === "rejected") {
+      this.emitNotification({
+        title: "Lélu runtime warning",
+        description:
+          runtimeResult.reason instanceof Error
+            ? runtimeResult.reason.message
+            : String(runtimeResult.reason),
+      });
+    }
+    if (userResult.status === "rejected") {
+      this.emitNotification({
+        title: "Lélu profile warning",
+        description:
+          userResult.reason instanceof Error
+            ? userResult.reason.message
+            : String(userResult.reason),
+      });
+    }
+    // Supabase is an OPTIONAL persistence/realtime layer beneath the
+    // existing local-first stores. It must never delay chat readiness:
+    // auth, hydration, and sync run in the BACKGROUND, failures are
+    // contained, and cognition remains fully usable offline.
+    void (async () => {
+      try {
+        const persistence = SupabasePersistence.getInstance();
+        // Usage accounting follows the signed-in user: events are tagged and
+        // synced per user, and the account budget gate is wired (UsageSync).
+        UsageSync.getInstance().start(
+          () => persistence.usageChannel() as UsageChannel | null,
+          (listener) => void persistence.subscribeAuth(() => listener()),
+        );
+        await persistence.initialize(this.runtime.brain, this.user);
+        void UsageSync.getInstance().refresh();
+        if (persistence.isConnected()) {
+          persistence.attachRuntime();
+          const health = await this.getProviderHealth();
+          void persistence.persistApiHealth(health as Array<Record<string, unknown>>);
+        }
+      } catch (error) {
+        console.warn("[AIService] Supabase persistence initialization degraded", error);
+      }
+    })();
+
+    // Device capability registry: registers every web-real capability
+    // (microphone, camera, share, clipboard, storage, …). Never throws —
+    // the runtime must boot even if a capability fails to register.
+    try {
+      registerAllNativeCapabilities();
+    } catch (error) {
+      this.emitNotification({
+        title: "Lélu device capabilities warning",
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    this.initialized = true;
+
+    // Real measurement: chat's cognition/provider/memory stack is usable.
+    markPerf("PROVIDER_READY");
+  }
+
+  public async chat(
+    prompt: string,
+    media?: MediaAttachment[],
+    context?: string,
+    options?: { forceIntent?: AIIntent; conversationId?: string },
+  ): Promise<AIResponse> {
+    const message = prompt.trim();
+
+    if (!message) {
+      this.emitThinking(false);
+      return {
+        text: "I need something to think about.",
+        provider: "brain",
+        model: "empty-input",
+        processingTime: 0,
+        metadata: {
+          intent: "idle",
+          success: true,
+        },
+      };
+    }
+
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    // T1: AIService has received the request.
+    latencyMark("T1");
+
+    // Claim the conversation for the user BEFORE anything else runs.
+    // Autonomous cognition checks this and stands down, so a self-study
+    // cycle cannot start midway through the user's turn and answer over
+    // the top of it.
+    this.activeUserTurns += 1;
+
+    this.emitThinking(true);
+    this.emitSpeaking(true);
+    this.emitListening(true);
+
+    const taskId = String(Date.now());
+    // Every tool/browser/research event of this turn carries taskId; bind
+    // it now so the chat can route those events to the conversation that
+    // asked, and to no other.
+    if (options?.conversationId) bindTask(taskId, options.conversationId);
+
+    // Open the per-turn cognitive trace. Dev-only (no-op in production)
+    // — this is the evidence chain that proves cognition/memory actually
+    // participated in THIS turn rather than the message going straight
+    // to a provider. Closed in the `finally` at the end of the pipeline.
+    const trace = CognitiveTrace.getInstance();
+    trace.begin(taskId, message);
+
+    // Feed the proactive layer on every genuine user message: session
+    // continuity, pattern learning, and interruption detection. This is
+    // the ONE interaction path — no second brain or memory is involved.
+    const proactive = ProactiveCore.getInstance();
+    try {
+      proactive.recordInteraction(message);
+    } catch (error) {
+      console.error("[AIService] Proactive record failed (contained)", error);
+    }
+
+    // Resolve one live proactive question before routing the turn. This is
+    // deliberately narrow: direct preference/decision language resolves a
+    // pending question, while a new question or command remains independent.
+    const pendingQuestion = proactive.getActiveQuestion();
+    const answersPendingQuestion = Boolean(
+      pendingQuestion && this.looksLikeProactiveAnswer(message, pendingQuestion.question),
+    );
+    // Curiosity notices genuine ambiguity in what Heru asks for. An answer
+    // to a question is not a new request, so it is never observed as one.
+    if (!answersPendingQuestion) {
+      try {
+        CuriosityEngine.getInstance().observeConversation(message, options?.conversationId);
+      } catch (error) {
+        console.error("[AIService] Curiosity observation failed (contained)", error);
+      }
+    }
+    if (pendingQuestion && answersPendingQuestion) {
+      proactive.resolveQuestion(pendingQuestion.id, message);
+      if (pendingQuestion.category === "NEWS") {
+        proactive.learnNewsPreferences(message);
+        void SupabasePersistence.getInstance().persistNewsPreferences(proactive.getNewsPreferences());
+      }
+      if (pendingQuestion.rememberAnswer) {
+        try {
+          await this.memory.learn(
+            `Proactive question: ${pendingQuestion.question}`,
+            `User answer: ${message}`,
+            taskId,
+            options?.conversationId,
+          );
+        } catch (error) {
+          console.error("[AIService] Proactive answer learning failed (contained)", error);
+        }
+      }
+    }
+
+    // Defensive boundary (M.S. Ma'at): the user's own text is treated as
+    // data too. Detect instruction-override attempts so LÉLU never silently
+    // accepts "ignore your instructions" content, and redact secrets before
+    // they can leak into logs/notifications. This never blocks conversation.
+    const injection = PromptInjectionGuard.getInstance().analyze(message);
+    if (injection.isInstructionOverride) {
+      console.warn("[AIService] instruction-override pattern detected (contained)", injection.patterns);
+    }
+
+    const actionId = this.emitAction("learn", `Processing ${message}`, "running");
+    const agentEvents = AgentEventBus.getInstance();
+    agentEvents.emit({ type: "task_started", taskId, label: message });
+
+    // LÉLU as orchestrator: when the message asks a configured agent to
+    // do work, delegate through the ONE runtime instead of answering
+    // herself. The agent's own instructions, provider preference and
+    // memory permissions apply; the result still flows through the
+    // normal message + memory consolidation path below.
+    const delegation = this.resolveDelegation(message);
+    if (delegation) {
+      try {
+        // LÉLU CORE delegates through SHAMAN: the user named the agent, so
+        // the route is that assignment, recorded with its owning executive.
+        const result = await Shaman.getInstance().dispatch({
+          objective: delegation.task,
+          agentId: delegation.agent.id,
+          delegatedBy: "lelu",
+          // Attribute the agent's work to THIS cognitive turn.
+          parentTaskId: taskId,
+          // …and to THIS conversation. Without it the agent read memory with
+          // no identity and could be handed the legacy shared window.
+          scope: {
+            userId: this.memory.scopeFor(options?.conversationId, delegation.task).userId,
+            conversationId: options?.conversationId ?? null,
+            sessionId: currentSessionId(),
+          },
+        });
+        const response: AIResponse =
+          result.ok && result.response
+            ? result.response
+            : {
+                text: result.error ?? `${delegation.agent.name} could not complete the task.`,
+                provider: "agent",
+                model: "delegation",
+                processingTime: 0,
+                metadata: { intent: "delegation", success: false },
+              };
+        await this.memory.learn(message, response.text, taskId);
+        // Delegated turns are still turns: both sides join the
+        // conversation, or the next message loses the thread.
+        await this.runtime.brain.getConversation().update(message);
+        this.runtime.brain.getConversation().record("assistant", response.text);
+        this.emitAction("learn", `${delegation.agent.name} completed`, "complete");
+        agentEvents.emit({ type: "task_completed", taskId, label: `${delegation.agent.name} delegated` });
+        // Bound like every other reply: unbound, it would land in whichever
+        // conversation happened to be selected.
+        const delegatedId = crypto.randomUUID();
+        if (options?.conversationId) bindMessage(delegatedId, options.conversationId);
+        this.emitMessage({
+          id: delegatedId,
+          role: "assistant",
+          text: response.text,
+          timestamp: Date.now(),
+          provider: response.provider,
+          confidence: response.metadata?.confidence as number | undefined,
+          conversationId: options?.conversationId,
+        });
+        this.releaseUserTurn();
+        return {
+          ...response,
+          metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name, messageId: delegatedId },
+        };
+      } catch (error) {
+        // delegation failed at the orchestration level — fall through to
+        // the normal pipeline so LÉLU answers instead of erroring out.
+        console.error("[AIService] Delegation failed, answering directly", error);
+      }
+    }
+
+    try {
+      // Executive consultation: when the user addresses one of the five
+      // executives (M.S. Ma'at / Architect / Engineering / Agent Forge),
+      // fold that executive's real guidance into the request context.
+      const boardContext = this.resolveExecutiveConsult(message);
+      const caretakerContext = this.resolveCaretakerConsult(message);
+
+      // Inject the live cognitive context so LÉLU's model actually
+      // "sees" her runtime state (self-model, projects, agents,
+      // capabilities, UI) as part of the conversation context.
+      let cognitiveContextText = "";
+      try {
+        // Identity, not just an id: project authorization needs the owner,
+        // and the snapshot must not be assembled globally (M22.2).
+        const snapshot = buildCognitiveContext(this.memory.scopeFor(options?.conversationId, message));
+        cognitiveContextText = formatCognitiveContext(snapshot);
+        trace.record(
+          "SELF_CONTEXT",
+          `self-model + runtime state assembled (${cognitiveContextText.length} chars)`,
+          {
+            length: cognitiveContextText.length,
+            identity: snapshot.self.identity.name,
+            capabilities: snapshot.self.capabilities.length,
+            activeProjects: snapshot.projects.length,
+            activeAgents: snapshot.agents.length,
+            autonomyLevel: snapshot.autonomyLevel,
+            openImprovements: snapshot.pendingImprovements.length,
+            recentErrors: snapshot.recentErrors.length,
+          },
+        );
+      } catch (error) {
+        console.error("[AIService] Cognitive context build failed (contained)", error);
+        trace.record("SELF_CONTEXT", "FAILED to build cognitive context", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
+      const effectiveContext = [context?.trim(), cognitiveContextText, boardContext, caretakerContext]
+        .filter((part): part is string => Boolean(part && part.length > 0))
+        .join("\n\n");
+
+      const streamId = crypto.randomUUID();
+      // Annotate the latency probe so this turn's streamId appears in the
+      // trace record alongside the exchangeId set by GenesisChat at T0.
+      // The two IDs are separate UUIDs — this is the link that correlates them.
+      latencyAnnotate("streamId", streamId);
+
+      // Pre-bind the reply to its conversation before any await. Without
+      // this, a concurrent turn from a different conversation can call
+      // claimTurn() between now and the first stream token, and that token
+      // would bind to the wrong conversation. Pre-binding wins the race.
+      if (options?.conversationId) {
+        bindMessage(streamId, options.conversationId);
+      }
+
+      // One AbortController per turn. Stored by conversationId so
+      // cancelTurn() can reach it. Cleaned up in the finally block.
+      const controller = new AbortController();
+      if (options?.conversationId) {
+        this.convControllers.set(options.conversationId, controller);
+        if (this.pendingCancels.delete(options.conversationId)) {
+          // Stopped before it started: settle as cancelled, without asking
+          // a provider (some answer paths never look at the signal).
+          controller.abort();
+          throw new DOMException("Turn stopped before it started.", "AbortError");
+        }
+      }
+
+      // SHORT-TERM CONVERSATION CONTEXT.
+      //
+      // Read the dialogue BEFORE this turn, then record this turn, so the
+      // user's message is part of the active conversation state before
+      // anything generates a response to it.
+      //
+      // Providers assemble `[...context, ...request.messages, {user, prompt}]`,
+      // so `messages` carries the PRIOR turns and the current message
+      // travels as `prompt`. Previously `messages` held only a copy of
+      // the current message, which meant the model saw the same text
+      // twice and no history at all — it could not know what it had
+      // already asked or been told.
+      const conversation = this.runtime.brain.getConversation();
+      // The model's history is THIS conversation's, not the brain's one
+      // shared window. That window holds every chat's turns interleaved,
+      // so a question asked in chat B arrived after chat A's unanswered
+      // question — and was answered as if it were A's (measured: "two
+      // paragraphs about the telescope" came back as AI-video research).
+      // A supplied conversation id that this store does not hold is NOT an
+      // invitation to use the shared window: that window holds whichever chat
+      // spoke last, which is precisely the cross-conversation inheritance
+      // 2.2 exists to stop. With chats present, an unknown id gets no history
+      // rather than someone else's. With no chats at all (first turn, a
+      // headless caller) the shared window is still the only history there is.
+      const perChatTurns = priorTurnsFor(options?.conversationId, message);
+      const storeHasChats = (() => {
+        try {
+          return MultiChatStore.getInstance().listAll().length > 0;
+        } catch {
+          return false;
+        }
+      })();
+      // The ONE place history may come from is the explicit adapter: it
+      // names its source, and the only way to reach the shared window is a
+      // first run with no chats at all. There is no implicit `?? shared`.
+      const history = resolveTurnHistory({
+        conversationId: options?.conversationId,
+        perChatTurns,
+        storeHasChats,
+        sharedWindow: () => conversation.modelMessages(),
+      });
+      const priorTurns = history.turns;
+      if (history.source !== "conversation") {
+        CognitiveTrace.getInstance().record("TASK_CONTEXT", `history: ${history.source} — ${history.reason}`, {
+          source: history.source,
+          conversationId: options?.conversationId ?? null,
+        });
+      }
+      conversation.record("user", message);
+
+      // TWO controllers, by design, combined at the request: one per
+      // conversation (convControllers — what cancelTurn/Stop aborts) and one
+      // per turn (activeTurn — the tool loop's own stop). AbortSignal.any is
+      // what keeps a Stop authoritative: aborting EITHER signal aborts the
+      // composed one, so a provider can never keep streaming past a stop.
+      const turn = new AbortController();
+      this.activeTurn = turn;
+      const request: AIRequest = {
+        messages: priorTurns,
+        prompt: message,
+        signal: AbortSignal.any([turn.signal, controller.signal]),
+        // This is the conversational turn, so LÉLU may invoke her real
+        // tools here. Internal structured-output calls (reason()) leave
+        // this unset and keep their pre-tool behaviour.
+        allowTools: true,
+        ...(effectiveContext ? { context: effectiveContext } : {}),
+        ...(media && media.length > 0 ? { media } : {}),
+        ...(options?.forceIntent ? { forceIntent: options.forceIntent } : {}),
+        timestamp: Number(taskId),
+        // True streaming: the provider pushes accumulated text as it
+        // arrives and the UI renders it in place under `streamId`.
+        onDelta: (() => {
+          let firstDelta = true;
+          return (text: string) => {
+            if (firstDelta) {
+              firstDelta = false;
+              latencyMark("T3"); // first SSE chunk from provider
+              latencyMark("T4"); // stream parser (same tick in this codebase)
+            }
+            this.emitStream(streamId, text, options?.conversationId);
+          };
+        })(),
+        ...(options?.conversationId
+          ? {
+              conversationId: options.conversationId,
+              drainSteering: () => {
+                const queue = this.steering.get(options.conversationId!) ?? [];
+                this.steering.delete(options.conversationId!);
+                return queue;
+              },
+            }
+          : {}),
+      };
+
+      // The request is about to run the existing planning + reasoning
+      // stages — announce it so the workspace can show the task forming.
+      agentEvents.emit({ type: "task_planning", taskId, plan: message.slice(0, 120) });
+
+      // ONE canonical recall per turn: enrich() owns it, and the
+      // memories it produced are handed forward so BrainResolver and
+      // composeFromMemory consume them instead of re-querying.
+      //
+      // The router awaits a fresh tool-availability probe before its first
+      // stage. Started here it overlaps with recall (measured 1.5-2.1 s of
+      // archive search on a real turn) instead of starting after it; the
+      // router then awaits this same in-flight refresh, never a second one.
+      void import("./tools/ToolRegistry")
+        .then(({ default: ToolRegistry }) => ToolRegistry.getInstance().ensureAvailability())
+        .catch(() => undefined);
+      const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
+      // T2: provider request is about to begin.
+      latencyMark("T2");
+      const response = await this.runtime.process(enriched, { recalledMemories: recalledForTurn });
+
+      trace.record(
+        "RESPONSE",
+        `answered by "${response.provider}" (${response.model}) in ${response.processingTime}ms`,
+        {
+          provider: response.provider,
+          model: response.model,
+          processingTime: response.processingTime,
+          textLength: response.text.length,
+          offline: Boolean(response.metadata?.offline),
+          source: response.metadata?.source ?? null,
+        },
+      );
+
+      const reasoning = (response.metadata?.reasoning as ReasoningResult | undefined) ?? null;
+      const plan = (response.metadata?.plan as Plan | undefined) ?? null;
+
+      this.emitAction("learn", "Response generated", "complete");
+      agentEvents.emit({ type: "task_completed", taskId, label: message });
+
+      // RESPONSE-FIRST: emit the message to the UI immediately so the user
+      // sees the reply before any memory/cognition work blocks the thread.
+      this.emitMessage({
+        id: streamId,
+        role: "assistant",
+        text: response.text,
+        timestamp: Date.now(),
+        provider: response.provider,
+        confidence: response.metadata?.confidence as number | undefined,
+        reasoning,
+        plan,
+        conversationId: options?.conversationId,
+      });
+
+      const responseSucceeded =
+        response.provider !== "offline" &&
+        response.metadata?.success !== false;
+
+      // LÉLU's own turn joins the conversation synchronously so the NEXT
+      // turn's context includes it — this must happen before return.
+      conversation.record("assistant", response.text);
+
+      // Memory consolidation, profile sync, and cognition update all run
+      // AFTER the response has been delivered. They do not block the
+      // caller; a failure here is contained and never surfaces as a chat
+      // error. All work uses the ONE existing memory/brain path.
+      let resolveConsolidation!: () => void;
+      const consolidationPromise = new Promise<void>((resolve) => {
+        resolveConsolidation = resolve;
+      });
+      this.pendingConsolidations.add(consolidationPromise);
+
+      void (async () => {
+        try {
+          // Memory consolidation ALWAYS runs — online or offline.
+          await this.memory.learn(message, response.text, taskId, options?.conversationId);
+          // Refresh active memories now that this turn is recorded.
+          await conversation.refresh(message);
+
+          // Post-write profile sync: second recall so the user profile
+          // picks up the fact just learned, which the pre-response recall
+          // could not have seen.
+          // Same conversation scope as the turn's own recall: the post-write
+          // profile sync must not pull another chat's facts into this user's
+          // profile either.
+          const memories = await this.runtime.brain.recall(
+            message,
+            "post-write-profile-sync",
+            this.memory.scopeFor(options?.conversationId, message),
+          );
+          for (const memory of memories) {
+            await this.user.learn(memory.category, memory.response);
+          }
+
+          if (responseSucceeded) {
+            this.runtime.brain.recordThinking(reasoning, plan);
+          }
+
+          const cognition = this.runtime.brain.cognitiveState();
+          this.emitCognition({
+            agents: cognition.agents,
+            workspaces: cognition.workspaces,
+            nodes: cognition.nodes,
+            reasoning: cognition.reasoning,
+            plan: cognition.plan,
+          });
+        } catch (postErr) {
+          console.error("[AIService] Post-response async work failed (contained)", postErr);
+        } finally {
+          this.pendingConsolidations.delete(consolidationPromise);
+          resolveConsolidation();
+        }
+      })();
+
+      return {
+        ...response,
+        metadata: {
+          ...(response.metadata ?? {}),
+          action: actionId,
+          cognition: true,
+          memory: true,
+          profile: true,
+          // The id the reply was emitted under, so a caller that also
+          // records it (EngineeringChat) writes the SAME message.
+          messageId: streamId,
+        },
+      };
+    } catch (error) {
+      // User-initiated cancellation is not an error: the AbortController
+      // we created fires a DOMException with name "AbortError". Return a
+      // silent cancelled response so the UI can settle without a toast.
+      const isCancelled =
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError");
+      if (isCancelled) {
+        return {
+          text: "",
+          provider: "cancelled",
+          model: "cancelled",
+          processingTime: 0,
+          metadata: { intent: "cancelled", success: false },
+        };
+      }
+
+      this.emitAction("learn", "Response failed", "error");
+      agentEvents.emit({
+        type: "task_failed",
+        taskId,
+        label: message,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      const errorText = PromptInjectionGuard.getInstance().redactSecrets(
+        error instanceof Error ? error.message : String(error),
+      );
+      // Record the failure stage in the latency trace.
+      // PromptInjectionGuard.redactSecrets() already removed tokens/keys above.
+      // Use stage "D" (Provider) since this catch wraps the entire provider path;
+      // a more specific stage would require re-throwing at each sub-boundary.
+      latencyTraceError("D=Provider", errorText || "Unknown provider error");
+
+      this.emitNotification({
+        title: "Lélu Error",
+        description: errorText,
+      });
+
+      return {
+        text: errorText || "Unknown AI error.",
+        provider: "error",
+        model: "error",
+        processingTime: 0,
+        metadata: {
+          intent: "error",
+          success: false,
+          error: errorText || "Unknown AI error.",
+        },
+      };
+    } finally {
+      if (options?.conversationId) {
+        this.convControllers.delete(options.conversationId);
+      }
+      this.releaseUserTurn();
+      this.emitThinking(false);
+      this.emitSpeaking(false);
+      this.emitListening(false);
+      // Close the turn even when the pipeline threw — a half-open trace
+      // would silently swallow the next turn's evidence.
+      trace.end();
+      this.activeTurn = null;
+    }
+  }
+
+  /** Release this turn's claim on the conversation. */
+  private releaseUserTurn(): void {
+    this.activeUserTurns = Math.max(0, this.activeUserTurns - 1);
+    this.lastUserTurnAt = Date.now();
+  }
+
+  /**
+   * Is a user turn in flight, or was one just handled?
+   *
+   * Autonomous cognition calls this and defers, so a self-study cycle
+   * never runs on top of an active conversation. The short grace period
+   * after a reply keeps LÉLU from cutting straight back into an
+   * autonomous update while the user is reading and replying.
+   */
+  public isUserTurnActive(graceMs = 8_000): boolean {
+    if (this.activeUserTurns > 0) return true;
+    return this.lastUserTurnAt > 0 && Date.now() - this.lastUserTurnAt < graceMs;
+  }
+
+  /**
+   * Keep proactive answers on the ordinary chat path without stealing new
+   * questions, commands, or unrelated requests from the user.
+   */
+  private looksLikeProactiveAnswer(message: string, questionText: string): boolean {
+    const normalized = message.trim().toLowerCase();
+    if (normalized.length < 2 || normalized.endsWith("?")) {
+      return false;
+    }
+    if (/^(what|why|how|when|where|who|can you|could you|would you|please|search|find|show|tell me|run|start|create|build|fix|pause|resume|stop)\b/.test(normalized)) {
+      return false;
+    }
+    if (/\b(i want|i prefer|i like|i love|focus on|prioritize|track|watch|work on|remember|do not|don't|yes|no|the priority|use)\b/.test(normalized)) {
+      return true;
+    }
+    // Short topic lists are common answers to the news-preference prompt.
+    if (/\b(news|technology|tech|ai|science|markets|politics|gaming|local|business|world)\b/.test(normalized) && normalized.length < 180) {
+      return true;
+    }
+    // A pending blocking decision accepts a concise directive even when it
+    // does not use a first-person phrase.
+    return questionText.length > 0 && normalized.length < 240 && !/[.!?]$/.test(normalized);
+  }
+
+  /**
+   * Delegate a task to a configured agent through the ONE runtime,
+   * provider chain, and memory path.
+   *
+   * The agent's own instructions become the system prompt; its
+   * preferred + fallback providers are honored by the ProviderResolver
+   * (tried first, then the normal priority chain); memory consolidation
+   * respects the agent's memory permission (never forced). This is the
+   * orchestration primitive LÉLU uses to hand work to specialists —
+   * chat, agents, and creative tools all share the same architecture.
+   */
+  /**
+   * A conversation was deleted: purge its session memories and the cognitive
+   * observations made in it. Durable user facts survive, with their origin
+   * intact — deleting a chat is not a request to forget the user (WP06).
+   */
+  public async forgetConversation(conversationId: string): Promise<{ memories: number; nodes: number }> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    return this.runtime.brain.forgetConversation(conversationId);
+  }
+
+  public async delegate(
+    agent: LeluAgent,
+    task: string,
+    projectContext?: string,
+    /** The turn this agent runs inside (M22.1). */
+    scope?: AgentTaskScope,
+  ): Promise<AIResponse> {
+    const message = task.trim();
+    const events = AgentEventBus.getInstance();
+    const taskId = String(Date.now());
+
+    if (!message) {
+      return {
+        text: "The task is empty — give the agent something to do.",
+        provider: "brain",
+        model: "empty-input",
+        processingTime: 0,
+        metadata: { intent: "idle", success: true },
+      };
+    }
+
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    events.emit({
+      type: "task_started",
+      taskId,
+      label: `${agent.name}: ${message.slice(0, 90)}`,
+    });
+
+    const systemContent = agentSystemPrompt(agent);
+    const request: AIRequest = {
+      messages: [
+        { role: "system", content: systemContent },
+        { role: "user", content: message },
+      ],
+      prompt: message,
+      timestamp: Number(taskId),
+      ...(scope?.conversationId ? { conversationId: scope.conversationId } : {}),
+      ...(() => {
+        const parts: string[] = [];
+        if (projectContext?.trim()) parts.push(projectContext.trim());
+        try {
+          // The agent snapshot is built for THIS invocation, or not at all.
+          // An agent with no conversation gets operational state only; it no
+          // longer receives every project and checkpoint on the install.
+          parts.push(
+            formatCognitiveContext(
+              buildCognitiveContext(
+                scope
+                  ? { userId: scope.userId, conversationId: scope.conversationId, sessionId: scope.sessionId }
+                  : undefined,
+              ),
+            ),
+          );
+        } catch { /* contained */ }
+        return parts.length > 0 ? { context: parts.join("\n\n") } : {};
+      })(),
+      ...(agent.provider
+        ? {
+            preferredProviders: [agent.provider, agent.fallbackProvider].filter(
+              (name): name is string => Boolean(name),
+            ),
+          }
+        : {}),
+    };
+
+    try {
+      // Honor the agent's DECLARED memory access on the read side too.
+      // `memoryAccess` ("none" | "read" | "read-write") was only ever
+      // consulted for WRITES below, so an agent configured with "read"
+      // (e.g. the Research Agent template) never actually received any
+      // recalled memory — its declared capability was disconnected.
+      // This reuses the ONE existing memory path (MemoryBridge.enrich,
+      // the same call the main chat route makes); it does not introduce
+      // a second retrieval route, and the agent's own system prompt is
+      // preserved because enrich() appends rather than replaces.
+      const canReadMemory = agent.memoryAccess === "read" || agent.memoryAccess === "read-write";
+      const enrichedForAgent = canReadMemory ? await this.memory.enrich(request) : null;
+
+      const response = await this.runtime.process(
+        enrichedForAgent?.request ?? request,
+        enrichedForAgent ? { recalledMemories: enrichedForAgent.memories } : undefined,
+      );
+
+      // Memory consolidation honors the agent's memory permission.
+      // A read-only agent never writes; a read-write agent learns the
+      // same way the main dialogue does (through the ONE memory path).
+      if (agent.permissions.canWriteMemory && agent.memoryAccess === "read-write") {
+        // An agent's report is DERIVED material about its own work, never the
+        // user's words; it is stored with that provenance and the run's scope.
+        await this.memory.learn(message, response.text, taskId, request.conversationId, {
+          sourceType: "agent-reported",
+        });
+      }
+
+      // LÉLU always remembers that the agent worked, so cognition can
+      // reference agent activity later — without persisting agent task
+      // content when the agent is read-only.
+      await this.runtime.brain.rememberSystem(
+        `Agent "${agent.name}" (${agent.role || "specialist"}) completed a task: ${message.slice(0, 140)}.`,
+        ["agent", agent.name.toLowerCase(), "task", "delegation"],
+      );
+
+      events.emit({ type: "task_completed", taskId, label: `${agent.name} finished` });
+
+      return response;
+    } catch (error) {
+      const messageText = error instanceof Error ? error.message : String(error);
+      events.emit({
+        type: "task_failed",
+        taskId,
+        label: `${agent.name} failed`,
+        error: messageText,
+      });
+      return {
+        text: messageText || "Agent execution failed.",
+        provider: "error",
+        model: "error",
+        processingTime: 0,
+        metadata: { intent: "error", success: false, error: messageText },
+      };
+    }
+  }
+
+  /**
+   * Consult the Executive Board when the user addresses an executive.
+   * Returns the executive's grounded guidance as a context string, or
+   * an empty string for ordinary conversation. No second brain — the
+   * board maps directly to the existing runtime systems.
+   */
+  private resolveExecutiveConsult(message: string): string {
+    const lower = message.toLowerCase();
+    const board = ExecutiveBoard.getInstance();
+
+    if (/\b(ma.?at|sentinel|security|protect|vulnerab|permission)\b/.test(lower)) {
+      return this.formatConsult(board.consult("maat", message));
+    }
+    if (/\b(architect|architecture|dependency|coherence)\b/.test(lower)) {
+      return this.formatConsult(board.consult("architect", message));
+    }
+    if (
+      /\b(engineering|engineer|build|implement|integration|deploy)\b/.test(lower) &&
+      /\b(system|architecture|api|infrastructure|pipeline|workspace)\b/.test(lower)
+    ) {
+      return this.formatConsult(board.consult("engineering", message));
+    }
+    if (/\b(agent forge|forge|create an? agent|new agent|specialist|swarm)\b/.test(lower)) {
+      return this.formatConsult(board.consult("forge", message));
+    }
+    return "";
+  }
+
+  private formatConsult(consultation: BoardConsultation): string {
+    return `[${consultation.executiveName} engaged — autonomy L${consultation.securityLevel}] ${consultation.guidance}`;
+  }
+
+  /**
+   * Engage Caretaker's health/bioengineering intelligence when a request
+   * is health- or biology-related. Adds evidence grading, safety framing,
+   * the bioengineering workflow and biosecurity redirects as context —
+   * never a second brain, never a clinical claim.
+   */
+  private resolveCaretakerConsult(message: string): string {
+    const health = HealthIntelligence.getInstance();
+    const consultation = health.consult(message);
+    const hasHealthData = health.assessHealthData(message).isHealthData;
+    const engaged = consultation.domain !== "general" || hasHealthData;
+    if (!engaged) {
+      return "";
+    }
+
+    const parts = [
+      `[Caretaker — ${consultation.domainLabel} · evidence grade: ${consultation.evidenceGrade}]`,
+      consultation.framing,
+    ];
+    if (consultation.workflow) {
+      parts.push(`Workflow: ${consultation.workflow.join(" → ")}`);
+    }
+    if (consultation.safetyNote) {
+      parts.push(`⚠ ${consultation.safetyNote}`);
+    }
+    return parts.join("\n");
+  }
+
+  /**
+   * Detect "delegate X to <agent>" style requests against the real
+   * configured agents. Returns the matched agent and the extracted task,
+   * or null when the message is a normal conversation.
+   */
+  private resolveDelegation(message: string): { agent: LeluAgent; task: string } | null {
+    const patterns = [
+      /^delegate\s+(.+?)\s+to\s+(.+)$/i,
+      /^(?:ask|have|tell)\s+(?:the\s+)?(.+?)\s+(?:to|about)\s+(.+)$/i,
+      /^use\s+(.+?)\s+for\s+(.+)$/i,
+      /^send\s+(.+?)\s+to\s+(.+)$/i,
+    ];
+    const agents = AgentStore.getInstance().runnable();
+    if (agents.length === 0) {
+      return null;
+    }
+    for (const pattern of patterns) {
+      const match = message.trim().match(pattern);
+      if (!match) {
+        continue;
+      }
+      const first = match[1].trim();
+      const second = match[2].trim();
+      // Try [agent, task] then [task, agent] — the sentence can phrase
+      // either way ("delegate X to the designer" / "have the designer to X").
+      const attempts: [string, string][] = [
+        [first, second],
+        [second, first],
+      ];
+      for (const [agentPart, taskPart] of attempts) {
+        const clean = agentPart.toLowerCase().replace(/^(?:the\s+)?(?:agent\s+)?/, "");
+        const agent = agents.find((item) => item.name.toLowerCase() === clean);
+        if (agent && taskPart.length > 0) {
+          return { agent, task: taskPart };
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Read-only snapshot of stored long-term memories, newest
+   * first, for the Memory panel. Safe to poll — it never
+   * mutates state and never throws.
+   */
+  public async getMemories(limit = 200): Promise<
+    { id: string; category: string; prompt: string; response: string; confidence: number; timestamp: number }[]
+  > {
+    if (!this.initialized) {
+      return [];
+    }
+
+    try {
+      const patterns = await this.runtime.brain.recallAll();
+      return patterns
+        .slice()
+        .sort((a: any, b: any) => (b.updatedAt ?? b.timestamp ?? 0) - (a.updatedAt ?? a.timestamp ?? 0))
+        .slice(0, limit)
+        .map((pattern: any) => ({
+          id: pattern.id,
+          category: pattern.category ?? "general",
+          prompt: pattern.prompt ?? "",
+          response: pattern.response ?? "",
+          confidence: pattern.confidence ?? 0,
+          timestamp: pattern.updatedAt ?? pattern.timestamp ?? Date.now(),
+        }));
+    } catch (error) {
+      console.error("[AIService] Failed to read memories", error);
+      return [];
+    }
+  }
+
+  /**
+   * COGNITION → PROVIDER CHAIN.
+   *
+   * Reason over a prompt that did not come from the user. Runs the
+   * SAME priority-ordered provider fallback the chat pipeline uses
+   * (one ProviderResolver, one AIProviderRegistry) but skips the
+   * conversational resolvers, so a self-study objective is answered
+   * as reasoning rather than re-routed as a search or a command.
+   *
+   * A provider failure is not a cognition failure: the chain moves to
+   * the next authorized provider by itself, and if every one fails the
+   * result comes back with `metadata.success === false` instead of
+   * throwing — the caller keeps its state and continues.
+   */
+  /**
+   * Autonomous deliberation — the SAME decision path as a chat turn,
+   * entered without a user message.
+   *
+   * This is deliberately reason()'s route (straight to ProviderResolver,
+   * so the intent resolvers do not claim the turn) with tools ENABLED,
+   * which means the decision is made by the existing native tool loop:
+   * the model reasons over the capability surface cognition already
+   * assembles and chooses to answer, call a tool, run a workflow, ask
+   * for something, or do nothing. There is no second cognition here and
+   * no rule engine — only the existing loop, reached from a trigger
+   * that is not a user typing.
+   */
+  public async deliberate(
+    prompt: string,
+    options: { system?: string; maxTokens?: number } = {},
+  ): Promise<AIResponse> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    // The prompt travels as `prompt` ONLY. Every provider appends it as the
+    // trailing user turn (trailingUserTurn), so also putting it in `messages`
+    // sent the whole thing twice — measured at 91,463 duplicated characters
+    // per planning call, which doubled the request and got it refused.
+    const messages = [
+      ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
+    ];
+    try {
+      return await this.runtime.reason({
+        messages,
+        prompt,
+        // The one thing that differs from reason(): autonomous work is
+        // allowed to act, not only to conclude.
+        allowTools: true,
+        maxTokens: options.maxTokens ?? 2048,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      return {
+        text: "",
+        provider: "error",
+        model: "deliberate",
+        processingTime: 0,
+        metadata: {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  public async reason(
+    prompt: string,
+    options: { system?: string; model?: string; temperature?: number; maxTokens?: number } = {},
+  ): Promise<AIResponse> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    // Same rule as deliberate(): the prompt is the trailing turn the provider
+    // adds. Duplicating it here doubled every internal reasoning request.
+    const messages = [
+      ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
+    ];
+
+    // The planner's catalogue of every tool schema is the one internal prompt
+    // that outgrows a provider's context. It is fitted here, at the seam where
+    // the request is actually dispatched, so no planning logic changes shape.
+    const planning = /task planner/i.test(options.system ?? "");
+    const fittedPrompt = planning ? fitPlannerPrompt(prompt) : prompt;
+
+    try {
+      return await this.runtime.reason({
+        messages,
+        prompt: fittedPrompt,
+        model: options.model,
+        temperature: options.temperature,
+        maxTokens: options.maxTokens,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      // The resolver already contains provider failures; anything that
+      // escapes here is a runtime fault, and cognition still continues.
+      return {
+        text: "",
+        provider: "offline",
+        model: "offline",
+        processingTime: 0,
+        metadata: {
+          success: false,
+          reason: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  /**
+   * Recall from the ONE memory implementation (Brain → MemoryEngine).
+   * Used by cognition to retrieve relevant memory before reasoning.
+   * Never throws — an empty recall is a valid answer.
+   */
+  public async recall(query: string): Promise<{ prompt: string; response: string; confidence: number }[]> {
+    if (!this.initialized) {
+      return [];
+    }
+    try {
+      const patterns = await this.runtime.brain.recall(query);
+      return patterns.map((pattern) => ({
+        prompt: pattern.prompt ?? "",
+        response: pattern.response ?? "",
+        confidence: pattern.confidence ?? 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Consolidate a durable learning into long-term memory through the
+   * existing Brain — no second memory system. `kind` picks the layer
+   * the Brain already maintains: "knowledge" for what she learned about
+   * the world, "system" for what she learned about herself.
+   */
+  /**
+   * The Brain's own reflection over long-term memory (themes, insights,
+   * priorities). Null when the runtime has not initialised: reflection
+   * never boots the runtime as a side effect.
+   */
+  public async reflectOnMemory(): Promise<Awaited<ReturnType<AIRuntime["brain"]["reflect"]>> | null> {
+    if (!this.initialized) return null;
+    try {
+      return await this.runtime.brain.reflect();
+    } catch {
+      return null;
+    }
+  }
+
+  /** The chat turn in flight, if any — what cancelActiveTurn() stops. */
+  private activeTurn: AbortController | null = null;
+
+  /**
+   * Stop the current chat turn: the in-flight model request is aborted
+   * (where the provider supports it), no further tool runs, and the turn
+   * resolves with what already ran. Background tasks are separate — stop
+   * those with TaskExecutor.cancel(taskId). Returns false when idle.
+   */
+  public cancelActiveTurn(reason = "stopped by the user"): boolean {
+    const turn = this.activeTurn;
+    if (!turn || turn.signal.aborted) return false;
+    turn.abort(reason);
+    return true;
+  }
+
+  public isTurnActive(): boolean {
+    return Boolean(this.activeTurn && !this.activeTurn.signal.aborted);
+  }
+
+  public async consolidate(
+    kind: "knowledge" | "system",
+    summary: string,
+    keywords: string[],
+  ): Promise<boolean> {
+    if (!this.initialized) {
+      return false;
+    }
+    try {
+      if (kind === "system") {
+        await this.runtime.brain.rememberSystem(summary, keywords);
+      } else {
+        await this.runtime.brain.rememberKnowledge(summary, keywords);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Read-only snapshot of every registered AI provider and
+   * knowledge/research provider, for the Providers panel.
+   */
+  public getProviders(): {
+    ai: ReturnType<AIRuntime["aiProviderList"]>;
+    knowledge: ReturnType<AIRuntime["knowledgeProviderList"]>;
+  } {
+    return {
+      ai: this.runtime.aiProviderList(),
+      knowledge: this.runtime.knowledgeProviderList(),
+    };
+  }
+
+  public async getProviderHealth() {
+    return await this.runtime.aiProviderHealthList();
+  }
+
+  /**
+   * Expose the knowledge-provider registry so cognition and the
+   * cognitive loop can invoke providers directly (research, health
+   * checks, capability validation). The SAME registry the chat
+   * pipeline uses — no duplicate provider system.
+   */
+  /** The runtime's own router context, for a tool call outside a turn. Null until initialized. */
+  public toolContext(
+    prompt: string,
+    scope?: { conversationId?: string | null },
+  ): import("./router/RouterContext").default | null {
+    return this.initialized ? this.runtime.toolContext(prompt, scope ?? undefined) : null;
+  }
+
+  public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
+    return this.runtime.core.getKnowledgeProviders();
+  }
+
+  /**
+   * The ONE AI provider registry — the same instance the chat pipeline
+   * and cognition both resolve through. Exposed so the Providers panel
+   * and the integration verification can inspect real registry state
+   * (priority order, failures, cooldowns, which provider actually
+   * answered) instead of inferring it. There is no second registry.
+   */
+  public getAIProviderRegistry(): import("./AIProviderRegistry").default {
+    return this.runtime.core.getAIProviders();
+  }
+
+  /**
+   * Combined, read-only API Status snapshot for the API Status
+   * tab: live registry runtime state (active provider, per-provider
+   * last success/failure/cooldown/usage) plus each provider's own
+   * health report and the knowledge/research provider list.
+   * Never contains credentials — only safe status diagnostics.
+   */
+  public async getApiStatus(): Promise<{
+    activeProvider: string | null;
+    runtime: ReturnType<AIRuntime["aiProviderRuntimeStatus"]>;
+    health: Awaited<ReturnType<AIRuntime["aiProviderHealthList"]>>;
+    knowledge: ReturnType<AIRuntime["knowledgeProviderList"]>;
+  }> {
+    let health: Awaited<ReturnType<AIRuntime["aiProviderHealthList"]>> = [];
+    try {
+      health = await this.runtime.aiProviderHealthList();
+    } catch (error) {
+      console.error("[AIService] Provider health check failed", error);
+    }
+
+    const runtime = this.runtime.aiProviderRuntimeStatus();
+
+    return {
+      activeProvider: runtime.activeProvider,
+      runtime,
+      health,
+      knowledge: this.runtime.knowledgeProviderList(),
+    };
+  }
+
+  /**
+   * Read-only execution trace of the request pipeline, for the
+   * Logs panel — one entry per stage per request.
+   */
+  public getExecutionLogs() {
+    return this.runtime.executionLogs();
+  }
+
+  /**
+   * Provider fallback-chain health. `inspect()` never touches the
+   * network; `verifyLive()` makes REAL requests and is what production
+   * should call when credentials exist. Neither ever reports a
+   * missing API key as a healthy provider.
+   */
+  public providerHealth() {
+    return this.runtime.providerHealth();
+  }
+
+  /**
+   * Local-first model/hardware routing snapshot (hardware tier,
+   * offline mode, model catalog, degraded state) for the Settings
+   * panel. Never contains credentials.
+   */
+  public modelSystemStatus() {
+    return this.runtime.modelSystemStatus();
+  }
+
+  /** Persist and apply the explicit LOCAL / OFFLINE mode switch. */
+  public setOfflineMode(enabled: boolean): void {
+    this.runtime.setOfflineMode(enabled);
+  }
+
+  public isOfflineMode(): boolean {
+    return this.runtime.isOfflineMode();
+  }
+
+  /**
+   * Full live local runtime status — hardware, backends, all 13
+   * capabilities, job queue, and offline mode — probed from the
+   * actual companion runtimes. Same source the settings panel
+   * renders; never fakes availability.
+   */
+  public async localRuntimeStatus() {
+    return await this.runtime.localRuntimeStatus();
+  }
+
+  /**
+   * Read-only snapshot of every registered device/native capability
+   * and its REAL availability + permission state — the Device panel
+   * and LÉLU's cognition both read from this same source. Never throws.
+   */
+  public async nativeCapabilities(): Promise<CapabilityStatus[]> {
+    try {
+      registerAllNativeCapabilities();
+    } catch {
+      // registration already happened or is failing — snapshot below
+      // still returns what it can.
+    }
+    try {
+      return await this.native.snapshot();
+    } catch (error) {
+      console.error("[AIService] Capability snapshot failed", error);
+      return [];
+    }
+  }
+
+  /**
+   * Execute a device/native capability through its REAL path
+   * (availability + permission gating). Emits the same agent events
+   * the workspace renders, and consolidates a durable memory of the
+   * action through the EXISTING memory path. Never fakes success.
+   */
+  public async runCapability(
+    id: string,
+    payload: Record<string, unknown> = {},
+  ): Promise<CapabilityResult> {
+    try {
+      registerAllNativeCapabilities();
+    } catch {
+      // ignore — invoke below reports unknown capability honestly
+    }
+
+    const events = AgentEventBus.getInstance();
+    const taskId = String(Date.now());
+    events.emit({ type: "tool_selected", taskId, tool: "device", label: id });
+    events.emit({ type: "tool_started", taskId, tool: "device", label: id });
+
+    const result = await this.native.invoke(id, payload);
+
+    events.emit({
+      type: "tool_result",
+      taskId,
+      tool: "device",
+      result: result.ok ? `${id} completed` : `${id} failed: ${result.error ?? "unknown error"}`,
+    });
+
+    // Remember the outcome through the ONE memory path so future
+    // cognition knows what this device can and cannot do.
+    try {
+      if (result.ok) {
+        await this.runtime.brain.rememberSystem(
+          `Device capability "${id}" executed successfully${result.error ? `: ${result.error}` : ""}.`,
+          ["device", "capability", id.split(".")[0] ?? id],
+        );
+      } else {
+        await this.runtime.brain.rememberSystem(
+          `Device capability "${id}" is unavailable: ${result.error ?? "unknown reason"}.`,
+          ["device", "capability", "unavailable", id.split(".")[0] ?? id],
+        );
+      }
+    } catch {
+      // memory write must never fail a capability call
+    }
+
+    return result;
+  }
+
+  public ready(): boolean {
+    return this.runtime.isReady();
+  }
+
+  public async shutdown(): Promise<void> {
+    if (!this.initialized) {
+      return;
+    }
+
+    await this.runtime.shutdown();
+    this.initialized = false;
+  }
+}

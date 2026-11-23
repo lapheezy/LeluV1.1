@@ -1,0 +1,41 @@
+{
+  "mission": "LÉLU 2.3 — performance and regression",
+  "executedAt": "2026-11-19",
+  "baseline_confirmed": {
+    "M22": "28/28",
+    "M22.1": "18/18",
+    "M22.2": "19/19",
+    "M22.3_scene_flag": "3/3",
+    "boundary_batch": "68/68",
+    "previous_full_suite": "2,373 tests, 2,363 pass, 2 fail"
+  },
+  "full_suite": {
+    "command": "npm test",
+    "tests": 2376,
+    "pass": 2366,
+    "fail": 2,
+    "failures": [
+      "tests/genesis-interface.test.tsx — CSS export unavailable in this test environment (documented before M22.2)",
+      "tests/sandbox-security.test.ts — “network: TCP, UDP, DNS and fetch all fail” (no outbound network from this sandbox; documented before M22.2)"
+    ],
+    "verdict": "no unexplained new failure"
+  },
+  "typecheck": {
+    "command": "NODE_OPTIONS=--max-old-space-size=3072 npx tsc -p tsconfig.app.json --noEmit",
+    "new_errors": 0,
+    "pre_existing": [
+      "src/core/perception/FeatureUnderstanding.ts(455,20): TS18047",
+      "src/core/perception/FeatureUnderstanding.ts(455,20): TS2365"
+    ]
+  },
+  "intermediate_run": {
+    "what": "a first full run while the Vite dev server and the automation browser were still running",
+    "result": "2,376 tests, 2,363 pass, 5 fail",
+    "extra_failures": [
+      "chat-surface.test.ts “the router renders no scene while chat owns the screen” — a real regression from this mission's gate rename; fixed by keeping one `sceneRendered` condition and updating the assertion",
+      "capability-ledger.test.ts and forge.test.ts — both pass when the dev server is not competing for the machine; they are timing-sensitive and were not caused by this change"
+    ],
+    "resolution": "the gate regression was fixed; the two timing failures were re-run in isolation and passed; the clean full run above is the reported result"
+  },
+  "note": "The scene flag is development-only and compiled out of production; the full suite therefore exercises the same production code paths as before."
+}

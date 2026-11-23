@@ -229,6 +229,20 @@ export interface AIRequest {
     string;
 
 
+  /**
+   * LÉLU's voice for THIS turn — the rendered linguistic and
+   * personality directive from VoiceComposer.
+   *
+   * Set by MemoryBridge.enrich (the canonical enrichment point) and
+   * read by every provider through leluSystemPrompt(request), so her
+   * identity reaches whichever model answers. Absent on internal
+   * non-conversational calls, which then get the base voice contract
+   * only. Never sent to a provider as a raw field.
+   */
+  voice?:
+    string;
+
+
 
   /**
    * Timestamp of request.

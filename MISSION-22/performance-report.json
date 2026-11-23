@@ -1,0 +1,72 @@
+{
+  "mission": "LÉLU 2.2 — memory sovereignty performance",
+  "measuredAt": "2026-11-19T13:48:56.269Z",
+  "environment": "Node (same tsx runtime as tests), synthetic store, no model calls",
+  "corpus": {
+    "memories": 500,
+    "conversations": 20,
+    "prompts": 6
+  },
+  "results": {
+    "recallScoped": {
+      "samples": 180,
+      "meanMs": 0.056,
+      "p95Ms": 0.108,
+      "maxMs": 0.509
+    },
+    "recallUnscoped": {
+      "samples": 180,
+      "meanMs": 0.047,
+      "p95Ms": 0.098,
+      "maxMs": 0.327
+    },
+    "scopeFilterOverheadMeanMs": 0.009,
+    "authorize": {
+      "samples": 180,
+      "meanMs": 0.069,
+      "p95Ms": 0.106,
+      "maxMs": 5.144
+    },
+    "readProvenance": {
+      "samples": 180,
+      "meanMs": 0.001,
+      "p95Ms": 0.002,
+      "maxMs": 0.007
+    },
+    "eligibility": {
+      "samples": 180,
+      "meanMs": 0.001,
+      "p95Ms": 0.002,
+      "maxMs": 0.004
+    },
+    "synthesis": {
+      "samples": 180,
+      "meanMs": 0.023,
+      "p95Ms": 0.045,
+      "maxMs": 0.672
+    },
+    "provenanceNote": {
+      "samples": 180,
+      "meanMs": 0.001,
+      "p95Ms": 0.002,
+      "maxMs": 0.045
+    },
+    "labellingPlusNote": {
+      "samples": 180,
+      "meanMs": 0.002,
+      "p95Ms": 0.005,
+      "maxMs": 0.048
+    }
+  },
+  "tokenOverhead": {
+    "noteOnlyWhenLabelled": true,
+    "noteChars": 486,
+    "noteCharsWhenClean": 0,
+    "labelCharsHistorical": 23,
+    "labelCharsInferred": 11
+  },
+  "notes": [
+    "The scoped recall includes the eligibility filter; the unscoped recall is the pre-2.2 behaviour and is measured only to quantify the filter's cost.",
+    "All figures are microseconds-to-milliseconds on a 500-memory store; none of them is a provider-latency contributor."
+  ]
+}

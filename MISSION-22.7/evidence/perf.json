@@ -1,0 +1,18 @@
+{
+  "kind": "in-process measurement, fake Supabase client (no network)",
+  "at": "2026-11-20T18:03:32.171Z",
+  "results": {
+    "adoptRemote_1000ids_ms": 0.475,
+    "record_1000_tombstones_ms": 8.041,
+    "fingerprintFor_ms": 0.316,
+    "queueRemote_200_ms": 10.727,
+    "outbox_cap": 200,
+    "guard_scrub_4line_ms": 0.016,
+    "guard_scrub_200line_ms": 1.014,
+    "guard_scrubDeep_payload_ms": 0.108,
+    "scrubDeep_quoteStillPresent": 0,
+    "hydration_filter_5000rows_ms": 0.305,
+    "flush_50_failing_entries_ms": 4.419,
+    "flush_50_clearing_entries_ms": 1.425
+  }
+}

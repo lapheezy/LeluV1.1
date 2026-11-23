@@ -1,0 +1,37 @@
+{
+  "mission": "LÉLU 2.3 — browser test environment",
+  "branch": "freebuff/m22-3-genesischat-browser-acceptance",
+  "base": "15528aa (M22.2 hash record, remote-verified)",
+  "verifiedAt": "2026-11-19",
+  "problem": "GenesisScene mounts the 3D cosmic world (three WebGL canvases) at the entry route. In the cloud VM the renderer is software, the scene keeps painting at a device-limited rate, and the CDP automation connection time-stalls before a conversation can be driven.",
+  "measured_before": {
+    "canvases_at_load": 3,
+    "cdp": "browserType.connectOverCDP timed out at 10 s twice during the first attempt; a click on the sign-in gate hung after scrolling into view"
+  },
+  "mechanism": {
+    "name": "?scene=off (development only)",
+    "file": "src/app/scene/genesis/sceneTestMode.ts",
+    "rule": "IS_DEV && URLSearchParams(location.search).get('scene') === 'off'",
+    "applied_in": "GenesisScene.tsx → GenesisWorkspaceRouter, the same branch that already renders no scene when chat owns a phone screen",
+    "production": "IS_DEV is inlined false in a production build, so the flag cannot be reached by a link; an automated test asserts sceneDisabledBySearch('?scene=off', false) === false",
+    "what_remains_real": [
+      "GenesisScene (the route component)",
+      "GenesisInterface (dock, chat, panel, modules)",
+      "GenesisChat / Chat Universe and its composers",
+      "GenesisCore conversation state",
+      "MultiChatStore persistence (IndexedDB)",
+      "MemorySovereignty, WorkspaceManager, ContextAuthorization",
+      "buildCognitiveContext and its scoped assembly",
+      "the provider path through the same-origin /api/model broker and Groq",
+      "the memory, cognition and agent bridges"
+    ],
+    "what_is_disabled": "only the visual workspace beneath the interface: the WebGL canvases, the 3D controller, the sky backdrop and the phase HUD that live inside GenesisV1Workspace",
+    "not_mocked": "no store, no memory path, no provider, no chat behaviour and no authorization check is replaced"
+  },
+  "evidence": {
+    "canvases_with_flag": 0,
+    "canvases_after_reload_1280x800": 0,
+    "unit_test": "tests/scene-test-mode.test.ts — 3/3"
+  },
+  "limitation": "The screenshot of the sign-in gate was taken before the flag existed and before an account was created; the acceptance run continued without an account, so no identity is claimed beyond an anonymous browser session."
+}

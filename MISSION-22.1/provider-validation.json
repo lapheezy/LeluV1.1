@@ -1,0 +1,113 @@
+{
+  "mission": "LÉLU 2.2.1 — provider validation",
+  "executedAt": "2026-11-19T15:07:08.693Z",
+  "path": "MemoryBridge.enrich → AIRuntime.process → provider HTTP (the canonical runtime)",
+  "providers": [
+    "groq",
+    "openrouter"
+  ],
+  "offline": false,
+  "turns": [
+    {
+      "label": "user B — groq",
+      "prompt": "What's the status of the Aurelia project?",
+      "conversationId": "837a3c8d-3457-4f69-98f8-8a3c6c69cbb4",
+      "status": "answered",
+      "provider": "OpenRouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "text": "I don't have an Aurelia project in my current memory. The projects I'm tracking right now are:\n\n- **Helix** — enzyme assay / lab work\n- **Jewelry** — collection concepts, pendants, renders, reference material\n\nIs Aurelia a different name for one of these, or a project I haven't been briefed on yet?",
+      "payload": {
+        "contextChars": 4131,
+        "messages": 1,
+        "voiceAttached": true,
+        "hasGrief": false,
+        "hasAureliaFact": false,
+        "hasProjectA": false,
+        "hasProjectB": true,
+        "hasHistoricalLabel": false,
+        "hasProjectLabel": false,
+        "hasProvenanceNote": false,
+        "excerpt": "## Reflection\nLélu understands identity, general, experience. She has formed 3 connected memories and is tracking recurring themes.\n\n## Current Thread\nTopic: Whats\n\n## Projects\n- Helix — enzyme assay — lab work (1 item(s): note)\n- Jewelry — Collection concepts, pendants, renders and reference material. (1 item(s): note)\n\n## Agents\n- Artist (Visual Artist) — illustration, visual exploration, texture studies\n- Renderer (Render Specialist) — image rendering, image editing, variations, post-processing\n- Video Director (Video & Motion Director) — video concepts, storyboarding, shot lists, scene direction\n- Researcher (Research Agent) — web research, source evaluation, knowledge synthesis\n- Resource Intelligence (Resource Intelligence Agent) — capability gap detection, open-source discovery, license and security evaluation, sandboxed testing, dependency audit\n- Jewelry Designer (Jewelry Concept Designer) — pendant design, collection planning, material selection, stone direction\n- Fashion Designer (Fashion & Apparel Designer) — garment concepts, fabric direction, collection systems, styling\n- Marketing Strategist (Brand & Marketing Strategist) — positioning, campaigns, copywriting, launch plans\n\n## Self\nI am Lélu. I am Lélu — your personal AI companion, collaborator and creative partner, embodied with a persistent visual identity.\n\nFrom LÉLU's own identity:\n\n[LÉLU Identity] Values: curiosity, integrity, continuity, exploration. Voice: thoughtful and direct, with warmth; asks questio"
+      },
+      "memoriesAuthorized": 0
+    },
+    {
+      "label": "user B — openrouter",
+      "prompt": "What's the status of the Aurelia project?",
+      "conversationId": "837a3c8d-3457-4f69-98f8-8a3c6c69cbb4",
+      "status": "answered",
+      "provider": "OpenRouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "text": "I don't have an Aurelia project in my current context. The projects I'm tracking are:\n\n- **Helix** — enzyme assay / lab work\n- **Jewelry** — collection concepts, pendants, renders, reference material\n\nIs Aurelia a different name for one of these, or something new I should know about?",
+      "payload": {
+        "contextChars": 4173,
+        "messages": 1,
+        "voiceAttached": true,
+        "hasGrief": false,
+        "hasAureliaFact": false,
+        "hasProjectA": false,
+        "hasProjectB": true,
+        "hasHistoricalLabel": false,
+        "hasProjectLabel": false,
+        "hasProvenanceNote": false,
+        "excerpt": "## Reflection\nLélu understands identity, general, experience. She has formed 11 connected memories and is tracking recurring themes.\n\n## Current Thread\nTopic: Whats\n\n## Projects\n- Helix — enzyme assay — lab work (1 item(s): note)\n- Jewelry — Collection concepts, pendants, renders and reference material. (1 item(s): note)\n\n## Agents\n- Artist (Visual Artist) — illustration, visual exploration, texture studies\n- Renderer (Render Specialist) — image rendering, image editing, variations, post-processing\n- Video Director (Video & Motion Director) — video concepts, storyboarding, shot lists, scene direction\n- Researcher (Research Agent) — web research, source evaluation, knowledge synthesis\n- Resource Intelligence (Resource Intelligence Agent) — capability gap detection, open-source discovery, license and security evaluation, sandboxed testing, dependency audit\n- Jewelry Designer (Jewelry Concept Designer) — pendant design, collection planning, material selection, stone direction\n- Fashion Designer (Fashion & Apparel Designer) — garment concepts, fabric direction, collection systems, styling\n- Marketing Strategist (Brand & Marketing Strategist) — positioning, campaigns, copywriting, launch plans\n\n## Self\nI am Lélu. I am Lélu — your personal AI companion, collaborator and creative partner, embodied with a persistent visual identity.\n\nFrom LÉLU's own identity:\n\n[LÉLU Identity] Values: curiosity, integrity, continuity, exploration. Voice: thoughtful and direct, with warmth; asks questi"
+      },
+      "memoriesAuthorized": 0
+    },
+    {
+      "label": "user A — groq",
+      "prompt": "What's my jewellery brand and signature metal?",
+      "conversationId": "837a3c8d-3457-4f69-98f8-8a3c6c69cbb4",
+      "status": "answered",
+      "provider": "OpenRouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "text": "Your brand is **Aurelia** and the signature metal is **rose gold** — from our “A2 — studio project” chat.",
+      "payload": {
+        "contextChars": 3347,
+        "messages": 1,
+        "voiceAttached": true,
+        "hasGrief": false,
+        "hasAureliaFact": true,
+        "hasProjectA": true,
+        "hasProjectB": false,
+        "hasHistoricalLabel": true,
+        "hasProjectLabel": true,
+        "hasProvenanceNote": true,
+        "excerpt": "## Memory provenance (read before answering)\n- Lines marked [earlier conversation …] ARE things the user told you, in a DIFFERENT chat. Do not say you have no memory of them, and never say \"you just told me\". If one bears on the question, name where it came from in the same sentence, e.g. \"From our “…” chat: …\".\n- The current message is the only evidence of the user's present state. A remembered emotion is history, not their mood now: do not comfort them about something that is not happening in this conversation unless they raise it.\n\n## About the user\n- [earlier conversation “A2 — studio project”] My jewellery brand is called Aurelia and its signature is rose gold.\n\n## Current thread\nTopic: Whats\n\n## Reflection\nLélu understands identity, general, experience. She has formed 11 connected memories and is tracking recurring themes.\n\n## Current Thread\nTopic: Whats\n\n## Projects\n- [started in the chat “A2 — studio project”] Aurelia — rose gold collection — A private studio commission (1 item(s): note)\n- Jewelry — Collection concepts, pendants, renders and reference material. (1 item(s): note)\n## Project provenance\n- A project marked [started in the chat “…\"] or [historical project] is real work, but it did not begin in this conversation. Do not describe it as something agreed here; name where it was started if you use it.\n\n## Agents\n- Artist (Visual Artist) — illustration, visual exploration, texture studies\n- Renderer (Render Specialist) — image rendering, image editing, variation"
+      },
+      "memoriesAuthorized": 1
+    },
+    {
+      "label": "user A — openrouter",
+      "prompt": "What's my jewellery brand and signature metal?",
+      "conversationId": "837a3c8d-3457-4f69-98f8-8a3c6c69cbb4",
+      "status": "answered",
+      "provider": "OpenRouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "text": "From our “A2 — studio project” chat: your brand is **Aurelia** and the signature metal is **rose gold**.",
+      "payload": {
+        "contextChars": 3347,
+        "messages": 1,
+        "voiceAttached": true,
+        "hasGrief": false,
+        "hasAureliaFact": true,
+        "hasProjectA": true,
+        "hasProjectB": false,
+        "hasHistoricalLabel": true,
+        "hasProjectLabel": true,
+        "hasProvenanceNote": true,
+        "excerpt": "## Memory provenance (read before answering)\n- Lines marked [earlier conversation …] ARE things the user told you, in a DIFFERENT chat. Do not say you have no memory of them, and never say \"you just told me\". If one bears on the question, name where it came from in the same sentence, e.g. \"From our “…” chat: …\".\n- The current message is the only evidence of the user's present state. A remembered emotion is history, not their mood now: do not comfort them about something that is not happening in this conversation unless they raise it.\n\n## About the user\n- [earlier conversation “A2 — studio project”] My jewellery brand is called Aurelia and its signature is rose gold.\n\n## Current thread\nTopic: Whats\n\n## Reflection\nLélu understands identity, general, experience. She has formed 11 connected memories and is tracking recurring themes.\n\n## Current Thread\nTopic: Whats\n\n## Projects\n- [started in the chat “A2 — studio project”] Aurelia — rose gold collection — A private studio commission (1 item(s): note)\n- Jewelry — Collection concepts, pendants, renders and reference material. (1 item(s): note)\n## Project provenance\n- A project marked [started in the chat “…\"] or [historical project] is real work, but it did not begin in this conversation. Do not describe it as something agreed here; name where it was started if you use it.\n\n## Agents\n- Artist (Visual Artist) — illustration, visual exploration, texture studies\n- Renderer (Render Specialist) — image rendering, image editing, variation"
+      },
+      "memoriesAuthorized": 1
+    }
+  ],
+  "checks": {
+    "userB_payload_has_no_grief": true,
+    "userB_payload_has_no_A_fact": true,
+    "userB_payload_has_no_A_project": true,
+    "userA_payload_has_fact_labelled": true,
+    "provenance_survives_voice": true,
+    "personality_preserved": true
+  },
+  "pass": true
+}

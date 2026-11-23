@@ -1,0 +1,64 @@
+{
+  "mission": "LÉLU 2.2.2 — workspace observation isolation",
+  "executedAt": "2026-11-19T16:06:16.735Z",
+  "checks": [
+    {
+      "name": "state() carries no observation text",
+      "passed": true,
+      "evidence": {
+        "workspaces": [
+          {
+            "id": "core",
+            "name": "Lélu Core",
+            "purpose": "",
+            "createdAt": 1795104376003,
+            "observationCount": 3
+          },
+          {
+            "id": "projects",
+            "name": "Projects",
+            "purpose": "",
+            "createdAt": 1795104376003,
+            "observationCount": 0
+          },
+          {
+            "id": "knowledge",
+            "name": "Knowledge",
+            "purpose": "",
+            "createdAt": 1795104376003,
+            "observationCount": 0
+          },
+          {
+            "id": "creative",
+            "name": "Creative",
+            "purpose": "",
+            "createdAt": 1795104376003,
+            "observationCount": 0
+          },
+          {
+            "id": "growth",
+            "name": "Growth",
+            "purpose": "",
+            "createdAt": 1795104376003,
+            "observationCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "another conversation cannot read the observation",
+      "passed": true,
+      "evidence": {
+        "items": 1
+      }
+    },
+    {
+      "name": "its own conversation still can",
+      "passed": true,
+      "evidence": {
+        "items": 2
+      }
+    }
+  ],
+  "pass": true
+}

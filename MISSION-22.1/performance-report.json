@@ -1,0 +1,96 @@
+{
+  "mission": "LÉLU 2.2.1 — performance",
+  "executedAt": "2026-11-19T15:09:57.969Z",
+  "method": "in-process, Node 22, performance.now(); no provider network time is included",
+  "baselineM22": {
+    "eligibilityPerRecallMs": 0.009,
+    "authorizationMeanMs": 0.069,
+    "authorizationP95Ms": 0.106,
+    "synthesisWithLabelsMs": 0.023
+  },
+  "measured": {
+    "eligibilityPerRecord": {
+      "runs": 200,
+      "meanMs": 0.0001,
+      "p50Ms": 0.0001,
+      "p95Ms": 0.0004,
+      "maxMs": 0.002
+    },
+    "authorization200Records": {
+      "runs": 1000,
+      "meanMs": 1.842,
+      "p50Ms": 1.7264,
+      "p95Ms": 2.2473,
+      "maxMs": 33.7219
+    },
+    "authorizationPerRecordMs": 0.0092,
+    "projectDecisionPerProject": {
+      "runs": 1000,
+      "meanMs": 0.0001,
+      "p50Ms": 0.0001,
+      "p95Ms": 0.0002,
+      "maxMs": 0.0101
+    },
+    "cognitiveState500Nodes": {
+      "runs": 200,
+      "meanMs": 0.0483,
+      "p50Ms": 0.0401,
+      "p95Ms": 0.0857,
+      "maxMs": 0.5219
+    },
+    "enrichClean": {
+      "runs": 15,
+      "meanMs": 0.9049,
+      "p50Ms": 0.8385,
+      "p95Ms": 1.3711,
+      "maxMs": 1.3711,
+      "contextChars": 2074,
+      "hasProjectsSection": true,
+      "hasMemorySection": false,
+      "hasProvenanceNote": false,
+      "leaksOtherUsersProject": false,
+      "leaksForeignConversationProject": false
+    },
+    "enrichWithHistorical": {
+      "runs": 15,
+      "meanMs": 0.9402,
+      "p50Ms": 0.8967,
+      "p95Ms": 1.2649,
+      "maxMs": 1.2649,
+      "contextChars": 3310,
+      "hasProjectsSection": true,
+      "hasMemorySection": true,
+      "hasProvenanceNote": true,
+      "leaksOtherUsersProject": false,
+      "leaksForeignConversationProject": false
+    }
+  },
+  "thresholds": {
+    "authorizationPerRecordMs": {
+      "limit": 0.05,
+      "pass": true
+    },
+    "projectDecisionMs": {
+      "limit": 0.05,
+      "pass": true
+    },
+    "enrichOverheadMs": {
+      "limit": 5,
+      "pass": true
+    },
+    "noInaccessibleProjects": {
+      "limit": false,
+      "pass": true
+    },
+    "historicalTurnLabelled": {
+      "limit": true,
+      "pass": true
+    }
+  },
+  "projectFilteringApplied": true,
+  "summary": {
+    "memoryBoundaryUnchanged": "eligibility and authorization stay in the 2.2 range; projects add a per-project decision",
+    "note": "The clean turn adds no project or memory text at all; the labelled turn pays only for the sections it needs."
+  },
+  "pass": true
+}

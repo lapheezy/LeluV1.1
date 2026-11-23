@@ -1,0 +1,28 @@
+{
+  "mission": "LÉLU 2.3 — performance",
+  "executedAt": "2026-11-19",
+  "environment": "cloud VM, software renderer, Vite 8.1.5 development server, Node 22",
+  "context_and_authorization": {
+    "source": "MISSION-22.2/performance-report.json (same code, re-used deliberately rather than re-measured)",
+    "section_authorization_8_sections_ms": { "mean": 0.0055, "p95": 0.0095 },
+    "workspace_items_300_observations_ms": { "mean": 0.0073, "p95": 0.0105 },
+    "cognitive_state_500_nodes_ms": { "mean": 0.0516, "p95": 0.0856 },
+    "scoped_snapshot_ms": { "mean": 0.267, "p95": 0.3718 },
+    "enrich_with_historical_ms": { "mean": 0.7786, "p95": 1.0435 },
+    "m221_baseline": { "clean_enrich_mean": 1.20, "clean_enrich_p95": 1.54 }
+  },
+  "browser": {
+    "reload_to_both_conversations_restored_ms": 13412,
+    "canvas_count_with_scene_flag": 0,
+    "canvas_count_without_flag": 3,
+    "note": "13.4 s is a development-server, cold-module-graph number; it is not a production startup claim and no production build was timed."
+  },
+  "not_measured": [
+    "conversation switch latency (the attempt included a click timeout, so its 5.3 s is not a valid measurement and is not reported as one)",
+    "chat first-token latency attributable to the app (provider latency dominates and varies with quota)",
+    "provider request preparation in the browser (no instrumentation separated it from network time)",
+    "production build startup (no build was run for this mission)"
+  ],
+  "scene_flag_impact": "the flag adds a URLSearchParams read per router render in development and is compiled out of production; it cannot degrade a production runtime",
+  "honesty": "Numbers from the M22.2 harness are labelled as such; browser numbers are labelled as development-server measurements. Nothing here is presented as a production benchmark."
+}

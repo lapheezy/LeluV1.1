@@ -1,0 +1,64 @@
+{
+  "mission": "LÉLU 2.2.2 — performance",
+  "executedAt": "2026-11-19T16:07:55.114Z",
+  "method": "in-process, Node 22, performance.now(); no provider time",
+  "baselineM221": {
+    "authorizationPerRecordMs": 0.0094,
+    "projectDecisionMs": 0.0001,
+    "cognitiveFilter500NodesMs": 0.046,
+    "cleanEnrichMeanMs": 1.2,
+    "cleanEnrichP95Ms": 1.54
+  },
+  "measured": {
+    "sectionAuthorization8Sections": {
+      "runs": 2000,
+      "meanMs": 0.0055,
+      "p95Ms": 0.0095
+    },
+    "workspaceItems300Observations": {
+      "runs": 2000,
+      "meanMs": 0.0073,
+      "p95Ms": 0.0105
+    },
+    "cognitiveState500Nodes": {
+      "runs": 200,
+      "meanMs": 0.0516,
+      "p95Ms": 0.0856
+    },
+    "snapshotScoped": {
+      "runs": 27,
+      "meanMs": 0.267,
+      "p95Ms": 0.3718
+    },
+    "snapshotAnonymous": {
+      "runs": 10,
+      "meanMs": 0.1861,
+      "p95Ms": 0.2141
+    },
+    "enrichWithHistorical": {
+      "runs": 15,
+      "meanMs": 0.7786,
+      "p95Ms": 1.0435,
+      "contextChars": 2914
+    }
+  },
+  "thresholds": {
+    "sectionAuthorizationMs": {
+      "limit": 0.2,
+      "pass": true
+    },
+    "workspaceItemsMs": {
+      "limit": 0.2,
+      "pass": true
+    },
+    "snapshotMs": {
+      "limit": 5,
+      "pass": true
+    },
+    "enrichP95Ms": {
+      "limit": 5,
+      "pass": true
+    }
+  },
+  "pass": true
+}

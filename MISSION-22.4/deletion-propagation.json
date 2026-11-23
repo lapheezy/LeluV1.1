@@ -1,0 +1,86 @@
+{
+  "mission": "LÉLU 22.4 — deletion propagation audit",
+  "path": "Memory panel → AIService.forgetMemory → Brain.forgetMemory → PatternMemory.remove + CognitionRuntime.forgetMemory + ProjectStore.forgetText",
+  "no_new_subsystem": "the panel calls the authoritative Brain path; nothing about storage, scoping or authorization changed",
+  "representations": [
+    {
+      "representation": "PatternMemory in-memory map",
+      "written_by": "PatternMemory.add",
+      "deleted_by": "PatternMemory.remove",
+      "status": "removed",
+      "verified": "unit (recall after delete) + browser listing"
+    },
+    {
+      "representation": "IndexedDB memory store (object store 'memories', owner 'user')",
+      "written_by": "PatternMemory.add → IndexedDBStore.save",
+      "deleted_by": "PatternMemory.remove → IndexedDBStore.delete",
+      "status": "removed",
+      "verified": "unit + browser: after a full reload the panel search finds nothing and recall returns none"
+    },
+    {
+      "representation": "cognitive graph node (data.memoryId)",
+      "written_by": "CognitionRuntime.observe",
+      "deleted_by": "CognitiveCore.forgetMemory → KnowledgeGraph.purge(node.data.memoryId)",
+      "status": "removed",
+      "verified": "unit (context-sovereignty W)"
+    },
+    {
+      "representation": "workspace observations (origin.memoryId)",
+      "written_by": "WorkspaceManager.add",
+      "deleted_by": "WorkspaceManager.forgetMemory",
+      "status": "removed",
+      "verified": "unit (context-sovereignty W)"
+    },
+    {
+      "representation": "project checkpoint summary / completed / pending / blockers / nextAction (re-injected by CognitiveContext as “## PROJECT CHECKPOINTS”)",
+      "written_by": "Orchestrator.persistCheckpointFromRequest",
+      "deleted_by": "NEW: ProjectStore.forgetText, called by Brain.forgetMemory with the deleted memory's own sentences; AND an answered turn no longer writes a checkpoint at all",
+      "status": "removed (this mission's defect)",
+      "verified": "unit: deleting a memory drops the checkpoint that quotes it and leaves an unrelated checkpoint intact; browser: the post-fix request contains no checkpoint for the deleted statement"
+    },
+    {
+      "representation": "conversation transcript (MultiChatStore, localStorage)",
+      "written_by": "GenesisChat / GenesisBridge",
+      "deleted_by": "only deleting the conversation does (Brain.forgetConversation + store.remove)",
+      "status": "intentionally retained",
+      "why": "the user deleted a memory, not the chat; the message they typed is still their own history. The provider payload may therefore still contain the phrase inside this conversation's own history — that is transcript, not memory, and the evidence separates the two by parsing the request."
+    },
+    {
+      "representation": "memory synthesizer output / synthesized context",
+      "written_by": "MemorySynthesizer.synthesize (per turn)",
+      "deleted_by": "nothing to delete — it is rebuilt from the authorized recall on every turn; there is no cached synthesis",
+      "status": "no stale copy",
+      "verified": "code audit (no cache in MemorySynthesizer/PatternMemory recall) + post-reload “Checked memory — nothing related”"
+    },
+    {
+      "representation": "reflection summary (“## Reflection”)",
+      "written_by": "Brain.reflect() at request time",
+      "deleted_by": "n/a — not persisted; recomputed each turn",
+      "status": "no stale copy",
+      "verified": "code audit: ReflectionEngine has no persistence"
+    },
+    {
+      "representation": "Memory panel row / count",
+      "written_by": "AIService.getMemories reading the store",
+      "deleted_by": "re-read after deletion",
+      "status": "removed",
+      "verified": "browser: “No memories match this search.”"
+    },
+    {
+      "representation": "provider payload",
+      "written_by": "request.context + priorTurnsFor(conversationId) built per turn",
+      "deleted_by": "rebuilt on the next turn from the cleaned stores",
+      "status": "clean",
+      "verified": "browser: 0 occurrences of the deleted phrase in 2 requests after deletion and 2 more after reload"
+    }
+  ],
+  "scoping": {
+    "single_memory": "one id; PatternMemory.remove, graph purge by memoryId, observations by memoryId, checkpoints by quoted text",
+    "whole_conversation": "unchanged: Brain.forgetConversation (session memories, observations, graph nodes; durable facts survive with origin)",
+    "unrelated_records": "untouched — the unit test asserts a neighbouring checkpoint still says “Ship the pricing page by Friday.” and the browser run left 26 other memories in place"
+  },
+  "provenance": {
+    "unrelated": "kept: no purge touches a record that does not quote the deleted text",
+    "deleted": "the trace entry records removed/nodesRemoved/checkpointsChanged, so the deletion itself is auditable"
+  }
+}

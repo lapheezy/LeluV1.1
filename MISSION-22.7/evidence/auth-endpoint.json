@@ -1,0 +1,26 @@
+{
+  "at": "2026-11-20T18:03:42.384Z",
+  "project": "ugshflwlyakipeduifkd.supabase.co",
+  "checks": [
+    {
+      "name": "auth health",
+      "status": 200,
+      "body": "{\"version\":\"v2.198.0\",\"name\":\"GoTrue\",\"description\":\"GoTrue is a user registration and authentication API\"}"
+    },
+    {
+      "name": "anon select memory_items",
+      "status": 200,
+      "body": "[]"
+    },
+    {
+      "name": "deliberately wrong key",
+      "status": 401,
+      "body": "{\"message\":\"Invalid API key\",\"hint\":\"Double check your API key.\"}"
+    },
+    {
+      "name": "password grant for the supplied test user",
+      "status": 400,
+      "body": "{\"code\":400,\"error_code\":\"invalid_credentials\",\"msg\":\"Invalid login credentials\"}"
+    }
+  ]
+}

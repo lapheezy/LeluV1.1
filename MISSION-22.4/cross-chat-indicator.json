@@ -1,0 +1,69 @@
+{
+  "mission": "LÉLU 22.4 — what “Using other chats · 1 other chat used” actually measures",
+  "observed_in_m22_3": {
+    "visible": "Conversation B's activity card read “Using other chats — 1 other chat used”",
+    "payload": "B's captured request contained none of A's material, no project names and no cross-chat label",
+    "recorded_then": "flagged as a labelling nuance, not proven either way"
+  },
+  "reproduced_in_m22_4": {
+    "turn": "a brand-new conversation asked “What is my workshop access phrase? Answer in one short line.”",
+    "captured_request": {
+      "status": 200,
+      "payload_chars": 33086,
+      "section_present": "RESEARCH FROM OTHER CHATS (authorized)",
+      "quoted_text": "From the chat “What is my workshop access phrase? A” (the user brought it up): - User: What is my workshop access phrase? Answer in one short line.",
+      "foreign_material": false
+    },
+    "activity_steps": [
+      { "kind": "reference", "label": "Used research from the chat “What is my workshop access phrase? A”", "detail": "you brought it up" },
+      { "kind": "reference", "label": "Related, not used (not linked): “Please remember this: my workshop ac”", "status": "info" },
+      { "kind": "memory", "label": "Recalled 1 related memory" },
+      { "kind": "search", "label": "Searching What is my workshop access phrase? Answer in one short line." }
+    ],
+    "badge": "1 search · 1 other chat used",
+    "conclusion": "the badge was accurate about the resolver's output and wrong about the world: the “other chat” was the conversation this very question was being asked in, and the “research” was the user's own sentence"
+  },
+  "root_causes": [
+    {
+      "id": "C1",
+      "where": "src/core/multichat/ChatConsent.ts namesChat → ChatConsent/CrossChatResolver title containment",
+      "defect": "A chat's full title was matched with a plain String.includes(). The chat created for that question was titled “What is my workshop access phrase? A”; the next question began “What is my workshop access phrase? Answer…”, so the title's trailing “A” matched the first letter of “Answer” and the chat counted as named.",
+      "fix": "containsTitle() requires the title to end on a word boundary and is used by namesChat and by CrossChatResolver's contained/fullyNamed logic.",
+      "test": "tests/live-agent.test.ts — a chat is only named by its title on word boundaries…"
+    },
+    {
+      "id": "C2",
+      "where": "src/core/multichat/CrossChatResolver.ts reference()",
+      "defect": "Candidate messages were scored without excluding the current turn's own text, so a conversation record holding this exact question could be selected and handed back to the model as another chat's research; the authorization was “named”/“asked”, so it counted as used.",
+      "fix": "isOwnTurn(message) excludes any message whose normalized text equals this turn's prompt from scoring, from the picked set and from the latest-answer fallback. The user's own words are never cross-chat material.",
+      "test": "tests/live-agent.test.ts — the same test asserts used=[] and no RESEARCH FROM OTHER CHATS block, while the positive linked-chat case still injects and labels content."
+    }
+  ],
+  "what_the_indicator_measures_now": {
+    "source": "src/core/multichat/TurnActivity.ts summarizeActivity",
+    "counted_as_used": "reference steps emitted by cross_chat_reference with status done (one per authorized source whose text was placed into this turn's request context), plus done chats.merge / chats.link tool results",
+    "not_counted": [
+      "memories recalled (memory steps never produce the card at all)",
+      "drafts/related chats that were only discovered (they produce an info step: “Related, not used (not linked)”)",
+      "the current turn's own words (now excluded at the resolver)",
+      "a provider fallback (that is a provider step, shown separately)"
+    ],
+    "reported_states": {
+      "discovered": "“Related, not used (not linked): …” — info step, no count",
+      "inspected": "chats.read produces a reference step naming the chat it read (it did read it)",
+      "retrieved_memory": "“Recalled N related memories” / “Checked memory — nothing related” — memory step, excluded from the card",
+      "authorized": "the source is admitted to the turn's context; only authorized sources ever appear in a used list",
+      "injected": "the labelled “RESEARCH FROM OTHER CHATS (authorized)” block reaches request.context, which is what the count claims",
+      "rejected": "never enters a used list; unauthorized chats appear only as the “not used” suggestion",
+      "deferred": "LÉLU asks whether to use the chat; nothing is counted (seen after reload: “Would you like me to pull in the earlier … conversation?” with badge “Web research · 1 search · 1 issue”)"
+    }
+  },
+  "tests_added": [
+    "discovered but unauthorized: the related chat appears in suggested, never in used (existing test, still green)",
+    "authorized historical retrieval and actual injection: a linked chat's content appears in the labelled block (new positive control)",
+    "zero cross-chat retrieval: unrelated words → used=[], suggested=[]",
+    "anonymous / unknown conversation: reference('no-such-conversation', …) → used=[]",
+    "own turn is not another chat: used=[], no research block",
+    "title boundary: “? A” does not name a chat for “? Answer”"
+  ]
+}

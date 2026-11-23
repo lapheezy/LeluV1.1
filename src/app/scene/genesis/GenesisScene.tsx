@@ -90,6 +90,9 @@ import RenderContextGuard
 import { DPR_START, mobile }
   from "./qualityLimits";
 
+import { sceneTestDisabled }
+  from "./sceneTestMode";
+
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
 
@@ -628,6 +631,16 @@ function GenesisWorkspaceRouter() {
 
   const surface = useSurface();
 
+  // Development only (`?scene=off`): the router renders no scene so a
+  // browser acceptance run can type into the REAL chat without the 3D
+  // canvases starving the automation session. Production builds inline
+  // IS_DEV to false and cannot reach it.
+  const sceneOff = sceneTestDisabled();
+
+  // One condition for "draw a visual workspace at all": the surface says the
+  // scene is on screen, and the development-only test switch is not off.
+  const sceneRendered = surface.cosmosRendered && !sceneOff;
+
   const v2Active = state.activeScene === "genesisv2";
   const systemActive = !v2Active && visualState.interfaceFocus === "visual";
   /* An open interface composition (Mission 17) draws its own regions over
@@ -656,7 +669,7 @@ function GenesisWorkspaceRouter() {
         <LivekitVoiceDock />
       </Suspense>
 
-      {!surface.cosmosRendered ? (
+      {!sceneRendered ? (
         /* Chat owns the phone screen: no scene is rendered beneath it —
            not hidden, not behind it. The Core, cognition and the engine
            tick (below) carry on; only the picture of them stops, and it

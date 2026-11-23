@@ -1,0 +1,533 @@
+{
+  "mission": "Personality Evolution 2.1 — provider parity",
+  "verificationLevel": "provider API (direct provider.generate with the canonical voice directive)",
+  "startedAt": "2026-11-19T12:51:10.151Z",
+  "profileDigest": "Voice v1: warmth 0.62, directness 0.74, playfulness 0.55, sarcasm 0.22; length 0.42, formality 0.30, emoji 0.08. Her moves: right — so / anyway, / hang on / huh / fair.",
+  "rows": [
+    {
+      "scenario": "p1-casual",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 1252,
+      "raw": "Right — so I'm good, thanks. How's your day?",
+      "transformed": "Right — so I'm good, thanks. How's your day?",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 1.5",
+            "note": "evenly paced sentences read as generated"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2259,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p1-casual",
+      "engine": "OpenRouter",
+      "available": true,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ms": 1420,
+      "raw": "Hey. I'm doing well—thanks for asking. How are things on your end?",
+      "transformed": "Hey. I'm doing well—thanks for asking. How are things on your end?",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 2.16",
+            "note": "evenly paced sentences read as generated"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2259,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p2-frustration",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 728,
+      "raw": "right — so I need the exact command you ran and the error output you’re seeing; with that I can pinpoint the failure and give a concrete fix.",
+      "transformed": "right — so I need the exact command you ran and the error output you’re seeing; with that I can pinpoint the failure and give a concrete fix.",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 0",
+            "note": "evenly paced sentences read as generated"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2712,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p2-frustration",
+      "engine": "OpenRouter",
+      "available": true,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ms": 1342,
+      "raw": "What are you trying to do, and what's the exact error?",
+      "transformed": "What are you trying to do, and what's the exact error?",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 0",
+            "note": "evenly paced sentences read as generated"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2712,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p3-disagreement",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 1152,
+      "raw": "I disagree with the claim that React is always better than Vue. React’s flexibility and massive ecosystem make it a strong choice for large, highly customizable applications, but that same flexibility can add complexity and boilerplate. Vue, on the other hand, offers a more opinionated structure, clearer defaults, and a gentler learning curve, which often leads to faster development for smaller to medium‑scale projects. Performance differences are negligible in most real‑world scenarios; the deciding factor tends to be team familiarity, project requirements, and the specific tooling each framework provides. \n\nBoth frameworks excel in different contexts, so saying one is universally superior oversimplifies the trade‑offs.",
+      "transformed": "I disagree with the claim that React is always better than Vue. React’s flexibility and massive ecosystem make it a strong choice for large, highly customizable applications, but that same flexibility can add complexity and boilerplate. Vue, on the other hand, offers a more opinionated structure, clearer defaults, and a gentler learning curve, which often leads to faster development for smaller to medium‑scale projects. Performance differences are negligible in most real‑world scenarios; the deciding factor tends to be team familiarity, project requirements, and the specific tooling each framework provides.\n\nBoth frameworks excel in different contexts, so saying one is universally superior oversimplifies the trade‑offs.",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 0.96"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 6.18"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2374,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p3-disagreement",
+      "engine": "OpenRouter",
+      "available": true,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ms": 7294,
+      "raw": "\"Always\" is the wrong word. It makes the claim unfalsifiable.\n\nReact wins on ecosystem, hiring pool, and the mental model of \"it's just JavaScript.\" If you're building something that needs every niche library, or you're staffing a large team from the general market, React is the pragmatic choice.\n\nVue wins on ergonomics out of the box: single-file components, built-in reactivity without dependency arrays, `<script setup>` with TypeScript that actually feels good, first-party router and pinia that don't require evaluating five competing options. The learning curve is genuinely lower, and the DX stays consistent as the app grows.\n\nNeither is universally better. The honest answer is \"it depends on the team, the project, and what you're optimizing for.\"\n\nWhat made you land hard on React?",
+      "transformed": "\"Always\" is the wrong word. It makes the claim unfalsifiable.\n\nReact wins on ecosystem, hiring pool, and the mental model of \"it's just JavaScript.\" If you're building something that needs every niche library, or you're staffing a large team from the general market, React is the pragmatic choice.\n\nVue wins on ergonomics out of the box: single-file components, built-in reactivity without dependency arrays, `<script setup>` with TypeScript that actually feels good, first-party router and pinia that don't require evaluating five competing options. The learning curve is genuinely lower, and the DX stays consistent as the app grows.\n\nNeither is universally better. The honest answer is \"it depends on the team, the project, and what you're optimizing for.\"\n\nWhat made you land hard on React?",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 0.915"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 9.57"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2374,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p4-support",
+      "engine": "Groq",
+      "available": true,
+      "model": "openai/gpt-oss-120b",
+      "ms": 598,
+      "raw": "I hear you. Losing your dad so recently and feeling scattered is a heavy mix. It’s understandable that focus feels out of reach right now.",
+      "transformed": "I hear you. Losing your dad so recently and feeling scattered is a heavy mix. It’s understandable that focus feels out of reach right now.",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 3.86"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2802,
+      "directiveIncludesStance": true
+    },
+    {
+      "scenario": "p4-support",
+      "engine": "OpenRouter",
+      "available": true,
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "ms": 3101,
+      "raw": "That's a heavy thing to carry, and a month is almost no time at all.",
+      "transformed": "That's a heavy thing to carry, and a month is almost no time at all.",
+      "removed": [],
+      "boilerplateBefore": 0,
+      "boilerplateAfter": 0,
+      "spec": {
+        "checks": [
+          {
+            "dimension": "naturalness",
+            "passed": true,
+            "observed": "0 assistant boilerplate phrase(s)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "diversity 1 (too short to judge)"
+          },
+          {
+            "dimension": "linguistic-individuality",
+            "passed": true,
+            "observed": "sentence rhythm 0",
+            "note": "evenly paced sentences read as generated"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "3-gram repetition 0"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "0 exclamation mark(s)"
+          },
+          {
+            "dimension": "restraint",
+            "passed": true,
+            "observed": "demonstrates rather than announces"
+          },
+          {
+            "dimension": "reliability",
+            "passed": true,
+            "observed": "no unqualified claim of a side effect"
+          }
+        ],
+        "passed": 7,
+        "scored": 7,
+        "score": 1,
+        "unscored": [
+          "identity-consistency",
+          "context-awareness",
+          "emotional-intelligence",
+          "familiarity",
+          "continuity",
+          "independence"
+        ]
+      },
+      "drift": [],
+      "directiveChars": 2802,
+      "directiveIncludesStance": true
+    }
+  ]
+}

@@ -21,14 +21,37 @@ import type { AIRequest } from "../providers/AIProvider";
 import type ResponsePattern from "../brain/ResponsePattern";
 import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
+import {
+  authorizeContextSections,
+  summarizeContextDecisions,
+  type ContextSection,
+} from "./cognition/ContextAuthorization";
+import {
+  decideProject,
+  projectAccessFor,
+  projectContextNote,
+  projectLabel,
+  type ProjectAccess,
+  type ProjectDecisionRecord,
+} from "./projects/ProjectSovereignty";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
 import { fitContext } from "./memory/CognitiveBudget";
+import DeletionGuard from "./memory/DeletionGuard";
 import MemoryOrchestrator from "./memory/MemoryProvider";
 import { LocalMemoryProvider, OgArchiveProvider, SupabaseMemoryProvider } from "./memory/providers";
 import PersonalityMemoryProvider from "./identity/PersonalityMemoryProvider";
+import { composeVoice } from "./identity/voice/VoiceComposer";
+import LanguageObserver from "./identity/voice/LanguageObserver";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import CognitiveTrace from "./cognition/CognitiveTrace";
+import {
+  authorize,
+  currentSessionId,
+  memoryContextNote,
+  summarizeDecisions,
+  type MemoryScopeContext,
+} from "./memory/MemorySovereignty";
 
 export default class MemoryBridge {
   constructor(
@@ -62,17 +85,118 @@ export default class MemoryBridge {
    * the caller can hand them forward rather than the pipeline
    * rediscovering them three more times.
    */
+  /**
+   * The identity every memory is judged against for one turn: whose it is,
+   * which conversation is happening, and which runtime session this is.
+   */
+  /**
+   * Owner id, when there is a user manager. Headless callers (tests, some
+   * agents) construct MemoryBridge with the brain alone; provenance must
+   * degrade to "no owner recorded" rather than fail the turn.
+   */
+  private userId(): string | null {
+    try {
+      return this.user?.get?.()?.id ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  public scopeFor(conversationId: string | undefined, prompt: string): MemoryScopeContext {
+    return {
+      userId: this.userId(),
+      conversationId: conversationId ?? null,
+      sessionId: currentSessionId(),
+      prompt,
+    };
+  }
+
   public async enrich(request: AIRequest): Promise<{ request: AIRequest; memories: ResponsePattern[] }> {
     const trace = CognitiveTrace.getInstance();
+    const scope = this.scopeFor(request.conversationId, request.prompt);
 
-    // Instrumented inside Brain.recall() itself, so the trace counts
-    // every real recall regardless of caller.
-    const memories = await this.brain.recall(request.prompt);
+    // THE CANONICAL RECALL, now scoped. Ownership and session isolation are
+    // enforced inside the store (PatternMemory.search → isEligible), so an
+    // ineligible memory is never a candidate. What survives is then
+    // AUTHORIZED: relevance is not permission, and historical material must
+    // keep its origin. Only allowed memories are returned — every downstream
+    // consumer (router, offline composer, memory synthesis) receives the
+    // authorized set, not the raw recall.
+    const recalled = await this.brain.recall(request.prompt, "cognition", scope);
+    const authorization = authorize(recalled, scope);
+    const memories = authorization.allowed;
+
+    trace.record(
+      "MEMORY_RETRIEVAL",
+      `scope ${scope.conversationId ?? "no-conversation"} — ${summarizeDecisions(authorization.decisions)} (${memories.length}/${recalled.length} authorized)`,
+      {
+        conversationId: scope.conversationId,
+        sessionId: scope.sessionId,
+        userId: scope.userId,
+        recalled: recalled.length,
+        allowed: memories.length,
+        counts: authorization.counts,
+        deferred: authorization.decisions
+          .filter((decision) => decision.decision === "DEFER")
+          .slice(0, 6),
+        rejected: authorization.decisions
+          .filter((decision) => decision.decision === "REJECT")
+          .slice(0, 6),
+        withContext: authorization.decisions
+          .filter((decision) => decision.decision === "RETRIEVE_WITH_CONTEXT")
+          .slice(0, 6),
+      },
+    );
 
     const reflection = await this.brain.reflect();
     const conversation = this.threadContext(request);
-    const cognition = this.brain.cognitiveState();
+    // Scoped to THIS conversation. The cognitive graph also holds other
+    // chats' observations, and rendering them here was a second, independent
+    // cross-conversation path that existed outside the memory store.
+    const cognition = this.brain.cognitiveState(request.conversationId);
     const profile = this.user.context();
+
+    // HER VOICE FOR THIS TURN, composed BEFORE a provider is chosen.
+    //
+    // This is what makes identity provider-independent: the directive is
+    // built from her persistent linguistic profile + the stance of this
+    // message, attached to the request, and read by every provider through
+    // leluSystemPrompt(request). A model's house style cannot replace it
+    // because the model never chose it.
+    //
+    // Guarded: voice composition must never cost a turn.
+    let voice: string | undefined;
+    try {
+      const composition = composeVoice({ prompt: request.prompt, recentMessages: request.messages });
+      voice = composition.text;
+      trace.record(
+        "VOICE",
+        `voice composed — ${composition.stance.register}/${composition.stance.length}, familiarity ${composition.familiarity.tier}`,
+        {
+          version: composition.version,
+          register: composition.stance.register,
+          length: composition.stance.length,
+          humor: composition.stance.humor,
+          challenge: composition.stance.challenge,
+          followUp: composition.stance.followUp,
+          emotionalSupport: composition.stance.emotionalSupport,
+          frustration: composition.stance.frustrationDetected,
+          familiarity: composition.familiarity.tier,
+          emotion: composition.appraisal.primary,
+          emotionIntensity: composition.appraisal.intensity,
+          emotionConfidence: composition.appraisal.confidence,
+          emotionGuarded: composition.appraisal.guarded,
+          responseMode: composition.appraisal.mode,
+          reasons: composition.stance.reasons,
+        },
+      );
+    } catch (error) {
+      voice = undefined;
+      trace.record("VOICE", "voice composition FAILED — base identity prompt only", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    const requestWithVoice: AIRequest = voice ? { ...request, voice } : request;
 
     trace.record(
       "USER_CONTEXT",
@@ -96,21 +220,37 @@ export default class MemoryBridge {
         lastTopic: conversation.lastTopic,
         recentMessages: conversation.recentMessages,
       },
+      conversationId: request.conversationId,
     });
 
-    const context = this.buildContext(
+    // Historical and inferred material is labelled in the section it appears
+    // in; this note explains the labels once, and only when they are present.
+    // TOP AND BOTTOM. Context on a real turn is 10–14k chars, and the memory
+    // it explains sits in the middle; a note only at the end was measured to
+    // be missed (the model denied a memory that was in its own context).
+    // ContextProvenance reached the same conclusion for its own labels.
+    const provenanceNote = memoryContextNote(authorization.decisions);
+    const baseContext = this.buildContext(
       synthesized,
       reflection,
       conversation,
       cognition,
+      scope,
     );
+    const context = [
+      provenanceNote,
+      baseContext,
+      provenanceNote,
+    ]
+      .filter((part) => part.trim().length > 0)
+      .join("\n\n");
 
     if (context.trim().length === 0) {
       trace.record("CONTEXT_INJECTION", "nothing relevant to inject — request left unchanged", {
         injected: false,
         synthesizedMemoriesUsed: synthesized.used.length,
       });
-      return { request, memories };
+      return { request: requestWithVoice, memories };
     }
 
     // The load-bearing evidence: this is the exact moment retrieved
@@ -127,6 +267,9 @@ export default class MemoryBridge {
         synthesizedMemoriesUsed: synthesized.used.length,
         synthesizedMemoriesRejected: synthesized.rejected,
         contradictions: synthesized.contradictions.length,
+        conversationId: scope.conversationId,
+        retrievalDecisions: authorization.counts,
+        provenanceNote: provenanceNote.length > 0,
       },
     );
 
@@ -140,7 +283,7 @@ export default class MemoryBridge {
       .join("\n\n");
 
     if (merged.length === 0) {
-      return { request, memories };
+      return { request: requestWithVoice, memories };
     }
 
     // EXTERNAL / HISTORICAL CONTEXT (brief §6 bands 6-7, §19).
@@ -160,6 +303,7 @@ export default class MemoryBridge {
         bands: [6, 7],
         limit: 4,
         timeoutMs: 3_000,
+        scope,
       });
       if (external.length > 0) {
         withHistory = [
@@ -174,6 +318,38 @@ export default class MemoryBridge {
       console.warn("[MemoryBridge] external context unavailable:", error);
     }
 
+    // PERSISTENT LÉLU MEMORY (band 4).
+    //
+    // PersonalityMemoryProvider has been registered here since the identity
+    // layer existed, but no chat turn ever gathered band 4 — the provider's
+    // values, traits and curiosity reached no model at all. It is wired now,
+    // bounded to two items and guarded like every other source. This is the
+    // band §6 defined for her own persistent memory; it is not a second
+    // store, just the registered provider finally being asked.
+    try {
+      const identityItems = (await MemoryOrchestrator.getInstance().gather(request.prompt, {
+        bands: [4],
+        limit: 2,
+        timeoutMs: 1_500,
+        scope,
+      }))
+        // LocalMemoryProvider also declares band 4, but it is long-term user
+        // memory: it already reached the model through the AUTHORIZED recall
+        // above, with its provenance label. Letting it back in here would be a
+        // second injection path around the sovereignty boundary, and would
+        // print another conversation's fact under "LÉLU's own identity".
+        .filter((item) => item.source !== "local");
+      if (identityItems.length > 0) {
+        withHistory = [
+          withHistory,
+          "From LÉLU's own identity:",
+          ...identityItems.map((item) => item.content),
+        ].join("\n\n");
+      }
+    } catch (error) {
+      console.warn("[MemoryBridge] identity context unavailable:", error);
+    }
+
     // BOUNDED CONTEXT (integration brief §9). Recall grows with LÉLU's
     // history, and nothing here used to cap it — every remembered turn made
     // the next prompt larger, which is the slow version of the crash the OG
@@ -181,19 +357,52 @@ export default class MemoryBridge {
     // otherwise walks the required ladder: deduplicate, then compress, then
     // drop oldest. It never throws, because failing a turn to protect a
     // budget would trade one crash for another.
-    const fitted = fitContext(withHistory);
+    // DELETION GATE (M22.6, WP05.5).
+    //
+    // Everything a model can see about memory passes through here: authorized
+    // recall, synthesized memory, project checkpoints, the identity providers
+    // and the external archive. A statement the user deleted must not reach a
+    // provider even when one of those sources still holds a copy — so the gate
+    // is applied to the assembled block, after every source has contributed
+    // and before the budget trims it. Removing whole sentences can only shrink
+    // the context, so the budget below still sees a valid size.
+    const guarded = DeletionGuard.getInstance().sanitizeContext(withHistory);
+    if (guarded.removed > 0) {
+      trace.record(
+        "CONTEXT_INJECTION",
+        `removed ${guarded.removed} sentence(s) that quoted a deleted memory before the provider saw them`,
+        { removedSegments: guarded.removed, conversationId: scope.conversationId },
+      );
+    }
+    const safeContext = guarded.context;
+
+    const fitted = fitContext(safeContext);
     if (fitted.applied.length > 0) {
       console.info(
         "[MemoryBridge] Context %d → %d chars (%s) — %d removed.",
-        withHistory.length,
+        safeContext.length,
         fitted.context.length,
         fitted.applied.join(" → "),
         fitted.removed,
       );
     }
 
+    // FINAL PAYLOAD GATE (M22.6, WP05.5). The dialogue turns are the last place
+    // a deleted statement can hide: an earlier reply or an earlier user turn can
+    // quote it. The newest user message is deliberately NOT scrubbed — the user
+    // may be restating something on purpose, and silently deleting their own
+    // words would be a different bug (documented in known-limitations.md).
+    const dialogue = DeletionGuard.getInstance().sanitizeMessages(request.messages ?? []);
+    if (dialogue.removed > 0) {
+      trace.record(
+        "CONTEXT_INJECTION",
+        `removed ${dialogue.removed} sentence(s) that quoted a deleted memory from the dialogue turns`,
+        { removedSegments: dialogue.removed, conversationId: scope.conversationId },
+      );
+    }
+
     const enrichedRequest: AIRequest = {
-      ...request,
+      ...requestWithVoice,
       context: fitted.context,
       // The conversation turns in `request.messages` are the dialogue so
       // far and are left exactly as they are. Only the behavioural rules
@@ -216,9 +425,9 @@ Rules:
 - Use context to understand and personalize — do NOT dump it back or announce "I remember that..." unless it is genuinely useful.
 - Never invent personal information that is not in the context.
 - Answer the user's actual question with the minimum sufficient relevant information first; go deeper only when asked.
-- Keep answers concise and natural.`,
+- Say it in your own voice: the identity instructions define it. Do not open with filler, do not restate the question, and do not close with a stock offer of further help.`,
         },
-        ...(request.messages ?? []),
+        ...dialogue.messages,
       ],
     };
 
@@ -233,10 +442,20 @@ Rules:
   private threadContext(request: AIRequest) {
     const shared = this.brain.getConversation().context();
     const id = request.conversationId;
-    if (!id) return shared;
+    // NO IDENTITY, NO SHARED WINDOW. This used to return the brain's window
+    // for an id-less caller, which holds whichever chat spoke last. The thread
+    // is now built from this request's own turns and message.
+    if (!id) return this.threadFromRequest(request);
     try {
       const chat = MultiChatStore.getInstance().get(id);
-      if (!chat) return shared;
+      if (!chat) {
+        // A conversation id this store does not hold (a fresh session, or a
+        // chat hydrated by another surface). The brain's shared window holds
+        // whichever chat spoke last, and using it here is exactly how one
+        // conversation's topic became another's context. Build the thread
+        // from what this request itself carries instead.
+        return this.threadFromRequest(request);
+      }
       const userLines = chat.messages.filter((message) => message.role === "user" && message.text.trim()).map((message) => message.text);
       const lastUser = userLines.at(-1) ?? request.prompt;
       const topicWord = lastUser.replace(/[^a-zA-Z0-9\s]/g, "").split(/\s+/).find((word) => word.length > 4);
@@ -251,6 +470,20 @@ Rules:
     }
   }
 
+  /** A thread derived only from this request — used when no chat is known. */
+  private threadFromRequest(request: AIRequest) {
+    const ownLines = (request.messages ?? [])
+      .filter((message) => message.role === "user" && typeof message.content === "string" && message.content.trim())
+      .map((message) => message.content as string);
+    const lastUser = ownLines.at(-1) ?? request.prompt;
+    const topicWord = lastUser.replace(/[^a-zA-Z0-9\s]/g, "").split(/\s+/).find((word) => word.length > 4);
+    return {
+      lastTopic: topicWord || "general",
+      recentMessages: ownLines.slice(-20),
+      messageCount: ownLines.length + 1,
+    };
+  }
+
   private buildContext(
     synthesized: {
       context: string;
@@ -262,46 +495,92 @@ Rules:
     reflection: any,
     conversation: any,
     cognition: any,
+    scope: MemoryScopeContext,
   ): string {
-    const sections: string[] = [];
+    // THE ONE CHECKPOINT. Every section below is classified before it can
+    // enter the payload: whose material it is, which conversation made it,
+    // and whether this turn may see it. Sections assembled here are already
+    // this conversation's or authorized by their own boundary, so they are
+    // declared as such — the value is that a future section cannot be added
+    // without declaring provenance and being classified.
+    const sections: ContextSection[] = [];
+    const add = (
+      id: string,
+      kind: ContextSection["kind"],
+      text: string,
+      labelled = false,
+    ) => {
+      sections.push({
+        id,
+        kind,
+        text,
+        labelled,
+        provenance: {
+          userId: scope.userId,
+          conversationId: scope.conversationId,
+          sessionId: scope.sessionId,
+          scope: "current-conversation",
+        },
+      });
+    };
 
     if (synthesized.context) {
-      sections.push(synthesized.context);
+      add("memory", "memory", synthesized.context, /\[earlier conversation|\[inferred/.test(synthesized.context));
     }
 
     if (reflection?.summary && reflection.memories?.length) {
-      sections.push(`## Reflection\n${reflection.summary}`);
+      add("reflection", "memory", `## Reflection\n${reflection.summary}`);
     }
 
     if (conversation?.lastTopic) {
-      sections.push(`## Current Thread\nTopic: ${conversation.lastTopic}`);
+      add("thread", "session", `## Current Thread\nTopic: ${conversation.lastTopic}`);
     }
 
     if (cognition) {
       const formatted = this.formatCognition(cognition);
       if (formatted) {
-        sections.push(`## Cognitive State\n${formatted}`);
+        add("cognition", "cognitive-graph", `## Cognitive State\n${formatted}`);
       }
     }
 
     // REAL project + agent context from the persistent stores — LÉLU
     // knows what work exists and which specialists are available.
-    const projectContext = this.formatProjects();
+    //
+    // PROJECT SOVEREIGNTY (2.2.1). The registry used to be rendered whole: a
+    // project created in another chat, or belonging to another user, appeared
+    // as current work. Ownership and session isolation now refuse it before
+    // formatting, and a durable project started elsewhere is stated as such.
+    const projectContext = this.formatProjects(projectAccessFor(scope));
     if (projectContext) {
-      sections.push(`## Projects\n${projectContext}`);
+      add("projects", "project", `## Projects\n${projectContext}`, /\[started in the chat|\[historical project/.test(projectContext));
     }
 
     const agentContext = this.formatAgents();
     if (agentContext) {
-      sections.push(`## Agents\n${agentContext}`);
+      add("agents", "agent", `## Agents\n${agentContext}`);
     }
 
     const avatarContext = this.formatAvatar();
     if (avatarContext) {
-      sections.push(`## Self\n${avatarContext}`);
+      add("self", "operational", `## Self\n${avatarContext}`);
     }
 
-    return sections.join("\n\n");
+    const authorization = authorizeContextSections(sections, {
+      userId: scope.userId,
+      conversationId: scope.conversationId,
+      sessionId: scope.sessionId,
+    });
+
+    CognitiveTrace.getInstance().record(
+      "CONTEXT_INJECTION",
+      `context authorized: ${summarizeContextDecisions(authorization.decisions)}`,
+      {
+        counts: authorization.counts,
+        sections: authorization.decisions,
+      },
+    );
+
+    return authorization.allowed.map((section) => section.text).join("\n\n");
   }
 
   private formatCognition(cognition: any): string {
@@ -325,21 +604,34 @@ Rules:
     return output.join("\n");
   }
 
-  /** Active projects with real content, newest first, capped. */
-  private formatProjects(): string {
-    const projects = ProjectStore.getInstance()
-      .list()
-      .filter((project) => project.status === "active" && project.items.length > 0)
-      .slice(0, 4);
-    if (projects.length === 0) {
-      return "";
+  /** Active projects this turn may see, newest first, capped and labelled. */
+  private formatProjects(access: ProjectAccess): string {
+    const decisions: ProjectDecisionRecord[] = [];
+    const lines: string[] = [];
+    for (const project of ProjectStore.getInstance().list()) {
+      if (project.status !== "active" || project.items.length === 0) continue;
+      const decision = decideProject(project, access);
+      decisions.push(decision);
+      if (decision.decision === "REJECT" || decision.decision === "DEFER") continue;
+      if (lines.length >= 4) continue;
+      const kinds = [...new Set(project.items.map((item) => item.kind))].join(", ");
+      const label = projectLabel(project, access.conversationId);
+      lines.push(
+        `- ${label ? `${label} ` : ""}${project.name}${project.description ? ` — ${project.description}` : ""} (${project.items.length} item(s): ${kinds})`,
+      );
     }
-    return projects
-      .map((project) => {
-        const kinds = [...new Set(project.items.map((item) => item.kind))].join(", ");
-        return `- ${project.name}${project.description ? ` — ${project.description}` : ""} (${project.items.length} item(s): ${kinds})`;
-      })
-      .join("\n");
+
+    if (decisions.length > 0) {
+      CognitiveTrace.getInstance().record(
+        "TASK_CONTEXT",
+        `projects: ${decisions.map((decision) => `${decision.projectId.slice(0, 8)}=${decision.decision}`).join(", ")}`,
+        { decisions },
+      );
+    }
+
+    if (lines.length === 0) return "";
+    const note = projectContextNote(decisions);
+    return [lines.join("\n"), note].filter((part) => part.trim().length > 0).join("\n");
   }
 
   /** Runnable agents, so LÉLU knows her specialists. */
@@ -399,12 +691,34 @@ Rules:
     response: string,
     taskId?: string,
     /**
-     * Provenance the turn itself knows and memory cannot reconstruct: how a
-     * spoken sentence became text, and whether a recogniser supplied a
-     * confidence. Merged into the stored context, never invented here.
+     * The conversation this exchange belongs to (memory sovereignty, M22.x),
+     * or — the voice line's older call shape — a provenance record.
      */
-    provenance: Record<string, unknown> = {},
+    conversationOrProvenance?: string | Record<string, unknown>,
+    /** Who produced this exchange (an agent's report is not the user's words),
+     *  and provenance the turn itself knows and memory cannot reconstruct:
+     *  how a spoken sentence became text, and a recogniser's confidence when
+     *  one was reported. Merged into the stored context, never invented here. */
+    options: { sourceType?: "user-said" | "agent-reported" | "derived"; provenance?: Record<string, unknown> } = {},
   ): Promise<void> {
+    const conversationId = typeof conversationOrProvenance === "string" ? conversationOrProvenance : undefined;
+    const provenance: Record<string, unknown> = {
+      ...(conversationOrProvenance && typeof conversationOrProvenance === "object" ? conversationOrProvenance : {}),
+      ...(options.provenance ?? {}),
+    };
+    // LANGUAGE EVIDENCE, from the exchange that just happened.
+    //
+    // The observer reads the user's own words (their vocabulary, explicit
+    // direction about how she should talk, corrections, banter) and the
+    // familiarity counters. It never mines her own replies for new
+    // catchphrases, and external documents reach noteExternalContent()
+    // instead — see LanguageObserver.
+    try {
+      LanguageObserver.getInstance().observeTurn({ prompt, reply: response });
+    } catch (error) {
+      console.warn("[MemoryBridge] language observation failed (contained)", error);
+    }
+
     // "Remember this for this chat": the user scoped it to that chat. It
     // stays in that conversation's own history and is not made a
     // long-term fact every other chat would be handed.
@@ -440,6 +754,18 @@ Rules:
     // unbacked claim, so there is no fact worth remembering.
     if (learnable.length === 0 && redactedClaims > 0) return;
 
+    // WHERE THIS WAS LEARNED. The origin is written with the memory, so a
+    // later conversation can recall it without ever claiming it was said
+    // there. The title is read now, not guessed later.
+    let conversationTitle: string | null = null;
+    if (conversationId) {
+      try {
+        conversationTitle = MultiChatStore.getInstance().get(conversationId)?.title ?? null;
+      } catch {
+        conversationTitle = null;
+      }
+    }
+
     const learned = await this.brain.learn(prompt, learnable, "conversation", [], {
       source: "lelu-chat",
       // Provenance travels with the memory so a later reader can tell a
@@ -447,6 +773,13 @@ Rules:
       executionVerified: verified,
       ...(redactedClaims > 0 ? { redactedActionClaims: redactedClaims } : {}),
       ...provenance,
+      originSeed: {
+        userId: this.userId(),
+        conversationId: conversationId ?? null,
+        sessionId: currentSessionId(),
+        conversationTitle,
+        sourceType: options.sourceType ?? "user-said",
+      },
     });
 
     CognitiveTrace.getInstance().record(
@@ -459,6 +792,7 @@ Rules:
         category: learned?.category ?? null,
         memoryType: learned?.memoryType ?? null,
         id: learned?.id ?? null,
+        conversationId: conversationId ?? null,
       },
     );
 

@@ -37,6 +37,7 @@ from "./router/ProviderResolver";
 import ProjectScheduler
   from "./projects/ProjectScheduler";
 
+import type { ContextScope } from "./cognition/CognitiveContext";
 import { buildCognitiveContext }
   from "./cognition/CognitiveContext";
 
@@ -342,7 +343,10 @@ export default class AIRuntime {
 
       intent: request.forceIntent ?? new IntentDetector().detect(request.prompt ?? ""),
 
-      cognitiveContext: buildCognitiveContext(),
+      // Scope the snapshot to this request's conversation. A global snapshot
+      // here handed agents and resolvers every project and checkpoint,
+      // bypassing the project boundary (M22.2).
+      cognitiveContext: buildCognitiveContext(request.conversationId),
 
       recalledMemories: options?.recalledMemories,
 
@@ -442,7 +446,7 @@ export default class AIRuntime {
 
       intent: "chat",
 
-      cognitiveContext: buildCognitiveContext(),
+      cognitiveContext: buildCognitiveContext(request.conversationId),
 
     };
 
@@ -594,16 +598,22 @@ export default class AIRuntime {
    * the runtime's own object, so a tool behaves exactly as it does in a
    * conversation.
    */
-  public toolContext(prompt: string): RouterContext {
+  public toolContext(prompt: string, scope?: ContextScope): RouterContext {
+    const request = {
+      prompt,
+      messages: [{ role: "user" as const, content: prompt }],
+      timestamp: Date.now(),
+      ...(scope?.conversationId ? { conversationId: scope.conversationId } : {}),
+    };
     return {
-      request: { prompt, messages: [{ role: "user", content: prompt }], timestamp: Date.now() },
+      request,
       started: Date.now(),
       brain: this.brain,
       knowledgeProviders: this.knowledge,
       aiProviders: this.providers,
       logger: this.logger,
       intent: "search",
-      cognitiveContext: buildCognitiveContext(),
+      cognitiveContext: buildCognitiveContext(scope),
     } as RouterContext;
   }
 

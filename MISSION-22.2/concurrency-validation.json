@@ -1,0 +1,56 @@
+{
+  "mission": "LÉLU 2.2.2 — concurrent cognition",
+  "executedAt": "2026-11-19T16:06:16.734Z",
+  "scenario": "three conversations enriched concurrently, plus a second-user probe",
+  "elapsedMs": 718,
+  "checks": [
+    {
+      "name": "A's grief does not enter B",
+      "passed": true,
+      "evidence": {
+        "grief": false,
+        "memories": 0
+      }
+    },
+    {
+      "name": "B's deploy fact stays in B",
+      "passed": true,
+      "evidence": {
+        "deployInC": false
+      }
+    },
+    {
+      "name": "A's durable project is labelled in B, never presented as current",
+      "passed": true,
+      "evidence": {
+        "inB": true,
+        "labelled": true
+      }
+    },
+    {
+      "name": "B's own project remains in B",
+      "passed": true,
+      "evidence": {
+        "inB": true
+      }
+    },
+    {
+      "name": "another user sees neither project",
+      "passed": true,
+      "evidence": {
+        "inC": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "no conversation's material is reassigned",
+      "passed": true,
+      "evidence": {
+        "cross": true
+      }
+    }
+  ],
+  "pass": true
+}

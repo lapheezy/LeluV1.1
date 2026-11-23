@@ -18,6 +18,7 @@ import TaskEngine from "../tasks/TaskEngine";
 import WorkspaceAPI from "../workspace/WorkspaceAPI";
 import type { WorkspaceViewKind } from "../workspace/WorkspaceEngine";
 import SpatialObjects, { type SpatialKind, type SpatialObject } from "./SpatialObjects";
+import DeletionGuard from "../memory/DeletionGuard";
 
 export interface Inspection {
   ok: boolean;
@@ -125,8 +126,10 @@ export default class CosmosInspector {
             `Project: ${project.name}`,
             `Status: ${project.status}`,
             project.objective ? `Objective: ${project.objective}` : "",
-            project.checkpoint ? `Checkpoint: ${project.checkpoint.summary}` : "",
-            project.checkpoint?.nextAction ? `Next: ${project.checkpoint.nextAction}` : "",
+            project.checkpoint ? `Checkpoint: ${DeletionGuard.getInstance().scrub(project.checkpoint.summary).text}` : "",
+            project.checkpoint?.nextAction
+              ? `Next: ${DeletionGuard.getInstance().scrub(project.checkpoint.nextAction).text}`
+              : "",
           ]
             .filter(Boolean)
             .join("\n"),

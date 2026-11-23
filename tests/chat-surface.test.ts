@@ -109,8 +109,11 @@ test("the router renders no scene while chat owns the screen", () => {
   const scene = code("src/app/scene/genesis/GenesisScene.tsx");
   const router = scene.slice(scene.indexOf("function GenesisWorkspaceRouter"));
   // The scene switch begins with the surface gate, so V1 (canvas, sky,
-  // HUD), the System scene and Gen V2 are all inside it.
-  const gate = router.indexOf("!surface.cosmosRendered ?");
+  // HUD), the System scene and Gen V2 are all inside it. M22.3 added the
+  // development-only `?scene=off` switch to the same gate (its own pure
+  // test asserts production cannot honour it).
+  assert.match(router, /const sceneRendered = surface\.cosmosRendered && !sceneOff;/);
+  const gate = router.indexOf("!sceneRendered ?");
   assert.ok(gate > 0, "the scene switch is gated on the surface");
   for (const scenePart of ["<GenesisV2Workspace", "<LivingSystemUI", "<GenesisV1Workspace"]) {
     assert.ok(router.indexOf(scenePart) > gate, `${scenePart} sits behind the gate`);
@@ -127,7 +130,7 @@ test("the AI bridges belong to the app, not to the v1 scene", () => {
   for (const bridge of ["<GenesisBridge />", "<ProactiveBridge />", "<VoiceBridge />"]) {
     assert.ok(!v1.includes(bridge), `${bridge} must not unmount with the scene`);
     assert.equal(router.split(bridge).length - 1, 1, `${bridge} is mounted once, in the router`);
-    assert.ok(router.indexOf(bridge) < router.indexOf("!surface.cosmosRendered"), `${bridge} is outside the scene gate`);
+    assert.ok(router.indexOf(bridge) < router.indexOf("!sceneRendered"), `${bridge} is outside the scene gate`);
   }
 });
 

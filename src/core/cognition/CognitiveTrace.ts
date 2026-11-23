@@ -46,6 +46,7 @@ export type CognitiveStage =
   | "SELF_CONTEXT"
   | "USER_CONTEXT"
   | "TASK_CONTEXT"
+  | "VOICE"
   | "CONTEXT_INJECTION"
   | "MODEL_ROUTE"
   | "PROVIDER_ATTEMPT"

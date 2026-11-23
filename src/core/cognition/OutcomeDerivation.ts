@@ -37,6 +37,7 @@
  */
 
 import type { ObjectiveOutcome } from "./AgentObjectives";
+import DeletionGuard from "../memory/DeletionGuard";
 
 /** Tool names as they appear in prose: workflow_run, project.manage. */
 const TOOL_NAME = /\b([a-z][a-z0-9]*(?:[._][a-z0-9]+)+)\b/g;
@@ -307,7 +308,9 @@ export function structuredPlanToolIds(
   const steps = [
     ...(source.executionPlan ?? []),
     ...(source.actionableTasks ?? []),
-    ...(source.checkpoint?.pending ?? []),
+    // Steps are persisted turn text; a deleted statement must not become
+    // completion evidence (M22.6, WP05.4).
+    ...DeletionGuard.getInstance().filterList(source.checkpoint?.pending ?? []),
   ];
   const ids: string[] = [];
   for (const step of steps) {

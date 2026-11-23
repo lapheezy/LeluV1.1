@@ -1,0 +1,87 @@
+{
+  "mission": "LÉLU 2.2.1 — project registry audit",
+  "auditedAt": "2026-11-19",
+  "scope": "every path that can put project information into model or agent context",
+  "surfaces": [
+    {
+      "file": "src/core/projects/ProjectStore.ts",
+      "role": "the one project registry (KvStore, offline-first)",
+      "before": "names, descriptions, items, checkpoints; no owner, no conversation, no scope",
+      "after": "ownerId, originConversationId, originSessionId, originConversationTitle, scope; create() takes an origin"
+    },
+    {
+      "file": "src/core/projects/ProjectSovereignty.ts",
+      "role": "new boundary — origin, visibility, decision, label",
+      "decisions": ["INJECT", "INJECT_WITH_LABEL", "DEFER", "REJECT"]
+    },
+    {
+      "file": "src/core/MemoryBridge.ts",
+      "role": "renders project summaries into every turn's context",
+      "before": "list().filter(active && items>0).slice(0,4) — the whole registry, unlabelled",
+      "after": "decideProject() per project against the turn's access; refuses other users, other sessions and conversation-local work; labels a durable project started elsewhere; records the decisions in the cognitive trace"
+    },
+    {
+      "file": "src/core/agents/AgentRunner.ts",
+      "role": "injects a project's CONTENTS into an agent request",
+      "before": "contextFor(projectId) with no access argument",
+      "after": "contextFor(projectId, access) — contents return \"\" when ownership or scope refuses"
+    },
+    {
+      "file": "src/core/router/ProjectResolver.ts",
+      "role": "creates a project from a chat turn",
+      "after": "records the originating conversation and session"
+    },
+    {
+      "file": "src/core/tools/ToolDispatcher.ts (project tool)",
+      "role": "creates a project from a tool call",
+      "after": "records the originating conversation and session"
+    }
+  ],
+  "findings": [
+    {
+      "id": "P-01",
+      "severity": "high",
+      "finding": "Every active project was rendered into every turn's context, whoever started it.",
+      "fixed": true,
+      "evidence": "MemoryBridge.formatProjects now authorizes each project; tests H"
+    },
+    {
+      "id": "P-02",
+      "severity": "high",
+      "finding": "Project contents reached an agent with no ownership check (contextFor had no access parameter).",
+      "fixed": true,
+      "evidence": "AgentRunner passes the run scope; tests I"
+    },
+    {
+      "id": "P-03",
+      "severity": "medium",
+      "finding": "No project recorded who created it or in which conversation, so the question could not even be asked.",
+      "fixed": true,
+      "evidence": "ProjectStore.create origin; ProjectResolver/ToolDispatcher write it"
+    },
+    {
+      "id": "P-04",
+      "severity": "medium",
+      "finding": "A durable project begun in another chat appeared as current work with no indication of where it came from.",
+      "fixed": true,
+      "evidence": "projectLabel + projectContextNote; tests H; provider turn A shows the label"
+    },
+    {
+      "id": "P-05",
+      "severity": "low",
+      "finding": "Existing projects have no origin recorded; rewriting them would be destructive.",
+      "fixed": false,
+      "policy": "treated as user-persistent and unowned: visible, unlabelled, never claimed by another user. Nothing deleted or rewritten."
+    }
+  ],
+  "residual_risks": [
+    "This build is single-user, so records written from the Projects panel carry ownerId null and the UI has no way to set one. Ownership is enforced whenever it is recorded (tests create two owners), but a real second account would need the identity threaded into project creation.",
+    "Project items are independent user content; they are not linked to memory ids, so forgetting a memory does not edit a project note that quoted it."
+  ],
+  "acceptance": {
+    "projects_have_ownership_and_scope": true,
+    "relevance_not_authorization": true,
+    "legitimate_continuity_preserved": true,
+    "existing_projects_preserved": true
+  }
+}

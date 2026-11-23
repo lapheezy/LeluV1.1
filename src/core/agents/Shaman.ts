@@ -30,7 +30,7 @@ import AgentStore from "./AgentStore";
 import AgentRunner, { type AgentRunResult } from "./AgentRunner";
 import AgentEventBus from "../agent/AgentEvents";
 import { executiveOf, isExecutiveId } from "./ExecutiveOwnership";
-import type { LeluAgent, DelegatorId } from "./AgentTypes";
+import type { LeluAgent, DelegatorId, AgentTaskScope } from "./AgentTypes";
 import type { ExecutiveId } from "../executive/ExecutiveBoard";
 
 /** Delegators with authority over the whole board. */
@@ -85,6 +85,8 @@ export interface DispatchRequest extends RouteRequest {
   projectId?: string;
   /** The cognitive turn this work belongs to. */
   parentTaskId?: string;
+  /** The scope (user / conversation / session) this work runs inside. */
+  scope?: AgentTaskScope;
 }
 
 export interface DispatchResult extends AgentRunResult {
@@ -242,6 +244,7 @@ export default class Shaman {
       delegatedBy: request.delegatedBy ?? "user",
       executive: route.executive,
       routeReason: route.routeReason,
+      ...(request.scope ? { scope: request.scope } : {}),
     });
     return { ...result, route };
   }

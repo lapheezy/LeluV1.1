@@ -84,13 +84,36 @@ export const updateMemory = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Delete a memory from the server side (M22.7, WP04).
+ *
+ * This used to be a bare DELETE. RLS already scoped it to the signed-in user,
+ * but a deletion with no evidence is undone by the next stale upload — this
+ * screen could delete a row and a background sync on another device would
+ * simply write it back. `erase_memory` tombstones and deletes in one
+ * transaction, so the server itself refuses the resurrection.
+ *
+ * The response says which of the two happened: `tombstoned: false` means this
+ * deployment does not yet have the migration, so the row is gone but a stale
+ * upload could still return it. The caller is not told the stronger claim.
+ */
 export const deleteMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: MemoryId }).parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("memory_items").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    // The generated Supabase types do not know the M22.7 function yet.
+    const rpc = context.supabase as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+    };
+    const { error } = await rpc.rpc("erase_memory", { p_id: data.id, p_fingerprint: "" });
+    if (!error) return { ok: true, tombstoned: true };
+    // Older schema: still delete the row rather than leave it, but say so.
+    if (/does not exist|function/i.test(error.message)) {
+      const { error: deleteError } = await context.supabase.from("memory_items").delete().eq("id", data.id);
+      if (deleteError) throw new Error(deleteError.message);
+      return { ok: true, tombstoned: false };
+    }
+    throw new Error(error.message);
   });
 
 export const attachMemoryToUniverse = createServerFn({ method: "POST" })

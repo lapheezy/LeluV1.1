@@ -1,0 +1,181 @@
+{
+  "mission": "M22.6",
+  "startedAt": "2026-11-20T16:41:58.002Z",
+  "scenarios": {
+    "A_ordinary_deletion": {
+      "removed": true,
+      "ledgerRecorded": true,
+      "nodesRemoved": 1,
+      "tombstones": 1,
+      "indexedDbRows": 0,
+      "ledgerHoldsText": false
+    },
+    "B_historical_residue": {
+      "quoteAtDeletionTime": false,
+      "cleanedFields": 1,
+      "storedCopyAfterHealing": false,
+      "summaryAfterHealing": "",
+      "pendingSurvives": [
+        "print the label"
+      ],
+      "summaryBeforeHealing": "my courier code is VERIFY-BASALT-22.",
+      "droppedSummaryWasQuote": true
+    },
+    "C_automatic_migration": {
+      "state": "complete",
+      "batches": 1,
+      "cleanedFields": 1,
+      "quarantined": 1,
+      "residueRemains": false,
+      "ambiguousCheckpointKept": true,
+      "healingRecordPersisted": true,
+      "healingRecordHoldsText": false
+    },
+    "D_interrupted_migration": {
+      "firstBatchCursor": true,
+      "quotesLeftAfterInterruption": 4,
+      "resumed": true,
+      "batches": 1,
+      "quotesLeftAfterResume": 0,
+      "progressCleared": true,
+      "projectCount": 4
+    },
+    "E_recall_protection": {
+      "recallableBefore": true,
+      "recallableAfter": false,
+      "contextSentencesRemoved": 1,
+      "contextStillHasDeletedQuote": false,
+      "contextKeepsUnrelated": true
+    },
+    "F_ambiguous_quarantine": {
+      "healingState": "complete",
+      "quarantinedNotDeleted": true,
+      "summaryUnchanged": true,
+      "appearsInDryRun": true,
+      "storedReportHoldsRecordText": false,
+      "stillAskedAfterKeep": false,
+      "dispositionLogged": true
+    },
+    "G_concurrency": {
+      "deletionRecorded": true,
+      "migrationPersisted": true,
+      "recallResults": 0,
+      "secondScanRecoveredCursor": false,
+      "persistedStoreStillQuotes": false,
+      "storeNeededGuarding": false,
+      "projectCheckpointGone": true
+    },
+    "H_persistence_restart": {
+      "ledgerEntriesAfterRestart": 7,
+      "deletedRecordPresentInIndexedDb": false,
+      "payloadWouldContainPhraseWithoutGuard": true,
+      "payloadContainsPhraseAfterGuard": false,
+      "payloadSegmentsRemoved": 1
+    },
+    "I_regression": {
+      "projectUnchangedByteForByte": true,
+      "noteSurvives": true,
+      "blockersSurvive": [
+        "waiting on legal"
+      ],
+      "nextActionSurvives": "send the draft",
+      "memoriesAddedByMigration": 0
+    },
+    "J_repeated_lifecycle": {
+      "cycles": [
+        {
+          "cycle": 1,
+          "cleaned": 1,
+          "state": "complete",
+          "residueRemains": false,
+          "tombstoneCount": 8
+        },
+        {
+          "cycle": 2,
+          "cleaned": 1,
+          "state": "complete",
+          "residueRemains": false,
+          "tombstoneCount": 9
+        },
+        {
+          "cycle": 3,
+          "cleaned": 1,
+          "state": "complete",
+          "residueRemains": false,
+          "tombstoneCount": 10
+        }
+      ],
+      "allCyclesClean": true,
+      "finalResidueRemains": false
+    }
+  },
+  "performance": {
+    "projects": 1000,
+    "tombstoneCount": 11,
+    "dryRun": {
+      "ms": 8.25,
+      "findings": 20,
+      "scannedFields": 3000
+    },
+    "apply": {
+      "ms": 65.23,
+      "cleanedFields": 20,
+      "persisted": true
+    },
+    "boundedBatchMs": [
+      2.45,
+      1.65,
+      1.76,
+      1.7
+    ],
+    "matcher": {
+      "referenceMs": 10.74,
+      "indexedMs": 1.16,
+      "speedup": 9.26,
+      "sameAnswer": true
+    },
+    "guardOverheadMsPerAssembly": 0.153,
+    "bootHealingAfter1000": {
+      "state": "complete",
+      "ms": 135,
+      "batches": 39
+    },
+    "baselineM225": {
+      "projects": 60,
+      "dryRunMs": 7.19,
+      "applyMs": 10.43,
+      "contextAssemblyMs": 1.62
+    },
+    "note": "M22.5 measured 60 projects; this run measures 1,000, so absolute times are not directly comparable. Per-project cost is reported in the mission document."
+  },
+  "storage": {
+    "keysWritten": [
+      "lelu.agents.v1",
+      "lelu.lelu.agents.seeded.resource-intelligence",
+      "lelu.memory.deletions.guard.v1",
+      "lelu.memory.deletions.v1",
+      "lelu.memory.healing.v1",
+      "lelu.memory.migration.progress.v1",
+      "lelu.memory.migration.reviews.v1",
+      "lelu.memory.migration.v1",
+      "lelu.projects.v1"
+    ],
+    "bytes": {
+      "lelu.agents.v1": 11668,
+      "lelu.lelu.agents.seeded.resource-intelligence": 4,
+      "lelu.memory.deletions.v1": 2224,
+      "lelu.projects.v1": 503144,
+      "lelu.memory.migration.v1": 5107,
+      "lelu.memory.healing.v1": 182,
+      "lelu.memory.deletions.guard.v1": 82,
+      "lelu.memory.migration.reviews.v1": 101,
+      "lelu.memory.migration.progress.v1": 109
+    },
+    "indexedDbDatabases": [
+      "lelu-memory"
+    ],
+    "deletedTokensPersisted": []
+  },
+  "finishedAt": "2026-11-20T16:41:58.346Z",
+  "pass": true
+}

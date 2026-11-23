@@ -22,6 +22,11 @@
 
 import MemoryExtractor from "./MemoryExtractor";
 import PatternMemory from "./PatternMemory";
+import {
+  createOrigin,
+  type MemoryScopeContext,
+  type OriginInput,
+} from "../core/memory/MemorySovereignty";
 
 import type ResponsePattern from "./ResponsePattern";
 
@@ -128,13 +133,20 @@ export default class MemoryEngine {
       const keywordOverlap = candidate.keywords.filter((word) => existing.keywords.includes(word)).length;
       const isCorrection = CORRECTION_MARKERS.test(text);
 
-      if (contentOverlap >= 0.6) {
-        // Same fact restated → REINFORCE.
-        await this.reinforce(existing, candidate.keywords, now, provenance);
-        persisted.push(existing);
-      } else if (isCorrection && (contentOverlap >= 0.33 || promptOverlap >= 0.33 || keywordOverlap >= 1)) {
+      // A CORRECTION IS CHECKED BEFORE "same thing restated".
+      //
+      // A correction usually shares most of its words with the statement it
+      // corrects — "I prefer platinum, not rose gold" against "I prefer rose
+      // gold" overlaps heavily — so the high-overlap reinforce branch used to
+      // win and the old value stayed current. The newer statement must win,
+      // and the old one survives in context.history.
+      if (isCorrection && (contentOverlap >= 0.33 || promptOverlap >= 0.33 || keywordOverlap >= 1)) {
         // Newer statement contradicts/updates the old one → SUPERSEDE.
         await this.supersede(existing, candidate, now, provenance);
+        persisted.push(existing);
+      } else if (contentOverlap >= 0.6) {
+        // Same fact restated → REINFORCE.
+        await this.reinforce(existing, candidate.keywords, now, provenance);
         persisted.push(existing);
       } else if (contentOverlap >= 0.33 || promptOverlap >= 0.33) {
         // Related but distinct → MERGE keywords, keep the fuller content.
@@ -213,9 +225,27 @@ export default class MemoryEngine {
     existing.successfulUses += 1;
     existing.confidence = existing.successfulUses / Math.max(1, existing.successfulUses + existing.failedUses);
     existing.keywords = [...new Set([...existing.keywords, ...keywords])];
-    existing.context = { ...existing.context, ...provenanceFields(provenance) };
-    existing.updatedAt = now;
+    const { originSeed: _seed, ...fields } = provenanceFields(provenance);
+    existing.context = { ...existing.context, ...fields };
+    // Strictly monotonic: a reinforcement in the same millisecond as the
+    // write must still be later than it, or chronology (and the correction
+    // test) depends on clock granularity.
+    const stamp = Math.max(now, existing.updatedAt + 1);
+    existing.updatedAt = stamp;
+    this.touchOrigin(existing, stamp);
     await this.memory.update(existing);
+  }
+
+  /**
+   * Provenance ages with the record. The ORIGIN never moves — learning a fact
+   * again in another conversation must not rewrite where it was first learned,
+   * or chronology becomes a lie. Only updatedAt advances.
+   */
+  private touchOrigin(pattern: ResponsePattern, now: number): void {
+    const origin = pattern.context?.origin as Record<string, unknown> | undefined;
+    if (origin && typeof origin === "object") {
+      pattern.context = { ...pattern.context, origin: { ...origin, updatedAt: now } };
+    }
   }
 
   /**
@@ -253,7 +283,9 @@ export default class MemoryEngine {
     };
     existing.successfulUses += 1;
     existing.confidence = 1;
-    existing.updatedAt = now;
+    const stamp = Math.max(now, existing.updatedAt + 1);
+    existing.updatedAt = stamp;
+    this.touchOrigin(existing, stamp);
     await this.memory.update(existing);
   }
 
@@ -275,6 +307,7 @@ export default class MemoryEngine {
     existing.context = { ...existing.context, ...provenanceFields(provenance) };
     existing.successfulUses += 1;
     existing.updatedAt = now;
+    this.touchOrigin(existing, now);
     await this.memory.update(existing);
   }
 
@@ -287,8 +320,13 @@ export default class MemoryEngine {
     now: number,
     provenance: LearnProvenance = {},
   ): Promise<ResponsePattern> {
+    const id = crypto.randomUUID();
+    const rest = provenanceFields(provenance);
+    const seed = (rest.originSeed ?? {}) as Partial<OriginInput>;
+    delete rest.originSeed;
+
     const pattern: ResponsePattern = {
-      id: crypto.randomUUID(),
+      id,
       category: candidate.category as ResponsePattern["category"],
       prompt,
       response: candidate.content,
@@ -300,7 +338,22 @@ export default class MemoryEngine {
         consolidated: now,
         // The caller's provenance wins over the default source: it is the
         // only record of where the fact came from.
-        ...provenanceFields(provenance),
+        ...rest,
+        // WHERE, WHEN and WHOSE. Created here because this is where the id
+        // exists; never left for a later reader to guess.
+        origin: createOrigin({
+          memoryId: id,
+          userId: seed.userId ?? null,
+          conversationId: seed.conversationId ?? null,
+          sessionId: seed.sessionId ?? null,
+          conversationTitle: seed.conversationTitle ?? null,
+          sourceType: seed.sourceType ?? "user-said",
+          scope:
+            seed.scope ??
+            (candidate.memoryType === "conversation" ? "session" : "persistent-user"),
+          confidence: seed.confidence ?? Math.min(1, candidate.importance),
+          now,
+        }),
       },
       memoryType: (candidate.memoryType ?? "user") as ResponsePattern["memoryType"],
       importance: candidate.importance,
@@ -349,7 +402,11 @@ export default class MemoryEngine {
   /**
    * Recall: search the existing memory store.
    */
-  public async recall(query: string): Promise<ResponsePattern[]> {
-    return await this.memory.search(query);
+  public async recall(
+    query: string,
+    /** The current turn's identity: ownership, conversation and session. */
+    scope?: MemoryScopeContext,
+  ): Promise<ResponsePattern[]> {
+    return await this.memory.search(query, scope);
   }
 }

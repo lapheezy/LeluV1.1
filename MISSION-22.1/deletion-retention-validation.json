@@ -1,0 +1,41 @@
+{
+  "mission": "LÉLU 2.2.1 — deletion, correction and retention",
+  "executedAt": "2026-11-19",
+  "lifecycle": {
+    "create": "MemoryEngine.create writes provenance with the id (owner, conversation, session, scope, source, confidence)",
+    "correction": "supersede() records history and advances updatedAt strictly monotonically, so same-millisecond corrections still order correctly",
+    "reinforce": "same fact again strengthens confidence and advances updatedAt; the ORIGIN never moves",
+    "memory_delete": "Brain.forgetMemory(id) → PatternMemory.remove + CognitiveCore.forgetMemory (node.data.memoryId) + trace entry",
+    "conversation_delete": "GenesisCore.closeConversation → MultiChatStore.remove + AIService.forgetConversation → session memories and that conversation's graph nodes",
+    "retention": "durable facts survive conversation deletion with their origin intact; session material does not",
+    "session_expiry": "session-scoped records are rejected outside their session (M22 test A)"
+  },
+  "propagation": {
+    "memory_store": "deleted",
+    "semantic_index": "none — PatternMemory is the one index; there is no second vector store to drift",
+    "cognitive_graph": "nodes linked by memoryId are purged; edges touching them are removed",
+    "project_summaries": "project notes are independent user content and are not edited by memory deletion",
+    "agent_context": "agent requests read through the same store, so a deleted memory cannot reappear there",
+    "background_processes": "curiosity/self-study use the same scoped recall"
+  },
+  "evidence": [
+    "test K: deleting a memory removes its cognitive observation too",
+    "test K: deleting a conversation purges its session material, keeps durable facts",
+    "test K: state() refuses unattributed observations and other conversations' nodes"
+  ],
+  "policy": {
+    "conversation_delete_removes": ["transcript", "session-scoped memories", "graph observations of that conversation"],
+    "conversation_delete_keeps": ["persistent-user facts, still labelled with the deleted chat as their origin"],
+    "why": "the mission forbids making LÉLU forget the user; deleting a chat is not \"forget everything you know about me\""
+  },
+  "residual_risks": [
+    "Ordinary turn memories are stored as persistent-user by MemoryEngine, so they survive their chat. This is the documented product policy, not a leak: they are recallable only as labelled history.",
+    "Project notes that quoted a memory are not rewritten when that memory is deleted."
+  ],
+  "acceptance": {
+    "deleted_memory_unavailable": true,
+    "deleted_conversation_material_unavailable": true,
+    "provenance_preserved_on_survivors": true,
+    "nothing_silently_deleted": true
+  }
+}

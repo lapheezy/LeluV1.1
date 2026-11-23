@@ -1,0 +1,30 @@
+{
+  "mission": "LÉLU 2.2 — provider parity for the memory boundary",
+  "verificationLevel": "pipeline parity (canonical MemoryBridge.enrich + AIRuntime.process → real provider HTTP)",
+  "startedAt": "2026-11-19T14:02:23.177Z",
+  "finishedAt": "2026-11-19T14:02:30.118Z",
+  "scenario": "Chat B asks \"Can you fix it?\" after a loss was discussed in chat A.",
+  "results": [
+    {
+      "provider": "groq",
+      "status": "answered",
+      "ms": 2057,
+      "model": "OpenRouter",
+      "contextChars": 4097,
+      "griefInContext": false,
+      "voiceAttached": true,
+      "text": "Fix what? I don't have context on what you're referring to."
+    },
+    {
+      "provider": "openrouter",
+      "status": "answered",
+      "ms": 4181,
+      "model": "OpenRouter",
+      "contextChars": 4138,
+      "griefInContext": false,
+      "voiceAttached": true,
+      "text": "What are you trying to fix?"
+    }
+  ],
+  "passes": 2
+}

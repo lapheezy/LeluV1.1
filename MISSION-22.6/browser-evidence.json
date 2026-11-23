@@ -1,0 +1,104 @@
+{
+  "mission": "M22.6",
+  "environment": {
+    "origin": "https://pv-4fe6237b5488-1121d0da-00b5-43ca-bc59-549c098f405e.style.dev",
+    "route": "/?scene=off",
+    "branch": "m22.6/memory-integrity-deletion-propagation",
+    "buildStamp": "LÉLU 12d2407+dirty · m22.6/memory-integrity-deletion-propagation · development",
+    "server": "vite 8.2.0 on 0.0.0.0:3001, LELU_ALLOWED_HOSTS set for the preview hostname",
+    "provider": "same-origin model broker → groq / openai/gpt-oss-120b"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "action": "Seeded a memory through the app's own Brain (browser module import), deleted it through Brain.forgetMemory, then — AFTER the deletion — created a legacy-shaped checkpoint quoting it.",
+      "result": {
+        "learned": true,
+        "deletion": { "removed": true, "nodes": 1, "checkpoints": 0, "ledgerRecorded": true },
+        "ledgerEntries": 1,
+        "checkpointQuotesDeletedPhrase": true,
+        "memoryPanelOpened": false
+      }
+    },
+    {
+      "step": 2,
+      "action": "Reloaded the page (application restart) and waited for boot; the Memory panel was never opened.",
+      "result": {
+        "healing": {
+          "state": "complete",
+          "batches": 1,
+          "scannedProjects": 3,
+          "cleanedFields": 1,
+          "quarantined": 0,
+          "tombstones": 1,
+          "durationMs": 2,
+          "resumed": false,
+          "recoveredCursor": false
+        },
+        "deletedPhraseStillStored": false,
+        "unrelatedPendingStepKept": true,
+        "migrationReport": { "version": 2, "cleanedFields": 1, "persisted": true }
+      },
+      "conclusion": "Automatic boot-time healing removed provable residue with no user action."
+    },
+    {
+      "step": 3,
+      "action": "Seeded a fresh checkpoint quoting the same deleted phrase (simulating a copy from another surface written after the heal), patched window.fetch to record request bodies, and sent one chat message.",
+      "result": {
+        "storedAfterSeeding": true,
+        "providerRequest": {
+          "url": "/api/model/groq/chat/completions",
+          "bytes": 28752,
+          "model": "openai/gpt-oss-120b",
+          "containsProjectCheckpointsSection": true,
+          "containsProjectName": true,
+          "occurrencesOfDeletedToken": 0,
+          "containsDeletedSentenceFragment": false
+        },
+        "payloadExcerpt": "Projects: Late residue probe, Legacy browser checkpoint, Jewelry, Fashion … ## PROJECT CHECKPOINTS",
+        "storedCopyStillQuotedWhilePayloadDidNot": true
+      },
+      "conclusion": "The deletion gate filtered the statement at context/payload assembly: the stored copy still existed, and the provider never saw it."
+    },
+    {
+      "step": 4,
+      "action": "Restarted again and waited for boot.",
+      "result": {
+        "healing": {
+          "state": "complete",
+          "batches": 1,
+          "scannedProjects": 4,
+          "cleanedFields": 1,
+          "quarantined": 0,
+          "tombstones": 1,
+          "durationMs": 1
+        },
+        "deletedPhraseStillStored": false,
+        "deletedSentenceFragmentStillStored": false,
+        "ledgerHoldsDeletedText": false,
+        "projectsIntact": 4,
+        "reportVersion": 2
+      },
+      "conclusion": "The second restart cleaned the new residue automatically; project count unchanged."
+    },
+    {
+      "step": 5,
+      "action": "Enumerated storage for the persistence inventory.",
+      "result": {
+        "localStorageKeys": 44,
+        "indexedDbDatabases": ["lelu-avatar-images", "lelu-memory", "lelu-user"],
+        "cacheStorageEntries": 0,
+        "serviceWorkersRegistered": 0
+      }
+    }
+  ],
+  "screenshots": [
+    "screenshots/01-payload-guard-live-chat.png",
+    "screenshots/02-after-restart-healed.png"
+  ],
+  "limitations": [
+    "The screenshots show the live app and its answer; they are not proof of storage state. The storage proof is the JSON in this file and MISSION-22.6/verification.json.",
+    "Only two boot cycles were exercised in the browser here; repeated-cycle behaviour is covered by tests and verification scenario J.",
+    "The quarantine Forget/Keep buttons were exercised in tests and scenario F, not clicked in this browser run."
+  ]
+}

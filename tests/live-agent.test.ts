@@ -837,6 +837,51 @@ test("consent comes from what the user said: naming the chat, 'the other chat', 
   assert.equal(consentFor({ prompt: "Link the video model research chat here", current: current(), target, action: "link" }).ok, true);
 });
 
+/* ------------------------------------------------------------------ *
+ * THE “OTHER CHATS” INDICATOR SAYS WHAT ACTUALLY HAPPENED
+ * ------------------------------------------------------------------ */
+
+test("a chat is only named by its title on word boundaries, and this turn's own words are never another chat's research", async () => {
+  const { containsTitle, namesChat } = await import("../src/core/multichat/ChatConsent");
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const { default: CrossChatResolver } = await import("../src/core/multichat/CrossChatResolver");
+  const store = MultiChatStore.getInstance();
+  const question = "What is my workshop access phrase? Answer in one short line.";
+  const now = Date.now();
+  const add = (id: string, role: "user" | "assistant", text: string, at: number) =>
+    store.addMessage(id, { id: crypto.randomUUID(), role, text, timestamp: at, source: "local" });
+
+  // A chat whose title ends mid-word in the question: “…”? A” + “nswer”.
+  const doppelganger = store.createBackground("What is my workshop access phrase? A").id;
+  add(doppelganger, "user", question, now);
+  const here = store.createBackground("Fresh question").id;
+  add(here, "user", question, now + 1);
+
+  assert.equal(containsTitle(question, store.get(doppelganger)!.title), false, "a title ending inside a word is not a name");
+  // Its distinctive words can still point at it — but pointing is not using:
+  // the only message it has is this very question, which is never taken.
+  assert.equal(typeof namesChat, "function");
+
+  const reference = CrossChatResolver.getInstance().reference(here, question);
+  assert.deepEqual(reference.used, [], "the user's own question is not another chat's research");
+  assert.doesNotMatch(reference.context, /RESEARCH FROM OTHER CHATS/);
+  assert.deepEqual(reference.suggested, [], "and it is not offered as a related chat either");
+
+  // Zero cross-chat retrieval, and an unknown conversation: both are silence.
+  assert.deepEqual(CrossChatResolver.getInstance().reference(here, "completely unrelated words about glaciers").used, []);
+  assert.deepEqual(CrossChatResolver.getInstance().reference("no-such-conversation", question).used, []);
+
+  // The positive case still works: a linked chat's content is used and labelled.
+  const research = store.createBackground("Glacier survey").id;
+  add(research, "user", "What did the glacier survey find?", now + 2);
+  add(research, "assistant", "The glacier survey found the terminus retreated 340 metres since 2019.", now + 3);
+  store.link(here, research);
+  const linked = CrossChatResolver.getInstance().reference(here, "What did the glacier survey find?");
+  assert.equal(linked.used.length, 1, "an authorized chat is used");
+  assert.match(linked.context, /RESEARCH FROM OTHER CHATS/);
+  assert.match(linked.context, /retreated 340 metres/);
+});
+
 test("chats_read refuses an unmentioned chat without reading it, and reads one the user brought up", async () => {
   const { store, research, here } = await chatsForTools();
   const timestamp = Date.now() + 777;

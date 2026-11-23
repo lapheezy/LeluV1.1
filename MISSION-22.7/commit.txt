@@ -1,0 +1,35 @@
+M22.7 — COMMIT AND REMOTE VERIFICATION
+
+Starting point
+  start commit ............ 21cb99d  "Record the M22.6 commit hash and remote verification"
+  M22.6 implementation .... 3882c41
+  M22.6 evidence record ... 21cb99d
+  canonical branch ........ main = 44bdd936892bc989b6b59fd5ecfb9502747e6a58
+
+Isolated branch
+  branch .................. m22.7/universal-memory-erasure
+  created at .............. 21cb99d
+
+M22.7 implementation commit
+  9700a4400a2387b3d4ac93620d9ef15b387846f7
+  "Make a deleted memory unable to come back through the cloud"
+  files: 7 source files modified, 5 added (migration, new test, 3 probes),
+         13 evidence documents + 5 evidence JSON files
+
+Remote verification (git ls-remote --heads origin, after push)
+  local  HEAD ............. 9700a4400a2387b3d4ac93620d9ef15b387846f7
+  remote refs/heads/m22.7/universal-memory-erasure
+                           9700a4400a2387b3d4ac93620d9ef15b387846f7
+  result .................. MATCH
+
+Untouched, verified at the same time
+  refs/heads/m22.6/memory-integrity-deletion-propagation
+                          21cb99dfe693faef8b7eb1adc1f009a5b3e8cf6a (unchanged)
+  refs/heads/main         44bdd936892bc989b6b59fd5ecfb9502747e6a58 (unchanged)
+
+No merge, no pull request, no force push, no history rewrite, no canonical write,
+no production data touched. The only remote project contacted was lelu-v11-test,
+read-only (health check and two unauthenticated reads).
+
+The commit that contains this file is the hash-record commit that follows the
+implementation commit; `git log --oneline -2` on the branch shows both.
