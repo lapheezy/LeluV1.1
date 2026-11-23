@@ -1,0 +1,81 @@
+{
+ "schema": "lelu.hair.metrics/1",
+ "render": "artifacts/pci-fr-2.1/hair/shell_front.png",
+ "px_per_mm": 2.558,
+ "length": {
+  "below_chin_fw": 2.2,
+  "below_chin_mm": 329.9,
+  "target_waist_fw": 3.2,
+  "target_waist_mm": 480.0,
+  "hair_top_mm_above_face_top": 107.3
+ },
+ "curl": {
+  "spacing_px": 21.02,
+  "spacing_mm": 8.2,
+  "spec_loose_diameter_mm": 13.0,
+  "spec_pitch_mm": 15.0,
+  "confidence": 0.451
+ },
+ "silhouette": {
+  "iou": 0.167,
+  "recall": 0.529,
+  "precision": 0.197
+ },
+ "hairline": {
+  "rms_fw": null,
+  "overlap": 0.999,
+  "measurable": false
+ },
+ "colour": {
+  "render": {
+   "mean_rgb": [
+    25.7,
+    15.5,
+    13.9
+   ],
+   "mean_hue": 40.0,
+   "mean_sat": 0.478,
+   "mean_val": 0.101,
+   "sat_p90": 0.659
+  },
+  "reference": {
+   "mean_rgb": [
+    45.2,
+    30.9,
+    27.7
+   ],
+   "mean_hue": 19.4,
+   "mean_sat": 0.366,
+   "mean_val": 0.178,
+   "sat_p90": 0.588
+  }
+ },
+ "baby_hairs": {
+  "detected_on_render": 4,
+  "spirals_expected": 3,
+  "spiral_count": 3,
+  "roots": [
+   [
+    607.0,
+    290.0
+   ],
+   [
+    666.0,
+    293.0
+   ],
+   [
+    590.0,
+    277.0
+   ],
+   [
+    651.0,
+    291.0
+   ]
+  ]
+ },
+ "headpiece": {
+  "gold_pixel_fraction": 0.02378,
+  "mean_chain_error_px": 29.8,
+  "chain_error_mm": 11.7
+ }
+}

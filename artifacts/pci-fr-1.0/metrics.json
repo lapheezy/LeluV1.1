@@ -1,0 +1,241 @@
+{
+ "schema": "lelu.replication.metrics/1",
+ "reference": "leluverse/assets/characters/lelu_character/references/ref10_face_primary.png",
+ "steps": [
+  {
+   "step": "reference",
+   "size": [
+    1024,
+    1536
+   ],
+   "face_width_px": 391.3,
+   "proportions": 14
+  },
+  {
+   "step": "baseline",
+   "nme": 0.0155,
+   "prop_dev": 8.03
+  },
+  {
+   "step": "landmark-repair",
+   "low_confidence": 0,
+   "repaired": 0
+  },
+  {
+   "step": "face-model",
+   "sources": 5,
+   "fit_nme": 0.0072,
+   "prop_dev": 2.03
+  },
+  {
+   "step": "geometry",
+   "face_triangles": 918,
+   "hair_shell_triangles": 71038,
+   "strands": 313,
+   "baby_hairs": 4
+  },
+  {
+   "step": "jewelry",
+   "reference_beads": 45,
+   "reconstructed_beads": 11,
+   "matched": 4,
+   "coverage": 0.089,
+   "mean_position_error_px": 234.0,
+   "mean_position_error_over_width": 0.3158,
+   "reference_spacing_over_radius": 2.63,
+   "reconstructed_spacing_over_radius": 1.11,
+   "reference_mirror_fraction": 0.6,
+   "reconstructed_mirror_fraction": 1.0,
+   "median_radius_px": 18.9,
+   "reference_median_spacing_over_radius": 2.77,
+   "symmetry": {
+    "axis_x": 509.5,
+    "mirror_fraction": 0.556
+   },
+   "before_beads": 0
+  },
+  {
+   "step": "garment",
+   "panels_reconstructed": 5,
+   "coverage_iou_vs_segmentation": 0.988,
+   "reconstructed_fraction": 1.0,
+   "reference_fraction": 0.988
+  }
+ ],
+ "limitations": [
+  "the pendant reference has no face; it is scaled by the measured bead spread, not a face width",
+  "The face surface is a 2-D landmark model with a parametric depth prior, not multi-view stereo: depth is plausible, not measured.",
+  "Face texture is the reference warped through the landmark correspondence (as the shipped LeluRig does); geometry and hair/jewelry are procedural.",
+  "Hair is strand-level geometry grown along the measured curl field; it is not a groomed simulation and does not collide."
+ ],
+ "baseline": {
+  "render": "leluverse/assets/characters/lelu_character/rig/v004_headswap_mvvnvqa1/preview_face_front.png",
+  "nme": 0.0155,
+  "proportion_deviation_pct": 8.03,
+  "per_region_nme": {
+   "eyes": 0.0203,
+   "brows": 0.0298,
+   "nose": 0.0116,
+   "mouth": 0.0145,
+   "jaw": 0.0216,
+   "cheek": 0.0179
+  },
+  "hairline_rms_px": 81.8,
+  "hairline_rms_fw": 0.209,
+  "hairline_overlap": 0.951,
+  "baby_hairs": 1,
+  "jewelry_beads": 0
+ },
+ "face_model": {
+  "sources": [
+   "face-front-closeup-alt.png",
+   "face-front-closeup.png",
+   "ref08_face_upper_body.png",
+   "ref15_head_turnaround_sheet.png",
+   "ref17_head_front_unhooded.png"
+  ],
+  "skipped": [
+   {
+    "image": "accessories-hands-forearm-armor.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "accessories-signature-pendant.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "body-back-apose-hood.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "body-front-apose-hood.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "body-front-neutral-nohood.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "body-left-profile-hood.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "body-three-quarter-hood.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "clothing-cargo-pants-boots.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "clothing-corset-top.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "clothing-platform-boots.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "clothing-shoulder-armor.png",
+    "reason": "no face detected"
+   },
+   {
+    "image": "clothing-waist-harness.png",
+    "reason": "no face detected"
+   }
+  ],
+  "held_out": "ref10_face_primary.png",
+  "components": 4,
+  "singular_values": [
+   1545.8,
+   121.34,
+   34.77,
+   0.0
+  ],
+  "coefficients": [
+   -134.7911,
+   63.9966,
+   34.5422,
+   -0.0
+  ],
+  "fit_nme": 0.0072,
+  "fit_proportion_deviation_pct": 2.03,
+  "landmarks_repaired_from_model": 0
+ },
+ "face": {
+  "nme_before": 0.0155,
+  "nme_after": 0.0077,
+  "nme_reduction_pct": 50.4,
+  "proportion_deviation_before_pct": 8.03,
+  "proportion_deviation_after_pct": 1.43,
+  "proportion_reduction_pct": 82.1,
+  "per_region_before": {
+   "eyes": 0.0203,
+   "brows": 0.0298,
+   "nose": 0.0116,
+   "mouth": 0.0145,
+   "jaw": 0.0216,
+   "cheek": 0.0179
+  },
+  "per_region_after": {
+   "eyes": 0.0095,
+   "brows": 0.01,
+   "nose": 0.0062,
+   "mouth": 0.0102,
+   "jaw": 0.0113,
+   "cheek": 0.0043
+  },
+  "yaw18_geometry_check_nme": 0.0282,
+  "note": "NME = mean landmark distance / inter-ocular distance after similarity alignment on landmarks the evaluation does not use (brows, lips, jaw corners)."
+ },
+ "hair": {
+  "hairline_rms_fw_before": 0.209,
+  "hairline_rms_fw_after": 0.1397,
+  "hairline_rms_px_after": 54.7,
+  "hairline_overlap_before": 0.951,
+  "hairline_overlap_after": 0.998,
+  "hairline_measured": true,
+  "strands_generated": 313,
+  "baby_hairs_before": 1,
+  "baby_hairs_reference": 4,
+  "baby_hair_match": {
+   "coverage": 0.0,
+   "mean_root_error_px": null,
+   "matched": 0,
+   "reference_count": 4
+  }
+ },
+ "jewelry": {
+  "reference_beads": 45,
+  "reconstructed_beads": 11,
+  "matched": 4,
+  "coverage": 0.089,
+  "mean_position_error_px": 234.0,
+  "mean_position_error_over_width": 0.3158,
+  "reference_spacing_over_radius": 2.63,
+  "reconstructed_spacing_over_radius": 1.11,
+  "reference_mirror_fraction": 0.6,
+  "reconstructed_mirror_fraction": 1.0,
+  "median_radius_px": 18.9,
+  "reference_median_spacing_over_radius": 2.77,
+  "symmetry": {
+   "axis_x": 509.5,
+   "mirror_fraction": 0.556
+  },
+  "before_beads": 0
+ },
+ "garment": {
+  "panels_reconstructed": 5,
+  "seams_reconstructed": 5,
+  "coverage_iou_vs_segmentation": 0.988,
+  "reconstructed_fraction": 1.0,
+  "reference_fraction": 0.988,
+  "before": "the v004 GLB carries the corset only as painted texture: zero panel surfaces and zero piping seams in geometry"
+ },
+ "acceptance": {
+  "nme_target_20pct": true,
+  "hair_target": true,
+  "jewelry_demonstrated": true,
+  "garment_demonstrated": true
+ }
+}

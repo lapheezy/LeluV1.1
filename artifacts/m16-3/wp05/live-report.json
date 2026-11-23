@@ -1,0 +1,19 @@
+{
+  "evidence": "LIVE",
+  "origin": "http://127.0.0.1:3003",
+  "turns": [
+    {
+      "said": "build a chair",
+      "reply": ""
+    },
+    {
+      "said": "put it in the Cosmos",
+      "spawned": false,
+      "object": null,
+      "reply": ""
+    }
+  ],
+  "errors": [],
+  "composerFound": true,
+  "error": "no object appeared in the Cosmos"
+}

@@ -1,0 +1,18 @@
+{
+ "schema": "lelu.hair.shell/1",
+ "grid": [
+  120,
+  140
+ ],
+ "quads": 16800,
+ "locks": 26,
+ "waist_below_chin_fw": 3.2,
+ "head_width_mm": 150.0,
+ "glb": "artifacts/pci-fr-2.1/hair/lelu_hair_shell.glb",
+ "views": {
+  "three_quarter": "artifacts/pci-fr-2.1/hair/shell_three_quarter.png",
+  "profile": "artifacts/pci-fr-2.1/hair/shell_profile.png",
+  "rear": "artifacts/pci-fr-2.1/hair/shell_rear.png",
+  "front": "artifacts/pci-fr-2.1/hair/shell_front.png"
+ }
+}

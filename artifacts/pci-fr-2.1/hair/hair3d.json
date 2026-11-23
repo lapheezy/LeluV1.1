@@ -1,0 +1,53 @@
+{
+ "schema": "lelu.hair.reconstruction3d/1",
+ "strands": 1573,
+ "locks": 55,
+ "points_per_strand": 300,
+ "curl_radius_mm": 6.5,
+ "curl_pitch_mm": 15.0,
+ "strand_diameter_mm": 0.075,
+ "spec_source": "lelu-hair-24.png",
+ "head_mm": 150.0,
+ "waist_below_chin_fw": 3.2,
+ "length_mm": {
+  "mean": 540.6,
+  "min": 495.0,
+  "max": 584.9
+ },
+ "follicle_density_per_cm2": 2.1,
+ "colour_mix": {
+  "base": 995,
+  "burgundy": 265,
+  "copper": 63,
+  "deep_burgundy": 221,
+  "pink": 29
+ },
+ "baby_spirals": [
+  {
+   "id": "A",
+   "radius_mm": 8.0,
+   "length_mm": 42.0
+  },
+  {
+   "id": "B",
+   "radius_mm": 11.0,
+   "length_mm": 56.0
+  },
+  {
+   "id": "C",
+   "radius_mm": 5.0,
+   "length_mm": 31.0
+  }
+ ],
+ "chain_points": {
+  "centre": 80,
+  "temple_left": 60,
+  "temple_right": 60
+ },
+ "views": {
+  "three_quarter": "artifacts/pci-fr-2.1/hair/hair_three_quarter.png",
+  "profile": "artifacts/pci-fr-2.1/hair/hair_profile.png",
+  "rear": "artifacts/pci-fr-2.1/hair/hair_rear.png",
+  "front": "artifacts/pci-fr-2.1/hair/hair_front.png"
+ }
+}

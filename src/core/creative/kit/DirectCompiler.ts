@@ -441,6 +441,19 @@ function cosmosPlan(t: string): DirectPlan | null {
     );
   }
 
+  // A step in a direction, with no anchor object: "move it to the left".
+  // Order matters — "left of the chair" is handled above, this is the relative case.
+  const step = /\b(?:move|shift|push|nudge|slide)\s+(?:it|that|the\s+([\w\s-]{2,25}?))\s+(?:to\s+)?(?:the\s+)?(left|right|up|down|forwards?|backwards?|back)\b/i.exec(t.trim());
+  if (step) {
+    const direction = /^left/i.test(step[2]) ? "left" : /^right/i.test(step[2]) ? "right" : /^up/i.test(step[2]) ? "up" : /^down/i.test(step[2]) ? "down" : /^forw/i.test(step[2]) ? "forward" : "back";
+    const named = step[1]?.trim();
+    return one("cosmos.object.position", "move", { ...(named ? { object: named } : {}), direction }, `move ${named ? `the ${named}` : "it"} ${direction}`);
+  }
+
+  // "select the chair" / "select it" — a READ, so it changes nothing.
+  const choose = /^(?:please\s+)?(?:select|highlight|choose|pick)\s+(?:the\s+|my\s+)?([\w\s-]{2,30})$/i.exec(t.trim());
+  if (choose) return one("cosmos.object.select", "select", { object: choose[1].trim() }, `select “${choose[1].trim()}”`);
+
   const twice = /\b(?:make|scale)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(twice|two times|half)\s+(?:as\s+)?(?:large|big|small)\b/i.exec(t.trim());
   if (twice) {
     const factor = /half/i.test(twice[2]) ? 0.5 : 2;

@@ -1,0 +1,90 @@
+{
+ "schema": "lelu.hair.volume/2",
+ "strands": 7800,
+ "locks": 458,
+ "points_per_strand": 1080,
+ "head": {
+  "rx": 0.62,
+  "ry": 0.8,
+  "rz": 0.56,
+  "yc": 0.24
+ },
+ "chin_y_fw": -0.56,
+ "waist_y_fw": -3.7600000000000002,
+ "waist_below_chin_fw": 3.2,
+ "waist_below_chin_mm": 480.0,
+ "geometry_length_mm": {
+  "below_chin_mean": 476.4,
+  "below_chin_max": 486.8,
+  "below_chin_p05": 468.9,
+  "strand_arc_mean": 7.9,
+  "strand_arc_max": 20.7
+ },
+ "silhouette_half_width_fw": {
+  "shoulder_y_-1.1": 1.0,
+  "widest": 1.0
+ },
+ "curl": {
+  "radius_mm": [
+   6.72,
+   12.81,
+   11.14,
+   11.86,
+   13.49,
+   15.29,
+   6.38,
+   8.08
+  ],
+  "pitch_mm": [
+   16.29,
+   47.72,
+   32.13,
+   35.67,
+   44.61,
+   42.05,
+   14.24,
+   27.11
+  ],
+  "radius_mm_range": [
+   3.79,
+   15.38
+  ],
+  "pitch_mm_range": [
+   10.76,
+   48.36
+  ]
+ },
+ "strand_diameter_mm": [
+  0.14,
+  0.3
+ ],
+ "lock_diameter_mm": [
+  5.24,
+  19.0
+ ],
+ "root_on_scalp_mm_error": {
+  "max": 1.071,
+  "mean": 0.938
+ },
+ "segment_length_mm_max": 728.525,
+ "density": {
+  "roots_per_cm2": 5.6
+ },
+ "babyspiral_ids": [
+  "A",
+  "B",
+  "C"
+ ],
+ "views": {
+  "hair_front.png": "artifacts/pci-fr-2.2/hair/hair_front.png",
+  "hair_three_quarter.png": "artifacts/pci-fr-2.2/hair/hair_three_quarter.png",
+  "hair_profile.png": "artifacts/pci-fr-2.2/hair/hair_profile.png",
+  "hair_rear.png": "artifacts/pci-fr-2.2/hair/hair_rear.png",
+  "hair_full_length.png": "artifacts/pci-fr-2.2/hair/hair_full_length.png",
+  "hair_crown.png": "artifacts/pci-fr-2.2/hair/hair_crown.png",
+  "hair_curl_closeup.png": "artifacts/pci-fr-2.2/hair/hair_curl_closeup.png",
+  "hair_babyhairs.png": "artifacts/pci-fr-2.2/hair/hair_babyhairs.png"
+ },
+ "glb": "artifacts/pci-fr-2.2/hair/lelu_hair_volume.glb",
+ "glb_lock_count": 280
+}

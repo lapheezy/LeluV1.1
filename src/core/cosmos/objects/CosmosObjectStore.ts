@@ -50,7 +50,9 @@ export interface CosmosHazard {
 /** How much clear space to leave between two objects' boxes. */
 const PLACEMENT_GAP = 0.35;
 
-const STORE_KEY = "lelu.cosmos.objects.v1";
+/** The storage key the objects are saved under — read by verification. */
+export const COSMOS_OBJECTS_KEY = "lelu.cosmos.objects.v1";
+const STORE_KEY = COSMOS_OBJECTS_KEY;
 const MAX_OBJECTS = 120;
 /** How far back undo goes in one session. */
 const HISTORY_MAX = 30;

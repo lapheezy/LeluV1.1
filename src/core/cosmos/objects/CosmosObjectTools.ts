@@ -22,13 +22,18 @@ import CosmosObjectStore from "./CosmosObjectStore";
 import { cosmosCameraBus, cosmosViewBus, type CosmosCameraMode } from "./CosmosObjectCamera";
 import { describeObject, type CosmosObject } from "./CosmosObjectTypes";
 import { placeDirection, placeRelative, RELATION_WORDS, type Degree, type SpatialDirection, type SpatialRelation, type Vec3 as SpatialVec3 } from "./spatialIntent";
+import { conversationOf, isImplicitReference, messagesOf, rememberCosmosReferent, rememberCosmosSelection, resolveCosmosTarget } from "./continuity";
+import { persistedObject, snapshotOf, verifyObjectOperation, type ObjectSnapshot, type OperationExpectation } from "./verification";
 import type { BuildProgram } from "../../creative/kit/build";
 import type { Scene3DProgram } from "../../creative/kit/Scene3D";
+
+/** The part of RouterContext the object tools need: this conversation, and its messages. */
+type ToolContext = { request?: { conversationId?: string; messages?: Array<{ role?: string; content?: unknown }> } } | undefined;
 
 interface CosmosExecutor {
   id: string;
   parameters: Record<string, unknown>;
-  run: (args: Record<string, unknown>) => Promise<ToolExecutionResult>;
+  run: (args: Record<string, unknown>, context?: ToolContext) => Promise<ToolExecutionResult>;
 }
 
 const OBJ = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, ...(required.length ? { required } : {}) });
@@ -36,11 +41,101 @@ const s = (args: Record<string, unknown>, k: string) => (typeof args[k] === "str
 const n = (args: Record<string, unknown>, k: string) => (typeof args[k] === "number" && Number.isFinite(args[k]) ? (args[k] as number) : undefined);
 const vec = (v: unknown) => (Array.isArray(v) && v.length === 3 && v.every((x) => typeof x === "number") ? (v as [number, number, number]) : undefined);
 const ok = (content: string, data?: Record<string, unknown>): ToolExecutionResult => ({ ok: true, content, data });
+
+/** The label for a frame change: the operation the user actually asked for. */
+function whatChanged(
+  position: [number, number, number] | undefined,
+  rotation: [number, number, number] | undefined,
+  scale: number | undefined,
+): string {
+  const parts = [position ? "Moved" : "", rotation ? "Turned" : "", typeof scale === "number" ? "Resized" : ""].filter(Boolean);
+  if (parts.length === 0) return "Changed";
+  if (parts.length === 1) return parts[0];
+  const [first, ...rest] = parts;
+  return `${first} and ${rest.join(" and ").toLowerCase()}`;
+}
 const bad = (content: string): ToolExecutionResult => ({ ok: false, content });
 
 const def = (id: string, name: string, description: string, risk: number, permissions: string[], inputSchema: Record<string, unknown>): ToolDefinition => ({
   id, name, description, category: "COSMOS" as ToolDefinition["category"], permissions, riskLevel: risk, available: true, inputSchema, executionRoute: "local · CosmosObjectStore",
 } as ToolDefinition);
+
+/** A recorded change, before and after, for the verdict. */
+interface VerdictInput {
+  id: string;
+  action: string;
+  before: ObjectSnapshot | null;
+  expectation: Omit<OperationExpectation, "action" | "objectId">;
+  content: string;
+  data?: Record<string, unknown>;
+  /** A safe re-application, used at most once. */
+  retry?: () => void;
+  context?: ToolContext;
+}
+
+/**
+ * Judge what actually happened, then report it.
+ *
+ * A store call returning ok is not evidence that the requested state exists,
+ * so the object is read back and checked on its target, its change, the value
+ * that was asked for and the fields it must not touch. If nothing changed at
+ * all, a transform is re-applied ONCE (repeating a no-op is safe); a second
+ * failure is reported as a failure, and `ok` is false rather than "done".
+ */
+function judged(input: VerdictInput): ToolExecutionResult {
+  const store = CosmosObjectStore.getInstance();
+  const read = () => {
+    const object = store.get(input.id);
+    return object
+      ? { snapshot: snapshotOf(object), persisted: persistedObject(input.id)?.updatedAt === object.updatedAt }
+      : { snapshot: null, persisted: false };
+  };
+
+  let { snapshot, persisted } = read();
+  let verification = verifyObjectOperation({ action: input.action, objectId: input.id, ...input.expectation }, input.before, snapshot, persisted);
+  let correction: Record<string, unknown> | undefined;
+
+  const nothingChanged = verification.checks.some((check) => check.name.includes("recorded the change") && !check.ok);
+  if (verification.status === "FAILED" && nothingChanged && input.retry && input.expectation.expect) {
+    input.retry();
+    ({ snapshot, persisted } = read());
+    const second = verifyObjectOperation({ action: input.action, objectId: input.id, ...input.expectation }, input.before, snapshot, persisted);
+    correction = { attempted: true, status: second.status, tries: 2 };
+    verification = second;
+  }
+
+  const failed = verification.status === "FAILED";
+  const recovered = Boolean(correction) && verification.status === "VERIFIED";
+  if (!failed) {
+    rememberCosmosReferent(conversationOf(input.context), input.id);
+    /* The object the tool just worked on is now the visible selection; record
+       which conversation that selection belongs to, so another chat cannot
+       inherit it as a pronoun's referent. */
+    rememberCosmosSelection(conversationOf(input.context), input.id);
+  }
+
+  return {
+    ok: !failed,
+    content: failed
+      ? `${input.content} — verification failed: ${verification.note ?? "the requested state was not reached"}`
+      : recovered
+        ? `${input.content} — applied on retry after the first attempt did not reach the store`
+        : input.content,
+    data: {
+      ...(input.data ?? {}),
+      objectId: input.id,
+      verification: {
+        action: input.action,
+        objectId: input.id,
+        before: input.before,
+        after: snapshot,
+        persisted,
+        result: verification,
+        ...(correction ? { correction } : {}),
+      },
+    },
+  };
+}
 
 /** The construction behind a Studio artifact, if it is a build. */
 function buildOf(artifactId: string): { program: BuildProgram; rev: number; id: string } | null {
@@ -137,22 +232,24 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
       near: { type: "string", description: "an object to sit beside — its position is read, never guessed" },
       relation: { type: "string", enum: ["beside", "near", "left-of", "right-of", "in-front-of", "behind", "above", "below", "closer", "farther"], description: "where to put it relative to `near` (default beside)" },
       side: { type: "string", description: "left | right | up | down | front | behind, relative to `near` — the same as `relation` left-of / right-of / above / below / in-front-of / behind" },
-      direction: { type: "string", enum: ["left", "right", "forward", "backward", "up", "down"], description: "move it one step this way" },
+      direction: { type: "string", enum: ["left", "right", "forward", "backward", "back", "up", "down"], description: "move it one step this way, from where it stands" },
       degree: { type: "string", enum: ["little", "normal", "lot"] },
       distance: { type: "number", description: "for a direction: how far, in the Cosmos's units" },
     }),
-    run: async (args) => {
+    run: async (args, context) => {
       const store = CosmosObjectStore.getInstance();
       /*
-       * M17.3: a NAME is resolved without guessing. When several objects answer
-       * to it ("the gear" after a duplicate), nothing moves and the reply asks
-       * which one — moving the newest copy silently was the WP01 finding F2.
+       * Workforce consolidation: two resolvers, one rule each.
+       *  - A pronoun / nothing ("it") is THIS conversation's object (group A
+       *    continuity), never simply the newest object in the scene.
+       *  - A NAME is resolved without guessing (M17.3): several matches move
+       *    nothing and the reply lists the candidates.
        */
+      const lookupContext = { messages: messagesOf(context), conversationId: conversationOf(context) };
       const pick = (ref: string, role: string): { object?: CosmosObject; error?: ToolExecutionResult } => {
-        // "it" / nothing: the selected object, else the newest — the existing rule for a follow-up.
-        if (!ref || /^(it|that|this)$/i.test(ref)) {
-          const it = store.resolve("");
-          return it ? { object: it } : { error: bad("There is no object in the Cosmos to move.") };
+        if (!ref || /^(it|that|this)$/i.test(ref) || isImplicitReference(ref)) {
+          const lookup = resolveCosmosTarget(store, ref, lookupContext);
+          return "object" in lookup ? { object: lookup.object } : { error: bad(`Nothing moved: ${lookup.reason}.`) };
         }
         const m = store.match(ref);
         if (m.object) return { object: m.object };
@@ -160,17 +257,19 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
           const list = m.candidates.slice(0, 6).map((o) => `“${o.name}” (${o.id})`).join(", ");
           return { error: { ok: false, content: `Nothing moved: ${m.candidates.length} objects answer to “${ref}” — ${list}. Which one do you mean as the ${role}?`, data: { ambiguous: true, role, candidates: m.candidates.map((o) => o.id) } } };
         }
-        return { error: bad(ref ? `No object matches “${ref}” — nothing moved.` : "No object is selected — say which one to move.") };
+        return { error: bad(`No object matches “${ref}” — nothing moved.`) };
       };
       const target = pick(s(args, "object"), "object to move");
       if (target.error) return target.error;
       const object = target.object!;
+      const before = snapshotOf(object);
       const from = [...object.frame.position] as SpatialVec3;
       let position = vec(args.position);
       let note: string | undefined;
       let ref: string | undefined;
       let said = "Moved";
-      const direction = s(args, "direction") as SpatialDirection;
+      const rawDirection = s(args, "direction");
+      const direction = (rawDirection === "back" ? "backward" : rawDirection) as SpatialDirection;
       const degree = (s(args, "degree") || "normal") as Degree;
       // Canonical's `side` word is an alias of the matching relation.
       const SIDE_RELATION: Record<string, SpatialRelation> = { left: "left-of", right: "right-of", up: "above", down: "below", front: "in-front-of", behind: "behind" };
@@ -204,21 +303,43 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
           { objectId: object.id, from, to: from, unchanged: true, ...(ref ? { relation, referenceId: ref } : {}) },
         );
       }
+
+      const relative = args.relative === true;
+      const rotation = vec(args.rotation);
       const scaleArg = n(args, "scale");
       // A relative scale is a factor ("twice as large"), an absolute one is the
       // value the object should end up at.
-      const scale = scaleArg === undefined ? undefined : args.relative === true ? object.frame.scale * scaleArg : scaleArg;
-      const result = store.transform(object.id, {
-        position,
-        rotation: vec(args.rotation),
-        scale,
-        absolute: near || direction ? true : args.relative !== true,
-        note,
-        ref,
-      });
+      const scale = scaleArg === undefined ? undefined : relative ? object.frame.scale * scaleArg : scaleArg;
+      const absolute = near || direction ? true : !relative;
+      const apply = () => store.transform(object.id, { position, rotation, scale, absolute, note, ref });
+      const result = apply();
       if (!result.ok) return bad(`Nothing moved: ${result.reason}.`);
+
       const back = store.get(object.id)!;
-      return ok(`${said}: ${describeObject(back)}.`, { objectId: back.id, from, to: [...back.frame.position], ...(relation && near ? { relation, referenceId: ref } : {}), ...(direction && !near ? { direction } : {}) });
+      // What the frame should be, where the request makes it knowable.
+      const expectedPosition = position
+        ? absolute
+          ? position
+          : ([before.position[0] + position[0], before.position[1] + position[1], before.position[2] + position[2]] as [number, number, number])
+        : undefined;
+      const preserve: Array<"position" | "rotation" | "scale"> = [];
+      if (!position) preserve.push("position");
+      if (!rotation) preserve.push("rotation");
+      if (typeof scale !== "number") preserve.push("scale");
+      return judged({
+        id: object.id,
+        action: "transform",
+        before,
+        context,
+        expectation: {
+          ...(expectedPosition ? { expect: { position: expectedPosition } } : {}),
+          ...(rotation && !relative ? { expect: { rotation } } : {}),
+          preserve,
+        },
+        retry: apply,
+        content: `${near || direction ? said : whatChanged(position, rotation, scale)}: ${describeObject(back)}.`,
+        data: { from, to: [...back.frame.position], ...(relation && near ? { relation, referenceId: ref } : {}), ...(direction && !near ? { direction } : {}) },
+      });
     },
   },
   {
@@ -230,7 +351,7 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
       position: { type: "array", items: { type: "number" } },
       relative: { type: "boolean" },
     }),
-    run: async (args) => COSMOS_OBJECT_EXECUTORS.find((e) => e.id === "cosmos.object.position")!.run(args),
+    run: async (args, context) => COSMOS_OBJECT_EXECUTORS.find((e) => e.id === "cosmos.object.position")!.run(args, context),
   },
   {
     id: "cosmos.object.animate",
@@ -265,17 +386,28 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
   {
     id: "cosmos.object.select",
     parameters: OBJ({ object: { type: "string" }, clear: { type: "boolean" }, add: { type: "boolean", description: "add to the selection instead of replacing it" } }),
-    run: async (args) => {
+    run: async (args, context) => {
       const store = CosmosObjectStore.getInstance();
       if (args.clear === true) {
         store.select(null);
         return ok("Selection cleared.");
       }
-      const result = store.select(s(args, "object") || null, { add: args.add === true });
+      const lookup = resolveCosmosTarget(store, s(args, "object"), { messages: messagesOf(context), conversationId: conversationOf(context) });
+      if (!("object" in lookup)) return bad(`Nothing selected: ${lookup.reason}.`);
+      const result = store.select(lookup.object.id, { add: args.add === true });
       if (!result.ok) return bad(`Nothing selected: ${result.reason}.`);
       if (!result.value) return ok("Selection cleared.");
       const many = store.selectionIds();
-      return ok(many.length > 1 ? `Selected ${many.length} objects: ${many.join(", ")}.` : `Selected ${describeObject(result.value)}.`, { objectId: result.value.id, selection: many });
+      const chosen = result.value;
+      return judged({
+        id: chosen.id,
+        action: "select",
+        before: snapshotOf(chosen),
+        context,
+        expectation: { mutates: false },
+        content: many.length > 1 ? `Selected ${many.length} objects: ${many.join(", ")}.` : `Selected ${describeObject(chosen)}.`,
+        data: { selection: many },
+      });
     },
   },
   {
