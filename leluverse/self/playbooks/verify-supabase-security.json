@@ -1,0 +1,13 @@
+{
+ "id": "verify-supabase-security",
+ "title": "Check that my database still protects memories, continuity and its own functions",
+ "for": "LÉLU",
+ "why": "On 2026-11-23 my trigger functions were locked so nobody can call them through the API, and my deletions became permanent through tombstones. This replays every one of those guarantees against a throwaway Postgres on this machine, so I can prove them again after any change to supabase/migrations without touching the real project.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-23-supabase-security-closure.md",
+ "steps": [
+  {"id": "isolated", "title": "Replay the 2026-11-23 migrations and 64 security assertions in an isolated Postgres", "kind": "tsx", "script": "scripts/db/verify-supabase-security.ts", "args": ["--json"], "why": "Needs PostgreSQL server binaries (PG_BIN or /usr/lib/postgresql/<n>/bin). It builds its own cluster in a temp folder, rolls every test back and deletes the cluster; it cannot reach Supabase."},
+  {"id": "production", "title": "Compare with production, read-only", "kind": "note", "why": "Ask whoever holds the Supabase connection to run the catalogue queries in docs/production/2026-11-23-security-closure.md section 9 and the security advisor. Never write test rows into production; the only accepted live behaviour probe is the temporary-table probe there, which always ends in a rollback."}
+ ]
+}
