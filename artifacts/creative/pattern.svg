@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+<rect width="1600" height="1100" fill="#0d0a12"/>
+<text x="48" y="30" fill="#f2ead9" font-family="monospace" font-size="18">gown — fit-and-flare, sweetheart neckline — size M — 5 pieces, 8 seams</text>
+<g id="piece-bodice-front">
+<polygon points="173.75,525.41 247.92,525.41 263.22,426.05 278.52,525.41 372.58,525.41 423.58,233.94 361.12,95.49 241.07,72.59 173.75,197.51" fill="#141019" stroke="#6d5a7a" stroke-width="1" stroke-dasharray="7 5"/>
+<polygon points="173.75,515.00 247.92,515.00 263.22,415.64 278.52,515.00 372.58,515.00 423.58,244.35 361.12,105.90 241.07,83.00 173.75,207.92" fill="#1d1726" stroke="#e9dcc4" stroke-width="1.6"/>
+<line x1="286.18" y1="473.36" x2="286.18" y2="169.40" stroke="#b9a3c9" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="298.7" y="528.0" fill="#e9dcc4" font-family="monospace" font-size="15" text-anchor="middle">FRONT BODICE</text>
+<text x="298.7" y="546.0" fill="#8f7f9f" font-family="monospace" font-size="11" text-anchor="middle">240 × 415 mm · cut 1 · SA 10 mm</text>
+</g>
+<g id="piece-bodice-back">
+<polygon points="675.08,525.41 749.25,525.41 764.56,426.05 779.86,525.41 873.91,525.41 924.92,233.94 862.46,95.49 742.40,72.59 675.08,95.49" fill="#141019" stroke="#6d5a7a" stroke-width="1" stroke-dasharray="7 5"/>
+<polygon points="675.08,515.00 749.25,515.00 764.56,415.64 779.86,515.00 873.91,515.00 924.92,244.35 862.46,105.90 742.40,83.00 675.08,105.90" fill="#1d1726" stroke="#e9dcc4" stroke-width="1.6"/>
+<line x1="787.51" y1="473.36" x2="787.51" y2="169.40" stroke="#b9a3c9" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="800.0" y="528.0" fill="#e9dcc4" font-family="monospace" font-size="15" text-anchor="middle">BACK BODICE</text>
+<text x="800.0" y="546.0" fill="#8f7f9f" font-family="monospace" font-size="11" text-anchor="middle">240 × 415 mm · cut 1 · SA 10 mm</text>
+</g>
+<g id="piece-skirt-front">
+<polygon points="1204.92,125.65 1239.24,125.65 1246.41,78.26 1253.57,125.65 1280.35,125.65 1306.41,202.65 1397.74,519.74 1204.92,519.74" fill="#141019" stroke="#6d5a7a" stroke-width="1" stroke-dasharray="7 5"/>
+<polygon points="1204.92,130.39 1239.24,130.39 1246.41,83.00 1253.57,130.39 1280.35,130.39 1306.41,207.39 1397.74,515.00 1204.92,515.00" fill="#1d1726" stroke="#e9dcc4" stroke-width="1.6"/>
+<line x1="1250.59" y1="191.99" x2="1250.59" y2="457.31" stroke="#b9a3c9" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="1301.3" y="528.0" fill="#e9dcc4" font-family="monospace" font-size="15" text-anchor="middle">FRONT SKIRT</text>
+<text x="1301.3" y="546.0" fill="#8f7f9f" font-family="monospace" font-size="11" text-anchor="middle">488 × 1094 mm · cut 1 · SA 12 mm</text>
+</g>
+<g id="piece-skirt-back">
+<polygon points="202.26,627.65 236.57,627.65 243.74,580.26 250.91,627.65 277.68,627.65 303.74,704.65 395.08,1021.74 202.26,1021.74" fill="#141019" stroke="#6d5a7a" stroke-width="1" stroke-dasharray="7 5"/>
+<polygon points="202.26,632.39 236.57,632.39 243.74,585.00 250.91,632.39 277.68,632.39 303.74,709.39 395.08,1017.00 202.26,1017.00" fill="#1d1726" stroke="#e9dcc4" stroke-width="1.6"/>
+<line x1="247.92" y1="693.99" x2="247.92" y2="959.31" stroke="#b9a3c9" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="298.7" y="1030.0" fill="#e9dcc4" font-family="monospace" font-size="15" text-anchor="middle">BACK SKIRT</text>
+<text x="298.7" y="1048.0" fill="#8f7f9f" font-family="monospace" font-size="11" text-anchor="middle">488 × 1094 mm · cut 1 · SA 12 mm</text>
+</g>
+<g id="piece-sleeve">
+<polygon points="759.00,664.53 769.25,621.64 779.50,597.79 789.75,583.62 800.00,578.87 810.25,583.62 820.50,597.79 830.75,621.64 841.00,664.53 865.59,1023.13 734.41,1023.13" fill="#141019" stroke="#6d5a7a" stroke-width="1" stroke-dasharray="7 5"/>
+<polygon points="759.00,670.66 769.25,627.77 779.50,603.92 789.75,589.75 800.00,585.00 810.25,589.75 820.50,603.92 830.75,627.77 841.00,670.66 865.59,1017.00 734.41,1017.00" fill="#1d1726" stroke="#e9dcc4" stroke-width="1.6"/>
+<line x1="800.00" y1="739.93" x2="800.00" y2="965.05" stroke="#b9a3c9" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="800.0" y="1030.0" fill="#e9dcc4" font-family="monospace" font-size="15" text-anchor="middle">LONG SLEEVE</text>
+<text x="800.0" y="1048.0" fill="#8f7f9f" font-family="monospace" font-size="11" text-anchor="middle">214 × 705 mm · cut 2 · SA 10 mm</text>
+</g>
+</svg>

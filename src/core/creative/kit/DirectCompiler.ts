@@ -23,6 +23,9 @@
  * ==========================================================
  */
 
+import { compileCreativeObjectPlan } from "../../couture/intents";
+import { getCreativeSelection } from "../../couture/selection";
+import CreativeObjects from "../../couture/objects";
 import { GENERATIVE_STYLES, PALETTES, type GenerativeStyle } from "./GenerativeArt";
 import { PRESETS } from "./Scene3D";
 import { seedFrom } from "./Rng";
@@ -142,7 +145,38 @@ function filmScenes(subject: string, palette: string): Array<Record<string, unkn
 const CONNECTOR_IDS = () => connectorProfiles().map((p) => p.id);
 
 /** Compile a request. explicit: true for slash commands (run them whatever the providers' state). */
-export function compileDirect(prompt: string): DirectPlan | null {
+/**
+ * Workforce reconciliation: two object authorities answer to the same words.
+ * CosmosObjectStore owns constructions placed in the Cosmos (Claude, M16–M17.3);
+ * CreativeObjects owns couture creations — garments, products, pattern pieces
+ * with their components (Freebuff, M16.3). "Rotate it" or "show me every
+ * object" must go to whichever store the words actually RESOLVE in, the same
+ * rule M17.3 uses between Cosmos objects and windows. A couture plan is taken
+ * only when every object it names (and the referent behind a pronoun) is a
+ * couture creation; otherwise the Cosmos rules below keep the sentence.
+ */
+function coutureOwns(plan: DirectPlan, referentId: string | null): boolean {
+  let store: CreativeObjects;
+  try {
+    store = CreativeObjects.getInstance();
+  } catch {
+    return false;
+  }
+  if (store.list().length === 0) return false;
+  for (const step of plan.steps) {
+    const names = [step.args.object, step.args.relativeTo].filter((v): v is string => typeof v === "string" && v.trim().length > 0);
+    if (names.length === 0 || names.some((name) => /^(it|that|this|that one|this one|them|they)$/i.test(name.trim()))) {
+      if (!referentId || !store.get(referentId)) return false;
+    }
+    for (const name of names) {
+      if (/^(it|that|this|that one|this one|them|they)$/i.test(name.trim())) continue;
+      if (!store.resolve(name).ok) return false;
+    }
+  }
+  return true;
+}
+
+export function compileDirect(prompt: string, options: { referentId?: string | null } = {}): DirectPlan | null {
   const t = prompt.trim();
   const slash = /^\/(\w+)\b\s*([\s\S]*)$/.exec(t);
   if (slash) return compileCommand(slash[1].toLowerCase(), slash[2].trim());
@@ -161,6 +195,20 @@ export function compileDirect(prompt: string): DirectPlan | null {
   if (reading.primary === "sadness" || (reading.primary === "stress" && reading.confidence >= 0.6)) {
     return null;
   }
+  /*
+   * Instructions about the creations in the Cosmos ("select the chair",
+   * "make the pendant twice as large", "move it beside the table") compile to
+   * the SAME couture.objects calls a model would emit, so the dispatcher, the
+   * gate and the events are unchanged and no model is needed to run them.
+   * Checked before the build/create rules: "make the pendant twice as large"
+   * contains "make" and must transform the object, not build a new one.
+   */
+  const creativeObjects = compileCreativeObjectPlan(t, {
+    // The turn's referent (from the conversation) wins; the live selection is
+    // only a fallback for a turn that has no conversational context.
+    selectedId: options.referentId ?? getCreativeSelection()?.objectId ?? null,
+  });
+  if (creativeObjects && coutureOwns(creativeObjects, options.referentId ?? getCreativeSelection()?.objectId ?? null)) return creativeObjects;
   const nl = (cmd: string, rest: string): DirectPlan | null => { const plan = compileCommand(cmd, rest); return plan ? { ...plan, explicit: false } : null; };
   const verb = /\b(make|create|build|generate|construct|render|draw|design|produce|compose|assemble|give me|show me|i want|i'd like)\b/i;
   // Exporting what she built in her world (Job 3/4: world.export, world.gltf).

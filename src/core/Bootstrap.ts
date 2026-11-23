@@ -53,6 +53,7 @@ import ContinuityEngine from "./sync/ContinuityEngine";
 import SupabaseContinuityTransport from "./sync/SupabaseContinuityTransport";
 import CognitivePulseStore from "./cognition/CognitivePulse";
 import { BrokerHealthStore } from "./model/ProviderHealth";
+import { registerCoutureTools } from "./couture/CoutureTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -293,6 +294,10 @@ export default class Bootstrap {
           );
         })
         .catch((error) => console.warn("[Bootstrap] Provider health probe failed (contained)", error));
+      // The creative engine: patterns, garments, products and the object
+      // lifecycle (place in cosmos, float, detach, reattach, remove without
+      // deleting). Same registry, same dispatcher, same gate.
+      registerCoutureTools();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);

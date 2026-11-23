@@ -13,6 +13,7 @@
  */
 
 import ProjectStore from "../projects/ProjectStore";
+import CreativeObjects from "../couture/objects";
 import MultiChatStore from "../multichat/MultiChatStore";
 import TaskEngine from "../tasks/TaskEngine";
 import WorkspaceAPI from "../workspace/WorkspaceAPI";
@@ -110,6 +111,28 @@ export default class CosmosInspector {
     const api = WorkspaceAPI.getInstance();
     const link = object.link;
 
+    if (link.kind === "creative") {
+      const creative = CreativeObjects.getInstance().get(link.id);
+      if (!creative) return { ok: false, message: `Creative object ${link.id} is not in the creative store any more.` };
+      const triangles = creative.parts.reduce((n, p) => n + Math.floor(p.mesh.indices.length / 3), 0);
+      const opened = api.execute({
+        action: "open-workspace",
+        actor: "user",
+        view: {
+          kind: "design",
+          title: creative.name,
+          id: creative.id,
+          text: [
+            `${creative.kind} · revision ${creative.revision} · ${triangles} triangles`,
+            `components: ${creative.components.map((c) => c.name).join(", ")}`,
+            `materials: ${[...new Set(creative.parts.map((p) => p.materialId))].join(", ")}`,
+            `placement: ${creative.location}${creative.roomId ? ` in ${creative.roomId}` : ""}`,
+          ].join("\n"),
+        },
+      });
+      return { ok: opened.ok, message: opened.message };
+    }
+
     if (link.kind === "project") {
       const project = ProjectStore.getInstance().list().find((item) => item.id === link.id);
       if (!project) return { ok: false, message: `Project ${link.id} no longer exists.` };
@@ -198,6 +221,24 @@ export default class CosmosInspector {
 
   private readRecord(object: SpatialObject): { ok: boolean; lines: string[]; openable: boolean } {
     const link = object.link;
+
+    if (link.kind === "creative") {
+      const creative = CreativeObjects.getInstance().get(link.id);
+      if (!creative) return { ok: false, lines: [`Creative object ${link.id} is not in the creative store any more.`], openable: false };
+      const triangles = creative.parts.reduce((n, p) => n + Math.floor(p.mesh.indices.length / 3), 0);
+      return {
+        ok: true,
+        openable: true,
+        lines: [
+          `${creative.kind}: ${creative.name} (${creative.id}) revision ${creative.revision}`,
+          `${creative.parts.length} part(s), ${triangles} triangles, ${creative.components.length} component(s): ${creative.components.map((c) => `${c.name}${c.status === "detached" ? " (detached)" : ""}`).join(", ")}`,
+          `materials: ${[...new Set(creative.parts.map((p) => p.materialId))].join(", ")}`,
+          `placement: ${creative.location}${creative.roomId ? ` in ${creative.roomId}` : ""}, position ${creative.transform.position.map((n) => Math.round(n)).join(", ")} mm, scale ${creative.transform.scale[0]}, motion ${creative.motion.kind}${creative.motion.paused ? " (paused)" : ""}`,
+          creative.attachment ? `extracted from ${creative.attachment.parentObjectId}` : "",
+          creative.history.length ? `last change: ${creative.history[creative.history.length - 1].action} — ${creative.history[creative.history.length - 1].detail}` : "",
+        ].filter(Boolean),
+      };
+    }
 
     if (link.kind === "project") {
       const project = ProjectStore.getInstance().list().find((item) => item.id === link.id);

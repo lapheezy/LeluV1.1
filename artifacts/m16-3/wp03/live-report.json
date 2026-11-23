@@ -1,0 +1,151 @@
+{
+  "evidence": "LIVE",
+  "turns": [
+    {
+      "said": "select the chair",
+      "selection": "obj-product-1",
+      "activity": [
+        "[10:47:38 AM] Approach planned — chat",
+        "[10:47:38 AM] Parsing request",
+        "[10:47:38 AM] Command received",
+        "[10:47:38 AM] Asked: select the chair",
+        "[10:47:35 AM] Answered: Self-study: Why is the development runtime unreachable, and what can I still ve…",
+        "[10:47:30 AM] Runtime initialized"
+      ]
+    },
+    {
+      "said": "rotate it 90 degrees",
+      "rotation": [
+        0,
+        0,
+        90
+      ],
+      "objectId": "obj-product-1",
+      "activity": [
+        "[10:47:38 AM] Approach planned — chat",
+        "[10:47:38 AM] Parsing request",
+        "[10:47:38 AM] Command received",
+        "[10:47:38 AM] Asked: select the chair",
+        "[10:47:35 AM] Answered: Self-study: Why is the development runtime unreachable, and what can I still ve…",
+        "[10:47:30 AM] Runtime initialized"
+      ]
+    },
+    {
+      "said": "make it twice as large",
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "objectId": "obj-product-1",
+      "activity": [
+        "[10:47:38 AM] Approach planned — chat",
+        "[10:47:38 AM] Parsing request",
+        "[10:47:38 AM] Command received",
+        "[10:47:38 AM] Asked: select the chair",
+        "[10:47:35 AM] Answered: Self-study: Why is the development runtime unreachable, and what can I still ve…",
+        "[10:47:30 AM] Runtime initialized"
+      ]
+    },
+    {
+      "said": "move it to the left",
+      "position": [
+        -4431.416613326556,
+        -2858.6244071907718,
+        2443.157588795705
+      ],
+      "movedFrom": [
+        -4131.416613326556,
+        -2858.6244071907718,
+        2443.157588795705
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "objectId": "obj-product-1",
+      "activity": [
+        "[10:47:38 AM] Answered: select the chair",
+        "[10:47:38 AM] Using couture.objects",
+        "[10:47:38 AM] Asked: select the chair",
+        "[10:47:38 AM] Remembered something (conversation)",
+        "[10:47:38 AM] Connecting to AI provider",
+        "[10:47:38 AM] Approach planned — chat"
+      ]
+    }
+  ],
+  "ok": true,
+  "before": [
+    {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "position": [
+        -4131.416613326556,
+        -2858.6244071907718,
+        2443.157588795705
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    }
+  ],
+  "after": [
+    {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "position": [
+        -4431.416613326556,
+        -2858.6244071907718,
+        2443.157588795705
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "visible": true
+    }
+  ],
+  "afterReload": [
+    {
+      "id": "obj-product-1",
+      "name": "Oak side chair",
+      "position": [
+        -4431.416613326556,
+        -2858.6244071907718,
+        2443.157588795705
+      ],
+      "rotation": [
+        0,
+        0,
+        90
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "visible": true
+    }
+  ],
+  "errors": []
+}

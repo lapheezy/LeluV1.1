@@ -22,6 +22,9 @@ import type { AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import { compileDirect, DIRECT_COMMANDS, type DirectPlan } from "../creative/kit/DirectCompiler";
+import CreativeObjects from "../couture/objects";
+import { resolveCreativeReferent } from "../couture/continuity";
+
 import { parseWorkspaceCommand } from "../interface/WorkspaceSteward";
 import CosmosObjectStore from "../cosmos/objects/CosmosObjectStore";
 
@@ -122,11 +125,11 @@ function readingOf(content: string, max = 420): string {
  * change wins only when the request points at the conversation itself;
  * window organisation (tile, split, focus…) is never a creative request.
  */
-export function directPlanFor(prompt: string): DirectPlan | null {
+export function directPlanFor(prompt: string, options: { referentId?: string | null } = {}): DirectPlan | null {
   const iface = interfacePlan(prompt);
   if (iface) return iface;
   const workspace = workspacePlan(prompt);
-  const creative = compileDirect(prompt);
+  const creative = compileDirect(prompt, options);
   if (!workspace) return creative;
   if (!creative) return workspace;
   // M17.3: "move the gear next to the cabin" read as a window split was the
@@ -161,9 +164,36 @@ export function namesCosmosObjects(plan: DirectPlan, mode: "all" | "any" = "all"
 }
 
 export default class DirectResolver {
-  /** The plan for this turn, if it has one. Pure. */
+  /**
+   * The plan for this turn, if it has one.
+   *
+   * The referent is resolved HERE, per turn, from this conversation: "rotate
+   * it" needs to know which chair "it" is, and the previous turn's tool result
+   * is in the conversation already. Resolution is read-only and validated
+   * against the canonical store (see `continuity.ts`), so a second
+   * conversation cannot inherit this one's object, and a deleted object is
+   * dropped rather than acted on.
+   */
   public plan(context: RouterContext): DirectPlan | null {
-    return directPlanFor(context.request.prompt ?? "");
+    const prompt = context.request.prompt ?? "";
+    let referentId: string | null = null;
+    try {
+      const store = CreativeObjects.getInstance();
+      const referent = resolveCreativeReferent({
+        conversationId: context.request.conversationId,
+        messages: (context.request.messages ?? []).map((message) => ({
+          role: String(message.role ?? "user"),
+          content: typeof message.content === "string" ? message.content : JSON.stringify(message.content ?? ""),
+        })),
+        store,
+      });
+      referentId = referent?.object.id ?? null;
+    } catch {
+      // No store in this context (a headless test, say): compile with no
+      // referent rather than inventing one.
+      referentId = null;
+    }
+    return directPlanFor(prompt, { referentId });
   }
 
   /** Is any model provider able to take the turn right now? */
@@ -176,7 +206,7 @@ export default class DirectResolver {
     }
   }
 
-  public async execute(context: RouterContext, plan: DirectPlan, reason: "command" | "construction" | "no-provider"): Promise<BrainResult> {
+  public async execute(context: RouterContext, plan: DirectPlan, reason: "command" | "construction" | "creative" | "no-provider"): Promise<BrainResult> {
     const { dispatchToolCall, toolNameForModel } = await import("../tools/ToolDispatcher");
     const taskId = String(context.request.timestamp ?? Date.now());
     const lines: string[] = [];
@@ -234,6 +264,8 @@ export default class DirectResolver {
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
+        : reason === "creative"
+          ? `Done on the creation itself, not described: ${plan.summary}.`
         : `Done directly with my own tools (no model involved): ${plan.summary}.`;
     const response: AIResponse = {
       text: [

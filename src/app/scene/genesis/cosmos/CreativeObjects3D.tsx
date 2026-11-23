@@ -1,0 +1,568 @@
+/**
+ * ==========================================================
+ * LÉLU — CREATIVE OBJECTS IN THE LIVE COSMOS
+ *
+ * The actual garment, sleeve, pendant, stone and chair geometry,
+ * drawn inside the EXISTING Genesis v2 canvas as siblings of the
+ * Core. There is no second scene, camera or renderer here: this
+ * component only reads the creative object store and projects it
+ * through the one conversion in `sceneTransform`.
+ *
+ * Selection and manipulation use raycasts against these meshes.
+ * While a drag is in progress the camera rig stands down
+ * (`creativeGesture`), so a finger moves either the object or the
+ * camera, never both.
+ * ==========================================================
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+
+import { meshToScene } from "../../../../core/couture/geometry";
+import CreativeObjects, { transformAt, type CreativeObject, type CreativePart } from "../../../../core/couture/objects";
+import { findMetal, STONE_MATERIALS } from "../../../../core/couture/product";
+import {
+  creativePositionToScene,
+  creativeRotationToSceneQuat,
+  creativeScaleToScene,
+  frameForBounds,
+  scenePositionToCreative,
+} from "../../../../core/couture/sceneTransform";
+import { findMaterial } from "../../../../core/couture/textiles";
+import { dispatchV2CameraCommand } from "../GenesisCameraIntent";
+import {
+  beginCreativeGesture,
+  endCreativeGesture,
+  getCreativeSelection,
+  getCreativeTool,
+  selectCreativeObject,
+  setCreativeCamera,
+  subscribeCreativeFocus,
+  subscribeCreativeSelection,
+  subscribeCreativeTool,
+} from "./creativeGesture";
+import { reportCreativeFrame } from "./creativeProbe";
+
+interface MaterialLook {
+  color: string;
+  roughness: number;
+  metalness: number;
+  opacity: number;
+}
+
+function materialFor(part: CreativePart): MaterialLook {
+  const textile = findMaterial(part.materialId);
+  if (textile) {
+    return {
+      color: textile.visual.baseColor,
+      roughness: textile.visual.roughness,
+      metalness: textile.visual.metallic,
+      opacity: Math.max(0.12, textile.visual.opacity * (1 - textile.visual.transmission * 0.9)),
+    };
+  }
+  const metal = findMetal(part.materialId);
+  if (metal) return { color: metal.colour, roughness: metal.roughness, metalness: 1, opacity: 1 };
+  const gem = STONE_MATERIALS.find((s) => s.id === part.materialId);
+  if (gem) return { color: gem.colour, roughness: 0.06, metalness: 0.05, opacity: 1 };
+  return { color: part.color, roughness: 0.55, metalness: 0, opacity: part.opacity };
+}
+
+/** One BufferGeometry per part, rebuilt only when the object's revision changes. */
+function usePartGeometries(object: CreativeObject): Map<string, THREE.BufferGeometry> {
+  return useMemo(() => {
+    const map = new Map<string, THREE.BufferGeometry>();
+    for (const part of object.parts) {
+      const scene = meshToScene(part.mesh);
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(Float32Array.from(scene.positions), 3));
+      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(Float32Array.from(scene.normals ?? []), 3));
+      geometry.setIndex(scene.indices);
+      geometry.computeBoundingSphere();
+      map.set(part.id, geometry);
+    }
+    return map;
+    // Geometry is immutable within a revision.
+  }, [object.id, object.revision]);
+}
+
+interface DragState {
+  objectId: string;
+  mode: "move" | "rotate" | "scale";
+  startX: number;
+  startY: number;
+  startPosition: [number, number, number];
+  startRotation: [number, number, number];
+  startScale: number;
+  distance: number;
+}
+
+interface Preview {
+  objectId: string;
+  position: THREE.Vector3;
+  quaternion: THREE.Quaternion;
+  scale: number;
+  rotation: [number, number, number];
+}
+
+function CreativePartMesh({ object, part, geometry, selectedComponent, objectSelected }: {
+  object: CreativeObject;
+  part: CreativePart;
+  geometry: THREE.BufferGeometry;
+  selectedComponent: boolean;
+  objectSelected: boolean;
+}) {
+  const look = useMemo(() => materialFor(part), [part.id, part.materialId, part.color, part.opacity]);
+  const highlight = selectedComponent ? 0.45 : objectSelected ? 0.16 : 0;
+  return (
+    <mesh
+      geometry={geometry}
+      name={`creative:${object.id}:${part.id}`}
+      userData={{ creativeId: object.id, creativeComponentId: part.componentId, creativePartId: part.id }}
+      frustumCulled
+    >
+      <meshStandardMaterial
+        color={look.color}
+        roughness={look.roughness}
+        metalness={look.metalness}
+        emissive="#38bdf8"
+        emissiveIntensity={highlight}
+        transparent={look.opacity < 0.98}
+        opacity={look.opacity}
+        side={part.thin ? THREE.DoubleSide : THREE.FrontSide}
+        depthWrite={look.opacity > 0.8}
+      />
+    </mesh>
+  );
+}
+
+function CreativeObjectGroup({ object, preview, objectSelected, selectedComponent }: {
+  object: CreativeObject;
+  preview: Preview | null;
+  objectSelected: boolean;
+  selectedComponent?: string;
+}) {
+  const geometries = usePartGeometries(object);
+  useEffect(() => {
+    const map = geometries;
+    return () => {
+      for (const geometry of map.values()) geometry.dispose();
+    };
+  }, [geometries]);
+
+  const group = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    const node = group.current;
+    if (!node) return;
+    if (preview) {
+      node.position.copy(preview.position);
+      node.quaternion.copy(preview.quaternion);
+      node.scale.setScalar(preview.scale);
+      return;
+    }
+    if (object.motion.kind === "none" || object.motion.paused) {
+      const rest = creativePositionToScene(object.transform.position);
+      const q = creativeRotationToSceneQuat(object.transform.rotation);
+      node.position.set(rest[0], rest[1], rest[2]);
+      node.quaternion.set(q.x, q.y, q.z, q.w);
+      node.scale.setScalar(creativeScaleToScene(object.transform.scale));
+      return;
+    }
+    const sampled = transformAt(object, performance.now() / 1000);
+    const position = creativePositionToScene(sampled.position);
+    const q = creativeRotationToSceneQuat(sampled.rotation);
+    node.position.set(position[0], position[1], position[2]);
+    node.quaternion.set(q.x, q.y, q.z, q.w);
+    node.scale.setScalar(creativeScaleToScene(sampled.scale));
+  });
+
+  const rest = creativePositionToScene(object.transform.position);
+  const restQ = creativeRotationToSceneQuat(object.transform.rotation);
+
+  return (
+    <group
+      ref={group}
+      name={`creative-object:${object.id}`}
+      position={rest}
+      quaternion={[restQ.x, restQ.y, restQ.z, restQ.w]}
+      scale={creativeScaleToScene(object.transform.scale)}
+      visible={object.visible && !object.archived}
+    >
+      {object.parts.map((part) => {
+        const geometry = geometries.get(part.id);
+        if (!geometry) return null;
+        return (
+          <CreativePartMesh
+            key={part.id}
+            object={object}
+            part={part}
+            geometry={geometry}
+            objectSelected={objectSelected}
+            selectedComponent={Boolean(selectedComponent && selectedComponent === part.componentId)}
+          />
+        );
+      })}
+    </group>
+  );
+}
+
+export default function CreativeObjects3D() {
+  const store = CreativeObjects.getInstance();
+  const { camera, gl, invalidate, scene, frameloop } = useThree();
+  const root = useRef<THREE.Group>(null);
+  const raycaster = useRef(new THREE.Raycaster());
+  const pointerNdc = useRef(new THREE.Vector2());
+  const drag = useRef<DragState | null>(null);
+  const previewRef = useRef<Preview | null>(null);
+  const [objects, setObjects] = useState<CreativeObject[]>(() => store.list({ location: "cosmos" }));
+  const [selection, setSelection] = useState(getCreativeSelection());
+  const [tool, setTool] = useState(getCreativeTool());
+  const [, render] = useState(0);
+
+  // A read-only probe for acceptance evidence: how many canonical objects and
+  // part meshes this layer actually drew, and the frame time over the last
+  // second. It never writes to the store.
+  useFrame((_, delta) => {
+    reportCreativeFrame(delta * 1000);
+  });
+
+  useEffect(() => {
+    setCreativeCamera({
+      position: camera.position,
+      getDirection: () => {
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+        return { x: forward.x, y: forward.y, z: forward.z };
+      },
+    });
+    return () => setCreativeCamera(null);
+  }, [camera]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as unknown as { __leluCreativeMeshes?: number }).__leluCreativeMeshes = objects.reduce((sum, object) => sum + object.parts.length, 0);
+    }
+    // Mark the canvas this layer lives in, so acceptance can tell which of the
+    // scene's canvases is drawing the creations.
+    gl.domElement.dataset.leluCreative = "ready";
+    gl.domElement.dataset.leluCreativeCamera = `${camera.position.x.toFixed(2)},${camera.position.y.toFixed(2)},${camera.position.z.toFixed(2)}`;
+    (window as unknown as { __leluCreativeDebug?: unknown }).__leluCreativeDebug = {
+      frameloop,
+      sceneChildren: scene.children.map((child) => child.name || child.type),
+      objectCount: objects.length,
+      positions: objects.map((object) => object.transform.position),
+      // The full canonical transform of each drawn creation, so evidence can
+      // check what the person sees against what the store holds.
+      transforms: objects.map((object) => ({
+        id: object.id,
+        name: object.name,
+        position: [...object.transform.position],
+        rotation: [...object.transform.rotation],
+        scale: [...object.transform.scale],
+        visible: object.visible,
+      })),
+    };
+  }, [objects, gl, camera, scene, frameloop]);
+
+  // On-demand projection for the acceptance harness: where each creation
+  // currently lands on the canvas, in CSS pixels. Computed when asked, so it
+  // costs nothing per frame and writes nothing to the store.
+  useEffect(() => {
+    (window as unknown as { __leluCreativeScreen?: unknown }).__leluCreativeScreen = () => {
+      const rect = gl.domElement.getBoundingClientRect();
+      camera.updateMatrixWorld();
+      root.current?.updateWorldMatrix(true, true);
+      return objects.map((object) => {
+        const [x, y, z] = creativePositionToScene(object.transform.position);
+        // Aim at the geometry, not the origin: a chair's origin is the floor
+        // between its legs, and a ray through that point hits nothing.
+        const node = root.current?.getObjectByName(`creative-object:${object.id}`);
+        const point = new THREE.Vector3(x, y, z);
+        if (node) new THREE.Box3().setFromObject(node).getCenter(point);
+        const projected = point.clone().project(camera);
+        return {
+          id: object.id,
+          name: object.name,
+          x: rect.left + ((projected.x + 1) / 2) * rect.width,
+          y: rect.top + ((1 - projected.y) / 2) * rect.height,
+          ndc: [Number(projected.x.toFixed(3)), Number(projected.y.toFixed(3)), Number(projected.z.toFixed(3))],
+          world: [Number(point.x.toFixed(3)), Number(point.y.toFixed(3)), Number(point.z.toFixed(3))],
+          onScreen: projected.z > -1 && projected.z < 1 && Math.abs(projected.x) <= 1 && Math.abs(projected.y) <= 1,
+        };
+      });
+    };
+    // The camera this layer actually rays from, for acceptance diagnostics.
+    (window as unknown as { __leluCreativeCamera?: unknown }).__leluCreativeCamera = () => ({
+      position: camera.position.toArray().map((n) => Number(n.toFixed(3))),
+      forward: (() => {
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+        return forward.toArray().map((n) => Number(n.toFixed(3)));
+      })(),
+      fov: (camera as THREE.PerspectiveCamera).fov ?? null,
+      canvas: [Math.round(gl.domElement.clientWidth), Math.round(gl.domElement.clientHeight)],
+    });
+    return () => {
+      delete (window as unknown as { __leluCreativeScreen?: unknown }).__leluCreativeScreen;
+      delete (window as unknown as { __leluCreativeCamera?: unknown }).__leluCreativeCamera;
+    };
+  }, [objects, camera, gl, root]);
+
+  /**
+   * Frame an object for the dock's Focus control.
+   *
+   * Frame the GEOMETRY, not the origin: the camera is placed along the current
+   * viewing direction at a distance derived from the object's own size, and
+   * aimed at its bounding-box centre. A 0.47 m chair aimed-at from 0.5 m with
+   * the origin as the target sat above the frustum; this cannot happen for any
+   * object, because distance and target both come from the mesh bounds.
+   */
+  useEffect(
+    () =>
+      subscribeCreativeFocus((objectId) => {
+        const node = root.current?.getObjectByName(`creative-object:${objectId}`);
+        if (!node) return;
+        node.updateWorldMatrix(true, false);
+        const box = new THREE.Box3().setFromObject(node);
+        if (box.isEmpty()) return;
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const direction = new THREE.Vector3();
+        camera.getWorldDirection(direction);
+        const framing = frameForBounds(
+          [center.x, center.y, center.z],
+          size.length() / 2,
+          [direction.x, direction.y, direction.z],
+        );
+        const eye = new THREE.Vector3(...framing.eye);
+        center.set(...framing.centre);
+        const cameraBridge = (window as unknown as {
+          __cosmosCamera?: { navigateTo?: (pos: { x: number; y: number; z: number }, at: { x: number; y: number; z: number }) => void };
+        }).__cosmosCamera;
+        cameraBridge?.navigateTo?.(eye, center);
+        dispatchV2CameraCommand({ intent: "fly", position: [eye.x, eye.y, eye.z], lookAt: [center.x, center.y, center.z] });
+        invalidate();
+      }),
+    [camera, invalidate],
+  );
+
+  // The Cosmos paints on demand. A creative change is a reason to paint: the
+  // store, the selection and a drag each ask the existing renderer for the
+  // next frame instead of running a second loop.
+  useEffect(() => {
+    invalidate();
+  }, [objects, selection, invalidate]);
+
+  useEffect(() => {
+    const update = () => setObjects(store.list({ location: "cosmos" }));
+    update();
+    const unsubscribeStore = store.subscribe(update);
+    const unsubscribeSelection = subscribeCreativeSelection(setSelection);
+    const unsubscribeTool = subscribeCreativeTool(setTool);
+    return () => {
+      unsubscribeStore();
+      unsubscribeSelection();
+      unsubscribeTool();
+    };
+  }, [store]);
+
+  /**
+   * Raycast the REAL part meshes, nearest first.
+   *
+   * Two things here are load-bearing and were both missing before:
+   *  - the camera's world matrix is refreshed first. The Cosmos paints on
+   *    demand, so between frames `camera.matrixWorld` can be a frame or more
+   *    stale; a ray built from a stale matrix lands behind the object and the
+   *    pick silently misses the mesh the person can see.
+   *  - a hit only counts if its object is eligible: visible, not archived.
+   *    The raycaster does not skip invisible subtrees on its own.
+   * The geometry tested is the actual part mesh, so an object whose origin sits
+   * outside its visible body (the chair's origin is the floor between its legs)
+   * is selectable exactly where it is drawn.
+   */
+  const pick = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!root.current) return null;
+      const rect = gl.domElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return null;
+      camera.updateMatrixWorld();
+      root.current.updateWorldMatrix(true, true);
+      pointerNdc.current.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+      raycaster.current.setFromCamera(pointerNdc.current, camera);
+      const hits = raycaster.current.intersectObject(root.current, true);
+      for (const hit of hits) {
+        const data = hit.object.userData as { creativeId?: string; creativeComponentId?: string };
+        if (!data?.creativeId) continue;
+        const object = store.get(data.creativeId);
+        if (!object || !object.visible || object.archived) continue;
+        return { objectId: data.creativeId, componentId: data.creativeComponentId, distance: hit.distance };
+      }
+      return null;
+    },
+    [camera, gl, store],
+  );
+
+  /**
+   * Capture-phase pointer down: the camera rig's own listener runs after this
+   * one, so it sees the gesture lock and never starts an orbit.
+   */
+  useEffect(() => {
+    /*
+     * What counts as "the world" for a press.
+     *
+     * The press never arrives on our canvas: the scene's canvases are stacked
+     * and the Cosmos puts its own surface above them, so the event is delivered
+     * to some DOM node that is not ours (measured: a DIV, or a full-surface
+     * BUTTON). A canvas-target guard therefore rejected every real tap.
+     *
+     * The contract is deliberately narrow, in two parts:
+     *   1. the press must land inside this scene's own container — the element
+     *      that wraps the canvas and its overlays. Anything in the interface
+     *      tree (sheets, cards, chat, menus) is outside it and never reaches
+     *      here, so no unrelated UI is hijacked.
+     *   2. it must not land on a control: button, link, field, or the creative
+     *      dock. Those keep their native behaviour untouched.
+     * Everything else in the scene is a world tap and is raycast.
+     */
+    const sceneRoot = (() => {
+      let node: HTMLElement | null = gl.domElement;
+      while (node?.parentElement && node.parentElement !== document.body) node = node.parentElement;
+      return node;
+    })();
+    sceneRoot?.setAttribute("data-lelu-scene-root", "");
+
+    const onDown = (event: PointerEvent) => {
+      if (event.button !== 0 && event.pointerType === "mouse") return;
+      const pressed = event.target as Element | null;
+      if (!sceneRoot || !pressed || !sceneRoot.contains(pressed)) return;
+      const control = pressed.closest?.(
+        'button, a, input, textarea, select, [role="button"], [data-lelu-creative-dock], [data-lelu-no-creative-pick]',
+      );
+      if (control) return;
+      const hit = pick(event.clientX, event.clientY);
+      if (!hit) {
+        selectCreativeObject(null);
+        return;
+      }
+      const target = store.get(hit.objectId);
+      if (!target || target.locked) return;
+      selectCreativeObject(hit);
+      setSelection({ objectId: hit.objectId, componentId: hit.componentId });
+      const mode = getCreativeTool();
+      (window as unknown as { __leluCreativeLastGesture?: unknown }).__leluCreativeLastGesture = {
+        hit: hit.objectId,
+        component: hit.componentId ?? null,
+        mode,
+      };
+      if (mode === "select") return;
+
+      const scenePosition = creativePositionToScene(target.transform.position);
+      const q = creativeRotationToSceneQuat(target.transform.rotation);
+      beginCreativeGesture();
+      event.preventDefault();
+      event.stopPropagation();
+      drag.current = {
+        objectId: target.id,
+        mode,
+        startX: event.clientX,
+        startY: event.clientY,
+        startPosition: scenePosition,
+        startRotation: [...target.transform.rotation] as [number, number, number],
+        startScale: creativeScaleToScene(target.transform.scale),
+        distance: camera.position.distanceTo(new THREE.Vector3(scenePosition[0], scenePosition[1], scenePosition[2])),
+      };
+      previewRef.current = {
+        objectId: target.id,
+        position: new THREE.Vector3(...scenePosition),
+        quaternion: new THREE.Quaternion(q.x, q.y, q.z, q.w),
+        scale: creativeScaleToScene(target.transform.scale),
+        rotation: [...target.transform.rotation] as [number, number, number],
+      };
+      render((n) => n + 1);
+    };
+    window.addEventListener("pointerdown", onDown, { capture: true });
+    return () => {
+      window.removeEventListener("pointerdown", onDown, { capture: true });
+      sceneRoot?.removeAttribute("data-lelu-scene-root");
+    };
+  }, [camera, gl, pick, store]);
+
+  /** The drag: window-level, so a finger leaving the mesh keeps control. */
+  useEffect(() => {
+    const onMove = (event: PointerEvent) => {
+      const state = drag.current;
+      const preview = previewRef.current;
+      if (!state || !preview) return;
+      const dx = event.clientX - state.startX;
+      const dy = event.clientY - state.startY;
+      event.preventDefault();
+      if (state.mode === "move") {
+        const fov = (camera as THREE.PerspectiveCamera).fov ?? 46;
+        const worldPerPixel = (2 * Math.tan((fov * Math.PI) / 360) * state.distance) / Math.max(1, gl.domElement.clientHeight);
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).normalize();
+        preview.position
+          .set(state.startPosition[0], state.startPosition[1], state.startPosition[2])
+          .addScaledVector(right, dx * worldPerPixel)
+          .addScaledVector(up, -dy * worldPerPixel);
+      } else if (state.mode === "rotate") {
+        preview.rotation = [state.startRotation[0], state.startRotation[1], state.startRotation[2] + dx * 0.6];
+        const q = creativeRotationToSceneQuat(preview.rotation);
+        preview.quaternion.set(q.x, q.y, q.z, q.w);
+      } else {
+        preview.scale = state.startScale * Math.max(0.2, Math.min(6, 1 + dy / 220));
+      }
+      invalidate();
+      render((n) => n + 1);
+    };
+
+    const finish = () => {
+      const state = drag.current;
+      const preview = previewRef.current;
+      drag.current = null;
+      previewRef.current = null;
+      if (state && preview) {
+        const position = scenePositionToCreative([preview.position.x, preview.position.y, preview.position.z]);
+        (window as unknown as { __leluCreativeLastCommit?: unknown }).__leluCreativeLastCommit = {
+          mode: state.mode,
+          position: scenePositionToCreative([preview.position.x, preview.position.y, preview.position.z]),
+        };
+        store.setTransform(state.objectId, {
+          ...(state.mode === "move" ? { position } : {}),
+          ...(state.mode === "rotate" ? { rotation: preview.rotation.map((n) => Number(n.toFixed(2))) as [number, number, number] } : {}),
+          ...(state.mode === "scale" ? { scale: [preview.scale, preview.scale, preview.scale] } : {}),
+        });
+      }
+      endCreativeGesture();
+      render((n) => n + 1);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+    };
+  }, [camera, gl, store, invalidate]);
+
+  return (
+    <group ref={root} name="CreativeObjects" userData={{ creativeTool: tool }}>
+      {objects.map((object) => {
+        const preview = previewRef.current?.objectId === object.id ? previewRef.current : null;
+        const objectSelected = Boolean(preview) || selection?.objectId === object.id;
+        return (
+          <CreativeObjectGroup
+            key={`${object.id}:${object.revision}`}
+            object={object}
+            preview={preview}
+            objectSelected={objectSelected}
+            selectedComponent={selection?.objectId === object.id ? selection?.componentId : undefined}
+          />
+        );
+      })}
+    </group>
+  );
+}

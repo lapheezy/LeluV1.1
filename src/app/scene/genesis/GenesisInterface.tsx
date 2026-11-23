@@ -111,6 +111,7 @@ const GenesisVisualStudio = lazy(() => import("./GenesisVisualStudio"));
 // Code-split: this panel's chunk loads the first time it is opened.
 const GenesisEarthCore = lazy(() => import("./GenesisEarthCore"));
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
+import CreativeObjectsDock from "./cosmos/CreativeObjectsDock";
 // Code-split: this panel's chunk loads the first time it is opened.
 const GenesisIdentityPanel = lazy(() => import("./GenesisIdentityPanel"));
 // Code-split: this panel's chunk loads the first time it is opened.
@@ -1036,6 +1037,13 @@ export default function GenesisInterface() {
       {state.activePanel === "cosmos" ? (
         <GenesisCosmosPanel onClose={handleExitChat} />
       ) : null}
+
+      {/* The controls for the creations travel with the world, not a panel:
+          in the Cosmos a gown can be picked up and moved without opening a
+          window first. Portalled to the body so the canvas never paints over
+          it and a thumb press lands on a button. */}
+      {!state.minimized && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CreativeObjectsDock /> : null}
+
     </div>
   );
 }

@@ -1,0 +1,510 @@
+{
+  "generatedAt": "2026-11-15T20:54:00.719Z",
+  "offline": true,
+  "networkCalls": 0,
+  "externalApis": [],
+  "pattern": {
+    "pieces": 5,
+    "seams": 8,
+    "checks": 33,
+    "total": 33,
+    "buildMs": 44.1
+  },
+  "garment": {
+    "id": "obj-garment-2",
+    "revision": 13,
+    "components": [
+      {
+        "id": "c-l-01",
+        "name": "Bodice & skirt shell (Silk velvet)",
+        "kind": "shell",
+        "status": "attached",
+        "parts": 1,
+        "material": "silk-mikado"
+      },
+      {
+        "id": "c-s-01",
+        "name": "Rib cage",
+        "kind": "boning",
+        "status": "attached",
+        "parts": 1,
+        "material": "metallic-lame"
+      },
+      {
+        "id": "c-s-02",
+        "name": "Standing collar",
+        "kind": "collar",
+        "status": "attached",
+        "parts": 1,
+        "material": "silk-mikado"
+      },
+      {
+        "id": "c-s-03",
+        "name": "Modular panels",
+        "kind": "panel",
+        "status": "attached",
+        "parts": 1,
+        "material": "velvet-silk"
+      },
+      {
+        "id": "c-sleeve-left",
+        "name": "Left sleeve",
+        "kind": "sleeve",
+        "status": "attached",
+        "parts": 1,
+        "material": "velvet-silk"
+      },
+      {
+        "id": "c-sleeve-right",
+        "name": "Right sleeve",
+        "kind": "sleeve",
+        "status": "attached",
+        "parts": 1,
+        "material": "velvet-silk"
+      }
+    ],
+    "triangles": 22976,
+    "buildMs": 1944.4,
+    "geometryFingerprint": 468458602,
+    "history": [
+      {
+        "revision": 1,
+        "at": 1794776024711,
+        "action": "create",
+        "detail": "garment with 6 part(s), 22976 triangles"
+      },
+      {
+        "revision": 2,
+        "at": 1794776025583,
+        "action": "material",
+        "detail": "silk-mikado on 1 part(s); geometry untouched"
+      },
+      {
+        "revision": 3,
+        "at": 1794776026450,
+        "action": "place-in-cosmos",
+        "detail": "in cosmos-core at 0, 0, 0 mm"
+      },
+      {
+        "revision": 4,
+        "at": 1794776026466,
+        "action": "motion",
+        "detail": "spin at 4/min"
+      },
+      {
+        "revision": 5,
+        "at": 1794776028119,
+        "action": "transform",
+        "detail": "pos 380,0,40 rot 0,0,0"
+      },
+      {
+        "revision": 6,
+        "at": 1794776028135,
+        "action": "transform",
+        "detail": "pos 380,0,40 rot 0,18,0"
+      },
+      {
+        "revision": 7,
+        "at": 1794776028169,
+        "action": "detach-component",
+        "detail": "Right sleeve → obj-garment-component-3"
+      },
+      {
+        "revision": 8,
+        "at": 1794776031024,
+        "action": "attach-component",
+        "detail": "Right sleeve ← obj-garment-component-3"
+      },
+      {
+        "revision": 9,
+        "at": 1794776031907,
+        "action": "remove-from-cosmos",
+        "detail": "returned to its workspace; record, geometry and history kept"
+      },
+      {
+        "revision": 10,
+        "at": 1794776032639,
+        "action": "place-in-cosmos",
+        "detail": "in cosmos-core at 380, 0, 40 mm"
+      },
+      {
+        "revision": 11,
+        "at": 1794776036369,
+        "action": "transform",
+        "detail": "pos 80,0,40 rot 0,18,0"
+      },
+      {
+        "revision": 12,
+        "at": 1794776039022,
+        "action": "move-to-workspace",
+        "detail": "couture-studio"
+      },
+      {
+        "revision": 13,
+        "at": 1794776039088,
+        "action": "place-in-cosmos",
+        "detail": "in cosmos-core at -300, 0, 40 mm"
+      }
+    ]
+  },
+  "timings": {
+    "patternMs": 44.1,
+    "garmentMs": 1944.4,
+    "materialChangeMs": 16.7,
+    "placeInCosmosMs": 34.8,
+    "detachMs": 34.8,
+    "reloadMs": 4.7
+  },
+  "objects": [
+    {
+      "id": "obj-pattern-1",
+      "kind": "pattern",
+      "name": "Aurelia pattern (M) — library",
+      "location": "library",
+      "revision": 2,
+      "parts": 5,
+      "components": 5,
+      "triangles": 575
+    },
+    {
+      "id": "obj-garment-2",
+      "kind": "garment",
+      "name": "Aurelia gown",
+      "location": "cosmos",
+      "revision": 13,
+      "parts": 6,
+      "components": 6,
+      "triangles": 22976
+    },
+    {
+      "id": "obj-garment-component-3",
+      "kind": "garment-component",
+      "name": "Aurelia gown — Right sleeve",
+      "location": "workspace",
+      "revision": 8,
+      "parts": 1,
+      "components": 1,
+      "triangles": 1856
+    },
+    {
+      "id": "obj-garment-4",
+      "kind": "garment",
+      "name": "Aurelia mikado second look",
+      "location": "workspace",
+      "revision": 4,
+      "parts": 4,
+      "components": 4,
+      "triangles": 8256
+    },
+    {
+      "id": "obj-jewelry-5",
+      "kind": "jewelry",
+      "name": "Copper pendant",
+      "location": "cosmos",
+      "revision": 5,
+      "parts": 4,
+      "components": 4,
+      "triangles": 2496
+    },
+    {
+      "id": "obj-jewelry-component-6",
+      "kind": "jewelry-component",
+      "name": "Copper pendant — Stone",
+      "location": "workspace",
+      "revision": 4,
+      "parts": 1,
+      "components": 1,
+      "triangles": 128
+    },
+    {
+      "id": "obj-jewelry-7",
+      "kind": "jewelry",
+      "name": "Gold pendant (copy)",
+      "location": "cosmos",
+      "revision": 9,
+      "parts": 4,
+      "components": 4,
+      "triangles": 2496
+    },
+    {
+      "id": "obj-product-8",
+      "kind": "product",
+      "name": "Oak side chair",
+      "location": "cosmos",
+      "revision": 5,
+      "parts": 7,
+      "components": 7,
+      "triangles": 84
+    },
+    {
+      "id": "obj-garment-component-9",
+      "kind": "garment-component",
+      "name": "Oak side chair — front right leg",
+      "location": "workspace",
+      "revision": 2,
+      "parts": 1,
+      "components": 1,
+      "triangles": 12
+    }
+  ],
+  "integrity": [
+    {
+      "name": "unique ids",
+      "ok": true,
+      "detail": "9 objects, 33 parts, 33 components"
+    },
+    {
+      "name": "every part belongs to a component",
+      "ok": true,
+      "detail": "0 orphaned references"
+    },
+    {
+      "name": "every detached component has its extracted object",
+      "ok": true,
+      "detail": "0 missing"
+    },
+    {
+      "name": "attachments point at real components",
+      "ok": true,
+      "detail": "0 dangling"
+    },
+    {
+      "name": "no cycles",
+      "ok": true,
+      "detail": "0 cycles"
+    }
+  ],
+  "results": [
+    {
+      "step": "pattern drafted as an editable object",
+      "ok": true,
+      "detail": "5 pieces, 8 seams, 33/33 checks, 44.1 ms"
+    },
+    {
+      "step": "garment assembled with extractable components",
+      "ok": true,
+      "detail": "6 components (Bodice & skirt shell (Silk velvet), Rib cage, Standing collar, Modular panels, Left sleeve, Right sleeve); 22976 triangles; 1944.4 ms"
+    },
+    {
+      "step": "sleeves come from the drafted sleeve piece",
+      "ok": true,
+      "detail": "Left sleeve: cap 139.7 mm, 565 mm long; Right sleeve: cap 139.7 mm, 565 mm long"
+    },
+    {
+      "step": "textile changed without rebuilding geometry",
+      "ok": true,
+      "detail": "geometry fingerprint 468458602 → 468458602; 16.7 ms; shell now silk-mikado, accents metallic-lame, silk-mikado, velvet-silk, velvet-silk, velvet-silk"
+    },
+    {
+      "step": "garment placed in the cosmos and made to float",
+      "ok": true,
+      "detail": "obj-garment-2 in cosmos-core, spin 4/min, 34.8 ms; anchored=false"
+    },
+    {
+      "step": "object moved and rotated independently",
+      "ok": true,
+      "detail": "position 380, 0, 40 mm, rotation 0, 18, 0°"
+    },
+    {
+      "step": "sleeve detached into its own object",
+      "ok": true,
+      "detail": "detached \"Right sleeve\" as \"Aurelia gown — Right sleeve\" (obj-garment-component-3); 34.8 ms; parent keeps 6 parts and 6 components"
+    },
+    {
+      "step": "detached sleeve modified on its own",
+      "ok": true,
+      "detail": "scale 1.22, rotation 0,24,18°, material metallic-lame; 1856 triangles"
+    },
+    {
+      "step": "extracted sleeve reused in a different garment",
+      "ok": true,
+      "detail": "reused \"Aurelia gown — Right sleeve\" in \"Aurelia mikado second look\" at socket-sleeve-left"
+    },
+    {
+      "step": "sleeve reattached to its original garment",
+      "ok": true,
+      "detail": "reattached \"Right sleeve\" to \"Aurelia gown\"; extracted object kept at workspace"
+    },
+    {
+      "step": "taken out of the cosmos and kept",
+      "ok": true,
+      "detail": "location=workspace, workspace=chat-universe, revision 8 → 9, geometry 468458602 unchanged=true"
+    },
+    {
+      "step": "retrieved and restored",
+      "ok": true,
+      "detail": "revision 10, 10 history entries"
+    },
+    {
+      "step": "state survives a reload",
+      "ok": true,
+      "detail": "4.7 ms; 4 objects [obj-pattern-1:5p/5c, obj-garment-2:6p/6c, obj-garment-component-3:1p/1c, obj-garment-4:4p/4c], garment revision 10, 10 history entries"
+    },
+    {
+      "step": "object graph integrity after reload",
+      "ok": true,
+      "detail": "unique ids: ok (4 objects, 16 parts, 16 components); every part belongs to a component: ok (0 orphaned references); every detached component has its extracted object: ok (0 missing); attachments point at real components: ok (0 dangling); no cycles: ok (0 cycles)"
+    },
+    {
+      "step": "copper pendant built as an editable object",
+      "ok": true,
+      "detail": "4 parts, Pendant body, Bezel setting, Stone, Bail; estimated 14.44 g of Copper (C110)"
+    },
+    {
+      "step": "stone extracted from the pendant",
+      "ok": true,
+      "detail": "detached \"Stone\" as \"Copper pendant — Stone\" (obj-jewelry-component-6); setting still holds 1 part(s)"
+    },
+    {
+      "step": "stone reattached",
+      "ok": true,
+      "detail": "reattached \"Stone\" to \"Copper pendant\""
+    },
+    {
+      "step": "pendant duplicated and modified",
+      "ok": true,
+      "detail": "Gold pendant (copy) (obj-jewelry-7) at -190,120,260 mm, revision 7; original Copper pendant revision 5"
+    },
+    {
+      "step": "ambiguous reference refused instead of guessed",
+      "ok": true,
+      "detail": "\"pendant\" matches 3 objects: \"Copper pendant\" (obj-jewelry-5), \"Copper pendant — Stone\" (obj-jewelry-component-6), \"Gold pendant (copy)\" (obj-jewelry-7). Say which one."
+    },
+    {
+      "step": "one pendant taken out and retrieved with its identity",
+      "ok": true,
+      "detail": "obj-jewelry-7 removed then restored; geometry 2626625311 unchanged"
+    },
+    {
+      "step": "product assembled from parametric components",
+      "ok": true,
+      "detail": "7 components, seat height 452 mm (derived), 84 triangles"
+    },
+    {
+      "step": "chair leg detached and moved independently",
+      "ok": true,
+      "detail": "detached \"front right leg\" as \"Oak side chair — front right leg\" (obj-garment-component-9)"
+    },
+    {
+      "step": "chair leg reattached",
+      "ok": true,
+      "detail": "reattached \"front right leg\" to \"Oak side chair\""
+    },
+    {
+      "step": "dimension change produces new geometry from the same object data",
+      "ok": true,
+      "detail": "seat width 520 mm, seat height 452 mm (derived from the new legs)"
+    },
+    {
+      "step": "object moved between workspaces and saved to the library",
+      "ok": true,
+      "detail": "garment workspace=couture-studio location=workspace; pattern location=library"
+    },
+    {
+      "step": "GLB export of Aurelia gown",
+      "ok": true,
+      "detail": "571648 bytes, 6 meshes, 12099 vertices, 22976 triangles, 3 materials"
+    },
+    {
+      "step": "OBJ export of Aurelia gown",
+      "ok": true,
+      "detail": "12099 vertices, 22976 faces, 6 groups, materials silk-mikado, metallic-lame, velvet-silk"
+    },
+    {
+      "step": "GLB export of Copper pendant",
+      "ok": true,
+      "detail": "65192 bytes, 4 meshes, 1316 vertices, 2496 triangles, 2 materials"
+    },
+    {
+      "step": "OBJ export of Copper pendant",
+      "ok": true,
+      "detail": "1316 vertices, 2496 faces, 4 groups, materials copper, diamond"
+    },
+    {
+      "step": "GLB export of Oak side chair",
+      "ok": true,
+      "detail": "7976 bytes, 7 meshes, 56 vertices, 84 triangles, 1 materials"
+    },
+    {
+      "step": "OBJ export of Oak side chair",
+      "ok": true,
+      "detail": "56 vertices, 84 faces, 7 groups, materials oak-wood"
+    },
+    {
+      "step": "orthographic technical drawing (SVG) of the chair",
+      "ok": true,
+      "detail": "252 polygons, 261 elements"
+    },
+    {
+      "step": "pattern sheet exported as vector SVG",
+      "ok": true,
+      "detail": "10 polygons"
+    },
+    {
+      "step": "project JSON export preserves identity and hierarchy",
+      "ok": true,
+      "detail": "9 objects, 33 parts, 33 components, unique ids=true"
+    }
+  ],
+  "log": [
+    "PASS pattern drafted as an editable object — 5 pieces, 8 seams, 33/33 checks, 44.1 ms",
+    "rendered 01-pattern.png 1500×950",
+    "PASS garment assembled with extractable components — 6 components (Bodice & skirt shell (Silk velvet), Rib cage, Standing collar, Modular panels, Left sleeve, Right sleeve); 22976 triangles; 1944.4 ms",
+    "PASS sleeves come from the drafted sleeve piece — Left sleeve: cap 139.7 mm, 565 mm long; Right sleeve: cap 139.7 mm, 565 mm long",
+    "  rendered 02-garment-velvet.png 900×1250 (6 parts)",
+    "PASS textile changed without rebuilding geometry — geometry fingerprint 468458602 → 468458602; 16.7 ms; shell now silk-mikado, accents metallic-lame, silk-mikado, velvet-silk, velvet-silk, velvet-silk",
+    "  rendered 03-garment-mikado.png 900×1250 (6 parts)",
+    "PASS garment placed in the cosmos and made to float — obj-garment-2 in cosmos-core, spin 4/min, 34.8 ms; anchored=false",
+    "  rendered 04-cosmos-float-t0.png 900×1150 (6 parts)",
+    "  rendered 05-cosmos-float-t5s.png 900×1150 (6 parts)",
+    "PASS object moved and rotated independently — position 380, 0, 40 mm, rotation 0, 18, 0°",
+    "PASS sleeve detached into its own object — detached \"Right sleeve\" as \"Aurelia gown — Right sleeve\" (obj-garment-component-3); 34.8 ms; parent keeps 6 parts and 6 components",
+    "  rendered 06-sleeve-detached.png 900×1150 (6 parts)",
+    "PASS detached sleeve modified on its own — scale 1.22, rotation 0,24,18°, material metallic-lame; 1856 triangles",
+    "  rendered 07-sleeve-modified.png 900×1150 (6 parts)",
+    "PASS extracted sleeve reused in a different garment — reused \"Aurelia gown — Right sleeve\" in \"Aurelia mikado second look\" at socket-sleeve-left",
+    "  rendered 08-sleeve-reused-other-garment.png 900×1150 (9 parts)",
+    "PASS sleeve reattached to its original garment — reattached \"Right sleeve\" to \"Aurelia gown\"; extracted object kept at workspace",
+    "  rendered 09-sleeve-reattached.png 900×1150 (6 parts)",
+    "PASS taken out of the cosmos and kept — location=workspace, workspace=chat-universe, revision 8 → 9, geometry 468458602 unchanged=true",
+    "  rendered 10-out-of-cosmos-workspace.png 900×1150 (6 parts)",
+    "  rendered 11-restored-to-cosmos.png 900×1150 (6 parts)",
+    "PASS retrieved and restored — revision 10, 10 history entries",
+    "PASS state survives a reload — 4.7 ms; 4 objects [obj-pattern-1:5p/5c, obj-garment-2:6p/6c, obj-garment-component-3:1p/1c, obj-garment-4:4p/4c], garment revision 10, 10 history entries",
+    "PASS object graph integrity after reload — unique ids: ok (4 objects, 16 parts, 16 components); every part belongs to a component: ok (0 orphaned references); every detached component has its extracted object: ok (0 missing); attachments point at real components: ok (0 dangling); no cycles: ok (0 cycles)",
+    "PASS copper pendant built as an editable object — 4 parts, Pendant body, Bezel setting, Stone, Bail; estimated 14.44 g of Copper (C110)",
+    "  rendered 12-pendant.png 900×900 (4 parts)",
+    "  rendered 13-pendant-exploded.png 1000×900 (4 parts)",
+    "PASS stone extracted from the pendant — detached \"Stone\" as \"Copper pendant — Stone\" (obj-jewelry-component-6); setting still holds 1 part(s)",
+    "  rendered 14-stone-detached.png 900×900 (4 parts)",
+    "PASS stone reattached — reattached \"Stone\" to \"Copper pendant\"",
+    "PASS pendant duplicated and modified — Gold pendant (copy) (obj-jewelry-7) at -190,120,260 mm, revision 7; original Copper pendant revision 5",
+    "  rendered 15-two-pendants.png 1000×900 (8 parts)",
+    "PASS ambiguous reference refused instead of guessed — \"pendant\" matches 3 objects: \"Copper pendant\" (obj-jewelry-5), \"Copper pendant — Stone\" (obj-jewelry-component-6), \"Gold pendant (copy)\" (obj-jewelry-7). Say which one.",
+    "PASS one pendant taken out and retrieved with its identity — obj-jewelry-7 removed then restored; geometry 2626625311 unchanged",
+    "PASS product assembled from parametric components — 7 components, seat height 452 mm (derived), 84 triangles",
+    "  rendered 16-chair.png 900×900 (7 parts)",
+    "  rendered 17-chair-exploded.png 1000×820 (7 parts)",
+    "PASS chair leg detached and moved independently — detached \"front right leg\" as \"Oak side chair — front right leg\" (obj-garment-component-9)",
+    "  rendered 18-chair-leg-detached.png 1000×900 (7 parts)",
+    "PASS chair leg reattached — reattached \"front right leg\" to \"Oak side chair\"",
+    "  rendered 19-chair-reattached.png 900×900 (7 parts)",
+    "PASS dimension change produces new geometry from the same object data — seat width 520 mm, seat height 452 mm (derived from the new legs)",
+    "PASS object moved between workspaces and saved to the library — garment workspace=couture-studio location=workspace; pattern location=library",
+    "  rendered 20-cosmos-collection.png 900×1150 (21 parts)",
+    "PASS GLB export of Aurelia gown — 571648 bytes, 6 meshes, 12099 vertices, 22976 triangles, 3 materials",
+    "PASS OBJ export of Aurelia gown — 12099 vertices, 22976 faces, 6 groups, materials silk-mikado, metallic-lame, velvet-silk",
+    "PASS GLB export of Copper pendant — 65192 bytes, 4 meshes, 1316 vertices, 2496 triangles, 2 materials",
+    "PASS OBJ export of Copper pendant — 1316 vertices, 2496 faces, 4 groups, materials copper, diamond",
+    "PASS GLB export of Oak side chair — 7976 bytes, 7 meshes, 56 vertices, 84 triangles, 1 materials",
+    "PASS OBJ export of Oak side chair — 56 vertices, 84 faces, 7 groups, materials oak-wood",
+    "PASS orthographic technical drawing (SVG) of the chair — 252 polygons, 261 elements",
+    "rendered 21-chair-views.png 1440×660",
+    "PASS pattern sheet exported as vector SVG — 10 polygons",
+    "PASS project JSON export preserves identity and hierarchy — 9 objects, 33 parts, 33 components, unique ids=true",
+    "",
+    "9 objects, 33 components, 38879 triangles held in the object store",
+    "34/34 demonstrations passed",
+    "integrity: unique ids=ok, every part belongs to a component=ok, every detached component has its extracted object=ok, attachments point at real components=ok, no cycles=ok"
+  ]
+}

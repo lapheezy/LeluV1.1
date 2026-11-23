@@ -35,6 +35,7 @@ import {
   type GenesisCameraIntent,
   type GenesisV2FocusTarget,
 } from "./GenesisCameraIntent";
+import { isCreativeGesture } from "./cosmos/creativeGesture";
 
 /* --------------------------- world anchors ---------------------------- */
 
@@ -349,6 +350,9 @@ export default function GenesisV2CameraRig({ limits }: { limits?: Partial<V2Came
       // flag before the press; the drag flag covers touch, where there is no
       // hover, as soon as her pointer handler has claimed the gesture.
       if (document.body.dataset.leluAvatarHover === "true" || document.body.dataset.leluAvatarDragging === "true") return;
+      // A finger on a creative object belongs to that object: the creative
+      // layer claims the gesture in the capture phase, before this listener.
+      if (isCreativeGesture()) return;
       el.setPointerCapture?.(e.pointerId);
       pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (e.button === 2) rightDown.current = true;
@@ -364,6 +368,7 @@ export default function GenesisV2CameraRig({ limits }: { limits?: Partial<V2Came
     }
 
     function pointerMove(e: PointerEvent) {
+      if (isCreativeGesture()) return;
       const prev = pointers.current.get(e.pointerId);
       if (!prev) return;
       const dx = e.clientX - prev.x;

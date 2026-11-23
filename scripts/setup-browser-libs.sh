@@ -26,6 +26,9 @@ want = {
     "libasound2t64", "libatk-bridge2.0-0t64", "libatk1.0-0t64", "libatspi2.0-0t64",
     "libnspr4", "libnss3", "libxcomposite1", "libxdamage1", "libxfixes3",
     "libxkbcommon0", "libxrandr2",
+    # Chromium's headless shell also links these two; without them the browser
+    # exits with "libXrender.so.1 => not found" before a page can load.
+    "libxrender1", "libxi6",
 }
 found = {}
 for comp in ("main", "universe"):

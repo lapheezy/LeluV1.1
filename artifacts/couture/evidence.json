@@ -1,0 +1,490 @@
+{
+  "generatedAt": "2026-11-15T17:04:28.266Z",
+  "offline": true,
+  "externalApisUsed": [],
+  "pattern": {
+    "id": "pat_356638",
+    "size": "M",
+    "pieces": [
+      {
+        "id": "bodice-front",
+        "areaCm2": 1677,
+        "cut": 1,
+        "onFold": true,
+        "seamAllowanceMm": 10
+      },
+      {
+        "id": "bodice-back",
+        "areaCm2": 1736,
+        "cut": 1,
+        "onFold": true,
+        "seamAllowanceMm": 10
+      },
+      {
+        "id": "skirt-front",
+        "areaCm2": 6761,
+        "cut": 1,
+        "onFold": true,
+        "seamAllowanceMm": 12
+      },
+      {
+        "id": "skirt-back",
+        "areaCm2": 6761,
+        "cut": 1,
+        "onFold": true,
+        "seamAllowanceMm": 12
+      }
+    ],
+    "seams": [
+      {
+        "id": "shoulder",
+        "type": "french",
+        "a": "bodice-front.shoulder",
+        "b": "bodice-back.shoulder",
+        "lengthA": 117.4,
+        "lengthB": 117.4,
+        "stitches": 24
+      },
+      {
+        "id": "side",
+        "type": "french",
+        "a": "bodice-front.side-seam",
+        "b": "bodice-back.side-seam",
+        "lengthA": 264.6,
+        "lengthB": 264.6,
+        "stitches": 24
+      },
+      {
+        "id": "skirt-side",
+        "type": "french",
+        "a": "skirt-front.side-seam",
+        "b": "skirt-back.side-seam",
+        "lengthA": 812.6,
+        "lengthB": 812.6,
+        "stitches": 24
+      },
+      {
+        "id": "waist",
+        "type": "plain",
+        "a": "bodice-front.waist",
+        "b": "skirt-front.waist",
+        "lengthA": 191,
+        "lengthB": 191,
+        "stitches": 24
+      },
+      {
+        "id": "waist-back",
+        "type": "plain",
+        "a": "bodice-back.waist",
+        "b": "skirt-back.waist",
+        "lengthA": 191,
+        "lengthB": 191,
+        "stitches": 24
+      }
+    ],
+    "checks": [
+      {
+        "name": "shoulder: seam lengths",
+        "ok": true,
+        "detail": "117.4 mm against 117.4 mm — ease 0 mm (allowed ±2.5 mm)"
+      },
+      {
+        "name": "side: seam lengths",
+        "ok": true,
+        "detail": "264.6 mm against 264.6 mm — ease 0 mm (allowed ±2.5 mm)"
+      },
+      {
+        "name": "skirt-side: seam lengths",
+        "ok": true,
+        "detail": "812.6 mm against 812.6 mm — ease 0 mm (allowed ±2.5 mm)"
+      },
+      {
+        "name": "waist: seam lengths",
+        "ok": true,
+        "detail": "191 mm against 191 mm — ease 0 mm (allowed ±2.5 mm)"
+      },
+      {
+        "name": "waist-back: seam lengths",
+        "ok": true,
+        "detail": "191 mm against 191 mm — ease 0 mm (allowed ±2.5 mm)"
+      },
+      {
+        "name": "bodice-front: outline",
+        "ok": true,
+        "detail": "117 outline points, 1677 cm² per cut piece"
+      },
+      {
+        "name": "bodice-front: simple outline",
+        "ok": true,
+        "detail": "no self-intersection detected"
+      },
+      {
+        "name": "bodice-front: grainline inside",
+        "ok": true,
+        "detail": "the grainline runs through the piece"
+      },
+      {
+        "name": "bodice-front: seam allowance",
+        "ok": true,
+        "detail": "10 mm (a garment seam is 8–15 mm)"
+      },
+      {
+        "name": "bodice-front: triangulates",
+        "ok": true,
+        "detail": "115 triangles for area and the 3D mapping"
+      },
+      {
+        "name": "bodice-back: outline",
+        "ok": true,
+        "detail": "117 outline points, 1736 cm² per cut piece"
+      },
+      {
+        "name": "bodice-back: simple outline",
+        "ok": true,
+        "detail": "no self-intersection detected"
+      },
+      {
+        "name": "bodice-back: grainline inside",
+        "ok": true,
+        "detail": "the grainline runs through the piece"
+      },
+      {
+        "name": "bodice-back: seam allowance",
+        "ok": true,
+        "detail": "10 mm (a garment seam is 8–15 mm)"
+      },
+      {
+        "name": "bodice-back: triangulates",
+        "ok": true,
+        "detail": "115 triangles for area and the 3D mapping"
+      },
+      {
+        "name": "skirt-front: outline",
+        "ok": true,
+        "detail": "104 outline points, 6761 cm² per cut piece"
+      },
+      {
+        "name": "skirt-front: simple outline",
+        "ok": true,
+        "detail": "no self-intersection detected"
+      },
+      {
+        "name": "skirt-front: grainline inside",
+        "ok": true,
+        "detail": "the grainline runs through the piece"
+      },
+      {
+        "name": "skirt-front: seam allowance",
+        "ok": true,
+        "detail": "12 mm (a garment seam is 8–15 mm)"
+      },
+      {
+        "name": "skirt-front: triangulates",
+        "ok": true,
+        "detail": "102 triangles for area and the 3D mapping"
+      },
+      {
+        "name": "skirt-back: outline",
+        "ok": true,
+        "detail": "104 outline points, 6761 cm² per cut piece"
+      },
+      {
+        "name": "skirt-back: simple outline",
+        "ok": true,
+        "detail": "no self-intersection detected"
+      },
+      {
+        "name": "skirt-back: grainline inside",
+        "ok": true,
+        "detail": "the grainline runs through the piece"
+      },
+      {
+        "name": "skirt-back: seam allowance",
+        "ok": true,
+        "detail": "12 mm (a garment seam is 8–15 mm)"
+      },
+      {
+        "name": "skirt-back: triangulates",
+        "ok": true,
+        "detail": "102 triangles for area and the 3D mapping"
+      }
+    ],
+    "fabric": {
+      "netAreaM2": 1.694,
+      "grossAreaM2": 1.897,
+      "metres": 1.65,
+      "widthMm": 1400,
+      "byPiece": [
+        {
+          "piece": "bodice-front",
+          "netAreaM2": 0.168,
+          "cut": 1
+        },
+        {
+          "piece": "bodice-back",
+          "netAreaM2": 0.174,
+          "cut": 1
+        },
+        {
+          "piece": "skirt-front",
+          "netAreaM2": 0.676,
+          "cut": 1
+        },
+        {
+          "piece": "skirt-back",
+          "netAreaM2": 0.676,
+          "cut": 1
+        }
+      ],
+      "note": "Estimated from net piece area with 12% for seam allowances and 82% packing efficiency. This is not a marker/lay plan: a cutter should lay the pieces on the cloth."
+    }
+  },
+  "couture": {
+    "id": "gar_344040",
+    "name": "Aurelia — sculpted velvet and organza gown",
+    "triangles": 26464,
+    "massG": 520.4,
+    "simulationMs": 2088,
+    "layers": [
+      {
+        "id": "L-01",
+        "role": "shell",
+        "material": "Silk velvet",
+        "simulated": true,
+        "areaCm2": 18587,
+        "massG": 520.4,
+        "metrics": {
+          "vertices": 4032,
+          "triangles": 7840,
+          "steps": 70,
+          "iterations": 10,
+          "maxStrainPct": 2.38,
+          "meanStrainPct": 0.12,
+          "meanDisplacementMm": 3.5,
+          "drapeDropMm": 0.2,
+          "pleatRetention": 1.683,
+          "contacts": 3617,
+          "residualMm": 0.355,
+          "converged": true,
+          "settleIterations": 40,
+          "simSeconds": 0.146,
+          "massG": 520.4,
+          "wallMs": 2088,
+          "notes": [
+            "Position-based dynamics, CPU, deterministic (no randomness in the solve).",
+            "The garment collides with the mannequin surface and the floor; it does not self-collide in this build.",
+            "Strain is measured on the structural edges; the max-strain limit is applied as a soft target, not a hard cap."
+          ]
+        },
+        "note": "Simulated 70 steps × 10 iterations (0.146s of motion), settled to 0.355 mm; hem fold amplitude now 168% of the cut amplitude."
+      }
+    ],
+    "sculptural": [
+      {
+        "id": "S-01",
+        "kind": "translucent-shell",
+        "material": "silk-organza",
+        "triangles": 7200,
+        "note": "An offset double-sided shell: volume that reads as light rather than cloth."
+      },
+      {
+        "id": "S-02",
+        "kind": "rib-cage",
+        "material": "metallic-lame",
+        "triangles": 8448,
+        "note": "Curved structural ribs held off the body — the corsetry/armature layer."
+      },
+      {
+        "id": "S-03",
+        "kind": "standing-collar",
+        "material": "silk-mikado",
+        "triangles": 1440,
+        "note": "A flared band around the neck: the couture collar that frames the face."
+      },
+      {
+        "id": "S-04",
+        "kind": "modular-panels",
+        "material": "velvet-silk",
+        "triangles": 1536,
+        "note": "Discrete curved panels with gaps — a modular silhouette."
+      }
+    ],
+    "checks": [
+      {
+        "name": "pattern checks",
+        "ok": true,
+        "detail": "25/25 pattern checks passed"
+      },
+      {
+        "name": "avatar built",
+        "ok": true,
+        "detail": "12 measured levels from neck to hem"
+      },
+      {
+        "name": "cloth layers",
+        "ok": true,
+        "detail": "L-01 Silk velvet (shell)"
+      },
+      {
+        "name": "L-01 simulation converged",
+        "ok": true,
+        "detail": "residual 0.355 mm, 3617 contacts, 2088 ms"
+      },
+      {
+        "name": "L-01 mean strain within material limit",
+        "ok": true,
+        "detail": "0.12% mean strain, 2.38% at the worst single edge (Silk velvet allows 6%)"
+      },
+      {
+        "name": "S-01 translucent-shell",
+        "ok": true,
+        "detail": "7200 triangles, rigid, silk-organza"
+      },
+      {
+        "name": "S-02 rib-cage",
+        "ok": true,
+        "detail": "8448 triangles, rigid, metallic-lame"
+      },
+      {
+        "name": "S-03 standing-collar",
+        "ok": true,
+        "detail": "1440 triangles, rigid, silk-mikado"
+      },
+      {
+        "name": "S-04 modular-panels",
+        "ok": true,
+        "detail": "1536 triangles, rigid, velvet-silk"
+      }
+    ],
+    "notes": [
+      "The shell is simulated; sculptural parts are generated rigid geometry.",
+      "Collision is against the mannequin and the floor. Self-collision between layers is not solved in this build.",
+      "Pleat retention is the hem's radial fold amplitude after the solve divided by its amplitude as cut.",
+      "No external generation API is involved: geometry, simulation and checks are computed locally."
+    ]
+  },
+  "textileStudy": [
+    {
+      "material": "silk-satin",
+      "name": "Silk satin (duchesse face)",
+      "pleatRetention": 1.61,
+      "maxStrainPct": 1.37,
+      "massG": 216,
+      "residualMm": 0.302,
+      "converged": true
+    },
+    {
+      "material": "silk-organza",
+      "name": "Silk organza",
+      "pleatRetention": 1.283,
+      "maxStrainPct": 1.14,
+      "massG": 68.7,
+      "residualMm": 0.219,
+      "converged": true
+    },
+    {
+      "material": "technical-mesh",
+      "name": "Technical mesh",
+      "pleatRetention": 1.838,
+      "maxStrainPct": 1.38,
+      "massG": 166.9,
+      "residualMm": 0.283,
+      "converged": true
+    },
+    {
+      "material": "leather-lambskin",
+      "name": "Lambskin leather",
+      "pleatRetention": 1.084,
+      "maxStrainPct": 4.44,
+      "massG": 1374.3,
+      "residualMm": 0.577,
+      "converged": true
+    },
+    {
+      "material": "silk-chiffon",
+      "name": "Silk chiffon",
+      "pleatRetention": 1.82,
+      "maxStrainPct": 2.63,
+      "massG": 58.9,
+      "residualMm": 0.399,
+      "converged": true
+    }
+  ],
+  "drapeTest": [
+    {
+      "material": "silk-satin",
+      "name": "Silk satin (duchesse face)",
+      "tipDropMm": 77.5,
+      "rigidity": 0.758,
+      "bendingStiffness": 6,
+      "gsm": 110
+    },
+    {
+      "material": "silk-organza",
+      "name": "Silk organza",
+      "tipDropMm": 91.8,
+      "rigidity": 0.713,
+      "bendingStiffness": 22,
+      "gsm": 35
+    },
+    {
+      "material": "technical-mesh",
+      "name": "Technical mesh",
+      "tipDropMm": 39.4,
+      "rigidity": 0.877,
+      "bendingStiffness": 3,
+      "gsm": 85
+    },
+    {
+      "material": "leather-lambskin",
+      "name": "Lambskin leather",
+      "tipDropMm": 25.6,
+      "rigidity": 0.92,
+      "bendingStiffness": 120,
+      "gsm": 700
+    },
+    {
+      "material": "silk-chiffon",
+      "name": "Silk chiffon",
+      "tipDropMm": 100.9,
+      "rigidity": 0.685,
+      "bendingStiffness": 2,
+      "gsm": 30
+    }
+  ],
+  "log": [
+    "pattern: 4 pieces, 5 seams, 25/25 checks passed",
+    "  seam shoulder: bodice-front.shoulder ↔ bodice-back.shoulder (117.4 / 117.4 mm)",
+    "  seam side: bodice-front.side-seam ↔ bodice-back.side-seam (264.6 / 264.6 mm)",
+    "  seam skirt-side: skirt-front.side-seam ↔ skirt-back.side-seam (812.6 / 812.6 mm)",
+    "  seam waist: bodice-front.waist ↔ skirt-front.waist (191 / 191 mm)",
+    "  seam waist-back: bodice-back.waist ↔ skirt-back.waist (191 / 191 mm)",
+    "garment A: Aurelia — sculpted velvet and organza gown",
+    "  1 simulated layer(s), 26464 triangles, 520.4 g, 2088 ms solving",
+    "  L-01 Silk velvet: retention 168%, strain 2.38%, residual 0.355 mm, mass 520.4 g, Simulated 70 steps × 10 iterations (0.146s of motion), settled to 0.355 mm; hem fold amplitude now 168% of the cut amplitude.",
+    "  ok: pattern checks — 25/25 pattern checks passed",
+    "  ok: avatar built — 12 measured levels from neck to hem",
+    "  ok: cloth layers — L-01 Silk velvet (shell)",
+    "  ok: L-01 simulation converged — residual 0.355 mm, 3617 contacts, 2088 ms",
+    "  ok: L-01 mean strain within material limit — 0.12% mean strain, 2.38% at the worst single edge (Silk velvet allows 6%)",
+    "  ok: S-01 translucent-shell — 7200 triangles, rigid, silk-organza",
+    "  ok: S-02 rib-cage — 8448 triangles, rigid, metallic-lame",
+    "  ok: S-03 standing-collar — 1440 triangles, rigid, silk-mikado",
+    "  ok: S-04 modular-panels — 1536 triangles, rigid, velvet-silk",
+    "rendered couture-hero.png 900×1300",
+    "rendered couture-views.png 2240×820 (front, three-quarter, side, back)",
+    "textile Silk satin (duchesse face): retention 161%, strain 1.37%, residual 0.302 mm, mass 216 g",
+    "textile Silk organza: retention 128%, strain 1.14%, residual 0.219 mm, mass 68.7 g",
+    "textile Technical mesh: retention 184%, strain 1.38%, residual 0.283 mm, mass 166.9 g",
+    "textile Lambskin leather: retention 108%, strain 4.44%, residual 0.577 mm, mass 1374.3 g",
+    "textile Silk chiffon: retention 182%, strain 2.63%, residual 0.399 mm, mass 58.9 g",
+    "rendered textile-study.png 2000×660 (Silk satin (duchesse face) · Silk organza · Technical mesh · Lambskin leather · Silk chiffon)",
+    "drape Silk satin (duchesse face): tip fell 77.5 mm of 320 mm (rigidity 0.758) — bending 6 mN·cm",
+    "drape Silk organza: tip fell 91.8 mm of 320 mm (rigidity 0.713) — bending 22 mN·cm",
+    "drape Technical mesh: tip fell 39.4 mm of 320 mm (rigidity 0.877) — bending 3 mN·cm",
+    "drape Lambskin leather: tip fell 25.6 mm of 320 mm (rigidity 0.92) — bending 120 mN·cm",
+    "drape Silk chiffon: tip fell 100.9 mm of 320 mm (rigidity 0.685) — bending 2 mN·cm",
+    "rendered drape-test.png 2150×330",
+    "textile library: 34 materials (natural, luxury, technical, leather, metal, glass, ceramic, composite, gemstone)"
+  ]
+}

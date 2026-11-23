@@ -80,6 +80,7 @@ const SPATIAL_KINDS: SpatialKind[] = [
   "file",
   "conversation",
   "note",
+  "object",
 ];
 
 const definition = (

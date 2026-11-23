@@ -245,8 +245,19 @@ export default class AIRouter {
     // than depending on the model choosing the right tool. "Build a cabin"
     // must produce a cabin; the model is not needed to hope so.
     const construction = Boolean(directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => /^creative\.(build|modify|inspect)$/.test(step.tool) || /^cosmos\.(object|view)\./.test(step.tool)));
-    if (directPlan && (directPlan.explicit || construction || !(await this.direct.providersAvailable(context)))) {
-      const reason = directPlan.explicit ? "command" : construction ? "construction" : "no-provider";
+    /*
+     * An operation on a canonical creation is the same kind of claim: "rotate it
+     * 90 degrees" either rotated that object in the store or it did not. Letting
+     * a reachable model answer it instead produces a description of a rotation
+     * with no rotation behind it, which is precisely what the live WP03 run
+     * showed. These steps are deterministic, authorized and cheap, so they run
+     * here whether or not a provider is up.
+     */
+    const creativeOperation = Boolean(
+      directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => step.tool === "couture.objects"),
+    );
+    if (directPlan && (directPlan.explicit || construction || creativeOperation || !(await this.direct.providersAvailable(context)))) {
+      const reason = directPlan.explicit ? "command" : construction ? "construction" : creativeOperation ? "creative" : "no-provider";
       const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, reason));
       if (done.handled && done.response) return done.response;
     }

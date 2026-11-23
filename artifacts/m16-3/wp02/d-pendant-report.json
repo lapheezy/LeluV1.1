@@ -1,0 +1,109 @@
+{
+  "url": "http://localhost:3003/?perf-world",
+  "kind": "pendant",
+  "mobile": false,
+  "steps": [
+    "loaded"
+  ],
+  "errors": [],
+  "ok": true,
+  "immersive": true,
+  "sceneRoot": "div.",
+  "build": {
+    "notice": "Copper pendant is in cosmos-core as obj-0170d3b8; geometry, components and history unchanged"
+  },
+  "objectId": "obj-jewelry-1",
+  "objects": [
+    "Copper pendant"
+  ],
+  "select": {
+    "selected": "obj-jewelry-1",
+    "gesture": {
+      "hit": "obj-jewelry-1",
+      "component": "c-setting",
+      "mode": "select"
+    },
+    "point": {
+      "id": "obj-jewelry-1",
+      "name": "Copper pendant",
+      "x": 639.9999999999999,
+      "y": 400,
+      "ndc": [
+        0,
+        0,
+        0.765
+      ],
+      "world": [
+        -0.9,
+        2.864,
+        5.893
+      ],
+      "onScreen": true
+    },
+    "attempts": 2,
+    "trail": [
+      {
+        "x": 352,
+        "y": 2219,
+        "onScreen": false
+      },
+      {
+        "x": 640,
+        "y": 400,
+        "onScreen": true
+      }
+    ]
+  },
+  "controlPress": {
+    "before": "obj-jewelry-1",
+    "after": "obj-jewelry-1"
+  },
+  "orbit": {
+    "cameraBefore": [
+      -0.9,
+      3.71,
+      5.977
+    ],
+    "cameraAfter": [
+      -0.911,
+      3.705,
+      6.018
+    ],
+    "cameraMoved": true,
+    "objectMoved": false
+  },
+  "drag": {
+    "committed": {
+      "mode": "move",
+      "position": [
+        342.17578847554375,
+        -4819.227552244702,
+        3537.8174216655207
+      ]
+    },
+    "positionBefore": [
+      [
+        -900,
+        -5892.492370289112,
+        2868.8014649015886
+      ]
+    ],
+    "positionAfter": [
+      [
+        342.17578847554375,
+        -4819.227552244702,
+        3537.8174216655207
+      ]
+    ],
+    "attempts": 2
+  },
+  "afterReload": {
+    "positions": [
+      [
+        342.17578847554375,
+        -4819.227552244702,
+        3537.8174216655207
+      ]
+    ]
+  }
+}
