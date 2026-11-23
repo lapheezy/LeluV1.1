@@ -359,11 +359,17 @@ export function createSelfJournalApi(root = process.cwd()) {
   };
   return {
     handle,
-    /** Mounted at /api/self: connect strips the mount path, so it is put back before routing. */
+    /**
+     * Mounted at /api/self. Connect (Vite dev/preview) strips the mount path,
+     * so it is put back before routing; the production server.ts router does
+     * NOT strip it — prefixing again there produced /api/self/api/self/… and
+     * every route answered 404 on the deployed runtime only.
+     */
     attach(m: { use: (route: string, fn: (req: Req, res: Res, next: () => void) => void) => void }) {
       m.use("/api/self", (req, res, next) => {
         const original = req.url ?? "/";
-        void handle({ ...req, on: req.on.bind(req), headers: req.headers, method: req.method, url: `/api/self${original.startsWith("/") ? original : `/${original}`}` }, res, next);
+        const url = /^\/api\/self(\/|\?|$)/.test(original) ? original : `/api/self${original.startsWith("/") ? original : `/${original}`}`;
+        void handle({ ...req, on: req.on.bind(req), headers: req.headers, method: req.method, url }, res, next);
       });
     },
   };

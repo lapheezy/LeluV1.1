@@ -17,6 +17,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import CreativeObjects, { type CreativeObject } from "../../../../core/couture/objects";
+import { useHomeStore } from "../home/useHomeLive";
 import { requestCreativeFocus } from "./creativeGesture";
 import { garmentAssembly } from "../../../../core/couture/components";
 import { buildGarment } from "../../../../core/couture/garment";
@@ -66,6 +67,7 @@ export default function CreativeObjectsDock() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [open, setOpen] = useState(true);
+  const home = useHomeStore();
 
   useEffect(() => {
     const update = () => setObjects(store.list({ location: "cosmos" }));
@@ -181,6 +183,13 @@ export default function CreativeObjectsDock() {
   }, [selected, store]);
 
   const parked = store.list({ location: "workspace", includeArchived: false }).filter((o) => o.kind !== "pattern-piece");
+
+  // Workforce consolidation: the same rule as CosmosObjectsDock — nothing to
+  // do for an empty Cosmos the person is not standing in. Mounted always, the
+  // panel covered the Home's Infinite Library and LÉLU's own corner with
+  // "0 in cosmos". Creations stay reachable from chat ("make a gown") and the
+  // panel appears inside the Cosmos or as soon as a creation is placed.
+  if (!home.immersive && objects.length === 0 && parked.length === 0) return null;
 
   return (
     <div
