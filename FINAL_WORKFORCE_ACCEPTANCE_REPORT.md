@@ -117,4 +117,15 @@ LELU_CHROMIUM=<chromium> node docs/acceptance/workforce-consolidation/perf-probe
 
 ## 9. Remote verification
 
-Filled in by the follow-up commit after the push.
+Pushed 2026-11-23 (fast-forward, no force):
+
+| Remote ref | Before | After |
+|---|---|---|
+| `integration/lelu-four-workforce-consolidation` | `096b46b8` | `29d964c250132f4d9e661197e49fd432b7d4bb4b` |
+| `claude/lelu-v1-1-workforce-consolidation-bh0jrc` | `66849f1a` | `29d964c250132f4d9e661197e49fd432b7d4bb4b` |
+
+`git ls-remote` after the push returned `29d964c2…` for both refs, equal to the
+local HEAD whose code (`3cbedff4`) passed the campaign above; `29d964c2` adds
+only reports, evidence and the journal entry. Remote heads after the push: 71
+(none deleted). This section itself is added by one further documentation-only
+commit.
