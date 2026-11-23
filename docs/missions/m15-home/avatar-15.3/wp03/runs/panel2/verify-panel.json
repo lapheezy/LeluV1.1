@@ -1,0 +1,222 @@
+[
+  {
+    "n": 1,
+    "name": "desktop-panel-preview-is-her",
+    "ok": true,
+    "note": "presence preview; full/embodied; her own canvas true; model v005_faceshapes_mvwaqbim/lelu.glb; in the panel's spot true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-01-ok-desktop-panel-preview-is-her.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 2,
+    "name": "desktop-panel-preview-animates",
+    "ok": true,
+    "note": "drew 3 frames in 3 s",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-02-ok-desktop-panel-preview-animates.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 3,
+    "name": "desktop-panel-form-choice-hologram",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-03-ok-desktop-panel-form-choice-hologram.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 4,
+    "name": "desktop-panel-framing-choice-face",
+    "ok": true,
+    "note": "→ face/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-04-ok-desktop-panel-framing-choice-face.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 5,
+    "name": "desktop-panel-framing-choice-full",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-05-ok-desktop-panel-framing-choice-full.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 6,
+    "name": "desktop-panel-form-choice-embodied",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-06-ok-desktop-panel-form-choice-embodied.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 7,
+    "name": "desktop-panel-form-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-07-ok-desktop-panel-form-choice-auto.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 8,
+    "name": "desktop-panel-framing-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-08-ok-desktop-panel-framing-choice-auto.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 9,
+    "name": "desktop-panel-close-reopen-1",
+    "ok": true,
+    "note": "clicked “Close Avatar”; panel closed true, she left it (planned) within 6 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +5 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-09-ok-desktop-panel-close-reopen-1.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 10,
+    "name": "desktop-panel-close-reopen-2",
+    "ok": true,
+    "note": "clicked “Close Avatar”; panel closed true, she left it (planned) within 7 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +5 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-10-ok-desktop-panel-close-reopen-2.png",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "n": 11,
+    "name": "phone-panel-preview-is-her",
+    "ok": true,
+    "note": "presence preview; full/embodied; her own canvas true; model v005_faceshapes_mvwaqbim/lelu.glb; in the panel's spot true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-11-ok-phone-panel-preview-is-her.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 12,
+    "name": "phone-panel-preview-animates",
+    "ok": true,
+    "note": "drew 0 frames in 3 s (measured low-power rest)",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-12-ok-phone-panel-preview-animates.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 13,
+    "name": "phone-panel-form-choice-hologram",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-13-ok-phone-panel-form-choice-hologram.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 14,
+    "name": "phone-panel-framing-choice-face",
+    "ok": true,
+    "note": "→ face/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-14-ok-phone-panel-framing-choice-face.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 15,
+    "name": "phone-panel-framing-choice-full",
+    "ok": true,
+    "note": "→ full/hologram; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-15-ok-phone-panel-framing-choice-full.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 16,
+    "name": "phone-panel-form-choice-embodied",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-16-ok-phone-panel-form-choice-embodied.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 17,
+    "name": "phone-panel-form-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-17-ok-phone-panel-form-choice-auto.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 18,
+    "name": "phone-panel-framing-choice-auto",
+    "ok": true,
+    "note": "→ full/embodied; same canvas true",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-18-ok-phone-panel-framing-choice-auto.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 19,
+    "name": "phone-panel-close-reopen-1",
+    "ok": true,
+    "note": "tapped “Close Avatar”; panel closed true, she left it (planned) within 10 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +3 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-19-ok-phone-panel-close-reopen-1.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  },
+  {
+    "n": 20,
+    "name": "phone-panel-close-reopen-2",
+    "ok": true,
+    "note": "tapped “Close Avatar”; panel closed true, she left it (planned) within 5 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +7 since start",
+    "file": "docs/missions/m15-home/avatar-15.3/wp03/runs/panel2/step-20-ok-phone-panel-close-reopen-2.png",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    }
+  }
+]

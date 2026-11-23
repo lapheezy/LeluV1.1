@@ -1,0 +1,641 @@
+{
+ "tag": "fix2",
+ "dev": "phone",
+ "how": "tap",
+ "viewport": {
+  "width": 393,
+  "height": 852
+ },
+ "meta": {
+  "dpr": 1,
+  "inner": [
+   393,
+   852
+  ],
+  "visual": [
+   393,
+   852,
+   1
+  ]
+ },
+ "cycles": [
+  {
+   "cycle": 1,
+   "how": "tap",
+   "before": {
+    "presence": "preview",
+    "panelHost": true,
+    "lowPower": "rest",
+    "windows": [
+     "avatar"
+    ]
+   },
+   "target": {
+    "label": "Close Avatar",
+    "rect": [
+     350,
+     7,
+     36,
+     36
+    ],
+    "hitIsTarget": true,
+    "hit": "BUTTON.lws-icon[Close Avatar]",
+    "candidates": [
+     "Close Avatar"
+    ]
+   },
+   "events": [
+    {
+     "type": "pointerdown",
+     "t": 28288,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 28288,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 28289,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 28289,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 28291,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    }
+   ],
+   "panelClosedAt": 1978,
+   "presenceLeftAt": 1978,
+   "atTwoSeconds": {
+    "ms": 1978,
+    "panelHost": false,
+    "windows": 0,
+    "presence": "planned",
+    "frames": 25
+   },
+   "timeline": [
+    {
+     "ms": 1978,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 25
+    },
+    {
+     "ms": 4595,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 28
+    },
+    {
+     "ms": 5111,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 28
+    },
+    {
+     "ms": 5378,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 28
+    }
+   ]
+  },
+  {
+   "cycle": 2,
+   "how": "tap",
+   "before": {
+    "presence": "preview",
+    "panelHost": true,
+    "lowPower": "rest",
+    "windows": [
+     "avatar"
+    ]
+   },
+   "target": {
+    "label": "Close Avatar",
+    "rect": [
+     350,
+     7,
+     36,
+     36
+    ],
+    "hitIsTarget": true,
+    "hit": "BUTTON.lws-icon[Close Avatar]",
+    "candidates": [
+     "Close Avatar"
+    ]
+   },
+   "events": [
+    {
+     "type": "pointerdown",
+     "t": 44354,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerdown",
+     "t": 44354,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 44355,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 44355,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 44355,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 44355,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 44355,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 44355,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 44356,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 44356,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    }
+   ],
+   "panelClosedAt": 1063,
+   "presenceLeftAt": 1063,
+   "atTwoSeconds": {
+    "ms": 1063,
+    "panelHost": false,
+    "windows": 0,
+    "presence": "planned",
+    "frames": 47
+   },
+   "timeline": [
+    {
+     "ms": 1063,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 47
+    },
+    {
+     "ms": 2157,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 49
+    },
+    {
+     "ms": 2597,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 49
+    },
+    {
+     "ms": 2975,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 50
+    }
+   ]
+  },
+  {
+   "cycle": 3,
+   "how": "tap",
+   "before": {
+    "presence": "preview",
+    "panelHost": true,
+    "lowPower": "rest",
+    "windows": [
+     "avatar"
+    ]
+   },
+   "target": {
+    "label": "Close Avatar",
+    "rect": [
+     350,
+     7,
+     36,
+     36
+    ],
+    "hitIsTarget": true,
+    "hit": "BUTTON.lws-icon[Close Avatar]",
+    "candidates": [
+     "Close Avatar"
+    ]
+   },
+   "events": [
+    {
+     "type": "pointerdown",
+     "t": 54685,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerdown",
+     "t": 54685,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerdown",
+     "t": 54685,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 54685,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 54685,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 54685,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 54686,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 54686,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 54686,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 54686,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 54686,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 54686,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 54687,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 54687,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 54687,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    }
+   ],
+   "panelClosedAt": 380,
+   "presenceLeftAt": 380,
+   "atTwoSeconds": {
+    "ms": 1983,
+    "panelHost": false,
+    "windows": 0,
+    "presence": "planned",
+    "frames": 76
+   },
+   "timeline": [
+    {
+     "ms": 380,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 74
+    },
+    {
+     "ms": 1308,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 75
+    },
+    {
+     "ms": 1708,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 75
+    },
+    {
+     "ms": 1983,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 76
+    }
+   ]
+  },
+  {
+   "cycle": 4,
+   "how": "tap",
+   "before": {
+    "presence": "preview",
+    "panelHost": true,
+    "lowPower": "rest",
+    "windows": [
+     "avatar"
+    ]
+   },
+   "target": {
+    "label": "Close Avatar",
+    "rect": [
+     350,
+     7,
+     36,
+     36
+    ],
+    "hitIsTarget": true,
+    "hit": "BUTTON.lws-icon[Close Avatar]",
+    "candidates": [
+     "Close Avatar"
+    ]
+   },
+   "events": [
+    {
+     "type": "pointerdown",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerdown",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerdown",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerdown",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchstart",
+     "t": 64835,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "pointerup",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "touchend",
+     "t": 64836,
+     "target": "Close Avatar",
+     "pointerType": null,
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 64837,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 64837,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 64837,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    },
+    {
+     "type": "click",
+     "t": 64837,
+     "target": "Close Avatar",
+     "pointerType": "touch",
+     "defaultPrevented": false
+    }
+   ],
+   "panelClosedAt": 150,
+   "presenceLeftAt": 150,
+   "atTwoSeconds": {
+    "ms": 1928,
+    "panelHost": false,
+    "windows": 0,
+    "presence": "planned",
+    "frames": 102
+   },
+   "timeline": [
+    {
+     "ms": 150,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 101
+    },
+    {
+     "ms": 1546,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 102
+    },
+    {
+     "ms": 1928,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 102
+    },
+    {
+     "ms": 2225,
+     "panelHost": false,
+     "windows": 0,
+     "presence": "planned",
+     "frames": 102
+    }
+   ]
+  }
+ ]
+}

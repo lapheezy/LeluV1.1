@@ -1,0 +1,229 @@
+/**
+ * M15.3 — LÉLU's presence: one identity, several presentations, real actions.
+ *
+ * Unit level: the deterministic command parser (what is and is NOT a command),
+ * the interface presentation profiles, the low-power rule, the form/framing
+ * store, and the action bus's honest decline. Rendering is NOT mocked here and
+ * not claimed here: scripts/avatar/verify-avatar-presence.mjs proves it in the
+ * running app with her approved model.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+
+if (typeof globalThis.window === "undefined") (globalThis as Record<string, unknown>).window = globalThis;
+if (typeof localStorage === "undefined") {
+  const store: Record<string, string> = {};
+  (globalThis as Record<string, unknown>).localStorage = {
+    getItem: (k: string) => store[k] ?? null,
+    setItem: (k: string, v: string) => { store[k] = v; },
+    removeItem: (k: string) => { delete store[k]; },
+    clear: () => {},
+    get length() { return Object.keys(store).length; },
+    key: () => null,
+  };
+}
+if (typeof sessionStorage === "undefined") (globalThis as Record<string, unknown>).sessionStorage = (globalThis as Record<string, unknown>).localStorage;
+
+import { parseAvatarPresenceCommand } from "../src/core/router/avatarPresenceCommand";
+import { choosePresentation, contextOf, restsOnStill, FULL_MIN_HEIGHT } from "../src/app/scene/genesis/avatar/presentationProfile";
+import LeluCharacterStore from "../src/core/avatar/LeluCharacterStore";
+import AvatarCommandBus, { AVATAR_PLACES } from "../src/core/avatar/AvatarCommandBus";
+
+test("her form and framing commands, in plain words", () => {
+  const cases: Array<[string, object]> = [
+    ["become a hologram", { type: "form", form: "hologram" }],
+    ["LÉLU, switch to hologram mode", { type: "form", form: "hologram" }],
+    ["please turn into a hologram", { type: "form", form: "hologram" }],
+    ["become embodied", { type: "form", form: "embodied" }],
+    ["stop being a hologram", { type: "form", form: "embodied" }],
+    ["show me all of you", { type: "framing", framing: "full" }],
+    ["just your face", { type: "framing", framing: "face" }],
+    ["choose your own form", { type: "presentation-auto" }],
+  ];
+  for (const [words, want] of cases) {
+    const got = parseAvatarPresenceCommand(words);
+    assert.ok(got, words);
+    for (const [k, v] of Object.entries(want)) assert.equal((got as Record<string, unknown>)[k], v, `${words}: ${k}`);
+  }
+});
+
+test("movement, turning and gestures map to the bus's real kinds and places", () => {
+  const cases: Array<[string, string, string | undefined]> = [
+    ["walk to the studio", "move", "studio"],
+    ["LÉLU, go to the core", "move", "core"],
+    ["head over to the lab", "move", "lab"],
+    ["come closer", "move", "viewer"],
+    ["step back", "move", "away"],
+    ["go back to your spot", "move", "home"],
+    ["move to the left", "move", "left"],
+    ["face me", "look", "viewer"],
+    ["face the vault", "look", "vault"],
+    ["look around", "look", undefined],
+    ["dance", "dance", undefined],
+    ["wave", "wave", undefined],
+    ["take a bow", "bow", undefined],
+    ["sit down", "sit", undefined],
+    ["walk off", "leave", undefined],
+    ["come back", "return", undefined],
+  ];
+  for (const [words, kind, place] of cases) {
+    const got = parseAvatarPresenceCommand(words);
+    assert.ok(got && got.type === "motion", words);
+    assert.equal(got.kind, kind, words);
+    assert.equal(got.place, place, words);
+    if (place) assert.ok(AVATAR_PLACES.includes(got.place!), words);
+  }
+});
+
+test("talk ABOUT holograms, dancing or studios is never a command", () => {
+  for (const words of [
+    "what is a hologram",
+    "I love how you dance",
+    "can holograms be made at home?",
+    "the studio is great",
+    "show me Paris",
+    "tell me about your face",
+    "walking is good exercise",
+    "my friend went to the studio yesterday and then we went home",
+  ]) {
+    assert.equal(parseAvatarPresenceCommand(words), null, words);
+  }
+});
+
+test("each interface asks for the presentation that suits it; her choice wins", () => {
+  const ask = (context: Parameters<typeof choosePresentation>[0]["context"], extra: Partial<Parameters<typeof choosePresentation>[0]> = {}) =>
+    choosePresentation({ context, boxHeight: 300, hero: false, userForm: "auto", userFraming: "auto", ...extra });
+  assert.deepEqual([ask("home", { hero: true }).framing, ask("home", { hero: true }).form], ["face", "embodied"]);
+  assert.deepEqual([ask("creative").framing, ask("creative").form], ["full", "embodied"]);
+  assert.deepEqual([ask("engineering").framing, ask("engineering").form], ["face", "hologram"]);
+  assert.deepEqual([ask("browser").framing, ask("browser").form], ["face", "hologram"]);
+  assert.equal(ask("chat").framing, "full");
+  assert.equal(ask("chat", { boxHeight: FULL_MIN_HEIGHT - 1 }).framing, "face");
+  assert.equal(ask("world").framing, "full");
+  // Her (or the person's) explicit choice wins over the interface.
+  const chosen = ask("engineering", { userForm: "embodied", userFraming: "full" });
+  assert.deepEqual([chosen.framing, chosen.form], ["full", "embodied"]);
+  assert.match(chosen.reason, /chosen/);
+});
+
+test("which interface she is in", () => {
+  assert.equal(contextOf({ onHome: true, inWorld: false, chatOpen: false, focused: null }), "home");
+  assert.equal(contextOf({ onHome: false, inWorld: true, chatOpen: true, focused: "engineering" }), "world");
+  assert.equal(contextOf({ onHome: false, inWorld: false, chatOpen: false, focused: "visualstudio" }), "creative");
+  assert.equal(contextOf({ onHome: false, inWorld: false, chatOpen: false, focused: "engineering" }), "engineering");
+  assert.equal(contextOf({ onHome: false, inWorld: false, chatOpen: false, focused: "browser" }), "browser");
+  assert.equal(contextOf({ onHome: false, inWorld: false, chatOpen: true, focused: null }), "chat");
+});
+
+test("she rests on a still ONLY on a measured light device beside a phone sheet", () => {
+  assert.equal(restsOnStill({ besidePhoneSheet: true, renderProfile: "light" }), true);
+  assert.equal(restsOnStill({ besidePhoneSheet: true, renderProfile: "balanced" }), false);
+  assert.equal(restsOnStill({ besidePhoneSheet: true, renderProfile: "full" }), false);
+  assert.equal(restsOnStill({ besidePhoneSheet: false, renderProfile: "light" }), false);
+});
+
+test("form and framing default to auto, are remembered, and reject anything else", () => {
+  LeluCharacterStore.resetForTests();
+  const store = LeluCharacterStore.getInstance();
+  assert.deepEqual([store.get().form, store.get().framing], ["auto", "auto"]);
+  store.setForm("hologram");
+  store.setFraming("face");
+  store.setForm("robot" as never);
+  store.setFraming("feet" as never);
+  LeluCharacterStore.resetForTests();
+  assert.deepEqual([LeluCharacterStore.getInstance().get().form, LeluCharacterStore.getInstance().get().framing], ["hologram", "face"]);
+  LeluCharacterStore.getInstance().setForm("auto");
+  LeluCharacterStore.getInstance().setFraming("auto");
+});
+
+test("the bus carries a target, and a presence can decline honestly", async () => {
+  const bus = AvatarCommandBus.getInstance();
+  const seen: Array<{ kind: string; place?: string }> = [];
+  const off = bus.subscribe((c) => {
+    seen.push({ kind: c.kind, place: c.target?.place });
+    if (c.target?.place === "left") bus.decline(c.id, "every spot on the left covers a control");
+    else bus.confirm(c.id, "walked 2.10 m");
+  });
+  await assert.rejects(bus.issue("move", "move to the left", 1000, { place: "left" }), /every spot on the left/);
+  assert.equal(await bus.issue("move", "walk to the studio", 1000, { place: "studio" }), "walked 2.10 m");
+  off();
+  assert.deepEqual(seen, [{ kind: "move", place: "left" }, { kind: "move", place: "studio" }]);
+});
+
+// ---------------------------------------------------------------- WP02
+
+test("WP02: a form switch never changes her materials' program state (no shader compile mid-switch)", async () => {
+  const THREE = await import("three");
+  const { holoUniformsFor, setHolo } = await import("../src/app/scene/genesis/avatar/holoMaterial");
+  const scene = new THREE.Group();
+  const opaque = new THREE.MeshStandardMaterial();
+  const hair = new THREE.MeshStandardMaterial({ transparent: true });
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(), opaque), new THREE.Mesh(new THREE.BoxGeometry(), hair));
+  const u = holoUniformsFor(scene);
+  // Patched once, at load: opaque-as-authored gets a fixed alpha blend so its
+  // program key never depends on her form; authored transparency is untouched.
+  assert.equal(opaque.transparent, false);
+  assert.equal(opaque.blending, THREE.CustomBlending);
+  assert.equal(opaque.blendSrc, THREE.SrcAlphaFactor);
+  assert.equal(opaque.blendDst, THREE.OneMinusSrcAlphaFactor);
+  assert.equal(hair.transparent, true);
+  assert.equal(hair.blending, THREE.NormalBlending);
+  const versions = [opaque.version, hair.version];
+  const keys = [opaque.customProgramCacheKey(), hair.customProgramCacheKey()];
+  for (const amount of [1, 0.5, 0, 1, 0]) setHolo(scene, u, amount, 1);
+  assert.deepEqual([opaque.version, hair.version], versions, "no needsUpdate on a form change");
+  assert.deepEqual([opaque.customProgramCacheKey(), hair.customProgramCacheKey()], keys);
+  assert.equal(opaque.transparent, false, "transparent (three's OPAQUE define) never toggles");
+  assert.equal(u.uHolo.value, 0);
+  // Patching twice is a no-op (the same uniforms).
+  assert.equal(holoUniformsFor(scene), u);
+});
+
+test("WP02: embodied, an originally opaque material is exactly opaque (alpha forced to 1 before the hologram stage)", async () => {
+  const THREE = await import("three");
+  const { holoUniformsFor } = await import("../src/app/scene/genesis/avatar/holoMaterial");
+  const scene = new THREE.Group();
+  const opaque = new THREE.MeshStandardMaterial();
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(), opaque));
+  holoUniformsFor(scene);
+  const shader = { uniforms: {} as Record<string, unknown>, vertexShader: "#include <project_vertex>", fragmentShader: "#include <dithering_fragment>" };
+  opaque.onBeforeCompile(shader as never, {} as never);
+  assert.match(shader.fragmentShader, /^#define LELU_OPAQUE_BASE/);
+  assert.match(shader.fragmentShader, /#ifdef LELU_OPAQUE_BASE\s*\/\/[^\n]*\n\s*gl_FragColor\.a = 1\.0;/);
+  assert.ok(shader.fragmentShader.indexOf("gl_FragColor.a = 1.0") < shader.fragmentShader.indexOf("if (uHolo > 0.0)"));
+});
+
+test("WP02: the Avatar panel's preview spot is where her one presence stands (no second renderer)", async () => {
+  const { choosePlace } = await import("../src/app/scene/genesis/avatar/presencePlacement");
+  const space = { viewport: { width: 1440, height: 900 }, safe: { top: 0, right: 0, bottom: 0, left: 0 }, controls: [], panels: [], chat: null, composer: null, reducedMotion: false } as never;
+  const plan = { hidden: false, rect: { left: 10, top: 10, width: 100, height: 140 } };
+  const preview = { left: 500, top: 200, width: 220, height: 320 };
+  assert.deepEqual(choosePlace({ inWorld: false, placed: null, onHome: true, hero: { left: 1, top: 1, width: 90, height: 120 }, plan, space, compact: false, preview }), { place: "preview", target: preview });
+  // A world still wins (she stands in it); no preview spot ⇒ the usual order.
+  assert.equal(choosePlace({ inWorld: true, placed: null, onHome: false, hero: null, plan, space, compact: false, preview }).place, "world");
+  assert.equal(choosePlace({ inWorld: false, placed: null, onHome: false, hero: null, plan, space, compact: false, preview: null }).place, "planned");
+  // In the preview, her chosen form and framing are what is shown.
+  const shown = choosePresentation({ context: "preview", boxHeight: 320, hero: false, userForm: "hologram", userFraming: "face" });
+  assert.deepEqual([shown.form, shown.framing], ["hologram", "face"]);
+  const auto = choosePresentation({ context: "preview", boxHeight: 320, hero: false, userForm: "auto", userFraming: "auto" });
+  assert.deepEqual([auto.form, auto.framing], ["embodied", "full"]);
+});
+
+test("WP02: the Avatar panel shows her live presence, not a procedural figure, photo billboard or procedural snapshot", async () => {
+  const { readFileSync } = await import("node:fs");
+  const panel = readFileSync("src/app/scene/genesis/GenesisAvatarPanel.tsx", "utf8");
+  assert.match(panel, /data-lelu-preview-host/);
+  assert.doesNotMatch(panel, /ProceduralAvatarPreview|renderAvatarToImage|Render 3D snapshot|Canonical Reference/);
+  assert.doesNotMatch(panel, /<Canvas|LeluCharacter3D|<LeluBody/, "no second canvas or body in the panel");
+});
+
+test("WP02: her world walk integrates elapsed time in collision-checked sub-steps (not one capped step per frame)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const presence = readFileSync("src/app/scene/genesis/LeluV2Presence.tsx", "utf8");
+  assert.match(presence, /const elapsed = Math\.min\(5, delta\);/);
+  assert.match(presence, /const substeps = Math\.max\(1, Math\.ceil\(elapsed \/ 0\.1\)\);/);
+  assert.match(presence, /for \(let i = 0; i < substeps; i \+= 1\)/);
+  assert.match(presence, /AvatarCommandBus\.getInstance\(\)\.decline\(walkingTo\.id, "you moved me yourself before I got there"\)/, "a drag ends a walk honestly");
+  const resolver = readFileSync("src/core/router/AvatarResolver.ts", "utf8");
+  assert.match(resolver, /motion\.kind === "move" \? 20_000/, "the walk deadline is back to 20 s, not raised to hide slowness");
+});

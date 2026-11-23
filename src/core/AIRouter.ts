@@ -231,6 +231,11 @@ export default class AIRouter {
     const spatialNav = this.surfaces.spatialNav(context);
     if (spatialNav.handled && spatialNav.response) return spatialNav.response;
 
+    // 0.01 Her presence in plain words: "become a hologram", "walk to the
+    // studio", "dance". Deterministic, model-free, and verified by her renderer.
+    const presence = await this.traced(context, "avatar-presence", () => this.avatar.executeDirect(context));
+    if (presence.handled && presence.response) return presence.response;
+
     // 0. TIME — deterministic local capability, no external API needed
     const timeResult = await this.traced(context, "time", () => this.time.execute(context));
     if (timeResult.handled && timeResult.response) return timeResult.response;

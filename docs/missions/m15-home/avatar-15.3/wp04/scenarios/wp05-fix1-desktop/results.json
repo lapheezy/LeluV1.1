@@ -1,0 +1,150 @@
+[
+ {
+  "scenario": "C walk asked before world loading begins",
+  "issuedAtPageMs": 37823,
+  "answer": {
+   "kind": "declined/progress",
+   "ms": 22461,
+   "text": "I'm still on my way (4.91 m from where I started, 0.12 m to go on my route): my world is rendering slowly right now (0.6 frames/s), and I'll keep walking there"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.059,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.963,
+    -2.55,
+    0.306
+   ]
+  },
+  "arrivedMsAfterIssue": 24106,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    0.69,
+    3.91
+   ],
+   [
+    -0.44,
+    4.16
+   ],
+   [
+    -2.44,
+    2.76
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": false,
+  "askedBeforeWorld": true,
+  "timeline": {
+   "worldClicked": 4559,
+   "worldData": 13919,
+   "herFirstWorldFrame": 10894,
+   "waitingForWorld": 13911,
+   "aimed": 15131,
+   "firstMovement": 16545,
+   "arrived": 24106,
+   "answer": 22461,
+   "spatialSamples": [
+    [
+     10894,
+     null,
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     13911,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     15131,
+     "walking",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     16545,
+     "walking",
+     true,
+     [
+      -0.4,
+      -2.55,
+      4.15
+     ]
+    ],
+    [
+     22453,
+     "walking",
+     true,
+     [
+      -3.93,
+      -2.55,
+      0.36
+     ]
+    ],
+    [
+     24106,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     25616,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     27048,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     28348,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.31
+     ]
+    ]
+   ]
+  },
+  "ok": false
+ }
+]

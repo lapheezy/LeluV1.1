@@ -1,0 +1,14 @@
+[
+ {
+  "scenario": "N walk asked, her world never opened",
+  "answer": {
+   "kind": "command-rejected",
+   "ms": 19400,
+   "text": "I'm not in my world right now, so I haven't started walking (walk to the studio). Open my world (Worlds → Her world) and ask me again, and I'll do it there"
+  },
+  "honest": true,
+  "beforeDeadline": true,
+  "noWorldMounted": true,
+  "ok": true
+ }
+]

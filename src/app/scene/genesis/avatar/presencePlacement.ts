@@ -12,7 +12,7 @@ const EDGE = 12;
 type Box = Rect;
 
 /** Where she is, and why — the attribute tests and evidence read. */
-export type PresencePlace = "hero" | "planned" | "placed" | "edge" | "world";
+export type PresencePlace = "hero" | "planned" | "placed" | "edge" | "world" | "preview";
 
 
 /**
@@ -96,7 +96,9 @@ export function edgeRest(space: SpaceLayout, compact: boolean): Box {
 }
 
 /**
- * Where she goes, in order: hidden in a world view (she stands in it);
+ * Where she goes, in order: hidden in a world view (she stands in it); the
+ * Avatar panel's preview spot when it is open (she IS the preview — no
+ * second renderer);
  * where you put her, unless that now covers something you need; the
  * home's hero spot; the space planner's spot; the least obstructive edge.
  */
@@ -108,9 +110,12 @@ export function choosePlace(input: {
   plan: Pick<AvatarAnchor, "hidden" | "rect">;
   space: SpaceLayout;
   compact: boolean;
+  /** The Avatar panel's preview spot, when it is on screen. */
+  preview?: Rect | null;
 }): { place: PresencePlace; target: Box } {
-  const { inWorld, placed, onHome, hero, plan, space, compact } = input;
+  const { inWorld, placed, onHome, hero, plan, space, compact, preview } = input;
   if (inWorld) return { place: "world", target: placed ?? edgeRest(space, compact) };
+  if (preview && preview.width > 40 && preview.height > 60) return { place: "preview", target: preview };
   if (placed && !blocksSomething(placed, space)) return { place: "placed", target: placed };
   if (onHome && hero) return { place: "hero", target: hero };
   if (!plan.hidden) return { place: "planned", target: plan.rect };

@@ -1,0 +1,51 @@
+{
+  "app": "Chat",
+  "label": "before1",
+  "longTasks": 7,
+  "longTaskMs": 2737,
+  "worst": 2019,
+  "byOwner": [
+    "2012ms (anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:115",
+    "1034ms (no src) (program)",
+    "212ms (no src) exports.createElement",
+    "210ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "142ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "77ms (no src) loseContext",
+    "72ms (no src) (garbage collector)",
+    "71ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "64ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "59ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "47ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "41ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "36ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "35ms (no src) run",
+    "32ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "29ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "26ms (no src) ReactElement",
+    "25ms visibleBox src/core/runtime/domProbes.ts:43"
+  ],
+  "byLeaf": [
+    "2012ms toDataURL ",
+    "1034ms (program) ",
+    "754ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "212ms exports.createElement react.js",
+    "142ms update EngineRegistry.ts",
+    "77ms loseContext ",
+    "72ms (garbage collector) ",
+    "69ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "35ms createTask ",
+    "34ms run ",
+    "25ms getBoundingClientRect ",
+    "24ms ReactElement react.js",
+    "23ms buildLucideIconNode lucide-react.js",
+    "22ms update EngineRuntime.ts",
+    "22ms now ",
+    "17ms requestAnimationFrame ",
+    "15ms react_stack_bottom_frame react-dom_client.js",
+    "14ms validateProperty react-dom_client.js"
+  ],
+  "stacks": [
+    "5526 samples: toDataURL <- (anon)@LeluCharacter3D.tsx:115 <- (root)@:-1",
+    "208 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9077 <- (root)@:-1"
+  ]
+}

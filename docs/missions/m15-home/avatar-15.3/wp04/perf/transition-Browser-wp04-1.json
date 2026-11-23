@@ -1,0 +1,50 @@
+{
+  "app": "Browser",
+  "label": "wp04-1",
+  "longTasks": 6,
+  "longTaskMs": 903,
+  "worst": 294,
+  "byOwner": [
+    "927ms (no src) (program)",
+    "294ms (no src) loseContext",
+    "73ms (no src) exports.createElement",
+    "72ms (no src) (garbage collector)",
+    "70ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "63ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "50ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "49ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "46ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "43ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "42ms (no src) run",
+    "38ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "38ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "34ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "32ms (no src) exports.jsx",
+    "31ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148",
+    "28ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2721",
+    "28ms (no src) react_stack_bottom_frame"
+  ],
+  "byLeaf": [
+    "927ms (program) ",
+    "746ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "294ms loseContext ",
+    "114ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "73ms exports.createElement react.js",
+    "72ms (garbage collector) ",
+    "63ms update EngineRegistry.ts",
+    "42ms run ",
+    "35ms createTask ",
+    "32ms exports.jsx react_jsx-runtime.js",
+    "28ms now ",
+    "24ms react_stack_bottom_frame react-dom_client.js",
+    "19ms updateProperties react-dom_client.js",
+    "18ms validateProperty react-dom_client.js",
+    "17ms measureScroll framer-motion.js",
+    "15ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "14ms removeChild react-three-fiber.esm-DeNFsCiz.js",
+    "13ms setValueForStyles react-dom_client.js"
+  ],
+  "stacks": [
+    "778 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

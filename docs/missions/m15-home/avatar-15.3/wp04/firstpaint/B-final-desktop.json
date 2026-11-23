@@ -1,0 +1,2856 @@
+{
+ "scenario": "B",
+ "label": "final",
+ "dev": "desktop",
+ "viewport": {
+  "width": 1440,
+  "height": 900
+ },
+ "marks": [
+  {
+   "t": 23190,
+   "ev": "frame-gap",
+   "from": 22400,
+   "ms": 777,
+   "rel": -15837
+  },
+  {
+   "t": 23850,
+   "ev": "frame-gap",
+   "from": 23177,
+   "ms": 650,
+   "rel": -15177
+  },
+  {
+   "t": 24530,
+   "ev": "world-clicked",
+   "rel": -14497
+  },
+  {
+   "t": 25197,
+   "ev": "frame-gap",
+   "from": 24044,
+   "ms": 1150,
+   "rel": -13830
+  },
+  {
+   "t": 25847,
+   "ev": "frame-gap",
+   "from": 25193,
+   "ms": 650,
+   "rel": -13180
+  },
+  {
+   "t": 26118,
+   "ev": "frame-gap",
+   "from": 25844,
+   "ms": 267,
+   "rel": -12909
+  },
+  {
+   "t": 26646,
+   "ev": "frame-gap",
+   "from": 26110,
+   "ms": 517,
+   "rel": -12381
+  },
+  {
+   "t": 26938,
+   "ev": "universe",
+   "open": true,
+   "rel": -12089
+  },
+  {
+   "t": 26965,
+   "ev": "render-budget",
+   "mode": "paused",
+   "rel": -12062
+  },
+  {
+   "t": 27386,
+   "ev": "frame-gap",
+   "from": 26627,
+   "ms": 750,
+   "rel": -11641
+  },
+  {
+   "t": 27963,
+   "ev": "frame-gap",
+   "from": 27377,
+   "ms": 567,
+   "rel": -11064
+  },
+  {
+   "t": 30586,
+   "ev": "frame-gap",
+   "from": 27943,
+   "ms": 1217,
+   "rel": -8441
+  },
+  {
+   "t": 30774,
+   "ev": "frame-gap",
+   "from": 29160,
+   "ms": 1467,
+   "rel": -8253
+  },
+  {
+   "t": 30778,
+   "ev": "world-data-start",
+   "url": "/api/forge/world",
+   "rel": -8249
+  },
+  {
+   "t": 30780,
+   "ev": "world-data-start",
+   "url": "/api/forge/world/avatar/lelu_character",
+   "rel": -8247
+  },
+  {
+   "t": 30780,
+   "ev": "world-data-start",
+   "url": "/api/forge/world",
+   "rel": -8247
+  },
+  {
+   "t": 30905,
+   "ev": "world-data-done",
+   "url": "/api/forge/world",
+   "rel": -8122
+  },
+  {
+   "t": 30905,
+   "ev": "world-data-done",
+   "url": "/api/forge/world/avatar/lelu_character",
+   "rel": -8122
+  },
+  {
+   "t": 30905,
+   "ev": "world-data-done",
+   "url": "/api/forge/world",
+   "rel": -8122
+  },
+  {
+   "t": 31915,
+   "ev": "frame-gap",
+   "from": 30627,
+   "ms": 400,
+   "rel": -7112
+  },
+  {
+   "t": 32778,
+   "ev": "frame-gap",
+   "from": 31027,
+   "ms": 1583,
+   "rel": -6249
+  },
+  {
+   "t": 34572,
+   "ev": "frame-gap",
+   "from": 33477,
+   "ms": 517,
+   "rel": -4455
+  },
+  {
+   "t": 34589,
+   "ev": "frame-gap",
+   "from": 33993,
+   "ms": 567,
+   "rel": -4438
+  },
+  {
+   "t": 36101,
+   "ev": "frame-gap",
+   "from": 35643,
+   "ms": 350,
+   "rel": -2926
+  },
+  {
+   "t": 36859,
+   "ev": "frame-gap",
+   "from": 36360,
+   "ms": 483,
+   "rel": -2168
+  },
+  {
+   "t": 39022,
+   "ev": "canvases-before-enter",
+   "canvases": [
+    {
+     "w": 1461,
+     "h": 913,
+     "spatial": false,
+     "prepared": "{\"programs\":31,\"resolved\":26,\"objects\":226,\"uploads\":6,\"pending\":8}",
+     "parent": "genesis-v2"
+    },
+    {
+     "w": 120,
+     "h": 170,
+     "spatial": false,
+     "prepared": null,
+     "parent": "lelu-companion-character"
+    }
+   ],
+   "rel": -5
+  },
+  {
+   "t": 39027,
+   "ev": "profile-start",
+   "rel": 0
+  },
+  {
+   "t": 39760,
+   "ev": "frame-gap",
+   "from": 39093,
+   "ms": 517,
+   "rel": 733
+  },
+  {
+   "t": 41093,
+   "ev": "enter-pressed",
+   "rel": 2066
+  },
+  {
+   "t": 41097,
+   "ev": "frame-gap",
+   "from": 40243,
+   "ms": 833,
+   "rel": 2070
+  },
+  {
+   "t": 41144,
+   "ev": "command-issued",
+   "label": "walk to the studio",
+   "rel": 2117
+  },
+  {
+   "t": 41145,
+   "ev": "universe",
+   "open": false,
+   "rel": 2118
+  },
+  {
+   "t": 41168,
+   "ev": "render-budget",
+   "mode": "full",
+   "rel": 2141
+  },
+  {
+   "t": 41230,
+   "ev": "her-world-first-frame",
+   "rel": 2203
+  },
+  {
+   "t": 41230,
+   "ev": "spatial",
+   "position": [
+    0,
+    -2.55,
+    3.3
+   ],
+   "outcome": "walking",
+   "remaining": 5.023,
+   "rel": 2203
+  },
+  {
+   "t": 44878,
+   "ev": "frame-gap",
+   "from": 41210,
+   "ms": 3650,
+   "rel": 5851
+  },
+  {
+   "t": 44885,
+   "ev": "spatial",
+   "position": [
+    -2.453,
+    -2.55,
+    3.098
+   ],
+   "outcome": "walking",
+   "remaining": 3.233,
+   "rel": 5858
+  },
+  {
+   "t": 48670,
+   "ev": "frame-gap",
+   "from": 45009,
+   "ms": 3633,
+   "rel": 9643
+  },
+  {
+   "t": 48696,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 9669
+  },
+  {
+   "t": 48732,
+   "ev": "command-resolved",
+   "o": "walked 4.97 m (walk to the studio); now at x -3.97, z 0.30, 6 cm from the point",
+   "rel": 9705
+  },
+  {
+   "t": 50247,
+   "ev": "frame-gap",
+   "from": 48643,
+   "ms": 1600,
+   "rel": 11220
+  },
+  {
+   "t": 50252,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 11225
+  },
+  {
+   "t": 51598,
+   "ev": "frame-gap",
+   "from": 50243,
+   "ms": 1333,
+   "rel": 12571
+  },
+  {
+   "t": 51600,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 12573
+  },
+  {
+   "t": 53165,
+   "ev": "frame-gap",
+   "from": 51576,
+   "ms": 1583,
+   "rel": 14138
+  },
+  {
+   "t": 53167,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 14140
+  },
+  {
+   "t": 55805,
+   "ev": "frame-gap",
+   "from": 53176,
+   "ms": 2617,
+   "rel": 16778
+  },
+  {
+   "t": 55808,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 16781
+  },
+  {
+   "t": 57174,
+   "ev": "frame-gap",
+   "from": 55792,
+   "ms": 1367,
+   "rel": 18147
+  },
+  {
+   "t": 57175,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 18148
+  },
+  {
+   "t": 58632,
+   "ev": "frame-gap",
+   "from": 57159,
+   "ms": 1467,
+   "rel": 19605
+  },
+  {
+   "t": 58633,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 19606
+  },
+  {
+   "t": 59913,
+   "ev": "frame-gap",
+   "from": 58626,
+   "ms": 1283,
+   "rel": 20886
+  },
+  {
+   "t": 59915,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 20888
+  },
+  {
+   "t": 61214,
+   "ev": "frame-gap",
+   "from": 59909,
+   "ms": 1283,
+   "rel": 22187
+  },
+  {
+   "t": 61216,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 22189
+  },
+  {
+   "t": 62519,
+   "ev": "frame-gap",
+   "from": 61192,
+   "ms": 1300,
+   "rel": 23492
+  },
+  {
+   "t": 62522,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 23495
+  },
+  {
+   "t": 63840,
+   "ev": "frame-gap",
+   "from": 62492,
+   "ms": 1333,
+   "rel": 24813
+  },
+  {
+   "t": 63841,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 24814
+  },
+  {
+   "t": 65414,
+   "ev": "frame-gap",
+   "from": 63825,
+   "ms": 1583,
+   "rel": 26387
+  },
+  {
+   "t": 65415,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 26388
+  },
+  {
+   "t": 67813,
+   "ev": "frame-gap",
+   "from": 65425,
+   "ms": 2383,
+   "rel": 28786
+  },
+  {
+   "t": 67815,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 28788
+  },
+  {
+   "t": 68632,
+   "ev": "frame-gap",
+   "from": 67808,
+   "ms": 817,
+   "rel": 29605
+  },
+  {
+   "t": 69147,
+   "ev": "frame-gap",
+   "from": 68625,
+   "ms": 517,
+   "rel": 30120
+  },
+  {
+   "t": 69150,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 30123
+  },
+  {
+   "t": 70417,
+   "ev": "frame-gap",
+   "from": 69142,
+   "ms": 1267,
+   "rel": 31390
+  },
+  {
+   "t": 70418,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 31391
+  },
+  {
+   "t": 71740,
+   "ev": "frame-gap",
+   "from": 70408,
+   "ms": 1317,
+   "rel": 32713
+  },
+  {
+   "t": 71741,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 32714
+  },
+  {
+   "t": 73014,
+   "ev": "frame-gap",
+   "from": 71725,
+   "ms": 1267,
+   "rel": 33987
+  },
+  {
+   "t": 73016,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 33989
+  },
+  {
+   "t": 74435,
+   "ev": "frame-gap",
+   "from": 72992,
+   "ms": 1433,
+   "rel": 35408
+  },
+  {
+   "t": 74438,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 35411
+  },
+  {
+   "t": 75729,
+   "ev": "frame-gap",
+   "from": 74425,
+   "ms": 1300,
+   "rel": 36702
+  },
+  {
+   "t": 75731,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 36704
+  },
+  {
+   "t": 77014,
+   "ev": "frame-gap",
+   "from": 75725,
+   "ms": 1283,
+   "rel": 37987
+  },
+  {
+   "t": 77015,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 37988
+  },
+  {
+   "t": 78206,
+   "ev": "frame-gap",
+   "from": 77008,
+   "ms": 1183,
+   "rel": 39179
+  },
+  {
+   "t": 78208,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 39181
+  },
+  {
+   "t": 79538,
+   "ev": "frame-gap",
+   "from": 78191,
+   "ms": 1333,
+   "rel": 40511
+  },
+  {
+   "t": 79540,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 40513
+  },
+  {
+   "t": 80807,
+   "ev": "frame-gap",
+   "from": 79525,
+   "ms": 1267,
+   "rel": 41780
+  },
+  {
+   "t": 80809,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 41782
+  },
+  {
+   "t": 82116,
+   "ev": "frame-gap",
+   "from": 80791,
+   "ms": 1317,
+   "rel": 43089
+  },
+  {
+   "t": 82118,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 43091
+  },
+  {
+   "t": 83425,
+   "ev": "frame-gap",
+   "from": 82108,
+   "ms": 1300,
+   "rel": 44398
+  },
+  {
+   "t": 83426,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 44399
+  },
+  {
+   "t": 83769,
+   "ev": "profile-stop",
+   "rel": 44742
+  },
+  {
+   "t": 84669,
+   "ev": "frame-gap",
+   "from": 83408,
+   "ms": 1250,
+   "rel": 45642
+  },
+  {
+   "t": 84671,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 45644
+  },
+  {
+   "t": 85734,
+   "ev": "frame-gap",
+   "from": 84658,
+   "ms": 1067,
+   "rel": 46707
+  },
+  {
+   "t": 85735,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 46708
+  },
+  {
+   "t": 89279,
+   "ev": "frame-gap",
+   "from": 85741,
+   "ms": 3533,
+   "rel": 50252
+  },
+  {
+   "t": 89280,
+   "ev": "spatial",
+   "position": [
+    -3.968,
+    -2.55,
+    0.304
+   ],
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "rel": 50253
+  }
+ ],
+ "longTasks": [
+  {
+   "start": 39620,
+   "dur": 139,
+   "rel": 593
+  },
+  {
+   "start": 39792,
+   "dur": 115,
+   "rel": 765
+  },
+  {
+   "start": 39972,
+   "dur": 97,
+   "rel": 945
+  },
+  {
+   "start": 40081,
+   "dur": 60,
+   "rel": 1054
+  },
+  {
+   "start": 40191,
+   "dur": 894,
+   "rel": 1164
+  },
+  {
+   "start": 41100,
+   "dur": 96,
+   "rel": 2073
+  },
+  {
+   "start": 41219,
+   "dur": 3589,
+   "rel": 2192
+  },
+  {
+   "start": 48656,
+   "dur": 240,
+   "rel": 9629
+  },
+  {
+   "start": 48897,
+   "dur": 50,
+   "rel": 9870
+  },
+  {
+   "start": 50273,
+   "dur": 55,
+   "rel": 11246
+  },
+  {
+   "start": 53179,
+   "dur": 67,
+   "rel": 14152
+  },
+  {
+   "start": 65422,
+   "dur": 70,
+   "rel": 26395
+  },
+  {
+   "start": 73023,
+   "dur": 55,
+   "rel": 33996
+  },
+  {
+   "start": 81951,
+   "dur": 61,
+   "rel": 42924
+  }
+ ],
+ "longTasksAll": [
+  {
+   "start": 751,
+   "dur": 76,
+   "rel": -38276
+  },
+  {
+   "start": 894,
+   "dur": 61,
+   "rel": -38133
+  },
+  {
+   "start": 1020,
+   "dur": 1284,
+   "rel": -38007
+  },
+  {
+   "start": 2304,
+   "dur": 51,
+   "rel": -36723
+  },
+  {
+   "start": 3304,
+   "dur": 748,
+   "rel": -35723
+  },
+  {
+   "start": 4381,
+   "dur": 173,
+   "rel": -34646
+  },
+  {
+   "start": 4629,
+   "dur": 74,
+   "rel": -34398
+  },
+  {
+   "start": 4771,
+   "dur": 64,
+   "rel": -34256
+  },
+  {
+   "start": 5306,
+   "dur": 206,
+   "rel": -33721
+  },
+  {
+   "start": 5586,
+   "dur": 62,
+   "rel": -33441
+  },
+  {
+   "start": 5966,
+   "dur": 83,
+   "rel": -33061
+  },
+  {
+   "start": 6127,
+   "dur": 155,
+   "rel": -32900
+  },
+  {
+   "start": 6682,
+   "dur": 141,
+   "rel": -32345
+  },
+  {
+   "start": 6831,
+   "dur": 3386,
+   "rel": -32196
+  },
+  {
+   "start": 10280,
+   "dur": 221,
+   "rel": -28747
+  },
+  {
+   "start": 10513,
+   "dur": 2223,
+   "rel": -28514
+  },
+  {
+   "start": 12780,
+   "dur": 149,
+   "rel": -26247
+  },
+  {
+   "start": 12943,
+   "dur": 208,
+   "rel": -26084
+  },
+  {
+   "start": 13172,
+   "dur": 66,
+   "rel": -25855
+  },
+  {
+   "start": 13428,
+   "dur": 60,
+   "rel": -25599
+  },
+  {
+   "start": 13565,
+   "dur": 419,
+   "rel": -25462
+  },
+  {
+   "start": 13996,
+   "dur": 219,
+   "rel": -25031
+  },
+  {
+   "start": 14215,
+   "dur": 3132,
+   "rel": -24812
+  },
+  {
+   "start": 17387,
+   "dur": 161,
+   "rel": -21640
+  },
+  {
+   "start": 18682,
+   "dur": 194,
+   "rel": -20345
+  },
+  {
+   "start": 19681,
+   "dur": 111,
+   "rel": -19346
+  },
+  {
+   "start": 19950,
+   "dur": 66,
+   "rel": -19077
+  },
+  {
+   "start": 20058,
+   "dur": 53,
+   "rel": -18969
+  },
+  {
+   "start": 20556,
+   "dur": 57,
+   "rel": -18471
+  },
+  {
+   "start": 20681,
+   "dur": 126,
+   "rel": -18346
+  },
+  {
+   "start": 20950,
+   "dur": 61,
+   "rel": -18077
+  },
+  {
+   "start": 21588,
+   "dur": 58,
+   "rel": -17439
+  },
+  {
+   "start": 21681,
+   "dur": 113,
+   "rel": -17346
+  },
+  {
+   "start": 21951,
+   "dur": 71,
+   "rel": -17076
+  },
+  {
+   "start": 22186,
+   "dur": 66,
+   "rel": -16841
+  },
+  {
+   "start": 22681,
+   "dur": 102,
+   "rel": -16346
+  },
+  {
+   "start": 23191,
+   "dur": 59,
+   "rel": -15836
+  },
+  {
+   "start": 23681,
+   "dur": 164,
+   "rel": -15346
+  },
+  {
+   "start": 24054,
+   "dur": 105,
+   "rel": -14973
+  },
+  {
+   "start": 24682,
+   "dur": 200,
+   "rel": -14345
+  },
+  {
+   "start": 25200,
+   "dur": 62,
+   "rel": -13827
+  },
+  {
+   "start": 25856,
+   "dur": 78,
+   "rel": -13171
+  },
+  {
+   "start": 25957,
+   "dur": 58,
+   "rel": -13070
+  },
+  {
+   "start": 26649,
+   "dur": 78,
+   "rel": -12378
+  },
+  {
+   "start": 26734,
+   "dur": 108,
+   "rel": -12293
+  },
+  {
+   "start": 26843,
+   "dur": 90,
+   "rel": -12184
+  },
+  {
+   "start": 27428,
+   "dur": 533,
+   "rel": -11599
+  },
+  {
+   "start": 27968,
+   "dur": 2616,
+   "rel": -11059
+  },
+  {
+   "start": 30593,
+   "dur": 179,
+   "rel": -8434
+  },
+  {
+   "start": 30777,
+   "dur": 124,
+   "rel": -8250
+  },
+  {
+   "start": 30906,
+   "dur": 1007,
+   "rel": -8121
+  },
+  {
+   "start": 31914,
+   "dur": 665,
+   "rel": -7113
+  },
+  {
+   "start": 32579,
+   "dur": 197,
+   "rel": -6448
+  },
+  {
+   "start": 32799,
+   "dur": 90,
+   "rel": -6228
+  },
+  {
+   "start": 33040,
+   "dur": 120,
+   "rel": -5987
+  },
+  {
+   "start": 33330,
+   "dur": 109,
+   "rel": -5697
+  },
+  {
+   "start": 33449,
+   "dur": 420,
+   "rel": -5578
+  },
+  {
+   "start": 33870,
+   "dur": 129,
+   "rel": -5157
+  },
+  {
+   "start": 34043,
+   "dur": 525,
+   "rel": -4984
+  },
+  {
+   "start": 34606,
+   "dur": 123,
+   "rel": -4421
+  },
+  {
+   "start": 34755,
+   "dur": 253,
+   "rel": -4272
+  },
+  {
+   "start": 35053,
+   "dur": 194,
+   "rel": -3974
+  },
+  {
+   "start": 35269,
+   "dur": 145,
+   "rel": -3758
+  },
+  {
+   "start": 35441,
+   "dur": 123,
+   "rel": -3586
+  },
+  {
+   "start": 35574,
+   "dur": 51,
+   "rel": -3453
+  },
+  {
+   "start": 35637,
+   "dur": 107,
+   "rel": -3390
+  },
+  {
+   "start": 35778,
+   "dur": 321,
+   "rel": -3249
+  },
+  {
+   "start": 36266,
+   "dur": 468,
+   "rel": -2761
+  },
+  {
+   "start": 36740,
+   "dur": 52,
+   "rel": -2287
+  },
+  {
+   "start": 36797,
+   "dur": 60,
+   "rel": -2230
+  },
+  {
+   "start": 36877,
+   "dur": 93,
+   "rel": -2150
+  },
+  {
+   "start": 37031,
+   "dur": 72,
+   "rel": -1996
+  },
+  {
+   "start": 37147,
+   "dur": 137,
+   "rel": -1880
+  },
+  {
+   "start": 37303,
+   "dur": 150,
+   "rel": -1724
+  },
+  {
+   "start": 37569,
+   "dur": 114,
+   "rel": -1458
+  },
+  {
+   "start": 37724,
+   "dur": 115,
+   "rel": -1303
+  },
+  {
+   "start": 37871,
+   "dur": 121,
+   "rel": -1156
+  },
+  {
+   "start": 38005,
+   "dur": 52,
+   "rel": -1022
+  },
+  {
+   "start": 38080,
+   "dur": 108,
+   "rel": -947
+  },
+  {
+   "start": 38215,
+   "dur": 132,
+   "rel": -812
+  },
+  {
+   "start": 38384,
+   "dur": 165,
+   "rel": -643
+  },
+  {
+   "start": 38564,
+   "dur": 75,
+   "rel": -463
+  },
+  {
+   "start": 38643,
+   "dur": 218,
+   "rel": -384
+  },
+  {
+   "start": 38901,
+   "dur": 116,
+   "rel": -126
+  },
+  {
+   "start": 39620,
+   "dur": 139,
+   "rel": 593
+  },
+  {
+   "start": 39792,
+   "dur": 115,
+   "rel": 765
+  },
+  {
+   "start": 39972,
+   "dur": 97,
+   "rel": 945
+  },
+  {
+   "start": 40081,
+   "dur": 60,
+   "rel": 1054
+  },
+  {
+   "start": 40191,
+   "dur": 894,
+   "rel": 1164
+  },
+  {
+   "start": 41100,
+   "dur": 96,
+   "rel": 2073
+  },
+  {
+   "start": 41219,
+   "dur": 3589,
+   "rel": 2192
+  },
+  {
+   "start": 48656,
+   "dur": 240,
+   "rel": 9629
+  },
+  {
+   "start": 48897,
+   "dur": 50,
+   "rel": 9870
+  },
+  {
+   "start": 50273,
+   "dur": 55,
+   "rel": 11246
+  },
+  {
+   "start": 53179,
+   "dur": 67,
+   "rel": 14152
+  },
+  {
+   "start": 65422,
+   "dur": 70,
+   "rel": 26395
+  },
+  {
+   "start": 73023,
+   "dur": 55,
+   "rel": 33996
+  },
+  {
+   "start": 81951,
+   "dur": 61,
+   "rel": 42924
+  }
+ ],
+ "longTaskMs": 5588,
+ "worst": 3589,
+ "byOwner": [
+  "2006ms (no src) texSubImage2D",
+  "1208ms pass src/app/scene/genesis/SceneFrameGovernor.tsx:135",
+  "910ms (no src) texSubImage3D",
+  "828ms (no src) (program)",
+  "379ms V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242",
+  "363ms (no src) exports.createElement",
+  "286ms (anon) src/app/scene/genesis/WorldScene.tsx:155",
+  "172ms (anon) src/app/scene/genesis/chat/stage/StageSwitcher.tsx:33",
+  "166ms (no src) (garbage collector)",
+  "150ms (no src) bufferData",
+  "142ms (no src) update",
+  "119ms (no src) run",
+  "113ms (no src) exports.jsx",
+  "107ms (no src) applyBoneTransform",
+  "102ms UniverseChatWindow src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx:91",
+  "91ms (no src) commitUpdate",
+  "91ms (no src) ",
+  "84ms (no src) react_stack_bottom_frame",
+  "83ms LeluV2Presence src/app/scene/genesis/LeluV2Presence.tsx:103",
+  "78ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+  "77ms V2CoreBody src/app/scene/genesis/GenesisV2Scene3D.tsx:899",
+  "77ms (anon) src/app/scene/genesis/render/CoreOrbitalRings.tsx:124",
+  "73ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+  "62ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148",
+  "58ms (no src) now"
+ ],
+ "byLeaf": [
+  "2005ms texSubImage2D ",
+  "1993ms exports.jsxDEV react_jsx-dev-runtime.js",
+  "910ms texSubImage3D ",
+  "828ms (program) ",
+  "728ms getShaderInfoLog ",
+  "363ms exports.createElement react.js",
+  "263ms jsxDEVImpl react_jsx-dev-runtime.js",
+  "249ms getProgramParameter ",
+  "231ms getProgramInfoLog ",
+  "166ms (garbage collector) ",
+  "150ms bufferData ",
+  "135ms update three.js",
+  "116ms run ",
+  "113ms exports.jsx react_jsx-runtime.js",
+  "107ms applyBoneTransform three.core-DC1ULSR-.js",
+  "97ms createTask ",
+  "83ms getBoundingClientRect ",
+  "71ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+  "58ms now ",
+  "52ms react_stack_bottom_frame react-dom_client.js",
+  "35ms setValueForStyles react-dom_client.js",
+  "34ms setItem ",
+  "32ms measure ",
+  "31ms beginWork react-dom_client.js",
+  "31ms react_stack_bottom_frame react-three-fiber.esm-DeNFsCiz.js"
+ ],
+ "byPackage": [
+  "4980ms three",
+  "2361ms react_jsx-dev-runtime",
+  "828ms (native) (program)",
+  "740ms react-dom_client",
+  "514ms react-three-fiber",
+  "436ms react",
+  "169ms framer-motion",
+  "166ms (native) (garbage collector)",
+  "166ms react_jsx-runtime",
+  "87ms scheduler-CpdqvMxI",
+  "62ms src/core/storage/KvStore.ts",
+  "60ms src/app/scene/genesis/LeluV2Presence.tsx",
+  "58ms src/core/runtime/domProbes.ts",
+  "49ms src/app/scene/genesis/avatar/spatialPresence.ts",
+  "31ms react-markdown"
+ ],
+ "stacks": [
+  "1300ms: texSubImage2D <- texSubImage2D@three.js:6360 <- uploadTexture@three.js:6976 <- setTexture2D@three.js:6815 <- setValueT1@three.js:3617 <- upload@three.js:3912 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228 <- (root)@:-1",
+  "606ms: texSubImage3D <- texSubImage3D@three.js:6367 <- uploadTexture@three.js:6976 <- setTexture2DArray@three.js:6829 <- setValueT2DArray1@three.js:3649 <- setValue@three.js:3904 <- update@three.js:3022 <- setProgram@three.js:10679 <- WebGLRenderer.renderBufferDirect@three.js:10159 <- renderObject@three.js:10566 <- renderObjects@three.js:10556 <- renderScene@three.js:10483 <- WebGLRenderer.render@three.js:10355 <- update@react-three-fiber.esm-DeNFsCiz.js:9207 <- loop@react-three-fiber.esm-DeNFsCiz.js:9228",
+  "447ms: getShaderInfoLog <- proto.<computed>@:27 <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- pass@SceneFrameGovernor.tsx:135 <- (root)@:-1",
+  "167ms: getProgramParameter <- proto.<computed>@:27 <- onFirstUse@three.js:4418 <- WebGLProgram.getUniforms@three.js:4457 <- pass@SceneFrameGovernor.tsx:135 <- (root)@:-1",
+  "85ms: exports.jsxDEV <- V2Satellite@GenesisV2Scene3D.tsx:1242 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- Ou@react-three-fiber.esm-DeNFsCiz.js:3547 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13",
+  "83ms: exports.jsxDEV <- V2Satellite@GenesisV2Scene3D.tsx:1242 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13 <- (root)@:-1",
+  "68ms: exports.jsxDEV <- (anon)@WorldScene.tsx:155 <- Room@WorldScene.tsx:33 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13",
+  "65ms: exports.jsxDEV <- (anon)@WorldScene.tsx:155 <- Room@WorldScene.tsx:33 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7394 <- Ou@react-three-fiber.esm-DeNFsCiz.js:3547 <- It@react-three-fiber.esm-DeNFsCiz.js:3524 <- ks@react-three-fiber.esm-DeNFsCiz.js:4543 <- tt@react-three-fiber.esm-DeNFsCiz.js:4833 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- Ph@react-three-fiber.esm-DeNFsCiz.js:6636 <- wh@react-three-fiber.esm-DeNFsCiz.js:6556 <- Ff@react-three-fiber.esm-DeNFsCiz.js:6514 <- Lf@react-three-fiber.esm-DeNFsCiz.js:6304 <- Tu@react-three-fiber.esm-DeNFsCiz.js:2763",
+  "45ms: exports.createElement <- (anon)@@react-three_drei.js:190 <- react_stack_bottom_frame@react-three-fiber.esm-DeNFsCiz.js:7431 <- run@:-1 <- B@react-three-fiber.esm-DeNFsCiz.js:2375 <- ca@react-three-fiber.esm-DeNFsCiz.js:5246 <- Pf@react-three-fiber.esm-DeNFsCiz.js:5240 <- yn@react-three-fiber.esm-DeNFsCiz.js:5517 <- rt@react-three-fiber.esm-DeNFsCiz.js:5885 <- yn@react-three-fiber.esm-DeNFsCiz.js:5517 <- rt@react-three-fiber.esm-DeNFsCiz.js:5885 <- yn@react-three-fiber.esm-DeNFsCiz.js:5517 <- rt@react-three-fiber.esm-DeNFsCiz.js:5885 <- yn@react-three-fiber.esm-DeNFsCiz.js:5517 <- rt@react-three-fiber.esm-DeNFsCiz.js:5885",
+  "33ms: exports.jsxDEV <- (anon)@StageSwitcher.tsx:33 <- StageSwitcher@StageSwitcher.tsx:25 <- react_stack_bottom_frame@react-dom_client.js:12613 <- renderWithHooksAgain@react-dom_client.js:3999 <- renderWithHooks@react-dom_client.js:3952 <- updateFunctionComponent@react-dom_client.js:5312 <- beginWork@react-dom_client.js:5832 <- run@:-1 <- runWithFiberInDEV@react-dom_client.js:599 <- performUnitOfWork@react-dom_client.js:8178 <- renderRootSync@react-dom_client.js:8019 <- performWorkOnRoot@react-dom_client.js:7691 <- performWorkOnRootViaSchedulerTask@react-dom_client.js:8800 <- performWorkUntilDeadline@scheduler-CpdqvMxI.js:13"
+ ],
+ "busy100ms": [
+  {
+   "s": "0.5",
+   "busy": 600,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "0.6",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "0.7",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "0.8",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "0.9",
+   "busy": 100,
+   "top": "(no src) exports.createElement"
+  },
+  {
+   "s": "1.0",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.1",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.2",
+   "busy": 99,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.3",
+   "busy": 101,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.4",
+   "busy": 101,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.5",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.6",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.7",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.8",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "1.9",
+   "busy": 100,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "2.0",
+   "busy": 99,
+   "top": "pass src/app/scene/genesis/SceneFrameGovernor.tsx:135"
+  },
+  {
+   "s": "2.1",
+   "busy": 101,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "2.2",
+   "busy": 100,
+   "top": "(no src) applyBoneTransform"
+  },
+  {
+   "s": "2.3",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "2.4",
+   "busy": 100,
+   "top": "(no src) bufferData"
+  },
+  {
+   "s": "2.5",
+   "busy": 100,
+   "top": "(no src) applyBoneTransform"
+  },
+  {
+   "s": "2.6",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "2.7",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "2.8",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "2.9",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.0",
+   "busy": 96,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.1",
+   "busy": 104,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.2",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.3",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.4",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.5",
+   "busy": 99,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.6",
+   "busy": 101,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.7",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.8",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "3.9",
+   "busy": 100,
+   "top": "(no src) update"
+  },
+  {
+   "s": "4.0",
+   "busy": 100,
+   "top": "(no src) update"
+  },
+  {
+   "s": "4.1",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.2",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.3",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.4",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.5",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.6",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.7",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.8",
+   "busy": 100,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "4.9",
+   "busy": 99,
+   "top": "(no src) texSubImage3D"
+  },
+  {
+   "s": "5.0",
+   "busy": 101,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.1",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.2",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.3",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.4",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.5",
+   "busy": 100,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.6",
+   "busy": 99,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.7",
+   "busy": 101,
+   "top": "(no src) texSubImage2D"
+  },
+  {
+   "s": "5.8",
+   "busy": 100,
+   "top": "visibleBox src/core/runtime/domProbes.ts:43"
+  },
+  {
+   "s": "5.9",
+   "busy": 65,
+   "top": "UniverseChatWindow src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx:91"
+  },
+  {
+   "s": "9.6",
+   "busy": 74,
+   "top": "resolve src/app/scene/genesis/LeluV2Presence.tsx:319"
+  },
+  {
+   "s": "9.7",
+   "busy": 101,
+   "top": "set src/core/storage/KvStore.ts:114"
+  },
+  {
+   "s": "9.8",
+   "busy": 100,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "9.9",
+   "busy": 99,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "10.0",
+   "busy": 65,
+   "top": "(anon) src/app/scene/genesis/GenesisV2Scene3D.tsx:857"
+  },
+  {
+   "s": "11.2",
+   "busy": 85,
+   "top": "(no src) (program)"
+  },
+  {
+   "s": "12.5",
+   "busy": 68,
+   "top": "(no src) "
+  },
+  {
+   "s": "12.9",
+   "busy": 79,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "13.9",
+   "busy": 79,
+   "top": "GenesisChat src/app/scene/genesis/GenesisChat.tsx:131"
+  },
+  {
+   "s": "14.1",
+   "busy": 68,
+   "top": "useVoice src/core/voice/useVoice.ts:8"
+  },
+  {
+   "s": "14.2",
+   "busy": 80,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "17.9",
+   "busy": 80,
+   "top": "(anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148"
+  },
+  {
+   "s": "18.9",
+   "busy": 77,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "19.6",
+   "busy": 86,
+   "top": "render src/app/scene/genesis/chat/ChatErrorBoundary.tsx:42"
+  },
+  {
+   "s": "20.9",
+   "busy": 100,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "23.4",
+   "busy": 98,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "24.6",
+   "busy": 100,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "24.9",
+   "busy": 68,
+   "top": "GenesisModuleHost src/app/scene/genesis/GenesisModuleHost.tsx:961"
+  },
+  {
+   "s": "25.9",
+   "busy": 100,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  },
+  {
+   "s": "26.4",
+   "busy": 100,
+   "top": "GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445"
+  },
+  {
+   "s": "27.7",
+   "busy": 76,
+   "top": "(anon) src/core/tools/ToolSchemas.ts:303"
+  },
+  {
+   "s": "28.8",
+   "busy": 70,
+   "top": "(no src) getComponentNameFromFiber"
+  },
+  {
+   "s": "29.9",
+   "busy": 76,
+   "top": "(anon) src/app/scene/genesis/render/CoreOrbitalRings.tsx:124"
+  },
+  {
+   "s": "33.9",
+   "busy": 80,
+   "top": "AdaptiveQuality src/app/scene/genesis/AdaptiveQuality.tsx:25"
+  },
+  {
+   "s": "34.0",
+   "busy": 90,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "36.7",
+   "busy": 75,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "36.9",
+   "busy": 66,
+   "top": "(anon) src/app/scene/genesis/WorldScene.tsx:155"
+  },
+  {
+   "s": "39.2",
+   "busy": 83,
+   "top": "(no src) (garbage collector)"
+  },
+  {
+   "s": "42.9",
+   "busy": 78,
+   "top": "(no src) exports.createElement"
+  },
+  {
+   "s": "44.4",
+   "busy": 66,
+   "top": "V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242"
+  }
+ ],
+ "shots": [
+  {
+   "name": "home-ready",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-01-home-ready.png",
+   "pageT": 20378
+  },
+  {
+   "name": "chat-over-unpainted-world",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-02-chat-over-unpainted-world.png",
+   "pageT": 36141
+  },
+  {
+   "name": "after-enter-+1s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-03-after-enter-+1s.png",
+   "pageT": 44817
+  },
+  {
+   "name": "after-enter-+5s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-04-after-enter-+5s.png",
+   "pageT": 52994
+  },
+  {
+   "name": "after-enter-+12s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-05-after-enter-+12s.png",
+   "pageT": 64380
+  },
+  {
+   "name": "after-enter-+20s",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-06-after-enter-+20s.png",
+   "pageT": 77390
+  },
+  {
+   "name": "end",
+   "file": "docs/missions/m15-home/avatar-15.3/wp04/firstpaint/B-final-desktop-07-end.png",
+   "pageT": 84272
+  }
+ ],
+ "links": [
+  {
+   "t": 14420,
+   "name": "lelu_mouth",
+   "kind": "skin",
+   "w": 101,
+   "rel": -24607
+  },
+  {
+   "t": 14712,
+   "name": "Material_0",
+   "kind": "skin",
+   "w": 101,
+   "rel": -24315
+  },
+  {
+   "t": 15020,
+   "name": "Material_0.001",
+   "kind": "skin morph",
+   "w": 101,
+   "rel": -24007
+  },
+  {
+   "t": 16391,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 101,
+   "rel": -22636
+  },
+  {
+   "t": 17082,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 101,
+   "rel": -21945
+  },
+  {
+   "t": 31922,
+   "name": "?",
+   "kind": "",
+   "w": 120,
+   "rel": -7105
+  },
+  {
+   "t": 32399,
+   "name": "?",
+   "kind": "",
+   "w": 120,
+   "rel": -6628
+  },
+  {
+   "t": 32581,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6446
+  },
+  {
+   "t": 32582,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6445
+  },
+  {
+   "t": 32582,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6445
+  },
+  {
+   "t": 32582,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6445
+  },
+  {
+   "t": 32583,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6444
+  },
+  {
+   "t": 32583,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6444
+  },
+  {
+   "t": 32584,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6443
+  },
+  {
+   "t": 32585,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6442
+  },
+  {
+   "t": 32585,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6442
+  },
+  {
+   "t": 32585,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6442
+  },
+  {
+   "t": 32586,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6441
+  },
+  {
+   "t": 32589,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -6438
+  },
+  {
+   "t": 36267,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2760
+  },
+  {
+   "t": 36268,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2759
+  },
+  {
+   "t": 36269,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2758
+  },
+  {
+   "t": 36269,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2758
+  },
+  {
+   "t": 36269,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2758
+  },
+  {
+   "t": 36269,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2758
+  },
+  {
+   "t": 36270,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2757
+  },
+  {
+   "t": 36270,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2757
+  },
+  {
+   "t": 36270,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2757
+  },
+  {
+   "t": 36271,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2756
+  },
+  {
+   "t": 36271,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2756
+  },
+  {
+   "t": 36275,
+   "name": "Material_0",
+   "kind": "skin",
+   "w": 1461,
+   "rel": -2752
+  },
+  {
+   "t": 36277,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 1461,
+   "rel": -2750
+  },
+  {
+   "t": 36279,
+   "name": "eye_patch_l_mat",
+   "kind": "skin morph",
+   "w": 1461,
+   "rel": -2748
+  },
+  {
+   "t": 36281,
+   "name": "Material_0.001",
+   "kind": "skin morph",
+   "w": 1461,
+   "rel": -2746
+  },
+  {
+   "t": 36282,
+   "name": "lelu_mouth",
+   "kind": "skin",
+   "w": 1461,
+   "rel": -2745
+  },
+  {
+   "t": 36283,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2744
+  },
+  {
+   "t": 36285,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2742
+  },
+  {
+   "t": 36286,
+   "name": "?",
+   "kind": "",
+   "w": 1461,
+   "rel": -2741
+  }
+ ],
+ "waits": [
+  {
+   "t": 14420,
+   "fn": "getProgramInfoLog",
+   "ms": 66,
+   "prog": "lelu_mouth [skin]",
+   "w": 101,
+   "rel": -24607
+  },
+  {
+   "t": 14486,
+   "fn": "getShaderInfoLog",
+   "ms": 108,
+   "prog": "(shader)",
+   "w": 101,
+   "rel": -24541
+  },
+  {
+   "t": 14712,
+   "fn": "getProgramInfoLog",
+   "ms": 107,
+   "prog": "Material_0 [skin]",
+   "w": 101,
+   "rel": -24315
+  },
+  {
+   "t": 14819,
+   "fn": "getShaderInfoLog",
+   "ms": 186,
+   "prog": "(shader)",
+   "w": 101,
+   "rel": -24208
+  },
+  {
+   "t": 15020,
+   "fn": "getProgramInfoLog",
+   "ms": 133,
+   "prog": "Material_0.001 [skin morph]",
+   "w": 101,
+   "rel": -24007
+  },
+  {
+   "t": 15153,
+   "fn": "getShaderInfoLog",
+   "ms": 340,
+   "prog": "(shader)",
+   "w": 101,
+   "rel": -23874
+  },
+  {
+   "t": 16391,
+   "fn": "getProgramInfoLog",
+   "ms": 113,
+   "prog": "eye_patch_l_mat [skin morph]",
+   "w": 101,
+   "rel": -22636
+  },
+  {
+   "t": 16504,
+   "fn": "getShaderInfoLog",
+   "ms": 572,
+   "prog": "(shader)",
+   "w": 101,
+   "rel": -22523
+  },
+  {
+   "t": 17082,
+   "fn": "getProgramInfoLog",
+   "ms": 92,
+   "prog": "eye_patch_l_mat [skin morph]",
+   "w": 101,
+   "rel": -21945
+  },
+  {
+   "t": 17175,
+   "fn": "getShaderInfoLog",
+   "ms": 168,
+   "prog": "(shader)",
+   "w": 101,
+   "rel": -21852
+  },
+  {
+   "t": 31922,
+   "fn": "getProgramInfoLog",
+   "ms": 47,
+   "prog": "? []",
+   "w": 120,
+   "rel": -7105
+  },
+  {
+   "t": 31970,
+   "fn": "getShaderInfoLog",
+   "ms": 423,
+   "prog": "(shader)",
+   "w": 120,
+   "rel": -7057
+  },
+  {
+   "t": 32399,
+   "fn": "getProgramInfoLog",
+   "ms": 55,
+   "prog": "? []",
+   "w": 120,
+   "rel": -6628
+  },
+  {
+   "t": 32454,
+   "fn": "getShaderInfoLog",
+   "ms": 83,
+   "prog": "(shader)",
+   "w": 120,
+   "rel": -6573
+  },
+  {
+   "t": 32537,
+   "fn": "getProgramParameter",
+   "ms": 38,
+   "prog": "? []",
+   "w": 120,
+   "rel": -6490
+  },
+  {
+   "t": 32590,
+   "fn": "getProgramInfoLog",
+   "ms": 85,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -6437
+  },
+  {
+   "t": 32674,
+   "fn": "getShaderInfoLog",
+   "ms": 71,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -6353
+  },
+  {
+   "t": 32745,
+   "fn": "getProgramParameter",
+   "ms": 32,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -6282
+  },
+  {
+   "t": 32800,
+   "fn": "getProgramInfoLog",
+   "ms": 23,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -6227
+  },
+  {
+   "t": 32822,
+   "fn": "getShaderInfoLog",
+   "ms": 36,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -6205
+  },
+  {
+   "t": 32858,
+   "fn": "getShaderInfoLog",
+   "ms": 30,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -6169
+  },
+  {
+   "t": 32957,
+   "fn": "getProgramInfoLog",
+   "ms": 18,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -6070
+  },
+  {
+   "t": 33040,
+   "fn": "getProgramInfoLog",
+   "ms": 89,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -5987
+  },
+  {
+   "t": 33129,
+   "fn": "getShaderInfoLog",
+   "ms": 30,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -5898
+  },
+  {
+   "t": 33330,
+   "fn": "getProgramInfoLog",
+   "ms": 33,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -5697
+  },
+  {
+   "t": 33363,
+   "fn": "getShaderInfoLog",
+   "ms": 39,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -5664
+  },
+  {
+   "t": 33402,
+   "fn": "getProgramParameter",
+   "ms": 37,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -5625
+  },
+  {
+   "t": 34044,
+   "fn": "getProgramInfoLog",
+   "ms": 23,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -4983
+  },
+  {
+   "t": 34066,
+   "fn": "getShaderInfoLog",
+   "ms": 55,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -4961
+  },
+  {
+   "t": 34121,
+   "fn": "getShaderInfoLog",
+   "ms": 447,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -4906
+  },
+  {
+   "t": 34606,
+   "fn": "getProgramInfoLog",
+   "ms": 58,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -4421
+  },
+  {
+   "t": 34663,
+   "fn": "getShaderInfoLog",
+   "ms": 65,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -4364
+  },
+  {
+   "t": 34755,
+   "fn": "getProgramInfoLog",
+   "ms": 110,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -4272
+  },
+  {
+   "t": 34865,
+   "fn": "getShaderInfoLog",
+   "ms": 71,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -4162
+  },
+  {
+   "t": 34940,
+   "fn": "getProgramParameter",
+   "ms": 68,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -4087
+  },
+  {
+   "t": 35053,
+   "fn": "getProgramInfoLog",
+   "ms": 38,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -3974
+  },
+  {
+   "t": 35091,
+   "fn": "getShaderInfoLog",
+   "ms": 79,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -3936
+  },
+  {
+   "t": 35171,
+   "fn": "getProgramParameter",
+   "ms": 76,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -3856
+  },
+  {
+   "t": 35269,
+   "fn": "getProgramInfoLog",
+   "ms": 60,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -3758
+  },
+  {
+   "t": 35329,
+   "fn": "getShaderInfoLog",
+   "ms": 82,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -3698
+  },
+  {
+   "t": 35441,
+   "fn": "getProgramInfoLog",
+   "ms": 55,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -3586
+  },
+  {
+   "t": 35496,
+   "fn": "getShaderInfoLog",
+   "ms": 68,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -3531
+  },
+  {
+   "t": 35649,
+   "fn": "getShaderInfoLog",
+   "ms": 69,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -3378
+  },
+  {
+   "t": 35718,
+   "fn": "getProgramParameter",
+   "ms": 27,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -3309
+  },
+  {
+   "t": 36287,
+   "fn": "getProgramInfoLog",
+   "ms": 162,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -2740
+  },
+  {
+   "t": 36448,
+   "fn": "getShaderInfoLog",
+   "ms": 281,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -2579
+  },
+  {
+   "t": 36797,
+   "fn": "getProgramInfoLog",
+   "ms": 60,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -2230
+  },
+  {
+   "t": 36877,
+   "fn": "getProgramInfoLog",
+   "ms": 92,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -2150
+  },
+  {
+   "t": 37031,
+   "fn": "getProgramInfoLog",
+   "ms": 72,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1996
+  },
+  {
+   "t": 37147,
+   "fn": "getProgramInfoLog",
+   "ms": 56,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1880
+  },
+  {
+   "t": 37207,
+   "fn": "getProgramParameter",
+   "ms": 77,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1820
+  },
+  {
+   "t": 37303,
+   "fn": "getProgramInfoLog",
+   "ms": 81,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1724
+  },
+  {
+   "t": 37385,
+   "fn": "getProgramParameter",
+   "ms": 69,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1642
+  },
+  {
+   "t": 37500,
+   "fn": "getProgramInfoLog",
+   "ms": 48,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1527
+  },
+  {
+   "t": 37569,
+   "fn": "getProgramInfoLog",
+   "ms": 52,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1458
+  },
+  {
+   "t": 37621,
+   "fn": "getShaderInfoLog",
+   "ms": 61,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -1406
+  },
+  {
+   "t": 37724,
+   "fn": "getProgramInfoLog",
+   "ms": 43,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1303
+  },
+  {
+   "t": 37768,
+   "fn": "getShaderInfoLog",
+   "ms": 71,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -1259
+  },
+  {
+   "t": 37871,
+   "fn": "getProgramInfoLog",
+   "ms": 50,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1156
+  },
+  {
+   "t": 37922,
+   "fn": "getProgramParameter",
+   "ms": 70,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -1105
+  },
+  {
+   "t": 38080,
+   "fn": "getProgramInfoLog",
+   "ms": 24,
+   "prog": "? []",
+   "w": 1461,
+   "rel": -947
+  },
+  {
+   "t": 38108,
+   "fn": "getShaderInfoLog",
+   "ms": 79,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -919
+  },
+  {
+   "t": 38215,
+   "fn": "getProgramInfoLog",
+   "ms": 49,
+   "prog": "Material_0 [skin]",
+   "w": 1461,
+   "rel": -812
+  },
+  {
+   "t": 38265,
+   "fn": "getShaderInfoLog",
+   "ms": 82,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -762
+  },
+  {
+   "t": 38384,
+   "fn": "getProgramInfoLog",
+   "ms": 40,
+   "prog": "eye_patch_l_mat [skin morph]",
+   "w": 1461,
+   "rel": -643
+  },
+  {
+   "t": 38424,
+   "fn": "getShaderInfoLog",
+   "ms": 64,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -603
+  },
+  {
+   "t": 38489,
+   "fn": "getProgramParameter",
+   "ms": 60,
+   "prog": "eye_patch_l_mat [skin morph]",
+   "w": 1461,
+   "rel": -538
+  },
+  {
+   "t": 38643,
+   "fn": "getProgramInfoLog",
+   "ms": 70,
+   "prog": "eye_patch_l_mat [skin morph]",
+   "w": 1461,
+   "rel": -384
+  },
+  {
+   "t": 38714,
+   "fn": "getShaderInfoLog",
+   "ms": 68,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -313
+  },
+  {
+   "t": 38782,
+   "fn": "getProgramParameter",
+   "ms": 79,
+   "prog": "eye_patch_l_mat [skin morph]",
+   "w": 1461,
+   "rel": -245
+  },
+  {
+   "t": 38901,
+   "fn": "getProgramInfoLog",
+   "ms": 43,
+   "prog": "Material_0.001 [skin morph]",
+   "w": 1461,
+   "rel": -126
+  },
+  {
+   "t": 38944,
+   "fn": "getShaderInfoLog",
+   "ms": 72,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": -83
+  },
+  {
+   "t": 39620,
+   "fn": "getProgramInfoLog",
+   "ms": 74,
+   "prog": "lelu_mouth [skin]",
+   "w": 1461,
+   "rel": 593
+  },
+  {
+   "t": 39695,
+   "fn": "getShaderInfoLog",
+   "ms": 63,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": 668
+  },
+  {
+   "t": 39792,
+   "fn": "getProgramInfoLog",
+   "ms": 49,
+   "prog": "? []",
+   "w": 1461,
+   "rel": 765
+  },
+  {
+   "t": 39841,
+   "fn": "getShaderInfoLog",
+   "ms": 65,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": 814
+  },
+  {
+   "t": 40081,
+   "fn": "getProgramInfoLog",
+   "ms": 56,
+   "prog": "? []",
+   "w": 1461,
+   "rel": 1054
+  },
+  {
+   "t": 40191,
+   "fn": "getProgramInfoLog",
+   "ms": 54,
+   "prog": "? []",
+   "w": 1461,
+   "rel": 1164
+  },
+  {
+   "t": 40245,
+   "fn": "getShaderInfoLog",
+   "ms": 118,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": 1218
+  },
+  {
+   "t": 40362,
+   "fn": "getShaderInfoLog",
+   "ms": 478,
+   "prog": "(shader)",
+   "w": 1461,
+   "rel": 1335
+  },
+  {
+   "t": 40841,
+   "fn": "getProgramParameter",
+   "ms": 244,
+   "prog": "? []",
+   "w": 1461,
+   "rel": 1814
+  }
+ ]
+}

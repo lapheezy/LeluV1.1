@@ -1,0 +1,50 @@
+{
+  "app": "Code",
+  "label": "wp03-1",
+  "longTasks": 6,
+  "longTaskMs": 1028,
+  "worst": 501,
+  "byOwner": [
+    "1071ms (no src) (program)",
+    "499ms (no src) loseContext",
+    "87ms (no src) (garbage collector)",
+    "72ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "67ms GenesisEngineeringPanel src/app/scene/genesis/GenesisEngineeringPanel.tsx:51",
+    "67ms (no src) exports.createElement",
+    "57ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "53ms (no src) run",
+    "42ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "40ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "38ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "35ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "29ms (no src) ",
+    "28ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "26ms (anon) src/app/scene/genesis/VisualInterface.tsx:579",
+    "26ms (no src) react_stack_bottom_frame",
+    "26ms (no src) commitUpdate",
+    "24ms HeartbeatMode src/app/scene/genesis/VisualInterface.tsx:65"
+  ],
+  "byLeaf": [
+    "1071ms (program) ",
+    "610ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "499ms loseContext ",
+    "99ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "87ms (garbage collector) ",
+    "72ms update EngineRegistry.ts",
+    "67ms exports.createElement react.js",
+    "52ms run ",
+    "36ms createTask ",
+    "23ms react_stack_bottom_frame react-dom_client.js",
+    "20ms now ",
+    "19ms removeChild react-three-fiber.esm-DeNFsCiz.js",
+    "19ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "17ms beginWork react-dom_client.js",
+    "17ms getBoundingClientRect ",
+    "16ms setValueForStyles react-dom_client.js",
+    "15ms validateProperty react-dom_client.js",
+    "15ms updateProperties react-dom_client.js"
+  ],
+  "stacks": [
+    "1339 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

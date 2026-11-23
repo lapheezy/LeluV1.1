@@ -1,0 +1,50 @@
+{
+  "app": "Code",
+  "label": "wp04-3",
+  "longTasks": 5,
+  "longTaskMs": 640,
+  "worst": 197,
+  "byOwner": [
+    "1079ms (no src) (program)",
+    "113ms (no src) (garbage collector)",
+    "110ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "88ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "78ms GenesisEngineeringPanel src/app/scene/genesis/GenesisEngineeringPanel.tsx:51",
+    "71ms (no src) run",
+    "60ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "54ms (no src) commitUpdate",
+    "48ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "45ms (no src) exports.createElement",
+    "43ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "37ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2721",
+    "36ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "36ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "35ms (no src) react_stack_bottom_frame",
+    "34ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "34ms (no src) now",
+    "33ms (anon) src/app/scene/genesis/VisualInterface.tsx:493"
+  ],
+  "byLeaf": [
+    "1079ms (program) ",
+    "784ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "183ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "113ms (garbage collector) ",
+    "110ms update EngineRegistry.ts",
+    "70ms run ",
+    "45ms exports.createElement react.js",
+    "37ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "36ms createTask ",
+    "35ms now ",
+    "27ms react_stack_bottom_frame react-dom_client.js",
+    "19ms validatePropertiesInDevelopment react-dom_client.js",
+    "18ms validateProperty react-dom_client.js",
+    "17ms updateProperties react-dom_client.js",
+    "17ms commitUpdate react-dom_client.js",
+    "17ms exports.jsx react_jsx-runtime.js",
+    "16ms setValueForStyles react-dom_client.js",
+    "13ms removeChild react-three-fiber.esm-DeNFsCiz.js"
+  ],
+  "stacks": [
+    "22 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

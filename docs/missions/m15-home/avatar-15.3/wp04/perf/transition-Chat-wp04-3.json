@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "wp04-3",
+  "longTasks": 6,
+  "longTaskMs": 1004,
+  "worst": 439,
+  "byOwner": [
+    "926ms (no src) (program)",
+    "439ms (no src) loseContext",
+    "229ms (no src) exports.createElement",
+    "166ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "104ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "87ms (no src) (garbage collector)",
+    "72ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "53ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "49ms (no src) run",
+    "46ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "39ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "37ms (no src) ReactElement",
+    "32ms (no src) commitUpdate",
+    "32ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "31ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "28ms (no src) ",
+    "27ms (no src) now",
+    "24ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445"
+  ],
+  "byLeaf": [
+    "926ms (program) ",
+    "696ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "439ms loseContext ",
+    "229ms exports.createElement react.js",
+    "104ms update EngineRegistry.ts",
+    "87ms (garbage collector) ",
+    "82ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "49ms run ",
+    "35ms createTask ",
+    "34ms ReactElement react.js",
+    "28ms now ",
+    "27ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "22ms getBoundingClientRect ",
+    "19ms updateProperties react-dom_client.js",
+    "15ms react_stack_bottom_frame react-dom_client.js",
+    "14ms requestAnimationFrame ",
+    "14ms update EngineRuntime.ts",
+    "13ms buildLucideIconNode lucide-react.js"
+  ],
+  "stacks": [
+    "1195 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "app": "Browser",
+  "label": "after2",
+  "longTasks": 6,
+  "longTaskMs": 801,
+  "worst": 215,
+  "byOwner": [
+    "960ms (no src) (program)",
+    "215ms (no src) loseContext",
+    "93ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "85ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "75ms (no src) (garbage collector)",
+    "58ms (no src) exports.createElement",
+    "46ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "46ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "40ms (no src) run",
+    "37ms (no src) commitUpdate",
+    "37ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "36ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "36ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "35ms (no src) exports.jsx",
+    "32ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "30ms (no src) react_stack_bottom_frame",
+    "30ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "29ms (no src) now"
+  ],
+  "byLeaf": [
+    "960ms (program) ",
+    "679ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "218ms loseContext ",
+    "108ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "93ms update EngineRegistry.ts",
+    "75ms (garbage collector) ",
+    "58ms exports.createElement react.js",
+    "40ms run ",
+    "35ms exports.jsx react_jsx-runtime.js",
+    "33ms createTask ",
+    "31ms now ",
+    "29ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "24ms react_stack_bottom_frame react-dom_client.js",
+    "20ms measureScroll framer-motion.js",
+    "15ms updateProperties react-dom_client.js",
+    "13ms update EngineRuntime.ts",
+    "13ms updateViewport GenesisModuleHost.tsx",
+    "12ms B react-three-fiber.esm-DeNFsCiz.js"
+  ],
+  "stacks": [
+    "593 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1",
+    "7 samples: loseContext <- probeGpu@SystemEnvironment.ts:17 <- collect@SystemEnvironment.ts:66 <- refresh@SystemEnvironment.ts:111 <- run@SelfDiagnostics.ts:40 <- (root)@:-1"
+  ]
+}

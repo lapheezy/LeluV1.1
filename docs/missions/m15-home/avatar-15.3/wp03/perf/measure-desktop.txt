@@ -1,0 +1,12 @@
+home           lat     3ms  page   1.8fps  avatar   1.6fps  3d/home/face/embodied vis=true still=false ctx=10 live=2 tex=24MB lt=34/4559ms heap=570MB ft p50/p95/p99 583.3/1033.3/1033.3ms dropped 8/9
+chat           lat   207ms  page   1.8fps  avatar   1.8fps  3d/chat/face/embodied vis=true still=false ctx=11 live=2 tex=24MB lt=4/1504ms heap=623MB ft p50/p95/p99 583.3/933.4/933.4ms dropped 9/9
+home-2         lat  2306ms  page   1.8fps  avatar   1.6fps  3d/home/face/embodied vis=true still=false ctx=14 live=2 tex=24MB lt=41/5272ms heap=579MB ft p50/p95/p99 600/1033.3/1033.3ms dropped 8/9
+browser        lat  4652ms  page   1.6fps  avatar   1.6fps  3d/browser/face/hologram vis=true still=false ctx=14 live=2 tex=24MB lt=19/4161ms heap=671MB ft p50/p95/p99 716.6/1833.3/1833.3ms dropped 8/8
+home-3         lat  1490ms  page   1.6fps  avatar   1.6fps  3d/home/face/embodied vis=true still=false ctx=14 live=2 tex=24MB lt=39/3034ms heap=467MB ft p50/p95/p99 616.7/1116.6/1116.6ms dropped 8/8
+studio         lat  4274ms  page   1.8fps  avatar   1.8fps  3d/creative/full/embodied vis=true still=false ctx=16 live=2 tex=24MB lt=28/4588ms heap=568MB ft p50/p95/p99 550/1050/1050ms dropped 9/9
+home-4         lat  1085ms  page   1.6fps  avatar   1.4fps  3d/home/face/embodied vis=true still=false ctx=16 live=2 tex=24MB lt=37/2758ms heap=542MB ft p50/p95/p99 650/1216.6/1216.6ms dropped 8/8
+code           lat  4599ms  page   1.6fps  avatar   1.6fps  3d/engineering/face/hologram vis=true still=false ctx=16 live=2 tex=24MB lt=37/2825ms heap=667MB ft p50/p95/p99 733.3/1183.3/1183.3ms dropped 8/8
+home-5         lat   471ms  page     2fps  avatar     2fps  3d/home/face/embodied vis=true still=false ctx=18 live=2 tex=24MB lt=28/2488ms heap=744MB ft p50/p95/p99 550/1066.7/1066.7ms dropped 10/10
+world          lat  9539ms  page     1fps  avatar     0fps  3d/world/full/embodied vis=false still=false ctx=19 live=2 tex=125MB lt=21/7414ms heap=675MB ft p50/p95/p99 1433.2/3999.8/3999.8ms dropped 6/6
+home-6         lat 15544ms  page   1.8fps  avatar   1.8fps  3d/home/face/embodied vis=true still=false ctx=24 live=2 tex=125MB lt=45/14040ms heap=752MB ft p50/p95/p99 650/1133.2/1133.2ms dropped 9/9
+firstReady 18025ms; errors 0

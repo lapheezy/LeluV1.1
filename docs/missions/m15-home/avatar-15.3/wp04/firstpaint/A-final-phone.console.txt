@@ -1,0 +1,120 @@
+shot home-ready (page t 15994)
+shot worlds-menu (page t 20756)
+shot world-+3s (page t 27698)
+shot world-+8s (page t 38555)
+shot world-+15s (page t 49520)
+shot end (page t 54903)
+world-canvas programs linked BEFORE profile start: 0; AFTER: 0
+  after:
+    
+  before:
+    
+blocking GL queries > 15 ms after profile start:
+  +10284 103ms getProgramInfoLog ? [] (canvas 398)
+  +12615 118ms getProgramInfoLog ? [] (canvas 398)
+  +12735 77ms getProgramInfoLog ? [] (canvas 398)
+  +13325 22ms getProgramInfoLog eye_patch_r_mat [skin morph] (canvas 398)
+  +13352 138ms getProgramInfoLog eye_patch_r_mat [skin morph] (canvas 398)
+long tasks 25, 7255 ms, worst 2672 ms
+  +701ms 94ms
+  +817ms 109ms
+  +2224ms 63ms
+  +2327ms 64ms
+  +3224ms 77ms
+  +3328ms 162ms
+  +3978ms 79ms
+  +4224ms 64ms
+  +4523ms 238ms
+  +4773ms 78ms
+  +5224ms 95ms
+  +5594ms 82ms
+marks:
+  +0 profile-start {}
+  +699 frame-gap {"from":17688,"ms":681}
+  +1322 frame-gap {"from":18452,"ms":567}
+  +2324 frame-gap {"from":19019,"ms":1000}
+  +3493 frame-gap {"from":20069,"ms":1033}
+  +3975 frame-gap {"from":21102,"ms":567}
+  +4764 frame-gap {"from":21669,"ms":633}
+  +4887 world-clicked {}
+  +5590 frame-gap {"from":22485,"ms":800}
+  +6409 frame-gap {"from":23285,"ms":817}
+  +7254 frame-gap {"from":24102,"ms":833}
+  +9993 frame-gap {"from":24935,"ms":1150}
+  +10158 frame-gap {"from":26085,"ms":1600}
+  +10165 her-world-first-frame {}
+  +10458 world-data-start {"url":"/api/forge/world"}
+  +10459 world-data-start {"url":"/api/forge/world/avatar/lelu_character"}
+  +10460 world-data-start {"url":"/api/forge/world"}
+  +10664 frame-gap {"from":27685,"ms":450}
+  +10677 world-data-done {"url":"/api/forge/world"}
+  +10678 world-data-done {"url":"/api/forge/world/avatar/lelu_character"}
+  +10678 world-data-done {"url":"/api/forge/world"}
+  +12036 frame-gap {"from":28135,"ms":1583}
+  +13528 frame-gap {"from":29718,"ms":1483}
+  +15760 frame-gap {"from":31252,"ms":2200}
+  +16918 frame-gap {"from":33451,"ms":1150}
+  +18035 frame-gap {"from":34601,"ms":1133}
+  +19088 frame-gap {"from":35735,"ms":1050}
+  +20155 frame-gap {"from":36785,"ms":1067}
+  +21240 frame-gap {"from":37851,"ms":1067}
+  +22445 frame-gap {"from":38918,"ms":1217}
+  +23566 frame-gap {"from":40135,"ms":1117}
+  +24687 frame-gap {"from":41251,"ms":1133}
+  +25901 frame-gap {"from":42384,"ms":1217}
+  +27091 frame-gap {"from":43601,"ms":1183}
+  +28322 frame-gap {"from":44784,"ms":1233}
+  +29412 frame-gap {"from":46018,"ms":1083}
+  +30643 frame-gap {"from":47101,"ms":1217}
+  +31765 frame-gap {"from":48318,"ms":1133}
+  +32907 frame-gap {"from":49451,"ms":1150}
+  +34952 frame-gap {"from":50601,"ms":2050}
+  +35295 frame-gap {"from":52651,"ms":333}
+  +36384 frame-gap {"from":52984,"ms":1100}
+  +36684 profile-stop {}
+  +37486 frame-gap {"from":54084,"ms":1100}
+  +38554 frame-gap {"from":55201,"ms":1050}
+  +42304 frame-gap {"from":56267,"ms":3733}
+by owner:
+  2651ms (no src) getContext
+  1318ms (no src) (program)
+  592ms (no src) getProgramInfoLog
+  366ms (no src) bufferData
+  347ms (no src) (garbage collector)
+  338ms (no src) exports.createElement
+  290ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:273
+  270ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144
+  260ms V2Satellite src/app/scene/genesis/GenesisV2Scene3D.tsx:1242
+  237ms (no src) texSubImage2D
+  220ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:183
+  203ms (anon) src/app/scene/genesis/WorldScene.tsx:155
+  161ms (no src) loseContext
+  118ms (no src) run
+  114ms (no src) texSubImage3D
+by leaf:
+  2652ms getContext 
+  2156ms exports.jsxDEV react_jsx-dev-runtime.js
+  1318ms (program) 
+  592ms getProgramInfoLog 
+  366ms bufferData 
+  347ms (garbage collector) 
+  338ms exports.createElement react.js
+  237ms texSubImage2D 
+  228ms createImageBitmap 
+  207ms jsxDEVImpl react_jsx-dev-runtime.js
+  185ms applyBoneTransform three.core-DC1ULSR-.js
+  161ms loseContext 
+  117ms run 
+  114ms texSubImage3D 
+  97ms createTask 
+by package:
+  5156ms three
+  2583ms react_jsx-dev-runtime
+  1318ms (native) (program)
+  879ms react-three-fiber
+  515ms react-dom_client
+  407ms react
+  347ms (native) (garbage collector)
+  224ms src/app/scene/genesis/avatar/LeluBody.tsx
+  125ms three_examples_jsm_loaders_GLTFLoader__js
+  102ms scheduler-CpdqvMxI

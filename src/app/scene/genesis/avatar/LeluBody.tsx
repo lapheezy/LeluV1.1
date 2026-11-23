@@ -17,7 +17,7 @@
  * ==========================================================
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -27,6 +27,7 @@ import LeluMotion, { SEATED_GESTURES } from "../../../../core/avatar/LeluMotion"
 import LeluLife from "../../../../core/avatar/LeluLife";
 import VoiceEngine from "../../../../core/voice/VoiceEngine";
 import LeluSofa from "./LeluSofa";
+import { holoUniformsFor, setHolo, type HoloUniforms } from "./holoMaterial";
 import {
   createAvatarBehaviour,
   SpeechEnvelope,
@@ -132,6 +133,13 @@ function tapAngle(t: number): number {
  * rendered nothing.)
  */
 const parsedModels = new WeakMap<ArrayBuffer, Promise<GLTF>>();
+/**
+ * Second copies (a view that overlaps the first: her world while the
+ * companion keeps the shared copy), kept for the next such view. Before
+ * M15.3 every entry into her world decoded the 48 MB model again; now a copy
+ * that is free (its scene has no parent) is taken back.
+ */
+const spareCopies = new WeakMap<ArrayBuffer, Array<{ gltf: GLTF; limit: number }>>();
 const parsedClips = new WeakMap<ArrayBuffer, Promise<THREE.AnimationClip[]>>();
 /**
  * The shared copy's textures, fitted once at parse time. Her model ships
@@ -249,6 +257,10 @@ export default function LeluBody({
   onFrame,
   life = true,
   walking = false,
+  holo = 0,
+  faceOnly = false,
+  listening = true,
+  holoInstant = false,
 }: {
   glb: ArrayBuffer;
   clips?: ArrayBuffer[];
@@ -266,6 +278,19 @@ export default function LeluBody({
   life?: boolean;
   /** The world owner is moving her root across the floor. */
   walking?: boolean;
+  /** Her holographic form: 0 = as she is, 1 = projected (she dissolves between them). */
+  holo?: number;
+  /**
+   * A head-and-shoulders view. Only such a view hands full-body requests
+   * (sit, dance, walk off) to her full-length view; a world view (life off,
+   * not face-only) performs them itself.
+   */
+  faceOnly?: boolean;
+  /** Act on commands. Off for a view that is not in view (paused): it must
+   *  not sit down or walk off invisibly while another view shows her. */
+  listening?: boolean;
+  /** Apply her form at once (no dissolve): a view showing a single captured frame. */
+  holoInstant?: boolean;
 }) {
   const { camera, size: canvasSize } = useThree();
   const canvasSizeRef = useRef(canvasSize);
@@ -282,6 +307,14 @@ export default function LeluBody({
   const [seated, setSeated] = useState(false);
   const feeling = useRef<{ expression: Expression; until: number } | null>(null);
   const behaviour = useRef<AvatarBehaviour | null>(null);
+  const holoUniforms = useRef<HoloUniforms | null>(null);
+  const holoScene = useRef<THREE.Object3D | null>(null);
+  const holoNow = useRef(holo);
+  const holoTarget = useRef(holo);
+  holoTarget.current = holo;
+  const [holoShown, setHoloShown] = useState(holo > 0.01);
+  const lifeWanted = useRef(life);
+  lifeWanted.current = life;
   const envelope = useRef(new SpeechEnvelope());
   const speechClock = useRef(0);
   const callbacks = useRef({ onReady, onFrame, lookAt });
@@ -309,14 +342,24 @@ export default function LeluBody({
         async (shared) => {
           if (disposed) return;
           const ownCopy = Boolean(shared.scene.parent);
-          const gltf = ownCopy ? await new GLTFLoader().parseAsync(glb, "") : shared;
-          if (disposed) return;
+          let gltf = shared;
           if (ownCopy) {
             // Twice the canvas's longest side in device pixels, as a power of two (512–2048).
             const px = Math.max(canvasSizeRef.current.width, canvasSizeRef.current.height) * Math.min(2, window.devicePixelRatio || 1) * 2;
             const limit = Math.min(2048, Math.max(512, 2 ** Math.ceil(Math.log2(Math.max(1, px)))));
-            const resized = await fitTexturesTo(gltf.scene, limit);
-            if (resized) console.info(`[Lélu Body] second view: ${resized} texture(s) fitted to ${limit}px`);
+            const pool = spareCopies.get(glb) ?? [];
+            spareCopies.set(glb, pool);
+            const spare = pool.find((c) => !c.gltf.scene.parent && c.limit >= limit);
+            if (spare) {
+              gltf = spare.gltf;
+              console.info(`[Lélu Body] second view: reusing a parsed copy (${spare.limit}px textures)`);
+            } else {
+              gltf = await new GLTFLoader().parseAsync(glb, "");
+              if (disposed) return;
+              const resized = await fitTexturesTo(gltf.scene, limit);
+              if (resized) console.info(`[Lélu Body] second view: ${resized} texture(s) fitted to ${limit}px`);
+              pool.push({ gltf, limit });
+            }
             if (disposed) return;
           }
           // The holder carries the normalisation; callers position the holder.
@@ -346,6 +389,9 @@ export default function LeluBody({
             o.frustumCulled = false;
           });
           behaviour.current = createAvatarBehaviour(scene);
+          // Her holographic stage, patched once per material of this copy.
+          holoUniforms.current = holoUniformsFor(scene);
+          holoScene.current = scene;
           holder.updateMatrixWorld(true);
           let headY = height * 0.9;
           scene.traverse((o) => {
@@ -367,7 +413,7 @@ export default function LeluBody({
           ).then((extra) => {
             if (disposed || !behaviour.current) return;
             motion.current = new LeluMotion(scene, [...extra.flat(), ...gltf.animations]);
-            lifeRef.current = life ? new LeluLife(motion.current) : null;
+            lifeRef.current = lifeWanted.current ? new LeluLife(motion.current) : null;
             console.info("[Lélu Body] avatar controls", behaviour.current.capabilities, "motion", motion.current.names);
             setModel(holder);
             callbacks.current.onReady?.({ capabilities: behaviour.current.capabilities, height, headY, clips: motion.current.names });
@@ -390,11 +436,30 @@ export default function LeluBody({
       motion.current = null;
       lifeRef.current = null;
       behaviour.current = null;
+      holoUniforms.current = null;
+      holoScene.current = null;
       hand.current = null;
       hips.current = null;
       foot.current = null;
     };
-  }, [glb, clips, height, life]);
+    /*
+     * Not `life`: her framing (face ↔ full) switches it, and it used to be a
+     * dependency here — every switch between Home's portrait and a full-
+     * length view tore her down and rebuilt her controller and all 31 clips.
+     * Her life is attached to the controller she already has (below).
+     */
+  }, [glb, clips, height]);
+
+  // Her life between conversations follows the view's framing, on the same controller.
+  useEffect(() => {
+    const m = motion.current;
+    if (!m) return;
+    if (life && !lifeRef.current) lifeRef.current = new LeluLife(m);
+    if (!life && lifeRef.current) {
+      if (lifeRef.current.walking) lifeRef.current.command("return");
+      lifeRef.current = null;
+    }
+  }, [life, model]);
 
   // What she says aloud colours her face while she says it.
   useEffect(
@@ -411,16 +476,30 @@ export default function LeluBody({
   // performs the clip, and the command is confirmed only when her hand
   // actually moved — measured, not assumed.
   useEffect(() => {
-    if (!model) return;
+    if (!model || !listening) return;
     const perform = (command: AvatarCommand) => {
       const m = motion.current;
       if (!m) return;
       // Her face behind the chat cannot sit down or walk off: her window
       // (which the companion opens for this) takes the request.
-      if (!life && FULL_BODY_COMMANDS.has(command.kind)) {
+      if (faceOnly && FULL_BODY_COMMANDS.has(command.kind)) {
         handoff = { command, at: Date.now() };
         return;
       }
+      // In a world, where she walks is the world's (LeluV2Presence moves her
+      // root and confirms the walk); her body performs everything else.
+      if (!life && !faceOnly && (command.kind === "move" || command.kind === "leave" || command.kind === "return")) return;
+      // A move to somewhere (a side of the screen, a place in the room) is
+      // confirmed by the presence that owns her position, when she arrives;
+      // her body only walks.
+      if (command.kind === "move" && command.target) {
+        const mt = motion.current;
+        if (mt && mt.posture !== "sitting" && mt.has("walk")) mt.play("walk");
+        return;
+      }
+      // Likewise a turn TOWARD something: the presence that owns her heading
+      // confirms when she faces it; her body does not claim it with a clip.
+      if (command.kind === "look" && command.target) return;
       const lifeNow = lifeRef.current;
       // Posture commands move all of her: measured at the hips.
       const posture = command.kind === "sit" || command.kind === "stand" || command.kind === "leave" || command.kind === "return";
@@ -461,13 +540,13 @@ export default function LeluBody({
       }, 150);
     };
     // A request handed over by her face view moments ago.
-    if (life && handoff && Date.now() - handoff.at < 5000) {
+    if (!faceOnly && handoff && Date.now() - handoff.at < 5000) {
       const pending = handoff.command;
       handoff = null;
       perform(pending);
     }
     return AvatarCommandBus.getInstance().subscribe(perform);
-  }, [model, life]);
+  }, [model, life, faceOnly, listening]);
 
   // World traversal: the root is moved by the spatial controller, so the
   // captured walk clip must play in place instead of her standing glide.
@@ -499,6 +578,16 @@ export default function LeluBody({
   useFrame(({ clock }, delta) => {
     if (!model) return;
     const t = clock.getElapsedTime();
+    // Embodied ↔ hologram: a short dissolve, not a cut.
+    const uniforms = holoUniforms.current;
+    if (uniforms && holoScene.current) {
+      const goal = holoTarget.current;
+      holoNow.current = holoInstant ? goal : holoNow.current + (goal - holoNow.current) * (1 - Math.exp(-6 * delta));
+      if (Math.abs(goal - holoNow.current) < 0.002) holoNow.current = goal;
+      setHolo(holoScene.current, uniforms, holoNow.current, t);
+      const shown = holoNow.current > 0.01;
+      if (shown !== holoShown) setHoloShown(shown);
+    }
     speechClock.current = t;
     const mode = behaviourModeFor(activity);
     const m = motion.current;
@@ -544,8 +633,43 @@ export default function LeluBody({
         <primitive object={model} dispose={null} />
       </group>
       {life ? <LeluSofa height={height} shown={seated} seat={seat} /> : null}
+      {holoShown && !faceOnly ? <HoloProjector height={height} amount={holoNow} /> : null}
     </group>
   ) : null;
+}
+
+/**
+ * The light she is projected from, at her feet: an emitter disc and a soft
+ * cone of light up to her waist, both fading with her holographic amount.
+ */
+function HoloProjector({ height, amount }: { height: number; amount: MutableRefObject<number> }) {
+  const disc = useRef<THREE.MeshBasicMaterial>(null);
+  const ring = useRef<THREE.MeshBasicMaterial>(null);
+  const cone = useRef<THREE.MeshBasicMaterial>(null);
+  useFrame(({ clock }) => {
+    const a = amount.current;
+    const pulse = 0.85 + 0.15 * Math.sin(clock.getElapsedTime() * 3.2);
+    if (disc.current) disc.current.opacity = 0.55 * a * pulse;
+    if (ring.current) ring.current.opacity = 0.9 * a;
+    if (cone.current) cone.current.opacity = 0.16 * a * pulse;
+  });
+  const r = height * 0.22;
+  return (
+    <group name="lelu-holo-projector">
+      <mesh rotation-x={-Math.PI / 2} position-y={0.004}>
+        <circleGeometry args={[r, 48]} />
+        <meshBasicMaterial ref={disc} color="#5ee7ff" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <mesh rotation-x={-Math.PI / 2} position-y={0.006}>
+        <ringGeometry args={[r * 0.96, r * 1.08, 64]} />
+        <meshBasicMaterial ref={ring} color="#c8fbff" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <mesh position-y={height * 0.28}>
+        <cylinderGeometry args={[r * 0.55, r, height * 0.56, 48, 1, true]} />
+        <meshBasicMaterial ref={cone} color="#7dd3fc" transparent opacity={0} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+    </group>
+  );
 }
 
 const tapAxis = new THREE.Vector3();

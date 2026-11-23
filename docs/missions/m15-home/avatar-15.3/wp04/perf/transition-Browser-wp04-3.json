@@ -1,0 +1,50 @@
+{
+  "app": "Browser",
+  "label": "wp04-3",
+  "longTasks": 5,
+  "longTaskMs": 721,
+  "worst": 257,
+  "byOwner": [
+    "986ms (no src) (program)",
+    "257ms (no src) loseContext",
+    "120ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "74ms (no src) (garbage collector)",
+    "56ms (no src) exports.createElement",
+    "55ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "39ms (no src) run",
+    "38ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "34ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "32ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "31ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "30ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "28ms (no src) commitUpdate",
+    "28ms (no src) ",
+    "26ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "26ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "24ms (no src) now",
+    "24ms (no src) exports.jsx"
+  ],
+  "byLeaf": [
+    "986ms (program) ",
+    "553ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "257ms loseContext ",
+    "120ms update EngineRegistry.ts",
+    "81ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "74ms (garbage collector) ",
+    "56ms exports.createElement react.js",
+    "38ms run ",
+    "26ms now ",
+    "26ms createTask ",
+    "24ms exports.jsx react_jsx-runtime.js",
+    "20ms updateViewport GenesisModuleHost.tsx",
+    "19ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "16ms react_stack_bottom_frame react-dom_client.js",
+    "16ms removeChild react-three-fiber.esm-DeNFsCiz.js",
+    "15ms validateProperty react-dom_client.js",
+    "14ms measureScroll framer-motion.js",
+    "14ms update EngineRuntime.ts"
+  ],
+  "stacks": [
+    "706 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

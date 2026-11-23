@@ -1,0 +1,12 @@
+home           lat     2ms  page   2.2fps  avatar     2fps  3d/home/face/embodied vis=true still=false ctx=6 live=2 tex=24MB lt=32/2861ms heap=565MB ft p50/p95/p99 450.1/816.6/816.6ms dropped 12/12
+chat           lat   117ms  page  54.5fps  avatar     0fps  3d/chat/face/embodied vis=true still=false ctx=6 live=1 tex=24MB lt=2/294ms heap=590MB ft p50/p95/p99 16.7/16.8/66.7ms dropped 3/273
+home-2         lat  2319ms  page   2.2fps  avatar   2.2fps  3d/home/face/embodied vis=true still=false ctx=9 live=2 tex=24MB lt=42/5010ms heap=600MB ft p50/p95/p99 499.9/899.8/899.8ms dropped 11/11
+browser        lat  3430ms  page  42.1fps  avatar     0fps  3d/browser/face/hologram vis=true still=false ctx=9 live=1 tex=24MB lt=10/962ms heap=641MB ft p50/p95/p99 16.7/16.8/66.5ms dropped 3/211
+home-3         lat  2941ms  page     2fps  avatar     2fps  3d/home/face/embodied vis=true still=false ctx=12 live=2 tex=24MB lt=35/4861ms heap=550MB ft p50/p95/p99 466.6/816.7/816.7ms dropped 10/10
+studio         lat  4727ms  page  43.3fps  avatar     0fps  3d/creative/full/embodied vis=true still=false ctx=12 live=1 tex=24MB lt=17/1658ms heap=621MB ft p50/p95/p99 16.7/50/50.1ms dropped 29/217
+home-4         lat  2544ms  page   2.2fps  avatar   2.2fps  3d/home/face/embodied vis=true still=false ctx=15 live=2 tex=24MB lt=34/4240ms heap=505MB ft p50/p95/p99 483.3/800/800ms dropped 11/11
+code           lat  4511ms  page  52.7fps  avatar     0fps  3d/engineering/face/hologram vis=true still=false ctx=15 live=1 tex=24MB lt=14/1250ms heap=505MB ft p50/p95/p99 16.7/16.8/50.1ms dropped 8/264
+home-5         lat  3371ms  page   2.4fps  avatar   2.4fps  3d/home/face/embodied vis=true still=false ctx=18 live=2 tex=24MB lt=20/4116ms heap=634MB ft p50/p95/p99 466.6/516.7/516.7ms dropped 12/12
+world          lat  8003ms  page   0.8fps  avatar     0fps  3d/world/full/embodied vis=false still=false ctx=19 live=2 tex=125MB lt=20/5601ms heap=685MB ft p50/p95/p99 1016.7/1733.3/1733.3ms dropped 4/4
+partial: TimeoutError: locator.tap: Timeout 30000ms exceeded.
+firstReady 13048ms; errors 0

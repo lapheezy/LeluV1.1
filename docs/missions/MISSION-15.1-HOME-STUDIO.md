@@ -39,3 +39,8 @@ Everything persists: presentations (with their recipe and look) under `lelu.home
 - Product references in the notes come from general knowledge and were not re-verified; "Research with LÉLU" exists to check them.
 - Border effects use SVG filters and run constant animation. That costs GPU time on older phones; the "Animate the borders" switch and reduced-motion both stop the animation. They were not measured on a physical iPhone; this run used Chromium only (no WebKit here).
 - In this sandbox, outside services are offline, so the browser log shows network 503 and CORS errors from LÉLU's background research. The acceptance script counts those separately from Home errors.
+
+## Later changes
+
+- **2026-11-15:** [`MISSION-15.2-SPATIAL-BAR-AWAY.md`](MISSION-15.2-SPATIAL-BAR-AWAY.md), commit `6bf290e`, the direct child of this mission's `94e96cb`. The Spatial bar was moved off the Home, and the menu sheets now take taps.
+- **2026-11-16:** [`MISSION-15.2-CLOSEOUT-WP03.md`](MISSION-15.2-CLOSEOUT-WP03.md), final verification of 15.2 with three fixes.

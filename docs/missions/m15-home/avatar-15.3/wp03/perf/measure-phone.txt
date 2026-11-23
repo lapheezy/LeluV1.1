@@ -1,0 +1,12 @@
+home           lat   173ms  page   2.2fps  avatar   2.2fps  3d/home/face/embodied vis=true still=false ctx=9 live=2 tex=24MB lt=36/3536ms heap=561MB ft p50/p95/p99 516.6/916.5/916.5ms dropped 11/11
+chat           lat   103ms  page  52.9fps  avatar     0fps  3d/chat/face/embodied vis=true still=false ctx=9 live=1 tex=24MB lt=2/375ms heap=595MB ft p50/p95/p99 16.7/16.8/83.4ms dropped 3/266
+home-2         lat  2541ms  page   1.4fps  avatar   1.2fps  3d/home/face/embodied vis=true still=false ctx=15 live=2 tex=24MB lt=37/6689ms heap=557MB ft p50/p95/p99 566.6/1300/1300ms dropped 7/7
+browser        lat  5512ms  page  27.8fps  avatar     0fps  3d/browser/face/hologram vis=true still=false ctx=16 live=1 tex=24MB lt=20/2090ms heap=612MB ft p50/p95/p99 16.7/66.6/416.7ms dropped 30/139
+home-3         lat  3110ms  page     2fps  avatar   1.8fps  3d/home/face/embodied vis=true still=false ctx=19 live=2 tex=24MB lt=36/5230ms heap=544MB ft p50/p95/p99 533.2/1333.4/1333.4ms dropped 10/10
+studio         lat  4099ms  page  54.7fps  avatar     0fps  3d/creative/full/embodied vis=true still=false ctx=19 live=1 tex=24MB lt=9/1236ms heap=568MB ft p50/p95/p99 16.7/16.8/99.9ms dropped 3/274
+home-4         lat  2646ms  page   1.8fps  avatar   1.8fps  3d/home/face/embodied vis=true still=false ctx=24 live=2 tex=24MB lt=32/5994ms heap=735MB ft p50/p95/p99 466.7/1450/1450ms dropped 9/9
+code           lat  4352ms  page  57.2fps  avatar     0fps  3d/engineering/face/hologram vis=true still=false ctx=25 live=1 tex=24MB lt=11/1715ms heap=482MB ft p50/p95/p99 16.7/16.8/50ms dropped 4/287
+home-5         lat  2776ms  page     2fps  avatar     2fps  3d/home/face/embodied vis=true still=false ctx=28 live=2 tex=24MB lt=35/4766ms heap=652MB ft p50/p95/p99 450/916.6/916.6ms dropped 10/10
+world          lat  nullms  page  59.9fps  avatar     0fps  3d/world/full/embodied vis=false still=false ctx=30 live=1 tex=24MB lt=14/3572ms heap=685MB ft p50/p95/p99 16.7/16.7/16.8ms dropped 0/301
+partial: TimeoutError: locator.tap: Timeout 30000ms exceeded.
+firstReady 14958ms; errors 0

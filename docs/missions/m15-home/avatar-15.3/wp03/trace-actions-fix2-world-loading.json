@@ -1,0 +1,637 @@
+[
+ {
+  "t": 76103,
+  "ev": "universe",
+  "open": false
+ },
+ {
+  "t": 76103,
+  "ev": "render-budget",
+  "mode": "full"
+ },
+ {
+  "t": 76105,
+  "ev": "enter-world-clicked"
+ },
+ {
+  "t": 77104,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 78103,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 79104,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 80103,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 81062,
+  "ev": "universe",
+  "open": true
+ },
+ {
+  "t": 81073,
+  "ev": "render-budget",
+  "mode": "paused"
+ },
+ {
+  "t": 81109,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 85462,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 85485,
+  "ev": "world-load-start",
+  "url": "/api/forge/world"
+ },
+ {
+  "t": 85487,
+  "ev": "world-load-start",
+  "url": "/api/forge/world/avatar/lelu_character"
+ },
+ {
+  "t": 85489,
+  "ev": "world-load-start",
+  "url": "/api/forge/world"
+ },
+ {
+  "t": 85784,
+  "ev": "world-load-done",
+  "url": "/api/forge/world",
+  "status": 200
+ },
+ {
+  "t": 85785,
+  "ev": "world-load-done",
+  "url": "/api/forge/world/avatar/lelu_character",
+  "status": 200
+ },
+ {
+  "t": 85785,
+  "ev": "world-load-done",
+  "url": "/api/forge/world",
+  "status": 200
+ },
+ {
+  "t": 86238,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 87670,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 88103,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 89401,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 90121,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 90271,
+  "ev": "harness-submitted",
+  "words": "walk to the studio"
+ },
+ {
+  "t": 90312,
+  "ev": "command-issued",
+  "kind": "move",
+  "label": "walk to the studio",
+  "timeout": 20000,
+  "target": {
+   "place": "studio"
+  }
+ },
+ {
+  "t": 90312,
+  "ev": "command-delivered",
+  "id": "avatar-cmd-5-1794830389631",
+  "kind": "move",
+  "target": {
+   "place": "studio"
+  }
+ },
+ {
+  "t": 90312,
+  "ev": "universe",
+  "open": false
+ },
+ {
+  "t": 90319,
+  "ev": "render-budget",
+  "mode": "full"
+ },
+ {
+  "t": 90409,
+  "ev": "spatial",
+  "position": [
+   0,
+   -2.55,
+   3.3
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 5.023,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -2.06,
+   -2.55,
+   2.527
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:360",
+    "x": 0.006412228464973864,
+    "z": 4.123211124160851,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 99800,
+  "ev": "bus-confirm",
+  "id": "avatar-cmd-5-1794830389631",
+  "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point"
+ },
+ {
+  "t": 99800,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.995,
+   -2.55,
+   0.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:360",
+    "x": 0.006412228464973864,
+    "z": 4.123211124160851,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 99805,
+  "ev": "command-resolved",
+  "label": "walk to the studio",
+  "observation": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point"
+ },
+ {
+  "t": 99864,
+  "ev": "page-fps",
+  "fps": 4
+ },
+ {
+  "t": 100104,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 100276,
+  "ev": "harness-read-reply",
+  "words": "walk to the studio",
+  "text": "Done — watch my environment. walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point. My telemetry verified the movement myself."
+ },
+ {
+  "t": 101136,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 101986,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 102103,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 103104,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 103459,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 104103,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 105007,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 105104,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 106103,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 106528,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 107103,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 107716,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 108103,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 108927,
+  "ev": "spatial",
+  "position": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830389631",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.052,
+   "route": [
+    [
+     -2.06,
+     2.53
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -3.96,
+   -2.55,
+   0.295
+  ],
+  "windows": [
+   {
+    "id": "window:chat:e2c70863-d7b9-4e77-8288-eb6fee78bc8a:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 109104,
+  "ev": "page-fps",
+  "fps": 1
+ }
+]

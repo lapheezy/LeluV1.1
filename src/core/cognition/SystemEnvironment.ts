@@ -56,7 +56,23 @@ function detectBrowser(userAgent: string): string {
   return "Web browser";
 }
 
+/*
+ * The page's GPU does not change while it runs, so it is probed ONCE and the
+ * measured answer reused. Creating a throwaway WebGL context on every
+ * refresh (the cognitive loop and self-diagnostics both refresh) cost 1–3 s
+ * of main thread per call on a software renderer (M15.3 WP04: 6.9–7.6 s
+ * in a 50 s window, during her walks).
+ */
+let gpuProbe: { webgl: boolean; webgpu: boolean; renderer: string | null } | null = null;
+
 function probeGpu(): { webgl: boolean; webgpu: boolean; renderer: string | null } {
+  if (gpuProbe) return gpuProbe;
+  if (typeof window === "undefined") return { webgl: false, webgpu: false, renderer: null };
+  gpuProbe = probeGpuNow();
+  return gpuProbe;
+}
+
+function probeGpuNow(): { webgl: boolean; webgpu: boolean; renderer: string | null } {
   if (typeof window === "undefined") {
     return { webgl: false, webgpu: false, renderer: null };
   }
@@ -72,6 +88,10 @@ function probeGpu(): { webgl: boolean; webgpu: boolean; renderer: string | null 
       if (debugInfo) {
         renderer = String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) ?? null);
       }
+      // A probe holds a WebGL context until garbage collection, and this runs
+      // on every refresh; Chromium keeps 16 and then drops the OLDEST live
+      // context (which can be LÉLU's). Let it go now.
+      (gl as WebGLRenderingContext).getExtension("WEBGL_lose_context")?.loseContext();
     }
   } catch {
     // WebGL unavailable — record as false

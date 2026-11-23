@@ -1,0 +1,52 @@
+{
+  "label": "base-chat-on",
+  "frames": 12,
+  "avatarFps": 2,
+  "busyMs": 3241,
+  "busyPct": 48.3,
+  "msPerAvatarFrame": 35.57,
+  "group": {
+    "her": 9,
+    "three": 417,
+    "r3f": 0,
+    "react": 1591,
+    "idle": 3473,
+    "gc": 135,
+    "program": 788,
+    "other": 299
+  },
+  "top": [
+    "1007ms exports.jsxDEV react_jsx-dev-runtime.js:190",
+    "217ms jsxDEVImpl react_jsx-dev-runtime.js:147",
+    "135ms (garbage collector) :-1",
+    "121ms exports.createElement react.js:590",
+    "68ms run :-1",
+    "62ms commitUpdate react-three-fiber.esm-DeNFsCiz.js:8748",
+    "43ms createTask :-1",
+    "43ms now :-1",
+    "36ms g react-three-fiber.esm-DeNFsCiz.js:3008",
+    "22ms ReactElement react.js:131",
+    "21ms B react-three-fiber.esm-DeNFsCiz.js:2375",
+    "19ms oh react-three-fiber.esm-DeNFsCiz.js:5730",
+    "16ms buildLucideIconNode lucide-react.js:103",
+    "14ms react_stack_bottom_frame react-three-fiber.esm-DeNFsCiz.js:7394",
+    "14ms measure :-1"
+  ],
+  "bySourceOwner": [
+    "1028ms (no src frame)",
+    "481ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "109ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "93ms Portal src/app/scene/spatial/SpatialPortals.tsx",
+    "75ms (anon) src/app/scene/genesis/render/PlanetVisual.tsx",
+    "58ms (anon) src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "55ms StreetCar src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "40ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
+    "32ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
+    "25ms VegetationSurface src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "23ms (anon) src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "22ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
+    "20ms (anon) src/app/scene/genesis/home/HomeModules.tsx",
+    "14ms AuroraRibbon src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "13ms AtlantisWorld src/app/scene/genesis/render/PlanetExplorer.tsx"
+  ]
+}

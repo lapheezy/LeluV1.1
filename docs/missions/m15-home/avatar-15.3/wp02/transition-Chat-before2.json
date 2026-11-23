@@ -1,0 +1,51 @@
+{
+  "app": "Chat",
+  "label": "before2",
+  "longTasks": 6,
+  "longTaskMs": 2367,
+  "worst": 1624,
+  "byOwner": [
+    "1613ms (anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:115",
+    "911ms (no src) (program)",
+    "369ms (no src) loseContext",
+    "186ms (no src) exports.createElement",
+    "154ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "104ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "67ms (no src) (garbage collector)",
+    "53ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "53ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "46ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "39ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "36ms (no src) run",
+    "35ms (no src) ReactElement",
+    "34ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "34ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "26ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "26ms visibleBox src/core/runtime/domProbes.ts:43",
+    "24ms (no src) commitUpdate"
+  ],
+  "byLeaf": [
+    "1611ms toDataURL ",
+    "911ms (program) ",
+    "616ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "369ms loseContext ",
+    "186ms exports.createElement react.js",
+    "104ms update EngineRegistry.ts",
+    "67ms (garbage collector) ",
+    "66ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "36ms run ",
+    "34ms ReactElement react.js",
+    "32ms createTask ",
+    "23ms getBoundingClientRect ",
+    "20ms now ",
+    "17ms updateProperties react-dom_client.js",
+    "15ms commitUpdate react-three-fiber.esm-Bd6DADW5.js",
+    "14ms requestAnimationFrame ",
+    "14ms react_stack_bottom_frame react-dom_client.js",
+    "13ms (anon) lucide-react.js"
+  ],
+  "stacks": [
+    "4359 samples: toDataURL <- (anon)@LeluCharacter3D.tsx:115 <- (root)@:-1",
+    "955 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9077 <- (root)@:-1"
+  ]
+}

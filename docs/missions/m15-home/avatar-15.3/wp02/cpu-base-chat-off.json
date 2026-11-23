@@ -1,0 +1,52 @@
+{
+  "label": "base-chat-off",
+  "frames": 0,
+  "avatarFps": 0,
+  "busyMs": 3798,
+  "busyPct": 56.6,
+  "msPerAvatarFrame": null,
+  "group": {
+    "her": 0,
+    "three": 454,
+    "r3f": 0,
+    "react": 1787,
+    "idle": 2908,
+    "gc": 182,
+    "program": 987,
+    "other": 387
+  },
+  "top": [
+    "956ms exports.jsxDEV react_jsx-dev-runtime.js:190",
+    "250ms jsxDEVImpl react_jsx-dev-runtime.js:147",
+    "182ms (garbage collector) :-1",
+    "166ms exports.createElement react.js:590",
+    "81ms commitUpdate react-three-fiber.esm-DeNFsCiz.js:8748",
+    "75ms run :-1",
+    "57ms now :-1",
+    "46ms createTask :-1",
+    "37ms ReactElement react.js:131",
+    "37ms update EngineRegistry.ts:81",
+    "32ms updateProperties react-dom_client.js:9677",
+    "27ms g react-three-fiber.esm-DeNFsCiz.js:3008",
+    "26ms validateProperty react-dom_client.js:1626",
+    "23ms Fe react-three-fiber.esm-DeNFsCiz.js:3092",
+    "20ms react_stack_bottom_frame react-dom_client.js:12613"
+  ],
+  "bySourceOwner": [
+    "1313ms (no src frame)",
+    "452ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "97ms Portal src/app/scene/spatial/SpatialPortals.tsx",
+    "63ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
+    "62ms (anon) src/app/scene/genesis/render/PlanetVisual.tsx",
+    "61ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
+    "57ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx",
+    "50ms (anon) src/app/scene/genesis/render/PlanetSurfaces.tsx",
+    "46ms StreetCar src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "42ms (anon) src/app/scene/genesis/home/HomeModules.tsx",
+    "37ms update src/app/scene/genesis/engines/EngineRegistry.ts",
+    "24ms CosmosHome src/app/scene/genesis/home/CosmosHome.tsx",
+    "20ms (anon) src/app/scene/genesis/render/PlanetExplorer.tsx",
+    "18ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
+    "16ms AtlantisWorld src/app/scene/genesis/render/PlanetExplorer.tsx"
+  ]
+}

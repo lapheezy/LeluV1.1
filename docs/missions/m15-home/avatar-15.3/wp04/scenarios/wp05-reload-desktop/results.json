@@ -1,0 +1,194 @@
+[
+ {
+  "scenario": "R reload: form, world and one presence survive; walk arrives",
+  "issuedAtPageMs": 41864,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 9225,
+   "text": "walked 5.66 m (walk to the studio); now at x -3.93, z 0.25, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.06,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.935,
+    -2.55,
+    0.251
+   ]
+  },
+  "arrivedMsAfterIssue": 9221,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    2,
+    2.35
+   ],
+   [
+    2.16,
+    1.36
+   ],
+   [
+    0.96,
+    -0.04
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "before": {
+   "form": "hologram",
+   "env": null
+  },
+  "after": {
+   "form": "hologram",
+   "env": "home",
+   "counts": {
+    "spatial": 1,
+    "worlds": 1
+   }
+  },
+  "sceneAfterReload": "genesis-v2",
+  "ok": false,
+  "timeline": {
+   "worldClicked": null,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 235,
+   "waitingForWorld": null,
+   "aimed": 235,
+   "firstMovement": 1895,
+   "arrived": 9221,
+   "answer": 9225,
+   "longTasksOver500ms": [],
+   "spatialSamples": [
+    [
+     235,
+     "walking",
+     false,
+     [
+      0.35,
+      -2.55,
+      3.96
+     ]
+    ],
+    [
+     1895,
+     "walking",
+     true,
+     [
+      2.25,
+      -2.55,
+      0.83
+     ]
+    ],
+    [
+     4342,
+     "walking",
+     true,
+     [
+      -0.27,
+      -2.55,
+      -0.01
+     ]
+    ],
+    [
+     6024,
+     "walking",
+     true,
+     [
+      -2.19,
+      -2.55,
+      0.13
+     ]
+    ],
+    [
+     9221,
+     "arrived",
+     true,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     10732,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     12170,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     13639,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     15345,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     16793,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     18546,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     20056,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ]
+   ]
+  }
+ }
+]

@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "wp03-2",
+  "longTasks": 4,
+  "longTaskMs": 770,
+  "worst": 428,
+  "byOwner": [
+    "876ms (no src) (program)",
+    "428ms (no src) loseContext",
+    "184ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "176ms (no src) exports.createElement",
+    "119ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "60ms (no src) (garbage collector)",
+    "60ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "52ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "42ms (no src) run",
+    "40ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "39ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "38ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "36ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "23ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "23ms (no src) ",
+    "21ms (no src) commitUpdate",
+    "21ms (no src) now",
+    "20ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:903"
+  ],
+  "byLeaf": [
+    "876ms (program) ",
+    "612ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "428ms loseContext ",
+    "176ms exports.createElement react.js",
+    "119ms update EngineRegistry.ts",
+    "74ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "60ms (garbage collector) ",
+    "41ms run ",
+    "28ms createTask ",
+    "24ms now ",
+    "18ms getBoundingClientRect ",
+    "17ms validateProperty react-dom_client.js",
+    "17ms ReactElement react.js",
+    "17ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "14ms (anon) lucide-react.js",
+    "13ms updateProperties react-dom_client.js",
+    "13ms createWorkInProgress react-dom_client.js",
+    "12ms exports.jsx react_jsx-runtime.js"
+  ],
+  "stacks": [
+    "1211 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

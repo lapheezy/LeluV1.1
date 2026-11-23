@@ -1,0 +1,52 @@
+{
+  "app": "Studio",
+  "label": "before2",
+  "longTasks": 6,
+  "longTaskMs": 3037,
+  "worst": 1891,
+  "byOwner": [
+    "1881ms (anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:115",
+    "1053ms (no src) (program)",
+    "644ms (no src) WebGLRenderer.setSize",
+    "86ms (no src) (garbage collector)",
+    "71ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "66ms (no src) loseContext",
+    "54ms (no src) exports.createElement",
+    "54ms GenesisRenderPanel src/app/scene/genesis/GenesisRenderPanel.tsx:62",
+    "45ms (no src) run",
+    "44ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "40ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "39ms (anon) src/app/scene/genesis/GenesisRenderPanel.tsx:411",
+    "38ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "33ms box src/app/scene/genesis/avatar/LeluSofa.tsx:45",
+    "31ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "30ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "30ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148",
+    "25ms (anon) src/app/scene/genesis/VisualInterface.tsx:220"
+  ],
+  "byLeaf": [
+    "1880ms toDataURL ",
+    "1053ms (program) ",
+    "644ms WebGLRenderer.setSize three.js",
+    "619ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "86ms (garbage collector) ",
+    "71ms update EngineRegistry.ts",
+    "66ms loseContext ",
+    "54ms exports.createElement react.js",
+    "44ms run ",
+    "39ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "28ms ReactElement react_jsx-dev-runtime.js",
+    "28ms createTask ",
+    "23ms now ",
+    "22ms updateViewport GenesisModuleHost.tsx",
+    "18ms updateProperties react-dom_client.js",
+    "17ms createWorkInProgress react-dom_client.js",
+    "17ms react_stack_bottom_frame react-dom_client.js",
+    "17ms exports.jsx react_jsx-runtime.js"
+  ],
+  "stacks": [
+    "5188 samples: toDataURL <- (anon)@LeluCharacter3D.tsx:115 <- (root)@:-1",
+    "1526 samples: WebGLRenderer.setSize <- (anon)@react-three-fiber.esm-Bd6DADW5.js:974 <- setState@react-three-fiber.esm-Bd6DADW5.js:13 <- setSize@react-three-fiber.esm-Bd6DADW5.js:904 <- configure@react-three-fiber.esm-Bd6DADW5.js:8908 <- run@react-three-fiber.esm-Bd6DADW5.js:9482 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9478 <- react_stack_bottom_frame@react-dom_client.js:12650 <- run@:-1 <- runWithFiberInDEV@react-dom_client.js:599",
+    "173 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-Bd6DADW5.js:9077 <- (root)@:-1"
+  ]
+}

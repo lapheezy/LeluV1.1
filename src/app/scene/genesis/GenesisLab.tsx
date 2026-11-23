@@ -1333,8 +1333,11 @@ export default function GenesisLab({ onClose }: { onClose: () => void }) {
           style={{
             position: "absolute",
             left: "50%",
-            /* Above the unified interface's bottom dock bar. */
-            bottom: "calc(env(safe-area-inset-bottom, 0px) + 78px)",
+            /* Above the unified interface's bottom dock bar AND above the
+               GENESIS V2 pill, which shares that baseline bottom-right: at
+               393 px the pill covered "◂ Genesis v1", the only way out of
+               her world a phone could see (M15.3 WP04, real-tap probe). */
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 130px)",
             transform: "translateX(-50%)",
             zIndex: 7,
             display: "flex",

@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "wp04-2",
+  "longTasks": 5,
+  "longTaskMs": 937,
+  "worst": 451,
+  "byOwner": [
+    "916ms (no src) (program)",
+    "450ms (no src) loseContext",
+    "239ms (no src) exports.createElement",
+    "218ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "121ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "83ms (no src) (garbage collector)",
+    "72ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "72ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "54ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "44ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "39ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "39ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "35ms (no src) ",
+    "34ms (no src) run",
+    "28ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "27ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "23ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2721",
+    "22ms (no src) now"
+  ],
+  "byLeaf": [
+    "916ms (program) ",
+    "805ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "450ms loseContext ",
+    "239ms exports.createElement react.js",
+    "121ms update EngineRegistry.ts",
+    "96ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "83ms (garbage collector) ",
+    "36ms createTask ",
+    "33ms run ",
+    "24ms now ",
+    "19ms getBoundingClientRect ",
+    "19ms ReactElement react.js",
+    "16ms (anon) lucide-react.js",
+    "14ms requestAnimationFrame ",
+    "14ms react_stack_bottom_frame react-dom_client.js",
+    "13ms updateProperties react-dom_client.js",
+    "12ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "12ms update EngineRuntime.ts"
+  ],
+  "stacks": [
+    "1226 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

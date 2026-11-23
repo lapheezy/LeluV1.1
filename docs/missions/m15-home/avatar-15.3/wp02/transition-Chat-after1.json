@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "after1",
+  "longTasks": 6,
+  "longTaskMs": 731,
+  "worst": 185,
+  "byOwner": [
+    "951ms (no src) (program)",
+    "188ms (no src) exports.createElement",
+    "161ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "110ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "84ms (no src) (garbage collector)",
+    "79ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "67ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "57ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "56ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "55ms (no src) loseContext",
+    "50ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2721",
+    "44ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "43ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2933",
+    "39ms (no src) run",
+    "35ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2825",
+    "33ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "32ms (no src) now",
+    "28ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631"
+  ],
+  "byLeaf": [
+    "951ms (program) ",
+    "832ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "188ms exports.createElement react.js",
+    "110ms update EngineRegistry.ts",
+    "94ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "84ms (garbage collector) ",
+    "55ms loseContext ",
+    "40ms createTask ",
+    "39ms run ",
+    "34ms now ",
+    "21ms getBoundingClientRect ",
+    "20ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "18ms updateProperties react-dom_client.js",
+    "18ms ReactElement react.js",
+    "16ms (anon) lucide-react.js",
+    "14ms update EngineRuntime.ts",
+    "13ms buildLucideIconNode lucide-react.js",
+    "13ms getComponentNameFromType react_jsx-dev-runtime.js"
+  ],
+  "stacks": [
+    "158 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

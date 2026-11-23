@@ -1,0 +1,1465 @@
+[
+ {
+  "scenario": "A world entered normally",
+  "issuedAtPageMs": 35913,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 9902,
+   "text": "walked 5.66 m (walk to the studio); now at x -3.94, z 0.25, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.059,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.936,
+    -2.55,
+    0.252
+   ]
+  },
+  "arrivedMsAfterIssue": 9896,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    2,
+    2.34
+   ],
+   [
+    2.16,
+    1.36
+   ],
+   [
+    0.96,
+    -0.04
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "timeline": {
+   "worldClicked": -17640,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 512,
+   "waitingForWorld": null,
+   "aimed": 512,
+   "firstMovement": 2389,
+   "arrived": 9896,
+   "answer": 9902,
+   "longTasksOver500ms": [
+    [
+     496,
+     1803
+    ]
+   ],
+   "spatialSamples": [
+    [
+     512,
+     "walking",
+     false,
+     [
+      0.35,
+      -2.55,
+      3.95
+     ]
+    ],
+    [
+     2389,
+     "walking",
+     true,
+     [
+      2.06,
+      -2.55,
+      2.03
+     ]
+    ],
+    [
+     4267,
+     "walking",
+     true,
+     [
+      1.67,
+      -2.55,
+      0.34
+     ]
+    ],
+    [
+     5920,
+     "walking",
+     true,
+     [
+      -0.18,
+      -2.55,
+      0.01
+     ]
+    ],
+    [
+     7365,
+     "walking",
+     true,
+     [
+      -1.84,
+      -2.55,
+      0.12
+     ]
+    ],
+    [
+     8670,
+     "walking",
+     true,
+     [
+      -3.34,
+      -2.55,
+      0.21
+     ]
+    ],
+    [
+     9896,
+     "arrived",
+     true,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     11242,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     13776,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     15177,
+     "arrived",
+     false,
+     [
+      -3.94,
+      -2.55,
+      0.25
+     ]
+    ]
+   ]
+  },
+  "ok": true
+ },
+ {
+  "scenario": "B world entered from the Chat Universe",
+  "issuedAtPageMs": 30125,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 7226,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.29, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.958,
+    -2.55,
+    0.293
+   ]
+  },
+  "arrivedMsAfterIssue": 7218,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -2.02,
+    2.2
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "timeline": {
+   "worldClicked": -11774,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 239,
+   "waitingForWorld": null,
+   "aimed": 239,
+   "firstMovement": 7218,
+   "arrived": 7218,
+   "answer": 7226,
+   "longTasksOver500ms": [
+    [
+     228,
+     6958
+    ]
+   ],
+   "spatialSamples": [
+    [
+     239,
+     "walking",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     7218,
+     "arrived",
+     true,
+     [
+      -3.96,
+      -2.55,
+      0.29
+     ]
+    ],
+    [
+     9388,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.29
+     ]
+    ],
+    [
+     10803,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.29
+     ]
+    ],
+    [
+     13768,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.29
+     ]
+    ]
+   ]
+  },
+  "ok": true
+ },
+ {
+  "scenario": "C walk asked before world loading begins",
+  "issuedAtPageMs": 32042,
+  "answer": {
+   "kind": "declined/progress",
+   "ms": 20846,
+   "text": "I'm still on my way (1.16 m from where I started, 4.66 m to go on my route): my world is rendering slowly right now (0.6 frames/s), and I'll keep walking there"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.06,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.96,
+    -2.55,
+    0.304
+   ]
+  },
+  "arrivedMsAfterIssue": 20859,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    -0.44,
+    3.98
+   ],
+   [
+    -1.64,
+    3.56
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": false,
+  "askedBeforeWorld": true,
+  "timeline": {
+   "worldClicked": 5678,
+   "worldDataRequested": 11882,
+   "worldData": 14160,
+   "herFirstWorldFrame": 11893,
+   "waitingForWorld": 14155,
+   "aimed": 15174,
+   "firstMovement": 16305,
+   "arrived": 20859,
+   "answer": 20846,
+   "longTasksOver500ms": [
+    [
+     90,
+     741
+    ],
+    [
+     1832,
+     1500
+    ],
+    [
+     3527,
+     1381
+    ],
+    [
+     9173,
+     2497
+    ],
+    [
+     11885,
+     2066
+    ],
+    [
+     14612,
+     554
+    ],
+    [
+     15166,
+     1131
+    ],
+    [
+     16300,
+     4524
+    ]
+   ],
+   "spatialSamples": [
+    [
+     11893,
+     null,
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     14155,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     15174,
+     "walking",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     16305,
+     "walking",
+     true,
+     [
+      -1.07,
+      -2.55,
+      3.74
+     ]
+    ],
+    [
+     20859,
+     "arrived",
+     true,
+     [
+      -3.95,
+      -2.55,
+      0.32
+     ]
+    ],
+    [
+     22368,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     25189,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     26235,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     27473,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  },
+  "ok": false
+ },
+ {
+  "scenario": "D walk asked during world initialisation",
+  "issuedAtPageMs": 32872,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 11906,
+   "text": "walked 4.98 m (walk to the studio); now at x -3.97, z 0.30, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.051,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.973,
+    -2.55,
+    0.302
+   ]
+  },
+  "arrivedMsAfterIssue": 11902,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -2.02,
+    2.2
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "worldDataAfterCommandMs": 2890,
+  "waitedForWorld": true,
+  "movedBeforeReady": false,
+  "ok": true,
+  "timeline": {
+   "worldClicked": -12335,
+   "worldDataRequested": null,
+   "worldData": 2890,
+   "herFirstWorldFrame": 291,
+   "waitingForWorld": 291,
+   "aimed": 2941,
+   "firstMovement": 8614,
+   "arrived": 11902,
+   "answer": 11906,
+   "longTasksOver500ms": [
+    [
+     276,
+     2578
+    ],
+    [
+     2934,
+     5636
+    ]
+   ],
+   "spatialSamples": [
+    [
+     291,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     2941,
+     "walking",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     8614,
+     "walking",
+     true,
+     [
+      -3.23,
+      -2.55,
+      1.92
+     ]
+    ],
+    [
+     11902,
+     "arrived",
+     true,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     13281,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     14503,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     15854,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     17164,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     21127,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  }
+ },
+ {
+  "scenario": "F world initialisation delayed",
+  "issuedAtPageMs": 31266,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 16499,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.97, z 0.31, 6 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.057,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.971,
+    -2.55,
+    0.307
+   ]
+  },
+  "arrivedMsAfterIssue": 16491,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -1.5,
+    4.73
+   ],
+   [
+    -2.24,
+    4.16
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "worldDataAfterCommandMs": 5933,
+  "waitedForWorld": true,
+  "movedBeforeReady": false,
+  "ok": true,
+  "timeline": {
+   "worldClicked": -13111,
+   "worldDataRequested": null,
+   "worldData": 5933,
+   "herFirstWorldFrame": 35,
+   "waitingForWorld": 35,
+   "aimed": 7723,
+   "firstMovement": 13478,
+   "arrived": 16491,
+   "answer": 16499,
+   "longTasksOver500ms": [
+    [
+     26,
+     1943
+    ],
+    [
+     7710,
+     5666
+    ]
+   ],
+   "spatialSamples": [
+    [
+     35,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     2059,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     4113,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     5459,
+     "waiting-for-world",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     7723,
+     "walking",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     13478,
+     "walking",
+     true,
+     [
+      -3.23,
+      -2.55,
+      1.92
+     ]
+    ],
+    [
+     15177,
+     "walking",
+     true,
+     [
+      -3.92,
+      -2.55,
+      0.41
+     ]
+    ],
+    [
+     16491,
+     "arrived",
+     true,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     17773,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     19085,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     20813,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     22140,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     25043,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ]
+   ]
+  }
+ },
+ {
+  "scenario": "E walk asked immediately after world readiness",
+  "issuedAtPageMs": 32727,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 10021,
+   "text": "walked 5.66 m (walk to the studio); now at x -3.97, z 0.30, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.052,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.974,
+    -2.55,
+    0.303
+   ]
+  },
+  "arrivedMsAfterIssue": 10017,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    2,
+    2.34
+   ],
+   [
+    2.16,
+    1.36
+   ],
+   [
+    0.96,
+    -0.04
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "timeline": {
+   "worldClicked": -12196,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 35,
+   "waitingForWorld": null,
+   "aimed": 35,
+   "firstMovement": 6616,
+   "arrived": 10017,
+   "answer": 10021,
+   "longTasksOver500ms": [
+    [
+     25,
+     6470
+    ]
+   ],
+   "spatialSamples": [
+    [
+     35,
+     "walking",
+     false,
+     [
+      0.35,
+      -2.55,
+      3.95
+     ]
+    ],
+    [
+     6616,
+     "walking",
+     true,
+     [
+      -2.92,
+      -2.55,
+      2.68
+     ]
+    ],
+    [
+     8692,
+     "walking",
+     true,
+     [
+      -3.86,
+      -2.55,
+      0.56
+     ]
+    ],
+    [
+     10017,
+     "arrived",
+     true,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     11410,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     12724,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     14155,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     18371,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  },
+  "ok": true
+ },
+ {
+  "scenario": "G main thread blocked 3 s mid-walk",
+  "issuedAtPageMs": 31479,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 11343,
+   "text": "walked 5.66 m (walk to the studio); now at x -3.97, z 0.31, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.055,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.973,
+    -2.55,
+    0.306
+   ]
+  },
+  "arrivedMsAfterIssue": 11339,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    2,
+    2.34
+   ],
+   [
+    2.16,
+    1.36
+   ],
+   [
+    0.96,
+    -0.04
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "falseBlocked": false,
+  "ok": true,
+  "timeline": {
+   "worldClicked": -14497,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 57,
+   "waitingForWorld": null,
+   "aimed": 57,
+   "firstMovement": 6050,
+   "arrived": 11339,
+   "answer": 11343,
+   "longTasksOver500ms": [
+    [
+     42,
+     5901
+    ]
+   ],
+   "spatialSamples": [
+    [
+     57,
+     "walking",
+     false,
+     [
+      0.35,
+      -2.55,
+      3.95
+     ]
+    ],
+    [
+     6050,
+     "walking",
+     true,
+     [
+      -2.92,
+      -2.55,
+      2.68
+     ]
+    ],
+    [
+     8146,
+     "walking",
+     true,
+     [
+      -3.86,
+      -2.55,
+      0.55
+     ]
+    ],
+    [
+     11339,
+     "arrived",
+     true,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     12516,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     15120,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     16372,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     17601,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     18884,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ],
+    [
+     20034,
+     "arrived",
+     false,
+     [
+      -3.97,
+      -2.55,
+      0.31
+     ]
+    ]
+   ]
+  }
+ },
+ {
+  "scenario": "O repeated world/Home transitions",
+  "issuedAtPageMs": 121532,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 4668,
+   "text": "walked 4.97 m (walk to the studio); now at x -3.96, z 0.30, 5 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.053,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.962,
+    -2.55,
+    0.298
+   ]
+  },
+  "arrivedMsAfterIssue": 4662,
+  "H_chatWindowObstacle": true,
+  "I_route": [
+   [
+    -2.02,
+    2.2
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "counts": [
+   {
+    "cycle": 1,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 7,
+    "environment": "home",
+    "obstacles": 4
+   },
+   {
+    "cycle": 2,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 11,
+    "environment": null,
+    "obstacles": 4
+   },
+   {
+    "cycle": 3,
+    "spatial": 1,
+    "worlds": 1,
+    "canvases": 2,
+    "ctx": 15,
+    "environment": "home",
+    "obstacles": 4
+   }
+  ],
+  "oneWorldOnePresence": true,
+  "ok": true,
+  "timeline": {
+   "worldClicked": -105379,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 126,
+   "waitingForWorld": null,
+   "aimed": 126,
+   "firstMovement": 3245,
+   "arrived": 4662,
+   "answer": 4668,
+   "longTasksOver500ms": [],
+   "spatialSamples": [
+    [
+     126,
+     "walking",
+     false,
+     [
+      0,
+      -2.55,
+      3.3
+     ]
+    ],
+    [
+     3245,
+     "walking",
+     true,
+     [
+      -3.91,
+      -2.55,
+      0.36
+     ]
+    ],
+    [
+     4662,
+     "arrived",
+     true,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     7716,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     9162,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     10458,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     11720,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ],
+    [
+     14655,
+     "arrived",
+     false,
+     [
+      -3.96,
+      -2.55,
+      0.3
+     ]
+    ]
+   ]
+  }
+ },
+ {
+  "scenario": "R reload: form, world and one presence survive; walk arrives",
+  "issuedAtPageMs": 39837,
+  "answer": {
+   "kind": "arrived (confirmed)",
+   "ms": 7603,
+   "text": "walked 5.62 m (walk to the studio); now at x -3.91, z 0.25, 8 cm from the point"
+  },
+  "final": {
+   "outcome": "arrived",
+   "remaining": 0.081,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "position": [
+    -3.914,
+    -2.55,
+    0.25
+   ]
+  },
+  "arrivedMsAfterIssue": 7599,
+  "H_chatWindowObstacle": false,
+  "I_route": [
+   [
+    2.03,
+    2.32
+   ],
+   [
+    2.16,
+    1.36
+   ],
+   [
+    0.96,
+    -0.04
+   ],
+   [
+    -3.99,
+    0.26
+   ]
+  ],
+  "J_arrived": true,
+  "L_within20s": true,
+  "before": {
+   "form": "hologram",
+   "env": "home"
+  },
+  "after": {
+   "form": "hologram",
+   "env": "home",
+   "counts": {
+    "spatial": 1,
+    "worlds": 1
+   }
+  },
+  "sceneAfterReload": "genesis-v2",
+  "ok": true,
+  "timeline": {
+   "worldClicked": null,
+   "worldDataRequested": null,
+   "worldData": null,
+   "herFirstWorldFrame": 114,
+   "waitingForWorld": null,
+   "aimed": 114,
+   "firstMovement": 2005,
+   "arrived": 7599,
+   "answer": 7603,
+   "longTasksOver500ms": [],
+   "spatialSamples": [
+    [
+     114,
+     "walking",
+     false,
+     [
+      0.28,
+      -2.55,
+      3.99
+     ]
+    ],
+    [
+     2005,
+     "walking",
+     true,
+     [
+      1.8,
+      -2.55,
+      0.4
+     ]
+    ],
+    [
+     3661,
+     "walking",
+     true,
+     [
+      -0.05,
+      -2.55,
+      -0.02
+     ]
+    ],
+    [
+     5245,
+     "walking",
+     true,
+     [
+      -1.86,
+      -2.55,
+      0.11
+     ]
+    ],
+    [
+     6432,
+     "walking",
+     true,
+     [
+      -3.22,
+      -2.55,
+      0.2
+     ]
+    ],
+    [
+     7599,
+     "arrived",
+     true,
+     [
+      -3.91,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     8783,
+     "arrived",
+     false,
+     [
+      -3.91,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     9996,
+     "arrived",
+     false,
+     [
+      -3.91,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     11429,
+     "arrived",
+     false,
+     [
+      -3.91,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     12810,
+     "arrived",
+     false,
+     [
+      -3.91,
+      -2.55,
+      0.25
+     ]
+    ],
+    [
+     16739,
+     "arrived",
+     false,
+     [
+      -3.91,
+      -2.55,
+      0.25
+     ]
+    ]
+   ]
+  }
+ },
+ {
+  "scenario": "N walk asked, her world never opened",
+  "answer": {
+   "kind": "command-rejected",
+   "ms": 19401,
+   "text": "I'm not in my world right now, so I haven't started walking (walk to the studio). Open my world (Worlds → Her world) and ask me again, and I'll do it there"
+  },
+  "honest": true,
+  "beforeDeadline": true,
+  "noWorldMounted": true,
+  "ok": true
+ }
+]

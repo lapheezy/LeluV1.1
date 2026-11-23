@@ -1,0 +1,50 @@
+{
+  "app": "Code",
+  "label": "wp04-2",
+  "longTasks": 8,
+  "longTaskMs": 1474,
+  "worst": 716,
+  "byOwner": [
+    "913ms (no src) (program)",
+    "715ms (no src) loseContext",
+    "104ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "88ms (no src) (garbage collector)",
+    "65ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "62ms (no src) exports.createElement",
+    "54ms GenesisEngineeringPanel src/app/scene/genesis/GenesisEngineeringPanel.tsx:51",
+    "51ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "44ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "40ms (no src) run",
+    "40ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:2721",
+    "39ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "37ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "37ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "32ms (no src) commitUpdate",
+    "30ms (anon) src/app/scene/genesis/VisualInterface.tsx:412",
+    "30ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "30ms Portal src/app/scene/spatial/SpatialPortals.tsx:113"
+  ],
+  "byLeaf": [
+    "913ms (program) ",
+    "808ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "715ms loseContext ",
+    "114ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "88ms (garbage collector) ",
+    "65ms update EngineRegistry.ts",
+    "62ms exports.createElement react.js",
+    "39ms run ",
+    "30ms createTask ",
+    "24ms now ",
+    "23ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "22ms react_stack_bottom_frame react-dom_client.js",
+    "22ms exports.jsx react_jsx-runtime.js",
+    "20ms createWorkInProgress react-dom_client.js",
+    "19ms validateProperty react-dom_client.js",
+    "18ms performWorkUntilDeadline scheduler-CpdqvMxI.js",
+    "17ms updateViewport GenesisModuleHost.tsx",
+    "15ms removeChild react-three-fiber.esm-DeNFsCiz.js"
+  ],
+  "stacks": [
+    "2013 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

@@ -1257,6 +1257,13 @@ body:has([data-lelu-fullscreen]) [data-lelu-build] { display: none; }
 [data-portal-panel] {
   pointer-events: none;
 }
+
+/* The Spatial side tab steps aside while a menu sheet (App Library, Windows,
+   Worlds) is open: it is above the sheet's stacking layer and sat over its
+   left-hand tiles. */
+body:has(.lsh-backdrop) [data-spatial-nav-tab] {
+  display: none !important; /* the tab's own display is an inline style */
+}
 [data-spatial-nav] button,
 [data-spatial-nav] a,
 [data-spatial-nav] input,

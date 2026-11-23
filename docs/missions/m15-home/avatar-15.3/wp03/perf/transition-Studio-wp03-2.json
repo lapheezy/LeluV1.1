@@ -1,0 +1,50 @@
+{
+  "app": "Studio",
+  "label": "wp03-2",
+  "longTasks": 4,
+  "longTaskMs": 779,
+  "worst": 407,
+  "byOwner": [
+    "879ms (no src) (program)",
+    "406ms (no src) loseContext",
+    "73ms (no src) (garbage collector)",
+    "68ms GenesisRenderPanel src/app/scene/genesis/GenesisRenderPanel.tsx:62",
+    "52ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "47ms (no src) exports.createElement",
+    "44ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "43ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "42ms (anon) src/app/scene/genesis/GenesisRenderPanel.tsx:411",
+    "42ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "39ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "35ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148",
+    "34ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "33ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "33ms (no src) react_stack_bottom_frame",
+    "30ms (no src) run",
+    "30ms (anon) src/app/scene/genesis/VisualInterface.tsx:579",
+    "29ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631"
+  ],
+  "byLeaf": [
+    "879ms (program) ",
+    "706ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "406ms loseContext ",
+    "73ms (garbage collector) ",
+    "52ms update EngineRegistry.ts",
+    "49ms createTask ",
+    "47ms exports.createElement react.js",
+    "41ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "39ms ReactElement react_jsx-dev-runtime.js",
+    "29ms react_stack_bottom_frame react-dom_client.js",
+    "26ms run ",
+    "19ms setValueForStyles react-dom_client.js",
+    "17ms now ",
+    "17ms updateProperties react-dom_client.js",
+    "16ms measure ",
+    "16ms exports.jsx react_jsx-runtime.js",
+    "15ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "12ms updateViewport GenesisModuleHost.tsx"
+  ],
+  "stacks": [
+    "1058 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

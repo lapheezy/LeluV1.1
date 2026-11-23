@@ -1,0 +1,3175 @@
+[
+ {
+  "t": 77856,
+  "ev": "universe",
+  "open": false
+ },
+ {
+  "t": 77856,
+  "ev": "render-budget",
+  "mode": "full"
+ },
+ {
+  "t": 77871,
+  "ev": "enter-world-clicked"
+ },
+ {
+  "t": 78857,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 82831,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 83870,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 86627,
+  "ev": "spatial",
+  "position": [
+   0,
+   -2.55,
+   3.3
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.227,
+   -2.55,
+   4.029
+  ],
+  "windows": [],
+  "obstacles": 4,
+  "environment": null
+ },
+ {
+  "t": 88717,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 88735,
+  "ev": "world-load-start",
+  "url": "/api/forge/world"
+ },
+ {
+  "t": 88739,
+  "ev": "world-load-start",
+  "url": "/api/forge/world/avatar/lelu_character"
+ },
+ {
+  "t": 88739,
+  "ev": "world-load-start",
+  "url": "/api/forge/world"
+ },
+ {
+  "t": 89016,
+  "ev": "spatial",
+  "position": [
+   0.268,
+   -2.55,
+   3.993
+  ],
+  "walking": true,
+  "goal": null,
+  "target": [
+   0.227,
+   -2.55,
+   4.029
+  ],
+  "windows": [],
+  "obstacles": 4,
+  "environment": null
+ },
+ {
+  "t": 89028,
+  "ev": "world-load-done",
+  "url": "/api/forge/world",
+  "status": 200
+ },
+ {
+  "t": 89030,
+  "ev": "world-load-done",
+  "url": "/api/forge/world/avatar/lelu_character",
+  "status": 200
+ },
+ {
+  "t": 89030,
+  "ev": "world-load-done",
+  "url": "/api/forge/world",
+  "status": 200
+ },
+ {
+  "t": 89066,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 91356,
+  "ev": "spatial",
+  "position": [
+   0.27,
+   -2.55,
+   3.991
+  ],
+  "walking": true,
+  "goal": null,
+  "target": [
+   0.227,
+   -2.55,
+   4.029
+  ],
+  "windows": [],
+  "obstacles": 4,
+  "environment": "home"
+ },
+ {
+  "t": 91369,
+  "ev": "page-fps",
+  "fps": 3
+ },
+ {
+  "t": 92262,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 92746,
+  "ev": "spatial",
+  "position": [
+   0.27,
+   -2.55,
+   3.991
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.227,
+   -2.55,
+   4.029
+  ],
+  "windows": [],
+  "obstacles": 4,
+  "environment": "home"
+ },
+ {
+  "t": 97035,
+  "ev": "spatial",
+  "position": [
+   0.27,
+   -2.55,
+   3.991
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.227,
+   -2.55,
+   4.029
+  ],
+  "windows": [],
+  "obstacles": 4,
+  "environment": "home"
+ },
+ {
+  "t": 97040,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 97066,
+  "ev": "universe",
+  "open": true
+ },
+ {
+  "t": 97085,
+  "ev": "render-budget",
+  "mode": "paused"
+ },
+ {
+  "t": 97857,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 98857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 99870,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 101831,
+  "ev": "page-fps",
+  "fps": 5
+ },
+ {
+  "t": 102110,
+  "ev": "harness-submitted",
+  "words": "walk to the studio"
+ },
+ {
+  "t": 102183,
+  "ev": "command-issued",
+  "kind": "move",
+  "label": "walk to the studio",
+  "timeout": 20000,
+  "target": {
+   "place": "studio"
+  }
+ },
+ {
+  "t": 102183,
+  "ev": "command-delivered",
+  "id": "avatar-cmd-5-1794830170439",
+  "kind": "move",
+  "target": {
+   "place": "studio"
+  }
+ },
+ {
+  "t": 102183,
+  "ev": "universe",
+  "open": false
+ },
+ {
+  "t": 102214,
+  "ev": "render-budget",
+  "mode": "full"
+ },
+ {
+  "t": 102539,
+  "ev": "spatial",
+  "position": [
+   0.27,
+   -2.55,
+   3.991
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 5.669,
+   "route": [
+    [
+     2.67,
+     3.99
+    ],
+    [
+     1.68,
+     0.68
+    ],
+    [
+     0.08,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   2.67,
+   -2.55,
+   3.991
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:360",
+    "x": 0.006412228464973864,
+    "z": 4.123211124160851,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 102871,
+  "ev": "page-fps",
+  "fps": 5
+ },
+ {
+  "t": 103857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 104187,
+  "ev": "spatial",
+  "position": [
+   2.755,
+   -2.55,
+   1.521
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 6.867,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   2.68,
+   -2.55,
+   1.28
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 104857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 105522,
+  "ev": "spatial",
+  "position": [
+   1.803,
+   -2.55,
+   0.565
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 5.806,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 2,
+   "replans": 0
+  },
+  "target": [
+   0.68,
+   -2.55,
+   -0.12
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 105857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 106859,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 107033,
+  "ev": "spatial",
+  "position": [
+   0.258,
+   -2.55,
+   -0.079
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 4.266,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.995,
+   -2.55,
+   0.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 107857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 108472,
+  "ev": "spatial",
+  "position": [
+   -1.391,
+   -2.55,
+   0.051
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 2.611,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.995,
+   -2.55,
+   0.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 108857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 109627,
+  "ev": "spatial",
+  "position": [
+   -2.714,
+   -2.55,
+   0.155
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 1.285,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.995,
+   -2.55,
+   0.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 109857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 110857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 110872,
+  "ev": "spatial",
+  "position": [
+   -3.83,
+   -2.55,
+   0.243
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 0.166,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.995,
+   -2.55,
+   0.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 111857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 112193,
+  "ev": "bus-confirm",
+  "id": "avatar-cmd-5-1794830170439",
+  "text": "walked 5.63 m (walk to the studio); now at x -3.94, z 0.25, 5 cm from the point"
+ },
+ {
+  "t": 112193,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.995,
+   -2.55,
+   0.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 112202,
+  "ev": "command-resolved",
+  "label": "walk to the studio",
+  "observation": "walked 5.63 m (walk to the studio); now at x -3.94, z 0.25, 5 cm from the point"
+ },
+ {
+  "t": 112283,
+  "ev": "harness-read-reply",
+  "words": "walk to the studio",
+  "text": "Done — watch my environment. walked 5.63 m (walk to the studio); now at x -3.94, z 0.25, 5 cm from the point. My telemetry verified the movement myself."
+ },
+ {
+  "t": 112857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 113557,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 113857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 114857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 114899,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 115857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 116414,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 116857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 117627,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 117857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 118819,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 118874,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 119031,
+  "ev": "harness-step-done",
+  "words": "walk to the studio"
+ },
+ {
+  "t": 119857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 120036,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 120857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 121332,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-5-1794830170439",
+   "label": "walk to the studio",
+   "place": "studio",
+   "ready": true,
+   "point": [
+    -3.99,
+    0.26
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.054,
+   "route": [
+    [
+     3.03,
+     2.91
+    ],
+    [
+     2.68,
+     1.28
+    ],
+    [
+     0.68,
+     -0.12
+    ],
+    [
+     -3.99,
+     0.26
+    ]
+   ],
+   "routeIndex": 3,
+   "replans": 0
+  },
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 121532,
+  "ev": "harness-submitted",
+  "words": "face me"
+ },
+ {
+  "t": 121594,
+  "ev": "command-issued",
+  "kind": "look",
+  "label": "face you",
+  "timeout": 8000,
+  "target": {
+   "place": "viewer"
+  }
+ },
+ {
+  "t": 121594,
+  "ev": "command-delivered",
+  "id": "avatar-cmd-6-1794830189850",
+  "kind": "look",
+  "target": {
+   "place": "viewer"
+  }
+ },
+ {
+  "t": 121857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 122656,
+  "ev": "bus-confirm",
+  "id": "avatar-cmd-6-1794830189850",
+  "text": "turned to you (heading 383°, within 2.4°)"
+ },
+ {
+  "t": 122656,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 122660,
+  "ev": "command-resolved",
+  "label": "face you",
+  "observation": "turned to you (heading 383°, within 2.4°)"
+ },
+ {
+  "t": 122757,
+  "ev": "harness-read-reply",
+  "words": "face me",
+  "text": "Done — watch my environment. turned to you (heading 383°, within 2.4°). My telemetry verified the movement myself."
+ },
+ {
+  "t": 122857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 123857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 123947,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 124857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 125227,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 125857,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 126857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 127857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 128209,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 128857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 129530,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 129789,
+  "ev": "harness-step-done",
+  "words": "face me"
+ },
+ {
+  "t": 129857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 130770,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 130857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 131857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 131938,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 132171,
+  "ev": "harness-submitted",
+  "words": "come closer"
+ },
+ {
+  "t": 132458,
+  "ev": "command-issued",
+  "kind": "move",
+  "label": "come closer",
+  "timeout": 20000,
+  "target": {
+   "place": "viewer"
+  }
+ },
+ {
+  "t": 132458,
+  "ev": "command-delivered",
+  "id": "avatar-cmd-7-1794830200715",
+  "kind": "move",
+  "target": {
+   "place": "viewer"
+  }
+ },
+ {
+  "t": 132857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 133201,
+  "ev": "spatial",
+  "position": [
+   -3.941,
+   -2.55,
+   0.251
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 8.768,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 133857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 134494,
+  "ev": "spatial",
+  "position": [
+   -3.35,
+   -2.55,
+   1.621
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 7.276,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 134857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 135673,
+  "ev": "spatial",
+  "position": [
+   -2.814,
+   -2.55,
+   2.864
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 5.922,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 135857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 136857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 137011,
+  "ev": "spatial",
+  "position": [
+   -2.205,
+   -2.55,
+   4.276
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 4.385,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 137857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 138278,
+  "ev": "spatial",
+  "position": [
+   -1.627,
+   -2.55,
+   5.615
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 2.927,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 138857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 139512,
+  "ev": "spatial",
+  "position": [
+   -1.065,
+   -2.55,
+   6.917
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 1.509,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 139857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 140857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 140876,
+  "ev": "spatial",
+  "position": [
+   -0.544,
+   -2.55,
+   8.125
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 0.193,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 141857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 142339,
+  "ev": "bus-confirm",
+  "id": "avatar-cmd-7-1794830200715",
+  "text": "walked 8.72 m (come closer); now at x -0.49, z 8.26, 5 cm from the point"
+ },
+ {
+  "t": 142339,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.468,
+   -2.55,
+   8.302
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 142342,
+  "ev": "command-resolved",
+  "label": "come closer",
+  "observation": "walked 8.72 m (come closer); now at x -0.49, z 8.26, 5 cm from the point"
+ },
+ {
+  "t": 142476,
+  "ev": "harness-read-reply",
+  "words": "come closer",
+  "text": "Done — watch my environment. walked 8.72 m (come closer); now at x -0.49, z 8.26, 5 cm from the point. My telemetry verified the movement myself."
+ },
+ {
+  "t": 142857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 143857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 143917,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 144857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 145468,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 145857,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 146857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 147857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 148364,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 148857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 149777,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 149857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 149954,
+  "ev": "harness-step-done",
+  "words": "come closer"
+ },
+ {
+  "t": 150857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 151244,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 151857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 152701,
+  "ev": "spatial",
+  "position": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-7-1794830200715",
+   "label": "come closer",
+   "place": "viewer",
+   "ready": true,
+   "point": [
+    -0.47,
+    8.3
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.05,
+   "route": [
+    [
+     -0.47,
+     8.3
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.488,
+   -2.55,
+   8.256
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 152848,
+  "ev": "harness-submitted",
+  "words": "dance"
+ },
+ {
+  "t": 152899,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 152931,
+  "ev": "command-issued",
+  "kind": "dance",
+  "label": "dance"
+ },
+ {
+  "t": 152931,
+  "ev": "command-delivered",
+  "id": "avatar-cmd-8-1794830221187",
+  "kind": "dance",
+  "target": null
+ },
+ {
+  "t": 153857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 153954,
+  "ev": "spatial",
+  "position": [
+   0.035,
+   -2.55,
+   6.915
+  ],
+  "walking": true,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 153985,
+  "ev": "bus-confirm",
+  "id": "avatar-cmd-8-1794830221187",
+  "text": "played her “dance_love” animation (hand moved 212 cm)"
+ },
+ {
+  "t": 153985,
+  "ev": "command-resolved",
+  "label": "dance",
+  "observation": "played her “dance_love” animation (hand moved 212 cm)"
+ },
+ {
+  "t": 154074,
+  "ev": "harness-read-reply",
+  "words": "dance",
+  "text": "Done — watch my environment. played her “dance_love” animation (hand moved 212 cm). My telemetry verified the movement myself."
+ },
+ {
+  "t": 154857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 155307,
+  "ev": "spatial",
+  "position": [
+   0.541,
+   -2.55,
+   5.617
+  ],
+  "walking": true,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 155857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 156645,
+  "ev": "spatial",
+  "position": [
+   0.611,
+   -2.55,
+   5.437
+  ],
+  "walking": true,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 156879,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 157857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 158857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 159635,
+  "ev": "spatial",
+  "position": [
+   0.611,
+   -2.55,
+   5.437
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 159857,
+  "ev": "page-fps",
+  "fps": 2
+ },
+ {
+  "t": 160857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 161198,
+  "ev": "spatial",
+  "position": [
+   0.611,
+   -2.55,
+   5.437
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 161432,
+  "ev": "harness-step-done",
+  "words": "dance"
+ },
+ {
+  "t": 161857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 162698,
+  "ev": "spatial",
+  "position": [
+   0.611,
+   -2.55,
+   5.437
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 162857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 163857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 164236,
+  "ev": "spatial",
+  "position": [
+   0.611,
+   -2.55,
+   5.437
+  ],
+  "walking": false,
+  "goal": null,
+  "target": [
+   0.631,
+   -2.55,
+   5.386
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 164391,
+  "ev": "harness-submitted",
+  "words": "go back to your spot"
+ },
+ {
+  "t": 164462,
+  "ev": "command-issued",
+  "kind": "move",
+  "label": "walk to her spot",
+  "timeout": 20000,
+  "target": {
+   "place": "home"
+  }
+ },
+ {
+  "t": 164462,
+  "ev": "command-delivered",
+  "id": "avatar-cmd-9-1794830232718",
+  "kind": "move",
+  "target": {
+   "place": "home"
+  }
+ },
+ {
+  "t": 164857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 165725,
+  "ev": "spatial",
+  "position": [
+   0.611,
+   -2.55,
+   5.437
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "walking",
+   "arrived": false,
+   "resolved": false,
+   "reported": false,
+   "remaining": 1.073,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 0,
+   "replans": 0
+  },
+  "target": [
+   -0.52,
+   -2.55,
+   5.28
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 165857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 166857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 167247,
+  "ev": "bus-confirm",
+  "id": "avatar-cmd-9-1794830232718",
+  "text": "walked 1.04 m (walk to her spot); now at x -0.42, z 5.29, 5 cm from the point"
+ },
+ {
+  "t": 167247,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": true,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.445,
+   -2.55,
+   5.25
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 167250,
+  "ev": "command-resolved",
+  "label": "walk to her spot",
+  "observation": "walked 1.04 m (walk to her spot); now at x -0.42, z 5.29, 5 cm from the point"
+ },
+ {
+  "t": 167639,
+  "ev": "harness-read-reply",
+  "words": "go back to your spot",
+  "text": "Done — watch my environment. walked 1.04 m (walk to her spot); now at x -0.42, z 5.29, 5 cm from the point. My telemetry verified the movement myself."
+ },
+ {
+  "t": 167857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 168740,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 168857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 169857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 170186,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 170857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 171775,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 171857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 172858,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 173306,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 173857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 174723,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 174857,
+  "ev": "page-fps",
+  "fps": 1
+ },
+ {
+  "t": 175857,
+  "ev": "page-fps",
+  "fps": 0
+ },
+ {
+  "t": 176168,
+  "ev": "spatial",
+  "position": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "walking": false,
+  "goal": {
+   "id": "avatar-cmd-9-1794830232718",
+   "label": "walk to her spot",
+   "place": "home",
+   "ready": true,
+   "point": [
+    -0.45,
+    5.25
+   ],
+   "outcome": "arrived",
+   "arrived": true,
+   "resolved": true,
+   "reported": false,
+   "remaining": 0.051,
+   "route": [
+    [
+     -0.52,
+     5.28
+    ],
+    [
+     -0.45,
+     5.25
+    ]
+   ],
+   "routeIndex": 1,
+   "replans": 0
+  },
+  "target": [
+   -0.42,
+   -2.55,
+   5.294
+  ],
+  "windows": [
+   {
+    "id": "window:chat:3cf248b7-ea7b-440a-98ab-7633edf54840:0:400",
+    "x": 0.3145193096503312,
+    "z": 2.7788626080394607,
+    "radius": 2.2
+   }
+  ],
+  "obstacles": 5,
+  "environment": "home"
+ },
+ {
+  "t": 176372,
+  "ev": "harness-step-done",
+  "words": "go back to your spot"
+ }
+]

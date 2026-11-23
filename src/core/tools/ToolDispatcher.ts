@@ -954,22 +954,39 @@ const CORE_EXECUTORS: ToolExecutor[] = [
           type: "boolean",
           description: "true to stop staying where the user dragged you and pick an out-of-the-way spot yourself.",
         },
+        form: {
+          type: "string",
+          enum: ["auto", "embodied", "hologram"],
+          description: "Your form everywhere: embodied (as you are), hologram (the same you, projected), or auto (each interface chooses).",
+        },
+        framing: {
+          type: "string",
+          enum: ["auto", "full", "face"],
+          description: "Your framing everywhere: full (all of you), face (head and shoulders), or auto (each interface chooses).",
+        },
       },
     },
     run: async (args) => {
       const { default: CompanionStore } = await import("../avatar/CompanionStore");
+      const { default: LeluCharacterStore } = await import("../avatar/LeluCharacterStore");
       const store = CompanionStore.getInstance();
       if (typeof args.enabled === "boolean") store.setEnabled(args.enabled);
       const size = str(args, "size");
       if (size === "small" || size === "medium" || size === "large") store.setSize(size);
       if (args.chooseOwnSpot === true) store.unpin();
+      const character = LeluCharacterStore.getInstance();
+      const form = str(args, "form");
+      if (form === "auto" || form === "embodied" || form === "hologram") character.setForm(form);
+      const framing = str(args, "framing");
+      if (framing === "auto" || framing === "full" || framing === "face") character.setFraming(framing);
       const state = store.get();
+      const look = character.get();
       return {
         ok: true,
         content: state.enabled
-          ? `Companion mode is ON (${state.size}${state.pinned ? ", staying where the user placed you" : ", choosing your own out-of-the-way spot"}).`
+          ? `Companion mode is ON (${state.size}${state.pinned ? ", staying where the user placed you" : ", choosing your own out-of-the-way spot"}); form ${look.form}, framing ${look.framing}.`
           : "Companion mode is OFF.",
-        data: state,
+        data: { ...state, form: look.form, framing: look.framing },
       };
     },
   },
@@ -995,6 +1012,36 @@ const CORE_EXECUTORS: ToolExecutor[] = [
       try {
         // Resolves only when a live renderer measured her body moving.
         const observation = await AvatarCommandBus.getInstance().issue(gesture, gesture);
+        return { ok: true, content: `Done: ${observation}.` };
+      } catch (reason) {
+        return { ok: false, content: `Not performed: ${reason instanceof Error ? reason.message : String(reason)}` };
+      }
+    },
+  },
+
+  {
+    id: "avatar.move",
+    parameters: {
+      type: "object",
+      properties: {
+        to: {
+          type: "string",
+          enum: ["viewer", "home", "core", "studio", "lab", "vault", "away", "left", "right", "center"],
+          description:
+            "Where to go (or, with face: true, what to turn toward). In your world: viewer (the person), home (your own spot), core, studio, lab, vault, away (step back from the person). Over the interface: left, right, center, home.",
+        },
+        face: { type: "boolean", description: "true to turn toward it instead of walking there." },
+      },
+      required: ["to"],
+    },
+    run: async (args) => {
+      const { default: AvatarCommandBus, AVATAR_PLACES } = await import("../avatar/AvatarCommandBus");
+      const to = str(args, "to") as (typeof AVATAR_PLACES)[number];
+      if (!AVATAR_PLACES.includes(to)) return { ok: false, content: `Unknown place “${to}”.` };
+      const face = args.face === true;
+      try {
+        // Resolves only when a live presence measured her arriving (or turning).
+        const observation = await AvatarCommandBus.getInstance().issue(face ? "look" : "move", face ? `face ${to}` : `walk to ${to}`, face ? 8_000 : 20_000, { place: to });
         return { ok: true, content: `Done: ${observation}.` };
       } catch (reason) {
         return { ok: false, content: `Not performed: ${reason instanceof Error ? reason.message : String(reason)}` };

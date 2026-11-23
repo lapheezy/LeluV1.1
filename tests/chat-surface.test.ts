@@ -382,19 +382,29 @@ test("a phone sheet owns the screen and the Universe stays one tap away (no stac
   assert.match(bar, /const hideAll = \(\) => \{\s*for \(const id of ids\) actions\.minimizeModule\(id\);/, "back minimizes (keeps running), never closes");
 });
 
-test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
+test("Step 3 (revised M15.3): under a phone sheet LÉLU's single presence stays mounted and LIVE; she rests on a still only on a measured light device (no unmount, no hidden WebGL)", () => {
   // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
-  // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at
-  // the least obstructive edge, paused (a live canvas beside a sheet stalled the page), and in a world view
-  // she is hidden AND paused — never a hidden canvas that keeps drawing.
+  // the GPU). Step 3 kept ONE presence but PAUSED her beside every phone sheet
+  // on every device, and stopped her whenever the Cosmos was occluded — the
+  // "she freezes on other screens" defect M15.3 was asked to fix. M15.3
+  // measured (393×852, SwiftShader) that the stall is the software compositor
+  // (her canvas hidden but drawing: 42 fps; any visible animating canvas,
+  // even a plain 2D one: 2–7 fps), so the rest on a still is kept ONLY for a
+  // device the render manager measured as "light". The invariants of Step 3
+  // stand: never unmounted under a sheet, and in a world view hidden AND
+  // paused — never a hidden canvas that keeps drawing.
   const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
   assert.doesNotMatch(companion, /return null;\s*\/\/ Where she belongs/, "no unmount under a sheet");
-  assert.match(companion, /paused=\{inWorld \|\| underSheet\}/, "hidden in a world, or beside a phone sheet ⇒ paused (measured stall otherwise)");
-  assert.match(companion, /scale\(\$\{scale\.toFixed\(4\)\}\)/, "under a sheet she is scaled, not resized (a resize clears her last frame)");
+  assert.match(companion, /paused=\{inWorld \|\| lowPowerRest\}/, "paused only when hidden in a world, or in the measured low-power rest");
+  assert.match(companion, /const lowPowerRest = restsOnStill\(\{ besidePhoneSheet: underSheet, renderProfile \}\);/, "the rest is the measured light-device rule, not every phone");
+  assert.match(companion, /visibility: inWorld \? "hidden" : "visible"/, "hidden only in a world (where she stands in the scene) — never because windows crowd");
   assert.match(companion, /underSheet \? CHAT_WINDOW_Z \+ 10/, "above the sheet, not hidden behind it");
   assert.match(companion, /const underSheet = compact && !surface\.cosmosRendered;/);
+  const profile = readFileSync("src/app/scene/genesis/avatar/presentationProfile.ts", "utf8");
+  assert.match(profile, /return input\.besidePhoneSheet && input\.renderProfile === "light";/);
   const character3d = readFileSync("src/app/scene/genesis/avatar/LeluCharacter3D.tsx", "utf8");
-  assert.match(character3d, /if \(mode === "paused" \|\| paused\) return;/);
+  assert.match(character3d, /if \(paused\) return;/, "she stops drawing only when her own presence pauses her");
+  assert.doesNotMatch(character3d, /mode === "paused" \|\| paused/, "a covered Cosmos no longer freezes her (she is drawn above what covers it)");
 });
 
 
