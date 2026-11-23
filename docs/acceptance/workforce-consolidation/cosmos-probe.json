@@ -1,0 +1,71 @@
+{
+  "desktop-default": {
+    "canvases": [
+      {
+        "w": 480,
+        "h": 270,
+        "cls": ""
+      },
+      {
+        "w": 1440,
+        "h": 900,
+        "cls": ""
+      },
+      {
+        "w": 101,
+        "h": 139,
+        "cls": ""
+      }
+    ],
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rafPerSecond": 12,
+    "heapMb": 183,
+    "pageErrors": []
+  },
+  "desktop-perf-world": {
+    "canvases": [
+      {
+        "w": 480,
+        "h": 270,
+        "cls": ""
+      },
+      {
+        "w": 1440,
+        "h": 900,
+        "cls": ""
+      },
+      {
+        "w": 101,
+        "h": 139,
+        "cls": ""
+      }
+    ],
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rafPerSecond": 12,
+    "heapMb": 176,
+    "pageErrors": []
+  },
+  "iphone-perf-world": {
+    "canvases": [
+      {
+        "w": 480,
+        "h": 270,
+        "cls": ""
+      },
+      {
+        "w": 390,
+        "h": 664,
+        "cls": ""
+      },
+      {
+        "w": 101,
+        "h": 139,
+        "cls": ""
+      }
+    ],
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rafPerSecond": 26,
+    "heapMb": 182,
+    "pageErrors": []
+  }
+}

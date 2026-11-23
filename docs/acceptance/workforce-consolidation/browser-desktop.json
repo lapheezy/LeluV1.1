@@ -1,0 +1,95 @@
+{
+  "mode": "desktop",
+  "url": "http://127.0.0.1:4173/",
+  "startedAt": "2026-11-23T03:31:40.872Z",
+  "steps": {
+    "load": {
+      "wallLoadMs": 513,
+      "ttfbMs": 2,
+      "domContentLoadedMs": 86,
+      "loadEventMs": 507,
+      "paints": {
+        "first-paint": 32,
+        "first-contentful-paint": 116
+      },
+      "resources": 250,
+      "transferredKb": 3892,
+      "jsKb": 3780,
+      "mem": {
+        "usedJSHeapMb": 181,
+        "totalJSHeapMb": 228
+      }
+    },
+    "guestEntry": {
+      "shown": false
+    },
+    "chatOpen": {
+      "composerVisible": true
+    },
+    "chatTurn": {
+      "sent": true,
+      "replyObserved": true,
+      "secondsToReply": 7.9,
+      "replyText": "Got it — WFMWSPLV8A confirmed.",
+      "replyMentionsCodeword": true
+    },
+    "reload": {
+      "reloadMs": 6155,
+      "messageWithCodewordVisibleAfterReload": true,
+      "assistantMessagesAfterReload": 1,
+      "tokenInLocalStorage": true
+    },
+    "networkInterruption": {
+      "appStillMountedOffline": true,
+      "healthzAfterReconnect": 200
+    },
+    "microphone": {
+      "secureContext": true,
+      "granted": true,
+      "tracks": [
+        {
+          "label": "Fake Default Audio Input",
+          "state": "live"
+        }
+      ],
+      "voiceToggleRendered": true
+    },
+    "cosmos": {
+      "buttonFound": true
+    }
+  },
+  "usedJSHeapMbAtEnd": 202,
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "pageErrors": [],
+  "failedRequests": [
+    "net::ERR_CONNECTION_REFUSED http://localhost:11434/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8080/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:1234/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8000/v1/models",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "net::ERR_ABORTED http://127.0.0.1:4173/api/model/openrouter/chat/completions",
+    "net::ERR_CONNECTION_REFUSED http://localhost:11434/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8080/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:1234/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8000/v1/models",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "503 http://127.0.0.1:4173/api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3DProcedural%2Benvironment%2Bgeneration%2BTechniqu"
+  ],
+  "finishedAt": "2026-11-23T03:32:08.530Z"
+}

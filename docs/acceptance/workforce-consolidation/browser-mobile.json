@@ -1,0 +1,103 @@
+{
+  "mode": "mobile",
+  "url": "http://127.0.0.1:4173/",
+  "startedAt": "2026-11-23T03:32:09.126Z",
+  "steps": {
+    "load": {
+      "wallLoadMs": 470,
+      "ttfbMs": 3,
+      "domContentLoadedMs": 92,
+      "loadEventMs": 464,
+      "paints": {
+        "first-paint": 44,
+        "first-contentful-paint": 136
+      },
+      "resources": 250,
+      "transferredKb": 3935,
+      "jsKb": 3824,
+      "mem": {
+        "usedJSHeapMb": 186,
+        "totalJSHeapMb": 225
+      }
+    },
+    "guestEntry": {
+      "shown": false
+    },
+    "chatOpen": {
+      "composerVisible": true
+    },
+    "chatTurn": {
+      "sent": true,
+      "replyObserved": true,
+      "secondsToReply": 5.7,
+      "replyText": "Got it — WFMWSPMGH5 confirmed.",
+      "replyMentionsCodeword": true
+    },
+    "reload": {
+      "reloadMs": 4168,
+      "messageWithCodewordVisibleAfterReload": true,
+      "assistantMessagesAfterReload": 1,
+      "tokenInLocalStorage": true
+    },
+    "networkInterruption": {
+      "appStillMountedOffline": true,
+      "healthzAfterReconnect": 200
+    },
+    "microphone": {
+      "secureContext": true,
+      "granted": true,
+      "tracks": [
+        {
+          "label": "Fake Default Audio Input",
+          "state": "live"
+        }
+      ],
+      "voiceToggleRendered": true
+    },
+    "cosmos": {
+      "buttonFound": false
+    }
+  },
+  "usedJSHeapMbAtEnd": 156,
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "pageErrors": [],
+  "failedRequests": [
+    "net::ERR_CONNECTION_REFUSED http://localhost:11434/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8080/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:1234/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8000/v1/models",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "net::ERR_CONNECTION_REFUSED http://localhost:11434/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8080/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:1234/v1/models",
+    "net::ERR_CONNECTION_REFUSED http://localhost:8000/v1/models",
+    "503 http://127.0.0.1:4173/api/engineer/status",
+    "503 http://127.0.0.1:4173/api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3DLatest%2Bfrontier%2Bmodel%2Barchitectures%2BCurr",
+    "503 http://127.0.0.1:4173/api/knowledge/relay?provider=gnews&path=%2Fapi%2Fv4%2Fsearch%3Fq%3DLatest%2520frontier%2520model%2520architectures%2520Current%2520SOTA%25",
+    "503 http://127.0.0.1:4173/api/knowledge/relay?provider=guardian&path=%2Fsearch%3Fq%3DLatest%2520frontier%2520model%2520architectures%2520Current%2520SOTA%2520model%",
+    "503 http://127.0.0.1:4173/api/knowledge/relay?provider=newsdata&path=%2Fapi%2F1%2Fnews%3Fq%3DLatest%2520frontier%2520model%2520architectures%2520Current%2520SOTA%25",
+    "net::ERR_FAILED https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricin",
+    "503 http://127.0.0.1:4173/api/knowledge/relay?provider=news&path=%2Fv2%2Feverything%3Fq%3DLatest%2520frontier%2520model%2520architectures%2520Current%2520SOTA%2520m"
+  ],
+  "finishedAt": "2026-11-23T03:32:30.025Z"
+}
