@@ -13,11 +13,15 @@
  *
  * 2. @source scans this directory rather than "../src", so utility
  *    generation covers the OG tree only and v1.1's 131k lines are not
- *    walked on every rebuild.
+ *    walked on every rebuild. `source(none)` turns OFF Tailwind's automatic
+ *    project-root detection, which @source alone does not: after the
+ *    workforce consolidation the repo tracks ~5 GB of evidence and assets,
+ *    and the root scan took the production build from 8 s to 379 s while
+ *    adding only selectors scraped from evidence files (none used in src).
  */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
 @source ".";
 @import "tw-animate-css";
 

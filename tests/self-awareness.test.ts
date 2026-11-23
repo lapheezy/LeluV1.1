@@ -20,7 +20,11 @@ test("her change list is git itself: the newest commit, any author, is in it", (
   const changes = listChanges(ROOT, 5);
   assert.ok(changes.length > 0);
   assert.ok(head.startsWith(changes[0].hash));
-  assert.ok(changes[0].author && changes[0].subject && changes[0].areas.length > 0);
+  assert.ok(changes[0].author && changes[0].subject);
+  // A merge that only records ancestry changes no file, so it truthfully has
+  // no area; every change that touched files names at least one.
+  for (const c of changes) assert.ok(c.files === 0 || c.areas.length > 0, c.hash);
+  assert.ok(listChanges(ROOT, 30).some((c) => c.areas.length > 0));
   assert.equal(areaOf("leluverse/assets/characters/lelu_character/meshes/v029_look_rose_gold_sovereign/lelu.glb"), "my body and outfits (3D assets)");
   assert.equal(areaOf("src/core/avatar/OutfitDirector.ts"), "my avatar and wardrobe behaviour");
 });
