@@ -105,14 +105,15 @@ exposure. Revoking it is a one-line follow-up that needs approval.
 
 ## 7. Rollback snapshot
 
-Schema `lelu_migration_guard_20261123`… see the table `lelu_migration_guard_20261123` (the name in the mission:
-`lelu_migration_guard_20261123`). It holds copies of projects, conversations, knowledge_items,
-user_preferences and memory_items — 3,409 rows, inaccessible to anon and authenticated. **It was not
-inspected or modified by this change, and it must not be deleted.**
+Name from the mission: `lelu_migration_guard_20261123`. **Not inspected or modified in this run**;
+its existence and row count (3,409 across projects, conversations, knowledge_items,
+user_preferences and memory_items) come from the mission brief, not from a query made here.
+It must not be deleted.
 
-**Limitations.** This snapshot lives in the same database it protects. It does not survive loss of
-the project, does not cover auth.users, storage, or other tables, and is not a point-in-time backup.
-It is not a full disaster-recovery backup. Take an off-site export before any further destructive work.
+**Limitations.** It lives in the same database it protects, so it does not survive loss of the
+project, and it covers only the five tables above, not auth, storage or other tables. It is not a
+point-in-time backup and not a full disaster-recovery backup. Export it off-site before any
+further destructive work.
 
 ## 8. Recovery procedures
 
