@@ -38,6 +38,16 @@ const DEVELOPMENT_SYNC_THROTTLE_MS = 5_000;
 
 export type SupabasePersistenceStatus = "disabled" | "connecting" | "connected" | "signed_out" | "degraded";
 
+/**
+ * What the project itself said about this deployment's key, probed once per
+ * connect (never inferred from configuration):
+ *   valid       — the project accepted it
+ *   rejected    — 401/403: every request will fail until the key is corrected
+ *   unreachable — no answer (offline, DNS, timeout): nothing is claimed
+ *   unverified  — not probed (not configured, or no fetch in this runtime)
+ */
+export type SupabaseKeyVerdict = "unverified" | "valid" | "rejected" | "unreachable";
+
 export interface SupabaseAuthState {
   status: SupabasePersistenceStatus;
   session: Session | null;
@@ -135,6 +145,10 @@ export default class SupabasePersistence {
   private authSession: Session | null = null;
   /** Set when the deployment's own configuration is wrong. See SupabaseAuthState. */
   private configError: string | null = null;
+  private keyVerdict: SupabaseKeyVerdict = "unverified";
+  /** The configuration the client was built from; verifyKey() asks about exactly this pair. */
+  private probeTarget: { url: string; key: string } | null = null;
+  private keyCheckedAt: number | null = null;
   private authSubscription: { unsubscribe: () => void } | null = null;
   private readonly authListeners = new Set<(state: SupabaseAuthState) => void>();
   private readonly runtimeUnsubscribers: Array<() => void> = [];
@@ -149,6 +163,63 @@ export default class SupabasePersistence {
   }
 
   public getStatus(): SupabasePersistenceStatus { return this.status; }
+
+  /** The project's own verdict on this deployment's key, and when it was given. */
+  public getKeyVerdict(): { verdict: SupabaseKeyVerdict; at: number | null } {
+    return { verdict: this.keyVerdict, at: this.keyCheckedAt };
+  }
+
+  /**
+   * Ask the project whether it accepts this key. `auth/v1/settings` needs only
+   * the publishable key, reads no user data and answers 401 for a key the
+   * project does not accept — the same verdict every REST call would get.
+   *
+   * MEASURED (Mission 3, production logs): every request from the deployed
+   * app — server and browsers — was answered `401 Invalid API key`, while the
+   * app reported `signed_out`, because `auth.getSession()` reads local
+   * storage and never asks the project anything. "Sign in" was the advice;
+   * the truth was that nothing could persist for anyone.
+   */
+  private async probeKey(url: string, key: string): Promise<SupabaseKeyVerdict> {
+    if (typeof fetch !== "function") return "unverified";
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), 4000) : undefined;
+    try {
+      const response = await fetch(`${url.replace(/\/+$/, "")}/auth/v1/settings`, {
+        headers: { apikey: key },
+        ...(controller ? { signal: controller.signal } : {}),
+      });
+      if (response.status === 401 || response.status === 403) return "rejected";
+      return response.ok ? "valid" : "unreachable";
+    } catch {
+      return "unreachable";
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  /**
+   * Ask the project whether it accepts this deployment's key, and apply the
+   * answer. Called after initialize() at boot and by self.operational before
+   * it reports, so a claim about persistence is always backed by a fresh
+   * answer. Not configured → "unverified", and no request is made.
+   */
+  public async verifyKey(): Promise<SupabaseKeyVerdict> {
+    if (!this.probeTarget || this.status === "disabled") return this.keyVerdict;
+    this.applyKeyVerdict(await this.probeKey(this.probeTarget.url, this.probeTarget.key));
+    return this.keyVerdict;
+  }
+
+  /** Apply the probe's verdict; a rejected key overrides any local session state. */
+  private applyKeyVerdict(verdict: SupabaseKeyVerdict): void {
+    this.keyVerdict = verdict;
+    this.keyCheckedAt = Date.now();
+    if (verdict !== "rejected") return;
+    this.configError = this.explainAuthError("Invalid API key");
+    this.status = "degraded";
+    this.emitAuthState();
+    console.error("[Lélu] Supabase rejected this deployment's key — nothing will persist until it is corrected.");
+  }
 
   public getAuthState(): SupabaseAuthState {
     const user = this.authSession?.user;
@@ -318,6 +389,10 @@ export default class SupabasePersistence {
 
     this.status = "connecting";
     this.emitAuthState();
+    // initialize() itself stays network-free (local-only-operation pins it);
+    // the project is asked about the key by verifyKey(), right after boot and
+    // before every self-report.
+    this.probeTarget = { url, key: publishableKey };
     try {
       this.client = createClient(url, publishableKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
@@ -398,6 +473,9 @@ export default class SupabasePersistence {
     this.status = "disabled";
     this.authSession = null;
     this.configError = null;
+    this.keyVerdict = "unverified";
+    this.keyCheckedAt = null;
+    this.probeTarget = null;
     this.hydrated = false;
     this.historyHydrated = false;
     this.historyProgress = { loaded: 0, total: 0 };

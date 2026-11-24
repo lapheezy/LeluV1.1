@@ -496,6 +496,9 @@ export default class AIService {
           (listener) => void persistence.subscribeAuth(() => listener()),
         );
         await persistence.initialize(this.runtime.brain, this.user);
+        // Ask the project about the key now, off the boot path: a refused key
+        // must read as FAILED from the first self-report, not as "signed out".
+        void persistence.verifyKey().catch(() => undefined);
         void UsageSync.getInstance().refresh();
         if (persistence.isConnected()) {
           persistence.attachRuntime();

@@ -20,6 +20,7 @@
  * ==========================================================
  */
 
+import SupabasePersistence from "../persistence/SupabasePersistence.ts";
 import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry.ts";
 import { registerExecutor, type ToolExecutionResult, type ToolExecutor } from "../tools/ToolDispatcher.ts";
 import { OperationalSelfModel } from "../cognition/OperationalSelfModel.ts";
@@ -203,7 +204,11 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
       // Probe before reporting: a self-model that only reads a cached boolean
       // is the configuration claim this mission exists to remove. A failed
       // probe is recorded on the snapshot instead of aborting the read.
-      const health = await BrokerHealthStore.getInstance().refresh();
+      // Providers and persistence are both asked now, in parallel.
+      const [health] = await Promise.all([
+        BrokerHealthStore.getInstance().refresh(),
+        SupabasePersistence.getInstance().verifyKey().catch(() => "unreachable" as const),
+      ]);
       const snapshot = OperationalSelfModel.getInstance().snapshot();
       return {
         ok: true,

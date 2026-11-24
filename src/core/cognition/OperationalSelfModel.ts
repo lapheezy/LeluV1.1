@@ -43,6 +43,19 @@ import {
   type BrokerProviderObservation,
 } from "../model/ProviderHealth.ts";
 import SkillRegistryStore, { type RuntimeSkill } from "../skills/SkillRegistry.ts";
+import SupabasePersistence, {
+  type SupabaseKeyVerdict,
+  type SupabasePersistenceStatus,
+} from "../persistence/SupabasePersistence.ts";
+
+/** What the persistence adapter observed — status and the project's verdict on the key. */
+export interface PersistenceObservation {
+  status: SupabasePersistenceStatus;
+  keyVerdict: SupabaseKeyVerdict;
+  keyCheckedAt: number | null;
+  signedIn: boolean;
+  configError: string | null;
+}
 import {
   countEvidence,
   evidenceClaim,
@@ -105,6 +118,8 @@ export interface SelfModelSources {
   environment: () => SystemEnvironmentState;
   applications: () => SelfApplication[];
   autonomyLevel: () => number;
+  /** Optional so hand-built test sources stay valid; the runtime always supplies it. */
+  persistence?: () => PersistenceObservation;
 }
 
 export interface OperationalSelfSnapshot {
@@ -155,7 +170,66 @@ function defaultSources(): SelfModelSources {
     environment: () => SystemEnvironment.getInstance().get(),
     applications: () => APPS.map((app) => ({ id: app.id, label: app.label, group: app.group })),
     autonomyLevel: () => AutonomyGate.getInstance().getLevel(),
+    persistence: () => {
+      const persistence = SupabasePersistence.getInstance();
+      const auth = persistence.getAuthState();
+      const key = persistence.getKeyVerdict();
+      return {
+        status: auth.status,
+        keyVerdict: key.verdict,
+        keyCheckedAt: key.at,
+        signedIn: auth.session !== null,
+        configError: auth.configError,
+      };
+    },
   };
+}
+
+/**
+ * Persistence, stated from what the PROJECT answered — never from the presence
+ * of a URL and key. Exported for tests.
+ *
+ *   not configured            → BLOCKED      (local-only by design)
+ *   key rejected (401/403)    → UNAVAILABLE  (FAILED: nothing persists for anyone)
+ *   key accepted + signed in  → VERIFIED     (live: the project accepted the key this session)
+ *   key accepted, signed out  → PARTIAL      (reachable; nothing persists until someone signs in)
+ *   no answer / not probed    → PARTIAL      (configured; liveness not observed)
+ */
+export function persistenceClaim(observation: PersistenceObservation, at: number): EvidenceClaim {
+  const source = "src/core/persistence/SupabasePersistence.ts (GET /auth/v1/settings)";
+  const when = observation.keyCheckedAt ? ` Probed ${new Date(observation.keyCheckedAt).toISOString()}.` : "";
+  if (observation.status === "disabled") {
+    return evidenceClaim("persistence.supabase", "Cloud persistence is not configured: conversations and memory stay on this device only.", "BLOCKED", source, at);
+  }
+  if (observation.keyVerdict === "rejected") {
+    return evidenceClaim(
+      "persistence.supabase",
+      `FAILED — the Supabase project rejected this deployment's key (401). No conversation, memory or knowledge is being saved to the cloud for anyone.${when}`,
+      "UNAVAILABLE",
+      source,
+      observation.keyCheckedAt ?? at,
+      observation.configError ?? "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must come from the same project.",
+    );
+  }
+  if (observation.keyVerdict === "valid" && observation.signedIn && observation.status === "connected") {
+    return evidenceClaim("persistence.supabase", `Cloud persistence is live: the project accepted the key and a user is signed in.${when}`, "VERIFIED", source, observation.keyCheckedAt ?? at);
+  }
+  if (observation.keyVerdict === "valid") {
+    return evidenceClaim(
+      "persistence.supabase",
+      `The Supabase project is reachable and accepts the key, but no one is signed in — nothing is persisted until a user signs in.${when}`,
+      "PARTIAL",
+      source,
+      observation.keyCheckedAt ?? at,
+    );
+  }
+  return evidenceClaim(
+    "persistence.supabase",
+    `Cloud persistence is configured (status: ${observation.status}) but the project's answer was not observed (${observation.keyVerdict}).`,
+    "PARTIAL",
+    source,
+    at,
+  );
 }
 
 /** Conservative mapping from an existing capability status to evidence. */
@@ -356,6 +430,12 @@ export function assembleOperationalSelf(
         "Configuration is not a working-provider claim; nothing is asserted until the broker answers.",
       ),
     );
+  }
+
+  /* ---------------------------- persistence ---------------------------- */
+  if (sources.persistence) {
+    const observation = readSource("SupabasePersistence", sources.persistence, failures);
+    if (observation) claims.push(persistenceClaim(observation, at));
   }
 
   /* -------------------------------- tools ------------------------------ */

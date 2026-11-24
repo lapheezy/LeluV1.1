@@ -148,11 +148,31 @@ export class OgArchiveProvider implements MemoryProvider {
   /** Set once the archive proved too large to cache: the server query is used. */
   private tooLarge = false;
   private authWatched = false;
+  /**
+   * Set when the project REJECTED this deployment's key. MEASURED (Mission 3,
+   * production edge logs): every archive read was answered `401 Invalid API
+   * key`, swallowed here as "no memories", and — because the snapshot never
+   * loaded — retried as two server queries on EVERY turn. A rejected key does
+   * not heal between turns, so the provider stands down for the session and
+   * says why; a sign-in change (new client state) clears it.
+   */
+  private keyRejected: string | null = null;
+
+  /** Why this provider is not answering, when it is a configuration failure. */
+  lastFailure(): string | null {
+    return this.keyRejected;
+  }
+
+  private noteError(message: string | undefined): void {
+    if (message && /invalid api key|jwt|401|unauthori[sz]ed/i.test(message)) {
+      this.keyRejected = "Supabase rejected this deployment's key (Invalid API key): the OG archive cannot be read.";
+    }
+  }
 
   constructor(private readonly clientOf: () => ArchiveClient | null = () => getSupabase() as unknown as ArchiveClient | null) {}
 
   isAvailable(): boolean {
-    return this.clientOf() !== null;
+    return this.clientOf() !== null && this.keyRejected === null;
   }
 
   /** Start loading the snapshot now, so the first turn does not pay for it. */
@@ -164,7 +184,7 @@ export class OgArchiveProvider implements MemoryProvider {
 
   async context(query: string, limit: number): Promise<ContextItem[]> {
     const client = this.clientOf();
-    if (!client) return [];
+    if (!client || this.keyRejected) return [];
 
     try {
       const terms = archiveTerms(query);
@@ -175,6 +195,9 @@ export class OgArchiveProvider implements MemoryProvider {
         const user = await this.userKey(client);
         rows = this.snapshot?.user === user ? this.snapshot.rows : await this.load(client, user);
       }
+      // The snapshot read just learned the key is rejected: the server query
+      // would be refused the same way, so do not spend the round trip.
+      if (this.keyRejected) return [];
       const matched = rows ? filterArchive(rows, terms, limit) : await this.serverQuery(client, terms, limit);
       return matched
         .map((row) => {
@@ -208,6 +231,7 @@ export class OgArchiveProvider implements MemoryProvider {
         client.auth.onAuthStateChange(() => {
           this.snapshot = null;
           this.loading = null;
+          this.keyRejected = null;
         });
       } catch {
         /* no auth events: the per-user key below still separates users */
@@ -232,6 +256,7 @@ export class OgArchiveProvider implements MemoryProvider {
         .limit(OgArchiveProvider.SNAPSHOT_MAX_ROWS + 1);
       if (error) {
         console.warn("[OgArchiveProvider] snapshot failed:", error.message);
+        this.noteError(error.message);
         return null;
       }
       const rows = (data ?? []) as ArchiveRow[];
@@ -260,6 +285,7 @@ export class OgArchiveProvider implements MemoryProvider {
       .limit(limit);
     if (error) {
       console.warn("[OgArchiveProvider] query failed:", error.message);
+      this.noteError(error.message);
       return [];
     }
     return (data ?? []) as ArchiveRow[];
