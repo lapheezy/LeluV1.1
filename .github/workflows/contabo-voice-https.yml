@@ -61,7 +61,8 @@ jobs:
           if [ "${{ github.event_name }}" = workflow_dispatch ]; then a="${{ inputs.action }}"
           else a=$(jq -r '.action // "recon"' deploy/contabo/voice-https-request.json); fi
           case "$a" in
-            recon|accept|rollback) cmd="voice-tts-moss.sh $a";;
+            recon)                 cmd="voice-tts-moss.sh recon PATCH";;
+            accept|rollback)       cmd="voice-tts-moss.sh $a";;
             apply)                 cmd="voice-tts-moss.sh apply PATCH";;
             https-check|https-stage|https-issue|https-enable|https-rollback) cmd="https-ip.sh ${a#https-}";;
             https-rollback-all)    cmd="https-ip.sh rollback all";;

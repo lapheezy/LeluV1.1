@@ -162,3 +162,69 @@ Not applicable: nothing has been deployed.
 4. The `credential-exposure` test fails on the VPS-SSH-key pattern used by both deploy workflows. I left it
    unchanged for the owner to decide.
 5. `package-lock.json` is out of sync with `package.json` (`npm ci` fails). Pre-existing.
+
+---
+
+# Mission 2 — deployment status (2026-11-24, second session)
+
+**Still not deployed. Nothing on the VPS has changed.** Every production step below needs the deploy route, and
+that route needs the owner. Evidence was gathered from this session and from GitHub runners.
+
+## WP01 — deployment access: findings
+
+| Fact | Evidence |
+|---|---|
+| This session cannot SSH | `/dev/tcp/157.173.116.95/22` → Connection refused (again) |
+| No computer of the owner's is attached | `list_computer_folders` → none |
+| Environment settings and secrets are unreadable from here | `gh api …/environments…`, `…/actions/secrets` → 403 (this session's proxy) |
+| **GitHub runners reach port 22** | run [45404147782](https://github.com/lapheezy/LeluV1.1/actions/runs/45404147782): `PASS port 22 reachable from a GitHub runner` |
+| **Host key the server presents** | `(ED25519) SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310`. Seen from a runner, so it is **not trusted until it matches the Contabo console**. |
+| `contabo-production` has **no required reviewers** | runs 45396379761 and 45404147782 started immediately, with no approval |
+| `LELU_VPS_SSH_KEY` absent | both runs: `secret LELU_VPS_SSH_KEY is missing in environment contabo-production` |
+| Production unchanged | `/healthz` → `version a7503839`, uptime grew 1995 s → 5882 s (no restart) |
+| Login page carries no credentials | 0 matches for key patterns; the bundle itself is behind the gate |
+
+**Existing route reused, nothing duplicated.** Both Contabo workflows use the same environment and the same two
+secrets. Neither triggers on `pull_request`, so forks can't reach them. Push triggers are limited to named branches,
+and `workflow_dispatch` needs write access. The voice/HTTPS job now also refuses refs other than the two deployment
+branches. That is defence in depth only: whoever can push a branch can edit its workflow, so **the deployment-branch
+restriction on the environment is the real control.**
+
+## Owner actions (in this order; never paste a key into chat)
+
+1. **Protect the environment first.** GitHub → `lapheezy/LeluV1.1` → Settings → Environments → `contabo-production`:
+   - *Required reviewers*: add yourself. Leave "Prevent self-review" **off** if you are the only reviewer, or you
+     could never approve.
+   - *Deployment branches and tags* → "Selected branches and tags" → add
+     `integration/lelu-four-workforce-consolidation` and `claude/lelu-voice-https-production-lvv519`.
+2. **Confirm the host key in a trusted place.** In the Contabo VNC console (or an SSH session you already trust),
+   run `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`. It must print
+   `SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310`. If it doesn't, stop: something is in between.
+3. **Create a dedicated deploy key on your own computer** (not reused anywhere):
+   `ssh-keygen -t ed25519 -N "" -C lelu-github-deploy -f ~/lelu_github_deploy`
+   Then on the VPS, append the public half to `/root/.ssh/authorized_keys` with the `restrict` option. That keeps
+   exec and scp but disables port, agent and X11 forwarding and PTY:
+   `restrict ssh-ed25519 AAAA…(contents of lelu_github_deploy.pub)… lelu-github-deploy`
+   It needs root because the steps restart `lelu`, edit nginx, run certbot and read `/etc/lelu/lelu.env`. To revoke
+   it later, delete that one line.
+4. **Add the two environment secrets** (Settings → Environments → `contabo-production` → *Environment secrets* →
+   *Add secret*), or from your computer with the GitHub CLI so the key never leaves it:
+   - `gh secret set LELU_VPS_SSH_KEY --env contabo-production --repo lapheezy/LeluV1.1 < ~/lelu_github_deploy`
+   - `ssh-keyscan -t ed25519 157.173.116.95 > /tmp/kh && ssh-keygen -lf /tmp/kh` (must show the fingerprint
+     from step 2), then `gh secret set LELU_VPS_KNOWN_HOSTS --env contabo-production --repo lapheezy/LeluV1.1 < /tmp/kh`
+5. **Tell the session it is done.** The next run is then `recon` (read-only), and each later step waits for your
+   approval in the Actions tab.
+
+## What then runs, and what still needs a person
+
+`recon` (also checks that the patch fits `a7503839` and lists production-only commits) → `apply` (verified
+backup, patch, restart `lelu` only, must return playable 48 kHz audio or it rolls back) → `accept` →
+`https-check` → `https-stage` (ACME challenge + Let's Encrypt dry run) → `https-issue` → `https-enable` (reverts
+unless TLS verifies from the public route) → `accept`.
+
+These need a person and can't be claimed from a server: microphone permission and capture, audible playback, and
+interruption, on a desktop browser and an iPhone at `https://157.173.116.95`.
+
+**WP08 source parity:** blocked until `recon` shows which production commits GitHub lacks. The VPS has no GitHub
+write credential, and it shouldn't get one. The owner can push `a7503839` from the VPS with their own credential;
+the reviewed integration then merges this branch on top of it.

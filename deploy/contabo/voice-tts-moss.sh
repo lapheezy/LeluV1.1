@@ -101,6 +101,14 @@ recon() {
   info "working-tree drift: $drift path(s)"; git_lelu status --porcelain | head -40 | detail
   [ -f $APP/dist/index.html ] && info "dist/index.html $(stat -c '%y' $APP/dist/index.html | cut -d. -f1) sha256=$(sha256sum $APP/dist/index.html | cut -c1-16)"
   for f in "${FILES[@]}"; do [ -f "$APP/$f" ] && info "$f sha256=$(sha256sum "$APP/$f" | cut -c1-16)" || info "$f absent"; done
+  # Source parity: which production commits GitHub may not have (subjects only).
+  git_lelu log -8 --format='%h %ad %s' --date=short | sed 's/^/INFO  log /'
+  local up; up=$(git_lelu rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)
+  [ -n "$up" ] && info "upstream $up; commits not on it (as last fetched): $(git_lelu rev-list --count "$up..HEAD" 2>/dev/null)"
+  # Will `apply` fit? Read-only check against the live tree.
+  if [ -n "${2:-}" ] && [ -f "$2" ]; then
+    git_lelu apply --check "$2" 2>/dev/null && ok "voice patch applies cleanly to this tree" || bad "voice patch does NOT apply to this tree (apply would change nothing)"
+  fi
 
   echo "== services"
   for u in lelu lelu-moss nginx caddy lelu-voice-agent lelu-voxcpm lelu-backup.timer lelu-health.timer certbot.timer snap.certbot.renew.timer; do
@@ -293,7 +301,7 @@ accept() {
 }
 
 case "${1:-}" in
-  recon) recon;;
+  recon) recon "$@";;
   apply) apply_patch "${2:-}";;
   accept) accept;;
   rollback) rollback "${2:-}";;
