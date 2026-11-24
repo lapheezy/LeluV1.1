@@ -105,10 +105,10 @@ else
   sudo -u lelu git -C "$APP" pull --ff-only origin "$LELU_BRANCH"
 fi
 
-echo "== 7. environment (/etc/lelu/lelu.env, root:lelu 0640)"
+echo "== 7. environment (/etc/lelu/lelu.env, root:root 0600)"
 install -d -o root -g lelu -m 0750 /etc/lelu
 if [ ! -f /etc/lelu/lelu.env ]; then
-  install -o root -g lelu -m 0640 "$HERE/lelu.env.example" /etc/lelu/lelu.env
+  install -o root -g root -m 0600 "$HERE/lelu.env.example" /etc/lelu/lelu.env
   sed -i "s|^LELU_SESSION_SECRET=.*|LELU_SESSION_SECRET=$(openssl rand -hex 32)|" /etc/lelu/lelu.env
   echo
   echo "!! Created /etc/lelu/lelu.env. Fill in LELU_ACCESS_PASSWORD and the provider keys:"
@@ -122,7 +122,7 @@ echo "== 8. dependencies + production build"
 cd "$APP"
 sudo -u lelu /opt/lelu/.bun/bin/bun install --frozen-lockfile
 # The build reads public (VITE_/NEXT_PUBLIC_) values only; secrets stay in the env file.
-sudo -u lelu bash -c "set -a; . /etc/lelu/lelu.env; set +a; cd $APP && npx tsc -b && npx vite build"
+( set -a; . /etc/lelu/lelu.env; set +a; runuser -u lelu -- bash -c "cd $APP && npx tsc -b && npx vite build" )
 test -f "$APP/dist/index.html"
 
 echo "== 9. systemd services"
