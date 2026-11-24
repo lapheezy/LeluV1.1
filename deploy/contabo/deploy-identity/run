@@ -33,11 +33,13 @@ case "$action" in
   https-check|https-stage|https-issue|https-enable|https-rollback)
                       set -- "$LIB/https-ip.sh" "${action#https-}" ;;
   https-rollback-all) set -- "$LIB/https-ip.sh" rollback all ;;
+  source-report|source-export|source-export-clean)
+                      set -- "$LIB/source-recovery.sh" "$action" ;;
   *) echo "FAIL  unknown action"; exit 2 ;;
 esac
 install -d -m 0700 "$LOG"
 report="$LOG/$(date -u +%Y%m%dT%H%M%SZ)-$action.txt"
-echo "INFO  deploy identity: $action (scripts pinned: $(sha256sum "$LIB/voice-tts-moss.sh" "$LIB/https-ip.sh" | cut -c1-12 | tr '\n' ' '))"
+echo "INFO  deploy identity: $action (scripts pinned: $(sha256sum "$LIB/voice-tts-moss.sh" "$LIB/https-ip.sh" "$LIB/source-recovery.sh" 2>/dev/null | cut -c1-12 | tr '\n' ' '))"
 cd /tmp
 bash "$@" 2>&1 | tee "$report" | grep -v '^DETAIL'
 status=${PIPESTATUS[0]}

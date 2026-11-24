@@ -17,7 +17,7 @@ case "$req" in
     head -c 1048577 > "$tmp"
     [ "$(stat -c %s "$tmp")" -le 1048576 ] || { rm -f "$tmp"; echo "FAIL  payload larger than 1 MiB"; exit 2; }
     mv -f "$tmp" "$incoming/voice-tts-moss.patch" ;;
-  accept|rollback|https-check|https-stage|https-issue|https-enable|https-rollback|https-rollback-all) ;;
+  accept|rollback|https-check|https-stage|https-issue|https-enable|https-rollback|https-rollback-all|source-report|source-export|source-export-clean) ;;
   *) echo "FAIL  action not allowed for the deploy identity"; logger -t lelu-deploy "refused: ${req:0:80}"; exit 2 ;;
 esac
 logger -t lelu-deploy "action: $req"
