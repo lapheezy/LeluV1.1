@@ -38,6 +38,8 @@ import { processImageFile, processVideoFile, type ProcessedMedia } from "../../.
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import VoiceToggle from "./VoiceToggle";
+import RadialMenu, { type RadialItem } from "../../../../ui/radial/RadialMenu";
+import VoiceEngine from "../../../../../core/voice/VoiceEngine";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
@@ -424,6 +426,26 @@ export default function ChatUniverse() {
     );
   };
 
+  // The composer's actions, in the shared radial (hold the "+").
+  const composerItems: RadialItem[] = [
+    { id: "attach", label: "Attach an image, video or file", icon: <Icons.Paperclip size={20} />, onSelect: () => mediaRef.current?.click(), disabled: !target },
+    ...(canShareScreen
+      ? [{
+          id: "screen",
+          label: sharing ? "Stop sharing your screen" : "Share your screen with Lélu",
+          icon: sharing ? <Icons.ScreenShareOff size={20} /> : <Icons.ScreenShare size={20} />,
+          onSelect: () => {
+            const share = ScreenShare.getInstance();
+            if (share.isActive()) share.stop();
+            else void share.start().catch((error: unknown) => setAttachNotice(explainScreenShareFailure(error)));
+          },
+          active: sharing,
+        }]
+      : []),
+    { id: "voice", label: "Talk to LÉLU", icon: <Icons.Mic size={20} />, onSelect: () => void VoiceEngine.getInstance().toggle() },
+    { id: "new", label: "New chat", icon: <Icons.MessageSquarePlus size={20} />, onSelect: newChat },
+  ];
+
   return (
     <div className="lcu" data-cosmos={mode} data-rail={railOpen} role="dialog" aria-label="Chat Universe">
       <div className="lcu-cosmos" aria-hidden="true" style={{ backgroundImage: `url("${ART_BASE}galaxy.webp")` }} />
@@ -613,7 +635,13 @@ export default function ChatUniverse() {
           </div>
         ) : null}
         <div className="lcu-composer" data-lelu-composer>
-          <button type="button" className="lcu-icon" aria-label="Attach an image, video or file" onClick={() => mediaRef.current?.click()} disabled={!target}><Icons.Plus size={19} /></button>
+          {/* M23: tap attaches (unchanged); hold → slide → release for the
+              composer's other actions, through the shared radial menu. */}
+          <RadialMenu id="chat-composer" label="Message actions" items={composerItems} onTap={() => mediaRef.current?.click()}>
+            {(trigger) => (
+              <button type="button" {...trigger} className="lcu-icon" aria-label="Attach an image, video or file" title="Attach — hold for more actions" disabled={!target}><Icons.Plus size={19} /></button>
+            )}
+          </RadialMenu>
           <input
             ref={mediaRef}
             type="file"

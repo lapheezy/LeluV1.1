@@ -1,0 +1,81 @@
+/*
+ * LÉLU — radial menu. Shared by every host; themed through the interface
+ * variables the windows already use (--lelu-color-accent, --lelu-color-text),
+ * with LÉLU's own violet as the fallback.
+ */
+.lrm-layer {
+  position: fixed;
+  inset: 0;
+  /* The ring must read above whatever is behind it: dim the scene, least
+     around the finger. Decoration only — during a hold the layer takes no
+     input, so it can never steal the gesture. */
+  background: radial-gradient(circle at var(--lrm-ax, 50%) var(--lrm-ay, 50%), rgba(10, 4, 24, 0.22) 0, rgba(10, 4, 24, 0.5) var(--lrm-r, 220px), rgba(10, 4, 24, 0.62) 100%);
+  animation: lrm-fade-in 140ms ease-out both;
+}
+@keyframes lrm-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.lrm-halo {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.30) 0%, rgba(124, 58, 237, 0.14) 45%, rgba(124, 58, 237, 0) 70%);
+  animation: lrm-halo-in 180ms ease-out both;
+}
+
+.lrm-item {
+  position: fixed;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 190, 255, 0.32);
+  background: rgba(26, 9, 54, 0.9);
+  color: var(--lelu-color-text, #fbf3ff);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  animation: lrm-item-in 160ms cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards;
+  animation-delay: var(--lrm-delay, 0ms);
+}
+.lrm-item[data-active="true"] { border-color: var(--lelu-color-accent, rgba(103, 232, 249, 0.8)); }
+.lrm-item[data-highlighted="true"] {
+  transform: scale(1.16);
+  background: rgba(124, 58, 237, 0.92);
+  border-color: rgba(244, 170, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.35), 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+.lrm-item:disabled { opacity: 0.38; cursor: not-allowed; }
+.lrm-item:focus-visible { outline: 2px solid #f5d0fe; outline-offset: 3px; }
+
+.lrm-caption {
+  position: fixed;
+  transform: translateX(-50%);
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(14, 5, 32, 0.88);
+  border: 1px solid rgba(240, 190, 255, 0.24);
+  color: #fbf3ff;
+  font: 600 12.5px/1.3 system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+@keyframes lrm-item-in {
+  from { opacity: 0; transform: translate(var(--lrm-from-x, 0), var(--lrm-from-y, 0)) scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lrm-halo-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lrm-item, .lrm-halo, .lrm-layer { animation: none; transition: none; }
+  .lrm-item[data-highlighted="true"] { transform: none; }
+}

@@ -39,6 +39,7 @@ const subscribeLayout = (cb: () => void) => ModuleLayoutStore.getInstance().subs
 const layoutSnapshot = () => layoutTick;
 import { genesisTheme } from "./GenesisTheme";
 import { kindOf, type StewardPlacement } from "../../../core/interface/WorkspaceSteward";
+import RadialMenu, { type RadialItem } from "../../ui/radial/RadialMenu";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "#64748b",
@@ -561,6 +562,39 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
    * render inside it through GenesisWindowFrame, which switches to a
    * body-only surface when it detects this context (moduleWindowContext).
    */
+  // The window's actions, in the shared radial menu. Snapping goes through
+  // the same store calls a hand drag uses, and is recorded as a placement so
+  // auto-arrange leaves it where the person put it.
+  const snap = (side: "left" | "right") => {
+    const top = 64;
+    const width = Math.max(MIN_WIDTH, Math.floor(viewportWidth / 2) - 12);
+    const height = Math.max(MIN_HEIGHT, viewportHeight - top - CHROME_HEIGHT - 16);
+    const x = side === "left" ? 8 : Math.max(8, viewportWidth - width - 8);
+    if (isExpanded) setModulePresentation(id, "inline");
+    moveModule(id, { x, y: top });
+    resizeModule(id, { width, height });
+    raiseModule(id);
+    ModuleLayoutStore.getInstance().place(id, { x, y: top, width, height });
+  };
+  const windowItems: RadialItem[] = [
+    ...(isMobile
+      ? []
+      : [
+          { id: "snap-left", label: "Snap to the left half", icon: <span aria-hidden style={{ fontSize: 17 }}>◧</span>, onSelect: () => snap("left") },
+          { id: "snap-right", label: "Snap to the right half", icon: <span aria-hidden style={{ fontSize: 17 }}>◨</span>, onSelect: () => snap("right") },
+          {
+            id: "expand",
+            label: isExpanded ? "Restore window" : "Expand",
+            icon: <span aria-hidden style={{ fontSize: 17 }}>{isExpanded ? "⊡" : "⤢"}</span>,
+            onSelect: () => (isExpanded ? setModulePresentation(id, "inline") : expandModule(id)),
+            active: isExpanded,
+          },
+        ]),
+    { id: "minimize", label: "Minimize — keeps running", icon: <span aria-hidden style={{ fontSize: 17 }}>—</span>, onSelect: () => minimizeModule(id) },
+    { id: "pin", label: pinned ? "Unpin" : "Pin where it is", icon: <span aria-hidden style={{ fontSize: 15 }}>{pinned ? "📌" : "📍"}</span>, onSelect: () => layoutStore.pin(id, !pinned), active: pinned },
+    { id: "close", label: `Close ${label}`, icon: <span aria-hidden style={{ fontSize: 16 }}>✕</span>, onSelect: () => closeModule(id) },
+  ];
+
   const chrome = (
     <div
       data-lelu-module-chrome={id}
@@ -585,7 +619,37 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
         flexShrink: 0,
       }}
     >
-      <span aria-hidden style={{ fontSize: 13, opacity: 0.9, color: "var(--lelu-color-accent, #67e8f9)" }}>{glyph}</span>
+      {/* M23: the window's glyph is its actions handle — hold (or tap) for the
+          shared radial: snap, expand, minimise, pin, close. */}
+      <RadialMenu id={`window-${id}`} label={`${label} window actions`} items={windowItems}>
+        {(trigger) => (
+          <button
+            type="button"
+            {...trigger}
+            data-lelu-window-actions={id}
+            aria-label={`${label} window actions`}
+            title="Window actions — hold or tap"
+            style={{
+              ...trigger.style,
+              width: compactScreen ? 34 : 26,
+              height: compactScreen ? 34 : 26,
+              margin: compactScreen ? "0 -4px" : "0 -3px",
+              display: "grid",
+              placeItems: "center",
+              padding: 0,
+              borderRadius: 999,
+              border: "1px solid rgba(103,232,249,0.28)",
+              background: "rgba(103,232,249,0.08)",
+              color: "var(--lelu-color-accent, #67e8f9)",
+              fontSize: 13,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <span aria-hidden>{glyph}</span>
+          </button>
+        )}
+      </RadialMenu>
       <strong data-lelu-text="title" style={{ ...genesisTheme.text.label, fontSize: 11.5, letterSpacing: "0.1em", opacity: 1, color: "var(--lelu-color-text, #dbeafe)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
         {label}
       </strong>

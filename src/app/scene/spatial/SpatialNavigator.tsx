@@ -33,6 +33,7 @@ import { layer } from "../../../core/ui/Layers";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
 import { DOCK_GLYPHS, orderedGroups } from "./capabilityGroups";
 import SavedWorlds from "./SavedWorlds";
+import RadialMenu, { type RadialItem } from "../../ui/radial/RadialMenu";
 import { requestSpatialNav, useSpatialNavShown } from "./spatialNavVisibility";
 
 function useSpatialState(): SpatialState {
@@ -305,6 +306,32 @@ export default function SpatialNavigator() {
     );
   }
 
+  /*
+   * M23: hold the Spatial hub → slide → release to travel. The ring carries
+   * the core and the first seven destinations in the same order the grouped
+   * list uses (the group you are in leads); tap still opens that full list.
+   */
+  const hubItems: RadialItem[] = [
+    {
+      id: "core",
+      label: "Return to LÉLU's core",
+      icon: <span aria-hidden style={{ fontSize: 18 }}>◎</span>,
+      onSelect: () => runtime.travel("core", { kind: "return-to-core" }),
+      active: spatial.current === "core",
+    },
+    ...orderedGroups(spatial.current)
+      .flatMap((group) => group.entries)
+      .filter((entry) => entry.scene !== "core")
+      .slice(0, 7)
+      .map((entry) => ({
+        id: entry.scene,
+        label: `Travel to ${destinationFor(entry.scene).label}`,
+        icon: <span aria-hidden style={{ fontSize: 18 }}>{DOCK_GLYPHS[entry.scene] ?? "◇"}</span>,
+        onSelect: () => runtime.travel(entry.scene),
+        active: spatial.current === entry.scene,
+      })),
+  ];
+
   const button = (scene: SpatialSceneId) => {
     const destination = destinationFor(scene);
     const isActive = spatial.current === scene;
@@ -367,8 +394,9 @@ export default function SpatialNavigator() {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        width: 30,
-        height: 30,
+        // Circular controls, finger-sized on a phone (they were 30 px everywhere).
+        width: compact ? 40 : 32,
+        height: compact ? 40 : 32,
         borderRadius: 999,
         border: `1px solid ${options.active ? "rgba(103,232,249,0.6)" : "rgba(148,163,184,0.2)"}`,
         background: options.active ? "rgba(34,211,238,0.18)" : "rgba(8,16,38,0.62)",
@@ -454,13 +482,16 @@ export default function SpatialNavigator() {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
+        <RadialMenu id="spatial-hub" label="Spatial destinations" items={hubItems} onTap={() => setOpen((value) => !value)}>
+          {(trigger) => (
         <button
           type="button"
+          {...trigger}
           data-spatial-control="expand"
           aria-label={open ? "Collapse spatial navigation" : "Open spatial navigation"}
           title={hovered ? `${hovered.label} — ${hovered.hint}` : `${active.label} — ${active.hint}`}
-          onClick={() => setOpen((value) => !value)}
           style={{
+            ...trigger.style,
             display: "inline-flex",
             alignItems: "center",
             gap: 7,
@@ -478,6 +509,8 @@ export default function SpatialNavigator() {
           <span aria-hidden>{DOCK_GLYPHS[active.id] ?? "◇"}</span>
           {open ? (travelling ? `${active.label} · ${progress}%` : active.label) : "Spatial"}
         </button>
+          )}
+        </RadialMenu>
 
         <span aria-hidden style={{ width: 1, height: 18, background: "rgba(148,163,184,0.2)" }} />
 
