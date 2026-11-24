@@ -96,7 +96,7 @@ export const CAPABILITY_PROFILES: Record<string, CapabilityProfile> = {
   "data.query": {
     purpose: "structured public data", input: "connector id + parameters", output: "rows, columns, suggested chart, citation",
     runtime: "browser+server", offline: false, network: "public data (no key)", credentials: "none", limits: "per connector (rate-paced and cached client-side)",
-    license: "per source (attribution included in every result)", resources: "1–2 HTTP requests", fallbacks: ["cache", "CORS relay for arXiv in the browser"],
+    license: "per source (attribution included in every result)", resources: "1–2 HTTP requests", fallbacks: ["cache", "arXiv through this server's knowledge relay in the browser"],
   },
   "data.sources": {
     purpose: "list data connectors", input: "—", output: "profiles", runtime: "browser (any)", offline: true, network: "none", credentials: "none",

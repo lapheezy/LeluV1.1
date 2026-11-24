@@ -12,6 +12,7 @@
   {"id": "radial-phone", "title": "Radial controls with touch on a phone", "kind": "tsx", "script": "scripts/e2e/radial-e2e.cjs", "args": ["iphone"]},
   {"id": "radial-tablet", "title": "Radial controls and window snapping with touch on a tablet", "kind": "tsx", "script": "scripts/e2e/radial-e2e.cjs", "args": ["ipad"]},
   {"id": "audit", "title": "Inventory every row of four or more buttons", "kind": "tsx", "script": "scripts/e2e/button-list-audit.cjs", "args": ["iphone"], "why": "Read-only: it changes nothing, it tells me where plain button lists remain."},
+  {"id": "touch-targets", "title": "Every Home control takes its own tap on three iPhone sizes (nothing of mine covers one)", "kind": "tsx", "script": "scripts/e2e/touch-targets-e2e.cjs", "args": [], "why": "Read-only. Mission 3.6: my body stood on the Home cards because the hero spot measured 0 px wide on phones."},
   {"id": "safari", "title": "On a real iPhone in Safari", "kind": "note", "why": "Scroll Home, Chat and an open window to the very bottom with the toolbar shown and collapsed; tap the mic, allow, speak; deny once and look for the red message; hold the + in chat, slide, release. Chromium emulating an iPhone is not Safari."}
  ]
 }

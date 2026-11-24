@@ -47,6 +47,9 @@ const EXTRA_CONTROLS = [
   ".react-flow__controls",
   // The Retro Terminal's command line is its composer.
   "[data-rt-prompt]",
+  // Home's own cards and buttons (Mission 3.6): with its hero spot missing she
+  // rested on them and took their taps. She stands clear of them, or steps out.
+  "[data-lelu-home] :is(button, a[href], [role=button])",
 ];
 
 export function rectOf(element: Element): Rect | null {

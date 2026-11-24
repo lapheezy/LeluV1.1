@@ -31,7 +31,7 @@
 import { sessionAuthHeader } from "../core/persistence/sessionAuth";
 
 /** Knowledge/research providers the relay can reach — see aiProxyApi.ts. */
-export type RelayKnowledgeId = "news" | "youtube" | "meshy" | "guardian" | "gnews" | "newsdata" | "geoapify" | "nasa" | "firms";
+export type RelayKnowledgeId = "news" | "youtube" | "meshy" | "guardian" | "gnews" | "newsdata" | "geoapify" | "nasa" | "firms" | "arxiv";
 
 /**
  * A knowledge-provider GET, with the credential added server-side.
@@ -41,7 +41,7 @@ export type RelayKnowledgeId = "news" | "youtube" | "meshy" | "guardian" | "gnew
 export async function knowledgeFetch(
   provider: RelayKnowledgeId,
   url: string,
-  options?: { signal?: AbortSignal; method?: "GET" | "POST"; body?: unknown },
+  options?: { signal?: AbortSignal; method?: "GET" | "POST"; body?: unknown; accept?: string },
 ): Promise<Response> {
   const target = new URL(url);
   const query = new URLSearchParams({
@@ -52,7 +52,7 @@ export async function knowledgeFetch(
   return fetch(`/api/knowledge/relay?${query.toString()}`, {
     method: post ? "POST" : "GET",
     // The relay spends the server's provider keys, so it requires a signed-in user.
-    headers: { ...sessionAuthHeader(), ...(post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" }) },
+    headers: { ...sessionAuthHeader(), ...(post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: options?.accept ?? "application/json" }) },
     ...(post ? { body: JSON.stringify(options?.body ?? {}) } : {}),
     ...(options?.signal ? { signal: options.signal } : {}),
   });

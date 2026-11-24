@@ -71,7 +71,10 @@
   background: radial-gradient(circle at 36% 30%, #fff 0 6%, #f5d0fe 14%, #c084fc 36%, #6d28d9 64%, #1e0b3d 100%);
   box-shadow: 0 0 34px color-mix(in srgb, var(--accent, #c084fc) 70%, transparent), inset -8px -10px 24px rgba(30, 0, 60, 0.6);
 }
-.lch-lelu .lch-hero-lelu { position: absolute; inset: 0; margin: 0; min-height: 0; }
+/* grid-area: auto — the classic hero's `grid-column: 2` (cosmosHome.css) made this
+   absolutely positioned spot take column 2 of a ONE-column grid: 0 px wide at its
+   right edge. With no hero spot she rested on the Home cards and took their taps. */
+.lch-lelu .lch-hero-lelu { position: absolute; inset: 0; margin: 0; min-height: 0; grid-area: auto; }
 .lch-lelu-name { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 13px; letter-spacing: 0.14em; color: var(--ink, #fbf3ff); text-shadow: 0 0 12px rgba(232, 121, 249, 0.6); }
 .lch-lelu-name small { display: block; letter-spacing: 0.02em; font-size: 11px; color: var(--ink-2, rgba(240, 226, 255, 0.72)); }
 @keyframes hc-breathe { 50% { transform: scale(1.06); opacity: 0.85; } }

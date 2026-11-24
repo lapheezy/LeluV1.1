@@ -95,6 +95,12 @@ interface UpstreamKnowledgeProvider {
   defaultKey?: string;
   /** The key is a PATH segment inserted right after pathPrefix (NASA FIRMS). */
   keyInPath?: true;
+  /** A public API that needs no credential (arXiv): relayed only because the browser cannot call it. */
+  keyless?: true;
+  /** Accept header sent upstream (default JSON). */
+  accept?: string;
+  /** Minimum gap between upstream calls from this server, for the provider's published limit. */
+  minIntervalMs?: number;
 }
 
 /** Largest POST body relayed — an image-to-3D request carries the image as a data URI. */
@@ -168,7 +174,29 @@ const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
     keyVars: ["FIRMS_API_KEY", "VITE_FIRMS_API_KEY"],
     keyInPath: true,
   },
+  // arXiv needs no key, but it sends no CORS header, so the browser could
+  // not read it (Mission 3.5: blocked on the phone), and the fallback was
+  // a third-party public CORS proxy that saw every query. The server calls
+  // it instead, at arXiv's published pace (one request every 3 s).
+  arxiv: {
+    origin: "https://export.arxiv.org",
+    pathPrefix: "/api/query",
+    keyVars: [],
+    keyless: true,
+    accept: "application/atom+xml, application/xml;q=0.9, */*;q=0.1",
+    minIntervalMs: 3000,
+  },
 };
+
+/** Serialises calls to a paced provider: each waits for its own slot. */
+const nextSlot = new Map<string, number>();
+async function paceUpstream(id: string, minIntervalMs: number | undefined): Promise<void> {
+  if (!minIntervalMs) return;
+  const now = Date.now();
+  const slot = Math.max(now, nextSlot.get(id) ?? 0);
+  nextSlot.set(id, slot + minIntervalMs);
+  if (slot > now) await new Promise((resolve) => setTimeout(resolve, slot - now));
+}
 
 /** A POST from another site must not spend this server's paid credential. */
 function isCrossOrigin(req: ConnectLikeReq): boolean {
@@ -315,7 +343,7 @@ export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}
         for (const [id, entry] of Object.entries(KNOWLEDGE_PROVIDERS)) {
           // Deliberately a boolean. Not the value, not a prefix, not a
           // length — nothing an attacker could use to narrow a key.
-          knowledge[id] = { configured: firstSetVar(env, entry.keyVars).length > 0 || Boolean(entry.defaultKey) };
+          knowledge[id] = { configured: Boolean(entry.keyless) || firstSetVar(env, entry.keyVars).length > 0 || Boolean(entry.defaultKey) };
         }
         sendJson(res, { ok: true, knowledge });
       });
@@ -385,7 +413,7 @@ export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}
           }
 
           const key = firstSetVar(env, entry.keyVars) || entry.defaultKey || "";
-          if (!key) {
+          if (!key && !entry.keyless) {
             sendJson(res, { ok: false, error: `No server-side credential configured for "${id}".` }, 503);
             return;
           }
@@ -397,10 +425,13 @@ export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}
                 ? `${origin}${entry.pathPrefix}${encodeURIComponent(key)}/${rawPath.slice(entry.pathPrefix.length)}`
                 : `${origin}${rawPath}`,
             );
-            const headers: Record<string, string> = { Accept: "application/json" };
+            const headers: Record<string, string> = { Accept: entry.accept ?? "application/json" };
+            if (entry.keyless) headers["User-Agent"] = "LELU-research/1.1 (open-source assistant; public data connector)";
             // A caller-supplied credential is overwritten, never honoured —
             // the server's key is the only one that goes out.
-            if (entry.bearer) {
+            if (entry.keyless) {
+              // nothing to add: the request goes out exactly as the client built it
+            } else if (entry.bearer) {
               target.searchParams.delete("key");
               headers.Authorization = `Bearer ${key}`;
             } else if (entry.queryParam) {
@@ -411,6 +442,7 @@ export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}
               body = await postBody!;
               headers["Content-Type"] = "application/json";
             }
+            await paceUpstream(id, entry.minIntervalMs);
             const upstream = await fetch(target.toString(), {
               method,
               headers,

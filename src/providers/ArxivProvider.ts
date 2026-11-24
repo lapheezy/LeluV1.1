@@ -20,6 +20,9 @@
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
 import { endpointUrl } from "../core/Endpoints";
+import { knowledgeFetch } from "./aiRelay";
+
+const ATOM = "application/atom+xml, application/xml;q=0.9, */*;q=0.1";
 
 interface ArxivEntry {
   id: string;
@@ -131,11 +134,15 @@ export default class ArxivProvider implements Provider {
   }
 
   async search(query: string): Promise<KnowledgeResult[]> {
-    const response = await fetch(
-      `${this.endpoint}?search_query=all:${encodeURIComponent(query)}` +
-        `&start=0&max_results=10&sortBy=relevance`,
-      { signal: AbortSignal.timeout(this.timeout) },
-    );
+    const params = `search_query=all:${encodeURIComponent(query)}&start=0&max_results=10&sortBy=relevance`;
+    const signal = AbortSignal.timeout(this.timeout);
+    // arXiv sends no CORS header: in the browser the request goes through
+    // this server's knowledge relay (/api/knowledge/relay?provider=arxiv),
+    // never straight to arXiv and never through a third-party proxy.
+    const response =
+      typeof window !== "undefined" && typeof document !== "undefined"
+        ? await knowledgeFetch("arxiv", `https://export.arxiv.org/api/query?${params}`, { signal, accept: ATOM })
+        : await fetch(`${this.endpoint}?${params}`, { signal });
 
     if (!response.ok) {
       throw new Error(`arXiv ${response.status}`);

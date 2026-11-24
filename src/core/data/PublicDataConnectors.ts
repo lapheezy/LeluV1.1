@@ -27,6 +27,7 @@
  */
 
 import { corsFetch } from "../../providers/corsFetch";
+import { knowledgeFetch, type RelayKnowledgeId } from "../../providers/aiRelay";
 
 export interface ConnectorProfile {
   id: string;
@@ -198,8 +199,9 @@ const CONNECTORS: ConnectorImpl[] = [
       id: "arxiv.search", name: "arXiv preprints", description: "Preprints: title, authors, published date, abstract, PDF link.",
       docs: "https://info.arxiv.org/help/api/user-manual.html", auth: "none", limits: "One request every 3 seconds; single connection", terms: "arXiv API Terms of Use; link back to arXiv",
       attribution: "Thank you to arXiv for use of its open access interoperability", cors: false, minIntervalMs: 3000, cacheTtlMs: 12 * H, params: { query: "search text", max: "1–50 (default 10)" },
-      verified: { at: VERIFIED_AT, status: "no-cors", note: "answers 200 but sends no CORS header: browser calls go through the existing CORS relay (corsFetch)" },
+      verified: { at: VERIFIED_AT, status: "no-cors", note: "answers 200 but sends no CORS header: browser calls go through this server's knowledge relay (provider arxiv), never a third-party proxy" },
     },
+    accept: "application/atom+xml, application/xml;q=0.9, */*;q=0.1",
     url: (q) => (str(q.query) ? `https://export.arxiv.org/api/query?search_query=all:${enc(str(q.query))}&start=0&max_results=${int(q.max ?? q.limit, 10, 1, 50)}&sortBy=relevance` : { error: "query is required" }),
     parse: (body, q) => {
       const entries = body.split("<entry>").slice(1);
@@ -421,6 +423,9 @@ const CLIENT_ID = "LELU-research/1.1 (open-source assistant; public data connect
 
 export function clearConnectorCache(): void { cache.clear(); lastCall.clear(); }
 
+/** Connectors the browser reaches through this server's knowledge relay instead of a public CORS proxy. */
+const SERVER_RELAYED: Record<string, RelayKnowledgeId> = { "arxiv.search": "arxiv" };
+
 function isBrowser(): boolean { return typeof window !== "undefined" && typeof document !== "undefined"; }
 
 async function pace(id: string, minInterval: number): Promise<void> {
@@ -440,7 +445,14 @@ async function getText(c: ConnectorImpl, url: string, fetchImpl: FetchLike | und
     attempt += 1;
     await pace(c.profile.id, c.profile.minIntervalMs);
     try {
-      const doFetch: FetchLike = fetchImpl ?? (isBrowser() && !c.profile.cors ? (u, init) => corsFetch(u, init, timeoutMs) : (u, init) => fetch(u, { ...init, signal: AbortSignal.timeout(timeoutMs) }));
+      const relay = SERVER_RELAYED[c.profile.id];
+      const doFetch: FetchLike =
+        fetchImpl ??
+        (isBrowser() && relay
+          ? (u) => knowledgeFetch(relay, u, { signal: AbortSignal.timeout(timeoutMs), accept: headers.Accept })
+          : isBrowser() && !c.profile.cors
+            ? (u, init) => corsFetch(u, init, timeoutMs)
+            : (u, init) => fetch(u, { ...init, signal: AbortSignal.timeout(timeoutMs) }));
       const res = await doFetch(url, { headers });
       if (res.ok) return { ok: true, body: await res.text() };
       const retryable = res.status === 429 || res.status >= 500;
