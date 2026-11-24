@@ -15,7 +15,45 @@ const RAW_TOOL_PATTERNS = [
 ];
 
 export function isRawToolMarkup(text: string): boolean {
-  return RAW_TOOL_PATTERNS.some((pattern) => pattern.test(text));
+  return RAW_TOOL_PATTERNS.some((pattern) => pattern.test(text)) || bareActionTool(text) !== null;
+}
+
+/** A tool id as models write it: dotted or snake (memory.recall, repo_acquire). */
+const TOOL_ID = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)+$/i;
+const NAME_KEYS = ["tool", "name", "action", "function", "tool_name"];
+const ARG_KEYS = ["arguments", "args", "parameters", "params", "input"];
+
+/**
+ * The tool id when the WHOLE reply is an action payload, else null.
+ *
+ * MEASURED (Mission 3): only four tool names were recognised above, so a
+ * provider that wrote `{"tool":"repo.acquire","arguments":{…}}` — or any
+ * other of her ~180 tools — as text instead of a native call had that JSON
+ * shown to the user as her answer. Deliberately strict, so JSON a person
+ * asked for is left alone: the entire reply (``` fences allowed) must parse
+ * as one object or a list of objects, each naming a tool-id-shaped value
+ * under a name key AND carrying an arguments key.
+ */
+export function bareActionTool(text: string): string | null {
+  const body = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  if (!/^[[{]/.test(body)) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return null;
+  }
+  const items = Array.isArray(parsed) ? parsed : [parsed];
+  if (items.length === 0) return null;
+  let first: string | null = null;
+  for (const item of items) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    const record = item as Record<string, unknown>;
+    const nameKey = NAME_KEYS.find((key) => typeof record[key] === "string" && TOOL_ID.test(String(record[key])));
+    if (!nameKey || !ARG_KEYS.some((key) => key in record)) return null;
+    first ??= String(record[nameKey]);
+  }
+  return first;
 }
 
 /** Extract the real query from the invocation formats used by providers. */
@@ -63,6 +101,10 @@ export function cleanAssistantText(text: string): string {
   // and when that runs the user sees its actual results or its actual
   // failure. Text reaching this fallback means the transport markup was
   // NOT executed, so the honest report is that nothing ran.
+  const tool = bareActionTool(text);
+  if (tool) {
+    return `I produced a request to use ${tool} instead of running it, so nothing was done and I have no result to show. Ask again and I will run it.`;
+  }
   const query = extractToolQuery(text);
   return query
     ? `I produced a tool request for “${query}” but it was not executed, so I have no result to show. Ask again and I will run it.`
