@@ -4,21 +4,30 @@
 # Run on the Contabo VPS as root, by the owner. Prints names, shapes,
 # 12-character sha256 fingerprints and the PROJECT's verdict — never a value.
 #
-#   bash supabase-key-check.sh check      read-only: identity, file vs running process vs page vs build
-#   bash supabase-key-check.sh fix        identity → backup → disable ONLY rejected entries → restart lelu → verify
-#   bash supabase-key-check.sh rollback   restore the newest backup made by `fix`, restart lelu
+#   bash supabase-key-check.sh check      read-only: identity, file, running process, page, build
+#   bash supabase-key-check.sh fix        identity → verified backup → disable ONLY rejected
+#                                         entries → restart lelu → verify process AND page
+#   bash supabase-key-check.sh rollback   restore the newest backup made by `fix`, restart lelu,
+#                                         and prove the original key is running again
 #
-# Designed to be run from the Contabo web console on a phone: no paste,
-# three short commands, everything else inside this file.
+# Designed for the Contabo web console on a phone: no paste, short commands.
+#
+# WHICH KEY THE APP USES (one order for server and page): server.ts applies
+# plugins/runtimeKeyBridge.ts to its own globals at startup, and the page gets
+# the same bridge, so both use resolveBridge()'s first non-empty, browser-safe
+# value in THIS order:
+#   key: VITE_SUPABASE_PUBLISHABLE_KEY, SUPABASE_PUBLISHABLE_KEY, SUPABASE_ANON_KEY,
+#        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   url: VITE_SUPABASE_URL, SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL
+# Within the file, the LAST assignment of a name wins (systemd and the shell).
 #
 # Evidence that prompted it (Supabase edge logs, 2026-11-24): every request
 # from the server (supabase-js node) and every browser was answered
-# 401 UNAUTHORIZED_INVALID_API_KEY with "Not a JWT, too short signature",
-# while the project's current publishable key answers 200.
+# 401 UNAUTHORIZED_INVALID_API_KEY, "Not a JWT, too short signature".
 #
 # Canonical project (the ONLY database LÉLU uses): nrehsldbfxthspikaxvr.
 # The publishable key below is public by design (browser key; RLS protects
-# the data) and is the project's current, enabled key.
+# the data) and is the project's current, enabled key (fingerprint 1abc3454754f).
 # ==========================================================
 set -uo pipefail
 ENV_FILE=/etc/lelu/lelu.env
@@ -27,27 +36,26 @@ APP=/opt/lelu/app
 H=http://127.0.0.1:4173
 CANON_URL=https://nrehsldbfxthspikaxvr.supabase.co
 CANON_KEY=sb_publishable_hb-9gS-K2ycoSf-Y6EbUdA_3s-XNeLV
-# Same names and order as src/core/config/supabaseEnv.ts (first non-empty, non-secret wins).
-URL_NAMES=(SUPABASE_URL VITE_SUPABASE_URL NEXT_PUBLIC_SUPABASE_URL)
-KEY_NAMES=(SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_ANON_KEY)
+KEY_ORDER=(VITE_SUPABASE_PUBLISHABLE_KEY SUPABASE_PUBLISHABLE_KEY SUPABASE_ANON_KEY NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_SUPABASE_ANON_KEY)
+URL_ORDER=(VITE_SUPABASE_URL SUPABASE_URL NEXT_PUBLIC_SUPABASE_URL)
 EXPECTED_IP=157.173.116.95
 EXPECTED_HOST_FP="SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310"
+MARK=supabase-key-check
 FAILED=0
 ok() { echo "PASS  $*"; }; bad() { echo "FAIL  $*"; FAILED=1; }; info() { echo "INFO  $*"; }
+is_key_name() { [[ " ${KEY_ORDER[*]} " == *" $1 "* ]]; }
+is_url_name() { [[ " ${URL_ORDER[*]} " == *" $1 "* ]]; }
 
 fp() { printf '%s' "$1" | sha256sum | cut -c1-12; }
 shape() {  # kind, length, dots, and anything that should not be inside a key
-  local v=$1 kind=other
+  local v=$1 kind=other extra=""
   case "$v" in sb_publishable_*) kind=publishable;; sb_secret_*|sbp_*) kind=ADMIN-SECRET;; eyJ*) kind=jwt;; esac
-  local extra=""
   [[ $v =~ [[:space:]] ]] && extra+=" WHITESPACE"
   [[ $v == *\"* || $v == *\'* ]] && extra+=" QUOTES"
-  [[ $v == *'$'* ]] && extra+=" DOLLAR"
-  if [ "$kind" = jwt ]; then
-    local sig=${v##*.}; extra+=" signature-chars=${#sig}"
-  fi
+  [ "$kind" = jwt ] && { local sig=${v##*.}; extra+=" signature-chars=${#sig}"; }
   echo "kind=$kind length=${#v} dots=$(tr -cd '.' <<<"$v" | wc -c)$extra"
 }
+browser_safe() { case "$1" in ""|sb_secret_*|sbp_*) return 1;; esac; return 0; }
 verdict() {  # the project's answer to this key, sent the way supabase-js sends it
   local code
   code=$(curl -s -m 10 -o /dev/null -w '%{http_code}' -H "apikey: $1" -H "Authorization: Bearer $1" \
@@ -55,37 +63,35 @@ verdict() {  # the project's answer to this key, sent the way supabase-js sends 
   case "$code" in 200) echo "ACCEPTED(200)";; 401|403) echo "REJECTED($code)";; *) echo "NO-ANSWER($code)";; esac
 }
 
-# Value of NAME as the file states it (last assignment wins, as both systemd and the shell do).
-file_value() { ( set -a; . "$ENV_FILE" >/dev/null 2>&1; set +a; printf '%s' "${!1:-}" ); }
+# Value of NAME in FILE as the shell reads it (last assignment wins).
+file_value() { ( set -a; . "$2" >/dev/null 2>&1; set +a; printf '%s' "${!1:-}" ); }
 # Value of NAME as the RUNNING lelu process received it from systemd.
+main_pid() { systemctl show lelu -p MainPID --value 2>/dev/null; }
 proc_value() {
-  local pid; pid=$(systemctl show lelu -p MainPID --value 2>/dev/null)
+  local pid; pid=$(main_pid)
   [ -n "$pid" ] && [ "$pid" != 0 ] || return 0
-  tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | sed -n "s/^$1=//p" | head -1
+  tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | sed -n "s/^$1=//p" | tail -1
 }
-
-report_name() {  # $1 name  $2 value  $3 where
-  local v=$2
-  if [ -z "$v" ]; then info "$3 $1: absent"; return; fi
-  info "$3 $1: $(shape "$v") fp=$(fp "$v") project=$(verdict "$v")"
-}
-
-winner() {  # first non-empty, non-secret key by the code's precedence
-  local where=$1 n v
-  for n in "${KEY_NAMES[@]}"; do
-    if [ "$where" = file ]; then v=$(file_value "$n"); else v=$(proc_value "$n"); fi
+# The effective key/url the app uses, by the bridge order, from a source (file path or "proc").
+effective() {  # $1 key|url  $2 source  → prints "NAME" (empty if none)
+  local order n v
+  [ "$1" = key ] && order=("${KEY_ORDER[@]}") || order=("${URL_ORDER[@]}")
+  for n in "${order[@]}"; do
+    if [ "$2" = proc ]; then v=$(proc_value "$n"); else v=$(file_value "$n" "$2"); fi
+    v=$(printf '%s' "$v" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')
     [ -z "$v" ] && continue
-    case "$v" in sb_secret_*|sbp_*) continue;; esac
+    [ "$1" = key ] && ! browser_safe "$v" && continue
     echo "$n"; return
   done
 }
+src_value() { if [ "$2" = proc ]; then proc_value "$1"; else file_value "$1" "$2"; fi; }
 
 page_key() {  # the key the page receives through the runtime bridge (__LELU_SUPABASE_PUBLISHABLE_KEY__)
   local jar; jar=$(mktemp); chmod 600 "$jar"
   ( set -a; . "$ENV_FILE"; set +a
     [ -n "${LELU_ACCESS_PASSWORD:-}" ] && python3 -c 'import os,sys,urllib.parse; sys.stdout.write("password="+urllib.parse.quote(os.environ["LELU_ACCESS_PASSWORD"]))' |
       curl -s -o /dev/null -c "$jar" -X POST --data-binary @- -H 'content-type: application/x-www-form-urlencoded' "$H/auth/login" ) >/dev/null 2>&1
-  curl -s -b "$jar" "$H/" | grep -oE '__LELU_SUPABASE_PUBLISHABLE_KEY__"\] *= *"[^"]*"' | sed -E 's/.*= *"([^"]*)"/\1/' | head -1
+  curl -s -b "$jar" "$H/" | grep -oE '__LELU_SUPABASE_PUBLISHABLE_KEY__"\] *= *"[^"]*"' | sed -E 's/.*= *"([^"]*)"/\1/' | tail -1
   rm -f "$jar"
 }
 
@@ -102,23 +108,47 @@ check() {
   echo "== canonical project"
   info "canonical key: $(shape "$CANON_KEY") fp=$(fp "$CANON_KEY") project=$(verdict "$CANON_KEY")"
   echo "== $ENV_FILE ($(stat -c '%U:%G %a' "$ENV_FILE" 2>/dev/null))"
-  for n in "${URL_NAMES[@]}"; do v=$(file_value "$n"); [ -n "$v" ] && info "file $n: $([ "$v" = "$CANON_URL" ] && echo canonical-project || echo "OTHER (host fp=$(fp "$v"))")" || info "file $n: absent"; done
-  for n in "${KEY_NAMES[@]}"; do report_name "$n" "$(file_value "$n")" file; done
-  info "assignments per key name in the file: $(for n in "${KEY_NAMES[@]}" "${URL_NAMES[@]}"; do c=$(grep -cE "^[[:space:]]*(export[[:space:]]+)?$n=" "$ENV_FILE"); [ "$c" -gt 0 ] && printf '%s×%s ' "$n" "$c"; done)"
-  echo "== running lelu process (what systemd actually injected)"
-  for n in "${KEY_NAMES[@]}"; do
-    pv=$(proc_value "$n"); fv=$(file_value "$n")
-    [ -z "$pv" ] && { info "process $n: absent"; continue; }
-    [ "$pv" = "$fv" ] && same="same as file" || same="DIFFERS from the file as a shell reads it (systemd parsing)"
-    info "process $n: $(shape "$pv") fp=$(fp "$pv") project=$(verdict "$pv") — $same"
+  local n v c pv
+  for n in "${URL_ORDER[@]}"; do
+    v=$(file_value "$n" "$ENV_FILE")
+    [ -n "$v" ] && info "file $n: $([ "$v" = "$CANON_URL" ] && echo canonical-project || echo "OTHER (fp=$(fp "$v"))")" || info "file $n: absent"
   done
-  w=$(winner proc); info "the server uses: ${w:-no key} (first by precedence: ${KEY_NAMES[*]})"
-  echo "== page (runtime bridge)"
-  pk=$(page_key); [ -n "$pk" ] && info "page receives: $(shape "$pk") fp=$(fp "$pk") project=$(verdict "$pk")" || info "page: no bridged key found (or login failed)"
-  echo "== build (compiled VITE_ value; the bridge overrides it when set)"
+  for n in "${KEY_ORDER[@]}"; do
+    c=$(grep -cE "^[[:space:]]*(export[[:space:]]+)?$n=" "$ENV_FILE")
+    v=$(file_value "$n" "$ENV_FILE")
+    if [ -z "$v" ]; then info "file $n: absent"; continue; fi
+    info "file $n (assigned ${c}×, last wins): $(shape "$v") fp=$(fp "$v") project=$(verdict "$v")"
+  done
+  n=$(effective key "$ENV_FILE"); info "effective key per the file (bridge order): ${n:-none}"
+  echo "== running lelu process (what systemd actually injected), pid $(main_pid)"
+  for n in "${KEY_ORDER[@]}"; do
+    pv=$(proc_value "$n"); [ -z "$pv" ] && continue
+    [ "$pv" = "$(file_value "$n" "$ENV_FILE")" ] && c="same as the file" || c="DIFFERS from the file (systemd parsing)"
+    info "process $n: $(shape "$pv") fp=$(fp "$pv") project=$(verdict "$pv") — $c"
+  done
+  n=$(effective key proc); pv=$(proc_value "$n")
+  [ -n "$n" ] && info "the server and page use: $n fp=$(fp "$pv") project=$(verdict "$pv")" || info "the server and page use: no key"
+  echo "== page (runtime bridge, what browsers receive)"
+  pv=$(page_key); [ -n "$pv" ] && info "page receives: $(shape "$pv") fp=$(fp "$pv") project=$(verdict "$pv")" || info "page: no bridged key observed"
+  echo "== build (compiled values; the bridge overrides them when it publishes)"
+  local k found=0
   for k in $(grep -rhoE 'sb_publishable_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*' "$APP/dist/assets" 2>/dev/null | sort -u | head -5); do
-    info "dist contains: $(shape "$k") fp=$(fp "$k") project=$(verdict "$k")"
+    found=1; info "dist contains: $(shape "$k") fp=$(fp "$k") project=$(verdict "$k")"
   done
+  [ $found = 0 ] && info "dist contains no Supabase key"
+}
+
+# Restart lelu and require a NEW, active process that answers /healthz.
+restart_lelu() {
+  local before after
+  before=$(main_pid)
+  if ! systemctl restart lelu; then bad "systemctl restart lelu returned non-zero"; return 1; fi
+  for _ in $(seq 1 30); do curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && break; sleep 2; done
+  after=$(main_pid)
+  systemctl is-active --quiet lelu || { bad "lelu is not active after restart"; return 1; }
+  [ -n "$after" ] && [ "$after" != 0 ] && [ "$after" != "$before" ] || { bad "no new lelu process (pid ${before:-?} → ${after:-?})"; return 1; }
+  curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 || { bad "lelu does not answer /healthz"; return 1; }
+  ok "lelu restarted (pid $before → $after), active, /healthz answers"
 }
 
 fix() {
@@ -127,75 +157,86 @@ fix() {
   [ "$(verdict "$CANON_KEY")" = "ACCEPTED(200)" ] && ok "canonical key accepted" || { bad "canonical key not accepted — nothing changed"; exit 1; }
   local stamp backup; stamp=$(date -u +%Y%m%dT%H%M%SZ)
   install -d -m 0700 "$BACKUPS"
-  backup="$BACKUPS/lelu.env.$stamp.supabase-key-check"
+  backup="$BACKUPS/lelu.env.$stamp.$MARK"
   cp -p "$ENV_FILE" "$backup"
   if cmp -s "$ENV_FILE" "$backup" && [ "$(stat -c '%U:%G %a' "$backup")" = "$(stat -c '%U:%G %a' "$ENV_FILE")" ]; then
     ok "backup $backup — byte-identical, $(stat -c '%U:%G %a' "$backup"), sha256 $(sha256sum "$backup" | cut -c1-12)"
   else bad "backup not verified — nothing changed"; exit 1; fi
 
-  # Only what is wrong changes: a key the project REJECTS (401/403), or a URL
-  # naming another project, is commented out — never deleted. Accepted entries
-  # and every other line stay byte-identical. A canonical value is added only
-  # for a half (URL / key) that has nothing valid left.
+  # Only what is wrong changes, line by line: a key assignment the project
+  # REJECTS (401/403) or a URL assignment naming another project is commented
+  # out (never deleted). Accepted assignments, duplicates and every other
+  # line stay byte-identical.
   local tmp; tmp=$(mktemp "$ENV_FILE.XXXX"); chmod 600 "$tmp"
-  local n v line wrong disabled=() kept_key="" kept_url=""
+  local n v line wrong disabled=()
   while IFS= read -r line || [ -n "$line" ]; do
     n=$(sed -nE 's/^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)=.*/\2/p' <<<"$line")
-    wrong=0; v=""
-    if [ -n "$n" ] && [[ " ${KEY_NAMES[*]} ${URL_NAMES[*]} " == *" $n "* ]]; then
+    wrong=0
+    if [ -n "$n" ] && { is_key_name "$n" || is_url_name "$n"; }; then
       v=$( (set -a; eval "$line" >/dev/null 2>&1; printf '%s' "${!n:-}") )
-      if [[ " ${KEY_NAMES[*]} " == *" $n "* ]]; then
-        case "$(verdict "$v")" in REJECTED*) wrong=1;; ACCEPTED*) kept_key=$n;; esac
+      if is_key_name "$n"; then case "$(verdict "$v")" in REJECTED*) wrong=1;; esac
       elif [ -n "$v" ] && [ "$v" != "$CANON_URL" ]; then wrong=1
-      elif [ -n "$v" ]; then kept_url=$n
       fi
     fi
-    if [ $wrong = 1 ]; then
-      printf '# disabled by supabase-key-check %s (rejected by the canonical project): %s\n' "$stamp" "$line" >> "$tmp"
-      disabled+=("$n")
-    else
-      printf '%s\n' "$line" >> "$tmp"
-    fi
+    if [ $wrong = 1 ]; then printf '# disabled by %s %s: %s\n' "$MARK" "$stamp" "$line" >> "$tmp"; disabled+=("$n")
+    else printf '%s\n' "$line" >> "$tmp"; fi
   done < "$ENV_FILE"
-  local added=()
-  [ -z "$kept_url" ] && { printf '# Canonical Supabase URL (supabase-key-check %s)\nSUPABASE_URL=%s\n' "$stamp" "$CANON_URL" >> "$tmp"; added+=(SUPABASE_URL); }
-  [ -z "$kept_key" ] && { printf '# Canonical Supabase key (supabase-key-check %s)\nSUPABASE_PUBLISHABLE_KEY=%s\n' "$stamp" "$CANON_KEY" >> "$tmp"; added+=(SUPABASE_PUBLISHABLE_KEY); }
 
-  # Proof that nothing else moved: every line of the backup that is not a
-  # disabled entry must appear, unchanged and in order, in the new file.
-  local names_re; names_re=$(IFS='|'; echo "${disabled[*]:-__none__}")
-  if ! cmp -s <(grep -vE "^[[:space:]]*(export[[:space:]]+)?($names_re)=" "$backup") \
-               <(grep -vE "^# disabled by supabase-key-check $stamp |^# Canonical Supabase (URL|key) \(supabase-key-check $stamp\)$" "$tmp" | head -n "$(grep -vcE "^[[:space:]]*(export[[:space:]]+)?($names_re)=" "$backup")"); then
+  # Add a canonical value only where the EFFECTIVE (bridge-order) choice is
+  # missing or still not accepted. SUPABASE_PUBLISHABLE_KEY wins unless a
+  # VITE_ key remains — and a remaining VITE_ key was accepted, by construction.
+  local added=() ek eu
+  eu=$(effective url "$tmp")
+  if [ -z "$eu" ] || [ "$(file_value "$eu" "$tmp")" != "$CANON_URL" ]; then
+    printf '# added by %s %s\nSUPABASE_URL=%s\n' "$MARK" "$stamp" "$CANON_URL" >> "$tmp"; added+=(SUPABASE_URL)
+  fi
+  ek=$(effective key "$tmp")
+  if [ -z "$ek" ] || [ "$(verdict "$(file_value "$ek" "$tmp")")" != "ACCEPTED(200)" ]; then
+    printf '# added by %s %s\nSUPABASE_PUBLISHABLE_KEY=%s\n' "$MARK" "$stamp" "$CANON_KEY" >> "$tmp"; added+=(SUPABASE_PUBLISHABLE_KEY)
+  fi
+  ek=$(effective key "$tmp"); eu=$(effective url "$tmp")
+  if [ "$(verdict "$(file_value "$ek" "$tmp")")" != "ACCEPTED(200)" ] || [ "$(file_value "$eu" "$tmp")" != "$CANON_URL" ]; then
+    rm -f "$tmp"; bad "the edited file would still not give an accepted key and the canonical URL — nothing changed"; exit 1
+  fi
+
+  # Proof that nothing else moved: undoing exactly what this run did (strip
+  # its "disabled" prefix, drop its appended lines) must give back the
+  # backup byte for byte (a missing final newline is the only allowed change).
+  if ! cmp -s <(sed -E "s/^# disabled by $MARK $stamp: //" "$tmp" | awk -v m="# added by $MARK $stamp" '$0==m{skip=1;next} skip{skip=0;next} {print}') \
+              <(cat "$backup"; [ -n "$(tail -c1 "$backup")" ] && echo); then
     rm -f "$tmp"; bad "the rewrite would change lines it must not touch — nothing changed"; exit 1
   fi
   chown root:root "$tmp"; chmod 600 "$tmp"; mv -f "$tmp" "$ENV_FILE"
-  ok "edited $ENV_FILE ($(stat -c '%U:%G %a' "$ENV_FILE")); every other line unchanged"
-  info "disabled (rejected): ${disabled[*]:-none} | kept (accepted): ${kept_key:-none} ${kept_url:-} | added: ${added[*]:-none}"
+  ok "edited $ENV_FILE ($(stat -c '%U:%G %a' "$ENV_FILE")); reversing this edit gives the backup byte for byte"
+  info "disabled (rejected): ${disabled[*]:-none} | added: ${added[*]:-none} | effective now: key=$ek url=$eu"
 
   echo "== restart lelu only"
-  systemctl restart lelu
-  for _ in $(seq 1 30); do curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && break; sleep 2; done
-  curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && ok "lelu healthy after restart" || { bad "lelu not healthy — rolling back"; restore "$backup"; exit 1; }
-  echo "== verify"
-  local w pv pk; w=$(winner proc); pv=$(proc_value "$w")
-  [ -n "$w" ] && [ "$(verdict "$pv")" = "ACCEPTED(200)" ] && ok "server key ($w, fp $(fp "$pv")) accepted by the project" || bad "server key (${w:-none}) still rejected"
+  restart_lelu || { bad "rolling back"; restore "$backup"; exit 1; }
+  echo "== verify the running process AND the page"
+  local pn pv pk
+  pn=$(effective key proc); pv=$(proc_value "$pn")
+  [ -n "$pn" ] && [ "$(verdict "$pv")" = "ACCEPTED(200)" ] && ok "server uses $pn (fp $(fp "$pv")): accepted by the project" || bad "server key (${pn:-none}) not accepted"
+  [ "$(src_value "$(effective url proc)" proc)" = "$CANON_URL" ] && ok "server uses the canonical project URL" || bad "server URL is not the canonical project"
   pk=$(page_key)
-  if [ -n "$pk" ]; then [ "$(verdict "$pk")" = "ACCEPTED(200)" ] && ok "page key (fp $(fp "$pk")) accepted by the project" || bad "page key rejected"
-  else info "page key not observed (the page may not bridge it, or login failed)"; fi
+  [ -n "$pk" ] && [ "$(verdict "$pk")" = "ACCEPTED(200)" ] && ok "page receives fp $(fp "$pk"): accepted by the project" || bad "page key ${pk:+fp $(fp "$pk") }not accepted or not observed"
   [ $FAILED = 0 ] && ok "done; undo with: bash $0 rollback" || { bad "verification failed — rolling back"; restore "$backup"; exit 1; }
 }
 
+# Restore a backup and prove the ORIGINAL configuration is what runs again.
 restore() {
-  cp -p "$1" "$ENV_FILE" && chown root:root "$ENV_FILE" && chmod 600 "$ENV_FILE" && ok "restored $ENV_FILE from $1"
-  systemctl restart lelu
-  for _ in $(seq 1 30); do curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && { ok "lelu healthy on the restored file"; return; }; sleep 2; done
-  bad "lelu not healthy after restore"
+  local backup=$1 ek want got
+  cp -p "$backup" "$ENV_FILE" && chown root:root "$ENV_FILE" && chmod 600 "$ENV_FILE"
+  cmp -s "$ENV_FILE" "$backup" && ok "restored $ENV_FILE from $backup (byte-identical, $(stat -c '%U:%G %a' "$ENV_FILE"))" || { bad "restore did not reproduce the backup"; return 1; }
+  restart_lelu || { bad "lelu did not come back on the restored file — inspect with: systemctl status lelu"; return 1; }
+  ek=$(effective key "$backup"); want=$(file_value "$ek" "$backup")
+  got=$(proc_value "$(effective key proc)")
+  [ "$(fp "$got")" = "$(fp "$want")" ] && ok "running key is the original again (fp $(fp "$got"))" || bad "running key fp $(fp "$got") is not the original fp $(fp "$want")"
 }
 
 case "${1:-}" in
   check) check;;
   fix) fix;;
-  rollback) b=$(ls -1t "$BACKUPS"/lelu.env.*.supabase-key-check 2>/dev/null | head -1); [ -n "$b" ] && restore "$b" || bad "no supabase-key-check backup found";;
+  rollback) identity; b=$(ls -1t "$BACKUPS"/lelu.env.*."$MARK" 2>/dev/null | head -1); [ -n "$b" ] && restore "$b" || bad "no $MARK backup found";;
   *) echo "usage: $0 check | fix | rollback"; exit 2;;
 esac
 exit $FAILED
