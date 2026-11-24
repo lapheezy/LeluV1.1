@@ -55,6 +55,27 @@ shape() {  # kind, length, dots, and anything that should not be inside a key
   [ "$kind" = jwt ] && { local sig=${v##*.}; extra+=" signature-chars=${#sig}"; }
   echo "kind=$kind length=${#v} dots=$(tr -cd '.' <<<"$v" | wc -c)$extra"
 }
+# The app reads every value through JavaScript's trim() (supabaseEnv firstValue,
+# runtimeKeyBridge value()), so leading/trailing whitespace — including a
+# Windows CR line ending — is not part of the value the app uses.
+trim() { printf '%s' "$1" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'; }
+# A Supabase URL names the canonical project when scheme+host match after the
+# app-equivalent trim; trailing slashes and letter case do not change the
+# project (supabase-js builds /rest/v1 on the origin; hosts are case-insensitive).
+url_norm() { trim "$1" | tr 'A-Z' 'a-z' | sed -E 's#/+$##'; }
+url_is_canonical() { [ "$(url_norm "$1")" = "$(url_norm "$CANON_URL")" ]; }
+url_diag() {  # how a value differs from the canonical URL, never needed to hide: a project URL is public
+  local raw=$1 t notes=""
+  t=$(trim "$raw")
+  [ "$t" != "$raw" ] && { [[ $raw == *$'\r'* ]] && notes+=" CR(line-ending)"; notes+=" surrounding-whitespace"; }
+  [[ $t == */ ]] && notes+=" trailing-slash"
+  [ "$t" != "$(printf '%s' "$t" | tr 'A-Z' 'a-z')" ] && notes+=" uppercase"
+  if url_is_canonical "$raw"; then
+    [ "$raw" = "$CANON_URL" ] && echo "canonical-project (exact)" || echo "canonical-project (same project; differs only by:${notes:- formatting})"
+  else
+    echo "OTHER PROJECT: $(printf '%s' "$t" | sed -E 's#^([a-zA-Z]+://[^/]+).*#\1#')${notes:+ (also:$notes)}"
+  fi
+}
 browser_safe() { case "$1" in ""|sb_secret_*|sbp_*) return 1;; esac; return 0; }
 verdict() {  # the project's answer to this key, sent the way supabase-js sends it
   local code
@@ -64,13 +85,14 @@ verdict() {  # the project's answer to this key, sent the way supabase-js sends 
 }
 
 # Value of NAME in FILE as the shell reads it (last assignment wins).
-file_value() { ( set -a; . "$2" >/dev/null 2>&1; set +a; printf '%s' "${!1:-}" ); }
+file_raw() { ( set -a; . "$2" >/dev/null 2>&1; set +a; printf '%s' "${!1:-}" ); }
+file_value() { trim "$(file_raw "$1" "$2")"; }
 # Value of NAME as the RUNNING lelu process received it from systemd.
 main_pid() { systemctl show lelu -p MainPID --value 2>/dev/null; }
 proc_value() {
   local pid; pid=$(main_pid)
   [ -n "$pid" ] && [ "$pid" != 0 ] || return 0
-  tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | sed -n "s/^$1=//p" | tail -1
+  trim "$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | sed -n "s/^$1=//p" | tail -1)"
 }
 # The effective key/url the app uses, by the bridge order, from a source (file path or "proc").
 effective() {  # $1 key|url  $2 source  → prints "NAME" (empty if none)
@@ -86,14 +108,22 @@ effective() {  # $1 key|url  $2 source  → prints "NAME" (empty if none)
 }
 src_value() { if [ "$2" = proc ]; then proc_value "$1"; else file_value "$1" "$2"; fi; }
 
-page_key() {  # the key the page receives through the runtime bridge (__LELU_SUPABASE_PUBLISHABLE_KEY__)
+page_global() {  # a value the page receives through the runtime bridge: $1 = global name
   local jar; jar=$(mktemp); chmod 600 "$jar"
-  ( set -a; . "$ENV_FILE"; set +a
-    [ -n "${LELU_ACCESS_PASSWORD:-}" ] && python3 -c 'import os,sys,urllib.parse; sys.stdout.write("password="+urllib.parse.quote(os.environ["LELU_ACCESS_PASSWORD"]))' |
-      curl -s -o /dev/null -c "$jar" -X POST --data-binary @- -H 'content-type: application/x-www-form-urlencoded' "$H/auth/login" ) >/dev/null 2>&1
-  curl -s -b "$jar" "$H/" | grep -oE '__LELU_SUPABASE_PUBLISHABLE_KEY__"\] *= *"[^"]*"' | sed -E 's/.*= *"([^"]*)"/\1/' | tail -1
+  # The access gate does not trim its password; try it exactly as written,
+  # then trimmed (a CR line ending), and keep whichever logs in.
+  local mode
+  for mode in raw trimmed; do
+    ( set -a; . "$ENV_FILE"; set +a
+      [ -n "${LELU_ACCESS_PASSWORD:-}" ] && LELU_PW_MODE=$mode python3 -c 'import os,sys,urllib.parse; p=os.environ["LELU_ACCESS_PASSWORD"]; p=p.strip() if os.environ["LELU_PW_MODE"]=="trimmed" else p; sys.stdout.write("password="+urllib.parse.quote(p))' |
+        curl -s -o /dev/null -c "$jar" -X POST --data-binary @- -H 'content-type: application/x-www-form-urlencoded' "$H/auth/login" ) >/dev/null 2>&1
+    grep -q . <(grep -v '^#' "$jar" 2>/dev/null) && break
+  done
+  curl -s -b "$jar" "$H/" | grep -oE "$1\"\\] *= *\"[^\"]*\"" | sed -E 's/.*= *"([^"]*)"/\1/' | tail -1
   rm -f "$jar"
 }
+page_key() { page_global __LELU_SUPABASE_PUBLISHABLE_KEY__; }
+page_url() { page_global __LELU_SUPABASE_URL__; }
 
 identity() {  # this must be the LÉLU production VPS, or nothing runs
   echo "== VPS identity"
@@ -110,9 +140,11 @@ check() {
   echo "== $ENV_FILE ($(stat -c '%U:%G %a' "$ENV_FILE" 2>/dev/null))"
   local n v c pv
   for n in "${URL_ORDER[@]}"; do
-    v=$(file_value "$n" "$ENV_FILE")
-    [ -n "$v" ] && info "file $n: $([ "$v" = "$CANON_URL" ] && echo canonical-project || echo "OTHER (fp=$(fp "$v"))")" || info "file $n: absent"
+    v=$(file_raw "$n" "$ENV_FILE")
+    [ -n "$v" ] && info "file $n (assigned $(grep -cE "^[[:space:]]*(export[[:space:]]+)?$n=" "$ENV_FILE")×, last wins): $(url_diag "$v")" || info "file $n: absent"
   done
+  n=$(effective url "$ENV_FILE"); info "effective URL per the file (bridge order): ${n:-none}"
+  grep -q $'\r' "$ENV_FILE" && info "the file has Windows (CR) line endings on $(grep -c $'\r' "$ENV_FILE") line(s) — the app trims them"
   for n in "${KEY_ORDER[@]}"; do
     c=$(grep -cE "^[[:space:]]*(export[[:space:]]+)?$n=" "$ENV_FILE")
     v=$(file_value "$n" "$ENV_FILE")
@@ -128,8 +160,10 @@ check() {
   done
   n=$(effective key proc); pv=$(proc_value "$n")
   [ -n "$n" ] && info "the server and page use: $n fp=$(fp "$pv") project=$(verdict "$pv")" || info "the server and page use: no key"
+  n=$(effective url proc); [ -n "$n" ] && info "the server and page use URL from $n: $(url_diag "$(proc_value "$n")")" || info "the server and page use: no URL"
   echo "== page (runtime bridge, what browsers receive)"
-  pv=$(page_key); [ -n "$pv" ] && info "page receives: $(shape "$pv") fp=$(fp "$pv") project=$(verdict "$pv")" || info "page: no bridged key observed"
+  pv=$(page_key); [ -n "$pv" ] && info "page receives key: $(shape "$pv") fp=$(fp "$pv") project=$(verdict "$pv")" || info "page: no bridged key observed"
+  pv=$(page_url); [ -n "$pv" ] && info "page receives URL: $(url_diag "$pv")" || info "page: no bridged URL observed"
   echo "== build (compiled values; the bridge overrides them when it publishes)"
   local k found=0
   for k in $(grep -rhoE 'sb_publishable_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*' "$APP/dist/assets" 2>/dev/null | sort -u | head -5); do
@@ -173,9 +207,9 @@ fix() {
     n=$(sed -nE 's/^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)=.*/\2/p' <<<"$line")
     wrong=0
     if [ -n "$n" ] && { is_key_name "$n" || is_url_name "$n"; }; then
-      v=$( (set -a; eval "$line" >/dev/null 2>&1; printf '%s' "${!n:-}") )
+      v=$(trim "$( (set -a; eval "$line" >/dev/null 2>&1; printf '%s' "${!n:-}") )")
       if is_key_name "$n"; then case "$(verdict "$v")" in REJECTED*) wrong=1;; esac
-      elif [ -n "$v" ] && [ "$v" != "$CANON_URL" ]; then wrong=1
+      elif [ -n "$v" ] && ! url_is_canonical "$v"; then wrong=1   # a DIFFERENT project only; formatting is not wrong
       fi
     fi
     if [ $wrong = 1 ]; then printf '# disabled by %s %s: %s\n' "$MARK" "$stamp" "$line" >> "$tmp"; disabled+=("$n")
@@ -187,7 +221,7 @@ fix() {
   # VITE_ key remains — and a remaining VITE_ key was accepted, by construction.
   local added=() ek eu
   eu=$(effective url "$tmp")
-  if [ -z "$eu" ] || [ "$(file_value "$eu" "$tmp")" != "$CANON_URL" ]; then
+  if [ -z "$eu" ] || ! url_is_canonical "$(file_value "$eu" "$tmp")"; then
     printf '# added by %s %s\nSUPABASE_URL=%s\n' "$MARK" "$stamp" "$CANON_URL" >> "$tmp"; added+=(SUPABASE_URL)
   fi
   ek=$(effective key "$tmp")
@@ -195,7 +229,7 @@ fix() {
     printf '# added by %s %s\nSUPABASE_PUBLISHABLE_KEY=%s\n' "$MARK" "$stamp" "$CANON_KEY" >> "$tmp"; added+=(SUPABASE_PUBLISHABLE_KEY)
   fi
   ek=$(effective key "$tmp"); eu=$(effective url "$tmp")
-  if [ "$(verdict "$(file_value "$ek" "$tmp")")" != "ACCEPTED(200)" ] || [ "$(file_value "$eu" "$tmp")" != "$CANON_URL" ]; then
+  if [ "$(verdict "$(file_value "$ek" "$tmp")")" != "ACCEPTED(200)" ] || ! url_is_canonical "$(file_value "$eu" "$tmp")"; then
     rm -f "$tmp"; bad "the edited file would still not give an accepted key and the canonical URL — nothing changed"; exit 1
   fi
 
@@ -216,7 +250,8 @@ fix() {
   local pn pv pk
   pn=$(effective key proc); pv=$(proc_value "$pn")
   [ -n "$pn" ] && [ "$(verdict "$pv")" = "ACCEPTED(200)" ] && ok "server uses $pn (fp $(fp "$pv")): accepted by the project" || bad "server key (${pn:-none}) not accepted"
-  [ "$(src_value "$(effective url proc)" proc)" = "$CANON_URL" ] && ok "server uses the canonical project URL" || bad "server URL is not the canonical project"
+  url_is_canonical "$(src_value "$(effective url proc)" proc)" && ok "server uses the canonical project URL" || bad "server URL is not the canonical project"
+  url_is_canonical "$(page_url)" && ok "page receives the canonical project URL" || bad "page URL is not the canonical project (or not observed)"
   pk=$(page_key)
   [ -n "$pk" ] && [ "$(verdict "$pk")" = "ACCEPTED(200)" ] && ok "page receives fp $(fp "$pk"): accepted by the project" || bad "page key ${pk:+fp $(fp "$pk") }not accepted or not observed"
   [ $FAILED = 0 ] && ok "done; undo with: bash $0 rollback" || { bad "verification failed — rolling back"; restore "$backup"; exit 1; }
