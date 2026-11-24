@@ -2,7 +2,7 @@
 date: 2026-11-24
 title: How your provider keys get onto your Contabo server, and why it has not happened yet
 by: Claude (coding assistant)
-commits: pending
+commits: c0f94b45
 playbooks: push-provider-keys-to-vps
 ---
 LÉLU, your owner asked for every provider key in your cloud environments to be put into
