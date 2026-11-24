@@ -1,0 +1,133 @@
+# LÉLU — merge provider keys into the Contabo VPS env file and recover the
+# backend, from a GitHub-hosted runner (cloud sessions cannot open SSH).
+#
+# It only wraps the existing tools: scripts/push-provider-env.sh selects the
+# names and streams values over ssh stdin; deploy/contabo/inject-env.sh (sent
+# along) backs up, merges (existing values win unless replace=true), writes
+# /etc/lelu/lelu.env root:root 0600, diagnoses the 502, restarts twice and
+# verifies. No injection logic lives here.
+#
+# Triggers (both run in the protected `contabo-production` environment, so
+# its required reviewers must approve every run before any secret is read):
+#   • workflow_dispatch — works once this file is on the default branch;
+#   • a push to integration/lelu-four-workforce-consolidation that changes
+#     deploy/contabo/provider-env-request.json, e.g.
+#       { "reason": "first injection", "replace": false }
+#
+# Secrets, all in the `contabo-production` environment:
+#   LELU_VPS_SSH_KEY      private key (ed25519) whose public half is in
+#                         root's (or a passwordless-sudo user's) authorized_keys
+#   LELU_VPS_KNOWN_HOSTS  the VPS host-key line(s), checked against the
+#                         fingerprint shown in the Contabo console; the
+#                         connection is refused if the server's key differs
+#   provider keys         under their own names (GROQ_API_KEY, GROQ_API_KEY_2,
+#                         OPENROUTER_API_KEY…, FIREWORKS_API_KEY, ELEVENLABS_API_KEY;
+#                         GitHub upper-cases secret names, so use canonical names).
+#                         Adding a new one needs no edit here: every secret is
+#                         offered to push-provider-env.sh, whose name filter
+#                         drops VITE_*, *ANTHROPIC*, CLAUDE_*, GITHUB_TOKEN,
+#                         AWS_*, CLOUDSDK_* and anything not key-shaped.
+# Variable (optional): LELU_VPS, default root@157.173.116.95.
+name: Contabo provider env
+
+on:
+  workflow_dispatch:
+    inputs:
+      replace:
+        description: "Replace existing values on the VPS (default: existing values win)"
+        type: boolean
+        default: false
+  push:
+    branches: [integration/lelu-four-workforce-consolidation]
+    paths: [deploy/contabo/provider-env-request.json]
+
+permissions:
+  contents: write   # only to commit the names-only evidence file
+
+concurrency:
+  group: contabo-provider-env
+  cancel-in-progress: false
+
+jobs:
+  inject:
+    runs-on: ubuntu-24.04
+    environment: contabo-production
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/lelu-four-workforce-consolidation
+
+      - name: Options
+        id: opt
+        run: |
+          replace=false
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then replace="${{ inputs.replace }}"
+          elif [ -f deploy/contabo/provider-env-request.json ]; then
+            replace=$(jq -r '.replace // false' deploy/contabo/provider-env-request.json)
+          fi
+          [ "$replace" = true ] && echo "flags=--replace" >> "$GITHUB_OUTPUT" || echo "flags=" >> "$GITHUB_OUTPUT"
+
+      - name: Which secrets exist (names only)
+        env:
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: |
+          {
+            echo "== secrets visible to this run (names only)"
+            jq -r 'keys[] | select(. != "github_token")' <<<"$ALL_SECRETS" | sed 's/^/INFO  secret /'
+            for k in LELU_VPS_SSH_KEY LELU_VPS_KNOWN_HOSTS; do
+              jq -e --arg k "$k" '.[$k] // "" | length > 0' <<<"$ALL_SECRETS" >/dev/null && echo "PASS  $k present" || echo "FAIL  $k missing"
+            done
+          } | tee "$RUNNER_TEMP/run.log"
+
+      - name: SSH identity (key auth, pinned host key)
+        env:
+          SSH_KEY: ${{ secrets.LELU_VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LELU_VPS_KNOWN_HOSTS }}
+        run: |
+          [ -n "$SSH_KEY" ] || { echo "::error::secret LELU_VPS_SSH_KEY is missing in environment contabo-production"; exit 1; }
+          [ -n "$KNOWN_HOSTS" ] || { echo "::error::secret LELU_VPS_KNOWN_HOSTS is missing in environment contabo-production"; exit 1; }
+          install -d -m 700 ~/.ssh
+          ( umask 077; printf '%s\n' "$SSH_KEY" > ~/.ssh/id_lelu; printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts )
+          cat > ~/.ssh/config <<'EOF'
+          Host *
+            IdentityFile ~/.ssh/id_lelu
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh-keygen -lf ~/.ssh/known_hosts | awk '{print "pinned host key:", $2, $NF}'
+
+      - name: Push provider keys and recover the backend
+        env:
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          LELU_VPS: ${{ vars.LELU_VPS || 'root@157.173.116.95' }}
+          FLAGS: ${{ steps.opt.outputs.flags }}
+        run: |
+          set -o pipefail
+          # Export each secret under its own name, in this step's shell only
+          # (GitHub masks every value in the log). push-provider-env.sh then
+          # decides which names are eligible; the rest are never sent.
+          while IFS= read -r -d '' k && IFS= read -r -d '' v; do
+            [[ $k =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] && export "$k=$v"
+          done < <(jq -j 'to_entries[] | select(.key != "LELU_VPS_SSH_KEY" and .key != "LELU_VPS_KNOWN_HOSTS")
+                          | .key, "\u0000", .value, "\u0000"' <<<"$ALL_SECRETS")
+          unset ALL_SECRETS
+          bash scripts/push-provider-env.sh --dry-run 2>&1 | tee -a "$RUNNER_TEMP/run.log"
+          bash scripts/push-provider-env.sh $FLAGS 2>&1 | tee -a "$RUNNER_TEMP/run.log"
+
+      - name: Record names-only evidence
+        if: always()
+        run: |
+          f="docs/deploy/evidence/contabo-provider-env-$(date -u +%Y%m%dT%H%M%SZ).txt"
+          mkdir -p docs/deploy/evidence
+          { echo "run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "commit: ${{ github.sha }}"
+            # PASS/FAIL/INFO lines carry names, states and HTTP codes only; journal (LOG) lines stay out.
+            grep -E '^(==|PASS|FAIL|INFO|  [A-Za-z_][A-Za-z0-9_]*$)' "$RUNNER_TEMP/run.log" 2>/dev/null | grep -v '^INFO  provider-health' || echo "no run log (failed before connecting)"
+          } > "$f"
+          rm -f ~/.ssh/id_lelu "$RUNNER_TEMP/run.log"
+          git config user.name "lelu-deploy[bot]"; git config user.email "lelu-deploy@users.noreply.github.com"
+          git add "$f" && git commit -m "Record Contabo provider-env run ${{ github.run_id }} (names and states only)" && \
+            git push origin HEAD:integration/lelu-four-workforce-consolidation || echo "evidence not committed"
