@@ -486,7 +486,7 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
       title={doc ? <>Sketch · {doc.name}</> : "Sketch"}
       onClose={onClose}
       width="min(97vw, 1240px)"
-      maxHeight="min(92vh, 980px)"
+      maxHeight="min(92svh, 980px)"
       elevation="focus"
       overflow="hidden"
       extraActions={
@@ -500,7 +500,7 @@ export default function GenesisSketchPanel({ onClose }: GenesisSketchPanelProps)
           No sketch open. Create one, or pick one from the library.
         </div>
       ) : (
-        <div className="lelu-sketch-body" style={{ display: "flex", gap: 12, height: "min(78vh, 860px)" }}>
+        <div className="lelu-sketch-body" style={{ display: "flex", gap: 12, height: "min(78svh, 860px)" }}>
           {/* toolbar */}
           <div
             className="lelu-sketch-tools"

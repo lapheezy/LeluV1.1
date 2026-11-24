@@ -146,7 +146,7 @@
 
 @media (max-width: 760px) {
   .hs-grid2, .hs-grid3, .hs-research dl { grid-template-columns: minmax(0, 1fr); }
-  .hs-list { flex-direction: column; overflow-x: visible; max-height: 34vh; overflow-y: auto; }
+  .hs-list { flex-direction: column; overflow-x: visible; max-height: 34svh; overflow-y: auto; }
   .hs-list button { flex: 0 0 auto; }
   .hs-modules th:nth-child(5), .hs-modules td:nth-child(5) { display: none; }
 }

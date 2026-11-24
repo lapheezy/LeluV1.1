@@ -122,7 +122,7 @@ export default function GenesisWindowFrame({
   elevation = "float",
   active = false,
   children,
-  maxHeight = "70vh",
+  maxHeight = "70svh",
   background,
   beforeHeader,
   motionKey,

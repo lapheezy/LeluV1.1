@@ -268,7 +268,7 @@ export default function GenesisCommandPalette({
                   outline: "none",
                 }}
               />
-              <div style={{ maxHeight: "50vh", overflowY: "auto", padding: 6 }}>
+              <div style={{ maxHeight: "50svh", overflowY: "auto", padding: 6 }}>
                 {filtered.length === 0 ? (
                   <div style={{ padding: "10px 12px", fontSize: 12, opacity: 0.6 }}>No matching commands.</div>
                 ) : (

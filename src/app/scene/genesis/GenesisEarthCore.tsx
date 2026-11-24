@@ -346,7 +346,7 @@ function EntityInfoPanel({
       bottom: 16,
       right: 16,
       width: 280,
-      maxHeight: "calc(100vh - 120px)",
+      maxHeight: "calc(100svh - 120px)",
       overflowY: "auto",
       background: "rgba(2, 8, 23, 0.92)",
       border: `1px solid ${color}44`,

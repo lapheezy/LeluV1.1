@@ -84,7 +84,7 @@ export default function GenesisTabEditor({
           display: "flex",
           flexDirection: "column",
           gap: 10,
-          maxHeight: "min(72vh, 620px)",
+          maxHeight: "min(72svh, 620px)",
           overflowY: "auto",
           color: "white",
         }}

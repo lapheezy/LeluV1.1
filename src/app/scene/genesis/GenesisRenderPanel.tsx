@@ -172,10 +172,10 @@ export default function GenesisRenderPanel({ onClose }: GenesisRenderPanelProps)
       title="Render · finished visuals"
       onClose={onClose}
       width="min(97vw, 1180px)"
-      maxHeight="min(92vh, 940px)"
+      maxHeight="min(92svh, 940px)"
       elevation="focus"
     >
-      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(72vh, 700px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(72svh, 700px)" }}>
         {/* ---------------------------------------------- inputs */}
         <div
           style={{
@@ -442,7 +442,7 @@ export default function GenesisRenderPanel({ onClose }: GenesisRenderPanelProps)
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>
             Gallery · {outputs.length}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, overflowY: "auto", maxHeight: "min(46vh, 420px)", paddingBottom: 4 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, overflowY: "auto", maxHeight: "min(46svh, 420px)", paddingBottom: 4 }}>
             {outputs.map((output) => (
               <div
                 key={output.id}

@@ -142,10 +142,10 @@ export default function GenesisVideoPanel({ onClose }: GenesisVideoPanelProps) {
       title="Video · project pipeline"
       onClose={onClose}
       width="min(97vw, 1180px)"
-      maxHeight="min(92vh, 940px)"
+      maxHeight="min(92svh, 940px)"
       elevation="focus"
     >
-      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(72vh, 700px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(72svh, 700px)" }}>
         {/* ---------------------------------------------- project list */}
         <div
           style={{

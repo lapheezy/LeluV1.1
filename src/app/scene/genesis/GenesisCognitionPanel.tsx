@@ -261,7 +261,7 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
       title="Cognition · persistent mind"
       onClose={onClose}
       width="min(96vw, 1100px)"
-      maxHeight="min(90vh, 920px)"
+      maxHeight="min(90svh, 920px)"
       elevation="focus"
     >
       {/* tabs */}
@@ -281,7 +281,7 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
         ))}
       </div>
 
-      <div style={{ maxHeight: "min(72vh, 720px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ maxHeight: "min(72svh, 720px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
         {/* ------------------------------------------------ SELF */}
         {tab === "self" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

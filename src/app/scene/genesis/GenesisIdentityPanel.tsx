@@ -628,7 +628,7 @@ export default function GenesisIdentityPanel({ onClose }: { onClose: () => void 
   ];
 
   return (
-    <GenesisWindowFrame eyebrow="LÉLU" title="Identity" onClose={onClose} maxHeight="min(52vh, 480px)">
+    <GenesisWindowFrame eyebrow="LÉLU" title="Identity" onClose={onClose} maxHeight="min(52svh, 480px)">
       <div style={panelStyle}>
         <div style={tabBarStyle}>
           {tabs.map((tab) => (

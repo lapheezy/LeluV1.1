@@ -446,7 +446,7 @@ export default function GenesisStudioPanel({ onClose }: { onClose: () => void })
       title="Software Studio"
       onClose={onClose}
       width="min(94vw, 760px)"
-      maxHeight="min(82vh, 760px)"
+      maxHeight="min(82svh, 760px)"
       overflow="auto-y"
     >
       <p style={{ fontSize: 11.5, opacity: 0.72, margin: "0 0 10px" }}>{health}</p>

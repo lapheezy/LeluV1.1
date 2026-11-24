@@ -175,10 +175,10 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
       title="Avatar · persistent identity"
       onClose={onClose}
       width="min(96vw, 980px)"
-      maxHeight="min(92vh, 920px)"
+      maxHeight="min(92svh, 920px)"
       elevation="focus"
     >
-      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70svh, 660px)" }}>
         {/* ---------------------------------------------- reference */}
         <div
           style={{

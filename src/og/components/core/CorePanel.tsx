@@ -61,7 +61,7 @@ export function CorePanel({
   if (panel.minimized) return null;
 
   const style: React.CSSProperties = panel.maximized
-    ? { left: 8, top: 56, width: "calc(100vw - 16px)", height: "calc(100vh - 96px)", zIndex: panel.pinned ? 9000 + panel.z : panel.z, position: "absolute" }
+    ? { left: 8, top: 56, width: "calc(100vw - 16px)", height: "calc(100svh - 96px)", zIndex: panel.pinned ? 9000 + panel.z : panel.z, position: "absolute" }
     : { left: panel.x, top: panel.y, width: panel.w, height: panel.h, zIndex: panel.pinned ? 9000 + panel.z : panel.z, position: "absolute" };
 
   return (

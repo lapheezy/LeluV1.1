@@ -129,7 +129,7 @@ body:has([data-lelu-signin-gate]) [data-spatial-nav] {
 @keyframes lsh-fade { from { opacity: 0; } }
 .lsh {
   width: min(640px, 100%);
-  max-height: min(78vh, 720px);
+  max-height: min(78svh, 720px);
   overflow-y: auto;
   box-sizing: border-box;
   padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 18px);

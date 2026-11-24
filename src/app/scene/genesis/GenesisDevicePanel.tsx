@@ -309,13 +309,13 @@ export default function GenesisDevicePanel({ onClose }: GenesisDevicePanelProps)
       }
       onClose={onClose}
       width="min(92vw, 620px)"
-      maxHeight="80vh"
+      maxHeight="80svh"
       overflow="hidden"
     >
       <div
         className="genesis-scroll"
         style={{
-          maxHeight: "calc(80vh - 132px)",
+          maxHeight: "calc(80svh - 132px)",
           overflowY: "auto",
           overscrollBehavior: "contain",
           touchAction: "pan-y",

@@ -217,7 +217,7 @@ export const codeText: CSSProperties = {
 
 export const studioFrame = {
   width: "min(94vw, 760px)",
-  maxHeight: "min(90vh, 820px)",
+  maxHeight: "min(90svh, 820px)",
 } as const;
 
 export const elevated = genesisTheme.elevation.focus.boxShadow;

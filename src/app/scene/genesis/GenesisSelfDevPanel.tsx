@@ -295,7 +295,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
       title={<>Evolution · v{LELU_VERSION} · autonomy L{autonomy}</>}
       onClose={onClose}
       width="min(96vw, 1140px)"
-      maxHeight="min(92vh, 940px)"
+      maxHeight="min(92svh, 940px)"
       elevation="focus"
     >
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -315,7 +315,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
         ))}
       </div>
 
-      <div style={{ maxHeight: "min(76vh, 760px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ maxHeight: "min(76svh, 760px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
         {/* ============================ OVERVIEW */}
         {tab === "overview" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -518,7 +518,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             proactive observations (SelfDevelopmentEngine.announce())
             land in the same thread live via the subscription above. */}
         {tab === "chat" ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "min(64vh, 640px)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "min(64svh, 640px)" }}>
             <div style={{ fontSize: 11.5, opacity: 0.65 }}>
               A second conversation with LÉLU, dedicated to engineering, cognition and self-improvement. She can open it
               herself when her own cognitive loop finds something real; you can ask her to investigate, and approve
@@ -1264,7 +1264,7 @@ function UILabTab({ specs, uiStore, refresh }: { specs: UISpec[]; uiStore: UISpe
               spellCheck={false}
               style={{
                 flex: 1,
-                minHeight: "min(52vh, 460px)",
+                minHeight: "min(52svh, 460px)",
                 boxSizing: "border-box",
                 width: "100%",
                 background: "rgba(2, 6, 23, 0.6)",
@@ -1414,7 +1414,7 @@ function CodeTab({ selfCode, refresh }: { selfCode: SelfCode; refresh: () => voi
       ) : null}
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <div style={{ width: 280, flexShrink: 0, maxHeight: "min(56vh, 520px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ width: 280, flexShrink: 0, maxHeight: "min(56svh, 520px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
           {sources.map((path) => (
             <div key={path} style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <button
@@ -1460,7 +1460,7 @@ function CodeTab({ selfCode, refresh }: { selfCode: SelfCode; refresh: () => voi
                 whiteSpace: "pre-wrap",
                 fontSize: 10.5,
                 lineHeight: 1.55,
-                maxHeight: "min(56vh, 520px)",
+                maxHeight: "min(56svh, 520px)",
                 overflowY: "auto",
                 background: "rgba(2, 6, 23, 0.6)",
                 border: "1px solid rgba(255,255,255,0.12)",

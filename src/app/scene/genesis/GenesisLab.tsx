@@ -1106,7 +1106,7 @@ function DestinationPanel({
         bottom: mobile ? 10 : undefined,
         transform: mobile ? undefined : "translateY(-50%)",
         width: mobile ? "auto" : wide ? "min(560px, calc(100vw - 140px))" : "min(400px, calc(100vw - 140px))",
-        maxHeight: mobile ? "min(58vh, 520px)" : "min(78vh, 640px)",
+        maxHeight: mobile ? "min(58svh, 520px)" : "min(78svh, 640px)",
         display: "flex",
         flexDirection: "column",
         borderRadius: 20,

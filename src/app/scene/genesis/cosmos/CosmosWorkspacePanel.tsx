@@ -120,7 +120,7 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
         right: 16,
         bottom: 96,
         width: "min(392px, calc(100vw - 24px))",
-        maxHeight: "min(64vh, 520px)",
+        maxHeight: "min(64svh, 520px)",
         display: "flex",
         flexDirection: "column",
         background: "rgba(6,14,32,0.94)",

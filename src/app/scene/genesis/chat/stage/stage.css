@@ -95,7 +95,7 @@
 
 /* ---------- cinematic ---------- */
 .lst-cine { flex: 1; overflow-y: auto; scroll-behavior: smooth; padding-bottom: 120px; }
-.lst-cine-hero { position: relative; height: min(78vh, 720px); min-height: 380px; overflow: hidden; display: flex; align-items: flex-end; }
+.lst-cine-hero { position: relative; height: min(78svh, 720px); min-height: 380px; overflow: hidden; display: flex; align-items: flex-end; }
 .lst-cine-hero-img { position: absolute; inset: -4%; background-size: cover; background-position: center; }
 .lst-cine-hero-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 3, 15, 0.1) 20%, rgba(5, 3, 15, 0.65) 65%, #07051a 100%); }
 .lst-cine-hero-text { position: relative; padding: 0 clamp(18px, 6cqi, 96px) 48px; max-width: 980px; }
@@ -109,7 +109,7 @@
 .lst-cine-text { font-size: clamp(15px, 1.7cqi, 18px); line-height: 1.75; color: rgba(239, 234, 255, 0.9); }
 .lst-cine-text img { display: none; }
 .lst-cine-media { margin: 26px calc(-1 * clamp(0px, 3cqi, 48px)); }
-.lst-cine-media img { width: 100%; max-height: 70vh; object-fit: cover; border-radius: 22px; box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.lst-cine-media img { width: 100%; max-height: 70svh; object-fit: cover; border-radius: 22px; box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06); }
 .lst-cine-media figcaption { margin-top: 10px; text-align: center; font: italic 13px Georgia, serif; color: rgba(239, 234, 255, 0.6); }
 .lst-cine-wait { color: #c4b5fd; font-style: italic; }
 .lst-cine-credits { max-width: 1080px; margin: 0 auto; padding: 30px clamp(18px, 6cqi, 96px); display: flex; flex-wrap: wrap; gap: 8px; }
@@ -143,7 +143,7 @@
 .lst-slide-copy { position: relative; padding: clamp(20px, 6cqi, 80px); max-width: 980px; margin: 0 auto; }
 .lst-slide-copy h1 { margin: 0 0 18px; font: 700 clamp(28px, 6cqi, 72px)/1.02 "Fraunces", Georgia, serif; letter-spacing: -0.02em; }
 .lst-slide[data-kind="question"] h1 { background: linear-gradient(120deg, #fff, #f0abfc 50%, #93c5fd); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.lst-slide-text { font-size: clamp(15px, 1.9cqi, 21px); line-height: 1.6; color: rgba(239, 234, 255, 0.88); max-height: 55vh; overflow: hidden; }
+.lst-slide-text { font-size: clamp(15px, 1.9cqi, 21px); line-height: 1.6; color: rgba(239, 234, 255, 0.88); max-height: 55svh; overflow: hidden; }
 .lst-slide-text img { display: none; }
 .lst-present-nav { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; z-index: 3; }
 .lst-dots { display: flex; gap: 6px; padding: 8px 12px; border-radius: 999px; background: rgba(20, 12, 50, 0.7); }

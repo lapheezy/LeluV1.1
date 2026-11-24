@@ -377,7 +377,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
       title="Settings · local-first operating environment"
       onClose={onClose}
       width="min(94vw, 820px)"
-      maxHeight="min(90vh, 860px)"
+      maxHeight="min(90svh, 860px)"
       elevation="focus"
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

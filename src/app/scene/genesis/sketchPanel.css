@@ -44,13 +44,13 @@
   .lelu-sketch-canvas canvas {
     width: 100% !important;
     height: auto !important;
-    max-height: 56vh !important;
+    max-height: 56svh !important;
     object-fit: contain;
   }
 
   .lelu-sketch-side {
     width: 100% !important;
-    max-height: 28vh !important;
+    max-height: 28svh !important;
     box-sizing: border-box !important;
   }
 }

@@ -28,7 +28,7 @@ export default function InterfaceLayoutPreview() {
             left: l.presentation === "expanded" ? "4vw" : l.x,
             top: l.presentation === "expanded" ? "8vh" : l.y,
             width: l.presentation === "expanded" ? "92vw" : l.width,
-            height: l.presentation === "expanded" ? "84vh" : l.height,
+            height: l.presentation === "expanded" ? "84svh" : l.height,
             rotate: l.rotation ? `${l.rotation}deg` : undefined,
             border: "2px dashed rgba(250, 204, 21, 0.85)",
             borderRadius: 14,

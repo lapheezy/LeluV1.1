@@ -199,7 +199,7 @@ export default function CreativeObjectsDock() {
         right: 12,
         bottom: 96,
         width: "min(320px, calc(100vw - 24px))",
-        maxHeight: open ? "min(52vh, 420px)" : 46,
+        maxHeight: open ? "min(52svh, 420px)" : 46,
         display: "flex",
         flexDirection: "column",
         gap: 8,

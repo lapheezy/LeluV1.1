@@ -374,7 +374,7 @@ export default function GenesisEngineeringCommandPanel({ onClose }: Props) {
       title={<>Command Center · {records.length} acquisition(s) · {entries.filter((entry) => entry.active).length} active capabilit{entries.filter((entry) => entry.active).length === 1 ? "y" : "ies"}</>}
       onClose={onClose}
       width="min(96vw, 1180px)"
-      maxHeight="min(92vh, 940px)"
+      maxHeight="min(92svh, 940px)"
       elevation="focus"
     >
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -406,7 +406,7 @@ export default function GenesisEngineeringCommandPanel({ onClose }: Props) {
         </span>
       </div>
 
-      <div style={{ maxHeight: "min(76vh, 770px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ maxHeight: "min(76svh, 770px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
         {error ? <div style={{ ...card, borderColor: "rgba(248,113,113,0.45)", color: "#fca5a5", fontSize: 12 }}>{error}</div> : null}
         {notice ? <div style={{ ...card, borderColor: "rgba(74,222,128,0.35)", color: "#86efac", fontSize: 12 }}>{notice}</div> : null}
 

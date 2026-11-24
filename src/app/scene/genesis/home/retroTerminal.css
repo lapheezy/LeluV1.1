@@ -289,7 +289,7 @@ body:has([data-spatial-nav-tab]) .lch.lch-m15.rt[data-device] { padding-left: ma
 .lch.rt[data-device="phone"] .rt-header-right { margin-left: auto; gap: 2px; }
 .lch.rt[data-device="phone"] .rt-icon { width: 40px; height: 40px; }
 .lch.rt[data-device="phone"] .rt-brand-name { letter-spacing: 0.04em; font-size: 0.9em; }
-.lch.rt[data-device="phone"] .rt-view { flex: 0 0 22vh; min-height: 120px; }
+.lch.rt[data-device="phone"] .rt-view { flex: 0 0 22svh; min-height: 120px; }
 .rt-tabs { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
 .rt-tab {
   min-height: 40px; padding: 0 4px;
@@ -335,7 +335,7 @@ body:has([data-spatial-nav-tab]) .lch.lch-m15.rt[data-device] { padding-left: ma
 .rts[data-device="phone"] {
   top: auto; left: 0; right: 0; bottom: 0;
   width: 100%;
-  height: min(64vh, 640px);
+  height: min(64svh, 640px);
   border-radius: max(var(--rt-radius), 10px) max(var(--rt-radius), 10px) 0 0;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }

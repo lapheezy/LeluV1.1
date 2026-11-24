@@ -198,7 +198,7 @@ export default function GenesisEngineeringPanel({ onClose }: GenesisEngineeringP
       title="Engineering · sandbox"
       onClose={onClose}
       width="min(96vw, 1120px)"
-      maxHeight="min(90vh, 920px)"
+      maxHeight="min(90svh, 920px)"
       elevation="focus"
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -352,9 +352,9 @@ export default function GenesisEngineeringPanel({ onClose }: GenesisEngineeringP
           ) : null}
         </div>
 
-        <div data-lelu-reflow="columns" style={{ display: "flex", gap: 12, minHeight: "min(62vh, 560px)" }}>
+        <div data-lelu-reflow="columns" style={{ display: "flex", gap: 12, minHeight: "min(62svh, 560px)" }}>
           {/* ---------------- file tree ---------------- */}
-          <div style={{ width: 260, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, maxHeight: "min(62vh, 560px)", overflowY: "auto", paddingRight: 4 }}>
+          <div style={{ width: 260, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, maxHeight: "min(62svh, 560px)", overflowY: "auto", paddingRight: 4 }}>
             <div style={labelStyle}>Sandbox files</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               <input
@@ -472,7 +472,7 @@ export default function GenesisEngineeringPanel({ onClose }: GenesisEngineeringP
                   spellCheck={false}
                   style={{
                     flex: 1,
-                    minHeight: "min(52vh, 460px)",
+                    minHeight: "min(52svh, 460px)",
                     boxSizing: "border-box",
                     width: "100%",
                     background: "rgba(2, 6, 23, 0.6)",

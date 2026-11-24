@@ -58,14 +58,14 @@
 .lst-chat-embed .lst-scene-canvas { aspect-ratio: auto; height: 240px; }
 .lst-chat-embed .lst-diagram svg { display: block; width: 100%; height: auto; max-height: 240px; }
 .lst-chat-card-visual.is-expanded .lst-chat-embed .lst-preview,
-.lst-chat-card-visual.is-expanded .lst-chat-embed .lst-film-video { height: min(62vh, 560px); }
-.lst-chat-card-visual.is-expanded .lst-chat-embed .lst-scene-canvas { height: min(62vh, 560px); }
-.lst-chat-card-visual.is-expanded .lst-chat-embed .lst-diagram svg { max-height: min(62vh, 560px); }
+.lst-chat-card-visual.is-expanded .lst-chat-embed .lst-film-video { height: min(62svh, 560px); }
+.lst-chat-card-visual.is-expanded .lst-chat-embed .lst-scene-canvas { height: min(62svh, 560px); }
+.lst-chat-card-visual.is-expanded .lst-chat-embed .lst-diagram svg { max-height: min(62svh, 560px); }
 .lst-chat-embed .lst-toolbar { padding: 6px 8px; }
 /* Excalidraw, editable where the reply is */
 .lst-chat-embed .excalidraw-wrapper, .lst-chat-embed .excalidraw { height: 260px; }
 .lst-chat-card-visual.is-expanded .lst-chat-embed .excalidraw-wrapper,
-.lst-chat-card-visual.is-expanded .lst-chat-embed .excalidraw { height: min(62vh, 560px); }
+.lst-chat-card-visual.is-expanded .lst-chat-embed .excalidraw { height: min(62svh, 560px); }
 .lst-chat-files { display: flex; flex-wrap: wrap; gap: 6px; }
 .lst-file { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(255, 236, 252, 0.16); background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 12px; cursor: pointer; }
 .lst-file span { opacity: 0.6; }
@@ -102,7 +102,7 @@
 /* Creative kit visuals (generative art, diagrams, charts, 3D, films) */
 .lst-visual { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .lst-visual .lst-preview { min-height: 360px; }
-.lst-diagram { background: #120e24; border-radius: 10px; padding: 12px; overflow: auto; max-height: 60vh; }
+.lst-diagram { background: #120e24; border-radius: 10px; padding: 12px; overflow: auto; max-height: 60svh; }
 .lst-diagram svg { max-width: 100%; height: auto; }
 .lst-scene-canvas { width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #0b0816; }
 .lst-scene-canvas canvas { display: block; width: 100% !important; height: 100% !important; }

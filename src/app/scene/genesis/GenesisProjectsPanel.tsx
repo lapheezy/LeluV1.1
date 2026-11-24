@@ -148,7 +148,7 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
       title="Projects · organize creative work"
       onClose={onClose}
       width="min(96vw, 1100px)"
-      maxHeight="min(92vh, 900px)"
+      maxHeight="min(92svh, 900px)"
       elevation="focus"
     >
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
@@ -165,7 +165,7 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
         onClose={() => setNeural(false)}
         style={{ width: "100%", maxWidth: 560, maxHeight: 420, marginBottom: 10 }}
       />
-      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70svh, 660px)" }}>
         {/* ---------------------------------------------- project list */}
         <div
           style={{
@@ -416,7 +416,7 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
               <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
                 Items · {project.items.length} {memoryCount !== null ? `· ${memoryCount} local memories available` : ""}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: "min(38vh, 340px)", overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: "min(38svh, 340px)", overflowY: "auto" }}>
                 {project.items.map((item) => (
                   <div
                     key={item.id}

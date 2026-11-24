@@ -153,10 +153,10 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
       title={<>Agents · {store.runnable().length} runnable</>}
       onClose={onClose}
       width="min(96vw, 1080px)"
-      maxHeight="min(90vh, 900px)"
+      maxHeight="min(90svh, 900px)"
       elevation="focus"
     >
-      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70vh, 640px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70svh, 640px)" }}>
         {/* ------------------------------------------------ agent list */}
         <div
           style={{
@@ -165,7 +165,7 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
             display: "flex",
             flexDirection: "column",
             gap: 8,
-            maxHeight: "min(70vh, 640px)",
+            maxHeight: "min(70svh, 640px)",
             overflowY: "auto",
             paddingRight: 4,
           }}
