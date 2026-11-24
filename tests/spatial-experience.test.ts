@@ -393,9 +393,10 @@ test("portal geometry is stable between emitted frames", () => {
 
 test("voice is available without opening the chat", () => {
   const navigator = source("src/app/scene/spatial/SpatialNavigator.tsx");
-  const voiceButton = navigator.slice(navigator.indexOf('testId: "voice"') - 600, navigator.indexOf('testId: "voice"'));
-  assert.ok(voiceButton.includes("VoiceEngine.getInstance().toggle()"), "the rail's mic talks to LÉLU");
-  assert.ok(!voiceButton.includes('openPanel("chat")'), "the mic path never opens the conversation");
+  const mic = source("src/core/voice/VoiceMicButton.tsx");
+  assert.ok(navigator.includes('<VoiceMicButton context="spatial"'), "the rail's mic is the shared voice control");
+  assert.ok(mic.includes("voice.engine.toggle()"), "the rail's mic talks to LÉLU");
+  assert.ok(!mic.includes('openPanel("chat")'), "the mic path never opens the conversation");
   // …and the conversation is still summonable and dismissible from the rail.
   assert.ok(navigator.includes('openPanel(chatOpen ? "none" : "chat")'), "chat is summonable and dismissible");
 });

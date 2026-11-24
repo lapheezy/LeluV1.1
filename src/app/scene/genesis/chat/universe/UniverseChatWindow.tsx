@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { chatWindowId, useGenesis } from "../../GenesisCore";
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
 import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
@@ -27,6 +28,14 @@ import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisWindowFrame from "../../GenesisWindowFrame";
 import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
 import Model3DView from "../Model3DView";
+import VoiceMicButton from "../../../../../core/voice/VoiceMicButton";
+import {
+  CircularControl,
+  ContextMenu,
+  interactionState,
+  rectOf,
+  type ContextMenuDefinition,
+} from "../../../../../core/interaction";
 
 interface PendingAttachment {
   id: string;
@@ -60,7 +69,11 @@ export default function UniverseChatWindow({
   );
   const liveActivity = useLiveActivity(conversationId);
   const [draft, setDraft] = useState("");
-  const [controlsOpen, setControlsOpen] = useState(false);
+  const [controlsAnchor, setControlsAnchor] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  const controlsRef = useRef<HTMLSpanElement>(null);
+  const menuSnapshot = useSyncExternalStore(interactionState.subscribe, interactionState.getSnapshot, interactionState.getSnapshot);
+  const controlsId = `chat-controls:${conversationId}`;
+  const controlsOpen = menuSnapshot?.id === controlsId;
   // Files attached here ride with the message into the thread; a 3D file keeps
   // its own bytes so the reply can open it in three.js.
   const [attached, setAttached] = useState<PendingAttachment[]>([]);
@@ -113,20 +126,29 @@ export default function UniverseChatWindow({
     setAttached([]);
   };
 
-  const action = (label: string, run: () => void, pressed?: boolean) => (
-    <button
-      type="button"
-      role="menuitem"
-      className="lcu-win-action"
-      aria-pressed={pressed}
-      onClick={() => {
-        setControlsOpen(false);
-        run();
-      }}
-    >
-      {label}
-    </button>
-  );
+  const toggleControls = () => {
+    const element = controlsRef.current;
+    if (!element) return;
+    if (controlsOpen) {
+      interactionState.close(controlsId);
+      return;
+    }
+    const anchor = rectOf(element);
+    setControlsAnchor(anchor);
+    interactionState.open({ id: controlsId, kind: "context", anchor, label: "Chat controls" });
+  };
+
+  const controlsMenu: ContextMenuDefinition = {
+    id: controlsId,
+    label: "Chat controls",
+    items: [
+      { id: "pin", label: conversation.pinned ? "Unpin conversation" : "Pin conversation", active: conversation.pinned, onSelect: () => MultiChatStore.getInstance().pin(conversation.id) },
+      { id: "minimize", label: "Minimize", onSelect: () => genesis.minimizeModule(moduleId) },
+      { id: "maximize", label: presentation === "expanded" ? "Restore window" : "Maximize", onSelect: () => genesis.setModulePresentation(moduleId, presentation === "expanded" ? "inline" : "expanded") },
+      { id: "settings", label: "Chat settings", onSelect: () => genesis.openPanel("settings") },
+      { id: "close", label: "Close window", danger: true, onSelect: onClose },
+    ],
+  };
 
   return (
     <GenesisWindowFrame
@@ -136,31 +158,23 @@ export default function UniverseChatWindow({
       active={conversation.processing}
       overflow="hidden"
       extraActions={
-        <span className="lcu-win-head-actions">
+        <span className="lcu-win-head-actions" ref={controlsRef}>
           {conversation.processing ? <span className="lcu-live">Active</span> : null}
-          <button
-            type="button"
-            className="lcu-win-controls-toggle"
-            aria-label="Chat controls"
-            aria-haspopup="menu"
-            aria-expanded={controlsOpen}
-            onClick={() => setControlsOpen((open) => !open)}
-          >
-            ⚙ Controls
-          </button>
+          <CircularControl
+            label="Chat controls"
+            icon={<SlidersHorizontal size={17} />}
+            size={38}
+            active={controlsOpen}
+            ariaHasPopup
+            ariaExpanded={controlsOpen}
+            onPress={toggleControls}
+            testId="chat-window-controls"
+          />
         </span>
       }
     >
       <div className="lcu-win-body" data-lelu-universe-window={conversation.id}>
-        <div className="lcu-win-controls" data-open={controlsOpen ? "true" : "false"}>
-          <div className="lcu-win-controls-row" role="menu" aria-label={`${conversation.title} controls`}>
-            {action(conversation.pinned ? "Unpin conversation" : "Pin conversation", () => MultiChatStore.getInstance().pin(conversation.id), conversation.pinned)}
-            {action("Minimize", () => genesis.minimizeModule(moduleId))}
-            {action(presentation === "expanded" ? "Restore window" : "Maximize", () => genesis.setModulePresentation(moduleId, presentation === "expanded" ? "inline" : "expanded"))}
-            {action("Chat settings", () => genesis.openPanel("settings"))}
-            {action("Close window", onClose)}
-          </div>
-        </div>
+        <ContextMenu menu={controlsMenu} anchor={controlsAnchor} open={controlsOpen} />
         {/* A consent point must be decidable where the person is looking. The
             card lives in GenesisExecutionTimeline, but the chat panel is
             mounted hidden behind this window and draws nothing — so the same
@@ -253,9 +267,13 @@ export default function UniverseChatWindow({
               }
             }}
           />
-          <button type="submit" className="lcu-send" disabled={!draft.trim() && attached.length === 0} aria-label={`Send to ${conversation.title}`}>
+          <button type="submit" className="lcu-send" disabled={!draft.trim() && attached.length === 0} aria-label={`Send to ${conversation.title}`}          >
             Send
           </button>
+          {/* The microphone the integration had lost: this is the canonical
+              per-conversation chat window, so voice input has to live HERE and
+              call the same VoiceEngine the old chat panel called. */}
+          <VoiceMicButton context={`chat:${conversation.id}`} showStatus />
         </form>
       </div>
     </GenesisWindowFrame>

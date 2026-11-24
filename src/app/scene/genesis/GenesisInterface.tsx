@@ -174,6 +174,7 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
+import EnvironmentRadial from "./interaction/EnvironmentRadial";
 import CosmosObjectsDock from "./cosmos/CosmosObjectsDock";
 const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
 import { useUniverseOpen } from "./chat/universe/universeOpen";
@@ -741,6 +742,22 @@ export default function GenesisInterface() {
   // phone's vertical menu list; every panel is still one tap away in the
   // app library, and ⌘K.
   const homeStore = useHomeStore();
+  /*
+   * One navigation at a time.
+   *
+   * The workspace has the circular Spatial Bar; the immersive Cosmos has
+   * the in-scene spatial navigator (scene travel, portals, camera). Before
+   * this, both toolbars were on screen together, which is exactly the
+   * redundant navigation the interface reconstruction removes. The body
+   * flag lets the in-scene navigator (mounted in another lazy layer) follow
+   * the same owner without importing this component.
+   */
+  useEffect(() => {
+    document.body.dataset.leluImmersive = homeStore.immersive ? "true" : "false";
+    return () => {
+      delete document.body.dataset.leluImmersive;
+    };
+  }, [homeStore.immersive]);
   const [homeSheet, setHomeSheet] = useState<HomeSheet>(null);
   // On a phone, when chat (or a window) owns the screen, Home is not rendered
   // at all — it is not hidden under the conversation.
@@ -748,6 +765,7 @@ export default function GenesisInterface() {
   const universeOpen = useUniverseOpen();
   const narrowScreen = typeof window !== "undefined" && window.innerWidth <= 720;
   const navHidden =
+    homeStore.immersive ||
     state.minimized ||
     surface.chatOwnsScreen ||
     surface.workspaceOwnsScreen ||
@@ -838,6 +856,11 @@ export default function GenesisInterface() {
           branch, which only renders after the user has already opened chat.
           Renders nothing when already signed in or already answered. */}
       <LeluSignInGate />
+
+      {/* One circular way between environments, mounted above every scene.
+          Cosmos, CORE, the Chat Universe, the studios and the executive
+          surfaces share this control and this radial menu. */}
+      <EnvironmentRadial />
 
       {/*
        * THE ONE GENESIS ENVIRONMENT — the canonical LÉLU surface. Mounted

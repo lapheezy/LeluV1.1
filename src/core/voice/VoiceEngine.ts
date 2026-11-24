@@ -530,6 +530,16 @@ class VoiceEngine {
     return (this._diagnostics.sttSupported || this._diagnostics.micAvailable) && this._diagnostics.ttsSupported;
   }
 
+  /**
+   * Clear the last permission/device error after the user has read it.
+   * The mic control shows the error in place; dismissing it must not
+   * stop an active session or hide a live state.
+   */
+  dismissError(): void {
+    if (!this._state.error && !this._state.errorKind) return;
+    this.updateState({ ...this._state, error: null, errorKind: null });
+  }
+
   async toggle(): Promise<void> {
     if (this.livekit) {
       await this.endLivekitSession();

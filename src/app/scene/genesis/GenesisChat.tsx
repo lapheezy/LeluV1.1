@@ -49,7 +49,6 @@ import {
   Maximize2,
   Menu,
   MessageCircle,
-  Mic,
   ScreenShare as ScreenShareIcon,
   ScreenShareOff,
   Minimize2,
@@ -68,6 +67,7 @@ import Orchestrator from "../../../core/orchestrator/Orchestrator";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import GenesisExecutionTimeline from "./GenesisExecutionTimeline";
 import { useVoice } from "../../../core/voice/useVoice";
+import VoiceMicButton from "../../../core/voice/VoiceMicButton";
 import {
   defaultMediaPrompt,
   mediaDisplayLabel,
@@ -2149,18 +2149,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
               {screenSharing ? <ScreenShareOff size={19} aria-hidden /> : <ScreenShareIcon size={19} aria-hidden />}
             </button>
             ) : null}
-            <button
-              type="button"
-              onClick={() => void voiceView.engine.toggle()}
-              disabled={isSending}
-              title={voiceView.state.active ? "Stop listening" : "Voice input"}
-              aria-label={voiceView.state.active ? "Stop listening" : "Voice input"}
-              aria-pressed={voiceView.state.active}
-              data-active={voiceView.state.active ? "true" : "false"}
-              className="lelu-cc-icon"
-            >
-              <Mic size={19} aria-hidden />
-            </button>
+            <VoiceMicButton context="core-chat" showStatus={false} />
             <button
               type="button"
               onClick={() => void send()}

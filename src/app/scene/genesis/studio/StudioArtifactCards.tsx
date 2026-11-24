@@ -4,7 +4,7 @@
  * those that did not (marked, never offered as ready).
  */
 
-import { memo, useState } from "react";
+import { lazy, memo, Suspense, useState } from "react";
 import { Boxes, Check, Download, ExternalLink, Maximize2, Minimize2, TriangleAlert } from "lucide-react";
 import { useAtelierStore } from "../atelier/AtelierWindow";
 import { openAtelier } from "../../../../core/atelier/AtelierTools";
@@ -14,7 +14,14 @@ import type { ExportFormat } from "../../../../core/studio/StudioTypes";
 import { KIND_ICON } from "./GenesisCreationStudio";
 import { downloadBytes, formatBytes, KIND_LABEL, openArtifacts, useStudioStore } from "./useStudio";
 import VisualViewer from "./VisualViewer";
-import DrawingEditor from "./DrawingEditor";
+
+/*
+ * Excalidraw is a browser-only editor with its own CSS and worker-scale
+ * bundle. It is opened for a drawing, so it is loaded for a drawing — not
+ * imported into every transcript that happens to be able to show a card
+ * (and not pulled into the server-render test graph, where it cannot run).
+ */
+const DrawingEditor = lazy(() => import("./DrawingEditor"));
 import "./studio.css";
 
 const ACTION: Record<ActivityArtifact["action"], string> = { created: "Created", revised: "Revised", exported: "Exported", restored: "Restored", opened: "Opened" };
@@ -110,7 +117,11 @@ function VisualCard({ card }: { card: ActivityArtifact }) {
           {embedded.kind === "drawing"
             // Excalidraw itself, editable in the thread: the user draws here, it
             // saves to this artifact, and Expand gives it the height it needs.
-            ? <DrawingEditor artifactId={card.artifactId} spec={embedded} readOnly={false} />
+            ? (
+              <Suspense fallback={<div style={{ minHeight: 160, opacity: 0.6, fontSize: 12 }}>Opening the drawing…</div>}>
+                <DrawingEditor artifactId={card.artifactId} spec={embedded} readOnly={false} />
+              </Suspense>
+            )
             : <VisualViewer artifact={live} rev={card.rev} spec={embedded} />}
         </div>
       ) : (

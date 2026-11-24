@@ -37,7 +37,8 @@ import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
 import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
-import VoiceEngine from "../../../../../core/voice/VoiceEngine";
+import VoiceMicButton from "../../../../../core/voice/VoiceMicButton";
+import { CircularControl, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../../core/interaction";
 import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
@@ -394,6 +395,43 @@ export default function ChatUniverse() {
   const toggleMode = () => HomeStore.setCosmosMode(mode === "floating" ? "workspace" : "floating");
 
   const target = focused ?? byId.get(activeConversationId) ?? null;
+
+  /*
+   * The rail was a vertical list of eleven rectangular buttons. It is now
+   * one circular control and three nested rings — same destinations, same
+   * railGo path, no long list. Open windows stay listed below because they
+   * are a live set, not navigation.
+   */
+  const railItem = (id: string): RadialMenuItemSpec => {
+    const entry = RAIL.find((item) => item.id === id);
+    return {
+      id,
+      label: entry?.label ?? id,
+      icon: <Ico name={entry?.icon ?? "Circle"} size={19} />,
+      onSelect: () => railGo(id),
+    };
+  };
+  const railMenu: RadialMenuDefinition = {
+    id: "chat-universe-navigation",
+    label: "LÉLU navigation",
+    items: [
+      {
+        id: "chat",
+        label: "Chat ∞",
+        icon: <Ico name="MessagesSquare" size={19} />,
+        active: true,
+        onSelect: () => {
+          setRailOpen(false);
+          inputRef.current?.focus({ preventScroll: true });
+        },
+      },
+      { id: "explore", label: "Explore", icon: <Ico name="Compass" size={19} />, children: [railItem("browser"), railItem("projects"), railItem("workspaces")] },
+      { id: "create", label: "Create", icon: <Ico name="PenLine" size={19} />, children: [railItem("visualstudio"), railItem("render")] },
+      { id: "mind", label: "Mind", icon: <Ico name="Brain" size={19} />, children: [railItem("agents"), railItem("memory"), railItem("history")] },
+      { id: "system", label: "System", icon: <Ico name="Settings" size={19} />, children: [railItem("home"), railItem("settings")] },
+    ],
+  };
+
   const card = (p: ChatPreview) => {
     const c = byId.get(p.id);
     if (!c) return null;
@@ -424,13 +462,16 @@ export default function ChatUniverse() {
           <span className="lcu-orb" data-state={presence.state} />
           <span><strong>LÉLU</strong><small>Cosmos Workspace</small></span>
         </div>
-        <nav>
-          {RAIL.map((r) => (
-            <button key={r.id} type="button" data-on={r.id === "chat"} onClick={() => railGo(r.id)}>
-              <Ico name={r.icon} size={18} /> <span>{r.label}</span>
-            </button>
-          ))}
-        </nav>
+        <div className="lcu-rail-nav">
+          <CircularControl
+            label="LÉLU navigation — hold for environments"
+            icon={<Ico name="Compass" size={21} />}
+            menu={railMenu}
+            size={46}
+            testId="chat-universe-navigation"
+          />
+          <span className="lcu-rail-label">Environments</span>
+        </div>
         <div className="lcu-rail-ws">
           <small>Open windows</small>
           {openIds.length === 0 ? <span className="lcu-rail-none">None open</span> : null}
@@ -611,7 +652,7 @@ export default function ChatUniverse() {
                 {sharing ? <Icons.ScreenShareOff size={17} /> : <Icons.ScreenShare size={17} />}
               </button>
             ) : null}
-            <button type="button" className="lcu-icon sm" aria-label="Talk to LÉLU"            onClick={() => { void VoiceEngine.getInstance().toggle(); }}><Icons.Mic size={17} /></button>
+            <VoiceMicButton context="chat-universe" />
             <button type="button" className="lcu-send" onClick={send} disabled={!target || (!draft.trim() && attached.length === 0 && attachedFiles.length === 0)} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
           </div>
         </div>

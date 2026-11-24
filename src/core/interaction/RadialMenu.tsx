@@ -1,0 +1,225 @@
+/**
+ * ==========================================================
+ * LÉLU — RADIAL MENU
+ *
+ * A portalled, edge-aware circle of circular options.
+ *
+ * Behaviour, as specified for the whole project:
+ *   press and hold a CircularControl   → the ring expands while held
+ *   release the control                → the ring STAYS open
+ *   tap an option                      → it executes, then the ring closes
+ *   tap outside / Escape               → dismiss
+ *
+ * It supports nested rings: an option with `children` opens a second
+ * ring in place, with a back control. Options can be reached with the
+ * keyboard (Tab, Arrow keys, Home/End, Enter).
+ * ==========================================================
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
+
+import { interactionState } from "./InteractionStateManager";
+import { currentViewport, placeRadial, radialOptionPositions, type InteractionRect, type InteractionSize } from "./geometry";
+import RadialMenuItem, { type RadialMenuItemSpec } from "./RadialMenuItem";
+import { INTERACTION_TOKENS } from "./tokens";
+
+export interface RadialMenuDefinition {
+  id: string;
+  label: string;
+  items: RadialMenuItemSpec[];
+  preferredRadius?: number;
+  optionSize?: number;
+}
+
+interface Branch {
+  title: string;
+  items: RadialMenuItemSpec[];
+}
+
+export default function RadialMenu({
+  menu,
+  anchor,
+  open,
+}: {
+  menu: RadialMenuDefinition;
+  anchor: InteractionRect;
+  open: boolean;
+}) {
+  const [viewport, setViewport] = useState<InteractionSize>(() => currentViewport());
+  const [nested, setNested] = useState<Branch | null>(null);
+  const branch: Branch = nested ?? { title: menu.label, items: menu.items };
+  const layerRef = useRef<HTMLDivElement>(null);
+
+  const optionSize = menu.optionSize ?? INTERACTION_TOKENS.size.option;
+  const placement = useMemo(
+    () =>
+      placeRadial(anchor, viewport, {
+        itemCount: branch.items.length,
+        optionSize,
+        preferredRadius: menu.preferredRadius ?? INTERACTION_TOKENS.radius.preferred,
+        padding: INTERACTION_TOKENS.gap.edge,
+      }),
+    [anchor, viewport, branch.items.length, optionSize, menu.preferredRadius],
+  );
+
+  const positions = useMemo(
+    () => radialOptionPositions(branch.items.length, placement.radius),
+    [branch.items.length, placement.radius],
+  );
+
+  useEffect(() => {
+    // A different menu starts at its root, never inside the previous trail.
+    setNested(null);
+  }, [menu.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onViewport = () => setViewport(currentViewport());
+    window.addEventListener("resize", onViewport);
+    window.visualViewport?.addEventListener("resize", onViewport);
+    window.visualViewport?.addEventListener("scroll", onViewport);
+    return () => {
+      window.removeEventListener("resize", onViewport);
+      window.visualViewport?.removeEventListener("resize", onViewport);
+      window.visualViewport?.removeEventListener("scroll", onViewport);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (target?.closest("[data-lelu-radial-menu]")) return;
+      const control = target?.closest("[data-lelu-menu-anchor]");
+      if (control?.getAttribute("data-lelu-menu-anchor") === menu.id) return;
+      interactionState.close(menu.id);
+    };
+    // capture: dismiss before the page underneath handles the tap
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [open, menu.id]);
+
+  const close = useCallback(() => interactionState.close(menu.id), [menu.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key === "Tab") return;
+      const items = Array.from(layerRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []);
+      if (items.length === 0) return;
+      const current = items.indexOf(document.activeElement as HTMLButtonElement);
+      let next = current;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") next = current < 0 ? 0 : (current + 1) % items.length;
+      else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = current <= 0 ? items.length - 1 : current - 1;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = items.length - 1;
+      else return;
+      event.preventDefault();
+      items[next]?.focus();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [open, close]);
+
+  useEffect(() => {
+    if (!open) return;
+    const first = layerRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
+    first?.focus({ preventScroll: true });
+  }, [open, nested]);
+
+  if (!open || typeof document === "undefined") return null;
+
+  const choose = (item: RadialMenuItemSpec) => {
+    if (item.children?.length) {
+      setNested({ title: item.label, items: item.children });
+      return;
+    }
+    item.onSelect?.();
+    close();
+  };
+
+  const captionTop = Math.max(
+    INTERACTION_TOKENS.gap.edge,
+    Math.min(
+      viewport.height - 44,
+      placement.centerY - placement.radius - optionSize / 2 - 38,
+    ),
+  );
+
+  return createPortal(
+    <div
+      className="lelu-radial-layer"
+      data-lelu-radial-menu={menu.id}
+      data-menu-kind="radial"
+      ref={layerRef}
+    >
+      <div
+        className="lelu-radial-caption"
+        style={{ left: placement.centerX, top: captionTop } as CSSProperties}
+      >
+        {nested ? (
+          <button
+            type="button"
+            className="lelu-radial-back"
+            aria-label={`Back to ${menu.label}`}
+            onClick={() => setNested(null)}
+          >
+            ‹ {menu.label}
+          </button>
+        ) : null}
+        <strong>{branch.title}</strong>
+        <span>release, then choose</span>
+      </div>
+
+      <div
+        className="lelu-radial-hub"
+        style={{ left: placement.centerX, top: placement.centerY } as CSSProperties}
+      >
+        <button type="button" className="lelu-radial-close" aria-label={`Close ${branch.title}`} onClick={close}>
+          ×
+        </button>
+      </div>
+
+      <div
+        className="lelu-radial-ring"
+        aria-hidden="true"
+        style={
+          {
+            left: placement.centerX,
+            top: placement.centerY,
+            width: placement.radius * 2 + optionSize,
+            height: placement.radius * 2 + optionSize,
+          } as CSSProperties
+        }
+      />
+
+      <div
+        className="lelu-radial-items"
+        role="menu"
+        aria-label={branch.title}
+        style={{ left: placement.centerX, top: placement.centerY } as CSSProperties}
+      >
+        {branch.items.map((item, index) => {
+          const position = positions[index] ?? { x: 0, y: 0 };
+          return (
+            <RadialMenuItem
+              key={item.id}
+              item={item}
+              index={index}
+              x={position.x}
+              y={position.y}
+              onChoose={choose}
+            />
+          );
+        })}
+      </div>
+    </div>,
+    document.body,
+  );
+}

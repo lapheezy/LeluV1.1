@@ -20,10 +20,12 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
-  Activity, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Circle, Code2, Compass,
-  Crown, FileText, Film, Fingerprint, Flower2, Folder, Gauge, Globe2, History, Layers,
-  Layers3, Lightbulb, MessageCircle, Newspaper, Orbit, PenLine, ScrollText, Settings,
-  Settings2, Smartphone, Sparkles, UserRound, Workflow,
+  Activity, Aperture, AppWindow, AudioLines, BarChart3, Bell, BookOpen, Box, Brain, Circle,
+  ChevronLeft, ChevronRight, Code2, Compass, Crown, FilePlus2, FileText, Film, Fingerprint, Flower2, Folder,
+  Focus, Gauge, Globe, Globe2, History, Home, Layers, Layers3, LayoutGrid, Lightbulb, MapPin,
+  Maximize2, Menu, MessageCircle, MessagesSquare, Mic, MicOff, Minimize2, Navigation,
+  Newspaper, Orbit, PenLine, Plus, Redo2, RotateCcw, ScrollText, Search, Settings, Settings2,
+  Smartphone, Sparkles, Undo2, UserRound, Workflow, X,
 } from "lucide-react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { useLeluActivity, ACTIVITY_ACCENT, type LeluActivity } from "../avatar/leluActivity";
@@ -47,10 +49,12 @@ import "./cosmosHome.css";
  * fallback, over a set a bundler can shake.
  */
 const HOME_ICONS = {
-  Activity, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Circle, Code2, Compass,
-  Crown, FileText, Film, Fingerprint, Flower2, Folder, Gauge, Globe2, History, Layers,
-  Layers3, Lightbulb, MessageCircle, Newspaper, Orbit, PenLine, ScrollText, Settings,
-  Settings2, Smartphone, Sparkles, UserRound, Workflow,
+  Activity, Aperture, AppWindow, AudioLines, BarChart3, Bell, BookOpen, Box, Brain, Circle,
+  ChevronLeft, ChevronRight, Code2, Compass, Crown, FilePlus2, FileText, Film, Fingerprint, Flower2, Folder,
+  Focus, Gauge, Globe, Globe2, History, Home, Layers, Layers3, LayoutGrid, Lightbulb, MapPin,
+  Maximize2, Menu, MessageCircle, MessagesSquare, Mic, MicOff, Minimize2, Navigation,
+  Newspaper, Orbit, PenLine, Plus, Redo2, RotateCcw, ScrollText, Search, Settings, Settings2,
+  Smartphone, Sparkles, Undo2, UserRound, Workflow, X,
 } as const;
 
 type IconName = keyof typeof HOME_ICONS;

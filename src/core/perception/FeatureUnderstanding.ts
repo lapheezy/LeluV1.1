@@ -452,7 +452,8 @@ export function missingInformation(observation: FeatureObservationSet): Array<{ 
   if (!has("jewelry")) out.push({ component: "jewelry", need: "an accessory photograph, or a pose that does not occlude the piece" });
   if (!has("garment")) out.push({ component: "garment", need: "a torso view; the garment must not be covered by hair or arms" });
   const landmarks = observation.features.find((feature) => feature.id === "landmarks");
-  if (landmarks && landmarks.measurements.count < 468) out.push({ component: "face", need: "iris landmarks are missing; gaze cannot be reconstructed" });
+  const landmarkCount = Number(landmarks?.measurements.count ?? 0);
+  if (landmarks && landmarkCount < 468) out.push({ component: "face", need: "iris landmarks are missing; gaze cannot be reconstructed" });
   return out;
 }
 
