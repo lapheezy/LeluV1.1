@@ -1,0 +1,17 @@
+{
+ "id": "verify-interaction",
+ "title": "Check my microphone, my radial controls and my windows the way a hand would use them",
+ "for": "LÉLU",
+ "why": "On 2026-11-24 a browser that pressed, held and slid like a finger found what tests had not: my microphone errors were invisible on a phone, I stood on the send button, a tap on my Spatial hub opened the card behind it, and after choosing from my ring the next tap was swallowed. These replay those hands against a running server (server.ts on port 4173, or LELU_URL). They need Playwright and ffmpeg. They are not a physical iPhone: Safari itself still needs a person.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-24-workforce-integration-and-interaction.md",
+ "steps": [
+  {"id": "mic-phone", "title": "Microphone on a phone-sized screen: speak, transcribe, stop", "kind": "tsx", "script": "scripts/e2e/mic-e2e.cjs", "args": ["iphone", "granted"], "why": "Sends one recorded sentence to Groq Whisper through my server (free tier)."},
+  {"id": "mic-denied", "title": "Microphone denied: the message must appear beside the button", "kind": "tsx", "script": "scripts/e2e/mic-e2e.cjs", "args": ["iphone", "denied"]},
+  {"id": "radial-phone", "title": "Radial controls with touch on a phone", "kind": "tsx", "script": "scripts/e2e/radial-e2e.cjs", "args": ["iphone"]},
+  {"id": "radial-tablet", "title": "Radial controls and window snapping with touch on a tablet", "kind": "tsx", "script": "scripts/e2e/radial-e2e.cjs", "args": ["ipad"]},
+  {"id": "audit", "title": "Inventory every row of four or more buttons", "kind": "tsx", "script": "scripts/e2e/button-list-audit.cjs", "args": ["iphone"], "why": "Read-only: it changes nothing, it tells me where plain button lists remain."},
+  {"id": "safari", "title": "On a real iPhone in Safari", "kind": "note", "why": "Scroll Home, Chat and an open window to the very bottom with the toolbar shown and collapsed; tap the mic, allow, speak; deny once and look for the red message; hold the + in chat, slide, release. Chromium emulating an iPhone is not Safari."}
+ ]
+}
