@@ -66,7 +66,8 @@ jobs:
           elif [ -f deploy/contabo/provider-env-request.json ]; then
             replace=$(jq -r '.replace // false' deploy/contabo/provider-env-request.json)
           fi
-          [ "$replace" = true ] && echo "flags=--replace" >> "$GITHUB_OUTPUT" || echo "flags=" >> "$GITHUB_OUTPUT"
+          # This repository is public, so its Actions logs are too: never print the journal here.
+          [ "$replace" = true ] && echo "flags=--replace --no-journal" >> "$GITHUB_OUTPUT" || echo "flags=--no-journal" >> "$GITHUB_OUTPUT"
 
       - name: Which secrets exist (names only)
         env:
@@ -74,7 +75,7 @@ jobs:
         run: |
           {
             echo "== secrets visible to this run (names only)"
-            jq -r 'keys[] | select(. != "github_token")' <<<"$ALL_SECRETS" | sed 's/^/INFO  secret /'
+            echo "INFO  $(jq -r 'keys | map(select(. != "github_token")) | length' <<<"$ALL_SECRETS") secrets visible"
             for k in LELU_VPS_SSH_KEY LELU_VPS_KNOWN_HOSTS; do
               jq -e --arg k "$k" '.[$k] // "" | length > 0' <<<"$ALL_SECRETS" >/dev/null && echo "PASS  $k present" || echo "FAIL  $k missing"
             done
@@ -125,7 +126,7 @@ jobs:
           { echo "run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo "commit: ${{ github.sha }}"
             # PASS/FAIL/INFO lines carry names, states and HTTP codes only; journal (LOG) lines stay out.
-            grep -E '^(==|PASS|FAIL|INFO|  [A-Za-z_][A-Za-z0-9_]*$)' "$RUNNER_TEMP/run.log" 2>/dev/null | grep -v '^INFO  provider-health' || echo "no run log (failed before connecting)"
+            grep -E '^(==|PASS|FAIL|INFO|  [A-Za-z_][A-Za-z0-9_]*$)' "$RUNNER_TEMP/run.log" 2>/dev/null | grep -vE '^INFO  (provider-health|secret )' || echo "no run log (failed before connecting)"
           } > "$f"
           rm -f ~/.ssh/id_lelu "$RUNNER_TEMP/run.log"
           git config user.name "lelu-deploy[bot]"; git config user.email "lelu-deploy@users.noreply.github.com"

@@ -26,11 +26,12 @@ umask 077
 DIR=${LELU_ENV_DIR:-/etc/lelu}   # override only for tests
 ENV=$DIR/lelu.env
 H=http://127.0.0.1:4173
-REPLACE=0; RESTART=1
+REPLACE=0; RESTART=1; JOURNAL=1
 for a in "$@"; do
   case "$a" in
     --replace) REPLACE=1 ;;
     --no-restart) RESTART=0 ;;
+    --no-journal) JOURNAL=0 ;;   # for public CI logs: journal lines may hold user content
     *) echo "unknown option: $a" >&2; exit 2 ;;
   esac
 done
@@ -52,6 +53,11 @@ redact() {
               if (length(v) >= 8) vals[++n] = v } }
     { for (i = 1; i <= n; i++) { while ((p = index($0, vals[i])) > 0)
           $0 = substr($0, 1, p - 1) "[redacted]" substr($0, p + length(vals[i])) } print }'
+}
+
+show_journal() {
+  if [ "$JOURNAL" = 1 ]; then journalctl -u lelu -n 40 --no-pager 2>&1 | redact | sed 's/^/LOG   /'
+  else info "journal not printed (--no-journal); read it on the VPS: journalctl -u lelu -n 80"; fi
 }
 
 echo "== 1. backup"
@@ -130,7 +136,7 @@ info "listening on 4173: $(ss -tlnpH 'sport = :4173' | awk '{print $4, $6}' | he
 command -v nginx >/dev/null && nginx -T 2>/dev/null | grep -E '^\s*(proxy_pass|server [0-9]|listen)' | sort -u | sed 's/^ */INFO  nginx /' || true
 for u in nginx caddy; do info "$u: $(systemctl is-active $u 2>&1)"; done
 info "nginx /healthz before: $(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/healthz)"
-journalctl -u lelu -n 40 --no-pager 2>&1 | redact | sed 's/^/LOG   /' || true
+show_journal || true
 
 echo "== 5. restart #1"
 systemctl daemon-reload
@@ -143,7 +149,7 @@ wait_healthy() {
 check_running() {
   local tag=$1 pid miss=""
   if wait_healthy; then ok "$tag backend /healthz 200"; else bad "$tag backend /healthz not 200 after 45 s"
-    journalctl -u lelu -n 40 --no-pager | redact | sed 's/^/LOG   /'; return 1; fi
+    show_journal; return 1; fi
   code=$(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/healthz)
   [ "$code" = 200 ] && ok "$tag nginx → backend /healthz 200" || bad "$tag nginx /healthz $code"
   pid=$(systemctl show lelu -p MainPID --value); info "$tag MainPID $pid"

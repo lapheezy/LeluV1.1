@@ -26,7 +26,7 @@ DRY=0; FLAGS=()
 for a in "$@"; do
   case "$a" in
     --dry-run) DRY=1 ;;
-    --replace|--no-restart) FLAGS+=("$a") ;;
+    --replace|--no-restart|--no-journal) FLAGS+=("$a") ;;
     *) echo "unknown option: $a" >&2; exit 2 ;;
   esac
 done
