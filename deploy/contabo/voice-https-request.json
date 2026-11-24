@@ -1,4 +1,0 @@
-{
-  "action": "recon",
-  "reason": "Mission 2 WP01: runner reachability + host-key fingerprint, then read-only recon once LELU_VPS_SSH_KEY exists"
-}
