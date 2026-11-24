@@ -1,0 +1,45 @@
+#!/bin/bash
+# ==========================================================
+# LÉLU deploy identity — the ONLY command sudo lets lelu-deploy run, once per
+# allow-listed action word (see /etc/sudoers.d/lelu-deploy). Root-owned and
+# pinned on the VPS, as are the two scripts it calls: GitHub cannot change
+# what runs as root here; only the owner can, by re-running setup.sh.
+#
+# Full output (with DETAIL lines that map the host) → /var/log/lelu-deploy/
+# (root, 0600). Only PASS/FAIL/INFO lines go back over SSH, i.e. into the
+# public Actions log.
+# ==========================================================
+set -uo pipefail
+umask 077
+LIB=/usr/local/lib/lelu-deploy
+STAGE=/var/lib/lelu-deploy-staging           # root-owned 0711: lelu (git apply) may read the patch by name
+LOG=/var/log/lelu-deploy
+action=${1:-}
+patch=""
+stage_patch() {  # copy the incoming patch with lelu-deploy's privileges, never root's (no symlink games)
+  local src=/var/lib/lelu-deploy/incoming/voice-tts-moss.patch
+  install -d -m 0711 "$STAGE"
+  if runuser -u lelu-deploy -- cat "$src" > "$STAGE/voice-tts-moss.patch.new" 2>/dev/null && [ -s "$STAGE/voice-tts-moss.patch.new" ]; then
+    chmod 0644 "$STAGE/voice-tts-moss.patch.new"; mv -f "$STAGE/voice-tts-moss.patch.new" "$STAGE/voice-tts-moss.patch"
+    patch=$STAGE/voice-tts-moss.patch
+  else rm -f "$STAGE/voice-tts-moss.patch.new"; fi
+}
+case "$action" in
+  recon)              stage_patch; set -- "$LIB/voice-tts-moss.sh" recon ${patch:+"$patch"} ;;
+  apply)              stage_patch; [ -n "$patch" ] || { echo "FAIL  apply needs the patch on stdin"; exit 2; }
+                      set -- "$LIB/voice-tts-moss.sh" apply "$patch" ;;
+  accept)             set -- "$LIB/voice-tts-moss.sh" accept ;;
+  rollback)           set -- "$LIB/voice-tts-moss.sh" rollback ;;
+  https-check|https-stage|https-issue|https-enable|https-rollback)
+                      set -- "$LIB/https-ip.sh" "${action#https-}" ;;
+  https-rollback-all) set -- "$LIB/https-ip.sh" rollback all ;;
+  *) echo "FAIL  unknown action"; exit 2 ;;
+esac
+install -d -m 0700 "$LOG"
+report="$LOG/$(date -u +%Y%m%dT%H%M%SZ)-$action.txt"
+echo "INFO  deploy identity: $action (scripts pinned: $(sha256sum "$LIB/voice-tts-moss.sh" "$LIB/https-ip.sh" | cut -c1-12 | tr '\n' ' '))"
+cd /tmp
+bash "$@" 2>&1 | tee "$report" | grep -v '^DETAIL'
+status=${PIPESTATUS[0]}
+echo "INFO  full report on the VPS: $report"
+exit "$status"

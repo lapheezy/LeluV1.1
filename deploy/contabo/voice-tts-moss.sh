@@ -34,6 +34,19 @@ FAILED=0
 as_lelu() { runuser -u lelu -- bash -c "cd $APP && $*"; }
 git_lelu() { runuser -u lelu -- git -C "$APP" "$@"; }
 
+# The deploy identity may change exactly these files and nothing else.
+# `git apply --numstat` lists every path a patch would touch (renames and new
+# files included); one outside FILES rejects the whole patch.
+patch_in_scope() {
+  local p=$1 path ok_path f
+  local paths; paths=$(git_lelu apply --numstat "$p" 2>/dev/null | cut -f3-) || return 1
+  [ -n "$paths" ] || return 1
+  while IFS= read -r path; do
+    ok_path=0; for f in "${FILES[@]}"; do [ "$path" = "$f" ] && ok_path=1; done
+    [ $ok_path = 1 ] || { echo "FAIL  patch touches $path, which is outside the allowed files"; return 1; }
+  done <<<"$paths"
+}
+
 # ---- authenticated session (password goes over stdin, never argv or log) --
 JAR=""
 login() {
@@ -107,7 +120,9 @@ recon() {
   [ -n "$up" ] && info "upstream $up; commits not on it (as last fetched): $(git_lelu rev-list --count "$up..HEAD" 2>/dev/null)"
   # Will `apply` fit? Read-only check against the live tree.
   if [ -n "${2:-}" ] && [ -f "$2" ]; then
-    git_lelu apply --check "$2" 2>/dev/null && ok "voice patch applies cleanly to this tree" || bad "voice patch does NOT apply to this tree (apply would change nothing)"
+    if ! patch_in_scope "$2"; then bad "voice patch rejected: it names files outside the allowed set"
+    elif git_lelu apply --check "$2" 2>/dev/null; then ok "voice patch applies cleanly to this tree (only allowed files)"
+    else bad "voice patch does NOT apply to this tree (apply would change nothing)"; fi
   fi
 
   echo "== services"
@@ -183,6 +198,7 @@ apply_patch() {
   # 0711: lelu (who runs git apply) can reach the patch by name but cannot list the directory.
   install -d -m 0711 "$ROOT" "$dir"
   install -m 0644 "$patch" "$dir/voice-tts-moss.patch"
+  patch_in_scope "$dir/voice-tts-moss.patch" && ok "patch touches only: ${FILES[*]}" || { bad "patch rejected — nothing changed"; exit 1; }
   if git_lelu apply --check "$dir/voice-tts-moss.patch" 2>"$dir/apply-check.txt"; then ok "patch applies cleanly to $(git_lelu rev-parse --short HEAD)"
   else bad "patch does not apply to the production tree — nothing changed"; sed 's/^/INFO  /' "$dir/apply-check.txt"; exit 1; fi
 
