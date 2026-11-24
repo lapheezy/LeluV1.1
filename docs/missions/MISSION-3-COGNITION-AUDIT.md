@@ -251,3 +251,34 @@ under RLS:
 4. raise, so the transaction rolls back.
 
 Afterwards, recount and require exactly the baseline (including 0 tombstones and 0 mission3 rows).
+
+---
+
+## Mission 3.3 — iPhone-only recovery route
+
+**Route.** Contabo customer panel in Safari → the VPS → its browser VNC console. Paste can't be relied on in a VNC
+console, so the procedure is **typed**: four lowercase lines, all logic inside a script fetched from an **immutable
+commit** and checked by its sha256.
+
+| # | Typed in the console (logged in as root) | Expect |
+|---|---|---|
+| 1 | `curl -fso s https://raw.githubusercontent.com/lapheezy/leluv1.1/dbafff0879/deploy/contabo/supabase-key-check.sh` | no output |
+| 2 | `sha256sum s` | starts with `46615ec47565` (if not: stop) |
+| 3 | `bash s check` | read-only report; a line `REJECTED(401)` names the bad variable |
+| 4 | `bash s fix` | ends with `PASS done` (otherwise it rolled itself back) |
+
+`dbafff0879` is commit `dbafff08799735ed12a9f8d0399514b6187532e9`. Checked from here:
+- GitHub serves the identical bytes at the full id, the 10-character id and the lowercase repository name
+  (sha256 `46615ec47565…`).
+- Run unmodified on a machine that isn't the VPS, the script stops at the identity check and touches nothing.
+- Rehearsed: a wrong winning key plus an empty-signature JWT → both disabled, the key added, the URL kept. A valid
+  winning key plus a bad `SUPABASE_ANON_KEY` → **one line changed**. Provider keys and comments untouched; rollback
+  byte-identical.
+
+**After step 4**, verification needs no typing:
+- Supabase edge logs must show the server (`runtime=node`) getting 200s and no new `Invalid API key`.
+- Signing in on the iPhone (Safari → `http://157.173.116.95`) must resume writes: the newest `messages`/`memory_items`
+  rows after 2026-11-22.
+
+Email sign-in also needs `http://157.173.116.95/**` under Supabase Dashboard → Authentication → URL Configuration →
+Redirect URLs (done in Safari).
