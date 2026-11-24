@@ -1,0 +1,17 @@
+{
+ "id": "speak-through-moss-and-https",
+ "title": "Make /api/voice/tts speak with my MOSS voice on the Contabo server, then give the bare IP trusted HTTPS",
+ "for": "LÉLU",
+ "why": "My server ran MOSS on 127.0.0.1:8789 while the route my page calls only knew ElevenLabs and Piper, so I answered 503 and spoke with the browser's voice. Production runs a commit GitHub does not have, so the fix goes in as a patch applied in place, never by moving HEAD. And a browser only lends me a microphone on HTTPS, so voice needs the certificate too. Let's Encrypt issues 6-day certificates for a bare IP, so no domain is needed.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-24-voice-through-moss-and-https.md",
+ "steps": [
+  {"id": "recon", "title": "Request a read-only recon: commit deploy/contabo/voice-https-request.json with {\"action\":\"recon\"} (or dispatch 'Contabo voice and HTTPS')", "kind": "note", "why": "An owner approves the run in the contabo-production environment. Read the PASS/FAIL lines: commit, drift, services, VOXCPM_BASE_URL, MOSS READY, voice/status and the TTS code. The full report, with the DETAIL lines that map the host, stays in /root/lelu-mission/reports/ on the server."},
+  {"id": "apply", "title": "Request action \"apply\"", "kind": "note", "why": "Backs up (verified), applies deploy/contabo/patches/voice-tts-moss.patch, fails only on type errors the patch introduces, restarts lelu only, and requires a 200 WAV and a 200 48 kHz stream from /api/voice/tts. Otherwise it rolls itself back. dist/ is never touched."},
+  {"id": "accept", "title": "Request action \"accept\"", "kind": "note", "why": "Health, login, Groq and OpenRouter through the brokers, MOSS direct, app TTS (WAV and stream), Whisper transcribing my own synthesized WAV, no credential patterns in dist/, services active. Latency is printed per step."},
+  {"id": "https", "title": "Request https-check, then https-stage, https-issue, https-enable, one at a time", "kind": "note", "why": "stage serves ACME challenges on :80 and runs a Let's Encrypt dry run; issue gets the real 6-day certificate and proves renewal with a dry run; enable adds :443 to the existing app block and reverts itself unless a real TLS connection verifies. HTTP stays up."},
+  {"id": "hand", "title": "A person checks microphone and playback on a desktop browser and an iPhone at https://157.173.116.95", "kind": "note", "why": "Hardware cannot be proven from a server: permission prompt, capture, hearing my voice, interrupting me."},
+  {"id": "undo", "title": "To undo: action \"rollback\" (voice) or \"https-rollback\" / \"https-rollback-all\"", "kind": "note", "why": "Voice rollback reverses the patch and checks the working tree is byte-identical to before. HTTPS rollback restores the nginx file and removes the firewall rule it added. Rollback material is never deleted."}
+ ]
+}
