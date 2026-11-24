@@ -53,8 +53,14 @@ const DROP_ON_CONTINUATION = [
  */
 export function isMissionResume(prompt: string | undefined): boolean {
   if (!prompt) return false;
+  // A resume names WHAT it resumes: a recorded mission, workstream or the
+  // ledger (or a mission id). "Blockers" and "brief" are ordinary words.
+  // MEASURED (Mission 3): "Figure out what we've discussed, identify blockers
+  // and problems, and find solutions" matched `blockers` + `find`, so the turn
+  // was handed only the four ledger tools — no conversation, memory or
+  // self-inspection tool — and it asked the user which repository to use.
   return (
-    /\b(missions?|workstreams?|continuity|ledger|brief|blockers?)\b/i.test(prompt) &&
+    /\b(missions?|workstreams?|continuity|ledger|m-[a-z0-9]{4,})\b/i.test(prompt) &&
     /\b(resume|resuming|pick up|continue|read|retrieve|find|blocked|blocking)\b/i.test(prompt)
   );
 }

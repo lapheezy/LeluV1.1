@@ -21,7 +21,7 @@
  * ==========================================================
  */
 
-import AIService from "../AIService";
+import AIService, { priorTurnsFor } from "../AIService";
 import { bindTask, ownerForTask } from "../multichat/TurnOwnership";
 import { conversationArtifactsContext } from "../studio/StudioTools";
 import LeluRuntime from "../runtime/LeluRuntime";
@@ -33,6 +33,7 @@ import { createTask, planTask } from "../agentic/TaskPlanner";
 import ProjectStore from "../projects/ProjectStore";
 import GitHubIntegration from "../engineering/GitHubIntegration";
 import { isMissionResume } from "../router/continuationContext";
+import { CONVERSATION_REFERENCE } from "../tools/ToolSchemas";
 
 // ---------- TYPES ----------
 
@@ -200,7 +201,14 @@ export default class Orchestrator {
       // to send a natural-language resume into task planning (measured: a
       // 260-char request produced memory.recall + task.resume and never
       // reached the mission tools), so it keeps the direct chat path.
-      const needsMultiStep = !isMissionResume(request) && this.isMultiStepRequest(request);
+      //
+      // A request that refers back to THIS conversation ("what we've
+      // discussed", "the second thing you recommended") also stays on the
+      // direct path: that path carries the conversation's own turns, and the
+      // answer is in them. Planning it as fresh steps is how "review what we
+      // discussed" became "acquire a repository" / "which dataset?".
+      const needsMultiStep =
+        !isMissionResume(request) && !CONVERSATION_REFERENCE.test(request) && this.isMultiStepRequest(request);
       if (needsMultiStep) {
         const planned = await this.planAndExecute(request, context, taskId);
         if (planned) {
@@ -346,7 +354,11 @@ export default class Orchestrator {
     return "chat";
   }
 
-  private isMultiStepRequest(request: string, _intent?: { category: string }): boolean {
+  private isMultiStepRequest(rawRequest: string, _intent?: { category: string }): boolean {
+    // The patterns are lowercase: "Review the deploy" and "review the
+    // deploy" are the same request. MEASURED (Mission 3): only the
+    // lowercase form matched, so routing changed with the first letter.
+    const request = rawRequest.toLowerCase();
     const textIndicators = [
       /\b(and then|after that|next|also|while you'?re at it)\b/,
       /\b(first|second|third|finally|step \d)\b/,
@@ -558,7 +570,7 @@ export default class Orchestrator {
     // The planner sees what this conversation already made, so "change the
     // chart in the brief" revises that artifact instead of starting anew.
     const made = conversationArtifactsContext(ownerForTask(taskId));
-    const planContext = [context, made].filter(Boolean).join("\n\n");
+    const planContext = [context, made, this.conversationSoFar(ownerForTask(taskId) ?? undefined, request)].filter(Boolean).join("\n\n");
     const plan = await planTask(request, planContext ? { context: planContext } : {});
     if (!plan.ok || !plan.validation) {
       events.emit({
@@ -616,6 +628,31 @@ export default class Orchestrator {
     const response =
       finished.status === "completed" && answerStep?.output ? `${answerStep.output}\n\n—\n${report}` : report;
     return { response, actions: this.stepActions(finished), task: finished };
+  }
+
+  /**
+   * The conversation the plan belongs to, for the PLANNER. The direct chat
+   * path always had these turns; the planner saw only cross-chat research
+   * and artifacts, so a multi-step request that leaned on what was said
+   * earlier was planned as if the conversation had just begun. Same source
+   * as the direct path (priorTurnsFor), bounded so the planning request
+   * stays inside a free provider's per-minute token budget.
+   */
+  private conversationSoFar(conversationId: string | undefined, request: string): string {
+    const turns = priorTurnsFor(conversationId, request);
+    if (!turns || turns.length === 0) return "";
+    const PER_TURN = 600;
+    const TOTAL = 4_000;
+    const lines: string[] = [];
+    let used = 0;
+    for (const turn of [...turns].reverse()) {
+      const text = turn.content.replace(/\s+/g, " ").trim();
+      const line = `${turn.role === "user" ? "User" : "LÉLU"}: ${text.length > PER_TURN ? `${text.slice(0, PER_TURN)}…` : text}`;
+      if (used + line.length > TOTAL) break;
+      lines.unshift(line);
+      used += line.length;
+    }
+    return lines.length > 0 ? `## This conversation so far (oldest first)\n${lines.join("\n")}` : "";
   }
 
   /** The real per-step outcomes, in the OrchestratorResult action shape. */

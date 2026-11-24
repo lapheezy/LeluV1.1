@@ -179,6 +179,8 @@ const STOPWORDS = new Set([
   "which", "who", "why", "how", "can", "could", "would", "should", "please", "about", "into",
   "from", "them", "they", "there", "here", "just", "some", "then", "than", "also", "will",
   "does", "did", "was", "were", "are", "but", "not", "all", "any", "one", "two", "its", "it",
+  // Phrasal particle ("find out", "figure out"): it names no topic.
+  "out",
 ]);
 
 const words = (value: unknown): string[] =>
@@ -195,7 +197,41 @@ const words = (value: unknown): string[] =>
  * offered the cheapest schemas instead of the one that could answer it. These
  * are families, not defaults — a match only raises a tool in the ranking.
  */
+/** Her own subsystems, by the names people use for them. */
+const OWN_SYSTEM =
+  "(?:supabase|database|db|persistence|memor(?:y|ies)|voice|tts|moss|speech|microphone|mic|stt|whisper|transcri\\w*|providers?|groq|openrouter|models?|engineering agent|agents?|tools?|runtime|server|backend|api|deploy\\w*|production|https|certificate|login|auth\\w*|sync|chat|yourself|your (?:own )?(?:system|code|runtime|state))";
+/** Something wrong, or a request to look at its state. */
+const PROBLEM =
+  "(?:broken|break\\w*|working|not working|isn'?t working|aren'?t working|doesn'?t work|don'?t work|won'?t|fail\\w*|failure|errors?|issues?|problems?|down|503|502|500|401|fix\\w*|repair\\w*|diagnos\\w*|investigat\\w*|debug\\w*|health|status|why)";
+
+/**
+ * A turn about one of LÉLU's OWN systems being wrong (or its state): both a
+ * subsystem and a problem/status word, in either order.
+ */
+export const SELF_DIAGNOSIS_REQUEST = new RegExp(`(?=[\\s\\S]*\\b${OWN_SYSTEM}\\b)(?=[\\s\\S]*\\b${PROBLEM}\\b)`, "i");
+
+/**
+ * A turn that refers back to THIS conversation: what was discussed, said,
+ * recommended, or "the second thing". Resolving it needs the conversation,
+ * never a fresh research query or a question back to the user.
+ */
+export const CONVERSATION_REFERENCE =
+  /\b(?:we(?:'ve| have)? (?:discussed|talked|covered|decided|agreed)|we discussed|our (?:conversation|discussion|chat|work)|everything we|so far|recap|still broken|what'?s (?:left|broken|missing|outstanding)|outstanding|unfinished|you (?:recommended|suggested|said|mentioned|proposed|listed)|(?:the )?(?:first|second|third|fourth|last|other|next) (?:thing|one|option|step|item|recommendation|suggestion|idea|point))\b/i;
+
 const FAMILY_HINTS: Array<[RegExp, string[]]> = [
+  // SELF-DIAGNOSIS: the turn is about one of HER OWN systems and something
+  // being wrong with it (or its state). MEASURED (Mission 3, full startup
+  // registry): "Find out why Supabase isn't working and fix it" was offered
+  // research_web, repo_research, kb_search, browser_* and unrelated 3D tools,
+  // and no tool that reads her live state — so the model could only search
+  // the web or ask which repository to look at. These are the tools that
+  // inspect the running system (live provider probe, configuration presence,
+  // recent changes, playbook runs).
+  [SELF_DIAGNOSIS_REQUEST, ["self_operational", "system_config", "self_changes", "self_run_status", "memory_recall", "chats_read"]],
+  // CONVERSATION REVIEW: the turn refers back to THIS conversation. The
+  // history is in the request; these let her also read older chats, her
+  // memory and the recorded workstreams instead of asking the user to repeat.
+  [CONVERSATION_REFERENCE, ["chats_read", "memory_recall", "mission_list", "mission_find", "self_operational"]],
   [/\b(weather|news|latest|search|research|find out|look up|source|sources|arxiv|wikipedia)\b/i, ["research_web", "browser_read", "browser_capture", "repo_research", "kb_search"]],
   [/\b(remember|recall|memory|memories|discuss|discussed|yesterday|earlier|conversation|chats?)\b/i, ["memory_recall", "memory_store", "chats_read", "chats_list"]],
   [/\b(file|files|folder|directory|write|save|sandbox|script|code)\b/i, ["sandbox_read", "sandbox_write", "sandbox_execute", "project_search", "project_manage"]],
@@ -225,7 +261,8 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(film|video|movie|clip|trailer|animation|animated|reel|montage|webm)\b/i, ["creative_film", "creative_export"]],
   [/\b(research|investigate|study|literature|sources?|cite|citations?)\b/i, ["research_board", "data_query"]],
   [/\b(export|download|save as|svg|png|glb|excalidraw|file)\b/i, ["creative_export"]],
-  [/\b(capabilit\w*|webgpu|webgl|webcodecs|what can you (?:do|run)|tools?|offline)\b/i, ["device_capabilities", "tools_catalog"]],
+  // "What can you actually do right now?" missed the literal "what can you do".
+  [/\b(capabilit\w*|webgpu|webgl|webcodecs|what (?:can|could) you (?:actually |really |currently |now )?(?:do|run)|tools?|offline|right now)\b/i, ["self_operational", "device_capabilities", "tools_catalog", "capability_discover"]],
   // Her spatial engine (ASRE): real reconstruction from images and her persistent
   // character. Raised only when the turn is about turning views into 3D, the
   // numerical record, or changing/restoring a character's components.
@@ -237,7 +274,7 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   // Exporting what she built: STL for printing, OBJ for other 3D tools.
   [/\b(stl|obj|3d[- ]?print\w*|export\w*)\b/i, ["world_export", "world_state"]],
   // Resource intelligence: finding, judging and testing tools for herself.
-  [/\b(open[- ]?source|free (?:tool|library|alternative)|alternative|missing|capabilit\w*|expand|improve your|dependenc\w*|library|libraries|package|npm|github|gitlab)\b/i, ["resources_gaps", "resources_discover", "resources_evaluate", "resources_sandbox", "resources_register", "resources_audit"]],
+  [/\b(open[- ]?source|free (?:tools?|librar(?:y|ies)|alternatives?)|alternative|missing|capabilit\w*|expand|improve your|dependenc\w*|library|libraries|package|npm|github|gitlab)\b/i, ["resources_gaps", "resources_discover", "resources_evaluate", "resources_sandbox", "resources_register", "resources_audit"]],
 ];
 
 /**
@@ -268,7 +305,10 @@ function relevance(schema: ToolSchema, wanted: Set<string>): number {
   for (const word of words(String(schema.name).replace(/_/g, " "))) {
     if (wanted.has(word)) score += 2;
   }
-  for (const word of words(String(schema.description ?? ""))) {
+  // Each description word counts ONCE: a description that repeats a common
+  // word ("out of … out as … out of") must not outrank a tool that is about
+  // the turn's subject.
+  for (const word of new Set(words(String(schema.description ?? "")))) {
     if (wanted.has(word)) score += 1;
   }
   return score;
@@ -307,7 +347,10 @@ export function selectToolSchemas(
   for (const [pattern, names] of FAMILY_HINTS) {
     if (pattern.test(prompt)) for (const name of names) hinted.add(name);
   }
-  const continuityHinted = [...hinted].some((name) => CONTINUITY_TOOL_NAMES.includes(name));
+  // The ledger set travels together when the turn is about the LEDGER
+  // (a mission tool was hinted). self_operational alone is raised by the
+  // diagnosis/review families and must not pin six slots on every such turn.
+  const continuityHinted = [...hinted].some((name) => name.startsWith("mission_"));
   const pinned = continuityHinted
     ? schemas.filter((schema) => CONTINUITY_TOOL_NAMES.includes(String(schema.name)))
     : [];
@@ -326,8 +369,17 @@ export function selectToolSchemas(
   const chosen: ToolSchema[] = [];
   let spent = [...discovery, ...pinned].reduce((total, schema) => total + schemaBytes(schema), 0);
   const nothingMatched = ranked.every((entry) => entry.score === 0) && pinned.length === 0;
+  // When the turn's vocabulary matched a family, a tool OUTSIDE the matched
+  // families must earn its slot with a strong lexical match (as much as a
+  // hint is worth). MEASURED (Mission 3): weak one-word overlaps filled the
+  // remaining slots of a Supabase-diagnosis turn with cosmos_object_remove
+  // and world_promote, and of a voice-failure turn with studio_deploy — tools
+  // that cannot help and, offered, invite the model to try them. `ranked` is
+  // sorted by score, so the first entry under the floor ends the selection.
+  const floor = hinted.size > 0 ? 3 : 0;
   for (const entry of ranked) {
     if (chosen.length + discovery.length + pinned.length >= TURN_TOOL_LIMIT) break;
+    if (!nothingMatched && entry.score < floor) break;
     if (spent + entry.cost > TURN_TOOL_BUDGET_BYTES && chosen.length > 0) break;
     // A turn with no signal at all keeps the conversational core, not the
     // cheapest four — remembering and looking something up matter more
