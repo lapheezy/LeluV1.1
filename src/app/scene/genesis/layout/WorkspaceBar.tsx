@@ -16,6 +16,7 @@ import type { StewardLayout, StewardMode } from "../../../../core/interface/Work
 import { arrangeWorkspace, type StewardHost } from "./stewardActions";
 import { setUniverseOpen } from "../chat/universe/universeOpen";
 import "./workspaceBar.css";
+import RadialMenu, { type RadialItem } from "../../../ui/radial/RadialMenu";
 
 const MODES: Array<{ id: StewardMode; label: string; glyph: string }> = [
   { id: "auto", label: "Auto", glyph: "✦" },
@@ -71,6 +72,13 @@ export default function WorkspaceBar({
     setMenu(false);
     arrangeWorkspace(host, next, [], "user");
   };
+  const layoutItems: RadialItem[] = MODES.map((m) => ({
+    id: m.id,
+    label: `${m.label} layout`,
+    icon: <span aria-hidden style={{ fontSize: 18 }}>{m.glyph}</span>,
+    onSelect: () => pick(m.id),
+    active: mode === m.id,
+  }));
   const hideAll = () => {
     for (const id of ids) actions.minimizeModule(id);
   };
@@ -140,7 +148,13 @@ export default function WorkspaceBar({
       <div className="lws lws-compact" data-lelu-workspace-bar="compact">
         <button type="button" className="lws-icon" aria-label="Back to the Universe — windows keep running" onClick={() => { hideAll(); setUniverseOpen(true); }}>‹</button>
         {tabs}
-        <button type="button" className="lws-icon" aria-label="Layout" aria-expanded={menu} onClick={() => setMenu((v) => !v)}>▦</button>
+        {/* M23: tap keeps the list; hold → slide → release picks a layout
+            directly, through the shared radial menu. */}
+        <RadialMenu id="workspace-layout" label="Window layout" items={layoutItems} onTap={() => setMenu((v) => !v)}>
+          {(trigger) => (
+            <button type="button" {...trigger} className="lws-icon" aria-label="Layout" title="Layout — hold to choose" aria-expanded={menu}>▦</button>
+          )}
+        </RadialMenu>
         <button type="button" className="lws-icon" aria-label="Why this layout" aria-expanded={why} onClick={() => setWhy((v) => !v)}>ⓘ</button>
         {active ? <button type="button" className="lws-icon" aria-label={`Close ${labelOf(active)}`} onClick={() => actions.closeModule(active)}>✕</button> : null}
         <AnimatePresence>

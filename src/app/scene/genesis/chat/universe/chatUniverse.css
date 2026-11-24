@@ -311,3 +311,10 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 /* The card title shrinks (and ellipsizes) so its subtitle never runs under the Open button. */
 .lcu-bubble .lst-chat-card header .title { flex: 1 1 auto; min-width: 0; }
 .lcu-bubble .lst-chat-card header .title em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* M23 WP04: finger-sized targets on touch screens. Measured on a phone
+   viewport: header tools down to 24 px and the time-range chips 25 px tall. */
+@media (pointer: coarse) {
+  .lcu-head-tools > button, .lcu-head-tools > [role="button"] { min-width: 40px; min-height: 40px; }
+  .lcu-ranges button { min-height: 36px; padding-inline: 12px; }
+}

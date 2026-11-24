@@ -101,7 +101,14 @@ function tick(): void {
 export default function RadialMenu({ id, label, items, onTap, holdMs = 320, children }: RadialMenuProps) {
   const triggerRef = useRef<HTMLElement | null>(null);
   const press = useRef<{ pointerId: number; x: number; y: number; timer: ReturnType<typeof setTimeout> | null; moved: boolean } | null>(null);
-  const suppressClick = useRef(false);
+  /**
+   * The click a gesture produces must not ALSO run the tap: set at the end of
+   * a hold or a drag, honoured only for a click that follows within a moment.
+   * A hold that ends away from the control produces no click at all, so an
+   * unbounded flag swallowed the person's NEXT real tap (measured: after
+   * choosing a layout from the ring, tapping Layout did nothing).
+   */
+  const suppressClick = useRef(0);
   const [open, setOpen] = useState<OpenState>(null);
   const [highlight, setHighlight] = useState(-1);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -196,6 +203,7 @@ export default function RadialMenu({ id, label, items, onTap, holdMs = 320, chil
       if (event.pointerType === "mouse" && event.button !== 0) return;
       if (open?.mode === "sticky") return; // the next click closes it (see onClick)
       clearPress();
+      suppressClick.current = 0; // a new gesture: its own click is its own
       event.currentTarget.setPointerCapture?.(event.pointerId);
       const record = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, timer: null as ReturnType<typeof setTimeout> | null, moved: false };
       record.timer = setTimeout(() => {
@@ -227,13 +235,13 @@ export default function RadialMenu({ id, label, items, onTap, holdMs = 320, chil
       const wasMoved = current.moved;
       clearPress();
       if (open?.mode === "hold") {
-        suppressClick.current = true;
+        suppressClick.current = Date.now();
         if (highlight >= 0) select(highlight);
         else close(false);
         return;
       }
       if (wasMoved) {
-        suppressClick.current = true;
+        suppressClick.current = Date.now();
         return;
       }
       // A tap runs on the native click that follows, NOT here. Acting on
@@ -248,8 +256,8 @@ export default function RadialMenu({ id, label, items, onTap, holdMs = 320, chil
     },
     onClick: (event) => {
       // Pointer taps were handled on pointerup; this is the keyboard / AT click.
-      if (suppressClick.current) {
-        suppressClick.current = false;
+      if (suppressClick.current && Date.now() - suppressClick.current < 600) {
+        suppressClick.current = 0;
         event.preventDefault();
         event.stopPropagation();
         return;

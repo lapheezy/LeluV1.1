@@ -69,6 +69,7 @@ test("one implementation: every host uses the shared RadialMenu", () => {
     "src/app/scene/spatial/SpatialNavigator.tsx",
     "src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
     "src/app/scene/genesis/GenesisModuleHost.tsx",
+    "src/app/scene/genesis/layout/WorkspaceBar.tsx",
   ]) {
     assert.match(readFileSync(host, "utf8"), /from "[./]+(?:\/[\w.]+)*\/ui\/radial\/RadialMenu"/, host);
   }

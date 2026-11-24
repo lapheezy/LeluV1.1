@@ -8,6 +8,8 @@
  *              hold → slide → release on "New chat" creates a chat.
  *   window   — a module window's actions handle: hold → slide → release on
  *              "Snap to the left half" (desktop / tablet only).
+ *   layout   — on a phone, the workspace bar's Layout button: tap still opens
+ *              the list; hold → slide → release picks a layout.
  *   keyboard — focus the Spatial hub, ↑ opens the ring, → moves, Enter travels.
  * Touch devices use CDP touch events (what a finger produces); desktop the mouse.
  *
@@ -20,7 +22,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const [, , device = 'desktop', which = 'spatial,composer,window,keyboard'] = process.argv;
+const [, , device = 'desktop', which = 'spatial,composer,window,keyboard,layout'] = process.argv;
 const BASE = process.env.LELU_URL || 'http://localhost:4173';
 const SHOTS = process.env.SHOTS || fs.mkdtempSync(path.join(os.tmpdir(), 'lelu-radial-'));
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -210,6 +212,28 @@ const check = (name, ok, detail) => { results.push({ name, ok: Boolean(ok), deta
     check('window: hold opens the actions ring', r.opened, `${r.count} items`);
     check('window: hold → slide → release snaps to the left half', r.highlighted === 'snap-left' && rect.x <= 12 && Math.abs(rect.w - rect.vw / 2) < 40, JSON.stringify(rect));
     await page.screenshot({ path: `${SHOTS}/radial-${device}-window-snapped.png` });
+  }
+
+  if (which.includes('layout') && device === 'iphone') {
+    await fresh();
+    await page.getByRole('button', { name: 'Agents', exact: true }).first().click();
+    await page.waitForTimeout(3000);
+    const layoutBtn = '[data-radial-trigger="workspace-layout"]';
+    if ((await page.locator(layoutBtn).count()) === 0) {
+      check('layout: the phone workspace bar shows the Layout control', false, 'not found');
+    } else {
+      await tap(await centre(layoutBtn));
+      await page.waitForTimeout(500);
+      const listOpen = await page.locator('[data-lelu-layout]').count();
+      check('layout: tap still opens the layout list', listOpen > 0, `${listOpen} modes listed`);
+      await tap(await centre(layoutBtn));
+      await page.waitForTimeout(400);
+      const r = await chooseFromRing(layoutBtn, 'workspace-layout', 'focus');
+      await tap(await centre(layoutBtn));
+      await page.waitForTimeout(500);
+      const pressed = await page.locator('[data-lelu-layout="focus"]').first().getAttribute('aria-pressed').catch(() => null);
+      check('layout: hold → slide → release picks a layout', r.opened && r.highlighted === 'focus' && pressed === 'true', `highlighted ${r.highlighted}, focus pressed=${pressed}`);
+    }
   }
 
   console.log('SHOTS', SHOTS);
