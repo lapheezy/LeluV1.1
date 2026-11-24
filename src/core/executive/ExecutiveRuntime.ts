@@ -78,6 +78,8 @@ export interface ExecutiveSelfState {
   pendingApprovals: number;
   currentGoal: string;
   currentTask: { id: string; label: string } | null;
+  /** When the current task (this turn) was first registered; optional for older snapshots. */
+  currentTaskStartedAt?: number | null;
   taskStatus: "none" | "running" | "completed" | "failed" | "unverified";
   /** The task before the current one, with how it ended — so "what are you
    *  working on?" can answer about real work, not about the question itself. */
@@ -240,13 +242,25 @@ class ExecutiveRuntimeImpl {
     this.lastEventAt = Date.now();
 
     switch (event.type) {
-      case "task_started":
+      case "task_started": {
+        // ONE turn is registered by more than one layer (Orchestrator, then
+        // AIService) under different ids but the same words. Treating the
+        // second registration as a new task made the first one the
+        // "previous task", so a status answer said "Before you asked, I was
+        // working on '<the question just asked>'" (measured, Mission 3.5).
+        const norm = (t: string) => t.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ").trim().replace(/ ?…$/, "");
+        const current = this.state.currentTask;
+        const startedAt = this.state.currentTaskStartedAt ?? 0;
+        const a = current ? norm(current.label) : "";
+        const b = norm(event.label ?? "");
+        const sameTurn = Boolean(current && a && b && (a === b || (a.length >= 12 && b.startsWith(a)) || (b.length >= 12 && a.startsWith(b))) && Date.now() - startedAt < 30_000);
         this.toolResultsForCurrentTask = 0;
         this.patch({
           previousTask:
-            this.state.currentTask && this.state.currentTask.id !== event.taskId
-              ? { label: this.state.currentTask.label, status: this.state.taskStatus }
+            !sameTurn && current && current.id !== event.taskId
+              ? { label: current.label, status: this.state.taskStatus }
               : this.state.previousTask,
+          currentTaskStartedAt: sameTurn ? startedAt : Date.now(),
           currentMode: "working",
           currentTask: { id: event.taskId, label: event.label },
           taskStatus: "running",
@@ -255,6 +269,7 @@ class ExecutiveRuntimeImpl {
           ambientStartedAt: null,
         });
         break;
+      }
 
       case "tool_started":
         this.patch({ currentAction: event.label ?? `${event.tool} running` });
@@ -797,7 +812,9 @@ class ExecutiveRuntimeImpl {
     const asked = norm(prompt);
     const isThisQuestion = Boolean(label && asked && (label === asked || (label.length >= 12 && asked.startsWith(label.replace(/ ?…$/, "")))));
     if (isThisQuestion) {
-      const prev = s.previousTask;
+      // A previous task with these very words is this turn registered twice
+      // (state recorded before the task_started fix): it is not earlier work.
+      const prev = s.previousTask && norm(s.previousTask.label).replace(/ ?…$/, "") !== asked ? s.previousTask : null;
       parts.push(
         !prev
           ? s.currentMode === "ambient" || s.currentMode === "working"
@@ -828,7 +845,10 @@ class ExecutiveRuntimeImpl {
           : "No task is running right now; I'm standing by in the environment.",
       );
     }
-    if (s.lastAction && Date.now() - s.lastAction.at < 120_000) {
+    // An action taken WHILE answering this question (e.g. recalling memory
+    // for it) is not something she was doing before it was asked.
+    const actionOfThisTurn = Boolean(isThisQuestion && s.lastAction && s.currentTaskStartedAt && s.lastAction.at >= s.currentTaskStartedAt);
+    if (s.lastAction && !actionOfThisTurn && Date.now() - s.lastAction.at < 120_000) {
       parts.push(
         s.lastAction.verified
           ? `The last thing I verified completing was: ${s.lastAction.execution}.`
