@@ -201,7 +201,7 @@ restriction on the environment is the real control.**
 | Payload | patch read with lelu-deploy's own privileges (no symlink reads as root); rejected if it names any file but `plugins/voiceApi.ts`, `plugins/voxApi.ts`, `tests/voice-tts-speech-worker.test.ts` | patch adding `server.ts` → "patch touches server.ts, which is outside the allowed files", nothing changed |
 | Secrets on VPS | lelu-deploy can't read `/etc/lelu/lelu.env` or its own reports (`/var/log/lelu-deploy`, root 0700) | verified |
 | Public logs | DETAIL lines stay in the VPS report; only PASS/FAIL/INFO cross SSH | 0 DETAIL lines over SSH, 25 kept on the VPS |
-| GitHub | deploys only from `integration/lelu-four-workforce-consolidation`; a secret-free `protection-probe` job from `claude/**` must be **refused** by the environment | baseline run below |
+| GitHub | deploys only from `integration/lelu-four-workforce-consolidation`; a secret-free `protection-probe` job from `claude/**` must be **refused** by the environment | **baseline FAILS today**: run [45411207597](https://github.com/lapheezy/LeluV1.1/actions/runs/45411207597) printed `PROBE RAN on refs/heads/claude/lelu-voice-https-production-lvv519`, so the environment is unprotected |
 | Revocation | `setup.sh --remove` | key refused immediately afterwards; reports and rollback material kept |
 
 The full flow ran over SSH through this identity: `recon` → `apply` (verified backup; only allowed files; 200 WAV
@@ -222,11 +222,13 @@ intended. Giving it a pinned `provider-env` action is separate work.
    must print `SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310`. If not, stop.
 3. **Create the deploy key on your own computer:** `ssh-keygen -t ed25519 -N "" -C lelu-github-deploy -f ~/lelu_github_deploy`.
    Copy **only** `~/lelu_github_deploy.pub` to the VPS as `/root/lelu_github_deploy.pub`.
-4. **Install the identity on the VPS as root** (your existing access), pinned to the reviewed commit `<C>` given in
-   the session reply:
+4. **Install the identity on the VPS as root** (your existing access), pinned to the reviewed commit
+   `<C>` = `bac36603fbf14abf93585fc641d288c1aa22321f`, whose `setup.sh` sha256 is
+   `01ff73dc1ed3449369b10d32933d516d474fa7c0b70577aecdae02402fdf85a5` (all five files re-fetched from
+   raw.githubusercontent.com at that commit and matched against the pins):
    ```
    curl -fsSL https://raw.githubusercontent.com/lapheezy/LeluV1.1/<C>/deploy/contabo/deploy-identity/setup.sh -o /root/lelu-deploy-setup.sh
-   sha256sum /root/lelu-deploy-setup.sh          # must equal the hash given with <C>
+   sha256sum /root/lelu-deploy-setup.sh          # must equal 01ff73dc…85a5 (above)
    bash /root/lelu-deploy-setup.sh <C> /root/lelu_github_deploy.pub
    ```
    It must end with every self-test PASS. Its step 1 prints the `LELU_VPS_KNOWN_HOSTS` line (public).
