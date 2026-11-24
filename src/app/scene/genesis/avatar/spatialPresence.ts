@@ -463,7 +463,14 @@ export function prefersReducedMotion(doc: Document): boolean {
 export function measureSpace(doc: Document = document): SpaceLayout {
   const chatEl = doc.querySelector('[data-lelu-window="chat"]');
   const chat = rectOf(chatEl);
-  const composer = rectOf(doc.querySelector("[data-lelu-composer]"));
+  // The first composer actually on screen. The Chat Universe and each chat
+  // window carry the marker too (M23): before, only the old GenesisChat did,
+  // so on a phone she stood on the Universe composer's send button.
+  let composer: Rect | null = null;
+  for (const element of Array.from(doc.querySelectorAll("[data-lelu-composer]"))) {
+    composer = rectOf(element);
+    if (composer) break;
+  }
   const panels: Rect[] = [];
   for (const element of Array.from(doc.querySelectorAll('[data-lelu-module-window], [data-lelu-window]:not([data-lelu-window="chat"])'))) {
     if (element.closest("[data-lelu-chat-window]")) continue;

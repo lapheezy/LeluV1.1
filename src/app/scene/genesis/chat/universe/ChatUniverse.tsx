@@ -612,7 +612,7 @@ export default function ChatUniverse() {
             ))}
           </div>
         ) : null}
-        <div className="lcu-composer">
+        <div className="lcu-composer" data-lelu-composer>
           <button type="button" className="lcu-icon" aria-label="Attach an image, video or file" onClick={() => mediaRef.current?.click()} disabled={!target}><Icons.Plus size={19} /></button>
           <input
             ref={mediaRef}

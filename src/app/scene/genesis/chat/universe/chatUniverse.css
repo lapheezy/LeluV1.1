@@ -67,6 +67,14 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 .lcu-icon.sm[data-lelu-voice-capture="suspended"] { background: rgba(250, 204, 21, 0.25); box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.5); }
 /* Phone: the microphone is a primary control — a full 44 px touch target. */
 @media (pointer: coarse) { .lcu-icon.sm[data-lelu-voice-toggle] { width: 44px; height: 44px; } }
+/* M23: recording state that reads at a glance, and the mic's own error. */
+.lcu-voice { position: relative; display: inline-flex; flex: 0 0 auto; }
+.lcu-icon.sm[data-lelu-voice-capture="live"][data-lelu-voice-phase="listening"] { animation: lcu-voice-pulse 1.6s ease-in-out infinite; }
+@keyframes lcu-voice-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.55); } 50% { box-shadow: 0 0 0 6px rgba(236, 72, 153, 0.18); } }
+@media (prefers-reduced-motion: reduce) { .lcu-icon.sm[data-lelu-voice-toggle] { animation: none !important; } }
+.lcu-voice-error { position: absolute; right: -6px; bottom: calc(100% + 10px); z-index: 5; display: flex; align-items: flex-start; gap: 8px; width: max-content; max-width: min(300px, calc(100vw - 32px)); padding: 9px 10px 9px 12px; border-radius: 14px; background: var(--lcu-glass-strong); border: 1px solid rgba(248, 113, 113, 0.65); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); color: var(--lcu-ink); font-size: 13px; line-height: 1.35; text-align: left; }
+.lcu-voice-error button { flex: 0 0 auto; display: grid; place-items: center; width: 24px; height: 24px; margin: -3px -4px 0 0; border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: inherit; }
+@media (pointer: coarse) { .lcu-voice-error button { width: 32px; height: 32px; } }
 .lcu-mode[data-mode="floating"] { border-color: var(--lcu-edge-hot); color: #f5d0fe; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 18px var(--lcu-glow); }
 
 /* ---------- glass ---------- */

@@ -235,6 +235,7 @@ export default function UniverseChatWindow({
 
   const composer = (
     <form
+      data-lelu-composer
       className="lcu-win-composer lst-composer"
       data-stage-composer={stage}
       onSubmit={(e) => {
