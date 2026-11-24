@@ -190,3 +190,64 @@ on the deployed app. They're blocked until `fix` is applied.
   the tools that inspect it.
 - **WP11 latency measurements.** Need a live runtime. The OG-archive change removes two failing round trips from
   every turn while the key is rejected.
+
+---
+
+## Mission 3 — production recovery execution (2026-11-24, 17:15 UTC)
+
+### Execution channels (checked, not assumed)
+
+| Channel | Result |
+|---|---|
+| SSH from this session to 157.173.116.95:22 | refused |
+| Owner's computer via Remote Control | none attached (`list_computer_folders` empty) |
+| GitHub deploy identity (`lelu-deploy`) | allows 10 pinned actions; editing `lelu.env` is deliberately **not** one of them |
+
+**Why the script wasn't found on the VPS.** `deploy/contabo/supabase-key-check.sh` exists only on
+`claude/lelu-voice-https-production-lvv519` (from `6dc916fb`). It isn't on the integration branch (`cb9aecdb`), and the
+VPS checkout at `/opt/lelu/app` (per `lelu.service`) runs `a7503839`. It was never deployed. The path
+`/opt/lelu/deploy/...` was never a real location.
+
+### Status
+
+| Item | Status | Evidence |
+|---|---|---|
+| Production project identity | **VERIFIED** | `get_project`: `Lelu`, ref `nrehsldbfxthspikaxvr`, ACTIVE_HEALTHY, created 2026-07-01 |
+| Canonical publishable key | **VERIFIED** | from the project's key list: enabled, fingerprint `1abc3454754f`; 200 on `auth/v1/settings` and on REST for messages, memory_items and knowledge_items (`[]` anonymously = RLS) |
+| Rejected key characterised | **VERIFIED** (shape) | edge logs `Not a JWT, too short signature`, reproduced only by an empty or 1-char JWT signature |
+| Which `lelu.env` variable holds it | **BLOCKED** | needs VPS access |
+| Backup, repair, restart, runtime/bridge verification (WP02 8–13) | **NOT STARTED** | needs VPS access; script rehearsed on a replica |
+| Data integrity (WP03) | **VERIFIED** (read-only) | 46 users, 0 orphaned rows, 0 rows without an owner; counts unchanged since 22 Nov |
+| RLS boundaries | **VERIFIED** (read-only, rolled back) | owner sees only own 1,389/321/405/950; another user 0; anonymous 0 |
+| Hydration honesty (WP04, code) | **VERIFIED** (offline tests) | `45cf3ed1`: VERIFIED only after a completed cloud load; a failed load merges nothing and reads as possibly-stale cache |
+| Live owner sign-in + hydration on production (WP04) | **BLOCKED** | needs the key fixed first |
+| WP05 write path and side-effect analysis | **VERIFIED** | see below |
+| WP05 write test | **NOT STARTED** | awaiting owner approval |
+
+### WP05 — prepared write test (not run)
+
+**Write path.** The app writes through `SupabasePersistence` upserts under RLS (`memory_items_owner`:
+`user_id = auth.uid()`).
+
+**Side effects on `memory_items`:**
+- `memory_items_refuse_resurrection` (BEFORE INSERT/UPDATE, SECURITY DEFINER) only reads `memory_tombstones`.
+- `memory_items_record_tombstone` (AFTER DELETE, SECURITY DEFINER) **inserts into `memory_tombstones`**, and that id
+  can then never be recreated. A delete-then-commit cleanup would therefore leave a permanent tombstone. Only a
+  rolled-back transaction removes both.
+- `pg_net` is installed, but no trigger on `memory_items` calls it.
+- No table is in a realtime publication.
+- Text ids, so no sequence is consumed.
+- The only external trace: the statement text in Postgres logs, which contains a `mission3-write-verification-` marker
+  and no user data.
+
+**Baseline (17:13 UTC):** memory_items 520, memory_tombstones 0, mission3 items 0, mission3 tombstones 0,
+messages 2,765, conversations 457, knowledge_items 2,139.
+
+**Procedure** (one transaction, ending in a deliberate exception so everything rolls back). As the owner `31a55311…`
+under RLS:
+1. insert `mission3-write-verification-<uuid>`, read it back, update it;
+2. as user `80368b32…`: see it, update it, delete it — each must be 0;
+3. as the owner: delete it, which fires the tombstone trigger;
+4. raise, so the transaction rolls back.
+
+Afterwards, recount and require exactly the baseline (including 0 tombstones and 0 mission3 rows).
