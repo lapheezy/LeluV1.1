@@ -135,6 +135,13 @@ export default class SupabasePersistence {
   private attached = false;
   private readonly developmentTimers = new Map<string, BackgroundTimer>();
   private hydrated = false;
+  /**
+   * When the core stores (memories, knowledge, projects, agents, questions,
+   * preferences, ui state) last FINISHED loading from the project without a
+   * degraded read. `hydrated` above is set when hydration STARTS (a re-entry
+   * guard), so it cannot tell cloud data from the local cache.
+   */
+  private coreHydratedAt: number | null = null;
   /** False until a read proves this deployment has the M22.7 tombstone table. */
   private tombstonesAvailable = false;
   /** True only once conversations AND every message page have been collected. */
@@ -163,6 +170,16 @@ export default class SupabasePersistence {
   }
 
   public getStatus(): SupabasePersistenceStatus { return this.status; }
+
+  /** Whether this session's data came from the project, and how much of it. */
+  public getHydration(): { core: boolean; coreAt: number | null; history: boolean; historyProgress: { loaded: number; total: number } } {
+    return {
+      core: this.coreHydratedAt !== null,
+      coreAt: this.coreHydratedAt,
+      history: this.historyHydrated,
+      historyProgress: { ...this.historyProgress },
+    };
+  }
 
   /** The project's own verdict on this deployment's key, and when it was given. */
   public getKeyVerdict(): { verdict: SupabaseKeyVerdict; at: number | null } {
@@ -452,6 +469,8 @@ export default class SupabasePersistence {
     }
     this.attached = false;
     this.hydrated = false;
+    // A different (or no) user: the previous session's cloud load no longer describes this one.
+    this.coreHydratedAt = null;
     if (this.realtimeChannel) {
       void this.realtimeChannel.unsubscribe();
       this.realtimeChannel = null;
@@ -477,6 +496,7 @@ export default class SupabasePersistence {
     this.keyCheckedAt = null;
     this.probeTarget = null;
     this.hydrated = false;
+    this.coreHydratedAt = null;
     this.historyHydrated = false;
     this.historyProgress = { loaded: 0, total: 0 };
     this.authListeners.clear();
@@ -544,6 +564,7 @@ export default class SupabasePersistence {
     this.hydrated = true;
 
     await this.hydrateCoreStores(brain, user);
+    if (this.status !== "degraded") this.coreHydratedAt = Date.now();
 
     // Deletions that could not reach the cloud before this device went offline
     // are retried now, once, and not awaited: sign-in must not wait on them.

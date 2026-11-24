@@ -178,7 +178,22 @@ test("the self-model states persistence from the project's answer, not from conf
   const rejected = persistenceClaim(observation({ status: "degraded", keyVerdict: "rejected" }), 1);
   assert.equal(rejected.state, "UNAVAILABLE");
   assert.match(rejected.statement, /^FAILED/);
-  assert.equal(persistenceClaim(observation({ status: "connected", keyVerdict: "valid", signedIn: true }), 1).state, "VERIFIED");
+  // Signed in is not live: only a completed load from the project is.
+  const notLoaded = persistenceClaim(observation({ status: "connected", keyVerdict: "valid", signedIn: true }), 1);
+  assert.equal(notLoaded.state, "PARTIAL");
+  assert.match(notLoaded.statement, /may be the local cache/);
+  const loaded = persistenceClaim(
+    observation({ status: "connected", keyVerdict: "valid", signedIn: true, hydration: { core: true, coreAt: 5_000, history: false } }),
+    1,
+  );
+  assert.equal(loaded.state, "VERIFIED");
+  assert.match(loaded.statement, /history still loading/);
+  const degraded = persistenceClaim(
+    observation({ status: "degraded", keyVerdict: "valid", signedIn: true, hydration: { core: false, coreAt: null, history: false } }),
+    1,
+  );
+  assert.equal(degraded.state, "PARTIAL");
+  assert.match(degraded.statement, /load from the project failed/);
   const signedOut = persistenceClaim(observation({ keyVerdict: "valid" }), 1);
   assert.equal(signedOut.state, "PARTIAL");
   assert.match(signedOut.statement, /no one is signed in/);

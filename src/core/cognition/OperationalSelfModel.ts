@@ -55,6 +55,8 @@ export interface PersistenceObservation {
   keyCheckedAt: number | null;
   signedIn: boolean;
   configError: string | null;
+  /** Optional for hand-built observations; when absent, nothing is claimed about hydration. */
+  hydration?: { core: boolean; coreAt: number | null; history: boolean };
 }
 import {
   countEvidence,
@@ -180,6 +182,7 @@ function defaultSources(): SelfModelSources {
         keyCheckedAt: key.at,
         signedIn: auth.session !== null,
         configError: auth.configError,
+        hydration: persistence.getHydration(),
       };
     },
   };
@@ -211,8 +214,36 @@ export function persistenceClaim(observation: PersistenceObservation, at: number
       observation.configError ?? "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must come from the same project.",
     );
   }
-  if (observation.keyVerdict === "valid" && observation.signedIn && observation.status === "connected") {
-    return evidenceClaim("persistence.supabase", `Cloud persistence is live: the project accepted the key and a user is signed in.${when}`, "VERIFIED", source, observation.keyCheckedAt ?? at);
+  // LIVE needs a completed load from the project in THIS session — not a
+  // signed-in flag (set before any data arrives), and not the local cache.
+  const hydration = observation.hydration;
+  if (observation.keyVerdict === "valid" && observation.signedIn && observation.status === "connected" && hydration?.core) {
+    const history = hydration.history ? "conversation history loaded" : "conversation history still loading or incomplete";
+    return evidenceClaim(
+      "persistence.supabase",
+      `Cloud persistence is live: the project accepted the key, a user is signed in, and memories/knowledge were loaded from the project at ${new Date(hydration.coreAt ?? at).toISOString()} (${history}).${when}`,
+      "VERIFIED",
+      source,
+      hydration.coreAt ?? at,
+    );
+  }
+  if (observation.keyVerdict === "valid" && observation.signedIn && observation.status === "degraded") {
+    return evidenceClaim(
+      "persistence.supabase",
+      `Signed in and the key is accepted, but a load from the project failed — what I hold may be the local cache, not the cloud.${when}`,
+      "PARTIAL",
+      source,
+      at,
+    );
+  }
+  if (observation.keyVerdict === "valid" && observation.signedIn) {
+    return evidenceClaim(
+      "persistence.supabase",
+      `Signed in and the key is accepted, but my data has not finished loading from the project in this session — what I hold may be the local cache.${when}`,
+      "PARTIAL",
+      source,
+      at,
+    );
   }
   if (observation.keyVerdict === "valid") {
     return evidenceClaim(
