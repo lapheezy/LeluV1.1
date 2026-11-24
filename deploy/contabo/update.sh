@@ -19,7 +19,8 @@ set -euo pipefail
 APP=/opt/lelu/app
 BUN=/opt/lelu/.bun/bin/bun
 TARGET="${1:-}"
-as_lelu() { sudo -u lelu bash -c "set -a; . /etc/lelu/lelu.env; set +a; cd $APP && $*"; }
+# lelu.env is root:root 0600: root loads it, runuser hands the environment to lelu.
+as_lelu() { ( set -a; . /etc/lelu/lelu.env; set +a; runuser -u lelu -- bash -c "cd $APP && $*" ); }
 
 /usr/local/bin/lelu-backup || echo "!! backup failed — continuing (previous backups remain)"
 

@@ -57,7 +57,7 @@ ufw status | head -12 | sed 's/^/INFO  ufw /'
 command -v docker >/dev/null && docker ps --format '{{.Names}} {{.Ports}}' | sed 's/^/INFO  container /'
 
 echo "== secrets"
-st=$(stat -c '%U:%G %a' /etc/lelu/lelu.env); [ "$st" = "root:lelu 640" ] && ok "lelu.env $st" || bad "lelu.env $st (want root:lelu 640)"
+st=$(stat -c '%U:%G %a' /etc/lelu/lelu.env); [ "$st" = "root:root 600" ] && ok "lelu.env $st" || bad "lelu.env $st (want root:root 600)"
 sudo -u lelu git -C $APP status --porcelain | grep -E '\.env|secret|key' && bad "secret-like file in the working tree" || ok "no secret-like files in the working tree"
 curl -s $H/ | grep -Eiq 'sk-ant-|gsk_|sk-or-|lk_api|LIVEKIT_API_SECRET' && bad "a credential appears in the served page" || ok "no credential patterns in the served page"
 

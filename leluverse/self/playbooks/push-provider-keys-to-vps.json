@@ -1,0 +1,14 @@
+{
+ "id": "push-provider-keys-to-vps",
+ "title": "Merge my provider keys into the Contabo server's /etc/lelu/lelu.env and prove I came back up with them",
+ "for": "LÉLU",
+ "why": "My keys live in cloud environments that cannot open SSH (their egress is an HTTPS proxy), and my server at 157.173.116.95 has no management endpoint. So the keys must be pushed from a machine that has both the keys as environment variables and ssh access. One script does the selection, the transfer over ssh stdin, a backed-up duplicate-free atomic merge (root:root 0600), the 502 diagnosis, two restarts and the checks.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-24-provider-keys-to-contabo.md",
+ "steps": [
+  {"id": "names", "title": "List which names would travel (nothing is sent)", "kind": "tool", "script": "scripts/push-provider-env.sh", "args": ["--dry-run"], "why": "Shows the selection: every *_API_KEY[_n], *_ACCESS_TOKEN, bare aliases such as Elevenlabs; never VITE_*, Anthropic, CLAUDE_*, GITHUB_TOKEN or AWS_*."},
+  {"id": "push", "title": "Owner runs it with ssh access: LELU_VPS=root@157.173.116.95 bash scripts/push-provider-env.sh", "kind": "note", "why": "Needs an ssh login to my server, which only the owner's own machine (or the Contabo VNC console with the receiver deploy/contabo/inject-env.sh) has. Existing values win unless --replace is given; the old file is kept in /etc/lelu/backups/."},
+  {"id": "verify", "title": "Read the PASS/FAIL lines it prints", "kind": "note", "why": "It must show: lelu.env root:root 600, no duplicates, /healthz 200 direct and through nginx after both restarts, the running process inherits every merged name, Groq answers, no Anthropic credential in the process. Any FAIL is followed by the redacted journal that explains it."}
+ ]
+}

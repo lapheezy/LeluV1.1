@@ -67,7 +67,7 @@ Home Screen**. The session cookie lasts 30 days per device.
 
 ## 3. Environment variables (names only)
 
-`/etc/lelu/lelu.env`, owned `root:lelu`, mode 0640. Template: `deploy/contabo/lelu.env.example`.
+`/etc/lelu/lelu.env`, owned `root:root`, mode 0600 (systemd reads it as root before dropping to `lelu`; provider keys are merged in with `scripts/push-provider-env.sh`, see below). Template: `deploy/contabo/lelu.env.example`.
 
 | Purpose | Variables |
 |---|---|
@@ -88,6 +88,25 @@ Secrets and the browser:
   with canaries against a real build; it was also checked against the live keys.
 - The served page receives only public values (Supabase URL and publishable key) and the optional
   data-feed keys listed above. Behind the gate, only the signed-in owner's browser gets them.
+
+### Merging provider keys from another machine
+
+From any machine where the keys are environment variables **and** `ssh root@157.173.116.95` works:
+
+```bash
+bash scripts/push-provider-env.sh --dry-run     # names that would travel, nothing sent
+bash scripts/push-provider-env.sh               # merge (existing values win), restart twice, verify
+bash scripts/push-provider-env.sh --replace     # same, but incoming values replace existing ones
+```
+
+Values go over ssh stdin only. On the VPS `deploy/contabo/inject-env.sh` backs the file up to
+`/etc/lelu/backups/`, merges without duplicates, renames the result into place as root:root 0600,
+prints why nginx answered 502 (unit state, ExecStart, missing files, listeners, redacted journal),
+restarts `lelu`, checks `/healthz` directly and through nginx, checks the running process inherited
+every merged name, asks Groq through the broker, restarts again and repeats the checks. `VITE_*` and
+Anthropic names are refused on both ends; a pre-existing Anthropic line is left untouched.
+New providers need no change: any `*_API_KEY[_n]`, `*_ACCESS_TOKEN`, `*_API_TOKEN`, `*_SECRET_KEY`,
+a bare alias from `plugins/bareSecretAliases.ts`, or a name in `LELU_PUSH_EXTRA` is picked up.
 
 ## 4. Operating it
 

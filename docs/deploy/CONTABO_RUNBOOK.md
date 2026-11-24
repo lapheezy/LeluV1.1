@@ -34,7 +34,7 @@ Postgres/Redis volumes — reported, **never touched**; LÉLU does not use them)
 
 ## 2. Fill the environment (no secret ever goes into git)
 ```bash
-nano /etc/lelu/lelu.env        # root:lelu 0640
+nano /etc/lelu/lelu.env        # root:root 0600
 ```
 Required: `LELU_ACCESS_PASSWORD`, at least one funded model key (`GROQ_API_KEY` leads),
 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and for voice `LIVEKIT_URL`, `LIVEKIT_PUBLIC_URL`
