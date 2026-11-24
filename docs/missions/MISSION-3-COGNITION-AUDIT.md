@@ -262,14 +262,14 @@ commit** and checked by its sha256.
 
 | # | Typed in the console (logged in as root) | Expect |
 |---|---|---|
-| 1 | `curl -fso s https://raw.githubusercontent.com/lapheezy/leluv1.1/f0b97dd7af/deploy/contabo/supabase-key-check.sh` | no output |
-| 2 | `sha256sum s` | starts with `3bbf78d3745f` (if not: stop) |
+| 1 | `curl -fso s https://raw.githubusercontent.com/lapheezy/leluv1.1/0d77389b82/deploy/contabo/supabase-key-check.sh` | no output |
+| 2 | `sha256sum s` | starts with `137fc8602e8f` (if not: stop) |
 | 3 | `bash s check` | read-only report; a line `REJECTED(401)` names the bad variable |
 | 4 | `bash s fix` — **only after the owner has reviewed step 3** | ends with `PASS done` (otherwise it rolled itself back) |
 
-`f0b97dd7af` is commit `f0b97dd7af40061eaaa209fe11ea406881aeefce`, which supersedes `dbafff0879` after the owner's audit. Checked from here:
+`0d77389b82` is commit `0d77389b825a78d20f0ce7d58dfba79daf82dbac`, which supersedes `dbafff0879` and `f0b97dd7af`. Checked from here:
 - GitHub serves the identical bytes at the full id, the 10-character id and the lowercase repository name
-  (sha256 `3bbf78d3745f…`).
+  (sha256 `137fc8602e8f…`).
 - Run unmodified on a machine that isn't the VPS, the script stops at the identity check and touches nothing.
 - Rehearsed: a wrong winning key plus an empty-signature JWT → both disabled, the key added, the URL kept. A valid
   winning key plus a bad `SUPABASE_ANON_KEY` → **one line changed**. Provider keys and comments untouched; rollback
@@ -305,3 +305,32 @@ Redirect URLs (done in Safari).
 - rollback after success.
 
 Every failure left the file byte-identical and the original key running.
+
+### Production `check` (owner, 2026-11-24) and the URL preflight (`0d77389b82`)
+
+**What the owner's `check` showed:**
+- the canonical key and the compiled key in `dist` are ACCEPTED (fingerprint `1abc3454754f`);
+- `SUPABASE_PUBLISHABLE_KEY` in `lelu.env` is REJECTED (`9b1e4f05802d`), and both the running process and the
+  page bridge use it;
+- `SUPABASE_URL` reported "OTHER";
+- the file is `root:root 600`.
+
+**"OTHER" is a formatting difference, not a wrong project.**
+- **Logs.** Every production request reached `nrehsldbfxthspikaxvr.supabase.co`: 146 from the server
+  (`runtime=node`) and 110 from browsers, all 401 on the key only.
+- **App code.** The app trims values (`firstValue`, the bridge's `value()`). supabase-js builds `/rest/v1` on the
+  origin, and the logged path is exactly `/rest/v1/…`.
+- **Why the check said "OTHER".** `f0b97dd7af` compared exact strings, so a trailing slash, a CR line ending,
+  whitespace or uppercase read as "OTHER". Its `fix` would then have rewritten a URL assignment that isn't wrong.
+
+**`0d77389b82` changes:**
+- judges values after the app-equivalent trim;
+- treats a URL as wrong only if it names another project, and reports exactly how a same-project value differs;
+- checks the process's and the page's URL as well as the key.
+
+**Rehearsed:** a trailing slash, whole-file CRLF and an uppercase host keep the URL untouched. Another project, a
+winning duplicate and a `VITE_` URL outranking the canonical one are each disabled line by line. The full regression
+(6 repair shapes, 7 failure paths, rollback) passes.
+
+Fingerprints of trimmed values can differ from `f0b97dd7af`'s if the file has CR line endings (it hashed the
+untrimmed value).
