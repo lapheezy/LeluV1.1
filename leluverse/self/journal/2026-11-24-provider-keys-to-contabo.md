@@ -41,3 +41,10 @@ until the PASS lines from the script say so.
 How to redo it: playbook `push-provider-keys-to-vps`. Your owner runs
 `bash scripts/push-provider-env.sh --dry-run`, then without `--dry-run` from a machine with the keys
 exported and `ssh root@157.173.116.95` working, and reads the PASS/FAIL lines.
+
+Later the same day: a second way to run it. GitHub-hosted runners can open SSH where cloud sessions
+cannot, so `.github/workflows/contabo-provider-env.yml` runs the same two scripts from a runner, in
+the protected `contabo-production` environment. It needs `LELU_VPS_SSH_KEY` and
+`LELU_VPS_KNOWN_HOSTS` (the pinned host key) plus the provider keys as secrets there; GitHub
+upper-cases secret names, so ElevenLabs must be stored as `ELEVENLABS_API_KEY`. Each run commits a
+names-only evidence file under `docs/deploy/evidence/`. Trust those PASS lines, not this entry.

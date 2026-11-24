@@ -7,8 +7,33 @@
  "params": {},
  "learnedFrom": "journal/2026-11-24-provider-keys-to-contabo.md",
  "steps": [
-  {"id": "names", "title": "List which names would travel (nothing is sent)", "kind": "tool", "script": "scripts/push-provider-env.sh", "args": ["--dry-run"], "why": "Shows the selection: every *_API_KEY[_n], *_ACCESS_TOKEN, bare aliases such as Elevenlabs; never VITE_*, Anthropic, CLAUDE_*, GITHUB_TOKEN or AWS_*."},
-  {"id": "push", "title": "Owner runs it with ssh access: LELU_VPS=root@157.173.116.95 bash scripts/push-provider-env.sh", "kind": "note", "why": "Needs an ssh login to my server, which only the owner's own machine (or the Contabo VNC console with the receiver deploy/contabo/inject-env.sh) has. Existing values win unless --replace is given; the old file is kept in /etc/lelu/backups/."},
-  {"id": "verify", "title": "Read the PASS/FAIL lines it prints", "kind": "note", "why": "It must show: lelu.env root:root 600, no duplicates, /healthz 200 direct and through nginx after both restarts, the running process inherits every merged name, Groq answers, no Anthropic credential in the process. Any FAIL is followed by the redacted journal that explains it."}
+  {
+   "id": "names",
+   "title": "List which names would travel (nothing is sent)",
+   "kind": "tool",
+   "script": "scripts/push-provider-env.sh",
+   "args": [
+    "--dry-run"
+   ],
+   "why": "Shows the selection: every *_API_KEY[_n], *_ACCESS_TOKEN, bare aliases such as Elevenlabs; never VITE_*, Anthropic, CLAUDE_*, GITHUB_TOKEN or AWS_*."
+  },
+  {
+   "id": "push",
+   "title": "Owner runs it with ssh access: LELU_VPS=root@157.173.116.95 bash scripts/push-provider-env.sh",
+   "kind": "note",
+   "why": "Needs an ssh login to my server, which only the owner's own machine (or the Contabo VNC console with the receiver deploy/contabo/inject-env.sh) has. Existing values win unless --replace is given; the old file is kept in /etc/lelu/backups/."
+  },
+  {
+   "id": "push-from-actions",
+   "title": "Or let GitHub run it: commit deploy/contabo/provider-env-request.json on integration/lelu-four-workforce-consolidation (or dispatch 'Contabo provider env')",
+   "kind": "note",
+   "why": "The workflow runs on a GitHub runner, which can reach port 22, in the contabo-production environment whose reviewers approve each run. It reads LELU_VPS_SSH_KEY, LELU_VPS_KNOWN_HOSTS and the provider keys from that environment and commits names-only evidence to docs/deploy/evidence/."
+  },
+  {
+   "id": "verify",
+   "title": "Read the PASS/FAIL lines it prints",
+   "kind": "note",
+   "why": "It must show: lelu.env root:root 600, no duplicates, /healthz 200 direct and through nginx after both restarts, the running process inherits every merged name, Groq answers, no Anthropic credential in the process. Any FAIL is followed by the redacted journal that explains it."
+  }
  ]
 }
