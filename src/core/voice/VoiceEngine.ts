@@ -13,7 +13,7 @@
  * ==========================================================
  */
 
-import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
+import { localTranscriptionKey, postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
@@ -448,25 +448,6 @@ type ErrorListener = (message: string) => void;
  * --------------------------------------------------------- */
 
 /**
- * A Groq key held by THIS runtime, if any.
- *
- * `import.meta.env.VITE_GROQ_API_KEY` is deliberately not read: Vite
- * inlines it into the client bundle, which is how transcription keys
- * ended up in the shipped VoiceEngine chunk. When nothing is held here
- * the request is relayed instead and the SERVER attaches the credential
- * (see voice/transcriptionTransport.ts). The injected global remains for runtimes
- * that legitimately supply a key at runtime — verification scripts, and
- * native shells that hold their own credential.
- */
-function getGroqApiKey(): string {
-  const runtimeEnv = globalThis as typeof globalThis & {
-    __LELU_GROQ_API_KEY__?: string;
-  };
-
-  return runtimeEnv.__LELU_GROQ_API_KEY__?.trim() || "";
-}
-
-/**
  * Transcribe a Blob of audio via the Groq Whisper API.
  * Accepts webm, ogg, wav, mp4, and m4a formats.
  */
@@ -489,7 +470,7 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
 }
 
 async function transcribeViaWhisperUnmetered(audioBlob: Blob): Promise<string> {
-  const apiKey = getGroqApiKey();
+  const apiKey = localTranscriptionKey();
 
   const mime = audioBlob.type || "audio/webm";
   const ext = mime.includes("wav")
@@ -1821,7 +1802,7 @@ class VoiceEngine {
       // The key normally lives on the SERVER (the broker attaches it), so the
       // browser holding none is the expected case, not a missing key. Only
       // when neither this runtime nor the relay can transcribe is it an error.
-      if (!getGroqApiKey() && !(await elevenLabsSttReady())) {
+      if (!localTranscriptionKey() && !(await elevenLabsSttReady())) {
         if (!this.relayGroqAvailable) await this.refreshRelayDiagnostics();
         if (!this.relayGroqAvailable) {
           this.whisperFallbackActive = false;
@@ -3284,7 +3265,7 @@ class VoiceEngine {
     // which is exactly the leak the relay removes; `relayGroqAvailable`
     // is refreshed asynchronously by refreshRelayDiagnostics() so this
     // stays synchronous for every existing caller.
-    const groqKey = Boolean(getGroqApiKey()) || this.relayGroqAvailable;
+    const groqKey = Boolean(localTranscriptionKey()) || this.relayGroqAvailable;
 
     const secure =
       typeof window !== "undefined" && window.isSecureContext === true;

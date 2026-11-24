@@ -126,6 +126,20 @@ const SERVER_ONLY: Record<string, string> = {
   LELU_ENGINEER_TOKEN: "CANARYsrv5_SERVERONLY",
   // Read only by the server-side 3D Forge; never referenced by client code.
   MESHY_API_KEY: "CANARYsrv6_SERVERONLY",
+  // Every other name the canonical provider credential contract accepts
+  // (src/core/model/ProviderCredentials.ts): aliases, numbered slots and
+  // list forms. Accepting a name must never make it reachable by the page.
+  GROQ_API_KEY_2: "CANARYsrv7_SERVERONLY",
+  GROQ_API_KEYS: "CANARYsrv8_SERVERONLY",
+  OPEN_ROUTER_API_KEY: "CANARYsrv9_SERVERONLY",
+  OPENROUTER_API_KEY_2: "CANARYsrv10_SERVERONLY",
+  CEREBRAS_API_KEY: "CANARYsrv11_SERVERONLY",
+  MISTRAL_API_KEY: "CANARYsrv12_SERVERONLY",
+  FIREWORKS_API_KEY: "CANARYsrv13_SERVERONLY",
+  GEMINI_API_KEY: "CANARYsrv14_SERVERONLY",
+  GOOGLE_API_KEY: "CANARYsrv15_SERVERONLY",
+  GOOGLE_GENERATIVE_AI_API_KEY: "CANARYsrv16_SERVERONLY",
+  GITHUB_MODELS_TOKEN: "CANARYsrv17_SERVERONLY",
 };
 
 const OUT_DIR = "dist-secret-scan";

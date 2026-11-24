@@ -25,11 +25,34 @@
 
 import { endpointUrl } from "../Endpoints";
 import { authHeaders, primeBrokerStatus, providerConfigured } from "../model/BrokerTransport";
+import { primaryCredential } from "../model/ProviderCredentials";
 
 /** Groq's Whisper endpoint, relative to the groq endpoint base — which already
  *  ends in /openai/v1 (Endpoints.ts). Repeating that segment here produced
  *  …/openai/v1/openai/v1/audio/transcriptions, a 404 for every transcription. */
 const TRANSCRIPTION_PATH = "audio/transcriptions";
+
+/**
+ * The Groq credential THIS runtime holds for transcription, if any.
+ *
+ * The one place voice asks. It used to be asked three times
+ * (speechToText.ts, VoiceEngine.ts, native/capabilities/speech.ts), each
+ * reading only `globalThis.__LELU_GROQ_API_KEY__` — a channel no server ever
+ * fills (runtimeKeyBridge publishes no model keys), so in a Node or native
+ * runtime voice saw no key even where chat, through the same Groq contract,
+ * had one under GROQ_API_KEY_2 or GROQ_API_KEYS.
+ *
+ * It now resolves through the canonical contract (model/ProviderCredentials):
+ * the same names, validation and order as the chat provider and the server
+ * broker. The `__LELU_GROQ_API_KEY__` global is still one of its channels, so
+ * native shells and verification scripts that inject it keep working.
+ *
+ * In a browser this is normally "": the request is brokered, `authHeaders`
+ * sends nothing, and the SERVER attaches its own Groq key.
+ */
+export function localTranscriptionKey(): string {
+  return primaryCredential("groq");
+}
 
 /** Vocabulary hint for Whisper so her name is transcribed as written. */
 export const WHISPER_NAME_HINT = "Talking with Lélu.";

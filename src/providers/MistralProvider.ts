@@ -27,7 +27,7 @@ import {
 } from "./openaiTools";
 import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
-import { resolveFirst } from "../core/resolveEnv";
+import { primaryCredential } from "../core/model/ProviderCredentials";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -52,7 +52,7 @@ export default class MistralProvider implements AIProvider {
 
   async initialize(): Promise<void> {
     this.apiKey =
-      resolveFirst("MISTRAL_API_KEY") ?? "";
+      primaryCredential("mistral");
     this.model =
       resolveModel("mistral");
 

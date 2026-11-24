@@ -17,7 +17,7 @@ import type { NativeCapability, PermissionState } from "../NativeCapability";
 import { transcribeAudio } from "../../voice/speechToText";
 import { microphoneCapability } from "./mic";
 import { isSecureContext } from "./helpers";
-import { transcriptionAvailable } from "../../voice/transcriptionTransport";
+import { localTranscriptionKey, transcriptionAvailable } from "../../voice/transcriptionTransport";
 
 /**
  * Whether the SERVER holds the Groq credential for transcription.
@@ -36,14 +36,10 @@ void transcriptionAvailable()
   });
 
 function hasSttKey(): boolean {
-  const runtimeEnv = globalThis as typeof globalThis & {
-    __LELU_GROQ_API_KEY__?: string;
-  };
-  // import.meta.env is deliberately NOT consulted: it would inline the
-  // Groq key into the bundle. A key here comes only from a runtime that
-  // injected one; otherwise transcription is relayed and the SERVER
-  // holds the credential (see voice/transcriptionTransport.ts).
-  return Boolean(runtimeEnv.__LELU_GROQ_API_KEY__?.trim()) || relayGroqReady;
+  // One question, asked where voice asks it (voice/transcriptionTransport):
+  // a key this runtime holds under the canonical Groq contract, or the
+  // server's broker answer. import.meta.env is never consulted.
+  return Boolean(localTranscriptionKey()) || relayGroqReady;
 }
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -67,7 +63,7 @@ export const speechCapability: NativeCapability = {
   category: "input",
   requiredPermission: "microphone",
   unavailableReason:
-    "Speech-to-text needs the Groq API key (VITE_GROQ_API_KEY) and microphone capture; neither is available here.",
+    "Speech-to-text needs a Groq credential on the server (GROQ_API_KEY, reached through /api/model/groq), a secure context and microphone capture; at least one is missing here.",
   isAvailable(): boolean {
     return hasSttKey() && isSecureContext() && Boolean(microphoneCapability.isAvailable());
   },

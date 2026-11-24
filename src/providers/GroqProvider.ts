@@ -22,7 +22,7 @@ import {
 import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import ProviderKeyRing from "../core/model/ProviderKeyRing";
-import { resolveFirst } from "../core/resolveEnv";
+import { primaryCredential } from "../core/model/ProviderCredentials";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -49,7 +49,7 @@ export default class GroqProvider implements AIProvider {
     this.model =
       resolveModel("groq");
     this.apiKey =
-      resolveFirst("GROQ_API_KEY") ?? "";
+      primaryCredential("groq");
 
     this.initialized = true;
 

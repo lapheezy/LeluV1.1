@@ -1,0 +1,13 @@
+{
+ "id": "verify-provider-runtime",
+ "title": "Check that every provider I may use is found, authenticated and reached the same way",
+ "for": "LÉLU",
+ "why": "My provider keys used to be looked up by seven different lists, so the broker, my key ring, my settings view and my voice could disagree about whether Groq or OpenRouter was there. Since 2026-11-23 one contract (src/core/model/ProviderCredentials.ts) decides. This checks that the contract holds, that no key reaches the page, and that each configured free provider really answers through my server broker.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-23-provider-runtime-unification.md",
+ "steps": [
+  {"id": "live", "title": "One tiny real request per configured free provider, plus voice, through the server broker", "kind": "tsx", "script": "scripts/verify-provider-runtime-live.ts", "args": [], "why": "Runs under an isolated zero-spend policy: paid providers are refused by the broker before anything is sent, and it proves no request reaches Anthropic. Uses free-tier quota only (Groq, Cerebras, OpenRouter :free)."},
+  {"id": "bundle", "title": "Build with canary keys and prove none of them ships to the browser", "kind": "tsx", "script": "scripts/verify-bundle-secrets.ts", "args": [], "why": "Every name the credential contract accepts is a server-only canary here. One heuristic check fails on a third-party library's public config (Excalidraw); see docs/integration/2026-11-23-provider-runtime-unification.md."}
+ ]
+}

@@ -308,7 +308,7 @@ test("a provider-wide 429 cooldown is answered without another upstream call", a
 
   try {
     const api = createModelApi((name) =>
-      name === "GROQ_API_KEY" ? "key-a" : name === "GROQ_API_KEY_1" ? "key-b" : undefined,
+      name === "GROQ_API_KEY" ? "test-key-a" : name === "GROQ_API_KEY_1" ? "test-key-b" : undefined,
     );
     const body = JSON.stringify({ model: "m", messages: [{ role: "user", content: "hi" }] });
     const first = await call(api, "/groq/chat/completions", { body });
@@ -347,7 +347,7 @@ test("a 5xx is recorded as a provider outage, not a credential failure", async (
     body: { cancel: async () => undefined },
   })) as never;
   try {
-    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? "key-a" : undefined));
+    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? "test-key-a" : undefined));
     const { response } = await call(api, "/groq/chat/completions", {
       body: JSON.stringify({ model: "m", messages: [] }),
     });
@@ -373,7 +373,7 @@ test("a 200 body that is not a completion is a contract violation, not success",
     body: { cancel: async () => undefined },
   })) as never;
   try {
-    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? "key-a" : undefined));
+    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? "test-key-a" : undefined));
     const { response } = await call(api, "/groq/chat/completions", {
       body: JSON.stringify({ model: "m", messages: [] }),
     });

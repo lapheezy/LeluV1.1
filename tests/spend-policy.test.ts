@@ -63,10 +63,10 @@ test("a paid provider is refused without authorization and nothing leaves the se
     assert.equal(out.status, 402);
     assert.match(out.body, /spend_not_authorized/);
     assert.equal(out.calls, 0, "no upstream request was made");
-    const paidRouter = await broker({ OPENROUTER_API_KEY: "sk-or-x" }, "/openrouter/chat/completions", { model: "openai/gpt-4o-mini", messages: [] }, ok);
+    const paidRouter = await broker({ OPENROUTER_API_KEY: "sk-or-test-key-x" }, "/openrouter/chat/completions", { model: "openai/gpt-4o-mini", messages: [] }, ok);
     assert.equal(paidRouter.status, 402);
     assert.equal(paidRouter.calls, 0);
-    const freeRouter = await broker({ OPENROUTER_API_KEY: "sk-or-x" }, "/openrouter/chat/completions", { model: "nvidia/nemotron-3-ultra-550b-a55b:free", messages: [] }, ok);
+    const freeRouter = await broker({ OPENROUTER_API_KEY: "sk-or-test-key-x" }, "/openrouter/chat/completions", { model: "nvidia/nemotron-3-ultra-550b-a55b:free", messages: [] }, ok);
     assert.equal(freeRouter.status, 200, "a $0 model stays usable");
   } finally {
     setSpendPolicyForTests(null);
@@ -76,10 +76,10 @@ test("a paid provider is refused without authorization and nothing leaves the se
 test("when free capacity is exhausted, the paid fallback is still refused (no silent crossing into paid)", async () => {
   setSpendPolicyForTests(fresh());
   try {
-    const groq = await broker({ GROQ_API_KEY: "gsk_a" }, "/groq/chat/completions", { model: "openai/gpt-oss-120b", messages: [] },
+    const groq = await broker({ GROQ_API_KEY: "gsk_test_key_a" }, "/groq/chat/completions", { model: "openai/gpt-oss-120b", messages: [] },
       () => new Response(JSON.stringify({ error: { message: "tokens per day (TPD) spent. Please try again in 35m2s." } }), { status: 429, headers: { "content-type": "application/json" } }));
     assert.equal(groq.status, 429, "the free provider reports its real exhaustion");
-    const fallback = await broker({ FIREWORKS_API_KEY: "fw" }, "/fireworks/chat/completions", { model: "accounts/fireworks/models/x", messages: [] }, ok);
+    const fallback = await broker({ FIREWORKS_API_KEY: "fw_test_key_0001" }, "/fireworks/chat/completions", { model: "accounts/fireworks/models/x", messages: [] }, ok);
     assert.equal(fallback.status, 402);
     assert.equal(fallback.calls, 0);
   } finally {

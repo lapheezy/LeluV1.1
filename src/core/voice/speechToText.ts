@@ -8,11 +8,12 @@
  * transcription. This is the real transcription path used
  * by the microphone capability and the voice loop.
  *
- * Requires VITE_GROQ_API_KEY to be set.
+ * The server holds the Groq credential (GROQ_API_KEY, see
+ * core/model/ProviderCredentials.ts); the browser sends none.
  * ==========================================================
  */
 
-import { postTranscription, WHISPER_NAME_HINT } from "./transcriptionTransport";
+import { localTranscriptionKey, postTranscription, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import type { VoiceErrorKind } from "./VoiceEngine";
 
@@ -41,25 +42,6 @@ export function mapMediaError(error: { name?: string }): { kind: VoiceErrorKind;
     default:
       return { kind: "error", message: `Microphone error: ${error.name ?? "unknown"}` };
   }
-}
-
-/**
- * A Groq key held by THIS runtime, if any.
- *
- * `import.meta.env.VITE_GROQ_API_KEY` is deliberately not read: Vite
- * inlines it into the client bundle, which is how transcription keys
- * ended up in the shipped VoiceEngine chunk. When nothing is held here
- * the request is relayed instead and the SERVER attaches the credential
- * (see voice/transcriptionTransport.ts). The injected global remains for runtimes
- * that legitimately supply a key at runtime — verification scripts, and
- * native shells that hold their own credential.
- */
-function getGroqApiKey(): string {
-  const runtimeEnv = globalThis as typeof globalThis & {
-    __LELU_GROQ_API_KEY__?: string;
-  };
-
-  return runtimeEnv.__LELU_GROQ_API_KEY__?.trim() || "";
 }
 
 /** A speech-to-text failure classified into an actionable kind. */
@@ -149,7 +131,7 @@ export async function transcribeAudio(
   audioBlob: Blob,
   language?: string,
 ): Promise<string> {
-  const apiKey = getGroqApiKey();
+  const apiKey = localTranscriptionKey();
   const formData = buildTranscriptionForm(audioBlob, "whisper-large-v3-turbo", language);
 
   // No local key is the normal case: the request is relayed same-origin
