@@ -262,12 +262,12 @@ commit** and checked by its sha256.
 
 | # | Typed in the console (logged in as root) | Expect |
 |---|---|---|
-| 1 | `curl -fso s https://raw.githubusercontent.com/lapheezy/leluv1.1/dbafff0879/deploy/contabo/supabase-key-check.sh` | no output |
-| 2 | `sha256sum s` | starts with `46615ec47565` (if not: stop) |
+| 1 | `curl -fso s https://raw.githubusercontent.com/lapheezy/leluv1.1/f0b97dd7af/deploy/contabo/supabase-key-check.sh` | no output |
+| 2 | `sha256sum s` | starts with `3bbf78d3745f` (if not: stop) |
 | 3 | `bash s check` | read-only report; a line `REJECTED(401)` names the bad variable |
-| 4 | `bash s fix` | ends with `PASS done` (otherwise it rolled itself back) |
+| 4 | `bash s fix` — **only after the owner has reviewed step 3** | ends with `PASS done` (otherwise it rolled itself back) |
 
-`dbafff0879` is commit `dbafff08799735ed12a9f8d0399514b6187532e9`. Checked from here:
+`f0b97dd7af` is commit `f0b97dd7af40061eaaa209fe11ea406881aeefce`, which supersedes `dbafff0879` after the owner's audit. Checked from here:
 - GitHub serves the identical bytes at the full id, the 10-character id and the lowercase repository name
   (sha256 `46615ec47565…`).
 - Run unmodified on a machine that isn't the VPS, the script stops at the identity check and touches nothing.
@@ -282,3 +282,26 @@ commit** and checked by its sha256.
 
 Email sign-in also needs `http://157.173.116.95/**` under Supabase Dashboard → Authentication → URL Configuration →
 Redirect URLs (done in Safari).
+
+### Audit of `dbafff0879` and its fix (`f0b97dd7af`)
+
+**Key discrepancy: none.**
+- The embedded key, read straight from the committed file, gets 200 on REST and `auth/v1/settings`.
+- Its fingerprint (`1abc3454754f`) matches the value validated from the project's key list and the app's source.
+- Changing any one character gives 401.
+
+**Findings and fixes:**
+- **Key order.** Server and page both use the bridge order (`VITE_` first; `NEXT_PUBLIC_SUPABASE_ANON_KEY` was missing).
+- **Restart.** Failure is now detected: exit code, active unit, new MainPID and `/healthz` are all required.
+- **Rollback.** It now proves the original key is running again.
+- **Byte-preservation proof.** It works per line by reconstructing the original, so duplicate names and a missing
+  final newline are handled.
+- **Page key.** It is now required.
+
+**Rehearsed** with the real runtime bridge:
+- 6 repair shapes;
+- 7 failure paths: not the VPS, canonical key refused, no backup, a mutant altering a protected line, restart
+  failure, systemd injecting a different key, page key rejected;
+- rollback after success.
+
+Every failure left the file byte-identical and the original key running.
