@@ -4,9 +4,12 @@
 # Run on the Contabo VPS as root, by the owner. Prints names, shapes,
 # 12-character sha256 fingerprints and the PROJECT's verdict — never a value.
 #
-#   bash supabase-key-check.sh check      read-only: file vs running process vs page vs build
-#   bash supabase-key-check.sh fix        backup → set the canonical pair → restart lelu → verify
+#   bash supabase-key-check.sh check      read-only: identity, file vs running process vs page vs build
+#   bash supabase-key-check.sh fix        identity → backup → disable ONLY rejected entries → restart lelu → verify
 #   bash supabase-key-check.sh rollback   restore the newest backup made by `fix`, restart lelu
+#
+# Designed to be run from the Contabo web console on a phone: no paste,
+# three short commands, everything else inside this file.
 #
 # Evidence that prompted it (Supabase edge logs, 2026-11-24): every request
 # from the server (supabase-js node) and every browser was answered
@@ -27,6 +30,8 @@ CANON_KEY=sb_publishable_hb-9gS-K2ycoSf-Y6EbUdA_3s-XNeLV
 # Same names and order as src/core/config/supabaseEnv.ts (first non-empty, non-secret wins).
 URL_NAMES=(SUPABASE_URL VITE_SUPABASE_URL NEXT_PUBLIC_SUPABASE_URL)
 KEY_NAMES=(SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_ANON_KEY)
+EXPECTED_IP=157.173.116.95
+EXPECTED_HOST_FP="SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310"
 FAILED=0
 ok() { echo "PASS  $*"; }; bad() { echo "FAIL  $*"; FAILED=1; }; info() { echo "INFO  $*"; }
 
@@ -84,7 +89,16 @@ page_key() {  # the key the page receives through the runtime bridge (__LELU_SUP
   rm -f "$jar"
 }
 
+identity() {  # this must be the LÉLU production VPS, or nothing runs
+  echo "== VPS identity"
+  local fpk; fpk=$(ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub 2>/dev/null | awk '{print $2}')
+  ip -4 -o addr show 2>/dev/null | grep -qw "$EXPECTED_IP" && ok "this machine holds $EXPECTED_IP" || { bad "this machine does not hold $EXPECTED_IP — stopping"; exit 1; }
+  [ "$fpk" = "$EXPECTED_HOST_FP" ] && ok "host key $fpk (matches what GitHub runners see)" || { bad "host key ${fpk:-unreadable} is not $EXPECTED_HOST_FP — stopping"; exit 1; }
+  [ -f "$ENV_FILE" ] && systemctl cat lelu >/dev/null 2>&1 && ok "$ENV_FILE and the lelu service exist" || { bad "no $ENV_FILE or no lelu service — stopping"; exit 1; }
+}
+
 check() {
+  identity
   echo "== canonical project"
   info "canonical key: $(shape "$CANON_KEY") fp=$(fp "$CANON_KEY") project=$(verdict "$CANON_KEY")"
   echo "== $ENV_FILE ($(stat -c '%U:%G %a' "$ENV_FILE" 2>/dev/null))"
@@ -108,36 +122,67 @@ check() {
 }
 
 fix() {
+  identity
   echo "== precondition: the canonical key is accepted by the canonical project"
   [ "$(verdict "$CANON_KEY")" = "ACCEPTED(200)" ] && ok "canonical key accepted" || { bad "canonical key not accepted — nothing changed"; exit 1; }
-  local stamp; stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  local stamp backup; stamp=$(date -u +%Y%m%dT%H%M%SZ)
   install -d -m 0700 "$BACKUPS"
-  cp -p "$ENV_FILE" "$BACKUPS/lelu.env.$stamp.supabase-key-check"
-  cmp -s "$ENV_FILE" "$BACKUPS/lelu.env.$stamp.supabase-key-check" && ok "backup $BACKUPS/lelu.env.$stamp.supabase-key-check (byte-identical, $(stat -c '%a' "$BACKUPS/lelu.env.$stamp.supabase-key-check"))" || { bad "backup not verified — nothing changed"; exit 1; }
+  backup="$BACKUPS/lelu.env.$stamp.supabase-key-check"
+  cp -p "$ENV_FILE" "$backup"
+  if cmp -s "$ENV_FILE" "$backup" && [ "$(stat -c '%U:%G %a' "$backup")" = "$(stat -c '%U:%G %a' "$ENV_FILE")" ]; then
+    ok "backup $backup — byte-identical, $(stat -c '%U:%G %a' "$backup"), sha256 $(sha256sum "$backup" | cut -c1-12)"
+  else bad "backup not verified — nothing changed"; exit 1; fi
+
+  # Only what is wrong changes: a key the project REJECTS (401/403), or a URL
+  # naming another project, is commented out — never deleted. Accepted entries
+  # and every other line stay byte-identical. A canonical value is added only
+  # for a half (URL / key) that has nothing valid left.
   local tmp; tmp=$(mktemp "$ENV_FILE.XXXX"); chmod 600 "$tmp"
-  # Comment out (never delete) every Supabase URL/key assignment the project does not accept,
-  # then append the canonical pair once.
-  local n v line disabled=()
+  local n v line wrong disabled=() kept_key="" kept_url=""
   while IFS= read -r line || [ -n "$line" ]; do
     n=$(sed -nE 's/^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)=.*/\2/p' <<<"$line")
+    wrong=0; v=""
     if [ -n "$n" ] && [[ " ${KEY_NAMES[*]} ${URL_NAMES[*]} " == *" $n "* ]]; then
-      printf '# disabled by supabase-key-check %s (replaced by the canonical pair below): %s\n' "$stamp" "$line" >> "$tmp"
+      v=$( (set -a; eval "$line" >/dev/null 2>&1; printf '%s' "${!n:-}") )
+      if [[ " ${KEY_NAMES[*]} " == *" $n "* ]]; then
+        case "$(verdict "$v")" in REJECTED*) wrong=1;; ACCEPTED*) kept_key=$n;; esac
+      elif [ -n "$v" ] && [ "$v" != "$CANON_URL" ]; then wrong=1
+      elif [ -n "$v" ]; then kept_url=$n
+      fi
+    fi
+    if [ $wrong = 1 ]; then
+      printf '# disabled by supabase-key-check %s (rejected by the canonical project): %s\n' "$stamp" "$line" >> "$tmp"
       disabled+=("$n")
     else
       printf '%s\n' "$line" >> "$tmp"
     fi
   done < "$ENV_FILE"
-  printf '\n# Canonical Supabase project (supabase-key-check %s)\nSUPABASE_URL=%s\nSUPABASE_PUBLISHABLE_KEY=%s\n' "$stamp" "$CANON_URL" "$CANON_KEY" >> "$tmp"
+  local added=()
+  [ -z "$kept_url" ] && { printf '# Canonical Supabase URL (supabase-key-check %s)\nSUPABASE_URL=%s\n' "$stamp" "$CANON_URL" >> "$tmp"; added+=(SUPABASE_URL); }
+  [ -z "$kept_key" ] && { printf '# Canonical Supabase key (supabase-key-check %s)\nSUPABASE_PUBLISHABLE_KEY=%s\n' "$stamp" "$CANON_KEY" >> "$tmp"; added+=(SUPABASE_PUBLISHABLE_KEY); }
+
+  # Proof that nothing else moved: every line of the backup that is not a
+  # disabled entry must appear, unchanged and in order, in the new file.
+  local names_re; names_re=$(IFS='|'; echo "${disabled[*]:-__none__}")
+  if ! cmp -s <(grep -vE "^[[:space:]]*(export[[:space:]]+)?($names_re)=" "$backup") \
+               <(grep -vE "^# disabled by supabase-key-check $stamp |^# Canonical Supabase (URL|key) \(supabase-key-check $stamp\)$" "$tmp" | head -n "$(grep -vcE "^[[:space:]]*(export[[:space:]]+)?($names_re)=" "$backup")"); then
+    rm -f "$tmp"; bad "the rewrite would change lines it must not touch — nothing changed"; exit 1
+  fi
   chown root:root "$tmp"; chmod 600 "$tmp"; mv -f "$tmp" "$ENV_FILE"
-  info "commented out: ${disabled[*]:-none}; set: SUPABASE_URL SUPABASE_PUBLISHABLE_KEY"
+  ok "edited $ENV_FILE ($(stat -c '%U:%G %a' "$ENV_FILE")); every other line unchanged"
+  info "disabled (rejected): ${disabled[*]:-none} | kept (accepted): ${kept_key:-none} ${kept_url:-} | added: ${added[*]:-none}"
+
+  echo "== restart lelu only"
   systemctl restart lelu
   for _ in $(seq 1 30); do curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && break; sleep 2; done
-  curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && ok "lelu healthy after restart" || { bad "lelu not healthy — rolling back"; restore "$BACKUPS/lelu.env.$stamp.supabase-key-check"; exit 1; }
+  curl -fsS -m 3 "$H/healthz" >/dev/null 2>&1 && ok "lelu healthy after restart" || { bad "lelu not healthy — rolling back"; restore "$backup"; exit 1; }
   echo "== verify"
-  w=$(winner proc); pv=$(proc_value "$w")
-  [ "$(verdict "$pv")" = "ACCEPTED(200)" ] && ok "server key ($w) accepted by the project" || bad "server key ($w) still rejected"
-  pk=$(page_key); [ -n "$pk" ] && { [ "$(verdict "$pk")" = "ACCEPTED(200)" ] && ok "page key accepted by the project" || bad "page key rejected"; } || info "page key not observed (login?)"
-  [ $FAILED = 0 ] && ok "done; rollback with: bash supabase-key-check.sh rollback" || { bad "verification failed — rolling back"; restore "$BACKUPS/lelu.env.$stamp.supabase-key-check"; exit 1; }
+  local w pv pk; w=$(winner proc); pv=$(proc_value "$w")
+  [ -n "$w" ] && [ "$(verdict "$pv")" = "ACCEPTED(200)" ] && ok "server key ($w, fp $(fp "$pv")) accepted by the project" || bad "server key (${w:-none}) still rejected"
+  pk=$(page_key)
+  if [ -n "$pk" ]; then [ "$(verdict "$pk")" = "ACCEPTED(200)" ] && ok "page key (fp $(fp "$pk")) accepted by the project" || bad "page key rejected"
+  else info "page key not observed (the page may not bridge it, or login failed)"; fi
+  [ $FAILED = 0 ] && ok "done; undo with: bash $0 rollback" || { bad "verification failed — rolling back"; restore "$backup"; exit 1; }
 }
 
 restore() {
