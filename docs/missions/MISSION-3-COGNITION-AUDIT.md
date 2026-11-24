@@ -269,7 +269,7 @@ commit** and checked by its sha256.
 
 `f0b97dd7af` is commit `f0b97dd7af40061eaaa209fe11ea406881aeefce`, which supersedes `dbafff0879` after the owner's audit. Checked from here:
 - GitHub serves the identical bytes at the full id, the 10-character id and the lowercase repository name
-  (sha256 `46615ec47565…`).
+  (sha256 `3bbf78d3745f…`).
 - Run unmodified on a machine that isn't the VPS, the script stops at the identity check and touches nothing.
 - Rehearsed: a wrong winning key plus an empty-signature JWT → both disabled, the key added, the URL kept. A valid
   winning key plus a bad `SUPABASE_ANON_KEY` → **one line changed**. Provider keys and comments untouched; rollback
