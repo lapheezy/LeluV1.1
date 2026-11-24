@@ -18,7 +18,8 @@ Branch `claude/lelu-voice-https-production-lvv519` · 2026-11-24 · by Claude (c
 | Commit `a7503839a88be35591f95b19d36248f14fbe4bb9` | **Not on GitHub** (`gh api …/commits/a750…` → 422 "No commit found"; fetch → "not our ref"). The served code can't be reproduced from any pushed branch. |
 | Previous `0cdedced` | On GitHub: "Record the security closure…" |
 | Integration branch tip | `d6aeba2d` (this branch's base) |
-| Latest `Contabo provider env` run 45318874606 | `action_required`: waiting for an environment reviewer |
+| Latest `Contabo provider env` run 45318874606 | `action_required` (never ran) |
+| Recon run [45396379761](https://github.com/lapheezy/LeluV1.1/actions/runs/45396379761) from this branch | **Started with no approval**, then failed: `secret LELU_VPS_SSH_KEY is missing in environment contabo-production`. The VPS was not contacted. |
 
 The working-tree drift, services, env names, listeners, firewall, disk and backups are inside the VPS. They come from
 `voice-tts-moss.sh recon`, which has not run there yet.
@@ -140,10 +141,20 @@ Not applicable: nothing has been deployed.
 
 ## 12. Remaining blockers
 
-1. **An owner must approve the runs** in the `contabo-production` environment, in this order: `recon` → `apply` →
-   `accept` → `https-check` → `https-stage` → `https-issue` → `https-enable` → `accept`. I couldn't read the
-   environment's deployment-branch policy through this session's proxy. If it only allows
-   `integration/lelu-four-workforce-consolidation`, merge this branch there first, or dispatch from it.
+0. **No route to the VPS exists yet (hard blocker).** Run 45396379761 shows `contabo-production` has no
+   `LELU_VPS_SSH_KEY`, and it ran without waiting for approval. That is consistent with an environment GitHub
+   auto-created from a workflow reference: no secrets, no protection. **Before adding the key**, in repository
+   Settings → Environments → `contabo-production`:
+   1. add required reviewers;
+   2. restrict deployment branches, for example to `integration/lelu-four-workforce-consolidation` and this branch.
+   Otherwise any branch pushing a workflow could use the VPS root key. Then add `LELU_VPS_SSH_KEY` (an ed25519 private
+   key whose public half is in root's `authorized_keys`) and `LELU_VPS_KNOWN_HOSTS` (the VPS host key, checked
+   against the Contabo console). Re-request recon by editing `deploy/contabo/voice-https-request.json`.
+   Alternative without GitHub: run the same scripts from the owner's machine or the Contabo VNC console, e.g.
+   `scp deploy/contabo/{voice-tts-moss.sh,https-ip.sh,patches/voice-tts-moss.patch} root@157.173.116.95:/root/` and
+   then `bash /root/voice-tts-moss.sh recon`.
+1. **Then approve the runs one by one**, in this order: `recon` → `apply` → `accept` → `https-check` →
+   `https-stage` → `https-issue` → `https-enable` → `accept`.
 2. **Unknown production code.** `a7503839` isn't on GitHub. `apply` checks with `git apply --check` and changes
    nothing if the patch doesn't fit. Pushing that commit would make production reproducible.
 3. **A person must test hardware**: microphone permission and capture, audible playback, and interruption, on a
