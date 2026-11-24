@@ -46,7 +46,8 @@ which repository or dataset to use. That is the reported failure.
 
 **B. Supabase is rejected, and LÉLU reported it as "signed out".**
 - **The project is fine.** Production project `nrehsldbfxthspikaxvr` is `ACTIVE_HEALTHY`, with RLS on every table.
-  It holds 4724 messages, 520 memories and 2139 knowledge items.
+  It holds 2,765 messages (exact count; an earlier figure of 4,724 was the planner's row estimate), 457 conversations,
+  520 memories and 2,139 knowledge items.
 - **Writes stopped.** The last write to every table was **2026-11-22 15:59 UTC**.
 - **Every request is refused.** Edge logs for the last 24 h show every app request answered **401**: 146 from the
   server (`node`), plus Mac Chrome, iPhone Safari and iPhone Chrome. That includes `POST /auth/v1/otp`.
@@ -83,31 +84,90 @@ After the change (same probe, full registry):
 - **What can you do:** `self_operational, capability_discover, device_capabilities, tools_catalog`.
 - **3D free tools:** `resources_discover/gaps/evaluate/audit`, `tools_catalog`, `world_state`.
 
-## 4. Supabase — required production fix (not performed: production change)
+## 4. Supabase — required production fix (prepared, not performed)
 
-On the VPS, in `/etc/lelu/lelu.env`, both values must belong to the same project:
-- `SUPABASE_URL=https://nrehsldbfxthspikaxvr.supabase.co`
-- `SUPABASE_PUBLISHABLE_KEY=sb_publishable_hb-9gS-K2ycoSf-Y6EbUdA_3s-XNeLV`
+Run `bash deploy/contabo/supabase-key-check.sh check` on the VPS as root, then `fix` (see §5.4). It sets
+`SUPABASE_URL=https://nrehsldbfxthspikaxvr.supabase.co` and the project's current publishable key, comments out the
+rejected value, restarts only `lelu` and verifies with the project.
 
-Both values are public by design. Then remove any stale `SUPABASE_ANON_KEY` / `VITE_SUPABASE_*` duplicates and
-`systemctl restart lelu`. The page receives the key at serve time through the runtime bridge
-(`__LELU_SUPABASE_PUBLISHABLE_KEY__`), so **no rebuild** is needed. Sign-in links also need
-`http://157.173.116.95` (later `https://…`) in the project's Auth → URL configuration redirect allow-list.
+For email sign-in links, the project's Auth → URL configuration must also allow `http://157.173.116.95`
+(later `https://…`) as a redirect URL. That's a setting in the Supabase dashboard.
 
-## 5. Supabase acceptance (WP06 1–7)
+## 5. Supabase — the canonical project only
 
-The RLS acceptance transaction is written: create, read, update and delete as user A under RLS; A can't write a row
-owned by B; B can't see, update or delete A's row; anonymous sees nothing. It runs against the **test** project
-`ugshflwlyakipeduifkd` and rolls back so nothing persists. The Supabase connector paused it for owner confirmation,
-which got no answer, so **it has not run**.
+**Scope correction (owner, 2026-11-24).** `nrehsldbfxthspikaxvr` is LÉLU's one canonical database. The test project
+`lelu-v11-test` is out of scope. Nothing was ever written to it: the one transaction prepared for it stopped at the
+connector's confirmation prompt and never ran.
 
-Already shown on production: the valid key gets 200, anonymous REST returns `[]` under RLS, and a wrong key gets 401.
+### 5.1 The rejected key, identified by shape (WP01)
 
-WP06 8–9 (application persistence across sessions) need a signed-in session against a project that accepts the key.
-They are blocked on §4.
+- **What the logs say.** The edge logs record *why* each request fails. Every failing request, from the server
+  (`supabase-js/2.112.3; runtime=node`, 146 requests) and from browsers (`2.112.3` and `2.117.3; runtime=web`), shows
+  `request.sb.jwt.apikey.invalid = "Not a JWT, too short signature"` → `UNAUTHORIZED_INVALID_API_KEY`.
+- **Reproduced with tagged probes** (sent the way `supabase-js` sends a key: `apikey` plus `Authorization: Bearer`):
 
-The test project is missing 3 recent migrations (`memory_tombstones` and two execute-lockdown migrations). It no
-longer mirrors production's schema.
+| Probe | Status | Gateway annotation |
+|---|---|---|
+| current publishable key | 200 | — |
+| full legacy anon JWT (public) | 200 | — |
+| wrong `sb_publishable_…` | 401 | none |
+| legacy JWT, last 30 chars cut (13-char signature) | 401 | none |
+| legacy JWT, **empty signature** (`header.payload.`) | 401 | **Not a JWT, too short signature** |
+| legacy JWT, **1-char signature** | 401 | **Not a JWT, too short signature** |
+
+- **Conclusion.** Production sends a JWT-shaped key whose signature part is empty or near-empty: a legacy `eyJ…`
+  key cut off at its second dot.
+- **What the logs can't show.** Which variable holds it. `supabase-key-check.sh check` prints that on the VPS (shape,
+  `signature-chars=`, file versus process, precedence winner, the project's verdict), and never prints a value.
+- **Precedence (from code, `supabaseEnv.ts`).** The server and the page both take the first non-secret value of
+  `SUPABASE_PUBLISHABLE_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY` → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` →
+  `SUPABASE_ANON_KEY`. In the browser, the runtime bridge (`__LELU_SUPABASE_PUBLISHABLE_KEY__`, from the server's
+  environment) is consulted **before** the build-time `VITE_` value. So one environment value breaks both, and
+  correcting it plus restarting `lelu` fixes both, with **no rebuild**.
+
+### 5.2 Existing data, read-only (WP03)
+
+- **Users.** 46, all email-confirmed, 0 anonymous; last sign-in 2026-11-22 15:56.
+- **Ownership.** No orphaned rows and no rows without an owner in conversations, messages, memories, knowledge,
+  projects or agents.
+- **The owner's account (`31a55311…`, created 2026-07-02).** 1,389 messages, 321 conversations, 405 memories,
+  950 knowledge items; last message 2026-11-22 15:55. The other accounts are acceptance identities from 19–21 Oct.
+
+### 5.3 RLS on the canonical project (read-only, rolled back)
+
+| Role | Result |
+|---|---|
+| owner | sees exactly their own 1,389 / 321 / 405 / 950, and 0 rows of others |
+| another user | sees 0 of the owner's messages and 0 of the owner's memories |
+| anonymous | 0 messages, 0 memories |
+
+### 5.4 The correction (prepared, rehearsed, not applied)
+
+`deploy/contabo/supabase-key-check.sh`, run by the owner as root:
+- **`check`** (read-only) finds the offending variable.
+- **`fix`** writes nothing until the canonical key gets a 200. It backs up `lelu.env` and verifies the backup is
+  byte-identical, comments out (never deletes) every rejected Supabase assignment, appends the canonical URL and key,
+  restarts only `lelu`, and verifies the server's key with the project. It rolls back automatically on failure.
+- **`rollback`** restores the backup.
+
+Rehearsed on a replica with a planted bad environment (a wrong publishable key plus an empty-signature JWT):
+- `check` identified both, with `signature-chars=0`.
+- `fix` made a byte-identical 0600 backup, commented out three lines, set the pair, and the restarted process's key
+  was accepted.
+- `rollback` restored the file byte-for-byte.
+
+### 5.5 Cognition uses this data (WP04, from code)
+
+- **Reads.** On sign-in, `SupabasePersistence` hydrates the local stores that recall and continuity read from:
+  `memory_items`, `knowledge_items`, `conversations` with paged `messages`, `projects`, `agents`,
+  `proactive_questions`, `improvement_items`, `ui_state` and preferences.
+- **A failed read** sets `degraded` (visible to the self-model) and merges nothing, so local memory is not wiped.
+- **The OG archive** no longer turns a rejected key into "no memories".
+
+### 5.6 Not yet provable
+
+Successful persistence and cross-session continuity (WP05 items 4–5) need the corrected key plus a signed-in session
+on the deployed app. They're blocked until `fix` is applied.
 
 ## 5b. Test results (executed)
 
