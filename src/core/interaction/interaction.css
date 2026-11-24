@@ -181,32 +181,47 @@
   min-height: 24px;
 }
 
+/*
+ * The hub marks the ring's centre and takes no input: it sits under the
+ * finger at the moment of release, so anything pressable here would fire on
+ * the very tap that let go of the control.
+ */
 .lelu-radial-hub {
   position: absolute;
   width: 44px;
   height: 44px;
   transform: translate(-50%, -50%);
-  pointer-events: auto;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
 }
-.lelu-radial-close {
+.lelu-radial-hub-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(249, 240, 255, 0.5);
+  box-shadow: 0 0 14px rgba(240, 171, 252, 0.55);
+}
+.lelu-radial-dismiss {
+  position: absolute;
+  top: -14px;
+  right: -14px;
   width: 44px;
   height: 44px;
   border-radius: 999px;
   border: 1px solid rgba(255, 226, 250, 0.2);
-  background:
-    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 70%),
-    rgba(24, 10, 48, 0.72);
+  background: rgba(24, 10, 48, 0.82);
   color: rgba(249, 240, 255, 0.86);
-  font: 300 24px/1 system-ui, sans-serif;
+  font: 300 22px/1 system-ui, sans-serif;
   display: grid;
   place-items: center;
-  padding: 0 0 3px;
+  padding: 0 0 2px;
   cursor: pointer;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
-.lelu-radial-close:active { transform: scale(0.94); }
-.lelu-radial-close:focus-visible { outline: 2px solid #f0abfc; outline-offset: 3px; }
+.lelu-radial-dismiss:active { transform: scale(0.94); }
+.lelu-radial-dismiss:focus-visible { outline: 2px solid #f0abfc; outline-offset: 3px; }
 
 .lelu-radial-ring {
   position: absolute;

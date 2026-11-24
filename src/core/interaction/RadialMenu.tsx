@@ -163,6 +163,21 @@ export default function RadialMenu({
         className="lelu-radial-caption"
         style={{ left: placement.centerX, top: captionTop } as CSSProperties}
       >
+        {/*
+         * Dismissal lives at the top of the caption, never at the ring's
+         * centre. The centre is exactly where the finger was when the ring
+         * opened, so a close control there ate the release: hold, let go, and
+         * the menu closed itself on the same tap. Outside tap and Escape
+         * remain the other ways out.
+         */}
+        <button
+          type="button"
+          className="lelu-radial-dismiss"
+          aria-label={`Close ${branch.title}`}
+          onClick={close}
+        >
+          ×
+        </button>
         {nested ? (
           <button
             type="button"
@@ -179,11 +194,10 @@ export default function RadialMenu({
 
       <div
         className="lelu-radial-hub"
+        aria-hidden="true"
         style={{ left: placement.centerX, top: placement.centerY } as CSSProperties}
       >
-        <button type="button" className="lelu-radial-close" aria-label={`Close ${branch.title}`} onClick={close}>
-          ×
-        </button>
+        <span className="lelu-radial-hub-dot" />
       </div>
 
       <div

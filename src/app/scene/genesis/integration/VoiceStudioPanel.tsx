@@ -20,7 +20,9 @@
  */
 
 import { useEffect, useState } from "react";
+import { AudioLines, Mic, RefreshCw } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
+import { CircularControl, type RadialMenuDefinition } from "../../../../core/interaction";
 import { useIntegrationResource, type VoicePayload } from "./useIntegration";
 import {
   Card,
@@ -34,7 +36,6 @@ import {
   Section,
   SourceNote,
   codeText,
-  ghostButton,
   studioFrame,
   studioScroll,
 } from "./StudioShell";
@@ -133,6 +134,34 @@ export default function VoiceStudioPanel({ onClose }: { onClose: () => void }) {
   const payload = voice.data;
   const inputState = facts.audioInputs === 0 ? "unavailable" : facts.audioInputs === null ? "not_configured" : "healthy";
 
+  /*
+   * The studio's actions live on one circular control, like every other
+   * environment. The device capture check is the same action it always was
+   * — one control, not a header button plus a card button competing for the
+   * same microphone.
+   */
+  const voiceMenu: RadialMenuDefinition = {
+    id: "voice-actions",
+    label: "Voice actions",
+    items: [
+      {
+        id: "refresh",
+        label: "Refresh adapters",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: voice.refresh,
+      },
+      {
+        id: "capture",
+        label: asking ? "Checking device…" : "Test microphone",
+        hint: "Opens capture for a moment, then stops every track",
+        icon: <Mic size={18} aria-hidden />,
+        tone: "accent" as const,
+        disabled: asking || !facts.mediaDevices,
+        onSelect: () => void requestMicrophone(),
+      },
+    ],
+  };
+
   return (
     <GenesisWindowFrame
       eyebrow="LÉLU · Voice"
@@ -142,9 +171,13 @@ export default function VoiceStudioPanel({ onClose }: { onClose: () => void }) {
       maxHeight={studioFrame.maxHeight}
       elevation="focus"
       extraActions={
-        <button type="button" style={ghostButton} onClick={voice.refresh} aria-label="Refresh voice adapters">
-          Refresh
-        </button>
+        <CircularControl
+          label="Voice actions"
+          icon={<AudioLines size={18} aria-hidden />}
+          menu={voiceMenu}
+          size={44}
+          testId="voice-actions"
+        />
       }
     >
       <div style={studioScroll}>
@@ -202,11 +235,9 @@ export default function VoiceStudioPanel({ onClose }: { onClose: () => void }) {
             <Row label="Speech synthesis" value={facts.speechSynthesis ? `${facts.speechVoices ?? 0} voice(s)` : "unavailable"} />
             <Row label="Secure context" value={facts.secureContext ? "yes (https/localhost)" : "no — capture is blocked"} />
             {facts.error ? <Row label="Last error" value={<span style={{ color: "#fca5a5" }}>{facts.error}</span>} /> : null}
-            <button type="button" style={ghostButton} onClick={() => void requestMicrophone()} disabled={asking || !facts.mediaDevices}>
-              {asking ? "Checking…" : "Test microphone capture"}
-            </button>
             <div style={{ fontSize: 10.5, opacity: 0.5, marginTop: 6 }}>
-              Opens the microphone for a moment and stops every track immediately. No audio is recorded or sent anywhere.
+              Voice actions → Test microphone opens capture for a moment and stops every track immediately. No audio is
+              recorded or sent anywhere.
             </div>
           </Card>
         </Section>

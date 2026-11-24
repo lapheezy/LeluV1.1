@@ -14,9 +14,14 @@
  */
 
 import { useEffect, useState } from "react";
+import { Brain, Crown, Lightbulb, Orbit, Workflow } from "lucide-react";
 import ExecutiveRuntime, { type ExecutiveSelfState } from "../../../core/executive/ExecutiveRuntime";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import { genesisTheme } from "./GenesisTheme";
+import { CircularControl, type RadialMenuDefinition } from "../../../core/interaction";
+import { useGenesis } from "./GenesisCore";
+import HomeStore from "./home/homeStore";
+import { goHome } from "./home/homeActions";
 
 interface GenesisExecutivePanelProps {
   onClose: () => void;
@@ -70,10 +75,61 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function GenesisExecutivePanel({ onClose }: GenesisExecutivePanelProps) {
   const [state, setState] = useState<ExecutiveSelfState>(() => ExecutiveRuntime.getInstance().get());
+  const genesis = useGenesis();
 
   useEffect(() => ExecutiveRuntime.getInstance().subscribe((next) => setState({ ...next })), []);
 
   const s = state;
+
+  /*
+   * The board's own hierarchy is the navigation: Board → Galaxies → Agent
+   * Universes → Reasoning and Memory. It is one held circular control, the
+   * same object the Spatial Bar and every other environment expose, rather
+   * than a row of tabs inside the diagnostics window.
+   */
+  const boardMenu: RadialMenuDefinition = {
+    id: "executive-board",
+    label: "Executive board",
+    items: [
+      {
+        id: "agents",
+        label: "Agent Universe",
+        icon: <Workflow size={18} aria-hidden />,
+        onSelect: () => {
+          HomeStore.setImmersive(false);
+          genesis.openPanel("agents");
+        },
+      },
+      {
+        id: "galaxies",
+        label: "Executive Galaxies",
+        icon: <Orbit size={18} aria-hidden />,
+        hint: "The Cosmos' own galaxy structure",
+        onSelect: () => {
+          goHome(genesis);
+          HomeStore.setImmersive(true);
+        },
+      },
+      {
+        id: "reasoning",
+        label: "Reasoning",
+        icon: <Lightbulb size={18} aria-hidden />,
+        onSelect: () => {
+          HomeStore.setImmersive(false);
+          genesis.openPanel("reasoning");
+        },
+      },
+      {
+        id: "memory",
+        label: "Memory",
+        icon: <Brain size={18} aria-hidden />,
+        onSelect: () => {
+          HomeStore.setImmersive(false);
+          genesis.openPanel("memory");
+        },
+      },
+    ],
+  };
 
   return (
     <GenesisWindowFrame
@@ -81,6 +137,15 @@ export default function GenesisExecutivePanel({ onClose }: GenesisExecutivePanel
       onClose={onClose}
       width="min(94vw, 560px)"
       active={s.systemHealth !== "healthy"}
+      extraActions={
+        <CircularControl
+          label="Executive board actions"
+          icon={<Crown size={18} aria-hidden />}
+          menu={boardMenu}
+          size={44}
+          testId="executive-board-actions"
+        />
+      }
     >
       {/* ------------------------------ SELF ------------------------------ */}
       <Section title="LÉLU Self State">

@@ -20,7 +20,7 @@ import { HomeIcon } from "../home/CosmosHome";
 import { CircularControl, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../core/interaction";
 import "./environmentRadial.css";
 
-export default function EnvironmentRadial() {
+export default function EnvironmentRadial({ hidden = false }: { hidden?: boolean }) {
   const genesis = useGenesis();
   const { state } = genesis;
 
@@ -82,7 +82,18 @@ export default function EnvironmentRadial() {
     ],
   };
 
-  if (state.minimized) return null;
+  /*
+   * One navigation at a time.
+   *
+   * The workspace owns this radial. When another surface owns the screen —
+   * a conversation window, a panel sheet on a phone, the immersive Cosmos —
+   * that surface already has its own circular navigation, and this control
+   * would otherwise be painted UNDER it: present in the DOM, impossible to
+   * press. On a 390px phone the floating chat window covered it completely.
+   * So it steps aside with the Spatial Bar instead of pretending to be
+   * reachable.
+   */
+  if (state.minimized || hidden) return null;
 
   return (
     <div className="lelu-environment-radial" data-testid="environment-radial">

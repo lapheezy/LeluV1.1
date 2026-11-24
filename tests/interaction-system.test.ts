@@ -16,6 +16,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -137,6 +138,89 @@ test("exactly one menu is open at a time, and subscribers see each change", () =
 
   manager.open({ id: "three", kind: "radial", anchor });
   assert.equal(changes, 3, "an unsubscribed listener was still called");
+});
+
+/* --------------------------- environment coverage --------------------------- */
+
+/**
+ * Every named environment reaches its own actions through the shared
+ * circular control. These are structural regressions: an environment that
+ * grows back a row of chips, or hand-rolls its own hold gesture, fails here.
+ */
+test("every environment's actions come from the shared circular control", () => {
+  const envs: Array<{ name: string; path: string; controls: string[]; retired?: RegExp }> = [
+    {
+      name: "Agent Universe",
+      path: "src/app/scene/genesis/GenesisAgentsPanel.tsx",
+      controls: ["agent-template-control", "agent-action-control"],
+    },
+    {
+      name: "Workspace",
+      path: "src/app/scene/genesis/GenesisProjectsPanel.tsx",
+      controls: ["project-action-control", "project-add-control"],
+    },
+    {
+      name: "Creation Studio",
+      path: "src/app/scene/genesis/studio/GenesisCreationStudio.tsx",
+      controls: ["studio-create-control"],
+      retired: /data-lelu-studio-new/,
+    },
+    {
+      name: "UI Universe",
+      path: "src/app/scene/genesis/GenesisVisualStudio.tsx",
+      controls: ["studio-mode-control"],
+      retired: /data-studio-mode/,
+    },
+    {
+      name: "Voice Studio",
+      path: "src/app/scene/genesis/integration/VoiceStudioPanel.tsx",
+      controls: ["voice-actions"],
+    },
+    {
+      name: "Engineering Studio",
+      path: "src/app/scene/genesis/integration/EngineeringStudioPanel.tsx",
+      controls: ["engineering-actions"],
+    },
+    {
+      name: "Executive Board",
+      path: "src/app/scene/genesis/GenesisExecutivePanel.tsx",
+      controls: ["executive-board-actions"],
+    },
+  ];
+
+  for (const env of envs) {
+    const source = readFileSync(env.path, "utf8");
+    assert.match(source, /from "[./]*core\/interaction"/, `${env.name} must import the shared system`);
+    assert.match(source, /<CircularControl/, `${env.name} must render a CircularControl`);
+    for (const id of env.controls) {
+      assert.match(source, new RegExp(`testId="${id}"`), `${env.name} is missing ${id}`);
+    }
+    if (env.retired) {
+      assert.doesNotMatch(source, env.retired, `${env.name} still renders a bespoke control row`);
+    }
+    // One implementation: no environment owns a second hold gesture or ring.
+    assert.doesNotMatch(source, /createHoldGesture|lelu-radial-layer|RadialMenu\b/, `${env.name} must not implement its own radial`);
+  }
+});
+
+test("the persistent environment radial still names every environment", () => {
+  const radial = readFileSync("src/app/scene/genesis/interaction/EnvironmentRadial.tsx", "utf8");
+  for (const label of [
+    "LÉLU CORE",
+    "Cosmos",
+    "Genesis Scene",
+    "Chat Universe",
+    "UI Universe",
+    "Workspace",
+    "Creation Studio",
+    "Voice Studio",
+    "Engineering Studio",
+    "Agent Universe",
+    "Executive Board",
+    "Executive Galaxies",
+  ]) {
+    assert.ok(radial.includes(label), `the environment radial no longer offers ${label}`);
+  }
 });
 
 /* ------------------------------- gesture ------------------------------- */

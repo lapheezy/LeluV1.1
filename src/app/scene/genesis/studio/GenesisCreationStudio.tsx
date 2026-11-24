@@ -5,8 +5,9 @@
  */
 
 import { useRef, useState } from "react";
-import { FilePlus2, FileSpreadsheet, FileText, Network, PenTool, Presentation, Sparkles, Upload, Workflow } from "lucide-react";
+import { FileSpreadsheet, FileText, Network, PenTool, Plus, Presentation, Sparkles, Upload, Workflow } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
+import { CircularControl, type RadialMenuDefinition } from "../../../../core/interaction";
 import { artifactGist, firstChartSvg } from "../../../../core/studio/StudioPreview";
 import type { StudioArtifact } from "../../../../core/studio/StudioStore";
 import { agentHierarchyGraph } from "../../../../core/studio/GraphSources";
@@ -52,18 +53,56 @@ export default function GenesisCreationStudio({ onClose }: { onClose: () => void
     if (r.ok) openArtifacts([r.artifact.id]);
   };
 
+  /*
+   * Every way to start work is one ring held from the studio's own circular
+   * control — not a toolbar of six chips that wrapped onto three lines on a
+   * phone. Import stays in the same ring because it is the same intent:
+   * another artifact in this library.
+   */
+  const createMenu: RadialMenuDefinition = {
+    id: "creation-create",
+    label: "Create",
+    items: [
+      { id: "document", label: "Document", icon: <FileText size={18} aria-hidden />, onSelect: () => create("document"), testId: "studio-new-document" },
+      { id: "deck", label: "Presentation", icon: <Presentation size={18} aria-hidden />, onSelect: () => create("deck"), testId: "studio-new-deck" },
+      { id: "workbook", label: "Spreadsheet", icon: <FileSpreadsheet size={18} aria-hidden />, onSelect: () => create("workbook"), testId: "studio-new-workbook" },
+      { id: "graph", label: "Graph", icon: <Network size={18} aria-hidden />, onSelect: () => create("graph"), testId: "studio-new-graph" },
+      { id: "drawing", label: "Drawing", icon: <PenTool size={18} aria-hidden />, onSelect: () => create("drawing"), testId: "studio-new-drawing" },
+      {
+        id: "hierarchy",
+        label: "Agent hierarchy",
+        icon: <Workflow size={18} aria-hidden />,
+        hint: "LÉLU's real agent hierarchy",
+        onSelect: createHierarchy,
+        testId: "studio-new-hierarchy",
+      },
+      {
+        id: "import",
+        label: "Import file",
+        icon: <Upload size={18} aria-hidden />,
+        hint: "Original bytes are kept unchanged",
+        onSelect: () => fileRef.current?.click(),
+        testId: "studio-new-import",
+      },
+    ],
+  };
+
   return (
     <GenesisWindowFrame eyebrow="LÉLU" title={`Creation Studio · ${list.length}`} onClose={onClose} closeLabel="Close">
       <div className="lst-library" data-lelu-studio-library>
         <div className="lst-toolbar">
-          <button type="button" className="lst-btn" onClick={() => create("document")}><FilePlus2 size={14} aria-hidden /> Document</button>
-          <button type="button" className="lst-btn" onClick={() => create("deck")}><Presentation size={14} aria-hidden /> Presentation</button>
-          <button type="button" className="lst-btn" onClick={() => create("workbook")}><FileSpreadsheet size={14} aria-hidden /> Spreadsheet</button>
-          <button type="button" className="lst-btn" onClick={() => create("graph")} data-lelu-studio-new="graph"><Network size={14} aria-hidden /> Graph</button>
-          <button type="button" className="lst-btn" onClick={() => create("drawing")} data-lelu-studio-new="drawing"><PenTool size={14} aria-hidden /> Drawing</button>
-          <button type="button" className="lst-btn ghost" onClick={createHierarchy} data-lelu-studio-new="hierarchy" title="A graph of LÉLU's real agent hierarchy"><Workflow size={14} aria-hidden /> Agent hierarchy</button>
+          <CircularControl
+            label="Create — hold for document types"
+            icon={<Plus size={20} aria-hidden />}
+            menu={createMenu}
+            size={48}
+            tone="accent"
+            testId="studio-create-control"
+          />
+          <span className="lst-note" style={{ margin: 0 }}>
+            Document, deck, sheet, graph, drawing — or bring in a file
+          </span>
           <span className="lst-spacer" />
-          <button type="button" className="lst-btn ghost" onClick={() => fileRef.current?.click()}><Upload size={14} aria-hidden /> Import file</button>
           <input ref={fileRef} type="file" hidden multiple accept=".docx,.pptx,.xlsx,.pdf,.csv,.md,.markdown,.html,.htm,.txt,.rtf" onChange={(e) => { void importFiles(e.target.files); e.target.value = ""; }} />
         </div>
         {message ? <p className="lst-note" role="status">{message}</p> : null}

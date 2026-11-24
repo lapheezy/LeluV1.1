@@ -17,7 +17,9 @@
  * ==========================================================
  */
 
+import { RefreshCw } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
+import { CircularControl, type RadialMenuDefinition } from "../../../../core/interaction";
 import {
   formatDuration,
   relativeTime,
@@ -38,7 +40,6 @@ import {
   Section,
   SourceNote,
   codeText,
-  ghostButton,
   studioFrame,
   studioScroll,
 } from "./StudioShell";
@@ -64,6 +65,33 @@ export default function EngineeringStudioPanel({ onClose }: { onClose: () => voi
   const locks = payload?.locks ?? [];
   const engines = payload?.engines ?? [];
 
+  // One circular control owns the studio's actions: each source is refreshed
+  // independently, so a slow runtime check never hides fresh task data.
+  const engineeringMenu: RadialMenuDefinition = {
+    id: "engineering-actions",
+    label: "Engineering actions",
+    items: [
+      {
+        id: "refresh-engineering",
+        label: "Refresh engineering",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: engineering.refresh,
+      },
+      {
+        id: "refresh-runtime",
+        label: "Refresh runtime",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: runtime.refresh,
+      },
+      {
+        id: "refresh-integration",
+        label: "Refresh integration",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: integration.refresh,
+      },
+    ],
+  };
+
   return (
     <GenesisWindowFrame
       eyebrow="LÉLU · Engineering"
@@ -73,9 +101,13 @@ export default function EngineeringStudioPanel({ onClose }: { onClose: () => voi
       maxHeight={studioFrame.maxHeight}
       elevation="focus"
       extraActions={
-        <button type="button" style={ghostButton} onClick={engineering.refresh} aria-label="Refresh engineering state">
-          Refresh
-        </button>
+        <CircularControl
+          label="Engineering actions"
+          icon={<RefreshCw size={18} aria-hidden />}
+          menu={engineeringMenu}
+          size={44}
+          testId="engineering-actions"
+        />
       }
     >
       <div style={studioScroll}>

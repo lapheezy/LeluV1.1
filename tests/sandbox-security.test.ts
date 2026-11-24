@@ -20,7 +20,12 @@ const out = (r: { stdout: string }) => r.stdout.trim();
 test("network: TCP, UDP, DNS and fetch all fail", async () => {
   for (const code of [
     `import net from "node:net"; const s = net.connect(53, "1.1.1.1"); s.on("connect", () => { console.log("CONNECTED"); process.exit(0); }); s.on("error", (e) => { console.log("denied:" + e.code); process.exit(0); }); setTimeout(() => { console.log("denied:timeout"); process.exit(0); }, 4000);`,
-    `import dgram from "node:dgram"; const s = dgram.createSocket("udp4"); s.send("x", 53, "1.1.1.1", (e) => { console.log(e ? "denied:" + e.code : "SENT"); process.exit(0); });`,
+    // Node 26's permission model denies UDP access from inside createSocket()
+    // itself and raises it asynchronously, so the probe must report an uncaught
+    // denial as well as a send error. Without this the denial was real (exit 1,
+    // ERR_ACCESS_DENIED) but invisible on stdout, which read as a bare empty
+    // string rather than proof of a denied attempt.
+    `import dgram from "node:dgram"; process.on("uncaughtException", (e) => { console.log("denied:" + (e.code ?? e.name)); process.exit(0); }); const s = dgram.createSocket("udp4"); s.send("x", 53, "1.1.1.1", (e) => { console.log(e ? "denied:" + e.code : "SENT"); process.exit(0); });`,
     `import dns from "node:dns/promises"; try { await dns.lookup("registry.npmjs.org"); console.log("RESOLVED"); } catch (e) { console.log("denied:" + e.code); }`,
     `try { await fetch("https://registry.npmjs.org/", { signal: AbortSignal.timeout(4000) }); console.log("FETCHED"); } catch (e) { console.log("denied:" + (e.cause?.code || e.name)); }`,
   ]) {

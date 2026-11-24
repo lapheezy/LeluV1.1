@@ -18,6 +18,8 @@ import AgentStore from "../../../core/agents/AgentStore";
 import RenderStore, { type RenderOutput } from "../../../core/creative/RenderStore";
 import SketchStore, { type SketchDocument } from "../../../core/creative/SketchDocument";
 import AIService from "../../../core/AIService";
+import { Archive, ArchiveRestore, Image as ImageIcon, MoreHorizontal, Pause, Play, Plus, StickyNote, Trash2, Upload } from "lucide-react";
+import { CircularControl, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../core/interaction";
 
 const fieldStyle: CSSProperties = {
   boxSizing: "border-box",
@@ -86,6 +88,55 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
   }, []);
 
   const project = projects.find((item) => item.id === projectId) ?? null;
+
+  /*
+   * A project's lifecycle and its "add" actions are rings held from one
+   * circular control each — the same interaction as the Spatial Bar — not
+   * rows of chips that grow a new toolbar on every screen width.
+   */
+  const projectActions: RadialMenuItemSpec[] = project
+    ? [
+        ...(project.status !== "archived"
+          ? [
+              {
+                id: "toggle-pause",
+                label: project.status === "paused" ? "Resume" : "Pause",
+                icon: project.status === "paused" ? <Play size={18} aria-hidden /> : <Pause size={18} aria-hidden />,
+                onSelect: () => store.update(project.id, { status: project.status === "paused" ? "active" : "paused" }),
+              },
+            ]
+          : []),
+        {
+          id: "toggle-archive",
+          label: project.status === "archived" ? "Restore" : "Archive",
+          icon: project.status === "archived" ? <ArchiveRestore size={18} aria-hidden /> : <Archive size={18} aria-hidden />,
+          onSelect: () => store.update(project.id, { status: project.status === "archived" ? "active" : "archived" }),
+        },
+        {
+          id: "delete",
+          label: "Delete project",
+          icon: <Trash2 size={18} aria-hidden />,
+          tone: "danger" as const,
+          onSelect: () => store.remove(project.id),
+        },
+      ]
+    : [];
+
+  const projectMenu: RadialMenuDefinition = {
+    id: `project-actions-${project?.id ?? "none"}`,
+    label: project?.name ?? "Project",
+    items: projectActions,
+  };
+
+  const addMenu: RadialMenuDefinition = {
+    id: `project-add-${project?.id ?? "none"}`,
+    label: "Add to project",
+    items: [
+      { id: "file", label: "File", icon: <Upload size={18} aria-hidden />, onSelect: () => attachFile("file") },
+      { id: "image", label: "Image", icon: <ImageIcon size={18} aria-hidden />, onSelect: () => attachFile("image") },
+      { id: "memory", label: "Memory excerpt", icon: <StickyNote size={18} aria-hidden />, onSelect: attachMemoryExcerpt },
+    ],
+  };
 
   function createProject() {
     const name = newName.trim() || `Project ${projects.length + 1}`;
@@ -224,19 +275,13 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
                   style={{ ...fieldStyle, marginTop: 6 }}
                 />
               </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {project.status !== "archived" && (
-                  <button type="button" onClick={() => store.update(project.id, { status: project.status === "paused" ? "active" : "paused" })} style={chipButton}>
-                    {project.status === "paused" ? "Resume" : "Pause"}
-                  </button>
-                )}
-                <button type="button" onClick={() => store.update(project.id, { status: project.status === "archived" ? "active" : "archived" })} style={chipButton}>
-                  {project.status === "archived" ? "Restore" : "Archive"}
-                </button>
-                <button type="button" onClick={() => store.remove(project.id)} style={{ ...chipButton, color: "#fca5a5" }}>
-                  Delete
-                </button>
-              </div>
+              <CircularControl
+                label={`${project.name} actions`}
+                icon={<MoreHorizontal size={18} aria-hidden />}
+                menu={projectMenu}
+                size={44}
+                testId="project-action-control"
+              />
               {project.schedule && (
                 <div style={{ fontSize: 10.5, opacity: 0.6, marginTop: 6 }}>
                   Schedule: {project.schedule.frequency}{project.schedule.nextRun ? ` · next: ${new Date(project.schedule.nextRun).toLocaleString()}` : ""}{project.schedule.lastRun ? ` · last: ${new Date(project.schedule.lastRun).toLocaleString()}` : ""}
@@ -298,16 +343,16 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
               <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
                 Add to project
               </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                <button type="button" onClick={() => attachFile("file")} style={chipButton}>
-                  📄 File
-                </button>
-                <button type="button" onClick={() => attachFile("image")} style={chipButton}>
-                  🖼 Image
-                </button>
-                <button type="button" onClick={attachMemoryExcerpt} style={chipButton}>
-                  ◐ Memory excerpt
-                </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <CircularControl
+                  label="Add to project — hold for sources"
+                  icon={<Plus size={18} aria-hidden />}
+                  menu={addMenu}
+                  size={44}
+                  tone="accent"
+                  testId="project-add-control"
+                />
+                <span style={{ fontSize: 11, opacity: 0.62 }}>File, image or a memory excerpt</span>
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                 <input value={noteTitle} onChange={(event) => setNoteTitle(event.target.value)} placeholder="Note title" style={{ ...fieldStyle, width: 150 }} />

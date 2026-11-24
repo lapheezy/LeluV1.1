@@ -764,6 +764,19 @@ export default function GenesisInterface() {
   const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
   const universeOpen = useUniverseOpen();
   const narrowScreen = typeof window !== "undefined" && window.innerWidth <= 720;
+  /*
+   * The environment radial steps aside only for surfaces that COVER it — a
+   * floating conversation window, a phone panel sheet, the Universe drawer.
+   * The immersive Cosmos is deliberately not in this list: the in-scene
+   * navigator travels between worlds but has no control that leaves
+   * immersion, so this radial is the way home there.
+   */
+  const environmentRadialHidden =
+    state.minimized ||
+    surface.chatOwnsScreen ||
+    surface.workspaceOwnsScreen ||
+    (universeOpen && narrowScreen) ||
+    (state.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720);
   const navHidden =
     homeStore.immersive ||
     state.minimized ||
@@ -860,7 +873,7 @@ export default function GenesisInterface() {
       {/* One circular way between environments, mounted above every scene.
           Cosmos, CORE, the Chat Universe, the studios and the executive
           surfaces share this control and this radial menu. */}
-      <EnvironmentRadial />
+      <EnvironmentRadial hidden={environmentRadialHidden} />
 
       {/*
        * THE ONE GENESIS ENVIRONMENT — the canonical LÉLU surface. Mounted
