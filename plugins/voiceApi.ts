@@ -57,6 +57,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
+import type { ServerResponse } from "node:http";
 
 import { createRateLimiter } from "./requestGuard.ts";
 import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
@@ -64,6 +65,8 @@ import VoiceResourceManager, { isAnotherAccountWorthTrying } from "../src/core/v
 import { resolveVoiceIdentity, voiceSettingsPayload } from "../src/core/voice/voiceIdentity.ts";
 import { speechProfile, type SpeechProfileId } from "../src/core/voice/speechProfile.ts";
 import { getPersistentPiper, PiperError, type PiperPoolSnapshot } from "./persistentPiper.ts";
+import { relayWorkerSpeech } from "./voxApi.ts";
+import { VoxcpmPool, parseVoxcpmWorkers, resolveVoiceProvider } from "../src/core/voice/gpuWorkers.ts";
 
 type ReadEnv = (key: string) => string | undefined;
 
@@ -292,6 +295,22 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     if (!existsSync(bin) || !existsSync(model)) return null;
     return { bin, model };
   }
+
+  /**
+   * Her own voice: the speech worker (MOSS-TTS-Nano on the Contabo VPS,
+   * VoxCPM2 elsewhere) that /api/voice/vox/speech already relays to. Used by
+   * this route only when it is configured EXPLICITLY (VOXCPM_BASE_URL or
+   * VOXCPM_WORKERS): the pool's implicit loopback default must not change
+   * what a checkout without a worker answers. VOICE_PROVIDER=elevenlabs
+   * turns it off here; VOICE_PROVIDER=voxcpm prefers it even over a paid key.
+   */
+  const workerConfigured =
+    Boolean(readSecret(readEnv, ["VOXCPM_BASE_URL"]) || readSecret(readEnv, ["VOXCPM_WORKERS"])) &&
+    resolveVoiceProvider(readEnv) !== "elevenlabs";
+  const speechWorkers = workerConfigured
+    ? new VoxcpmPool(parseVoxcpmWorkers(readEnv ?? ((name) => process.env[name])), { cooldownMs: 15_000 })
+    : null;
+  const WORKER_VOICE_ID = "worker:lelu-reference";
 
   function localVoiceId(): string | null {
     const config = localVoiceConfig();
@@ -529,13 +548,17 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     // the page speaks through LÉLU's free local worker instead.
     const spend = spendPolicy().check("elevenlabs", { operation: "tts" }, { peek: true });
     const usable = keyCount > 0 && spend.allowed;
-    const local = usable ? null : localVoiceId();
+    // Presence again: a configured worker is reported, not probed (the
+    // TTS route falls back to Piper, then to an honest 503, if it is down).
+    const worker = speechWorkers && (!usable || resolveVoiceProvider(readEnv) === "voxcpm") ? WORKER_VOICE_ID : null;
+    const local = usable || worker ? null : localVoiceId();
     sendJson(res, {
-      configured: usable || Boolean(local),
+      configured: usable || Boolean(worker) || Boolean(local),
       stt: usable,
-      voiceId: local ?? voiceId,
+      voiceId: worker ?? local ?? voiceId,
       modelId,
       sttModelId,
+      ...(worker ? { provider: "speech-worker", localVoice: true } : {}),
       ...(local ? { provider: "local-piper", localVoice: true } : {}),
       ...(keyCount > 0 && !spend.allowed ? { spend: spend.code } : {}),
     });
@@ -569,11 +592,29 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         sendJson(res, { ok: false, error: `Text exceeds ${MAX_TEXT_LENGTH} characters.` }, 413);
         return;
       }
+      const wantsStream =
+        body.stream === true ||
+        new URL(req.url ?? "/", "http://localhost").searchParams.get("stream") === "1";
+      // The same rule /api/voice/status states to the page: a paid key that
+      // is not authorized to spend is not a voice, so the free worker speaks.
+      const elevenLabsUsable =
+        keyCount > 0 && spendPolicy().check("elevenlabs", { operation: "tts" }, { peek: true }).allowed;
+      if (speechWorkers && (!elevenLabsUsable || resolveVoiceProvider(readEnv) === "voxcpm")) {
+        // Her own voice first: the free speech worker. Nothing written when
+        // no worker is READY, so Piper, ElevenLabs' own refusal, or the
+        // honest 503 still answers exactly as before.
+        const outcome = await relayWorkerSpeech({
+          pool: speechWorkers,
+          text,
+          format: wantsStream ? "pcm" : "wav",
+          stream: wantsStream,
+          res: res as unknown as ServerResponse,
+          extraHeaders: { "X-Lelu-Voice-Provider": WORKER_VOICE_ID, ...(wantsStream ? { "X-Lelu-Streaming": "worker" } : {}) },
+        });
+        if (outcome === "handled") return;
+      }
       if (keyCount === 0) {
         // No paid account: speak with the free local engine when it is set up.
-        const wantsStream =
-          body.stream === true ||
-          new URL(req.url ?? "/", "http://localhost").searchParams.get("stream") === "1";
         const profile = requestedProfile(body);
         if (wantsStream) {
           synthesizeLocalStream(text, res, profile);
@@ -909,7 +950,14 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     const spend = spendPolicy().check("elevenlabs", { operation: "tts" }, { peek: true });
     const elevenLabsUsable = keyCount > 0 && spend.allowed;
     const identity = voiceIdentity();
-    const ttsProvider = elevenLabsUsable ? "elevenlabs" : local ? "local-piper" : "none";
+    const ttsProvider =
+      speechWorkers && (!elevenLabsUsable || resolveVoiceProvider(readEnv) === "voxcpm")
+        ? "speech-worker"
+        : elevenLabsUsable
+          ? "elevenlabs"
+          : local
+            ? "local-piper"
+            : "none";
     sendJson(res, {
       ok: true,
       at: Date.now(),
@@ -928,7 +976,14 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       tts: {
         provider: ttsProvider,
         configured: ttsProvider !== "none",
-        voiceId: ttsProvider === "elevenlabs" ? identity.voiceId : ttsProvider === "local-piper" ? localVoiceId() : null,
+        voiceId:
+          ttsProvider === "elevenlabs"
+            ? identity.voiceId
+            : ttsProvider === "local-piper"
+              ? localVoiceId()
+              : ttsProvider === "speech-worker"
+                ? WORKER_VOICE_ID
+                : null,
         modelId: ttsProvider === "elevenlabs" ? identity.modelId : null,
         localBinary: Boolean(local),
         /** M22.9: whether the speaker holds its model, and what that cost. */
@@ -936,9 +991,16 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       },
       voiceIdentity: {
         name: identity.name,
-        provider: ttsProvider === "elevenlabs" ? identity.provider : ttsProvider === "local-piper" ? "piper" : "none",
+        provider:
+          ttsProvider === "elevenlabs"
+            ? identity.provider
+            : ttsProvider === "local-piper"
+              ? "piper"
+              : ttsProvider === "speech-worker"
+                ? "speech-worker"
+                : "none",
         // Piper is a placeholder voice, never presented as her clone.
-        status: ttsProvider === "elevenlabs" ? "identity" : ttsProvider === "local-piper" ? "fallback" : "absent",
+        status: ttsProvider === "elevenlabs" ? "identity" : ttsProvider === "local-piper" || ttsProvider === "speech-worker" ? "fallback" : "absent",
         cloned: false,
       },
       streaming: {

@@ -78,6 +78,107 @@ function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   });
 }
 
+/** `audio/L16;rate=48000;channels=1` → 48000; null when the type names no rate. */
+export function l16SampleRate(contentType: string | null): number | null {
+  const match = /^audio\/l16\b.*?\brate=(\d+)/i.exec(contentType ?? "");
+  const rate = match ? Number(match[1]) : NaN;
+  return Number.isFinite(rate) && rate > 0 ? rate : null;
+}
+
+/**
+ * Relay one utterance to a READY worker of `pool` and stream its answer to
+ * `res`. Shared by /api/voice/vox/speech and /api/voice/tts so both speak
+ * through the same worker with the same timeout, STOP and failure rules.
+ *
+ * Returns "no-ready-worker" WITHOUT writing anything when no worker is READY,
+ * so the caller decides what that means (a 503 here, the next engine there).
+ * Every other outcome is written to `res` and returns "handled".
+ *
+ * The page's PCM player reads the rate from `X-Lelu-Sample-Rate` (16 kHz when
+ * absent); the worker states it only inside its L16 content type, so it is
+ * copied out here — otherwise 48 kHz speech would play at a third of its speed.
+ */
+export async function relayWorkerSpeech(options: {
+  pool: VoxcpmPool;
+  text: string;
+  format: "wav" | "pcm";
+  stream: boolean;
+  res: ServerResponse;
+  fetchImpl?: typeof fetch;
+  extraHeaders?: Record<string, string>;
+}): Promise<"handled" | "no-ready-worker"> {
+  const { pool, text, format, stream, res } = options;
+  const doFetch = options.fetchImpl ?? fetch;
+  const chosen = await pool.select({ timeoutMs: 3000 });
+  if (!chosen) return "no-ready-worker";
+  const worker = pool.worker(chosen.worker);
+  if (!worker) return "no-ready-worker";
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error("timeout")), speechTimeoutMs(text.length));
+  // STOP: the page closes the request; the worker stops with it.
+  res.on("close", () => {
+    if (!res.writableFinished) controller.abort(new Error("client closed"));
+  });
+
+  let upstream: Response;
+  try {
+    upstream = await doFetch(`${worker.url}/v1/audio/speech`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...workerHeaders(worker) },
+      body: JSON.stringify({ input: text, response_format: format, stream }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    clearTimeout(timer);
+    if (controller.signal.aborted && String(controller.signal.reason).includes("client closed")) return "handled";
+    pool.markFailure(worker.id);
+    const timedOut = String(controller.signal.reason ?? "").includes("timeout");
+    if (!res.headersSent) json(res, timedOut ? 504 : 502, { ok: false, reason: timedOut ? "timeout" : "unreachable", error: (error as Error).message });
+    return "handled";
+  }
+
+  if (!upstream.ok || !upstream.body) {
+    clearTimeout(timer);
+    if (upstream.status >= 500) pool.markFailure(worker.id);
+    const detail = await upstream.text().catch(() => "");
+    res.statusCode = upstream.status;
+    res.setHeader("Content-Type", upstream.headers.get("content-type") ?? "application/json");
+    res.end(detail);
+    return "handled";
+  }
+
+  pool.markSuccess(worker.id);
+  res.statusCode = 200;
+  for (const [name, value] of upstream.headers) {
+    if (name === "content-type" || name.startsWith("x-lelu-")) res.setHeader(name, value);
+  }
+  const rate = l16SampleRate(upstream.headers.get("content-type"));
+  if (rate && !upstream.headers.has("x-lelu-sample-rate")) res.setHeader("X-Lelu-Sample-Rate", String(rate));
+  for (const [name, value] of Object.entries(options.extraHeaders ?? {})) res.setHeader(name, value);
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Lelu-Worker", worker.id);
+  try {
+    const reader = upstream.body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!res.write(value)) await new Promise((resolve) => res.once("drain", resolve));
+    }
+    res.end();
+  } catch (error) {
+    // Client closed (STOP): nothing more to send. Worker died or timed out
+    // mid-stream: DESTROY the response, so the caller sees a failed
+    // transfer instead of a short "successful" one (an empty 200 looked
+    // like speech that said nothing).
+    if (!res.writableEnded) res.destroy(error as Error);
+    if (!String(controller.signal.reason ?? "").includes("client closed")) pool.markFailure(worker.id);
+  } finally {
+    clearTimeout(timer);
+  }
+  return "handled";
+}
+
 export function createVoxApi(options: { readEnv?: ReadEnv; fetchImpl?: typeof fetch } = {}) {
   const read: ReadEnv = options.readEnv ?? ((name) => process.env[name]);
   const doFetch = options.fetchImpl ?? fetch;
@@ -105,70 +206,8 @@ export function createVoxApi(options: { readEnv?: ReadEnv; fetchImpl?: typeof fe
     if (format !== "wav" && format !== "pcm") return json(res, 400, { ok: false, error: "response_format must be wav or pcm" });
 
     if (pool.list().length === 0) return json(res, 503, { ok: false, reason: "not-configured", error: "no VoxCPM2 worker is configured (VOXCPM_BASE_URL or VOXCPM_WORKERS)" });
-    const chosen = await pool.select({ timeoutMs: 3000 });
-    if (!chosen) return json(res, 503, { ok: false, reason: "no-ready-worker", error: "no VoxCPM2 worker is READY", snapshot: pool.snapshot() });
-    const worker = pool.worker(chosen.worker);
-    if (!worker) return json(res, 503, { ok: false, reason: "no-ready-worker", error: "chosen worker vanished" });
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(new Error("timeout")), speechTimeoutMs(text.length));
-    // STOP: the page closes the request; the worker stops with it.
-    res.on("close", () => {
-      if (!res.writableFinished) controller.abort(new Error("client closed"));
-    });
-
-    let upstream: Response;
-    try {
-      upstream = await doFetch(`${worker.url}/v1/audio/speech`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...workerHeaders(worker) },
-        body: JSON.stringify({ input: text, response_format: format, stream }),
-        signal: controller.signal,
-      });
-    } catch (error) {
-      clearTimeout(timer);
-      if (controller.signal.aborted && String(controller.signal.reason).includes("client closed")) return;
-      pool.markFailure(worker.id);
-      const timedOut = String(controller.signal.reason ?? "").includes("timeout");
-      if (!res.headersSent) json(res, timedOut ? 504 : 502, { ok: false, reason: timedOut ? "timeout" : "unreachable", error: (error as Error).message });
-      return;
-    }
-
-    if (!upstream.ok || !upstream.body) {
-      clearTimeout(timer);
-      if (upstream.status >= 500) pool.markFailure(worker.id);
-      const detail = await upstream.text().catch(() => "");
-      res.statusCode = upstream.status;
-      res.setHeader("Content-Type", upstream.headers.get("content-type") ?? "application/json");
-      res.end(detail);
-      return;
-    }
-
-    pool.markSuccess(worker.id);
-    res.statusCode = 200;
-    for (const [name, value] of upstream.headers) {
-      if (name === "content-type" || name.startsWith("x-lelu-")) res.setHeader(name, value);
-    }
-    res.setHeader("Cache-Control", "no-store");
-    res.setHeader("X-Lelu-Worker", worker.id);
-    try {
-      const reader = upstream.body.getReader();
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (!res.write(value)) await new Promise((resolve) => res.once("drain", resolve));
-      }
-      res.end();
-    } catch (error) {
-      // Client closed (STOP): nothing more to send. Worker died or timed out
-      // mid-stream: DESTROY the response, so the caller sees a failed
-      // transfer instead of a short "successful" one (an empty 200 looked
-      // like speech that said nothing).
-      if (!res.writableEnded) res.destroy(error as Error);
-      if (!String(controller.signal.reason ?? "").includes("client closed")) pool.markFailure(worker.id);
-    } finally {
-      clearTimeout(timer);
-    }
+    const outcome = await relayWorkerSpeech({ pool, text, format, stream, res, fetchImpl: doFetch });
+    if (outcome === "no-ready-worker") json(res, 503, { ok: false, reason: "no-ready-worker", error: "no VoxCPM2 worker is READY", snapshot: pool.snapshot() });
   }
 
   return {

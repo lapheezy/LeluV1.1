@@ -1,0 +1,24 @@
+#!/bin/bash
+# ==========================================================
+# LÉLU deploy identity — SSH forced command (runs as lelu-deploy).
+# authorized_keys pins it:  restrict,command="/usr/local/lib/lelu-deploy/dispatch" ssh-ed25519 …
+# Whatever the client asks for arrives in SSH_ORIGINAL_COMMAND and is only
+# ever matched against this allow-list. No shell, no arguments, no files:
+# the one payload, the voice patch, is read from stdin with this user's own
+# privileges and capped at 1 MiB.
+# ==========================================================
+set -euo pipefail
+umask 077
+req=${SSH_ORIGINAL_COMMAND:-}
+case "$req" in
+  recon|apply)
+    incoming=/var/lib/lelu-deploy/incoming
+    tmp=$(mktemp "$incoming/.patch.XXXXXX")
+    head -c 1048577 > "$tmp"
+    [ "$(stat -c %s "$tmp")" -le 1048576 ] || { rm -f "$tmp"; echo "FAIL  payload larger than 1 MiB"; exit 2; }
+    mv -f "$tmp" "$incoming/voice-tts-moss.patch" ;;
+  accept|rollback|https-check|https-stage|https-issue|https-enable|https-rollback|https-rollback-all) ;;
+  *) echo "FAIL  action not allowed for the deploy identity"; logger -t lelu-deploy "refused: ${req:0:80}"; exit 2 ;;
+esac
+logger -t lelu-deploy "action: $req"
+exec sudo -n /usr/local/lib/lelu-deploy/run "$req"
