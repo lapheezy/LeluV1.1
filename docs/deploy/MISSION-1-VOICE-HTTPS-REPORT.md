@@ -190,34 +190,60 @@ and `workflow_dispatch` needs write access. The voice/HTTPS job now also refuses
 branches. That is defence in depth only: whoever can push a branch can edit its workflow, so **the deployment-branch
 restriction on the environment is the real control.**
 
-## Owner actions (in this order; never paste a key into chat)
+## Deployment access architecture (revised: no root key exists anywhere)
 
-1. **Protect the environment first.** GitHub → `lapheezy/LeluV1.1` → Settings → Environments → `contabo-production`:
-   - *Required reviewers*: add yourself. Leave "Prevent self-review" **off** if you are the only reviewer, or you
-     could never approve.
-   - *Deployment branches and tags* → "Selected branches and tags" → add
-     `integration/lelu-four-workforce-consolidation` and `claude/lelu-voice-https-production-lvv519`.
-2. **Confirm the host key in a trusted place.** In the Contabo VNC console (or an SSH session you already trust),
-   run `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`. It must print
-   `SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310`. If it doesn't, stop: something is in between.
-3. **Create a dedicated deploy key on your own computer** (not reused anywhere):
-   `ssh-keygen -t ed25519 -N "" -C lelu-github-deploy -f ~/lelu_github_deploy`
-   Then on the VPS, append the public half to `/root/.ssh/authorized_keys` with the `restrict` option. That keeps
-   exec and scp but disables port, agent and X11 forwarding and PTY:
-   `restrict ssh-ed25519 AAAA…(contents of lelu_github_deploy.pub)… lelu-github-deploy`
-   It needs root because the steps restart `lelu`, edit nginx, run certbot and read `/etc/lelu/lelu.env`. To revoke
-   it later, delete that one line.
-4. **Add the two environment secrets** (Settings → Environments → `contabo-production` → *Environment secrets* →
-   *Add secret*), or from your computer with the GitHub CLI so the key never leaves it:
-   - `gh secret set LELU_VPS_SSH_KEY --env contabo-production --repo lapheezy/LeluV1.1 < ~/lelu_github_deploy`
-   - `ssh-keyscan -t ed25519 157.173.116.95 > /tmp/kh && ssh-keygen -lf /tmp/kh` (must show the fingerprint
-     from step 2), then `gh secret set LELU_VPS_KNOWN_HOSTS --env contabo-production --repo lapheezy/LeluV1.1 < /tmp/kh`
-5. **Tell the session it is done.** The next run is then `recon` (read-only), and each later step waits for your
-   approval in the Actions tab.
+| Layer | Control | Rehearsed (real sshd + sudo in a container) |
+|---|---|---|
+| SSH key | `lelu-deploy` user, password locked; key line `restrict,command="/usr/local/lib/lelu-deploy/dispatch"` in a **root-owned** `authorized_keys` | shell, `recon; id`, empty command, `cat /etc/lelu/lelu.env` → "action not allowed"; scp → fails; PTY → "PTY allocation request failed"; `-L` tunnel → "administratively prohibited" |
+| Dispatcher | allow-list of 10 action words; no arguments; only payload = patch on stdin, ≤ 1 MiB | — |
+| sudo | `/etc/sudoers.d/lelu-deploy`: exactly `run <action>` ×10, visudo-checked | `sudo /bin/true` refused; `run "recon; id"` refused |
+| Root code | `run`, `voice-tts-moss.sh`, `https-ip.sh` installed root-owned by the owner from a reviewed commit, **sha256-pinned in setup.sh**; GitHub can't change them | user can't write them; pins checked at install |
+| Payload | patch read with lelu-deploy's own privileges (no symlink reads as root); rejected if it names any file but `plugins/voiceApi.ts`, `plugins/voxApi.ts`, `tests/voice-tts-speech-worker.test.ts` | patch adding `server.ts` → "patch touches server.ts, which is outside the allowed files", nothing changed |
+| Secrets on VPS | lelu-deploy can't read `/etc/lelu/lelu.env` or its own reports (`/var/log/lelu-deploy`, root 0700) | verified |
+| Public logs | DETAIL lines stay in the VPS report; only PASS/FAIL/INFO cross SSH | 0 DETAIL lines over SSH, 25 kept on the VPS |
+| GitHub | deploys only from `integration/lelu-four-workforce-consolidation`; a secret-free `protection-probe` job from `claude/**` must be **refused** by the environment | baseline run below |
+| Revocation | `setup.sh --remove` | key refused immediately afterwards; reports and rollback material kept |
+
+The full flow ran over SSH through this identity: `recon` → `apply` (verified backup; only allowed files; 200 WAV
+`pcm_s16le 48000 Hz`; 200 PCM stream `X-Lelu-Sample-Rate: 48000`; served build unchanged) → `accept` → `rollback`
+(tree byte-identical) → `https-check`.
+
+The `contabo-provider-env` workflow still targets `root@`. With no root key installed it cannot run, and that is
+intended. Giving it a pinned `provider-env` action is separate work.
+
+## Owner actions (in this order; never paste a private key into chat)
+
+1. **Protect the environment.** GitHub → `lapheezy/LeluV1.1` → Settings → Environments → `contabo-production`:
+   - *Required reviewers*: yourself. Leave "Prevent self-review" off if you are the only reviewer.
+   - *Deployment branches and tags* → "Selected branches and tags" → **only** `integration/lelu-four-workforce-consolidation`.
+   - Also protect that branch (Settings → Branches → rule for it: require a pull request before merging). Otherwise
+     anyone with push access could change the workflow on the one branch the environment trusts.
+2. **Verify the host key in the Contabo console** (VNC, not over SSH): `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`
+   must print `SHA256:xtGl0A4EeV4vKuYFpqQXx/MctJWnG/vVEcgfh7yu310`. If not, stop.
+3. **Create the deploy key on your own computer:** `ssh-keygen -t ed25519 -N "" -C lelu-github-deploy -f ~/lelu_github_deploy`.
+   Copy **only** `~/lelu_github_deploy.pub` to the VPS as `/root/lelu_github_deploy.pub`.
+4. **Install the identity on the VPS as root** (your existing access), pinned to the reviewed commit `<C>` given in
+   the session reply:
+   ```
+   curl -fsSL https://raw.githubusercontent.com/lapheezy/LeluV1.1/<C>/deploy/contabo/deploy-identity/setup.sh -o /root/lelu-deploy-setup.sh
+   sha256sum /root/lelu-deploy-setup.sh          # must equal the hash given with <C>
+   bash /root/lelu-deploy-setup.sh <C> /root/lelu_github_deploy.pub
+   ```
+   It must end with every self-test PASS. Its step 1 prints the `LELU_VPS_KNOWN_HOSTS` line (public).
+5. **Add the environment secrets from your computer**, so the key never leaves it:
+   `gh secret set LELU_VPS_SSH_KEY --env contabo-production --repo lapheezy/LeluV1.1 < ~/lelu_github_deploy`, then
+   `gh secret set LELU_VPS_KNOWN_HOSTS --env contabo-production --repo lapheezy/LeluV1.1` and paste the line from
+   step 4. That line is a public key, not a secret value from chat.
+6. **Merge this branch into the integration branch through a reviewed PR**, because deploys run only from there.
+7. Tell the session. It then **verifies the protections before anything else**:
+   - the protection probe from this branch must be refused;
+   - a request on the integration branch must wait for your approval.
+
+   Only then is read-only `recon` requested.
 
 ## What then runs, and what still needs a person
 
-`recon` (also checks that the patch fits `a7503839` and lists production-only commits) → `apply` (verified
+`recon` (also checks that the patch fits `a7503839`, only allowed files, and lists production-only commits) → `apply` (verified
 backup, patch, restart `lelu` only, must return playable 48 kHz audio or it rolls back) → `accept` →
 `https-check` → `https-stage` (ACME challenge + Let's Encrypt dry run) → `https-issue` → `https-enable` (reverts
 unless TLS verifies from the public route) → `accept`.
