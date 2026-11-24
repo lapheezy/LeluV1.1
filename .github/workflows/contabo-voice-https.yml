@@ -1,0 +1,106 @@
+# LÉLU — voice (MOSS behind /api/voice/tts) and HTTPS on the Contabo VPS,
+# from a GitHub-hosted runner (cloud sessions cannot open SSH).
+#
+# It only ships and runs two reviewed scripts plus one reviewed patch:
+#   deploy/contabo/voice-tts-moss.sh       recon | apply <patch> | accept | rollback
+#   deploy/contabo/https-ip.sh             check | stage | issue | enable | rollback [all]
+#   deploy/contabo/patches/voice-tts-moss.patch
+# Production runs a commit that is not on GitHub, so nothing here moves the
+# VPS checkout: `apply` patches the files in place, restarts `lelu` only,
+# and rolls itself back if the app does not speak afterwards.
+#
+# Triggers (both run in the protected `contabo-production` environment, so its
+# required reviewers approve every run before any secret is read):
+#   • workflow_dispatch — once this file is on the default branch;
+#   • a push that changes deploy/contabo/voice-https-request.json, e.g.
+#       { "action": "recon", "reason": "..." }
+#
+# The repository is public, so its Actions logs are too. The scripts print
+# names, states, HTTP codes and timings only; lines that map the host
+# (firewall, listeners, nginx internals, env names) are tagged DETAIL and are
+# kept in /root/lelu-mission/reports/ (root, 0600) on the VPS, never here.
+#
+# Secrets (contabo-production): LELU_VPS_SSH_KEY, LELU_VPS_KNOWN_HOSTS — the
+# same two the provider-env workflow uses. No provider key is read here.
+name: Contabo voice and HTTPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "What to run on the VPS"
+        type: choice
+        default: recon
+        options: [recon, accept, apply, rollback, https-check, https-stage, https-issue, https-enable, https-rollback, https-rollback-all]
+  push:
+    branches: [integration/lelu-four-workforce-consolidation, claude/lelu-voice-https-production-lvv519]
+    paths: [deploy/contabo/voice-https-request.json]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contabo-production-ops
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    environment: contabo-production
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Which action (allow-listed)
+        id: act
+        run: |
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then a="${{ inputs.action }}"
+          else a=$(jq -r '.action // "recon"' deploy/contabo/voice-https-request.json); fi
+          case "$a" in
+            recon|accept|rollback) cmd="voice-tts-moss.sh $a";;
+            apply)                 cmd="voice-tts-moss.sh apply PATCH";;
+            https-check|https-stage|https-issue|https-enable|https-rollback) cmd="https-ip.sh ${a#https-}";;
+            https-rollback-all)    cmd="https-ip.sh rollback all";;
+            *) echo "::error::unknown action '$a'"; exit 1;;
+          esac
+          echo "action=$a" >> "$GITHUB_OUTPUT"; echo "cmd=$cmd" >> "$GITHUB_OUTPUT"
+          echo "action: $a   patch sha256: $(sha256sum deploy/contabo/patches/voice-tts-moss.patch | cut -c1-16)"
+
+      - name: SSH identity (key auth, pinned host key)
+        env:
+          SSH_KEY: ${{ secrets.LELU_VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LELU_VPS_KNOWN_HOSTS }}
+        run: |
+          [ -n "$SSH_KEY" ] || { echo "::error::secret LELU_VPS_SSH_KEY is missing in environment contabo-production"; exit 1; }
+          [ -n "$KNOWN_HOSTS" ] || { echo "::error::secret LELU_VPS_KNOWN_HOSTS is missing in environment contabo-production"; exit 1; }
+          install -d -m 700 ~/.ssh
+          ( umask 077; printf '%s\n' "$SSH_KEY" > ~/.ssh/id_lelu; printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts )
+          cat > ~/.ssh/config <<'EOF'
+          Host *
+            IdentityFile ~/.ssh/id_lelu
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ServerAliveInterval 20
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh-keygen -lf ~/.ssh/known_hosts | awk '{print "pinned host key:", $2, $NF}'
+
+      - name: Run on the VPS
+        env:
+          LELU_VPS: ${{ vars.LELU_VPS || 'root@157.173.116.95' }}
+          CMD: ${{ steps.act.outputs.cmd }}
+          ACTION: ${{ steps.act.outputs.action }}
+        run: |
+          set -o pipefail
+          dir=/root/lelu-mission/${GITHUB_SHA::12}
+          ssh "$LELU_VPS" "umask 077; mkdir -p $dir /root/lelu-mission/reports"
+          scp -q deploy/contabo/voice-tts-moss.sh deploy/contabo/https-ip.sh deploy/contabo/patches/voice-tts-moss.patch "$LELU_VPS:$dir/"
+          remote_cmd="bash $dir/${CMD/PATCH/$dir/voice-tts-moss.patch}"
+          report="/root/lelu-mission/reports/$(date -u +%Y%m%dT%H%M%SZ)-$ACTION.txt"
+          # DETAIL lines stay in the root-only report on the VPS.
+          ssh "$LELU_VPS" "umask 077; $remote_cmd 2>&1 | tee $report | grep -v '^DETAIL'; s=\${PIPESTATUS[0]}; echo \"INFO  full report on the VPS: $report\"; exit \$s"
+
+      - name: Forget the key
+        if: always()
+        run: rm -f ~/.ssh/id_lelu
