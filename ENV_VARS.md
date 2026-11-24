@@ -426,19 +426,30 @@ Browser/UI → AIService → cognition/router → ProviderResolver
 
 ### Where the server reads them
 
-`plugins/modelApi.ts` resolves each provider's credential from the server
-process environment, first match wins:
+One contract decides this for every consumer — the server broker
+(`plugins/modelApi.ts`), the key ring, the providers, voice transcription,
+`Environment.ts`, `ConfigStatus.ts` and `/api/env-check`:
+`src/core/model/ProviderCredentials.ts`. First usable match wins; numbered
+slots and lists add further keys for rotation.
 
-| Provider | Environment names (in order) |
-| --- | --- |
-| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `LELU_ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
-| `groq` | `VITE_GROQ_API_KEY`, `GROQ_API_KEY` |
-| `openrouter` | `VITE_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`, `OPEN_ROUTER_API_KEY` |
-| `cerebras` | `VITE_CEREBRAS_API_KEY`, `CEREBRAS_API_KEY` |
-| `mistral` | `VITE_MISTRAL_API_KEY`, `MISTRAL_API_KEY` |
-| `fireworks` | `VITE_FIREWORKS_API_KEY`, `FIREWORKS_API_KEY` |
-| `gemini` | `VITE_GEMINI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY` |
-| `githubModels` | `VITE_GITHUB_TOKEN`, `GITHUB_MODELS_TOKEN` |
+| Provider | Canonical (set this) | Also accepted, in order | Never adopted |
+| --- | --- | --- | --- |
+| `groq` | `GROQ_API_KEY` | `VITE_GROQ_API_KEY` (legacy, first), `GROQ_API_KEY_1`…`_4`, lists `GROQ_API_KEYS`, `GROQ_KEYS` | — |
+| `openrouter` | `OPENROUTER_API_KEY` | `VITE_OPENROUTER_API_KEY` (legacy, first), `OPEN_ROUTER_API_KEY`, `OPENROUTER_API_KEY_1`…`_4`, list `OPENROUTER_API_KEYS` | — |
+| `cerebras` | `CEREBRAS_API_KEY` | `VITE_CEREBRAS_API_KEY` (legacy, first) | — |
+| `fireworks` | `FIREWORKS_API_KEY` | `VITE_FIREWORKS_API_KEY` (legacy, first) | — |
+| `mistral` | `MISTRAL_API_KEY` | `VITE_MISTRAL_API_KEY` (legacy, first) | — |
+| `gemini` | `GEMINI_API_KEY` | `VITE_GEMINI_API_KEY` (legacy, first), `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_API_KEY` (generic Google key: last) | — |
+| `githubModels` | `GITHUB_MODELS_TOKEN` | `VITE_GITHUB_TOKEN` (legacy, first) | `GITHUB_TOKEN`, `GITHUB_CODESPACE_TOKEN` (ambient CI tokens) |
+| `anthropic` (opt-in, `LELU_ENABLE_ANTHROPIC=true`) | `ANTHROPIC_API_KEY` | `VITE_ANTHROPIC_API_KEY`, `LELU_ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` | — |
+
+A value is **invalid** — reported as such and never sent — when it holds
+whitespace, is shorter than 8 characters, is a template value
+(`your-key-here`, `<key>`, `changeme`, `${...}`), or carries another
+provider's key prefix (`gsk_`, `sk-or-`, `csk-`, `AIza`, `sk-ant-`).
+`/api/env-check` → `providers` shows each provider's state
+(`configured` / `missing` / `invalid`), the name its key came from, and why
+any present value was rejected — names and counts only.
 
 The `VITE_` names are accepted for continuity with the previous
 configuration — but they are no longer injected into the bundle, so a

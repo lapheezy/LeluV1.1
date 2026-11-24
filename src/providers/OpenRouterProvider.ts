@@ -31,6 +31,7 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { primaryCredential } from "../core/model/ProviderCredentials";
 
 /** Free, image-capable on OpenRouter at the time of writing (see selectModel). */
 export const DEFAULT_VISION_MODEL = "google/gemma-4-31b-it:free";
@@ -134,7 +135,7 @@ export default class OpenRouterProvider implements AIProvider {
 
   async initialize(): Promise<void> {
     this.apiKey =
-      resolveFirst("OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY") ?? "";
+      primaryCredential("openrouter");
     this.model =
       resolveModel("openrouter");
 
@@ -203,10 +204,11 @@ export default class OpenRouterProvider implements AIProvider {
             // Brokered: no credential leaves the browser — the server attaches
             // its own. Direct (server/tests): the real header.
             ...authHeaders("openrouter", key, (value) => ({ Authorization: `Bearer ${value}` })),
+            // `window` can exist without `location` in Node runtimes that shim
+            // it for storage (scripts/verify-provider-health.ts does); reading
+            // .origin off undefined there failed every OpenRouter request.
             "HTTP-Referer":
-              typeof window !== "undefined"
-                ? window.location.origin
-                : "https://freebuff.com",
+              (typeof window !== "undefined" && window.location?.origin) || "https://freebuff.com",
             "X-Title": "Lélu",
           },
           body: JSON.stringify(payload),

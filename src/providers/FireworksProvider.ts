@@ -33,7 +33,7 @@ import {
 } from "./openaiTools";
 import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
-import { resolveFirst } from "../core/resolveEnv";
+import { primaryCredential } from "../core/model/ProviderCredentials";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -76,7 +76,7 @@ export default class FireworksProvider implements AIProvider {
 
   async initialize(): Promise<void> {
     this.apiKey =
-      resolveFirst("FIREWORKS_API_KEY") ?? "";
+      primaryCredential("fireworks");
     this.model =
       resolveModel("fireworks");
     this.codingModel =

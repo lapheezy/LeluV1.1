@@ -18,6 +18,13 @@
 import { bridgeReport } from "./runtimeKeyBridge.ts";
 import { endpoint, endpointUrl, endpointDiagnostics } from "../src/core/Endpoints.ts";
 import { defaultModel, type ProviderModelId } from "../src/core/ProviderModels.ts";
+import {
+  AUTHORIZED_CHAT_PROVIDERS,
+  credentialReport,
+  describeCredentialState,
+  resolveProviderCredentials,
+  type CredentialProviderId,
+} from "../src/core/model/ProviderCredentials.ts";
 
 type EnvReader = (key: string) => string | undefined;
 
@@ -110,6 +117,73 @@ function probeModel(env: EnvReader, id: ProviderModelId, ...names: string[]): st
   return defaultModel(id);
 }
 
+/** Anthropic is opt-in: the same rule the broker and ProviderPolicy apply. */
+const POLICY_TRUE = new Set(["1", "true", "yes", "on"]);
+function anthropicAllowed(env: EnvReader): boolean {
+  const raw = env("LELU_ENABLE_ANTHROPIC") ?? env("VITE_LELU_ENABLE_ANTHROPIC");
+  return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
+}
+
+/** Presence of a provider credential, judged by the canonical contract. */
+function credentialPresence(env: EnvReader, id: CredentialProviderId): string {
+  const state = resolveProviderCredentials(id, env).state;
+  return state === "configured" ? "SET" : state === "invalid" ? "INVALID" : "MISSING";
+}
+
+/**
+ * Every chat provider's credential as the canonical contract sees it: state,
+ * the name it came from, how many keys, what was rejected and why. Names and
+ * counts only — this object is built without ever holding a key.
+ */
+function providerCredentialReports(env: EnvReader): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const id of [...AUTHORIZED_CHAT_PROVIDERS, "githubModels", "anthropic"] as CredentialProviderId[]) {
+    const report = credentialReport(id, env);
+    out[id] = {
+      ...report,
+      diagnosis: describeCredentialState(report),
+      ...(id === "anthropic" ? { enabledByPolicy: anthropicAllowed(env) } : {}),
+    };
+  }
+  return out;
+}
+
+/**
+ * Model discovery: list the provider's models with the server's credential.
+ *
+ * A GET on the models endpoint authenticates the key and proves the
+ * configured model exists, without generating a token — it costs nothing,
+ * which is why it is the check for the providers that had no probe at all.
+ */
+async function probeModels(
+  id: "groq" | "cerebras" | "mistral" | "fireworks" | "gemini",
+  key: string,
+  model: string,
+): Promise<Record<string, unknown>> {
+  const gemini = id === "gemini";
+  const url = gemini ? endpointUrl("gemini", "v1beta/models?pageSize=1000") : endpointUrl(id, "models");
+  const headers: Record<string, string> = gemini ? { "x-goog-api-key": key } : { Authorization: `Bearer ${key}` };
+  try {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+    const text = await res.text();
+    if (!res.ok) return { check: "models", status: res.status, ok: false, response: text.slice(0, 200) };
+    const body = JSON.parse(text) as { data?: Array<{ id?: string }>; models?: Array<{ name?: string }> };
+    const ids = gemini
+      ? (body.models ?? []).map((entry) => String(entry.name ?? "").replace(/^models\//, ""))
+      : (body.data ?? []).map((entry) => String(entry.id ?? ""));
+    return {
+      check: "models",
+      status: res.status,
+      ok: true,
+      modelCount: ids.length,
+      configuredModel: model,
+      configuredModelListed: ids.includes(model),
+    };
+  } catch (error) {
+    return { check: "models", status: "error", ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtras = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
@@ -137,13 +211,16 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           endpoints: endpointDiagnostics()
             .filter((e) => e.overridden)
             .map((e) => ({ id: e.id, url: e.url })),
-          VITE_GROQ_API_KEY: presence(env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY")),
-          VITE_OPENROUTER_API_KEY: presence(
-            env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY"),
-          ),
-          VITE_ANTHROPIC_API_KEY: presence(
-            env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("LELU_ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY"),
-          ),
+          // The canonical credential contract's view of every chat provider
+          // (src/core/model/ProviderCredentials.ts): configured / missing /
+          // invalid, the name a key came from, and why a present value was
+          // rejected. Names and counts only.
+          providers: providerCredentialReports(env),
+          // Legacy fields, kept for existing readers, now judged by the same
+          // contract (SET / INVALID / MISSING — no lengths).
+          VITE_GROQ_API_KEY: credentialPresence(env, "groq"),
+          VITE_OPENROUTER_API_KEY: credentialPresence(env, "openrouter"),
+          VITE_ANTHROPIC_API_KEY: credentialPresence(env, "anthropic"),
           // Supabase needs BOTH halves, and neither was reported here at
           // all — so a project with a key and no URL looked fine from
           // this endpoint while being unable to connect.
@@ -174,100 +251,126 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
       void (async () => {
         const results: Record<string, unknown> = {};
-        const groqKey = env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY") || "";
-        const openrouterKey = env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY") || "";
-        const anthropicKey =
-          env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("LELU_ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY") || "";
+        // Keys from the canonical contract — the same first credential the
+        // broker would attach — so a health answer describes the real path.
+        const keyFor = (id: CredentialProviderId) => resolveProviderCredentials(id, env).credentials[0]?.key ?? "";
 
-        if (groqKey) {
-          try {
-            const groqRes = await fetch(endpointUrl("groq", "chat/completions"), {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${groqKey}`,
-              },
-              body: JSON.stringify({
-                model: probeModel(env, "groq", "GROQ_MODEL"),
-                messages: [{ role: "user", content: "Say OK" }],
-                max_tokens: 5,
-              }),
-              signal: AbortSignal.timeout(15000),
-            });
-            const body = await groqRes.text();
-            results.groq = {
-              status: groqRes.status,
-              ok: groqRes.ok,
-              response: groqRes.ok ? "OK" : body.slice(0, 200),
-            };
-          } catch (error) {
-            results.groq = { status: "error", error: error instanceof Error ? error.message : String(error) };
+        // Groq and OpenRouter keep their chat probe, but now try each
+        // configured key in order, as the broker does. Probing only the first
+        // key reported OpenRouter failing (that key's daily free quota spent,
+        // 429) while the broker rotated to the next key and answered — a
+        // false negative. Stops at the first key that answers; never logs one.
+        const chatProbe = async (
+          id: "groq" | "openrouter",
+          extraHeaders: Record<string, string>,
+          model: string,
+        ): Promise<Record<string, unknown>> => {
+          const resolution = resolveProviderCredentials(id, env);
+          if (resolution.credentials.length === 0) {
+            return { status: resolution.state === "invalid" ? "invalid-key" : "missing-key", ok: false };
           }
+          const attempts: Array<{ key: string; status: number | string }> = [];
+          for (const credential of resolution.credentials) {
+            try {
+              const res = await fetch(endpointUrl(id, "chat/completions"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${credential.key}`, ...extraHeaders },
+                body: JSON.stringify({ model, messages: [{ role: "user", content: "Say OK" }], max_tokens: 5 }),
+                signal: AbortSignal.timeout(15000),
+              });
+              const body = await res.text();
+              attempts.push({ key: credential.label, status: res.status });
+              if (res.ok) return { status: res.status, ok: true, response: "OK", answeredWith: credential.label, attempts };
+              if (credential === resolution.credentials[resolution.credentials.length - 1]) {
+                return { status: res.status, ok: false, response: body.slice(0, 200), attempts };
+              }
+            } catch (error) {
+              attempts.push({ key: credential.label, status: "error" });
+              if (credential === resolution.credentials[resolution.credentials.length - 1]) {
+                return { status: "error", ok: false, error: error instanceof Error ? error.message : String(error), attempts };
+              }
+            }
+          }
+          return { status: "error", ok: false, attempts };
+        };
+
+        results.groq = await chatProbe("groq", {}, probeModel(env, "groq", "GROQ_MODEL"));
+        results.openrouter = await chatProbe(
+          "openrouter",
+          { "HTTP-Referer": "https://freebuff.com", "X-Title": "Lélu" },
+          probeModel(env, "openrouter", "OPENROUTER_MODEL"),
+        );
+
+        // ANTHROPIC IS NOT PROBED unless the operator opted in. This probe
+        // used to send a live Anthropic request whenever any Anthropic key
+        // was present, ignoring LELU_ENABLE_ANTHROPIC — the one Anthropic
+        // request path that bypassed the policy the broker and the provider
+        // both enforce. Its key is not even resolved here when the policy is off.
+        if (!anthropicAllowed(env)) {
+          results.anthropic = {
+            status: "disabled-by-policy",
+            ok: false,
+            credential: resolveProviderCredentials("anthropic", env).state,
+          };
         } else {
-          results.groq = { status: "missing-key" };
+          const anthropicKey = keyFor("anthropic");
+          if (anthropicKey) {
+            try {
+              const anthropicRes = await fetch(endpointUrl("anthropic", "messages"), {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-api-key": anthropicKey,
+                  "anthropic-version": "2023-06-01",
+                },
+                body: JSON.stringify({
+                  model: probeModel(env, "anthropic", "ANTHROPIC_MODEL"),
+                  max_tokens: 5,
+                  messages: [{ role: "user", content: "Say OK" }],
+                }),
+                signal: AbortSignal.timeout(15000),
+              });
+              const body = await anthropicRes.text();
+              results.anthropic = {
+                status: anthropicRes.status,
+                ok: anthropicRes.ok,
+                response: anthropicRes.ok ? "OK" : body.slice(0, 200),
+              };
+            } catch (error) {
+              results.anthropic = {
+                status: "error",
+                error: error instanceof Error ? error.message : String(error),
+              };
+            }
+          } else {
+            results.anthropic = { status: "missing-key" };
+          }
         }
 
-        if (openrouterKey) {
-          try {
-            const orRes = await fetch(endpointUrl("openrouter", "chat/completions"), {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${openrouterKey}`,
-                "HTTP-Referer": "https://freebuff.com",
-                "X-Title": "Lélu",
-              },
-              body: JSON.stringify({
-                model: probeModel(env, "openrouter", "OPENROUTER_MODEL"),
-                messages: [{ role: "user", content: "Say OK" }],
-                max_tokens: 5,
-              }),
-              signal: AbortSignal.timeout(15000),
-            });
-            const body = await orRes.text();
-            results.openrouter = {
-              status: orRes.status,
-              ok: orRes.ok,
-              response: orRes.ok ? "OK" : body.slice(0, 200),
-            };
-          } catch (error) {
-            results.openrouter = { status: "error", error: error instanceof Error ? error.message : String(error) };
-          }
-        } else {
-          results.openrouter = { status: "missing-key" };
-        }
-
-        if (anthropicKey) {
-          try {
-            const anthropicRes = await fetch(endpointUrl("anthropic", "messages"), {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-api-key": anthropicKey,
-                "anthropic-version": "2023-06-01",
-              },
-              body: JSON.stringify({
-                model: probeModel(env, "anthropic", "ANTHROPIC_MODEL"),
-                max_tokens: 5,
-                messages: [{ role: "user", content: "Say OK" }],
-              }),
-              signal: AbortSignal.timeout(15000),
-            });
-            const body = await anthropicRes.text();
-            results.anthropic = {
-              status: anthropicRes.status,
-              ok: anthropicRes.ok,
-              response: anthropicRes.ok ? "OK" : body.slice(0, 200),
-            };
-          } catch (error) {
-            results.anthropic = {
-              status: "error",
-              error: error instanceof Error ? error.message : String(error),
-            };
-          }
-        } else {
-          results.anthropic = { status: "missing-key" };
-        }
+        // Cerebras, Mistral, Fireworks and Gemini had no health check at all:
+        // a key existing was the only evidence. Model discovery authenticates
+        // the key and confirms the configured model, at no token cost.
+        const discovery: Array<["cerebras" | "mistral" | "fireworks" | "gemini", ProviderModelId, string]> = [
+          ["cerebras", "cerebras", "CEREBRAS_MODEL"],
+          ["mistral", "mistral", "MISTRAL_MODEL"],
+          ["fireworks", "fireworks", "FIREWORKS_MODEL"],
+          ["gemini", "gemini", "GEMINI_MODEL"],
+        ];
+        await Promise.all(
+          discovery.map(async ([id, modelId, modelName]) => {
+            const resolution = resolveProviderCredentials(id, env);
+            const key = resolution.credentials[0]?.key;
+            if (!key) {
+              results[id] = {
+                status: resolution.state === "invalid" ? "invalid-key" : "missing-key",
+                ok: false,
+                diagnosis: describeCredentialState(credentialReport(id, env)),
+              };
+              return;
+            }
+            results[id] = { source: resolution.source, ...(await probeModels(id, key, probeModel(env, modelId, modelName))) };
+          }),
+        );
 
         // FIRMS — live probe with the configured key (count only, never the key).
         const firms = await probeFirms(env("VITE_FIRMS_API_KEY"));

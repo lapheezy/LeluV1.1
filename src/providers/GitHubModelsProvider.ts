@@ -28,7 +28,8 @@ import type {
   AIProviderHealth,
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
-import { resolveFirst, resolveViteOnly } from "../core/resolveEnv";
+import { resolveFirst } from "../core/resolveEnv";
+import { primaryCredential } from "../core/model/ProviderCredentials";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -62,10 +63,10 @@ export default class GitHubModelsProvider implements AIProvider {
     // whenever LÉLU happened to run inside such an environment, with
     // no key ever actually configured for it. Only the two explicit,
     // documented configuration channels count (see ENV_VARS.md).
-    // resolveViteOnly walks the same two documented channels and, unlike
-    // the chain it replaces, does not throw when import.meta.env is
-    // undefined — which it is in every non-Vite runtime.
-    this.apiKey = resolveViteOnly("GITHUB_TOKEN") ?? "";
+    // The canonical contract (ProviderCredentials.ts) holds exactly those
+    // names — VITE_GITHUB_TOKEN and GITHUB_MODELS_TOKEN, the same two the
+    // server broker reads — and lists GITHUB_TOKEN as refused.
+    this.apiKey = primaryCredential("githubModels");
     this.model =
       resolveModel("githubModels");
 

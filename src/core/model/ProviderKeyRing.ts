@@ -26,6 +26,7 @@
  * ==========================================================
  */
 
+import { CREDENTIAL_SPECS, resolveProviderCredentials, type CredentialProviderId } from "./ProviderCredentials";
 import { resolveFirst } from "../resolveEnv";
 import { classifyProviderFailure, retryAfterMsFrom, type ProviderFailureKind } from "../AIProviderRegistry";
 
@@ -36,33 +37,12 @@ const QUOTA_COOLDOWN_MS = 15 * 60_000;
 const TRANSIENT_COOLDOWN_MS = 30_000;
 
 /**
- * The environment names a provider's credentials can come from.
- *
- * The base name is first so an existing single-key deployment keeps working
- * unchanged; numbered slots are additive. `*_KEYS` is accepted as a
- * comma-separated list because that is how people usually keep several keys.
+ * The environment names a provider's credentials can come from are no longer
+ * listed here: they are the canonical contract in ProviderCredentials.ts, which
+ * the server broker also reads. Two lists drifted — this ring accepted
+ * GROQ_API_KEYS while the broker (the path every browser request takes)
+ * ignored it — so there is now one.
  */
-const SLOT_NAMES: Record<string, string[]> = {
-  groq: [
-    "GROQ_API_KEY",
-    "GROQ_API_KEY_1",
-    "GROQ_API_KEY_2",
-    "GROQ_API_KEY_3",
-    "GROQ_API_KEY_4",
-  ],
-  openrouter: [
-    "OPENROUTER_API_KEY",
-    "OPENROUTER_API_KEY_1",
-    "OPENROUTER_API_KEY_2",
-    "OPENROUTER_API_KEY_3",
-    "OPENROUTER_API_KEY_4",
-  ],
-};
-
-const LIST_NAMES: Record<string, string[]> = {
-  groq: ["GROQ_API_KEYS", "GROQ_KEYS"],
-  openrouter: ["OPENROUTER_API_KEYS"],
-};
 
 export interface RingCredential {
   /** The position the operator configured, for reporting. Never a secret. */
@@ -152,29 +132,12 @@ export default class ProviderKeyRing {
   }
 
   static readEnvironment(provider: string): RingCredential[] {
-    const credentials: RingCredential[] = [];
-    const seen = new Set<string>();
-    const add = (label: string, value: string | undefined) => {
-      const key = (value ?? "").trim();
-      if (key.length < 8) return;
-      // The same key configured twice is ONE key: counting it twice would cool
-      // one slot and immediately hand out the identical credential.
-      if (seen.has(key)) return;
-      seen.add(key);
-      credentials.push({ label, key });
-    };
-    for (const name of SLOT_NAMES[provider] ?? [`${provider.toUpperCase()}_API_KEY`]) {
-      add(name, resolveFirst(name));
+    if (provider in CREDENTIAL_SPECS) {
+      return resolveProviderCredentials(provider as CredentialProviderId).credentials.map(({ label, key }) => ({ label, key }));
     }
-    for (const name of LIST_NAMES[provider] ?? []) {
-      const list = resolveFirst(name);
-      if (!list) continue;
-      list
-        .split(/[,\s]+/)
-        .filter(Boolean)
-        .forEach((value, index) => add(`${name}[${index + 1}]`, value));
-    }
-    return credentials;
+    // A provider outside the contract keeps the old single-name lookup.
+    const key = (resolveFirst(`${provider.toUpperCase()}_API_KEY`) ?? "").trim();
+    return key.length >= 8 && !/\s/.test(key) ? [{ label: `${provider.toUpperCase()}_API_KEY`, key }] : [];
   }
 
   /** How many credentials are configured, cooling or not. */

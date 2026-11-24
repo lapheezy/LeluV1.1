@@ -27,6 +27,12 @@
 
 import { resolveEnvValue } from "../resolveEnv";
 import { endpoint } from "../Endpoints";
+import {
+  CREDENTIAL_SPECS,
+  credentialNames,
+  resolveProviderCredentials,
+  type CredentialProviderId,
+} from "../model/ProviderCredentials";
 
 /** One capability, and whether its configuration is complete. */
 export interface ConfigCapability {
@@ -73,6 +79,30 @@ interface Definition {
 }
 
 /**
+ * A chat provider's credential part, judged by the canonical contract: the
+ * same names the server broker reads, and a value only counts when it is
+ * usable (a placeholder or another provider's key does not).
+ */
+function chatProvider(id: string, provider: CredentialProviderId, purpose: string): Definition {
+  return {
+    id,
+    purpose,
+    parts: [
+      {
+        label: provider === "githubModels" ? "token" : "API key",
+        // Canonical name first: `missing` reports names[0], and that should
+        // be the server-side name to set, not a legacy VITE_ alias.
+        names: [
+          CREDENTIAL_SPECS[provider].canonical,
+          ...credentialNames(provider).filter((name) => name !== CREDENTIAL_SPECS[provider].canonical),
+        ],
+        resolver: () => resolveProviderCredentials(provider).state === "configured",
+      },
+    ],
+  };
+}
+
+/**
  * What LÉLU can be configured with.
  *
  * Providers are listed individually because the fallback chain treats
@@ -80,43 +110,17 @@ interface Definition {
  * same as knowing which one will answer.
  */
 const DEFINITIONS: Definition[] = [
-  {
-    id: "provider.groq",
-    purpose: "Chat/reasoning provider (priority 1 in the fallback chain)",
-    parts: [{ label: "API key", names: ["VITE_GROQ_API_KEY", "GROQ_API_KEY"] }],
-  },
-  {
-    id: "provider.openrouter",
-    purpose: "Chat/reasoning provider (fallback)",
-    parts: [{ label: "API key", names: ["VITE_OPENROUTER_API_KEY", "OPENROUTER_API_KEY"] }],
-  },
-  {
-    id: "provider.cerebras",
-    purpose: "Chat/reasoning provider (fallback)",
-    parts: [{ label: "API key", names: ["VITE_CEREBRAS_API_KEY", "CEREBRAS_API_KEY"] }],
-  },
-  {
-    id: "provider.mistral",
-    purpose: "Chat/reasoning provider (fallback)",
-    parts: [{ label: "API key", names: ["VITE_MISTRAL_API_KEY", "MISTRAL_API_KEY"] }],
-  },
-  {
-    id: "provider.fireworks",
-    purpose: "Chat/reasoning provider (fallback)",
-    parts: [{ label: "API key", names: ["VITE_FIREWORKS_API_KEY", "FIREWORKS_API_KEY"] }],
-  },
-  {
-    id: "provider.anthropic",
-    purpose: "Chat/reasoning provider with native tool use",
-    parts: [
-      { label: "API key", names: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"] },
-    ],
-  },
-  {
-    id: "provider.github-models",
-    purpose: "Chat provider proxied through /api/ai, and GitHub repository access",
-    parts: [{ label: "token", names: ["VITE_GITHUB_TOKEN", "GITHUB_TOKEN"] }],
-  },
+  chatProvider("provider.groq", "groq", "Chat/reasoning provider (priority 1 in the fallback chain), and voice transcription"),
+  chatProvider("provider.openrouter", "openrouter", "Chat/reasoning provider (fallback)"),
+  chatProvider("provider.cerebras", "cerebras", "Chat/reasoning provider (fallback)"),
+  chatProvider("provider.mistral", "mistral", "Chat/reasoning provider (fallback)"),
+  chatProvider("provider.fireworks", "fireworks", "Chat/reasoning provider (fallback)"),
+  chatProvider("provider.gemini", "gemini", "Chat/reasoning provider (fallback)"),
+  chatProvider("provider.anthropic", "anthropic", "Chat/reasoning provider with native tool use (opt-in: LELU_ENABLE_ANTHROPIC)"),
+  // GITHUB_TOKEN used to count here. It is the ambient git token CI and
+  // Codespaces set, which the provider and the broker both refuse, so this
+  // said "configured" for a provider that had no credential.
+  chatProvider("provider.github-models", "githubModels", "Chat provider proxied through the server broker"),
   {
     // THE CASE THAT MOTIVATED THIS. Both halves are required and only
     // one was present, so every "is Supabase set up" check that asked

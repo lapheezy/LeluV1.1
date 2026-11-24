@@ -17,6 +17,14 @@
  */
 
 import { endpoint, isBrokeredInBrowser, type EndpointId } from "./Endpoints";
+import { resolveModel } from "./ProviderModels";
+import {
+  credentialReport,
+  describeCredentialState,
+  primaryCredential,
+  type CredentialProviderId,
+  type CredentialState,
+} from "./model/ProviderCredentials";
 
 // -- raw env access (Vite-injected, available in browser bundle) ----------
 
@@ -174,6 +182,13 @@ export interface ProviderEnv {
   priority: number;
   /** Whether this provider requires a key to work */
   required: boolean;
+  /**
+   * AI chat providers only: what the canonical credential contract
+   * (model/ProviderCredentials.ts) found. "invalid" = a value is present but
+   * unusable (placeholder, another provider's key) — hasKey is false then,
+   * which is the false positive this field exists to remove.
+   */
+  credentialState?: CredentialState;
 }
 
 /** Human-readable label for diagnostics — never the key value. */
@@ -212,6 +227,28 @@ function build(): LeluEnvironment {
     return { configured, keyVar, hasKey: configured, priority, required };
   }
 
+  /**
+   * An AI chat provider, resolved through the canonical contract — the same
+   * names, validation and refusals the server broker and the provider use, so
+   * this module cannot call a provider configured that the broker would
+   * refuse, or the reverse. `keyVar` is the canonical server-side name.
+   */
+  function chatProviderEnv(id: CredentialProviderId, priority: number, brokered: EndpointId): ProviderEnv {
+    const report = credentialReport(id);
+    const configured = report.state === "configured";
+    if (!configured && !isBrokeredInBrowser(brokered)) {
+      warnings.push(`${describeCredentialState(report)} Provider will be unavailable.`);
+    }
+    return {
+      configured,
+      keyVar: report.canonical,
+      hasKey: configured,
+      priority,
+      required: true,
+      credentialState: report.state,
+    };
+  }
+
   const supabaseConfigured = has("VITE_SUPABASE_URL") || has("NEXT_PUBLIC_SUPABASE_URL");
 
   const config: LeluEnvironment = {
@@ -219,16 +256,16 @@ function build(): LeluEnvironment {
     warnings,
 
     // AI providers — priority 1-7 in fallback order
-    groq:            providerEnv("VITE_GROQ_API_KEY", 1, true, "groq"),
-    openrouter:      providerEnv("VITE_OPENROUTER_API_KEY", 2, true, "openrouter"),
-    cerebras:        providerEnv("VITE_CEREBRAS_API_KEY", 3, true, "cerebras"),
-    mistral:         providerEnv("VITE_MISTRAL_API_KEY", 4, true, "mistral"),
-    fireworks:       providerEnv("VITE_FIREWORKS_API_KEY", 5, true, "fireworks"),
-    githubModels:    providerEnv("VITE_GITHUB_TOKEN", 6, true, "githubModels"),
+    groq:            chatProviderEnv("groq", 1, "groq"),
+    openrouter:      chatProviderEnv("openrouter", 2, "openrouter"),
+    cerebras:        chatProviderEnv("cerebras", 3, "cerebras"),
+    mistral:         chatProviderEnv("mistral", 4, "mistral"),
+    fireworks:       chatProviderEnv("fireworks", 5, "fireworks"),
+    githubModels:    chatProviderEnv("githubModels", 6, "githubModels"),
     // Anthropic keeps priority 7 in the fallback chain but is OPT-IN:
     // unavailable unless LELU_ENABLE_ANTHROPIC=true (core/model/ProviderPolicy).
     anthropic:       providerEnv("VITE_ANTHROPIC_API_KEY", 7, true, "anthropic"),
-    gemini:          providerEnv("VITE_GEMINI_API_KEY", 8, true, "gemini"),
+    gemini:          chatProviderEnv("gemini", 8, "gemini"),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
 
     // Knowledge providers
@@ -279,18 +316,22 @@ function build(): LeluEnvironment {
     neko: providerEnv("NEKO_PASSWORD", 0, false),
 
     // Model overrides
-    groqModel:        opt("VITE_GROQ_MODEL", "openai/gpt-oss-120b"),
+    // Model names come from ProviderModels, the table the providers send
+    // with. These fields used to carry their own defaults (Cerebras
+    // llama3.1-8b, Mistral small, Fireworks llama-v3p1-8b, GitHub gpt-4o-mini)
+    // that no request used, so diagnostics named models that were never sent.
+    groqModel:        resolveModel("groq"),
     // Concrete, not `openrouter/auto`: the auto route prices the request, and on a
     // key without credit it lands on the free tier, which refuses the turn outright.
     // A $0 ":free" model by default (zero-spend policy, plugins/spendPolicy.ts);
     // a paid model here is refused by the broker unless the user authorized it.
-    openrouterModel:  opt("VITE_OPENROUTER_MODEL", "nvidia/nemotron-3-ultra-550b-a55b:free"),
-    cerebrasModel:    opt("VITE_CEREBRAS_MODEL", "llama3.1-8b"),
-    mistralModel:     opt("VITE_MISTRAL_MODEL", "mistral-small-latest"),
-    fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),
-    githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),
+    openrouterModel:  resolveModel("openrouter"),
+    cerebrasModel:    resolveModel("cerebras"),
+    mistralModel:     resolveModel("mistral"),
+    fireworksModel:   resolveModel("fireworks"),
+    githubModel:      resolveModel("githubModels"),
     anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-opus-5-5"),
-    geminiModel:      opt("VITE_GEMINI_MODEL", "gemini-2.0-flash"),
+    geminiModel:      resolveModel("gemini"),
     // Fireworks leads by default. Anthropic is opt-in (LELU_ENABLE_ANTHROPIC),
     // so it is never the default and never a silent fallback.
     defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "fireworks"),
@@ -374,7 +415,7 @@ export default {
   get githubToken(): string { return resolve("VITE_GITHUB_TOKEN") ?? ""; },
   get youtubeApiKey(): string { return resolve("VITE_YOUTUBE_API_KEY") ?? ""; },
   get newsApiKey(): string { return resolve("VITE_NEWS_API_KEY") ?? ""; },
-  get groqApiKey(): string { return resolve("VITE_GROQ_API_KEY") ?? ""; },
+  get groqApiKey(): string { return primaryCredential("groq"); },
   get anthropicApiKey(): string { return resolve("VITE_ANTHROPIC_API_KEY") ?? ""; },
   get supabaseUrl(): string { return endpoint("supabase"); },
 };

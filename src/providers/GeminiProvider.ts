@@ -11,7 +11,7 @@ import { contextMessages } from "./contextMessages";
 import { leluSystemPrompt } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
-import { resolveFirst } from "../core/resolveEnv";
+import { primaryCredential } from "../core/model/ProviderCredentials";
 import { resolveModel } from "../core/ProviderModels";
 
 interface GeminiPart {
@@ -44,7 +44,7 @@ export default class GeminiProvider implements AIProvider {
   async initialize(): Promise<void> {
     this.model = resolveModel("gemini");
     this.apiKey =
-      resolveFirst("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY") ?? "";
+      primaryCredential("gemini");
     this.initialized = true;
 
     console.info("[GeminiProvider] Initialized", {

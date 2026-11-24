@@ -58,12 +58,12 @@ test("a 429 on the first of two keys still rotates to the second", async () => {
   globalThis.fetch = (async (_u: unknown, init: RequestInit) => {
     const auth = String((init.headers as Record<string, string>).Authorization ?? "");
     seen.push(auth);
-    return auth.endsWith("gsk_two")
+    return auth.endsWith("gsk_test_two")
       ? new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200, headers: { "content-type": "application/json" } })
       : new Response(JSON.stringify({ error: { message: "rate limited" } }), { status: 429, headers: { "content-type": "application/json" } });
   }) as typeof fetch;
   try {
-    const api = createModelApi((n) => (n === "GROQ_API_KEY" ? "gsk_one" : n === "GROQ_API_KEY_2" ? "gsk_two" : undefined));
+    const api = createModelApi((n) => (n === "GROQ_API_KEY" ? "gsk_test_one" : n === "GROQ_API_KEY_2" ? "gsk_test_two" : undefined));
     const out = await call(api, "/groq/chat/completions");
     assert.equal(out.status, 200, out.body);
     assert.equal(seen.length, 2);
@@ -137,7 +137,7 @@ test("all four configured Groq keys are tried before the provider is refused", a
       : new Response(JSON.stringify({ error: { message: "tokens per day (TPD) spent" } }), { status: 429, headers: { "content-type": "application/json" } });
   }) as typeof fetch;
   try {
-    const env: Record<string, string> = { GROQ_API_KEY: "gsk_k1", GROQ_API_KEY_2: "gsk_k2", GROQ_API_KEY_3: "gsk_k3", GROQ_API_KEY_4: "gsk_k4" };
+    const env: Record<string, string> = { GROQ_API_KEY: "gsk_test_k1", GROQ_API_KEY_2: "gsk_test_k2", GROQ_API_KEY_3: "gsk_test_k3", GROQ_API_KEY_4: "gsk_test_k4" };
     const out = await call(createModelApi((n) => env[n]), "/groq/chat/completions");
     assert.equal(out.status, 200, out.body);
     assert.deepEqual(seen, ["k1", "k2", "k3", "k4"]);
@@ -158,7 +158,7 @@ test("a rate-limited key with a retry hint hands over to the next key instead of
   }) as typeof fetch;
   try {
     const started = Date.now();
-    const out = await call(createModelApi((n) => ({ GROQ_API_KEY: "gsk_k1", GROQ_API_KEY_2: "gsk_k2" } as Record<string, string>)[n]), "/groq/chat/completions");
+    const out = await call(createModelApi((n) => ({ GROQ_API_KEY: "gsk_test_k1", GROQ_API_KEY_2: "gsk_test_k2" } as Record<string, string>)[n]), "/groq/chat/completions");
     assert.equal(out.status, 200, out.body);
     assert.deepEqual(seen, ["k1", "k2"]);
     assert.ok(Date.now() - started < 2000, "no 8.5 s wait when another key exists");
@@ -178,7 +178,7 @@ test("a key the provider said to rest is not tried first on the next request", a
       : new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200, headers: { "content-type": "application/json" } });
   }) as typeof fetch;
   try {
-    const api = createModelApi((n) => ({ GROQ_API_KEY: "gsk_k1", GROQ_API_KEY_2: "gsk_k2", GROQ_API_KEY_3: "gsk_k3" } as Record<string, string>)[n]);
+    const api = createModelApi((n) => ({ GROQ_API_KEY: "gsk_test_k1", GROQ_API_KEY_2: "gsk_test_k2", GROQ_API_KEY_3: "gsk_test_k3" } as Record<string, string>)[n]);
     assert.equal((await call(api, "/groq/chat/completions")).status, 200);
     assert.deepEqual(seen, ["k1", "k2"], "first request learns that k1 must rest");
     seen.length = 0;
@@ -198,7 +198,7 @@ test("a retry-after longer than the page's stall watchdog is not waited out on t
   }) as typeof fetch;
   try {
     const started = Date.now();
-    const out = await call(createModelApi((n) => (n === "GROQ_API_KEY" ? "gsk_only" : undefined)), "/groq/chat/completions");
+    const out = await call(createModelApi((n) => (n === "GROQ_API_KEY" ? "gsk_test_only" : undefined)), "/groq/chat/completions");
     assert.equal(out.status, 429);
     assert.match(out.body, /28\.65s/);
     assert.equal(calls, 1);

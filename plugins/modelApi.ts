@@ -40,6 +40,11 @@
 
 import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import { endpoint, type EndpointId } from "../src/core/Endpoints.ts";
+import {
+  credentialNames,
+  resolveProviderCredentials,
+  type CredentialProviderId,
+} from "../src/core/model/ProviderCredentials.ts";
 
 export type EnvReader = (name: string) => string | undefined;
 
@@ -47,7 +52,11 @@ export type EnvReader = (name: string) => string | undefined;
 interface BrokeredProvider {
   /** The endpoint id whose base URL requests are forwarded to. */
   endpointId: EndpointId;
-  /** Environment names carrying the credential, in order of preference. */
+  /**
+   * Environment names carrying the credential, in order of preference.
+   * Always credentialNames(id) from src/core/model/ProviderCredentials.ts —
+   * the one contract every resolver in LÉLU shares.
+   */
   keyNames: string[];
   /** Build the auth headers from the resolved credential. */
   authHeaders: (key: string) => Record<string, string>;
@@ -68,7 +77,7 @@ interface BrokeredProvider {
 export const BROKERED: Record<string, BrokeredProvider> = {
   anthropic: {
     endpointId: "anthropic",
-    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+    keyNames: credentialNames("anthropic"),
     authHeaders: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
     // Beta opt-ins (e.g. the server-side refusal fallback) are a property of
     // the request, not of the credential, so the page chooses them — but
@@ -77,37 +86,27 @@ export const BROKERED: Record<string, BrokeredProvider> = {
   },
   groq: {
     endpointId: "groq",
-    // Same slots as src/core/model/ProviderKeyRing.ts (base + _1.._4): the
-    // stored environment holds four Groq and four OpenRouter keys.
-    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4"],
+    keyNames: credentialNames("groq"),
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   openrouter: {
     endpointId: "openrouter",
-    keyNames: [
-      "VITE_OPENROUTER_API_KEY",
-      "OPENROUTER_API_KEY",
-      "OPEN_ROUTER_API_KEY",
-      "OPENROUTER_API_KEY_1",
-      "OPENROUTER_API_KEY_2",
-      "OPENROUTER_API_KEY_3",
-      "OPENROUTER_API_KEY_4",
-    ],
+    keyNames: credentialNames("openrouter"),
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   cerebras: {
     endpointId: "cerebras",
-    keyNames: ["VITE_CEREBRAS_API_KEY", "CEREBRAS_API_KEY"],
+    keyNames: credentialNames("cerebras"),
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   mistral: {
     endpointId: "mistral",
-    keyNames: ["VITE_MISTRAL_API_KEY", "MISTRAL_API_KEY"],
+    keyNames: credentialNames("mistral"),
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   fireworks: {
     endpointId: "fireworks",
-    keyNames: ["VITE_FIREWORKS_API_KEY", "FIREWORKS_API_KEY"],
+    keyNames: credentialNames("fireworks"),
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   // Gemini and GitHub Models are remote providers in the same registry and
@@ -117,17 +116,12 @@ export const BROKERED: Record<string, BrokeredProvider> = {
   // anything new.
   gemini: {
     endpointId: "gemini",
-    keyNames: [
-      "VITE_GEMINI_API_KEY",
-      "GEMINI_API_KEY",
-      "GOOGLE_API_KEY",
-      "GOOGLE_GENERATIVE_AI_API_KEY",
-    ],
+    keyNames: credentialNames("gemini"),
     authHeaders: (key) => ({ "x-goog-api-key": key }),
   },
   githubModels: {
     endpointId: "githubModels",
-    keyNames: ["VITE_GITHUB_TOKEN", "GITHUB_MODELS_TOKEN"],
+    keyNames: credentialNames("githubModels"),
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
 };
@@ -603,13 +597,17 @@ export function createModelApi(readEnv: EnvReader) {
   const lastSuccess = new Map<string, number>();
   const lastFailure = new Map<string, { at: number; httpStatus?: number; note?: string }>();
 
-  const credentialFor = (provider: BrokeredProvider): string => {
-    for (const name of provider.keyNames) {
-      const value = readEnv(name);
-      if (value && value.trim()) return value.trim();
-    }
-    return "";
-  };
+  /**
+   * Credentials come from the canonical contract (ProviderCredentials.ts):
+   * the same names, list forms, validation and refusals the key ring, the
+   * providers and every diagnostic use. Placeholders and keys carrying
+   * another provider's prefix are never sent.
+   */
+  const resolutionFor = (provider: BrokeredProvider) =>
+    resolveProviderCredentials(provider.endpointId as CredentialProviderId, readEnv);
+
+  const credentialFor = (provider: BrokeredProvider): string =>
+    resolutionFor(provider).credentials[0]?.key ?? "";
 
   /**
    * Every credential this provider can be tried with, in configured order.
@@ -626,14 +624,8 @@ export function createModelApi(readEnv: EnvReader) {
     return (readEnv("VITE_OPENROUTER_MODEL") || readEnv("OPENROUTER_MODEL") || DEFAULT_FREE_OPENROUTER_MODEL).trim();
   };
 
-  const credentialsFor = (provider: BrokeredProvider): string[] => {
-    const keys: string[] = [];
-    for (const name of provider.keyNames) {
-      const value = readEnv(name)?.trim();
-      if (value && !keys.includes(value)) keys.push(value);
-    }
-    return keys;
-  };
+  const credentialsFor = (provider: BrokeredProvider): string[] =>
+    resolutionFor(provider).credentials.map((credential) => credential.key);
 
   /**
    * When each key may be used again, learned from the provider's own
@@ -735,7 +727,7 @@ export function createModelApi(readEnv: EnvReader) {
         }
         const seen = evidence.get(id);
         let state: string;
-        if (!configured) state = "UNCONFIGURED";
+        if (!configured) state = resolutionFor(provider).state === "invalid" ? "INVALID_CREDENTIAL" : "UNCONFIGURED";
         else if (!brokerAllows(id, readEnv)) state = "POLICY_DISABLED";
         else if (!spendOk) state = "SPEND_NOT_AUTHORIZED";
         else if (unauthorized.has(id)) state = "COOLDOWN";
@@ -825,6 +817,11 @@ export function createModelApi(readEnv: EnvReader) {
           ok: false,
           error: `No credential configured for "${providerId}" on the server.`,
           expected: provider.keyNames,
+          // Names and reasons only: a value present but unusable (a
+          // placeholder, or another provider's key) is a different fix
+          // from a value that is absent.
+          state: resolutionFor(provider).state,
+          unusable: resolutionFor(provider).invalid,
         },
         503,
       );

@@ -49,7 +49,7 @@ test("the coding model defaults to serverless Kimi K3.1 Pro", () => {
 });
 
 test("coding turns use the coding model; chat turns keep the chat model", async () => {
-  await withEnv({ FIREWORKS_API_KEY: "test", FIREWORKS_CODING_MODEL: undefined, VITE_FIREWORKS_CODING_MODEL: undefined }, async () => {
+  await withEnv({ FIREWORKS_API_KEY: "fw_test_key_0001", FIREWORKS_CODING_MODEL: undefined, VITE_FIREWORKS_CODING_MODEL: undefined }, async () => {
     const fetchStub = stubFetch(() => ok("done"));
     try {
       const fw = new FireworksProvider();
@@ -67,7 +67,7 @@ test("coding turns use the coding model; chat turns keep the chat model", async 
 });
 
 test("FIREWORKS_CODING_MODEL overrides the coding model", async () => {
-  await withEnv({ FIREWORKS_API_KEY: "test", FIREWORKS_CODING_MODEL: "accounts/fireworks/models/kimi-k2p7-code" }, async () => {
+  await withEnv({ FIREWORKS_API_KEY: "fw_test_key_0001", FIREWORKS_CODING_MODEL: "accounts/fireworks/models/kimi-k2p7-code" }, async () => {
     const fetchStub = stubFetch(() => ok("done"));
     try {
       const fw = new FireworksProvider();
@@ -81,7 +81,7 @@ test("FIREWORKS_CODING_MODEL overrides the coding model", async () => {
 });
 
 test("streamed responses deliver deltas and assemble tool calls", async () => {
-  await withEnv({ FIREWORKS_API_KEY: "test" }, async () => {
+  await withEnv({ FIREWORKS_API_KEY: "fw_test_key_0001" }, async () => {
     const sse = [
       { choices: [{ delta: { content: "Look" } }] },
       { choices: [{ delta: { content: "ing" } }] },
