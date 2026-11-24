@@ -45,6 +45,10 @@ concurrency:
 
 jobs:
   run:
+    # Defence in depth only: the real gate is the contabo-production
+    # environment (required reviewers + deployment-branch restriction),
+    # because a branch's author can edit this file on that branch.
+    if: github.ref == 'refs/heads/integration/lelu-four-workforce-consolidation' || github.ref == 'refs/heads/claude/lelu-voice-https-production-lvv519'
     runs-on: ubuntu-24.04
     environment: contabo-production
     timeout-minutes: 25
@@ -65,6 +69,19 @@ jobs:
           esac
           echo "action=$a" >> "$GITHUB_OUTPUT"; echo "cmd=$cmd" >> "$GITHUB_OUTPUT"
           echo "action: $a   patch sha256: $(sha256sum deploy/contabo/patches/voice-tts-moss.patch | cut -c1-16)"
+
+      - name: Reachability and host key (reads no secret)
+        # The fingerprint is public (anyone can scan it). Compare it with the
+        # one the Contabo VNC console shows for /etc/ssh/ssh_host_ed25519_key.pub
+        # before trusting LELU_VPS_KNOWN_HOSTS.
+        env:
+          LELU_VPS: ${{ vars.LELU_VPS || 'root@157.173.116.95' }}
+        run: |
+          host=${LELU_VPS#*@}
+          timeout 10 bash -c "echo > /dev/tcp/$host/22" 2>/dev/null && echo "PASS  port 22 reachable from a GitHub runner" || echo "FAIL  port 22 NOT reachable from a GitHub runner (firewall?)"
+          ssh-keyscan -T 10 -t ed25519 "$host" 2>/dev/null > /tmp/scanned || true
+          [ -s /tmp/scanned ] && ssh-keygen -lf /tmp/scanned | awk '{print "INFO  server presents", $NF, $2}' || echo "INFO  no ed25519 host key could be scanned"
+          curl -s -m 10 -o /dev/null -w "INFO  http://$host/healthz %{http_code}\n" "http://$host/healthz"
 
       - name: SSH identity (key auth, pinned host key)
         env:

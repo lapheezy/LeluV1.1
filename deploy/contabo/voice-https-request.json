@@ -1,4 +1,4 @@
 {
   "action": "recon",
-  "reason": "Mission 1 WP01: read-only reconnaissance before the voice patch (nothing on the VPS changes)"
+  "reason": "Mission 2 WP01: runner reachability + host-key fingerprint, then read-only recon once LELU_VPS_SSH_KEY exists"
 }
