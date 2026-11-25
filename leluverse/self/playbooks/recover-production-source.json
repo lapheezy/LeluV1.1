@@ -1,0 +1,18 @@
+{
+ "id": "recover-production-source",
+ "title": "Bring my production server's own git history home, sealed, without a new repository and without anything public",
+ "for": "LÉLU",
+ "why": "My VPS runs commits GitHub has never seen. My integration session cannot reach the VPS (no SSH, by design) and the VPS cannot reach the session, so my owner carries one file. It is sealed to a key only the integration session holds, and it opens only if its SHA-256 equals the one my owner read on the Contabo console. The carrier, my sign-in gate, Safari and the chat upload can neither read it nor swap it.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-25-production-source-comes-home-sealed.md",
+ "steps": [
+  {"id": "keygen", "title": "In the integration session: bash scripts/recovery/receive-production-bundle.sh keygen; put the PUBLIC key into RECIPIENT_PEM in deploy/contabo/deploy-identity/source-recovery.sh, re-pin it in setup.sh, commit and push", "kind": "note", "why": "The recipient key is part of the pinned script, so checking the pin checks who can open the export. A new session means a new key and a new pin."},
+  {"id": "report", "title": "Owner, Contabo console as root: download source-recovery.sh at the pushed commit, check the first 16 characters of its sha256, run: bash sr source-report", "kind": "note", "why": "Read-only. It lists production-only commits, drift, forbidden files and credential findings by kind only."},
+  {"id": "export", "title": "Owner: bash sr source-export, then screenshot the SHA256-PLAIN line", "kind": "note", "why": "Refused on any finding. Writes the sealed file behind my sign-in gate (deleted after 24 h) and a root-only plaintext preservation copy in /var/backups/lelu-source that never leaves the VPS."},
+  {"id": "carry", "title": "Owner: open the printed download address in Safari while signed in to LÉLU, then attach the .sealed file and the screenshot to the integration session's chat", "kind": "note"},
+  {"id": "open", "title": "Integration session: receive-production-bundle.sh open <file.sealed> <SHA256-PLAIN from the screenshot> <new dir>", "kind": "note", "why": "Refuses a different recipient, tampering, a re-sealed substitute and any archive member it does not expect."},
+  {"id": "import", "title": "Integration session: receive-production-bundle.sh import <bundle> <repo>, then inventory <repo> production-recovered/<sha12> origin/integration/lelu-four-workforce-consolidation", "kind": "note", "why": "New local branches only. No overwrite, no hooks, no checkout, no push: production source must not reach the public repository."},
+  {"id": "clean", "title": "Owner: bash sr source-export-clean", "kind": "note"}
+ ]
+}

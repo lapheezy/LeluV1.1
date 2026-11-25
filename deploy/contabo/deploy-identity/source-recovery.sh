@@ -6,9 +6,18 @@
 #                        lacks, uncommitted drift, secret scan — names only
 #   source-export        bundle of ONLY the production-only commits plus a
 #                        snapshot of the uncommitted drift, refused if the scan
-#                        finds a credential or a forbidden file; written under
-#                        dist/ behind LÉLU's password gate, at an unguessable path
-#   source-export-clean  remove every export
+#                        finds a credential or a forbidden file. The bundle is
+#                        SEALED (RSA-OAEP-SHA256 + AES-256) to the recipient key
+#                        below, whose private half exists only in the LÉLU
+#                        integration session; the sealed file is written under
+#                        dist/ behind LÉLU's password gate, at an unguessable
+#                        path, and removed after 24 h. A root-only plaintext
+#                        copy is kept in /var/backups/lelu-source (production's
+#                        own preservation copy; it never leaves the VPS).
+#   source-export-clean  remove every web export (the root-only copy stays)
+#
+# The recipient key is part of this pinned file: changing it changes the pin,
+# so whoever checks the pin also checks who can open the export.
 #
 # Never exported: untracked files, .env*, keys, certificates, backups, database
 # files, lelu.env (outside the repository anyway). Nothing here changes HEAD,
@@ -18,6 +27,22 @@
 set -uo pipefail
 APP=/opt/lelu/app
 EXPORT_ROOT=$APP/dist/ops-export
+KEEP=/var/backups/lelu-source
+EXPIRE_HOURS=24
+RECIPIENT_PEM='-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAr1C/TgqdNNAXJqowANxU
+2mzp+kzQqn2oOb7Z41gNfLRHgzfGG/h7wWD5IT6+Mw8UA7kWcfVNAEo4Twdm2hMf
+l3etNv3arLg2ycGFCRUVxUnfD+cU6EyZ3YSh+Y3GTXVZZ9WVI/werBA/7RPFC3wP
+LhK5nhkujIFu0tS5PDG3wr9bR4mHJkKHsIm88Mba+tTq5/zMWmniiRHVIolQqeVX
+J8c9Bl1VCcwq+1LBovpZcdbrf7zRxKc/a0D88ebBlNSPeId9pjWNRNJVuVY6vA1/
+u1zvh5z2/keMIM9pisF7Eu5jFcxcuFFZBa1FD3aHWErGVOC4CIqvdgBV1ixUYhqp
+rJ3DW0D6+Y2KQ9hxC0l0YB4Pl1uV0Aohh8p81T/a0rXQxTiLTSlgV39ZeTw7ilkQ
+ewbgp8GocQX2Pub7GNs3li4m6faHfHrNCcvpNi18SyxiYstBfGHHDU1Y6dUaoYbO
+HxAHoOvtl+QrWyiKbun+Kmkx6svDwCd2XiEcX61ismNOaperGWFY7o3sydJK1FwU
+3XW1xNFJvz5R+1ib9/yxseb9cqldQfMesuGvc0bgGy4ljJd2J26srSWdD9mDhLQM
+tN5hYlpRXi/kZZ9B1WSJZyjDmNrwNriLVQYLrh0AJGXvQVWLp8ekgDpdb0Nb2L+U
+ahm5erJ6UboLuWfvYFBs84MCAwEAAQ==
+-----END PUBLIC KEY-----'
 TMP_REF=refs/lelu-export/drift
 FAILED=0
 ok() { echo "PASS  $*"; }; bad() { echo "FAIL  $*"; FAILED=1; }; info() { echo "INFO  $*"; }
@@ -61,6 +86,7 @@ report() {
   echo "== production identity"
   info "HEAD $(g rev-parse HEAD) on $(g rev-parse --abbrev-ref HEAD)"
   info "HEAD subject: $(g log -1 --format=%s | cut -c1-100)"
+  info "origin: $(g remote get-url origin 2>/dev/null | sed -E 's#//[^@/]*@#//<credentials hidden>@#' || echo none)"
   refresh
   echo "== commits GitHub does not have"
   local list n
@@ -86,36 +112,72 @@ report() {
   { [ "$n" -gt 0 ] && g log -p --format= HEAD --not --remotes=origin; g diff HEAD; } 2>/dev/null | scan "secret scan" && ok "no credential-shaped text in production-only changes" || FAILED=1
 }
 
+recipient_fp() { printf '%s\n' "$RECIPIENT_PEM" | openssl pkey -pubin -outform DER 2>/dev/null | sha256sum | cut -c1-64; }
+
 export_bundle() {
   report
   [ $FAILED = 0 ] || { bad "export refused: resolve the findings above first — nothing exported"; return; }
-  echo "== export"
+  echo "== export (sealed)"
+  command -v openssl >/dev/null || { bad "openssl is required to seal the export"; return; }
+  local fp; fp=$(recipient_fp); [ ${#fp} = 64 ] || { bad "recipient key unreadable — nothing exported"; return; }
+  info "sealed for recipient key ${fp:0:16}… (the LÉLU integration session)"
   local n; n=$(range_list | wc -l)
   local drift=""; drift=$(g stash create "lelu production drift $(date -u +%FT%TZ)" 2>/dev/null)   # a commit object; working tree untouched
   [ -n "$drift" ] && g update-ref "$TMP_REF" "$drift"
   if [ "$n" = 0 ] && [ -z "$drift" ]; then ok "production has nothing GitHub lacks — no export needed"; return; fi
-  local dir; dir="$EXPORT_ROOT/$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-  install -d -o lelu -g lelu -m 0755 "$EXPORT_ROOT" "$dir"
-  local name; name="lelu-production-$(g rev-parse --short=12 HEAD).bundle"
+  local head12; head12=$(g rev-parse --short=12 HEAD)
+  # lelu writes the plaintext bundle (it can read the source anyway); root never runs git in lelu's repository.
+  local plain_dir seal_dir; plain_dir=$(mktemp -d) seal_dir=$(mktemp -d)
+  chmod 0700 "$plain_dir" "$seal_dir"; chown lelu:lelu "$plain_dir"
   local refs=(HEAD); [ -n "$drift" ] && refs+=("$TMP_REF")
-  if g bundle create "$dir/$name" "${refs[@]}" --not --remotes=origin >/dev/null 2>&1; then
-    g update-ref -d "$TMP_REF" 2>/dev/null
+  if ! g bundle create "$plain_dir/p.bundle" "${refs[@]}" --not --remotes=origin >/dev/null 2>&1; then
+    g update-ref -d "$TMP_REF" 2>/dev/null; rm -rf "$plain_dir" "$seal_dir"; bad "git bundle failed — nothing exported"; return
+  fi
+  g update-ref -d "$TMP_REF" 2>/dev/null
+  g bundle verify "$plain_dir/p.bundle" >/dev/null 2>&1 && ok "bundle verifies against this checkout" || info "bundle verify needs GitHub's commits; it is checked again on import"
+  local plain_sum size; plain_sum=$(sha256sum "$plain_dir/p.bundle" | cut -c1-64); size=$(du -h "$plain_dir/p.bundle" | cut -f1)
+
+  # production's own preservation copy: root only, never served
+  install -d -o root -g root -m 0700 "$KEEP"
+  local kept="$KEEP/$(date -u +%Y%m%dT%H%M%SZ)-$head12.bundle"
+  install -o root -g root -m 0600 "$plain_dir/p.bundle" "$kept"
+  echo "$plain_sum  $(basename "$kept")" > "$kept.sha256"; chmod 0600 "$kept.sha256"
+  ok "root-only preservation copy: $kept"
+
+  # seal: random 256-bit key (hex, in a root-only file — never on a command line),
+  # wrapped with RSA-OAEP-SHA256; content AES-256-CBC (PBKDF2). Authenticity is the
+  # plaintext SHA-256 below, which the owner relays out of band.
+  printf '%s\n' "$RECIPIENT_PEM" > "$seal_dir/recipient.pem"
+  ( umask 077; openssl rand -hex 32 | tr -d '\n' > "$seal_dir/k" )
+  if openssl pkeyutl -encrypt -pubin -inkey "$seal_dir/recipient.pem" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 \
+       -in "$seal_dir/k" -out "$seal_dir/key.oaep" 2>/dev/null \
+     && openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -salt -pass "file:$seal_dir/k" -in "$plain_dir/p.bundle" -out "$seal_dir/bundle.enc" 2>/dev/null; then
+    { echo "format=lelu-sealed-bundle-1"; echo "production_head=$(g rev-parse HEAD)"; echo "commits=$n"; echo "drift=$([ -n "$drift" ] && echo yes || echo no)"
+      echo "plain_sha256=$plain_sum"; echo "recipient_sha256=$fp"; echo "created=$(date -u +%FT%TZ)"; } > "$seal_dir/manifest.txt"
+    rm -f "$seal_dir/k" "$seal_dir/recipient.pem"
+    local dir; dir="$EXPORT_ROOT/$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    install -d -o lelu -g lelu -m 0755 "$EXPORT_ROOT" "$dir"
+    local name="lelu-production-$head12.sealed"
+    tar -C "$seal_dir" --owner=0 --group=0 --numeric-owner -cf "$dir/$name" manifest.txt key.oaep bundle.enc
     chown lelu:lelu "$dir/$name"; chmod 0644 "$dir/$name"
-    g bundle verify "$dir/$name" >/dev/null 2>&1 && ok "bundle verifies against GitHub's history (prerequisites present)" || info "bundle needs commits this checkout does not know as GitHub's — it still verifies on import"
-    local sum; sum=$(sha256sum "$dir/$name" | cut -c1-64)
-    echo "$sum  $name" > "$dir/$name.sha256"
-    ok "exported $n commit(s)$([ -n "$drift" ] && echo " + uncommitted drift") → $(du -h "$dir/$name" | cut -f1)"
-    info "sha256 $sum"
+    local sealed_sum; sealed_sum=$(sha256sum "$dir/$name" | cut -c1-64)
+    rm -rf "$plain_dir" "$seal_dir"
+    command -v systemd-run >/dev/null && systemd-run --quiet --on-active="${EXPIRE_HOURS}h" --unit "lelu-export-expire-$(basename "$dir" | cut -c1-12)" /bin/rm -rf "$dir" >/dev/null 2>&1 \
+      && info "the web copy deletes itself in ${EXPIRE_HOURS} h" || info "remove the web copy afterwards with: source-export-clean"
+    ok "sealed $n commit(s)$([ -n "$drift" ] && echo " + uncommitted drift"), bundle $size"
+    echo "SHA256-PLAIN   $plain_sum"
+    echo "SHA256-SEALED  $sealed_sum"
     info "production commit $(g rev-parse HEAD)"
     info "download (signed in to LÉLU): http://157.173.116.95/ops-export/$(basename "$dir")/$name"
   else
-    g update-ref -d "$TMP_REF" 2>/dev/null
-    bad "git bundle failed — nothing exported"
+    rm -rf "$plain_dir" "$seal_dir"
+    bad "sealing failed — nothing exported (the root-only copy in $KEEP remains)"
   fi
 }
 
 clean() {
-  if [ -d "$EXPORT_ROOT" ]; then rm -rf "$EXPORT_ROOT" && ok "removed every export under dist/ops-export"; else ok "no export present"; fi
+  if [ -d "$EXPORT_ROOT" ]; then rm -rf "$EXPORT_ROOT" && ok "removed every web export under dist/ops-export"; else ok "no web export present"; fi
+  [ -d "$KEEP" ] && info "root-only preservation copies kept in $KEEP (remove by hand only when no longer needed)"
 }
 
 case "${1:-}" in
