@@ -71,6 +71,29 @@ Other observations:
 | `tests/e2e/mobile-touch-targets.e2e.mjs` (3 iPhones) | 21/33 (3.6 baseline) | 36/36 |
 | `tests/ui-fix-deploy.test.ts` (deploy rehearsal) | — | 4/4 |
 
+**Inside surfaces (iPhone 15, real taps, each on a fresh page).**
+
+| Surface | Works | Other |
+| --- | --- | --- |
+| Jewelry workspace | 19 | 4 are buttons of the screen *under* the full-screen window (hidden from the user); 2 agent chips changed order between page loads |
+| Infinite Library | 10 | the search field takes focus; "All" is already selected; 2 items below the sheet's scroll edge; Home controls behind the sheet |
+| App library | 10 | same as Infinite Library |
+| Settings | 9 | sign-in disabled *with an explanation*: "Cloud identity is not configured" in this container (production has Supabase); 3 hidden under the window |
+| Workspaces sheet | 1 | Home controls behind the sheet |
+
+No visible, enabled control in any surface failed to act. Cosmetic: LÉLU overlaps the right edge of the Jewelry
+project card; the card's centre still takes taps.
+
+**Full suite:** 3,340 tests, 3,326 pass, 10 skipped, 4 fail.
+- 3 are the known ones: credential-exposure (the root-SSH workflow, the owner's decision) and two foundry asset
+  tests that came with `cb9aecdb`.
+- The 4th, `outfit-switching` "keeps a look a person chose", is a test-isolation flaw in integration code.
+  `foundry-m25c` writes `currentLook: camo_repaired` into the real character manifest, and `outfit-switching` passes
+  only after that leak. It passes 3/3 when the manifest wears a different look. I restored the leaked file mid-run,
+  which broke the chain. This branch never touched either test or the manifest.
+
+TypeScript (3 configs) is clean. The production build passes.
+
 **Not verified:** real iPhone Safari. Only Chromium is available here (WebKit cannot be installed), and Chromium
 emulation is not Safari. The real-device step stays in playbook `verify-interaction`.
 
