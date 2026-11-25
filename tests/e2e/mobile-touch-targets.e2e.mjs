@@ -122,7 +122,9 @@ try {
       let ok = true;
       let detail = "";
       try {
-        await target.scrollIntoViewIfNeeded({ timeout: 5_000 });
+        // Centre it: "in view" for Playwright includes a card half under the fixed bottom bar.
+        await target.evaluate((el) => el.scrollIntoView({ block: "center" }));
+        await page.waitForTimeout(150);
         await target.tap({ trial: true, timeout: 5_000 });
       } catch (error) {
         ok = false;
