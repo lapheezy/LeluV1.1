@@ -115,7 +115,30 @@ production-only code; whether that is acceptable is decided once the inventory s
 | No arbitrary command execution | The archive must contain exactly three regular files; a path-escaping member is refused. Imports run with `core.hooksPath=/dev/null`, and a planted `reference-transaction` hook does not run. The receiver has no push, eval or checkout (checked in its source). No existing ref is overwritten. |
 | Deploy agent restrictions intact | `pull.py`, `run`, `dispatch` and the sudoers list are unchanged; `tests/deploy-pull-agent.test.ts` still passes. |
 
-## 9. Regression (WP05) — see the session report for the final numbers
+## 9. Regression (WP05) — on this branch, before production source arrives
+
+| Check | Result |
+| --- | --- |
+| Full suite `npm test` | 3336 tests: **3323 pass, 3 fail, 10 skipped** (570 s) |
+| TypeScript (`tsconfig.json`, `.app`, `.node`) | clean |
+| Production build `npm run build` | exit 0 |
+| Deploy agent security (`deploy-pull-agent`) | inside the suite, passes |
+| Sealed recovery security (`source-recovery-sealed`) | 5/5 |
+| Mobile touch targets (iPhone SE, 15, 15 Pro Max) | 33/33, twice. One trial-tap step was flaky because Playwright counted a card half under the fixed bar as "in view"; it now centres the card first, which is what the test claims to check. |
+| Mobile chat e2e (5 phones) | 149/149 at `6d32c65c`; no app code changed since (`git diff 6d32c65c HEAD -- src plugins server.ts` is empty) |
+| Chat and voice unit suites | inside the full suite, pass |
+
+The 3 failures:
+1. `credential-exposure`: the old failure, analysed below, left unchanged.
+2. `foundry-m25c` "the coat and catsuit handbags are their own nodes".
+3. `foundry` "the three sources are ordered per component".
+
+Failures 2 and 3 read 3-D asset files. This branch changed nothing in `leluverse/assets`, `src/core/foundry`,
+`scripts/foundry` or those tests since the integration head `cb9aecdb` (`git diff --stat` is empty), so they come
+with integration's assets and code. They were not modified here.
+
+The suite also rewrites two tracked asset logs (`character.json` `currentLook`, `events.ndjson`) as a side effect.
+Those edits were restored and not committed.
 
 - TypeScript: `tsconfig.json`, `tsconfig.app.json` and `tsconfig.node.json` are clean.
 - Provider validation (`scripts/verify-provider-credentials.ts`): runs, and prints names only. It describes this
