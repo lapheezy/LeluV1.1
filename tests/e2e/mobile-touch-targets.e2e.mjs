@@ -98,6 +98,15 @@ try {
     const collisions = first.rows.filter((r) => !r.own && !r.underBar);
     record(vp, "no control is covered by another control", collisions.length === 0, collisions.map((r) => `${r.label} → ${r.by}`).join(" | "));
 
+    // Nothing is SHOWN under the bottom bar: Home's content fades out above it, so a card
+    // never looks tappable where the tap would hit the bar (Mission 3.7).
+    const masked = await page.evaluate(() => {
+      const home = document.querySelector(".lch.lch-m15");
+      const m = home ? getComputedStyle(home).maskImage || getComputedStyle(home).webkitMaskImage : "none";
+      return m && m !== "none" ? m : "";
+    });
+    record(vp, "Home content fades out above the bottom bar", Boolean(masked), masked.slice(0, 60));
+
     // Controls that start under the fixed bottom bar must take their tap once scrolled into view.
     const underBar = first.rows.filter((r) => !r.own && r.underBar);
     const stillBlocked = [];

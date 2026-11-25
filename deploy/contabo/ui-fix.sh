@@ -31,6 +31,7 @@ FILES=(
   src/app/scene/genesis/home/HomeModules.tsx
   src/app/scene/genesis/home/useHomeLive.ts
   src/app/scene/genesis/home/homeWeather.ts
+  src/app/scene/genesis/home/spatialNav.css
 )
 FAILED=0
 ok() { echo "PASS  $*"; }; bad() { echo "FAIL  $*"; FAILED=1; }; info() { echo "INFO  $*"; }

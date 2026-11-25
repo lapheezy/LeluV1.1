@@ -198,3 +198,15 @@ body:has([data-lelu-signin-gate]) [data-spatial-nav] {
 .lsh-compose-bar { margin-bottom: 12px; }
 .lsh-strip-icon { display: flex; gap: 2px; padding: 9px 7px; box-sizing: border-box; }
 .lsh-strip-icon i { flex: 1; border-radius: 3px; }
+
+/* Mission 3.7: on a phone, Home's cards scrolled UNDER the translucent bottom bar
+   and stayed visible through it, so they looked tappable there, but a tap hit the
+   bar instead (Research opened Search, Business opened Settings). Home's content
+   now fades out just above the bar: nothing is shown where it cannot be tapped,
+   and it scrolls up into view as before. The mask is painted on the fixed
+   scroller, so it stays put while the content moves. */
+body:has(.lsn[data-hidden="false"]) .lch.lch-m15[data-device="phone"] {
+  --lsn-clear: calc(env(safe-area-inset-bottom, 0px) + 10px + 70px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--lsn-clear) - 22px), transparent calc(100% - var(--lsn-clear)));
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--lsn-clear) - 22px), transparent calc(100% - var(--lsn-clear)));
+}

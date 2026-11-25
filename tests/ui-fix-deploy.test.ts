@@ -121,7 +121,7 @@ test("the shipped patch applies to integration-head files, swaps dist/ live, and
 
     const recon = r.run("recon", patch);
     assert.equal(recon.status, 0, recon.out);
-    assert.match(recon.out, /patch touches only allowed front-end files \(7\)/);
+    assert.match(recon.out, /patch touches only allowed front-end files \(8\)/);
     assert.match(recon.out, /the patch applies cleanly/);
 
     const apply = r.run("apply", patch);
