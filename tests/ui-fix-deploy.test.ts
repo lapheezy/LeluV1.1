@@ -110,7 +110,11 @@ http.server.HTTPServer(("127.0.0.1", int(sys.argv[2])), H).serve_forever()
 }
 
 const served = (r: Rig) => readFileSync(join(r.app, "dist", "index.html"), "utf8");
-const patchCopy = (r: Rig, name: string, body: string) => { const p = join(r.root, name); writeFileSync(p, body); chmodSync(p, 0o644); return p; };
+/** Like /root on the VPS: a 0700 root-owned directory that lelu cannot enter. */
+const patchCopy = (r: Rig, name: string, body: string) => {
+  const home = join(r.root, "roothome"); mkdirSync(home, { recursive: true }); chmodSync(home, 0o700);
+  const p = join(home, name); writeFileSync(p, body); chmodSync(p, 0o600); return p;
+};
 
 test("the shipped patch applies to integration-head files, swaps dist/ live, and rolls back exactly", { skip: !canRun }, async () => {
   const r = await rig({ drift: true });
@@ -126,6 +130,8 @@ test("the shipped patch applies to integration-head files, swaps dist/ live, and
 
     const apply = r.run("apply", patch);
     assert.equal(apply.status, 0, apply.out);
+    assert.match(apply.out, /patch touches only allowed front-end files \(8\)/, "apply runs every check itself");
+    assert.match(apply.out, /the patch applies cleanly/);
     assert.match(apply.out, /dist\/ swapped/);
     assert.match(apply.out, /the app serves the new build/);
     assert.doesNotMatch(apply.out + recon.out, /feedface/, "no env value printed");

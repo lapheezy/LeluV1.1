@@ -62,8 +62,21 @@ served_ok() {  # the running app serves an index whose script exists
   [ -n "$js" ] && curl -fsS -m 10 -o /dev/null "$H$js" 2>/dev/null
 }
 
-recon() {
-  local patch=${1:?usage: recon <patch>}
+# The patch usually sits in root's home (0700); git runs as lelu, so it gets a copy
+# it can read by name but not list: 0644 in a 0711 directory, removed on exit.
+STAGE=$(mktemp -d); chmod 0711 "$STAGE"; trap 'rm -rf "$STAGE"' EXIT
+stage() {
+  [ -f "${1:-}" ] || { bad "patch ${1:-?} not found" >&2; return 1; }
+  install -m 0644 "$1" "$STAGE/ui.patch" && echo "$STAGE/ui.patch"
+}
+
+recon() {  # $1 = the operator's patch file
+  local patch; patch=$(stage "${1:?usage: recon <patch>}") || { bad "patch could not be staged — nothing changed"; return; }
+  checks "$patch"
+}
+
+checks() {  # $1 = STAGED patch; every check apply relies on
+  local patch=$1
   echo "== identity"; identity || return
   info "production HEAD $(git_lelu rev-parse HEAD) — $(git_lelu log -1 --format=%s | cut -c1-80)"
   info "modified tracked files: $(git_lelu diff --name-only | wc -l)"
@@ -98,8 +111,8 @@ restore() {  # $1 = backup dir
 }
 
 apply_fix() {
-  local patch=${1:?usage: apply <patch>}
-  recon "$patch"; [ $FAILED = 0 ] || { bad "apply refused: recon did not pass — nothing changed"; return; }
+  local patch; patch=$(stage "${1:?usage: apply <patch>}") || { bad "patch could not be staged — nothing changed"; return; }
+  checks "$patch"; [ $FAILED = 0 ] || { bad "apply refused: the checks did not pass — nothing changed"; return; }
   local stamp; stamp=$(date -u +%Y%m%dT%H%M%SZ); local dir="$BK/$stamp"
   echo "== backup → $dir"
   install -d -m 0711 "$BK" && install -d -m 0711 "$dir" "$dir/files"
