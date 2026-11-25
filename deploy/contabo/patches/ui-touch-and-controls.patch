@@ -1,0 +1,161 @@
+diff --git a/src/app/scene/genesis/GenesisCommandPalette.tsx b/src/app/scene/genesis/GenesisCommandPalette.tsx
+index 7ddc61bf..0beed8b4 100644
+--- a/src/app/scene/genesis/GenesisCommandPalette.tsx
++++ b/src/app/scene/genesis/GenesisCommandPalette.tsx
+@@ -39,7 +39,11 @@ const EMPTY_WORKSPACES: Array<{ id?: string; name?: string }> = [];
+ 
+ export default function GenesisCommandPalette({
+   onNavigate,
++  trigger = true,
+ }: {
++  /** false: no "Command Palette" pill, only the palette and its ⌘K listener —
++      for screens whose own Search control opens it (the phone dock, chat menu). */
++  trigger?: boolean;
+   /** When provided (Genesis v2 scope), every command routes through this
+       handler instead of openPanel — so palette navigation never ejects the
+       v2 workspace back to v1. */
+@@ -174,6 +178,7 @@ export default function GenesisCommandPalette({
+ 
+   return (
+     <>
++      {trigger ? (
+       <button
+         type="button"
+         onClick={() => setOpen(true)}
+@@ -212,6 +217,7 @@ export default function GenesisCommandPalette({
+           <path d="M12 2.8 14 10 21.2 12 14 14 12 21.2 10 14 2.8 12 10 10Z" />
+         </svg>
+       </button>
++      ) : null}
+ 
+       <AnimatePresence>
+         {open ? (
+diff --git a/src/app/scene/genesis/GenesisInterface.tsx b/src/app/scene/genesis/GenesisInterface.tsx
+index 15364ef3..5fdb6c8a 100644
+--- a/src/app/scene/genesis/GenesisInterface.tsx
++++ b/src/app/scene/genesis/GenesisInterface.tsx
+@@ -893,6 +893,11 @@ export default function GenesisInterface() {
+           {/* Top chrome: expand chip (when minimized) + command palette +
+               fullscreen. The palette and fullscreen stay usable in both
+               states. */}
++          {/* Exactly one palette is mounted at a time. On Home and when chat owns
++              the phone the top chrome (and its palette) is not rendered, so the
++              dock's Search and the chat menu's "Command palette" — both of
++              which send ⌘K — reached no listener and did nothing (Mission 3.7). */}
++          {surface.chatOwnsScreen || showHome ? <GenesisCommandPalette trigger={false} /> : null}
+           {surface.chatOwnsScreen || showHome ? null : (
+           <div
+             style={{
+diff --git a/src/app/scene/genesis/avatar/presencePlacement.ts b/src/app/scene/genesis/avatar/presencePlacement.ts
+index 5b564953..3e0d9c73 100644
+--- a/src/app/scene/genesis/avatar/presencePlacement.ts
++++ b/src/app/scene/genesis/avatar/presencePlacement.ts
+@@ -47,6 +47,9 @@ const EXTRA_CONTROLS = [
+   ".react-flow__controls",
+   // The Retro Terminal's command line is its composer.
+   "[data-rt-prompt]",
++  // Home's own cards and buttons (Mission 3.6): with its hero spot missing she
++  // rested on them and took their taps. She stands clear of them, or steps out.
++  "[data-lelu-home] :is(button, a[href], [role=button])",
+ ];
+ 
+ export function rectOf(element: Element): Rect | null {
+diff --git a/src/app/scene/genesis/home/HomeModules.tsx b/src/app/scene/genesis/home/HomeModules.tsx
+index a026129e..40657a93 100644
+--- a/src/app/scene/genesis/home/HomeModules.tsx
++++ b/src/app/scene/genesis/home/HomeModules.tsx
+@@ -139,9 +139,12 @@ export function useHomeSignals() {
+ }
+ 
+ function WeatherModule({ preview }: HomeModuleProps) {
+-  const { weather, error, needsPlace, locate } = useWeather();
++  const { weather, error, needsPlace, locate, refresh } = useWeather();
++  // Every tap does something visible: ask for the place, or refresh the forecast.
++  // Before, a refused location (always the case over plain http) left "Use my
++  // location" on screen and the tap looked dead (Mission 3.7).
+   return (
+-    <button type="button" className="lch-glass lch-weather" onClick={needsPlace && !preview ? locate : undefined} aria-label={weather ? `${weather.place}, ${weather.temperatureC} degrees, ${describeWeather(weather.code)}` : "Weather"}>
++    <button type="button" className="lch-glass lch-weather" onClick={preview ? undefined : needsPlace ? locate : () => void refresh()} aria-label={weather ? `${weather.place}, ${weather.temperatureC} degrees, ${describeWeather(weather.code)}` : "Weather"}>
+       {weather ? (
+         <>
+           <span className="lch-weather-place">
+@@ -162,8 +165,8 @@ function WeatherModule({ preview }: HomeModuleProps) {
+       ) : needsPlace ? (
+         <>
+           <span className="lch-weather-place">Weather</span>
+-          <span className="lch-weather-line">
+-            <HomeIcon name="MapPin" size={14} /> Use my location
++          <span className="lch-weather-line" role={error ? "status" : undefined}>
++            <HomeIcon name="MapPin" size={14} /> {error ?? "Use my location"}
+           </span>
+         </>
+       ) : (
+diff --git a/src/app/scene/genesis/home/homeComposition.css b/src/app/scene/genesis/home/homeComposition.css
+index e707923a..d7ba10a4 100644
+--- a/src/app/scene/genesis/home/homeComposition.css
++++ b/src/app/scene/genesis/home/homeComposition.css
+@@ -71,7 +71,10 @@
+   background: radial-gradient(circle at 36% 30%, #fff 0 6%, #f5d0fe 14%, #c084fc 36%, #6d28d9 64%, #1e0b3d 100%);
+   box-shadow: 0 0 34px color-mix(in srgb, var(--accent, #c084fc) 70%, transparent), inset -8px -10px 24px rgba(30, 0, 60, 0.6);
+ }
+-.lch-lelu .lch-hero-lelu { position: absolute; inset: 0; margin: 0; min-height: 0; }
++/* grid-area: auto — the classic hero's `grid-column: 2` (cosmosHome.css) made this
++   absolutely positioned spot take column 2 of a ONE-column grid: 0 px wide at its
++   right edge. With no hero spot she rested on the Home cards and took their taps. */
++.lch-lelu .lch-hero-lelu { position: absolute; inset: 0; margin: 0; min-height: 0; grid-area: auto; }
+ .lch-lelu-name { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 13px; letter-spacing: 0.14em; color: var(--ink, #fbf3ff); text-shadow: 0 0 12px rgba(232, 121, 249, 0.6); }
+ .lch-lelu-name small { display: block; letter-spacing: 0.02em; font-size: 11px; color: var(--ink-2, rgba(240, 226, 255, 0.72)); }
+ @keyframes hc-breathe { 50% { transform: scale(1.06); opacity: 0.85; } }
+diff --git a/src/app/scene/genesis/home/homeWeather.ts b/src/app/scene/genesis/home/homeWeather.ts
+index 7c5bc515..4d2cf63f 100644
+--- a/src/app/scene/genesis/home/homeWeather.ts
++++ b/src/app/scene/genesis/home/homeWeather.ts
+@@ -81,13 +81,19 @@ export async function geocode(name: string): Promise<HomePlace | null> {
+ /** The device's position, named by reverse lookup when possible. Asks the browser — call only on a tap. */
+ export function devicePlace(): Promise<HomePlace> {
+   return new Promise((resolve, reject) => {
++    // Safari (and every browser) gives location only to secure pages: over plain
++    // http://<ip> the request fails silently, so say why instead.
++    if (typeof window !== "undefined" && window.isSecureContext === false) {
++      reject(new Error("Location needs HTTPS on this address."));
++      return;
++    }
+     if (!navigator.geolocation) {
+       reject(new Error("Location is not available in this browser."));
+       return;
+     }
+     navigator.geolocation.getCurrentPosition(
+       (pos) => resolve({ name: "Here", latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+-      (err) => reject(new Error(err.message || "Location was not allowed.")),
++      (err) => reject(new Error(err.code === 1 ? "Location was not allowed — allow it in Safari's settings." : err.message || "Location was not available.")),
+       { timeout: 10_000, maximumAge: 30 * 60_000 },
+     );
+   });
+diff --git a/src/app/scene/genesis/home/useHomeLive.ts b/src/app/scene/genesis/home/useHomeLive.ts
+index 1a25e3d5..42b09c6b 100644
+--- a/src/app/scene/genesis/home/useHomeLive.ts
++++ b/src/app/scene/genesis/home/useHomeLive.ts
+@@ -61,6 +61,8 @@ export function useWeather(): {
+   error: string | null;
+   needsPlace: boolean;
+   locate: () => void;
++  /** Fetch the forecast again for the saved place. */
++  refresh: () => Promise<void>;
+ } {
+   const [weather, setWeather] = useState<HomeWeather | null>(null);
+   const [error, setError] = useState<string | null>(null);
+@@ -95,6 +97,7 @@ export function useWeather(): {
+   }, [load]);
+ 
+   const locate = useCallback(() => {
++    setError(null);
+     devicePlace()
+       .then((place) => {
+         savePlace(place);
+@@ -103,5 +106,5 @@ export function useWeather(): {
+       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)));
+   }, [load]);
+ 
+-  return { weather, error, needsPlace, locate };
++  return { weather, error, needsPlace, locate, refresh: load };
+ }
