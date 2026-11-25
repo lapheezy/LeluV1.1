@@ -81,13 +81,19 @@ export async function geocode(name: string): Promise<HomePlace | null> {
 /** The device's position, named by reverse lookup when possible. Asks the browser — call only on a tap. */
 export function devicePlace(): Promise<HomePlace> {
   return new Promise((resolve, reject) => {
+    // Safari (and every browser) gives location only to secure pages: over plain
+    // http://<ip> the request fails silently, so say why instead.
+    if (typeof window !== "undefined" && window.isSecureContext === false) {
+      reject(new Error("Location needs HTTPS on this address."));
+      return;
+    }
     if (!navigator.geolocation) {
       reject(new Error("Location is not available in this browser."));
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ name: "Here", latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-      (err) => reject(new Error(err.message || "Location was not allowed.")),
+      (err) => reject(new Error(err.code === 1 ? "Location was not allowed — allow it in Safari's settings." : err.message || "Location was not available.")),
       { timeout: 10_000, maximumAge: 30 * 60_000 },
     );
   });

@@ -61,6 +61,8 @@ export function useWeather(): {
   error: string | null;
   needsPlace: boolean;
   locate: () => void;
+  /** Fetch the forecast again for the saved place. */
+  refresh: () => Promise<void>;
 } {
   const [weather, setWeather] = useState<HomeWeather | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +97,7 @@ export function useWeather(): {
   }, [load]);
 
   const locate = useCallback(() => {
+    setError(null);
     devicePlace()
       .then((place) => {
         savePlace(place);
@@ -103,5 +106,5 @@ export function useWeather(): {
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)));
   }, [load]);
 
-  return { weather, error, needsPlace, locate };
+  return { weather, error, needsPlace, locate, refresh: load };
 }

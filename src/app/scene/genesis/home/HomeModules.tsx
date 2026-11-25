@@ -139,9 +139,12 @@ export function useHomeSignals() {
 }
 
 function WeatherModule({ preview }: HomeModuleProps) {
-  const { weather, error, needsPlace, locate } = useWeather();
+  const { weather, error, needsPlace, locate, refresh } = useWeather();
+  // Every tap does something visible: ask for the place, or refresh the forecast.
+  // Before, a refused location (always the case over plain http) left "Use my
+  // location" on screen and the tap looked dead (Mission 3.7).
   return (
-    <button type="button" className="lch-glass lch-weather" onClick={needsPlace && !preview ? locate : undefined} aria-label={weather ? `${weather.place}, ${weather.temperatureC} degrees, ${describeWeather(weather.code)}` : "Weather"}>
+    <button type="button" className="lch-glass lch-weather" onClick={preview ? undefined : needsPlace ? locate : () => void refresh()} aria-label={weather ? `${weather.place}, ${weather.temperatureC} degrees, ${describeWeather(weather.code)}` : "Weather"}>
       {weather ? (
         <>
           <span className="lch-weather-place">
@@ -162,8 +165,8 @@ function WeatherModule({ preview }: HomeModuleProps) {
       ) : needsPlace ? (
         <>
           <span className="lch-weather-place">Weather</span>
-          <span className="lch-weather-line">
-            <HomeIcon name="MapPin" size={14} /> Use my location
+          <span className="lch-weather-line" role={error ? "status" : undefined}>
+            <HomeIcon name="MapPin" size={14} /> {error ?? "Use my location"}
           </span>
         </>
       ) : (

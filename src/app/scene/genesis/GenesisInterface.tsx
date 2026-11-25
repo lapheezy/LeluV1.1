@@ -893,6 +893,11 @@ export default function GenesisInterface() {
           {/* Top chrome: expand chip (when minimized) + command palette +
               fullscreen. The palette and fullscreen stay usable in both
               states. */}
+          {/* Exactly one palette is mounted at a time. On Home and when chat owns
+              the phone the top chrome (and its palette) is not rendered, so the
+              dock's Search and the chat menu's "Command palette" — both of
+              which send ⌘K — reached no listener and did nothing (Mission 3.7). */}
+          {surface.chatOwnsScreen || showHome ? <GenesisCommandPalette trigger={false} /> : null}
           {surface.chatOwnsScreen || showHome ? null : (
           <div
             style={{

@@ -39,7 +39,11 @@ const EMPTY_WORKSPACES: Array<{ id?: string; name?: string }> = [];
 
 export default function GenesisCommandPalette({
   onNavigate,
+  trigger = true,
 }: {
+  /** false: no "Command Palette" pill, only the palette and its ⌘K listener —
+      for screens whose own Search control opens it (the phone dock, chat menu). */
+  trigger?: boolean;
   /** When provided (Genesis v2 scope), every command routes through this
       handler instead of openPanel — so palette navigation never ejects the
       v2 workspace back to v1. */
@@ -174,6 +178,7 @@ export default function GenesisCommandPalette({
 
   return (
     <>
+      {trigger ? (
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -212,6 +217,7 @@ export default function GenesisCommandPalette({
           <path d="M12 2.8 14 10 21.2 12 14 14 12 21.2 10 14 2.8 12 10 10Z" />
         </svg>
       </button>
+      ) : null}
 
       <AnimatePresence>
         {open ? (
