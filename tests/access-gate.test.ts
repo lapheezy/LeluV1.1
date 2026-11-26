@@ -119,3 +119,122 @@ test("without LELU_VOICE_AGENT_TOKEN configured, no agent header opens anything"
     await s.close();
   }
 });
+
+/* -------- Mission 3.7.3: email + password (Supabase) replaces the passphrase -------- */
+
+const OWNER = "owner@example.com";
+const RIGHT = "right-password-123";
+
+/** A stand-in for Supabase's /auth/v1/token?grant_type=password. */
+async function fakeSupabase() {
+  const calls: Array<{ apikey: string | undefined; body: Record<string, string> }> = [];
+  const server = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      const body = JSON.parse(raw || "{}");
+      calls.push({ apikey: req.headers.apikey as string | undefined, body });
+      res.setHeader("Content-Type", "application/json");
+      if (req.url !== "/auth/v1/token?grant_type=password") { res.statusCode = 404; res.end("{}"); return; }
+      const known = [OWNER, "other@example.com"];
+      if (known.includes(body.email) && body.password === RIGHT) {
+        res.end(JSON.stringify({ access_token: "AT-test", token_type: "bearer", expires_in: 3600, expires_at: 1_900_000_000, refresh_token: "RT-test", user: { id: "u1", email: body.email } }));
+      } else {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: "invalid_grant", error_description: "Invalid login credentials" }));
+      }
+    });
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  const url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+  return { url, calls, close: () => new Promise<void>((r) => server.close(() => r())) };
+}
+
+const signIn = (base: string, email: string, password: string, ip = "10.0.0.9") =>
+  fetch(`${base}/auth/login`, {
+    method: "POST",
+    redirect: "manual",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Forwarded-For": ip },
+    body: new URLSearchParams({ email, password }).toString(),
+  });
+
+test("email + password: the first screen is Email, Password, Show and Sign In — nothing else", async () => {
+  const sb = await fakeSupabase();
+  const s = await serve({ LELU_ACCESS_PASSWORD: "old passphrase", LELU_SESSION_SECRET: "k", LELU_ACCESS_EMAILS: OWNER, VITE_SUPABASE_URL: sb.url, VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test" });
+  try {
+    const html = await (await fetch(`${s.base}/auth/login`)).text();
+    assert.match(html, /type="email" name="email"/);
+    assert.match(html, /type="password" name="password"/);
+    assert.match(html, />Show</);
+    assert.match(html, /<button type="submit">Sign In<\/button>/);
+    assert.doesNotMatch(html, /Passphrase|one-time|code|magic|sign-in link|Enter<\/button>/i);
+    assert.equal((html.match(/<input/g) ?? []).length, 2, "exactly two inputs");
+    assert.equal((await fetch(`${s.base}/`, { redirect: "manual" })).status, 303, "still nothing without a session");
+    assert.match(s.logs.join("\n"), /passphrase is retired/);
+  } finally {
+    await s.close(); await sb.close();
+  }
+});
+
+test("email + password: the right password signs in (gate cookie + the app's Supabase session); the old passphrase does not", async () => {
+  const sb = await fakeSupabase();
+  const s = await serve({ LELU_ACCESS_PASSWORD: "old passphrase", LELU_SESSION_SECRET: "k", LELU_ACCESS_EMAILS: `${OWNER}`, VITE_SUPABASE_URL: sb.url, VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test" });
+  try {
+    const ok = await signIn(s.base, " Owner@Example.com ", RIGHT);
+    assert.equal(ok.status, 200);
+    assert.equal(sb.calls.at(-1)?.apikey, "sb_publishable_test", "the publishable key, never a secret one");
+    assert.equal(sb.calls.at(-1)?.body.email, OWNER, "the address is normalised");
+    const cookie = (ok.headers.get("set-cookie") ?? "").split(";")[0];
+    assert.match(cookie, /^lelu_session=/);
+    const page = await ok.text();
+    assert.match(page, /localStorage\.setItem\("sb-127-auth-token"/, "the app's own session key");
+    assert.match(page, /RT-test/);
+    assert.match(page, /location\.replace\("\/"\)/);
+    assert.ok(!page.includes(RIGHT), "the password is never echoed");
+    assert.equal((await fetch(`${s.base}/api/model/status`, { headers: { cookie } })).status, 200, "the session opens LÉLU");
+
+    const pass = await fetch(`${s.base}/auth/login`, { method: "POST", redirect: "manual", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "password=old+passphrase" });
+    assert.notEqual(pass.status, 303);
+    assert.equal(pass.headers.get("set-cookie"), null, "the passphrase no longer opens anything");
+
+    const out = await fetch(`${s.base}/auth/logout`, { headers: { cookie } });
+    assert.match(out.headers.get("set-cookie") ?? "", /lelu_session=; .*Max-Age=0/);
+    assert.match(await out.text(), /localStorage\.removeItem\("sb-127-auth-token"\)/, "logout also ends the app's session");
+  } finally {
+    await s.close(); await sb.close();
+  }
+});
+
+test("email + password: a wrong password, an unlisted account and a malformed email are refused with a plain message", async () => {
+  const sb = await fakeSupabase();
+  const s = await serve({ LELU_SESSION_SECRET: "k", LELU_ACCESS_EMAILS: OWNER, VITE_SUPABASE_URL: sb.url, VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test" });
+  try {
+    const wrong = await signIn(s.base, OWNER, "nope", "10.1.0.1");
+    assert.equal(wrong.status, 401);
+    assert.equal(wrong.headers.get("set-cookie"), null);
+    const w = await wrong.text();
+    assert.match(w, /That email and password don&#39;t match\./);
+    assert.match(w, /value="owner@example\.com"/, "the email stays filled in");
+    assert.ok(!w.includes("nope"), "the password is never echoed");
+
+    const other = await signIn(s.base, "other@example.com", RIGHT, "10.1.0.2");
+    assert.equal(other.status, 403, "a real account that is not allowed in");
+    assert.equal(other.headers.get("set-cookie"), null);
+
+    const bad = await signIn(s.base, "not-an-email", RIGHT, "10.1.0.3");
+    assert.equal(bad.status, 400);
+    assert.equal(sb.calls.filter((c) => c.body.email === "not-an-email").length, 0, "never sent to Supabase");
+  } finally {
+    await s.close(); await sb.close();
+  }
+});
+
+test("email + password stays OFF until LELU_ACCESS_EMAILS is set: deploying the code cannot lock anyone out", async () => {
+  const s = await serve({ LELU_ACCESS_PASSWORD: "correct horse", LELU_SESSION_SECRET: "k", VITE_SUPABASE_URL: "http://127.0.0.1:9", VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test" });
+  try {
+    assert.match(await (await fetch(`${s.base}/auth/login`)).text(), /Passphrase/);
+    assert.equal((await login(s.base, "correct horse")).status, 303);
+  } finally {
+    await s.close();
+  }
+});

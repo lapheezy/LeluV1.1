@@ -10,10 +10,10 @@
  * worse by offering only "Sign out" while showing an empty identity, which
  * reads as "signed in, broken" rather than "not signed in".
  *
- * So the choice is presented up front, before the conversation starts, and
- * it is a CHOICE: skipping is a first-class answer, remembered, and LÉLU
- * works fully without an account. Local-only is a supported way to run, not
- * a failure — so the gate never nags and never blocks a second time.
+ * Email + password, through the existing client's signInWithPassword
+ * (restored, Mission 3.7.3: a passwordless code/link flow had replaced it).
+ * Normally the server's sign-in page has already signed the app in; this card
+ * only appears if the app's session is missing.
  *
  * It uses the existing SupabasePersistence client. No second client, no
  * second auth path.
@@ -24,26 +24,9 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import SupabasePersistence, {
   type SupabaseAuthState,
 } from "../../../core/persistence/SupabasePersistence";
-import { EMAIL_SIGN_IN_NOTICE, authCallbackError } from "../../../core/persistence/emailAuth";
-import KvStore from "../../../core/storage/KvStore";
+import { authCallbackError } from "../../../core/persistence/emailAuth";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
-
-/** Remembers that the user chose to carry on without an account. */
-const SKIP_KEY = "lelu.auth.skipped.v1";
-
-/**
- * The guest choice, for THIS session, decided synchronously.
- *
- * The persisted answer is the durable one, but a dismissal must also hold
- * across a remount — and the gate is remounted whenever the interface above it
- * is rebuilt. `KvStore.set` writes through storage, and a component that came
- * back before the next read saw its own answer would put the modal (and its
- * full-screen backdrop) in front of the workspace again. Measured in
- * docs/acceptance/autonomy-closure: the gate was gone in a warm session and
- * back in a fresh one, above every press.
- */
-let skippedThisSession = false;
 
 const persistence = SupabasePersistence.getInstance();
 
@@ -52,16 +35,11 @@ export default function LeluSignInGate() {
   const [authState, setAuthState] = useState<SupabaseAuthState>(() =>
     persistence.getAuthState(),
   );
-  const [skipped, setSkipped] = useState<boolean>(
-    () => skippedThisSession || KvStore.getInstance().get<boolean>(SKIP_KEY) === true,
-  );
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => persistence.subscribeAuth(setAuthState), []);
 
@@ -101,50 +79,25 @@ export default function LeluSignInGate() {
     }
   }, []);
 
-  const skip = useCallback(() => {
-    skippedThisSession = true;
-    KvStore.getInstance().set(SKIP_KEY, true);
-    setSkipped(true);
-  }, []);
-
+  /** Email + password, through the existing client's signInWithPassword. */
   const submit = useCallback(
     async (event: FormEvent) => {
       event.preventDefault();
       setBusy(true);
       setError(null);
-      setNotice(null);
       try {
-        const result = await persistence.requestEmailSignIn(email);
+        const result = await persistence.signInWithEmail(email, password);
         if (result.error) setError(result.error);
-        else {
-          setSent(true);
-          setNotice(EMAIL_SIGN_IN_NOTICE);
-        }
+        else setPassword("");
       } finally {
         setBusy(false);
       }
     },
-    [email],
-  );
-
-  const verify = useCallback(
-    async (event: FormEvent) => {
-      event.preventDefault();
-      setVerifying(true);
-      setError(null);
-      try {
-        const result = await persistence.verifyEmailCode(email, code);
-        if (result.error) setError(result.error);
-        else setNotice("Signed in. Your cloud identity is connected.");
-      } finally {
-        setVerifying(false);
-      }
-    },
-    [code, email],
+    [email, password],
   );
 
   // Already signed in, already answered, or still working it out — say nothing.
-  if (skipped || authState.session) return null;
+  if (authState.session) return null;
   // Say nothing until persistence has actually answered. Showing the
   // unconfigured message while still connecting is how a working deployment
   // got told it had none.
@@ -229,11 +182,6 @@ export default function LeluSignInGate() {
         </div>
 
         <>
-            <p style={{ margin: "0 0 14px" }}>
-              Sign in to carry memory, projects and conversations across your
-              devices. You can also continue without an account — everything
-              works, it just stays here.
-            </p>
 
             <form
               data-lelu-auth-form
@@ -245,12 +193,37 @@ export default function LeluSignInGate() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Email address"
-                autoComplete="email"
+                placeholder="Email"
+                autoComplete="username"
+                inputMode="email"
+                autoCapitalize="none"
                 required
                 disabled={busy}
                 style={inputStyle}
               />
+              <div style={{ position: "relative" }}>
+                <input
+                  data-lelu-auth-password
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  required
+                  disabled={busy}
+                  style={{ ...inputStyle, width: "100%", boxSizing: "border-box", paddingRight: 64 }}
+                />
+                <button
+                  type="button"
+                  data-lelu-auth-toggle
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", border: 0, background: "transparent", color: "rgba(103, 232, 249, 0.95)", fontSize: 13, padding: "8px 10px", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               {/*
                 A problem with the DEPLOYMENT shows before the form is even
                 used, and says so. Without this the only symptom of a key
@@ -272,52 +245,15 @@ export default function LeluSignInGate() {
                   {error}
                 </div>
               ) : null}
-              {notice ? (
-                <div style={{ color: "rgba(167, 243, 208, 0.95)", fontSize: 12 }}>{notice}</div>
-              ) : null}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
                 <button data-lelu-auth-submit type="submit" disabled={busy} style={primaryStyle}>
-                  {busy ? "Sending…" : "Email me a sign-in link"}
+                  {busy ? "Signing in…" : "Sign In"}
                 </button>
               </div>
             </form>
 
-            {sent ? (
-              <form
-                data-lelu-auth-code-form
-                onSubmit={(event) => void verify(event)}
-                style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}
-              >
-                <input
-                  data-lelu-auth-code
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  value={code}
-                  onChange={(event) => setCode(event.target.value)}
-                  placeholder="Code from the email (if included)"
-                  disabled={verifying}
-                  style={inputStyle}
-                />
-                <button data-lelu-auth-verify type="submit" disabled={verifying || !code.trim()} style={secondaryStyle}>
-                  {verifying ? "Checking…" : "Verify code"}
-                </button>
-              </form>
-            ) : null}
         </>
 
-        <button
-          type="button"
-          onClick={skip}
-          style={{
-            ...secondaryStyle,
-            width: "100%",
-            marginTop: 14,
-            borderColor: "rgba(255,255,255,0.14)",
-          }}
-        >
-          Continue without an account
-        </button>
       </div>
     </div>
   );
@@ -329,7 +265,7 @@ const inputStyle = {
   background: "rgba(0,0,0,0.26)",
   color: "white",
   padding: "10px 11px",
-  fontSize: 13,
+  fontSize: 16, // 16 px: iOS Safari does not zoom the page on focus
   fontFamily: "inherit",
 } as const;
 
@@ -344,13 +280,3 @@ const primaryStyle = {
   fontFamily: "inherit",
 } as const;
 
-const secondaryStyle = {
-  border: "1px solid rgba(255,255,255,0.18)",
-  borderRadius: 8,
-  background: "rgba(255,255,255,0.05)",
-  color: "rgba(226, 232, 240, 0.9)",
-  padding: "9px 14px",
-  fontSize: 12.5,
-  cursor: "pointer",
-  fontFamily: "inherit",
-} as const;

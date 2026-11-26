@@ -21,7 +21,7 @@ import CuriosityLedger, { type LedgerSnapshot } from "../curiosity/CuriosityLedg
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import DeletionLedger, { MAX_REMOTE_ATTEMPTS } from "../memory/DeletionLedger";
 import DeletionGuard from "../memory/DeletionGuard";
-import { requestEmailLink, verifyEmailCode } from "./emailAuth";
+import { explainEmailAuthError, requestEmailLink, verifyEmailCode } from "./emailAuth";
 
 /**
  * LÉLU's development records, synced as per-user documents in the EXISTING
@@ -337,7 +337,8 @@ export default class SupabasePersistence {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) return { error: "Enter your email and password." };
     const { error } = await this.client.auth.signInWithPassword({ email: normalizedEmail, password });
-    return { error: this.explainAuthError(error?.message) };
+    // The shared mapping: useful, never echoes the address or a token.
+    return { error: /invalid api key/i.test(error?.message ?? "") ? this.explainAuthError(error?.message) : explainEmailAuthError(error?.message, normalizedEmail) };
   }
 
   public async signUpWithEmail(email: string, password: string): Promise<{ error: string | null; requiresConfirmation: boolean }> {

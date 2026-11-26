@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { explainEmailAuthError } from "../../../../core/persistence/emailAuth";
 import { getSupabase, isSupabaseConfigured } from "@og/integrations/supabase/client";
-import { EMAIL_SIGN_IN_NOTICE, requestEmailLink, verifyEmailCode } from "../../../../core/persistence/emailAuth";
 import { toast } from "sonner";
 import { useNavigate } from "@og/compat/router";
 import { useSession } from "@og/hooks/use-session";
@@ -104,15 +104,15 @@ function Empty({ title, text }: { title: string; text: string }) {
 }
 
 /**
- * Passwordless email sign-in for the OG surface.
+ * Email + password sign-in for the OG surface (signInWithPassword).
  *
  * Uses the same Supabase client every other OG call uses — there is one
  * client in the app and this is not a second auth path.
  */
 function SignInForm() {
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -125,78 +125,32 @@ function SignInForm() {
     setError(null);
     setNotice(null);
     try {
-      const redirectTo = `${window.location.origin}${window.location.pathname}`;
-      const result = await requestEmailLink(client.auth, email, redirectTo);
-      if (result.error) setError(result.error);
+      const { error: failure } = await client.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+      if (failure) setError(explainEmailAuthError(failure.message, email));
       else {
-        setSent(true);
-        setNotice(EMAIL_SIGN_IN_NOTICE);
+        setPassword("");
+        setNotice("Signed in.");
       }
     } finally {
       setBusy(false);
     }
   }
 
-  async function verify(event: React.FormEvent) {
-    event.preventDefault();
-    const client = getSupabase();
-    if (!client) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await verifyEmailCode(client.auth, email, code);
-      if (result.error) setError(result.error);
-      else setNotice("Signed in.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
+  const field = "w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-base text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none";
   return (
     <div className="max-w-xs space-y-2">
-      <p className="text-xs leading-relaxed text-foreground/60">
-        Sign in to carry memory, projects and conversations across devices.
-      </p>
       <form onSubmit={(event) => void submit(event)} className="space-y-2">
-        <input
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Email address"
-          autoComplete="email"
-          required
-          disabled={busy}
-          className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
-        />
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs hover:bg-white/15 disabled:opacity-50"
-        >
-          {busy ? "Sending…" : "Email me a sign-in link"}
+        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" autoComplete="username" inputMode="email" autoCapitalize="none" required disabled={busy} className={field} />
+        <div className="relative">
+          <input type={show ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" autoComplete="current-password" required disabled={busy} className={`${field} pr-16`} />
+          <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"} aria-pressed={show} className="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-foreground/70">
+            {show ? "Hide" : "Show"}
+          </button>
+        </div>
+        <button type="submit" disabled={busy} className="rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs hover:bg-white/15 disabled:opacity-50">
+          {busy ? "Signing in…" : "Sign In"}
         </button>
       </form>
-      {sent ? (
-        <form onSubmit={(event) => void verify(event)} className="space-y-2">
-          <input
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            placeholder="Code from the email (if included)"
-            disabled={busy}
-            className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={busy || !code.trim()}
-            className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10 disabled:opacity-50"
-          >
-            {busy ? "Checking…" : "Verify code"}
-          </button>
-        </form>
-      ) : null}
       {notice ? <p className="text-xs leading-relaxed text-emerald-300/90">{notice}</p> : null}
       {error ? <p className="text-xs leading-relaxed text-red-300/90">{error}</p> : null}
     </div>

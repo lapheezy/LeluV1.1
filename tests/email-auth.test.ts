@@ -118,19 +118,26 @@ test("the helper has no storage, logging or second client path", () => {
   assert.doesNotMatch(source, /localStorage|sessionStorage|createClient|console\.(log|info|warn|error)/);
 });
 
-test("the sign-in gate no longer renders a password field", () => {
+// Mission 3.7.3: the owner reversed the passwordless design. Every sign-in
+// surface is email + password through signInWithPassword, with nothing else:
+// no emailed link, no code entry.
+test("the sign-in gate is email + password only", () => {
   const gate = readFileSync("src/app/scene/genesis/LeluSignInGate.tsx", "utf8");
-  assert.doesNotMatch(gate, /type="password"|Signing in…|Create account/);
-  assert.match(gate, /requestEmailSignIn/);
+  assert.match(gate, /signInWithEmail\(email, password\)/);
   assert.match(gate, /data-lelu-auth-email/);
+  assert.match(gate, /data-lelu-auth-password/);
+  assert.match(gate, /Show password/);
+  assert.doesNotMatch(gate, /requestEmailSignIn|verifyEmailCode|one-time-code|Email me a sign-in link|Verify code/);
 });
 
-test("the settings surfaces use the same passwordless path", () => {
+test("the settings surfaces sign in with email + password only", () => {
   const genesis = readFileSync("src/app/scene/genesis/GenesisSettingsPanel.tsx", "utf8");
   const og = readFileSync("src/og/components/core/panels/SettingsPanel.tsx", "utf8");
+  assert.match(genesis, /signInWithEmail\(authEmail, authPassword\)/);
+  assert.match(og, /signInWithPassword\(/);
   for (const source of [genesis, og]) {
-    assert.doesNotMatch(source, /type="password"/);
-    assert.doesNotMatch(source, /signInWithPassword/);
+    assert.match(source, /type=\{[a-zA-Z]+ \? "text" : "password"\}/);
+    assert.doesNotMatch(source, /requestEmailSignIn|requestEmailLink|verifyEmailCode|one-time-code|Email me a sign-in link|Verify code/);
   }
 });
 
@@ -264,6 +271,15 @@ test("the email-auth error mapping is shared by all three surfaces", () => {
     "src/og/components/core/panels/SettingsPanel.tsx",
   ]) {
     const source = readFileSync(path, "utf8");
-    assert.match(source, /emailAuth/, `${path} must use the shared helper`);
+    // Directly, or through persistence.signInWithEmail, which maps with the shared helper.
+    assert.ok(/emailAuth/.test(source) || /signInWithEmail\(/.test(source), `${path} must use the shared helper`);
   }
+  assert.match(readFileSync("src/core/persistence/SupabasePersistence.ts", "utf8"), /explainEmailAuthError\(error\?\.message, normalizedEmail\)/);
+});
+
+test("a wrong password is reported plainly, without saying which half was wrong or echoing the address", async () => {
+  const { explainEmailAuthError } = await import("../src/core/persistence/emailAuth");
+  const msg = explainEmailAuthError("Invalid login credentials", "owner@example.com");
+  assert.equal(msg, "That email and password don't match.");
+  assert.ok(!String(msg).includes("owner@example.com"));
 });

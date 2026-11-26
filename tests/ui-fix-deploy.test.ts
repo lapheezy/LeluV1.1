@@ -19,7 +19,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -36,9 +36,10 @@ function sh(cmd: string, args: string[], allowFail = false) {
   if (!allowFail && r.status !== 0) throw new Error(`${cmd} ${args.join(" ")} → ${r.status}\n${out}`);
   return { status: r.status ?? 1, out };
 }
-const touched = () => sh("git", ["apply", "--numstat", PATCH]).out.trim().split("\n").map((l) => l.split("\t")[2]);
+const AUTH_PATCH = "deploy/contabo/patches/email-password-sign-in.patch";
+const touched = () => [PATCH, AUTH_PATCH].flatMap((p) => sh("git", ["apply", "--numstat", p]).out.trim().split("\n").map((l) => l.split("\t")[2]));
 
-interface Rig { root: string; app: string; bk: string; run: (...a: string[]) => { status: number; out: string }; close: () => void; lelu: (...a: string[]) => string }
+interface Rig { root: string; app: string; bk: string; env: string; run: (...a: string[]) => { status: number; out: string }; close: () => void; lelu: (...a: string[]) => string }
 
 async function rig(opts: { tscFails?: boolean; leakyBuild?: boolean; drift?: boolean; gate?: boolean; extra?: string } = {}): Promise<Rig> {
   const root = mkdtempSync(join(tmpdir(), "lelu-uifix-"));
@@ -77,7 +78,7 @@ exit 0
   const port = 41000 + Math.floor(Math.random() * 2000);
   const server: ChildProcess = spawn("python3", ["-I", "-c", `
 import http.server, os, json, sys
-APP = sys.argv[1]; GATE = sys.argv[3] == "1"
+APP = sys.argv[1]; GATE = sys.argv[3] == "1"; ENVF = sys.argv[4]
 class H(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_GET(self):
@@ -85,7 +86,8 @@ class H(http.server.BaseHTTPRequestHandler):
         if self.path == "/healthz":
             body = json.dumps({"ok": True, "dist": os.path.exists(os.path.join(d, "index.html")), "accessGate": GATE}).encode(); ctype = "application/json"
         elif self.path == "/auth/login" and GATE:
-            body = b"<form method=post action=/auth/login></form>"; ctype = "text/html"
+            emails = any(l.startswith("LELU_ACCESS_EMAILS=") for l in open(ENVF).read().splitlines())
+            body = (b'<input type="email" name="email"><input type="password" name="password">' if emails else b'<input name="password" placeholder="Passphrase">'); ctype = "text/html"
         elif GATE:  # production's access gate: no session -> the login page
             self.send_response(303); self.send_header("Location", "/auth/login"); self.end_headers(); return
         else:
@@ -94,7 +96,7 @@ class H(http.server.BaseHTTPRequestHandler):
             body = open(p, "rb").read(); ctype = "text/html"
         self.send_response(200); self.send_header("Content-Type", ctype); self.end_headers(); self.wfile.write(body)
 http.server.HTTPServer(("127.0.0.1", int(sys.argv[2])), H).serve_forever()
-`, app, String(port), opts.gate === false ? "0" : "1"], { stdio: "ignore" });
+`, app, String(port), opts.gate === false ? "0" : "1", env], { stdio: "ignore" });
   for (let i = 0; i < 50 && sh("curl", ["-fsS", "-m", "1", `http://127.0.0.1:${port}/healthz`], true).status !== 0; i++) await new Promise((r) => setTimeout(r, 100));
 
   const source = readFileSync(SCRIPT, "utf8");
@@ -103,13 +105,15 @@ http.server.HTTPServer(("127.0.0.1", int(sys.argv[2])), H).serve_forever()
     .replace("BK=/var/backups/lelu-ui", `BK=${bk}`)
     .replace("H=http://127.0.0.1:4173", `H=http://127.0.0.1:${port}`)
     .replace("ENV_FILE=/etc/lelu/lelu.env", `ENV_FILE=${env}`)
+    .replace("ENV_BK=/etc/lelu/backups", `ENV_BK=${join(root, "envbk")}`)
+    .replace("restart_app() { systemctl restart lelu; }", `restart_app() { echo restarted >> ${join(root, "restarts")}; }`)
     .replace(/ip -4 -o addr show[^\n]*\n/, `ok "identity check skipped in the rehearsal"\n`)
     .replace('as_lelu() { runuser -u lelu -- bash -c "cd \'$APP\' && $1"; }', `as_lelu() { runuser -u lelu -- env PATH="${bin}:$PATH" bash -c "cd '$APP' && $1"; }`);
   assert.ok(mutant.includes(`APP=${app}`) && mutant.includes(`H=http://127.0.0.1:${port}`) && mutant.includes(`${bin}:$PATH`) && !mutant.includes("ip -4 -o addr"), "substitutions applied");
   const script = join(root, "ui-fix.sh");
   writeFileSync(script, mutant);
   return {
-    root, app, bk,
+    root, app, bk, env,
     run: (...a) => sh("bash", [script, ...a], true),
     lelu: (...a) => sh("runuser", ["-u", "lelu", "--", "git", "-C", app, ...a]).out,
     close: () => { server.kill(); rmSync(root, { recursive: true, force: true }); },
@@ -262,3 +266,74 @@ for (const [kind, value] of [
     }
   });
 }
+
+/* ---------------- Mission 3.7.3: email + password sign-in ---------------- */
+
+const restarts = (r: Rig) => (existsSync(join(r.root, "restarts")) ? readFileSync(join(r.root, "restarts"), "utf8").trim().split("\n").length : 0);
+
+test("the sign-in patch applies to integration-head files, restarts lelu once (server code), and rolls back with a restart", { skip: !canRun }, async () => {
+  const r = await rig({ drift: true });
+  try {
+    const before = served(r);
+    const patch = patchCopy(r, "auth.patch", readFileSync(AUTH_PATCH, "utf8"));
+    const a = r.run("apply", patch);
+    assert.equal(a.status, 0, a.out);
+    assert.match(a.out, /patch touches only allowed front-end files \(6\)/);
+    assert.match(a.out, /lelu restarted on the new server code/);
+    assert.equal(restarts(r), 1);
+    assert.match(readFileSync(join(r.app, "plugins/accessGate.ts"), "utf8"), /EMAIL_LOGIN_HTML/);
+    assert.match(readFileSync(join(r.app, "src/app/scene/genesis/LeluSignInGate.tsx"), "utf8"), /signInWithEmail\(email, password\)/);
+    const back = r.run("rollback");
+    assert.equal(back.status, 0, back.out);
+    assert.match(back.out, /lelu restarted on the previous server code/);
+    assert.equal(restarts(r), 2);
+    assert.equal(served(r), before);
+    assert.match(back.out, /working tree identical to before apply/);
+  } finally {
+    r.close();
+  }
+});
+
+test("the UI patch alone (no server code) does not restart lelu", { skip: !canRun }, async () => {
+  const r = await rig();
+  try {
+    const a = r.run("apply", patchCopy(r, "ui.patch", readFileSync(PATCH, "utf8")));
+    assert.equal(a.status, 0, a.out);
+    assert.equal(restarts(r), 0);
+  } finally {
+    r.close();
+  }
+});
+
+test("allow <email>: only LELU_ACCESS_EMAILS changes, no value is printed, the page switches; --off switches back", { skip: !canRun }, async () => {
+  const r = await rig();
+  try {
+    const original = readFileSync(r.env, "utf8");
+    const on = r.run("allow", "Owner@Example.com");
+    assert.equal(on.status, 0, on.out);
+    assert.match(on.out, /every other line identical/);
+    assert.match(on.out, /the sign-in page is Email \+ Password/);
+    assert.doesNotMatch(on.out, /feedface|example\.supabase/, "no other env value printed");
+    const now = readFileSync(r.env, "utf8");
+    assert.equal(now, original + "LELU_ACCESS_EMAILS=owner@example.com\n");
+    assert.equal(statSync(r.env).mode & 0o777, 0o600, "mode unchanged");
+    assert.equal(restarts(r), 1);
+    const backups = readdirSync(join(r.root, "envbk"));
+    assert.equal(readFileSync(join(r.root, "envbk", backups[0]), "utf8"), original, "backup is the original");
+
+    const again = r.run("allow", "owner@example.com");
+    assert.equal((readFileSync(r.env, "utf8").match(/LELU_ACCESS_EMAILS=/g) ?? []).length, 1, "set once, never duplicated");
+    assert.equal(again.status, 0);
+
+    const off = r.run("allow", "--off");
+    assert.equal(off.status, 0, off.out);
+    assert.match(off.out, /passphrase sign-in is back/);
+    assert.equal(readFileSync(r.env, "utf8"), original);
+
+    const junk = r.run("allow", "not-an-email");
+    assert.notEqual(junk.status, 0);
+    assert.equal(readFileSync(r.env, "utf8"), original, "nothing written for a bad address");
+  } finally {
+    r.close();
+  }
+});

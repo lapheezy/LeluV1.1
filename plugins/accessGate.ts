@@ -107,6 +107,51 @@ function readForm(req: IncomingMessage, limit = 4096): Promise<Record<string, st
   });
 }
 
+const esc = (t: string) => t.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/** Email + password sign-in (Supabase password auth). Nothing else on the page. */
+const EMAIL_LOGIN_HTML = (message: string, email = "") => `<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>LÉLU</title>
+<style>
+  html,body{margin:0;height:100%;background:#07050d;color:#f5e9ff;font:16px system-ui,-apple-system,sans-serif}
+  main{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+  form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px}
+  h1{font-weight:600;letter-spacing:.3em;text-align:center;margin:0 0 8px}
+  input{font-size:17px;padding:14px 16px;border-radius:14px;border:1px solid #f0abfc55;background:#120c1f;color:inherit;width:100%;box-sizing:border-box}
+  .pw{position:relative}
+  .pw input{padding-right:72px}
+  .pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:14px;padding:8px 10px;background:transparent;color:#f0abfc;border:0;font-weight:600}
+  button[type=submit]{font-size:17px;padding:14px;border-radius:14px;border:0;background:#c084fc;color:#120c1f;font-weight:600}
+  p{min-height:1.2em;margin:0;text-align:center;color:#fda4af;font-size:14px}
+</style></head>
+<body><main><form method="post" action="/auth/login">
+  <h1>LÉLU</h1>
+  <input type="email" name="email" autocomplete="username" inputmode="email" autocapitalize="none" placeholder="Email" value="${esc(email)}" ${email ? "" : "autofocus"} required>
+  <div class="pw"><input type="password" name="password" id="pw" autocomplete="current-password" placeholder="Password" ${email ? "autofocus" : ""} required>
+  <button type="button" id="toggle" aria-label="Show password" aria-pressed="false">Show</button></div>
+  <button type="submit">Sign In</button>
+  <p role="alert">${esc(message)}</p>
+</form></main>
+<script>
+  var t=document.getElementById("toggle"),p=document.getElementById("pw");
+  t.addEventListener("click",function(){var show=p.type==="password";p.type=show?"text":"password";t.textContent=show?"Hide":"Show";t.setAttribute("aria-pressed",String(show));t.setAttribute("aria-label",show?"Hide password":"Show password");p.focus();});
+</script></body></html>`;
+
+/**
+ * After a successful sign-in: hand the Supabase session to the app (the same
+ * storage key and shape supabase-js uses, so the app opens signed in), then go in.
+ */
+const SIGNED_IN_HTML = (storageKey: string, session: unknown) => `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>LÉLU</title></head><body>
+<script>
+  try { localStorage.setItem(${JSON.stringify(storageKey)}, ${JSON.stringify(JSON.stringify(session)).replace(/</g, "\\u003c")}); } catch (e) {}
+  location.replace("/");
+</script></body></html>`;
+
 const LOGIN_HTML = (message: string) => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -131,7 +176,43 @@ const LOGIN_HTML = (message: string) => `<!doctype html>
 
 export function createAccessGate(readEnv: EnvReader, log: (line: string) => void = console.log): AccessGate {
   const password = readEnv("LELU_ACCESS_PASSWORD") ?? "";
-  const enabled = password.length > 0;
+  // Email + password (Supabase) replaces the passphrase as soon as the owner
+  // names who may enter. Unset, the passphrase gate stays exactly as it was,
+  // so deploying this code can never lock anyone out.
+  const allowed = new Set(
+    (readEnv("LELU_ACCESS_EMAILS") ?? "").split(/[,\s]+/).map((e) => e.trim().toLowerCase()).filter(Boolean),
+  );
+  const firstSet = (names: string[]) => names.map((n) => (readEnv(n) ?? "").trim()).find(Boolean) ?? "";
+  const supabaseUrl = firstSet(["VITE_SUPABASE_URL", "SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"]).replace(/\/+$/, "");
+  const supabaseKey = firstSet(["VITE_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]);
+  const emailMode = allowed.size > 0 && Boolean(supabaseUrl) && Boolean(supabaseKey);
+  const enabled = emailMode || password.length > 0;
+  let storageKey = "sb-auth-token";
+  try { storageKey = `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`; } catch { /* email mode off */ }
+  if (allowed.size > 0 && !emailMode) log("[LÉLU access] LELU_ACCESS_EMAILS is set but Supabase URL/publishable key are not — email sign-in is OFF.");
+  if (emailMode) log(`[LÉLU access] email + password sign-in for ${allowed.size} allowed address(es); the passphrase is retired.`);
+
+  /** Supabase password sign-in, server side. Returns the session, or a message safe to show. */
+  const passwordSignIn = async (email: string, pass: string): Promise<{ session?: Record<string, unknown>; error?: string }> => {
+    try {
+      const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+        method: "POST",
+        headers: { apikey: supabaseKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (res.ok && typeof data.access_token === "string") {
+        if (typeof data.expires_at !== "number" && typeof data.expires_in === "number") data.expires_at = Math.floor(Date.now() / 1000) + data.expires_in;
+        return { session: data };
+      }
+      if (res.status === 400 || res.status === 401) return { error: "That email and password don't match." };
+      if (res.status === 429) return { error: "Too many attempts. Wait a minute." };
+      return { error: "Sign-in is unavailable right now. Try again shortly." };
+    } catch {
+      return { error: "Sign-in is unavailable right now. Try again shortly." };
+    }
+  };
   const secret = readEnv("LELU_SESSION_SECRET") || randomBytes(32).toString("hex");
   const days = Math.max(1, Math.min(365, Number(readEnv("LELU_SESSION_DAYS") ?? 30) || 30));
   const attempts = new Map<string, number[]>();
@@ -180,7 +261,38 @@ export function createAccessGate(readEnv: EnvReader, log: (line: string) => void
         if (recent.length >= 5) {
           res.statusCode = 429;
           res.setHeader("Content-Type", "text/html; charset=utf-8");
-          res.end(LOGIN_HTML("Too many attempts. Wait a minute."));
+          res.end(emailMode ? EMAIL_LOGIN_HTML("Too many attempts. Wait a minute.") : LOGIN_HTML("Too many attempts. Wait a minute."));
+          return;
+        }
+        if (emailMode) {
+          readForm(req)
+            .then(async (form) => {
+              const email = (form.email ?? "").trim().toLowerCase();
+              const fail = (status: number, message: string) => {
+                attempts.set(who, [...recent, Date.now()]);
+                log(`[LÉLU access] failed sign-in from ${who}`);
+                res.statusCode = status;
+                res.setHeader("Content-Type", "text/html; charset=utf-8");
+                res.setHeader("Cache-Control", "no-store");
+                res.end(EMAIL_LOGIN_HTML(message, email));
+              };
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !form.password) return fail(400, "Enter your email and password.");
+              const result = await passwordSignIn(email, form.password);
+              if (!result.session) return fail(401, result.error ?? "That email and password don't match.");
+              const user = result.session.user as { email?: string } | undefined;
+              if (!allowed.has(email) || (user?.email ?? "").toLowerCase() !== email) return fail(403, "This account does not have access to LÉLU.");
+              attempts.delete(who);
+              const secure = isHttps(req) ? "; Secure" : "";
+              res.statusCode = 200;
+              res.setHeader("Set-Cookie", `${COOKIE}=${encodeURIComponent(gate.issue())}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${days * 86_400}${secure}`);
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              res.setHeader("Cache-Control", "no-store");
+              res.end(SIGNED_IN_HTML(storageKey, result.session));
+            })
+            .catch(() => {
+              res.statusCode = 400;
+              res.end();
+            });
           return;
         }
         readForm(req)
@@ -207,8 +319,16 @@ export function createAccessGate(readEnv: EnvReader, log: (line: string) => void
         return;
       }
       if (url === "/auth/logout") {
-        res.statusCode = 303;
         res.setHeader("Set-Cookie", `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+        if (emailMode) {
+          // Also end the app's Supabase session in this browser.
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", "no-store");
+          res.end(`<!doctype html><meta charset="utf-8"><script>try{localStorage.removeItem(${JSON.stringify(storageKey)})}catch(e){}location.replace("/auth/login")</script>`);
+          return;
+        }
+        res.statusCode = 303;
         res.setHeader("Location", "/auth/login");
         res.end();
         return;
@@ -217,7 +337,7 @@ export function createAccessGate(readEnv: EnvReader, log: (line: string) => void
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("Cache-Control", "no-store");
-        res.end(LOGIN_HTML(""));
+        res.end(emailMode ? EMAIL_LOGIN_HTML("") : LOGIN_HTML(""));
         return;
       }
       if (PUBLIC_PATHS.has(url)) return next();

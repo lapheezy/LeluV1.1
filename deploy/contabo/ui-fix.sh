@@ -14,8 +14,15 @@
 # moving HEAD to a pushed commit could drop what that commit carries. The
 # patch may touch ONLY the front-end files listed in FILES; one outside them
 # rejects the whole patch. server.ts reads dist/ from disk on every request,
-# so the new build is live the moment dist/ is swapped: the lelu service is
-# NOT restarted, and the old dist/ is kept whole for rollback.
+# so the new build is live the moment dist/ is swapped. The lelu service is
+# restarted ONLY when the patch changes server code (plugins/), and the old
+# dist/ is kept whole for rollback.
+#
+#   bash ui-fix.sh allow <email>    email + password sign-in for <email> (Supabase);
+#                                   the passphrase is retired. Backs up lelu.env,
+#                                   sets LELU_ACCESS_EMAILS only, restarts, verifies,
+#                                   and puts everything back if the check fails.
+#   bash ui-fix.sh allow --off      back to the passphrase (removes that one line)
 # ==========================================================
 set -uo pipefail
 APP=/opt/lelu/app
@@ -23,7 +30,15 @@ BK=/var/backups/lelu-ui
 H=http://127.0.0.1:4173
 EXPECTED_IP=157.173.116.95
 ENV_FILE=/etc/lelu/lelu.env
+ENV_BK=/etc/lelu/backups
+restart_app() { systemctl restart lelu; }
 FILES=(
+  plugins/accessGate.ts
+  src/app/scene/genesis/LeluSignInGate.tsx
+  src/app/scene/genesis/GenesisSettingsPanel.tsx
+  src/og/components/core/panels/SettingsPanel.tsx
+  src/core/persistence/emailAuth.ts
+  src/core/persistence/SupabasePersistence.ts
   src/app/scene/genesis/home/homeComposition.css
   src/app/scene/genesis/avatar/presencePlacement.ts
   src/app/scene/genesis/GenesisCommandPalette.tsx
@@ -142,6 +157,13 @@ checks() {  # $1 = STAGED patch; every check apply relies on
   served_ok && ok "the app serves its current build" || bad "the app is not serving correctly right now"
 }
 
+server_code() { git_lelu apply --numstat "$1" 2>/dev/null | cut -f3 | grep -q '^plugins/'; }  # $1 = patch
+restart_and_wait() {
+  restart_app || { bad "restart failed"; return 1; }
+  local i; for i in $(seq 1 30); do served_ok && return 0; sleep 2; done
+  return 1
+}
+
 restore() {  # $1 = backup dir
   local dir=$1
   echo "== rollback from $dir"
@@ -152,6 +174,7 @@ restore() {  # $1 = backup dir
   rm -rf "$APP/dist.next"
   if [ -f "$dir/ui.patch" ] && git_lelu apply -R --check "$dir/ui.patch" 2>/dev/null; then
     git_lelu apply -R "$dir/ui.patch" && ok "patch reversed"
+    if [ -f "$dir/restarted" ]; then restart_and_wait && ok "lelu restarted on the previous server code" || bad "lelu not healthy after the rollback restart"; fi
   elif [ -d "$dir/files" ]; then
     local f; for f in "${FILES[@]}"; do [ -f "$dir/files/$f" ] && install -m 0644 -o lelu -g lelu "$dir/files/$f" "$APP/$f"; done
     info "front-end files restored from copies"
@@ -182,11 +205,41 @@ apply_fix() {
   [ -d "$APP/dist" ] && { scan_build "$APP/dist" "live build (information only)" || true; }
   scan_build "$APP/dist.next" "new build" || { bad "a credential pattern appears in the new build — not swapped"; restore "$dir"; return; }
   ok "no credential patterns in the new build"
-  echo "== swap (no restart)"
+  echo "== swap"
   mv "$APP/dist" "$dir/dist" && mv "$APP/dist.next" "$APP/dist" && ok "dist/ swapped; previous build kept in $dir/dist" || { bad "swap failed"; restore "$dir"; return; }
+  if server_code "$dir/ui.patch"; then
+    touch "$dir/restarted"
+    restart_and_wait && ok "lelu restarted on the new server code" || { bad "lelu not healthy after restart"; restore "$dir"; return; }
+  fi
   local i; for i in $(seq 1 10); do served_ok && break; sleep 1; done
   served_ok && ok "the app serves the new build" || { bad "the new build is not served"; restore "$dir"; return; }
   info "rollback: bash ui-fix.sh rollback $stamp"
+}
+
+allow() {  # $1 = email | --off
+  local arg=${1:-}
+  [ -f "$ENV_FILE" ] || { bad "$ENV_FILE not found"; return; }
+  if [ "$arg" != --off ] && ! [[ $arg =~ ^[^[:space:]@,]+@[^[:space:]@,]+\.[^[:space:]@,]+$ ]]; then
+    bad "usage: allow <email> | allow --off"; return
+  fi
+  local stamp; stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  install -d -m 0700 "$ENV_BK"
+  local backup="$ENV_BK/lelu.env.$stamp.access-emails"
+  install -m 0600 "$ENV_FILE" "$backup" && ok "lelu.env backed up (values not shown)"
+  local tmp; tmp=$(mktemp); chmod 0600 "$tmp"
+  grep -v '^[[:space:]]*LELU_ACCESS_EMAILS=' "$ENV_FILE" > "$tmp" || true
+  [ "$arg" = --off ] || printf 'LELU_ACCESS_EMAILS=%s\n' "$(tr 'A-Z' 'a-z' <<<"$arg")" >> "$tmp"
+  cat "$tmp" > "$ENV_FILE"; rm -f "$tmp"   # in place: owner, mode and inode unchanged
+  ok "only LELU_ACCESS_EMAILS changed ($(diff <(grep -v '^[[:space:]]*LELU_ACCESS_EMAILS=' "$backup") <(grep -v '^[[:space:]]*LELU_ACCESS_EMAILS=' "$ENV_FILE") >/dev/null && echo 'every other line identical' || echo 'OTHER LINES DIFFER'))"
+  local want='name="email"'; [ "$arg" = --off ] && want='Passphrase'
+  if restart_and_wait && curl -fsS -m 5 "$H/auth/login" 2>/dev/null | grep -q "$want"; then
+    ok "$([ "$arg" = --off ] && echo "passphrase sign-in is back" || echo "the sign-in page is Email + Password for the allowed address")"
+    info "undo: bash ui-fix.sh allow --off   (or restore $backup)"
+  else
+    bad "the sign-in page did not switch — restoring lelu.env"
+    cat "$backup" > "$ENV_FILE"
+    restart_and_wait && ok "previous sign-in restored" || bad "lelu not healthy after restoring lelu.env"
+  fi
 }
 
 rollback() {
@@ -199,6 +252,7 @@ case "${1:-}" in
   recon) recon "${2:-}";;
   apply) apply_fix "${2:-}";;
   rollback) rollback "${2:-}";;
-  *) echo "usage: $0 recon <patch> | apply <patch> | rollback [<stamp>]"; exit 2;;
+  allow) allow "${2:-}";;
+  *) echo "usage: $0 recon <patch> | apply <patch> | rollback [<stamp>] | allow <email>|--off"; exit 2;;
 esac
 exit $FAILED

@@ -35,6 +35,14 @@ export function explainEmailAuthError(message: string | undefined, email?: strin
   if (!message) return null;
   const lower = message.toLowerCase();
 
+  // Password sign-in (Mission 3.7.3). Never says which half was wrong.
+  if (/invalid login credentials|invalid (email or )?password/.test(lower)) {
+    return "That email and password don't match.";
+  }
+  if (/email not confirmed/.test(lower)) {
+    return "This email address has not been confirmed yet.";
+  }
+
   if (/signups? not allowed|email signups? (are )?disabled|otp.*disabled|email.*disabled/.test(lower)) {
     return "This project does not allow email sign-up. Ask the project owner to enable email sign-in or create an account for this address.";
   }

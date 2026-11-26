@@ -28,7 +28,6 @@ import ProactiveCore, {
 } from "../../../core/proactive/ProactiveCore";
 import type { LocalRuntimeStatus } from "../../../core/runtime/local/LocalRuntimeTypes";
 import SupabasePersistence, { type SupabaseAuthState } from "../../../core/persistence/SupabasePersistence";
-import { EMAIL_SIGN_IN_NOTICE } from "../../../core/persistence/emailAuth";
 import { getEnvironment } from "../../../core/Environment";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
 import UsageSection from "./UsageSection";
@@ -261,8 +260,8 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState("");
-  const [authCode, setAuthCode] = useState("");
-  const [authSent, setAuthSent] = useState(false);
+  const [authPassword, setAuthPassword] = useState("");
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
 
   function updateProactive(patch: Partial<ProactiveSettings>) {
     setProactiveSettings(ProactiveCore.getInstance().updateSettings(patch));
@@ -285,22 +284,10 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
     setAuthBusy(true);
     setAuthError(null);
     setAuthNotice(null);
-    const result = await SupabasePersistence.getInstance().requestEmailSignIn(authEmail);
+    // Email + password through the existing client's signInWithPassword.
+    const result = await SupabasePersistence.getInstance().signInWithEmail(authEmail, authPassword);
     if (result.error) setAuthError(result.error);
-    else {
-      setAuthSent(true);
-      setAuthNotice(EMAIL_SIGN_IN_NOTICE);
-    }
-    setAuthBusy(false);
-  }
-
-  async function verifyEmailCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setAuthBusy(true);
-    setAuthError(null);
-    const result = await SupabasePersistence.getInstance().verifyEmailCode(authEmail, authCode);
-    if (result.error) setAuthError(result.error);
-    else setAuthNotice("Signed in. Your cloud identity is connected.");
+    else setAuthPassword("");
     setAuthBusy(false);
   }
 
@@ -425,44 +412,46 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
                 type="email"
                 value={authEmail}
                 onChange={(event) => setAuthEmail(event.target.value)}
-                placeholder="Email address"
-                autoComplete="email"
+                placeholder="Email"
+                autoComplete="username"
+                inputMode="email"
+                autoCapitalize="none"
                 required
                 disabled={authBusy || authState.status === "disabled"}
-                style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, background: "rgba(0,0,0,0.22)", color: "white", padding: "9px 10px", fontSize: 12, fontFamily: "inherit" }}
+                style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, background: "rgba(0,0,0,0.22)", color: "white", padding: "9px 10px", fontSize: 16, fontFamily: "inherit" }}
               />
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showAuthPassword ? "text" : "password"}
+                  value={authPassword}
+                  onChange={(event) => setAuthPassword(event.target.value)}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  required
+                  disabled={authBusy || authState.status === "disabled"}
+                  style={{ width: "100%", boxSizing: "border-box", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, background: "rgba(0,0,0,0.22)", color: "white", padding: "9px 64px 9px 10px", fontSize: 16, fontFamily: "inherit" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAuthPassword((v) => !v)}
+                  aria-label={showAuthPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showAuthPassword}
+                  style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", border: 0, background: "transparent", color: "rgba(125, 211, 252, 0.95)", fontSize: 12, padding: "6px 8px", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  {showAuthPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                 <button
                   type="submit"
                   disabled={authBusy || authState.status === "disabled"}
                   style={{ border: "1px solid rgba(125, 211, 252, 0.42)", borderRadius: 8, background: "rgba(34, 211, 238, 0.14)", color: "white", padding: "8px 12px", fontSize: 12, cursor: authBusy || authState.status === "disabled" ? "default" : "pointer", opacity: authBusy || authState.status === "disabled" ? 0.55 : 1, fontFamily: "inherit" }}
                 >
-                  {authBusy ? "Sending…" : "Email me a sign-in link"}
+                  {authBusy ? "Signing in…" : "Sign In"}
                 </button>
               </div>
             </form>
           )}
-          {!authState.session && authSent ? (
-            <form onSubmit={(event) => void verifyEmailCode(event)} style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 360, marginTop: 8 }}>
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={authCode}
-                onChange={(event) => setAuthCode(event.target.value)}
-                placeholder="Code from the email (if included)"
-                disabled={authBusy}
-                style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, background: "rgba(0,0,0,0.22)", color: "white", padding: "9px 10px", fontSize: 12, fontFamily: "inherit" }}
-              />
-              <button
-                type="submit"
-                disabled={authBusy || !authCode.trim()}
-                style={{ alignSelf: "flex-start", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 8, background: "rgba(255,255,255,0.05)", color: "white", padding: "8px 12px", fontSize: 12, cursor: authBusy ? "default" : "pointer", opacity: authBusy ? 0.55 : 1, fontFamily: "inherit" }}
-              >
-                {authBusy ? "Checking…" : "Verify code"}
-              </button>
-            </form>
-          ) : null}
           {authNotice ? <div style={{ color: "#86efac", fontSize: 11, marginTop: 8 }}>{authNotice}</div> : null}
           {authError ? <div style={{ color: "#fca5a5", fontSize: 11, marginTop: 8 }}>{authError}</div> : null}
           {authState.status === "degraded" ? <div style={{ color: "#fde68a", fontSize: 11, marginTop: 8 }}>Cloud sync is degraded; local state is still active.</div> : null}
