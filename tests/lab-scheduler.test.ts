@@ -27,6 +27,8 @@ import {
   DEFAULT_INTERVAL_MS,
   LOCK_FILE,
   MAX_BACKOFF_FACTOR,
+  SCHEDULER_WAIT_SLICE_MS,
+  waitSliceMs,
 } from "../scripts/lab-scheduler.ts";
 import { createLabEngine } from "../plugins/labEngine.ts";
 
@@ -261,5 +263,20 @@ describe("the scheduler cannot publish anything", () => {
   test("a failed cycle is recorded with its error and backs off", () => {
     assert.match(source, /kind: "scheduler-failure"/);
     assert.match(source, /backoffMs\(heartbeat\.intervalMs, failures\)/);
+  });
+
+  test("the daemon re-derives its schedule instead of sleeping one long interval", () => {
+    /*
+     * MEASURED (Mission 44.3): the running daemon was 39 minutes past its own
+     * recorded nextAt with no cycle and no error, while `stale` read false
+     * (its rule is 12 h). A single 6 h setTimeout is swallowed by a suspended
+     * VM or a clock jump; the daemon must wake, look at the clock, and run.
+     */
+    const hour = 60 * 60_000;
+    assert.equal(waitSliceMs(0, hour * 6), 0);
+    assert.equal(waitSliceMs(hour, 0), SCHEDULER_WAIT_SLICE_MS, "a long wait is spliced");
+    assert.equal(waitSliceMs(30_000, 0), 30_000, "a short wait is taken whole");
+    assert.equal(waitSliceMs(hour, hour), 0, "a due cycle waits for nothing");
+    assert.match(source, /await waitUntil\(Date\.now\(\) \+ delay\)/, "the cycle sleep goes through waitUntil");
   });
 });

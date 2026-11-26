@@ -225,6 +225,39 @@ export function backoffMs(intervalMs: number, failures: number): number {
   return intervalMs * factor;
 }
 
+/**
+ * How long the daemon may sleep before checking the clock again.
+ *
+ * MEASURED (Mission 44.3): this daemon slept its full 6 h interval in one
+ * `setTimeout` and then woke up 39 minutes PAST its own recorded `nextAt`
+ * with no cycle run and no error — while `stale` still read false, because
+ * the staleness rule only fires at 12 h. Process uptime (1 h 45 m) and the
+ * heartbeat's `startedAt` (6 h 40 m) disagreed by the length of a clock
+ * discontinuity, which is what a suspended VM produces: a single long timer
+ * is measured against elapsed time that a suspend can swallow.
+ *
+ * Sleeping in bounded slices and re-deriving "is a cycle due?" from
+ * `nextAt` makes the daemon recover within one slice after any pause, clock
+ * jump or machine sleep, instead of silently drifting past its own schedule.
+ */
+export const SCHEDULER_WAIT_SLICE_MS = 60_000;
+
+/** The wait before the next clock check: never longer than one slice. */
+export function waitSliceMs(dueAt: number, now: number, slice = SCHEDULER_WAIT_SLICE_MS): number {
+  const remaining = dueAt - now;
+  if (!Number.isFinite(remaining) || remaining <= 0) return 0;
+  return Math.min(remaining, Math.max(1_000, slice));
+}
+
+/** Sleep in slices until `dueAt`, so a paused clock cannot defer a cycle. */
+async function waitUntil(dueAt: number, slice = SCHEDULER_WAIT_SLICE_MS): Promise<void> {
+  for (;;) {
+    const wait = waitSliceMs(dueAt, Date.now(), slice);
+    if (wait === 0) return;
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  }
+}
+
 export interface CycleResult {
   ok: boolean;
   at: number;
@@ -433,7 +466,7 @@ async function main(): Promise<void> {
         process.stdout.write(`[lab-scheduler] completed ${cycles} cycle(s) — exiting as asked\n`);
         process.exit(0);
       }
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await waitUntil(Date.now() + delay);
       continue;
     }
     if (once || (maxCycles > 0 && cycles >= maxCycles)) {
@@ -441,7 +474,7 @@ async function main(): Promise<void> {
       releaseLock(root);
       process.exit(0);
     }
-    await new Promise((resolve) => setTimeout(resolve, Math.max(1_000, intervalMs)));
+    await waitUntil(Date.now() + Math.max(1_000, intervalMs));
   }
 }
 

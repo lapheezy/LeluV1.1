@@ -4,6 +4,7 @@ import test from "node:test";
 import SpatialIntentBus from "../src/core/spatial/SpatialIntentBus";
 import SpatialSceneGraph from "../src/core/spatial/SpatialSceneGraph";
 import SpatialResolver, {
+  isCompositionRequest,
   looksLikeObjectReference,
   parseSpatialCommand,
 } from "../src/core/router/SpatialResolver";
@@ -159,6 +160,27 @@ test("chat parser: a laboratory request is not a scene command", () => {
   // The same words DO name geometry when the sentence asks to build one.
   const compose = parseSpatialCommand("build a laboratory with three research zones");
   assert.equal(compose?.intent.op, "scene.compose");
+});
+
+test("chat parser: a question about the laboratory's records is never geometry", () => {
+  /*
+   * MEASURED (Mission 44.3, live): "From your laboratory journal, what exactly
+   * did the last experiment build?" was answered by the spatial builder with
+   * "Prepared: Build 4 objects — 3 zones, 1 hub, 3 links" and no model call.
+   * A sentence that names a journal or an experiment is asking about records,
+   * whatever verb it uses — and that canned answer is the same text that once
+   * contaminated a real journal summary.
+   */
+  for (const prompt of [
+    "From your laboratory journal, what exactly did the last experiment build?",
+    "What did the laboratory build in its last experiment?",
+    "Summarise the laboratory journal and tell me what it built.",
+    "Make a report of what the laboratory discovered, from the records.",
+  ]) {
+    assert.equal(isCompositionRequest(prompt.toLowerCase()), false, `claimed as geometry: ${prompt}`);
+  }
+  // A request to BUILD the place is still geometry.
+  assert.equal(isCompositionRequest("build a laboratory with three research zones"), true);
 });
 
 test("chat parser: a short object reference still reads the scene", () => {

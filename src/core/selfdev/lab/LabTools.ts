@@ -536,6 +536,83 @@ registerLabTools();
  * the tool the user asked for. The lab journal is the source of truth and
  * the import is idempotent, so a missed pass is repaired by the next call.
  */
+/**
+ * WHERE a laboratory answer came from, and what it cannot support.
+ *
+ * Mission 44.2 measured the failure this prevents: asked to summarise the
+ * journal, Lélu returned the real rows (experiment-commit, preview-started,
+ * experiment-concluded) and then narrated them as "building four objects —
+ * three zones, one hub, three links". The rows were true; the sentence was
+ * invented from an earlier turn. A model cannot tell a recorded title from a
+ * description unless the result says which it is holding.
+ *
+ * So every successful laboratory result now ends with its source and its
+ * LIMITS, written by the tool, not by the model. This is provenance on the
+ * existing result — not a second journal, not a second truth, and not a
+ * filter that could hide a real failure (failures are returned untouched).
+ */
+const PROVENANCE: Record<string, { source: string; limits: string }> = {
+  "lab.repository": {
+    source: "git status/HEAD read live in this runtime, plus the scheduler's recorded state",
+    limits:
+      "It reports the repository as it is now. It does not know what a commit changed, why it was made, or whether the work is correct.",
+  },
+  "lab.discoveries": {
+    source: ".lelu-lab/state/discoveries.json — the findings the engine recorded",
+    limits:
+      "Only the recorded findings and their recorded severity. Nothing here shows an inspection that was never run.",
+  },
+  "lab.diff": {
+    source: "git diff against the experiment's baseline commit",
+    limits:
+      "Changed lines only. It does not run the code, judge it, or describe intent beyond the patch itself.",
+  },
+  "lab.verification": {
+    source: "the declared command's own exit code, duration and log tail",
+    limits:
+      "A non-zero exit is FAILED, never a pass, and a check that did not run is not evidence of anything.",
+  },
+  "lab.experiment": {
+    source: "git worktree list and the laboratory's experiment records in this runtime",
+    limits:
+      "It reports worktrees, ancestry and status. It does not report what an experiment intends or what it will change.",
+  },
+  "lab.preview": {
+    source: "the experiment's dev server and its HTTP response",
+    limits:
+      "A port that answers is not a passing build, and a preview is not a deployment.",
+  },
+  "lab.file": {
+    source: "the file as read from disk, and git log --follow for its genealogy",
+    limits:
+      "Text and history only. The reason a line was written is not in the record unless the log says it.",
+  },
+  "lab.history": {
+    source: ".lelu-lab/state/journal.jsonl rows and git log, shown verbatim",
+    limits:
+      "These are recorded kinds, ids, titles and timestamps. What an entry did, how many objects it built, quantities, intent and outcome are NOT in the record; if a detail is not on these lines, say the record does not contain it.",
+  },
+};
+
+function withProvenance(executor: LabExecutor): LabExecutor {
+  const entry = PROVENANCE[executor.id];
+  if (!entry) return executor;
+  return {
+    ...executor,
+    run: async (args) => {
+      const result = await executor.run(args);
+      // A failure already says what went wrong in its own words; adding a
+      // provenance footer to it would only dilute the error.
+      if (!result.ok) return result;
+      const at = new Date().toISOString().slice(0, 16);
+      return {
+        ...result,
+        content: `${result.content}\n\n—\nSOURCE: ${entry.source} · ${executor.id} · read ${at}Z\nLIMITS: ${entry.limits}`,
+      };
+    },
+  };
+}
+
 function withJournalSync(executor: LabExecutor): LabExecutor {
   return {
     ...executor,
@@ -549,5 +626,6 @@ function withJournalSync(executor: LabExecutor): LabExecutor {
   };
 }
 
-export const LAB_EXECUTORS: LabExecutor[] = LAB_EXECUTOR_LIST.map(withJournalSync);
+export const LAB_EXECUTORS: LabExecutor[] = LAB_EXECUTOR_LIST.map(withJournalSync).map(withProvenance);
+export { PROVENANCE as LAB_PROVENANCE };
 export { LAB_TOOL_DEFINITIONS };

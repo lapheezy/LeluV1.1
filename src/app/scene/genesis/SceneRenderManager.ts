@@ -112,6 +112,22 @@ export function profileFor(input: CapabilityInput): RenderProfile {
   return "full";
 }
 
+/**
+ * Whether continuous WebGL belongs on this device at all.
+ *
+ * "light" means a software rasteriser, Save-Data, or frames measured under
+ * 30 for three seconds — the document above promises "no continuous WebGL"
+ * there, and until Mission 44.3 only the world honoured it: the avatar kept
+ * asking for 24 frames a second, and ONE skinned frame measured ~1.1 s on
+ * swiftshader, which saturated the main thread and hung the renderer.
+ *
+ * A surface that does not paint continuously keeps its canvas, its model and
+ * its last frame — it simply stops asking for new ones.
+ */
+export function paintsContinuousFrames(profile: RenderProfile): boolean {
+  return profile !== "light";
+}
+
 export interface AdaptationState {
   profile: RenderProfile;
   slow: number;

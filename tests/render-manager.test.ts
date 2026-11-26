@@ -27,6 +27,7 @@ import {
   SceneRenderManager,
   UPGRADE_AFTER,
   nextProfile,
+  paintsContinuousFrames,
   profileFor,
   skyPaintInterval,
   type AdaptationState,
@@ -285,6 +286,34 @@ test("the world paints only when the device can AND the budget allows", () => {
     scene,
     /const frameloop: Frameloop = paintWorld \? budgetedFrameloop : "never";/,
     "the frameloop stays derived from the budget, never from a literal",
+  );
+});
+
+test("a light profile is no continuous WebGL, for every surface", () => {
+  /*
+   * Mission 44.3, measured: on the container's swiftshader rasteriser the
+   * avatar's skinned frame cost ~1.1 s while the profile was "light". 24 a
+   * second could only ever be one a second, with the main thread never free
+   * — which is exactly the renderer hang (CDP timeouts, "Internal error" on
+   * screenshots, evaluate stalls over 10 s). The profile's own contract says
+   * "no continuous WebGL"; only the world honoured it.
+   */
+  assert.equal(paintsContinuousFrames("light"), false);
+  assert.equal(paintsContinuousFrames("balanced"), true, "a phone with a real GPU still draws");
+  assert.equal(paintsContinuousFrames("full"), true);
+
+  const avatar = source("src/app/scene/genesis/avatar/LeluCharacter3D.tsx");
+  assert.match(
+    avatar,
+    /if \(!paintsContinuousFrames\(profile\)\) return;/,
+    "the avatar must obey the profile, not only the budget",
+  );
+
+  const v2 = source("src/app/scene/genesis/GenesisV2Scene3D.tsx");
+  assert.match(
+    v2,
+    /paintsContinuousFrames\(profile\) \|\| perfWorld \? budgetedFrameloop : "never"/,
+    "the v2 world is 206k triangles on a CPU rasteriser: it needs the same guard as v1",
   );
 });
 

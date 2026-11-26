@@ -546,6 +546,20 @@ function looksLikeObjectReference(value: string): boolean {
 const BUILD_VERB =
   /\b(?:build|create|make|design|compose|construct|arrange|set ?up|lay ?out|render|generate|add|place)\b/;
 
+/**
+ * Words that mean the person is asking about the laboratory's RECORDS, not a
+ * place in the scene.
+ *
+ * MEASURED (Mission 44.3): "From your laboratory journal, what exactly did the
+ * last experiment build?" still reached the builder — "build" is a build verb
+ * and the sentence says "laboratory" — and the reply was the canned "Prepared:
+ * Build 4 objects — 3 zones, 1 hub, 3 links", with no model call. That sentence
+ * names a journal and an experiment: it is a question about records, whatever
+ * verb it uses.
+ */
+const LAB_RECORD =
+  /\b(?:journal|records?|experiments?|discover(?:y|ies)|findings?|repo(?:sitory)?|git|commits?|head|branches?|scheduler|typecheck|diffs?|verification)\b/;
+
 /** Sentences that ask for a composed environment rather than one primitive. */
 function isCompositionRequest(lower: string): boolean {
   return (
@@ -557,7 +571,7 @@ function isCompositionRequest(lower: string): boolean {
     // Build 4 objects — 3 zones, 1 hub, 3 links" without ever reaching a
     // model. A place is only geometry when the sentence also asks to build
     // one; otherwise the request belongs to the laboratory tools.
-    (BUILD_VERB.test(lower) && /laborator|research zones?/.test(lower)) ||
+    (BUILD_VERB.test(lower) && /laborator|research zones?/.test(lower) && !LAB_RECORD.test(lower)) ||
     /(?:\d+|two|three|four|five|six)\s+(?:interconnected\s+)?structures?/.test(lower) ||
     /interconnected structures?/.test(lower) ||
     /symmetr(?:y|ical)|formation|arrange\s+(?:these|the|my)\b/.test(lower)

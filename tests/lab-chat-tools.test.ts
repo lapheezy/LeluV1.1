@@ -198,6 +198,52 @@ describe("a laboratory tool reports what the runtime actually said", () => {
   });
 });
 
+describe("a laboratory result says where it came from and what it cannot support", () => {
+  /*
+   * Mission 44.2, measured: asked to summarise the journal, Lélu reproduced the
+   * real rows and then narrated them as "building four objects — three zones,
+   * one hub, three links". The rows were true; the sentence was invented. The
+   * tool result is the only place that can say "these are recorded titles",
+   * so it says it — deterministically, without touching failures.
+   */
+  test("lab.repository carries SOURCE and LIMITS", async () => {
+    stubLab({ "/api/lab/status": statusPayload, "/api/lab/tree": { ok: true, path: ".", entries: [] } });
+    const tool = LAB_EXECUTORS.find((executor) => executor.id === "lab.repository");
+    assert.ok(tool);
+    const result = await tool.run({});
+    assert.equal(result.ok, true);
+    assert.match(result.content, /\n—\nSOURCE: .*lab\.repository/);
+    assert.match(result.content, /LIMITS: .*does not know what a commit changed/);
+  });
+
+  test("lab.history says its rows are records, not descriptions", async () => {
+    stubLab({
+      "/api/lab/status": statusPayload,
+      "/api/lab/journal": { ok: true, entries: [{ at: Date.now(), kind: "experiment-commit", id: "exp-1" }] },
+      "/api/lab/commits": { ok: true, commits: [] },
+    });
+    const tool = LAB_EXECUTORS.find((executor) => executor.id === "lab.history");
+    assert.ok(tool);
+    const result = await tool.run({ source: "journal" });
+    assert.equal(result.ok, true);
+    assert.match(result.content, /experiment-commit/);
+    assert.match(
+      result.content,
+      /are NOT in the record|does not contain it/,
+      "the result must forbid inventing what an entry did",
+    );
+  });
+
+  test("a failure keeps its own words and gains no footer", async () => {
+    stubLab({ "/api/lab/status": statusPayload, "/api/lab/experiment": { ok: true, experiments: [] } });
+    const tool = LAB_EXECUTORS.find((executor) => executor.id === "lab.diff");
+    assert.ok(tool);
+    const result = await tool.run({});
+    assert.equal(result.ok, false);
+    assert.equal(/SOURCE:/.test(result.content), false, "a refusal must not be dressed up as sourced evidence");
+  });
+});
+
 describe("laboratory findings reach the ONE development journal", () => {
   test("a successful laboratory tool asks the bridge to import its record", async () => {
     // The bridge (LabJournalBridge) is idempotent and has always been able to

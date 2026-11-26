@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { REDUCED_FRAME_MS, useSceneRenderMode } from "../SceneRenderBudget";
+import { paintsContinuousFrames, useRenderProfile } from "../SceneRenderManager";
 import RenderContextGuard from "../render/RenderContextGuard";
 import * as THREE from "three";
 import type { LeluFraming } from "../../../../core/avatar/LeluRig";
@@ -80,17 +81,24 @@ function FrameCap({ fps, paused = false }: { fps: number; paused?: boolean }) {
   // re-uploads its bone/morph textures every frame — cheap on a GPU, and
   // on a software renderer enough to freeze the page during a chat turn.
   const mode = useSceneRenderMode();
+  // A light profile (software rasteriser, Save-Data, measured under 30 fps)
+  // has no continuous WebGL. Measured on swiftshader: one skinned frame of
+  // her cost ~1.1 s, so 24 a second could only ever be 1 a second with the
+  // main thread never free — the renderer hang of Mission 44.2. She keeps
+  // her mounted canvas and her last frame and stops asking for new ones.
+  const profile = useRenderProfile();
   useEffect(() => {
     // Paused by the scene budget, or by her presence (hidden in a world
     // view where she stands in the scene): she keeps her canvas and her
     // state, and simply draws nothing until she is shown again.
     if (mode === "paused" || paused) return;
+    if (!paintsContinuousFrames(profile)) return;
     const interval = mode === "reduced" ? Math.max(1000 / fps, REDUCED_FRAME_MS) : 1000 / fps;
     const timer = setInterval(() => {
       if (!document.hidden) invalidate();
     }, interval);
     return () => clearInterval(timer);
-  }, [fps, invalidate, mode, paused]);
+  }, [fps, invalidate, mode, paused, profile]);
   return null;
 }
 

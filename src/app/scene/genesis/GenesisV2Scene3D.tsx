@@ -86,7 +86,9 @@ import GenesisV2CameraRig from "./GenesisV2CameraRig";
 import LeluV2Presence from "./LeluV2Presence";
 import WorldScene from "./WorldScene";
 import AdaptiveQuality from "./AdaptiveQuality";
-import SceneFrameGovernor, { useSceneFrameloop } from "./SceneFrameGovernor";
+import SceneFrameGovernor, { useSceneFrameloop, type Frameloop } from "./SceneFrameGovernor";
+import { paintsContinuousFrames, useRenderProfile } from "./SceneRenderManager";
+import { IS_DEV } from "../../../core/env/buildEnv";
 import { DPR_START } from "./qualityLimits";
 
 export type V2NodeId = "core" | "studio" | "lab" | "vault";
@@ -1416,7 +1418,26 @@ export default function GenesisV2Scene3D({
      whole router). R3F renders this canvas in its own reconciler root, so
      the shared context must be bridged in — exactly like the v1 world does. */
   const ContextBridge = useContextBridge(GenesisContext, GenesisStateContext);
-  const frameloop = useSceneFrameloop();
+  /*
+   * The SAME device guard the v1 world has always used.
+   *
+   * This canvas is 206,700 triangles and ~146 draw calls; on the software
+   * rasteriser of this container that is ~1.1 s of CPU per frame, which is
+   * how a "light" device ended up with a saturated main thread (Mission
+   * 44.3 measured it). The budget alone only says whether a frame is worth
+   * drawing; the PROFILE says whether this device can draw the world at all,
+   * and it is the documented owner of that answer.
+   *
+   * `?perf-world` stays the development measurement affordance, exactly as
+   * in v1: without it, a container with no GPU would measure the guard
+   * instead of the scene.
+   */
+  const budgetedFrameloop = useSceneFrameloop();
+  const profile = useRenderProfile();
+  const perfWorld =
+    IS_DEV && typeof window !== "undefined" && window.location.search.includes("perf-world");
+  const frameloop: Frameloop =
+    paintsContinuousFrames(profile) || perfWorld ? budgetedFrameloop : "never";
   const [dpr, setDpr] = useState(DPR_START);
 
   return (
