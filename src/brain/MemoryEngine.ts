@@ -29,6 +29,7 @@ import {
 } from "../core/memory/MemorySovereignty";
 
 import type ResponsePattern from "./ResponsePattern";
+import { normalizeMemoryType } from "./ResponsePattern";
 
 /** Long-term durability gate: below this, facts stay session-scoped. */
 const DURABILITY_THRESHOLD = 0.5;
@@ -355,7 +356,10 @@ export default class MemoryEngine {
           now,
         }),
       },
-      memoryType: (candidate.memoryType ?? "user") as ResponsePattern["memoryType"],
+      // WRITE SIDE OF THE SAME RULE: only the five cognitive layers are ever
+      // persisted, whatever an extractor (or a legacy caller) supplied. A
+      // stored value outside that set is what made recall crash later.
+      memoryType: normalizeMemoryType(candidate.memoryType, candidate.category),
       importance: candidate.importance,
       confidence: 1,
       successfulUses: 1,

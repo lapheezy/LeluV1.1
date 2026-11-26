@@ -12,6 +12,7 @@ import { parseLifecycle } from "../proactive/QuestionLifecycle";
 import ImprovementQueue, { type ImprovementProposal } from "../selfdev/ImprovementQueue";
 import type Brain from "../../brain/Brain";
 import type ResponsePattern from "../../brain/ResponsePattern";
+import { normalizeMemoryType } from "../../brain/ResponsePattern";
 import type UserManager from "../user/UserManager";
 import type UserProfile from "../user/UserProfile";
 import { resolveSupabaseConfig, checkSupabaseProject } from "../config/supabaseEnv";
@@ -1204,7 +1205,7 @@ export default class SupabasePersistence {
     return {
       id: String(row.id), category: row.category ?? "general", prompt: row.prompt ?? "",
       response: row.response, intent: "general", keywords: Array.isArray(row.keywords) ? row.keywords : [],
-      context: row.context ?? {}, memoryType: row.memory_type ?? "user", importance: Number(row.importance ?? 0.5),
+      context: row.context ?? {}, memoryType: normalizeMemoryType(row.memory_type, row.category), importance: Number(row.importance ?? 0.5),
       confidence: Number(row.confidence ?? 0.5), successfulUses: Number(row.successful_uses ?? 0),
       failedUses: Number(row.failed_uses ?? 0), createdAt: Date.parse(row.created_at) || Date.now(), updatedAt: Date.parse(row.updated_at) || Date.now(),
     };

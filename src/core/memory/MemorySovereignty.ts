@@ -541,7 +541,12 @@ export function decide(
   ctx: MemoryScopeContext,
 ): RetrievalDecisionRecord {
   const origin = readOrigin(pattern);
-  const text = `${pattern.prompt} ${pattern.response} ${pattern.keywords.join(" ")}`;
+  // Defensive, because this boundary is also called directly by tests and by
+  // agents with records that never passed through MemoryBridge's sanitiser:
+  // a persisted record with no keywords must read as "no keyword evidence",
+  // not throw out of retrieval.
+  const keywordText = Array.isArray(pattern.keywords) ? pattern.keywords.join(" ") : "";
+  const text = `${pattern.prompt ?? ""} ${pattern.response ?? ""} ${keywordText}`;
   const relevance = subjectRelevance(ctx.prompt, text);
   const sensitive = isSensitiveHistory(`${pattern.prompt} ${pattern.response}`);
   const relation = relationOf(origin, ctx);

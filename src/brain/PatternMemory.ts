@@ -8,10 +8,7 @@
 import type ResponsePattern
   from "./ResponsePattern";
 
-import type { MemoryType }
-  from "./ResponsePattern";
-
-import { CATEGORY_RECALL_SYNONYMS }
+import { CATEGORY_RECALL_SYNONYMS, normalizeMemoryType }
   from "./ResponsePattern";
 
 import IndexedDBStore
@@ -143,9 +140,13 @@ export default class PatternMemory {
           "general",
 
 
+                // A hydrated snapshot's tags are not guaranteed to be an array;
+        // readers call .join() on this field, so a string here used to be a
+        // TypeError rather than a memory.
         keywords:
-
-          memory.tags ?? [],
+          Array.isArray(memory.tags)
+            ? memory.tags.filter((tag): tag is string => typeof tag === "string")
+            : [],
 
 
         context:
@@ -167,11 +168,12 @@ export default class PatternMemory {
           0.5,
 
 
+        // A hydrated snapshot can name a layer the type never had (a scope
+        // word, or a legacy label). Normalising here keeps every reader of
+        // this store from having to defend itself against it.
         memoryType:
 
-          (metadata.memoryType ??
-
-          "user") as MemoryType,
+          normalizeMemoryType(metadata.memoryType, metadata.category),
 
 
         successfulUses:
@@ -688,22 +690,14 @@ export default class PatternMemory {
 
 
 
-          const searchable =
-
+                    const searchable =
             (
-
               pattern.prompt +
-
               " " +
-
               pattern.response +
-
               " " +
-
-              pattern.keywords.join(" ")
-
+              (Array.isArray(pattern.keywords) ? pattern.keywords.join(" ") : "")
             )
-
             .toLowerCase();
 
 

@@ -711,11 +711,34 @@ export default class EngineeringWorkspace {
     return { ok, output: String(data.output ?? ""), error: data.error ? String(data.error) : undefined };
   }
 
+  /**
+   * Why the runtime is not reachable, in the runtime's own words.
+   *
+   * "No development runtime is serving /api/engineer here" was printed for
+   * two different facts: nothing is serving the route, and the route IS
+   * served but refuses to work (the fail-closed 503 when
+   * LELU_ENGINEER_TOKEN is unset). The status carries the server's own
+   * explanation now, so a caller can say which one it is instead of sending
+   * the operator to start a server that is already running.
+   */
+  public async runtimeReason(): Promise<string | null> {
+    try {
+      const status = await this.source.status();
+      if (status.reachable) return null;
+      return status.error ?? "the engineering runtime did not answer";
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  }
+
   /** A short, factual description of the real state, for cognition. */
   public describe(): string {
     const state = this.state;
     if (state.phase === "no-runtime") {
-      return "No engineering runtime is reachable — the project.* tools are unavailable.";
+      const reason = this.source.cached()?.error;
+      return reason
+        ? `No engineering runtime is reachable (${reason}) — the project.* tools are unavailable.`
+        : "No engineering runtime is reachable — the project.* tools are unavailable.";
     }
     if (!state.workspaceId) return describeEarlierCopies(this.knownCopies);
     const parts = [

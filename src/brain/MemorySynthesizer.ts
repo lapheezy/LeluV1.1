@@ -27,7 +27,11 @@
 
 import type ResponsePattern from "./ResponsePattern";
 import type { MemoryType } from "./ResponsePattern";
-import { CATEGORY_RECALL_SYNONYMS } from "./ResponsePattern";
+import {
+  CATEGORY_RECALL_SYNONYMS,
+  normalizeMemoryType,
+  sanitizeMemoryRecord,
+} from "./ResponsePattern";
 import { isLeluIdentityQuestion, isUserProfileQuestion } from "./LeluIdentity";
 import { originLabel } from "../core/memory/MemorySovereignty";
 
@@ -103,7 +107,13 @@ export default class MemorySynthesizer {
    */
   public synthesize(input: SynthesisInput): SynthesizedContext {
     const prompt = input.prompt.trim();
-    const memories = input.memories ?? [];
+    // SANITIZED AT THE DOOR. Memories arrive from persisted rows, hydrated
+    // snapshots and legacy archives, so a record can be missing the fields
+    // every rule below reads (response, keywords, context, importance) or
+    // name a layer the type never had. Repairing each record once here means
+    // no scoring rule, section formatter or provenance label can be handed a
+    // malformed memory and turn a recall into a failed turn.
+    const memories = this.sanitize(input.memories);
     const deep = input.deep ?? DEEP_PHRASES.test(prompt);
     const broad = isBroadPersonalQuery(prompt);
     const max = input.maxMemories ?? (deep ? 14 : broad ? 10 : 6);
@@ -218,6 +228,20 @@ export default class MemorySynthesizer {
     }
 
     return unique.join("\n");
+  }
+
+  /**
+   * Drop anything that is not a usable memory, and give every survivor the
+   * fields the rest of this class assumes.
+   */
+  private sanitize(memories: ResponsePattern[] | null | undefined): ResponsePattern[] {
+    if (!Array.isArray(memories)) return [];
+    const clean: ResponsePattern[] = [];
+    for (const memory of memories) {
+      const usable = sanitizeMemoryRecord(memory);
+      if (usable) clean.push(usable);
+    }
+    return clean;
   }
 
   /** Significant words extracted from the prompt (stemmed). */
@@ -405,20 +429,14 @@ export default class MemorySynthesizer {
       system: [],
     };
     for (const memory of memories) {
-      const type = memory.memoryType ?? this.defaultType(memory.category);
-      groups[type].push(memory);
+      // A layer the map does not hold must never be indexed directly: that
+      // is `undefined.push`, the crash this guard exists for. The value is
+      // canonical by now (sanitize), and the bucket is checked anyway.
+      const type = normalizeMemoryType(memory.memoryType, memory.category);
+      const bucket = groups[type] ?? groups.user;
+      bucket.push(memory);
     }
     return groups;
-  }
-
-  private defaultType(category: string): MemoryType {
-    switch (category) {
-      case "conversation":
-      case "experience":
-        return "conversation";
-      default:
-        return "user";
-    }
   }
 
   /**

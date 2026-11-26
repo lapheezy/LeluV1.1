@@ -553,7 +553,29 @@ export default class SourceAccess {
         signal: controller?.signal,
       });
       if (!response.ok) {
-        throw new Error(`${route} responded ${response.status}`);
+        // THE RUNTIME'S OWN REASON, not just a number.
+        //
+        // The engineering API is fail-closed: with no LELU_ENGINEER_TOKEN it
+        // answers 503 with an explanation of exactly what to set. Reporting
+        // only "responded 503" threw that away, and every caller then said
+        // "no development runtime is serving /api/engineer" — which sent the
+        // operator to start a server that was already running. The body is
+        // read (bounded) so the status carries the actionable cause.
+        let detail = "";
+        try {
+          const text = (await response.text()).slice(0, 400);
+          try {
+            const parsed = JSON.parse(text) as { error?: unknown; disabled?: unknown };
+            detail = typeof parsed.error === "string" ? parsed.error : text;
+          } catch {
+            detail = text;
+          }
+        } catch {
+          detail = "";
+        }
+        throw new Error(
+          `${route} responded ${response.status}${detail ? `: ${detail}` : ""}`,
+        );
       }
       return (await response.json()) as T;
     } finally {

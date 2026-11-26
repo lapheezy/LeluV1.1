@@ -474,9 +474,20 @@ export default class SelfDevelopmentLoop {
     }
     const workspace = EngineeringWorkspace.getInstance();
     if (!(await workspace.runtimeReachable())) {
+      // SAY WHICH FAILURE IT IS. A runtime that is present but disabled
+      // (the fail-closed 503 with no LELU_ENGINEER_TOKEN) and a runtime that
+      // is not there at all need different actions, and both used to read
+      // "no development runtime … run npm run dev" — advice that does nothing
+      // for an already-running, disabled runtime.
+      const reason = await workspace.runtimeReason();
+      const disabled = /LELU_ENGINEER_TOKEN|not set|disabled|503/i.test(reason ?? "");
       this.block(proposalId, {
-        reason: "No development runtime is serving /api/engineer here, so there is no project copy to work in.",
-        unblock: "Run LÉLU from its development runtime (npm run dev / the Node server), then Retry.",
+        reason: reason
+          ? `The engineering runtime cannot serve /api/engineer here: ${reason}`
+          : "No development runtime is serving /api/engineer here, so there is no project copy to work in.",
+        unblock: disabled
+          ? "The runtime is running but disabled. Set LELU_ENGINEER_TOKEN on the server and VITE_LELU_ENGINEER_TOKEN in the client build to the same value, restart, then Retry."
+          : "Run LÉLU from its development runtime (npm run dev / the Node server), then Retry.",
         action: "develop",
       }, execution);
       this.lastRun = this.finish(proposal, false, "Blocked", steps, "No development runtime.", started);

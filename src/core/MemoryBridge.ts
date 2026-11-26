@@ -19,6 +19,8 @@ import type Brain from "../brain/Brain";
 import type UserManager from "./user/UserManager";
 import type { AIRequest } from "../providers/AIProvider";
 import type ResponsePattern from "../brain/ResponsePattern";
+import { sanitizeMemoryRecord } from "../brain/ResponsePattern";
+import type { SynthesizedContext } from "../brain/MemorySynthesizer";
 import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import {
@@ -122,7 +124,15 @@ export default class MemoryBridge {
     // keep its origin. Only allowed memories are returned — every downstream
     // consumer (router, offline composer, memory synthesis) receives the
     // authorized set, not the raw recall.
-    const recalled = await this.brain.recall(request.prompt, "cognition", scope);
+    // REPAIRED BEFORE IT IS READ. A recalled record can come from a persisted
+    // row or a hydrated snapshot with fields missing (`keywords`, `context`) or
+    // a layer spelled another way; authorization reads those fields, so a
+    // malformed record used to throw here — before synthesis even ran — and
+    // took the whole reply with it. Records with no usable text are dropped;
+    // the rest are made readable once, for every consumer downstream.
+    const recalled = (await this.brain.recall(request.prompt, "cognition", scope))
+      .map((pattern) => sanitizeMemoryRecord(pattern))
+      .filter((pattern): pattern is ResponsePattern => pattern !== null);
     const authorization = authorize(recalled, scope);
     const memories = authorization.allowed;
 
@@ -148,7 +158,16 @@ export default class MemoryBridge {
       },
     );
 
-    const reflection = await this.brain.reflect();
+    // Reflection reads memory too. A failure there is a missing section, not
+    // a failed turn.
+    let reflection: Awaited<ReturnType<Brain["reflect"]>> | null = null;
+    try {
+      reflection = await this.brain.reflect();
+    } catch (error) {
+      trace.record("MEMORY_RETRIEVAL", "memory reflection FAILED — section omitted", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
     const conversation = this.threadContext(request);
     // Scoped to THIS conversation. The cognitive graph also holds other
     // chats' observations, and rendering them here was a second, independent
@@ -213,15 +232,36 @@ export default class MemoryBridge {
       },
     );
 
-    const synthesized = this.brain.synthesizeContext(request.prompt, memories, {
-      deep: /(everything|all you (?:remember|know)|more detail|more details|tell me more|elaborate|expand|tell me everything)/i.test(request.prompt),
-      profile,
-      conversation: {
-        lastTopic: conversation.lastTopic,
-        recentMessages: conversation.recentMessages,
-      },
-      conversationId: request.conversationId,
-    });
+    // MEMORY MUST NEVER BE THE REASON A TURN FAILS.
+    //
+    // Synthesis is the one place every recalled memory is processed at once,
+    // so a single record with an unexpected layer (`memoryType`) or missing
+    // metadata used to throw out of here and out of the whole reply —
+    // "undefined is not an object (… .push)" instead of an answer. The
+    // records are now sanitised at the door (MemorySynthesizer.sanitize) AND
+    // the call is contained: if synthesis still fails for a reason nobody
+    // predicted, the turn continues without synthesized memory rather than
+    // not at all.
+    let synthesized: SynthesizedContext;
+    try {
+      synthesized = this.brain.synthesizeContext(request.prompt, memories, {
+        deep: /(everything|all you (?:remember|know)|more detail|more details|tell me more|elaborate|expand|tell me everything)/i.test(request.prompt),
+        profile,
+        conversation: {
+          lastTopic: conversation.lastTopic,
+          recentMessages: conversation.recentMessages,
+        },
+        conversationId: request.conversationId,
+      });
+    } catch (error) {
+      synthesized = { context: "", used: [], rejected: memories.length, contradictions: [], notes: [] };
+      trace.record("MEMORY_RETRIEVAL", "memory synthesis FAILED — answering without synthesized memory", {
+        error: error instanceof Error ? error.message : String(error),
+        recalled: memories.length,
+        conversationId: scope.conversationId,
+      });
+      console.warn("[MemoryBridge] memory synthesis failed (contained):", error);
+    }
 
     // Historical and inferred material is labelled in the section it appears
     // in; this note explains the labels once, and only when they are present.

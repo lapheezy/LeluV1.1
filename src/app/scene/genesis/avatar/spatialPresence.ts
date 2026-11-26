@@ -298,7 +298,21 @@ export function planPresence(space: SpaceLayout, intent: PresenceIntent): Avatar
     };
   }
 
-  const candidates: Array<{ rect: Rect; edge: AvatarAnchor["edge"]; reason: string; state?: SpatialState; opacity?: number }> = [];
+  /**
+   * `crossesConversation`: the placement is DESIGNED to touch the window's
+   * edge (peeking over its top, leaning on its boundary). Anything else must
+   * not cover the conversation at all — on a phone the transcript starts at
+   * the window's top edge, so a body parked "above the composer" sat on the
+   * messages and on the controls above them, which is the reported overlap.
+   */
+  const candidates: Array<{
+    rect: Rect;
+    edge: AvatarAnchor["edge"];
+    reason: string;
+    state?: SpatialState;
+    opacity?: number;
+    crossesConversation?: boolean;
+  }> = [];
   const safeBottom = space.viewport.height - space.safe.bottom;
 
   if (focus) {
@@ -313,8 +327,12 @@ export function planPresence(space: SpaceLayout, intent: PresenceIntent): Avatar
     });
 
     // 2. Over its top edge: enough room above for her head to clear it.
+    //    Only when the window is NOT almost the whole screen: on a phone the
+    //    transcript begins right below its header, so half a body over the
+    //    top edge is half a body over the newest messages. The strip above
+    //    the window (candidate 4) is the phone's version of the same idea.
     const peekTop = focus.top - height * 0.55;
-    if (peekTop > space.safe.top) {
+    if (peekTop > space.safe.top && focus.width < space.viewport.width * 0.82) {
       candidates.push({
         rect: {
           left: Math.min(focus.left + focus.width * 0.55, space.viewport.width - space.safe.right - width - CLEARANCE),
@@ -325,6 +343,7 @@ export function planPresence(space: SpaceLayout, intent: PresenceIntent): Avatar
         edge: "top",
         reason: "peeking over its top edge",
         state: intent.demonstrating ? "observing" : "peeking",
+        crossesConversation: true,
       });
     }
 
@@ -341,6 +360,7 @@ export function planPresence(space: SpaceLayout, intent: PresenceIntent): Avatar
         edge: "right",
         reason: "leaning over its boundary",
         state: "leaning",
+        crossesConversation: true,
       });
     }
   }
@@ -385,6 +405,10 @@ export function planPresence(space: SpaceLayout, intent: PresenceIntent): Avatar
   for (const candidate of candidates) {
     if (!inside(candidate.rect, space)) continue;
     if (blockedBy(candidate.rect, space)) continue;
+    // The conversation is what you are reading: only the placements that
+    // deliberately touch its edge may cross it, and never the composer or a
+    // control (blockedBy above already refuses those for every candidate).
+    if (!candidate.crossesConversation && space.chat && overlaps(candidate.rect, space.chat)) continue;
     // Panels behind her are fine (she stands between windows), the
     // conversation is not: a window she covers is a window you cannot read.
     const result = anchor(candidate.rect, candidate.edge, candidate.state ?? state, intent.mode, space, candidate.reason, candidate.opacity ?? 1);

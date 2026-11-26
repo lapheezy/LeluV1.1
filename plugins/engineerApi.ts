@@ -188,7 +188,12 @@ export const ENGINEER_OPERATIONS: Record<string, string> = {
   // autonomy-end-to-end suite. Validation that disagrees with the
   // project's own suite cannot tell LÉLU whether her change broke it.
   test: "npm test",
-  inspect: "node --version && bun --version && pwd",
+  // READ-ONLY RUNTIME FACTS. This was `node --version && bun --version && pwd`,
+  // which commandSafety refuses on sight (`&&` is a metacharacter), so the one
+  // level-2 operation could never run — the interface could not prove the
+  // runtime executed anything. The guard is unchanged; the command is now a
+  // single metacharacter-free script that prints the same facts.
+  inspect: "node scripts/inspect-runtime.mjs",
 };
 
 /**

@@ -628,31 +628,51 @@ export default class ProviderResolver {
      * making progress is bounded by the tool loop's own budget instead.
      */
     let timer: ReturnType<typeof setTimeout> | undefined;
+    /**
+     * The deadline as an unfulfillable PROMISE, not only as an abort.
+     *
+     * Aborting the rung's signal is how a well-behaved provider is stopped,
+     * but it is a request, not a guarantee: an adapter whose fetch never wires
+     * the signal, or a generation that resolves long after it, left `await`
+     * waiting with no deadline at all — the measured "stalled response", where
+     * the turn sat on one silent provider while a healthy one was ready. The
+     * chain now advances when the budget elapses whether or not the provider
+     * honours the abort.
+     */
+    let deadlineFired: ((error: Error) => void) | undefined;
+    const deadline = new Promise<never>((_resolve, reject) => {
+      deadlineFired = reject;
+    });
+    const timeoutError = () =>
+      new Error(`${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`);
     const arm = () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         expired = true;
         rung.abort();
+        deadlineFired?.(timeoutError());
       }, budgetMs);
     };
     arm();
     const onProgress = () => {
       if (!expired) arm();
     };
+    /** One provider attempt (or one degraded retry), bounded by the deadline. */
+    const attempt = (tier: "full" | "reduced" | "none") =>
+      Promise.race([
+        this.executeProvider(provider, context, toolsReallyRun, rung.signal, tier, onProgress),
+        deadline,
+      ]);
 
     try {
       try {
-        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "full", onProgress);
+        return await attempt("full");
       } catch (error) {
         // A user Stop outranks the deadline: the turn ended, it did not time
         // out, and settling it as a timeout would hide the Stop.
         if (context.request.signal?.aborted) throwIfStopped(context, error);
         // The deadline fired: report it as the provider's, not as a Stop.
-        if (expired) {
-          throw new Error(
-            `${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`,
-          );
-        }
+        if (expired) throw timeoutError();
 
         const reason = error instanceof Error ? error.message : String(error);
         const offeredTools =
@@ -669,12 +689,10 @@ export default class ProviderResolver {
         );
 
         try {
-          return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "reduced", onProgress);
+          return await attempt("reduced");
         } catch (again) {
           if (context.request.signal?.aborted) throwIfStopped(context, again);
-          if (expired) {
-            throw new Error(`${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`);
-          }
+          if (expired) throw timeoutError();
           const secondReason = again instanceof Error ? again.message : String(again);
           if (!requestTooLarge(secondReason)) throw again;
 
@@ -683,7 +701,7 @@ export default class ProviderResolver {
             `${provider.name} refused the reduced set too; retrying without tools.`,
             { provider: provider.name, fallbackReason: secondReason.slice(0, 200) },
           );
-          return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "none", onProgress);
+          return await attempt("none");
         }
       }
     } finally {
