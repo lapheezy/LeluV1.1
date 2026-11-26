@@ -24,6 +24,7 @@ import AgentStore from "../agents/AgentStore";
 import ImprovementPrioritizer, { type PriorityScore } from "./ImprovementPrioritizer";
 import EngineeringMemory from "./EngineeringMemory";
 import EngineeringChat from "./EngineeringChat";
+import SelfAwareness from "./SelfAwareness";
 import type { ImprovementProposal } from "./ImprovementQueue";
 
 export interface PrioritizedProposal {
@@ -63,6 +64,10 @@ export default class SelfDevelopmentEngine {
   /** Run diagnostics + opportunity detection once. */
   public async runCycle(): Promise<DevelopmentCycleResult> {
     this.cycleCount += 1;
+    /* Reconcile BEFORE detecting: a limitation that has already been
+       resolved must not be turned into a new proposal, and a completed
+       improvement must not be offered again. */
+    SelfAwareness.getInstance().reconcile();
     const diagnostics = await SelfDiagnostics.getInstance().run();
     const proposals = this.detectOpportunities(diagnostics);
 
@@ -78,6 +83,7 @@ export default class SelfDevelopmentEngine {
 
   /** Called from the cognitive loop — a lighter, non-reporting scan. */
   public async proactiveScan(): Promise<string[]> {
+    SelfAwareness.getInstance().reconcile();
     const diagnostics = await SelfDiagnostics.getInstance().run();
     const proposals = this.detectOpportunities(diagnostics);
     this.recordTopPriority();
@@ -129,7 +135,11 @@ export default class SelfDevelopmentEngine {
     }
   }
 
-  private detectOpportunities(diagnostics: DiagnosticReport): string[] {
+  /**
+   * IDENTIFY: turn REAL state into proposals. Public so the continuous
+   * improvement cycle drives the same detector rather than a second one.
+   */
+  public detectOpportunities(diagnostics: DiagnosticReport): string[] {
     const queue = ImprovementQueue.getInstance();
     const registry = CapabilityRegistry.getInstance();
     const created: string[] = [];

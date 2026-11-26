@@ -228,17 +228,52 @@ function headerValue(req: ConnectLikeReq, name: string): string {
  * on a cross-origin POST; a request with no Origin and no Referer is a
  * same-process or CLI caller and is allowed through, matching the behaviour
  * the dedicated relay had before this became the single mechanism.
+ *
+ * Three facts are accepted as "this is the app's own page", in this order:
+ *
+ *   1. `Sec-Fetch-Site: same-origin`. A browser sets this header itself and
+ *      page script cannot forge it (it is a forbidden header name), so it is
+ *      the browser's own statement that the request came from the page's
+ *      origin. MEASURED (Mission 44.2): behind the hosted preview proxy the
+ *      server receives `Host: 127.0.0.1:3001` while the page's origin is the
+ *      public preview host, so the host comparison below refused EVERY chat
+ *      turn with 403 — each provider rung failed and LÉLU answered "all AI
+ *      providers are unreachable or unconfigured" while the same credentials
+ *      completed real requests from curl. That is the exact shape this header
+ *      exists to disambiguate. `plugins/browseApi.ts` (fromOwnPage) already
+ *      reads it for the same reason.
+ *   2. The explicit allowlist (`LELU_BROKER_ALLOWED_ORIGINS`), for a deployment
+ *      where the browser cannot report Sec-Fetch-Site — a tunnel, an embedded
+ *      webview, an older client.
+ *   3. Host equality, including X-Forwarded-Host: a reverse proxy terminates
+ *      TLS and forwards with its own Host, so the host the browser actually
+ *      addressed is the forwarded one.
+ *
+ * A genuinely cross-site page still fails all three and is refused.
  */
-export function crossOrigin(req: ConnectLikeReq): boolean {
+export function crossOrigin(req: ConnectLikeReq, allowedOrigins: readonly string[] = []): boolean {
   const origin = headerValue(req, "origin");
   const referer = headerValue(req, "referer");
   const host = headerValue(req, "host");
   if (!origin && !referer) return false;
-  if (!host) return false;
+
+  // 1. The browser's own account of the request (cannot be forged by a page).
+  if (headerValue(req, "sec-fetch-site").trim().toLowerCase() === "same-origin") return false;
+
+  // 2. An operator-declared origin for this deployment.
+  const normalize = (value: string): string => value.trim().replace(/\/$/, "");
+  if (origin && allowedOrigins.some((allowed) => normalize(allowed) === normalize(origin))) {
+    return false;
+  }
+
+  // 3. Host equality, with the proxy's forwarded host included.
+  const forwarded = headerValue(req, "x-forwarded-host").split(",")[0]?.trim() ?? "";
+  const hosts = new Set([host, forwarded].filter(Boolean));
+  if (hosts.size === 0) return false;
   for (const candidate of [origin, referer]) {
     if (!candidate) continue;
     try {
-      if (new URL(candidate).host !== host) return true;
+      if (!hosts.has(new URL(candidate).host)) return true;
     } catch {
       return true;
     }
@@ -568,6 +603,11 @@ export const DEFAULT_FREE_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
   const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
+  /** Origins this deployment's page is allowed to be served from, beyond the ones the browser reports itself. */
+  const allowedOrigins = (readEnv("LELU_BROKER_ALLOWED_ORIGINS") ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   /**
    * WHAT THE SERVER HAS ACTUALLY SEEN, per provider.
@@ -724,7 +764,7 @@ export function createModelApi(readEnv: EnvReader) {
 
     // A page from another origin must not be able to drive a broker that
     // attaches the server's credential to what it forwards.
-    if (crossOrigin(req)) {
+    if (crossOrigin(req, allowedOrigins)) {
       sendJson(res, { ok: false, error: "Cross-origin broker requests are refused." }, 403);
       return;
     }

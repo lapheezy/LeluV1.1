@@ -102,8 +102,10 @@ Endpoints (same-origin by default, no credentials):
   `tokenRequired`, `workspaceRoot`, and `runtimeInfo`: engine, version,
   platform, cwd, start time)
 - `POST /api/engineer/command` — `{ operation }`; **whitelisted** to
-  `typecheck` (`bun tsc -b --noEmit`), `test` (`bun test`),
-  `build` (`bun run build`), `inspect` (`node --version && bun --version && pwd`).
+  `typecheck` (`npx tsc -b --force`), `test` (`npm test`),
+  `build` (`npm run build`), `inspect` (`node --version && npx tsc --version && pwd`).
+  (Mission 43: these were `bun …`, which exits 127 wherever Bun is not
+  installed, so a validation that could not run was read as a failed change.)
   A raw `command` string is accepted only when it matches a whitelist
   entry exactly. The server never runs arbitrary shell input.
 - `POST /api/engineer/read` — `{ path }`, workspace-root-bounded

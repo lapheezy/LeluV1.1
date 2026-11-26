@@ -22,6 +22,7 @@ import EngineeringWorkspace from "../../../core/engineering/EngineeringWorkspace
 import ProposalEvidence, { ACTION_REQUIREMENTS, ProposalBlocked } from "./ProposalEvidence";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
+import GenesisSelfDevelopmentLab from "./GenesisSelfDevelopmentLab";
 import GenesisRuntimeUI, { type RuntimeValues } from "./GenesisRuntimeUI";
 import ArchitectureMap from "../../../core/selfdev/ArchitectureMap";
 import CapabilityRegistry, {
@@ -96,10 +97,11 @@ const STATUS_COLORS: Record<string, string> = {
   "Rolled Back": "#f87171",
 };
 
-type Tab = "overview" | "architecture" | "capabilities" | "diagnostics" | "improvements" | "chat" | "uilab" | "code";
+type Tab = "overview" | "laboratory" | "architecture" | "capabilities" | "diagnostics" | "improvements" | "chat" | "uilab" | "code";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "laboratory", label: "Laboratory" },
   { id: "architecture", label: "Architecture" },
   { id: "capabilities", label: "Capabilities" },
   { id: "diagnostics", label: "Diagnostics" },
@@ -472,6 +474,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
         ) : null}
 
         {/* ============================ ARCHITECTURE */}
+        {tab === "laboratory" ? <GenesisSelfDevelopmentLab /> : null}
         {tab === "architecture" ? (
           <ArchitectureTab map={map} />
         ) : null}

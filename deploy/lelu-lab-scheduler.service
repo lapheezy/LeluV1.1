@@ -1,0 +1,53 @@
+# ==========================================================
+# LÉLU — self-development laboratory scheduler (systemd)
+#
+# NOT INSTALLED. This file is the configuration and the install
+# procedure; enabling a unit changes the host, which needs the
+# operator's explicit authorization.
+#
+#   sudo cp deploy/lelu-lab-scheduler.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lelu-lab-scheduler
+#   systemctl status lelu-lab-scheduler
+#   journalctl -u lelu-lab-scheduler -n 50 --no-pager
+#
+# Why a unit and not a detached process: the laboratory's own lock stops a
+# SECOND instance, but nothing restarts the first after a reboot. systemd is
+# the supervisor this host already has; adding another scheduler would be the
+# duplication Mission 44 forbids.
+#
+# Restart=on-failure plus RestartSec means a crash resumes discovery within
+# 30s, and scripts/lab-scheduler.ts records `scheduler-recovered` in the
+# laboratory journal when it finds a heartbeat from a process that died.
+# ==========================================================
+
+[Unit]
+Description=LÉLU self-development laboratory — daily repository discovery
+Documentation=file:///workspace/chats/08af6cc9ef212913e6b7209b/docs/missions/MISSION-44-1-VERIFICATION.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Paths are the deployment's; adjust to wherever the repository is checked out.
+WorkingDirectory=/workspace/chats/08af6cc9ef212913e6b7209b
+ExecStart=/usr/bin/env npx tsx scripts/lab-scheduler.ts --interval-ms 21600000
+# SIGTERM makes the scheduler close its heartbeat and release its lock before exit.
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=30
+# A cycle that keeps crashing must not spin: systemd's own limiter backs off.
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+StandardOutput=append:/workspace/chats/08af6cc9ef212913e6b7209b/.lelu-lab/state/scheduler.log
+StandardError=append:/workspace/chats/08af6cc9ef212913e6b7209b/.lelu-lab/state/scheduler.log
+
+# The scheduler reads the repository and writes only .lelu-lab/.
+# It never pushes, merges or deploys, so it needs no network write path beyond
+# the git remote the checkout already uses.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -177,10 +177,24 @@ export interface EngineerDiffEntry {
   realChangedSince?: boolean;
 }
 
-/** Whitelisted operations — the only commands the server will ever run. */
+/**
+ * Operations the runtime is allowed to run, expressed so they execute on the
+ * host that is actually serving.
+ *
+ * These were `bun tsc -b --noEmit` / `bun run build` / `... && bun --version`.
+ * Bun is not installed on a Node/npm deployment, so the whitelisted typecheck
+ * and build exited 127 — which LÉLU then read as "the change failed". The check
+ * that decides whether an improvement is verified must be able to run.
+ *
+ * `tsc -b` also rejects `--noEmit`; `--force` is the correct build-mode flag.
+ *
+ * Verified in experiment lelu-lab/exp-engineer-ops: the whitelisted typecheck
+ * executed there and exited 0 (commit 374284a).
+ */
+/* Whitelisted operations — the only commands the server will ever run. */
 export const ENGINEER_OPERATIONS: Record<string, string> = {
-  typecheck: "bun tsc -b --noEmit",
-  build: "bun run build",
+  typecheck: "npx tsc -b --force",
+  build: "npm run build",
   // The project's OWN suite — `npm test` is what package.json defines and
   // what passes (953/953). This was `bun test`: a different runner over a
   // different file set, which on the unmodified project reported 20
@@ -188,7 +202,7 @@ export const ENGINEER_OPERATIONS: Record<string, string> = {
   // autonomy-end-to-end suite. Validation that disagrees with the
   // project's own suite cannot tell LÉLU whether her change broke it.
   test: "npm test",
-  inspect: "node --version && bun --version && pwd",
+  inspect: "node --version && npx tsc --version && pwd",
 };
 
 /**

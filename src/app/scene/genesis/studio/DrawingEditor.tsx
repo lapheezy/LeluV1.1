@@ -6,11 +6,18 @@
  * saves/loads .excalidraw files and exports PNG/SVG). LÉLU stores its
  * scene data unchanged in the Creation Studio artifact: elements, the
  * app-state fields that describe the drawing (not the UI), and files.
+ *
+ * The load is genuinely deferred, which is what this header always claimed:
+ * the imports are dynamic, so a build (or a test) that never opens a drawing
+ * never loads Excalidraw at all. A static import made every consumer pay for
+ * it, and made the module impossible to load outside a bundler — its package
+ * resolves `./index.css` only under a `development`/`production` condition and
+ * its ESM build names an export its CJS dependency does not provide at the
+ * top level. Opening a drawing is the moment those rules matter, so that is
+ * the moment they are applied.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { convertToExcalidrawElements, Excalidraw } from "@excalidraw/excalidraw";
-import "@excalidraw/excalidraw/index.css";
 import type { DrawingSpec } from "../../../../core/studio/StudioTypes";
 import { useStudioStore } from "./useStudio";
 
@@ -18,25 +25,52 @@ import { useStudioStore } from "./useStudio";
 const KEPT_APP_STATE = ["viewBackgroundColor", "gridSize", "gridModeEnabled", "currentItemFontFamily", "currentItemStrokeColor", "currentItemBackgroundColor"] as const;
 
 type SceneElement = { id: string; isDeleted?: boolean; version?: number };
+type ExcalidrawModule = typeof import("@excalidraw/excalidraw");
 
 export default function DrawingEditor({ artifactId, spec, readOnly }: { artifactId: string; spec: DrawingSpec; readOnly: boolean }) {
   const store = useStudioStore();
   const [status, setStatus] = useState("Saved");
+  const [excalidraw, setExcalidraw] = useState<ExcalidrawModule | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const pending = useRef<DrawingSpec | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSaved = useRef<string>("");
 
-  const initialData = useMemo(() => ({
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const module = await import("@excalidraw/excalidraw");
+        // Its stylesheet, not its behaviour: a runtime that cannot resolve a
+        // CSS export still gets a working editor, so a failure here is not fatal.
+        await import("@excalidraw/excalidraw/index.css").catch(() => undefined);
+        if (!cancelled) setExcalidraw(module);
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error instanceof Error ? error.message.split("\n")[0] : String(error));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const initialData = useMemo(() => {
+    if (!excalidraw) return null;
     // A drawing LÉLU made holds element skeletons ({type, x, y, text…});
     // Excalidraw's own converter completes them. Saved drawings are full
     // elements (they carry a seed) and are passed through untouched.
-    elements: ((spec.scene.elements as Array<Record<string, unknown>>).some((e) => typeof e.seed !== "number")
-      ? convertToExcalidrawElements(spec.scene.elements as never)
-      : spec.scene.elements) as never,
-    appState: { ...(spec.scene.appState ?? {}), viewBackgroundColor: (spec.scene.appState?.viewBackgroundColor as string) ?? "#fdfcff" } as never,
-    files: (spec.scene.files ?? {}) as never,
-    scrollToContent: true,
-  }), [spec]);
+    const elements = (spec.scene.elements as Array<Record<string, unknown>>).some((e) => typeof e.seed !== "number")
+      ? excalidraw.convertToExcalidrawElements(spec.scene.elements as never)
+      : spec.scene.elements;
+    return {
+      elements: elements as never,
+      appState: { ...(spec.scene.appState ?? {}), viewBackgroundColor: (spec.scene.appState?.viewBackgroundColor as string) ?? "#fdfcff" } as never,
+      files: (spec.scene.files ?? {}) as never,
+      scrollToContent: true,
+    };
+  }, [excalidraw, spec]);
 
   const flush = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -81,6 +115,8 @@ export default function DrawingEditor({ artifactId, spec, readOnly }: { artifact
     };
   }, [flush]);
 
+  const Editor = excalidraw?.Excalidraw ?? null;
+
   return (
     <div className="lst-drawing" data-lelu-drawing-editor={artifactId}>
       <div className="lst-toolbar">
@@ -88,13 +124,21 @@ export default function DrawingEditor({ artifactId, spec, readOnly }: { artifact
         <span className="lst-note" role="status" data-lelu-drawing-status>{readOnly ? "Viewing an earlier revision" : status}</span>
       </div>
       <div className="lst-drawing-canvas">
-        <Excalidraw
-          initialData={initialData}
-          onChange={onChange as never}
-          viewModeEnabled={readOnly}
-          theme="dark"
-          UIOptions={{ canvasActions: { toggleTheme: false } }}
-        />
+        {Editor && initialData ? (
+          <Editor
+            initialData={initialData}
+            onChange={onChange as never}
+            viewModeEnabled={readOnly}
+            theme="dark"
+            UIOptions={{ canvasActions: { toggleTheme: false } }}
+          />
+        ) : loadError ? (
+          <div className="lst-note" role="alert" data-lelu-drawing-error>
+            The drawing surface could not load here: {loadError}
+          </div>
+        ) : (
+          <div className="lst-note" data-lelu-drawing-loading>Loading the drawing surface…</div>
+        )}
       </div>
     </div>
   );

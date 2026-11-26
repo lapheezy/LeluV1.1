@@ -452,7 +452,13 @@ export function missingInformation(observation: FeatureObservationSet): Array<{ 
   if (!has("jewelry")) out.push({ component: "jewelry", need: "an accessory photograph, or a pose that does not occlude the piece" });
   if (!has("garment")) out.push({ component: "garment", need: "a torso view; the garment must not be covered by hair or arms" });
   const landmarks = observation.features.find((feature) => feature.id === "landmarks");
-  if (landmarks && landmarks.measurements.count < 468) out.push({ component: "face", need: "iris landmarks are missing; gaze cannot be reconstructed" });
+  // The measurement is a generic record: it can be absent, or a string. A
+  // missing reading means the landmarks were not measured at this resolution,
+  // which is exactly the gap this reports.
+  const landmarkCount = Number(landmarks?.measurements.count ?? 0);
+  if (landmarks && Number.isFinite(landmarkCount) && landmarkCount < 468) {
+    out.push({ component: "face", need: "iris landmarks are missing; gaze cannot be reconstructed" });
+  }
   return out;
 }
 

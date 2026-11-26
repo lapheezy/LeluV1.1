@@ -20,6 +20,7 @@ import {
   migrateLayout,
   placeManual,
   readLayout,
+  landscapeReflow,
   reflowForViewport,
   releaseManual,
   removeEntry,
@@ -172,4 +173,48 @@ test("an absent layout is empty, not an error", () => {
   const parsed = readLayout(null);
   assert.deepEqual(parsed.layout.entries, []);
   assert.equal(parsed.skipped, 0);
+});
+
+test("landscape: the top window may not cover the window beneath", () => {
+  // MEASURED (Mission 44.1): at 844×390 the chat window covered all 20 visible
+  // laboratory controls. The laboratory stays reachable when the topmost
+  // window is bounded and docked to the bottom edge of a short viewport.
+  const landscape = { width: 844, height: 390 };
+  const entries: ModuleLayoutEntry[] = [
+    entry("self-development", { rect: { x: 0, y: 0, width: 844, height: 390 }, zIndex: 201 }),
+    entry("chat", { rect: { x: 0, y: 0, width: 844, height: 390 }, zIndex: 202 }),
+  ];
+
+  const reflowed = reflowForViewport(entries, landscape);
+  const lab = reflowed.find((item) => item.moduleId === "self-development")!;
+  const chat = reflowed.find((item) => item.moduleId === "chat")!;
+
+  assert.ok(chat.rect.height < landscape.height, "the top window gave back part of the viewport");
+  assert.ok(chat.rect.y >= 100, "the top window is docked to the bottom edge, not the top");
+  // The laboratory's own header row (where raise/minimise/close live) is clear.
+  const labHeader = { x: lab.rect.x, y: lab.rect.y, width: lab.rect.width, height: 40 };
+  const covered = labHeader.x < chat.rect.x + chat.rect.width &&
+    chat.rect.x < labHeader.x + labHeader.width &&
+    labHeader.y < chat.rect.y + chat.rect.height &&
+    chat.rect.y < labHeader.y + labHeader.height;
+  assert.equal(covered, false, "the laboratory header must stay clickable in landscape");
+});
+
+test("landscape: desktop geometry is untouched and a single window may fill the screen", () => {
+  // Hand-placed (manual) geometry: the person's arrangement, which the layout
+  // engine must leave alone on a desktop-sized viewport.
+  const entries: ModuleLayoutEntry[] = [
+    entry("self-development", { rect: { x: 88, y: 64, width: 600, height: 700 }, zIndex: 201, manual: true }),
+    entry("chat", { rect: { x: 700, y: 64, width: 600, height: 700 }, zIndex: 202, manual: true }),
+  ];
+  const desktopReflow = reflowForViewport(entries, desktop);
+  const chat = desktopReflow.find((item) => item.moduleId === "chat")!;
+  assert.equal(chat.rect.height, 700, "desktop keeps the person's geometry");
+
+  // One window alone may use the whole landscape: the bound applies only when
+  // something is actually underneath it.
+  const single: ModuleLayoutEntry[] = [
+    entry("chat", { rect: { x: 0, y: 0, width: 844, height: 390 }, zIndex: 202 }),
+  ];
+  assert.deepEqual(landscapeReflow(single, { width: 844, height: 390 }), single);
 });

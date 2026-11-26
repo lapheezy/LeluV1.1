@@ -18,6 +18,8 @@ import ImprovementQueue, {
   type ImprovementProposal,
   type ImprovementStatus,
 } from "../../../core/selfdev/ImprovementQueue";
+import { LIFECYCLE_LABELS, isActiveLifecycle } from "../../../core/selfdev/ImprovementLifecycle";
+import SelfAwareness from "../../../core/selfdev/SelfAwareness";
 import AutonomyGate from "../../../core/cognition/AutonomyGate";
 import ProposalEvidence, { ACTION_REQUIREMENTS, ProposalBlocked, statusLabel } from "./ProposalEvidence";
 import SelfDevelopmentLoop from "../../../core/selfdev/SelfDevelopmentLoop";
@@ -47,6 +49,14 @@ interface Props {
 
 /** Finished one way or another: not "active". */
 const DONE_STATUSES: ImprovementStatus[] = ["Integrated", "Recorded", "Rejected", "Rolled Back"];
+
+/**
+ * Retired by the reconciler (resolved, duplicate, withdrawn) is history,
+ * not outstanding work: it must never appear in the active list again.
+ */
+function isOutstanding(proposal: ImprovementProposal): boolean {
+  return isActiveLifecycle(proposal.lifecycle) && !DONE_STATUSES.includes(proposal.status);
+}
 
 /** Waiting on the owner: approval, review of a ready change, or an unblock. */
 function needsOwner(proposal: ImprovementProposal): boolean {
@@ -90,16 +100,24 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
   const queue = useMemo(() => ImprovementQueue.getInstance(), []);
   const loop = useMemo(() => SelfDevelopmentLoop.getInstance(), []);
   const [proposals, setProposals] = useState<ImprovementProposal[]>(() => queue.list());
-  const [filter, setFilter] = useState<"all" | "active" | "approval">("active");
+  const [filter, setFilter] = useState<"all" | "active" | "approval" | "history">("active");
 
   useEffect(() => {
     const unsub = queue.subscribe(() => setProposals(queue.list()));
     return unsub;
   }, [queue]);
 
+  /* Reconcile when the panel opens: what the person is about to read is the
+     current state of the system, not the state of the last session. */
+  useEffect(() => {
+    const reconciliation = SelfAwareness.getInstance().reconcile();
+    if (reconciliation.changed) setProposals(queue.list());
+  }, [queue]);
+
   const filtered = useMemo(() => {
     if (filter === "approval") return proposals.filter(needsOwner);
-    if (filter === "active") return proposals.filter((p) => !DONE_STATUSES.includes(p.status));
+    if (filter === "active") return proposals.filter(isOutstanding);
+    if (filter === "history") return proposals.filter((proposal) => !isOutstanding(proposal));
     return proposals;
   }, [proposals, filter]);
 
@@ -147,13 +165,15 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
     <GenesisWindowFrame title="LÉLU Updates" onClose={onClose}>
       {/* ── Filter tabs ── */}
       <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-        {(["active", "approval", "all"] as const).map((f) => {
+        {(["active", "approval", "history", "all"] as const).map((f) => {
           const count =
             f === "active"
-              ? proposals.filter((p) => !DONE_STATUSES.includes(p.status)).length
+              ? proposals.filter(isOutstanding).length
               : f === "approval"
                 ? proposals.filter(needsOwner).length
-                : proposals.length;
+                : f === "history"
+                  ? proposals.filter((proposal) => !isOutstanding(proposal)).length
+                  : proposals.length;
           return (
             <button
               key={f}
@@ -173,7 +193,7 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
                 gap: 5,
               }}
             >
-              {f === "active" ? "Active" : f === "approval" ? "Awaiting" : "All"}
+              {f === "active" ? "Active" : f === "approval" ? "Awaiting" : f === "history" ? "History" : "All"}
               {count > 0 && (
                 <span
                   style={{
@@ -211,7 +231,9 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
             ? "No proposals are waiting for your approval."
             : filter === "active"
               ? "No active improvements right now. LÉLU will surface proposals here when she discovers opportunities."
-              : "Your improvement queue is empty."}
+              : filter === "history"
+                ? "No retired improvements yet. Completed and superseded work is kept here rather than in the active list."
+                : "Your improvement queue is empty."}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -238,7 +260,14 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
                   letterSpacing: "0.08em",
                 }}
               >
-                <span style={{ color: STATUS_COLORS[proposal.status] }} data-lelu-status={proposal.status}>{statusLabel(proposal)}</span>
+                <span style={{ color: STATUS_COLORS[proposal.status] }} data-lelu-status={proposal.status}>
+                  {statusLabel(proposal)}
+                  {proposal.lifecycle ? (
+                    <span data-lelu-lifecycle={proposal.lifecycle} style={{ marginLeft: 6, color: "rgba(148,163,184,0.72)" }}>
+                      · {LIFECYCLE_LABELS[proposal.lifecycle]}
+                    </span>
+                  ) : null}
+                </span>
                 <span style={{ color: "rgba(148, 163, 184, 0.6)" }}>{proposal.kind}</span>
               </div>
 

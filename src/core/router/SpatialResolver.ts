@@ -214,7 +214,12 @@ export function parseSpatialCommand(prompt: string): ParsedSpatialCommand | null
     const match = /^(?:please\s+)?(?:inspect|describe)\s+(?:the\s+)?(.+?)(?:\s+object)?\s*$/.exec(text);
     if (match?.[1]) {
       const target = cleanReference(match[1]);
-      if (target) return { intent: { op: "scene.inspect", target }, label: `inspect "${target}"`, ownerApproval };
+      // "inspect the experiment … and tell me exactly what it changed" starts
+      // with the same verb but is not a scene read, and claiming it here sent
+      // the turn to the spatial core instead of the laboratory tools.
+      if (target && looksLikeObjectReference(match[1])) {
+        return { intent: { op: "scene.inspect", target }, label: `inspect "${target}"`, ownerApproval };
+      }
     }
   }
 
@@ -517,17 +522,49 @@ function splitTargets(reference: string): string[] {
     .slice(0, 6);
 }
 
+/**
+ * A scene object's name, not a sentence that happens to begin with a verb.
+ *
+ * "inspect the egg" is a scene read; "inspect the experiment exp-x with your
+ * laboratory tooling and tell me what it changed" is a laboratory request and
+ * must reach the provider and its tools. Keeping the target short, singular
+ * and free of clause connectors is the conservative reading the resolver's
+ * own contract asks for ("bails out when a sentence does not clearly name a
+ * scene operation").
+ */
+const OBJECT_REFERENCE_MAX_WORDS = 5;
+
+function looksLikeObjectReference(value: string): boolean {
+  const text = value.trim();
+  if (!text) return false;
+  if (/[,;:?]/.test(text)) return false;
+  if (/\b(?:and|then|tell|with|because|which|whether|your|my|please)\b/i.test(text)) return false;
+  return text.split(/\s+/).length <= OBJECT_REFERENCE_MAX_WORDS;
+}
+
+/** Build verbs that turn a noun into a composition request. */
+const BUILD_VERB =
+  /\b(?:build|create|make|design|compose|construct|arrange|set ?up|lay ?out|render|generate|add|place)\b/;
+
 /** Sentences that ask for a composed environment rather than one primitive. */
 function isCompositionRequest(lower: string): boolean {
   return (
     /planetary system|solar system|star and .*planets?|orbiting planets?/.test(lower) ||
     /research station|orbital observatory|observatory/.test(lower) ||
-    /laborator|research zones?/.test(lower) ||
+    // "laboratory" names this project's self-development lab as often as it
+    // names Cosmos geometry. MEASURED (Mission 44.2): "Use your laboratory to
+    // report the repository HEAD…" was claimed here and answered "Prepared:
+    // Build 4 objects — 3 zones, 1 hub, 3 links" without ever reaching a
+    // model. A place is only geometry when the sentence also asks to build
+    // one; otherwise the request belongs to the laboratory tools.
+    (BUILD_VERB.test(lower) && /laborator|research zones?/.test(lower)) ||
     /(?:\d+|two|three|four|five|six)\s+(?:interconnected\s+)?structures?/.test(lower) ||
     /interconnected structures?/.test(lower) ||
     /symmetr(?:y|ical)|formation|arrange\s+(?:these|the|my)\b/.test(lower)
   );
 }
+
+export { isCompositionRequest, looksLikeObjectReference };
 
 function detectAnchor(text: string): string | undefined {
   const match =

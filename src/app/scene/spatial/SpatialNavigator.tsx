@@ -1,24 +1,32 @@
 /**
  * ==========================================================
- * LÉLUVERSE — SPATIAL NAVIGATOR
+ * LÉLUVERSE — SPATIAL NAVIGATOR (ORBITAL)
  *
- * The primary navigation of the spatial experience.
+ * The navigation of the spatial experience is an orbit, not a bar.
  *
- * Before this, every environment was reached by opening the chat
- * and asking, or by hunting the dock. Now the Cosmos itself has a
- * navigation rail: pick a galaxy, a world, the browser, the studio
- * or a project and the camera flies there while the real surface
- * materialises. Chat is one destination among them — and it is
- * closed when the application opens.
+ *   · LÉLU CORE sits at the centre of the bottom band — the anchor
+ *     you return to, with the live transition drawn around it.
+ *   · Each navigation CATEGORY is its own orb on an ellipse around
+ *     and behind the Core, close enough to reach with a thumb. Each
+ *     orb has its own stable position, glyph and accent.
+ *   · Selecting a category opens its destinations as a small ring of
+ *     satellite orbs AROUND that category — each destination keeps
+ *     its own identity and travel is one tap.
  *
- * It is deliberately quiet: a thin ambient bar at the bottom edge,
- * out of the way of the dock rail, the composer and the phone's
- * system bars. It carries the transition itself (progress, stop,
- * reverse) so the state of the scene is never a mystery.
+ * The Earth and the Core are never covered: only the orbs paint, the
+ * space between them is the world, and there is no full-width bar and
+ * no expanding panel of pills. Category labels appear only for the
+ * orb under the pointer (or the one open), so the composition stays
+ * readable at 375px without stacking text over the globe.
+ *
+ * Utility controls (voice, Creation Studio, portals, chat, minimise)
+ * live on an INNER arc that appears on demand; they are not part of
+ * the resting composition. Portals and layout remain available as a
+ * sheet, because that is a form, not navigation.
  * ==========================================================
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { composerLift, liftOverflowsTop } from "./composerClearance";
 import { useUniverseOpen } from "../genesis/chat/universe/universeOpen";
 import SpatialRuntime, { type SpatialState } from "./SpatialRuntime";
@@ -31,7 +39,8 @@ import { useWorkspace } from "../genesis/useWorkspace";
 import { chatFillsScreen } from "../genesis/chat/chatLayout";
 import { layer } from "../../../core/ui/Layers";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
-import { DOCK_GLYPHS, orderedGroups } from "./capabilityGroups";
+import { DOCK_GLYPHS, dockGroups, groupFor, type DockGroup } from "./capabilityGroups";
+import { orbitRing, satelliteOffsets, type OrbitPoint } from "./orbitLayout";
 import SavedWorlds from "./SavedWorlds";
 
 function useSpatialState(): SpatialState {
@@ -46,14 +55,8 @@ function useSpatialState(): SpatialState {
 
 /**
  * The registry's live portal list: created, edited and removed portals appear
- * here at once.
- *
- * The built-in ring is SEEDED HERE as well as in the 3D field. Before this, only
- * SpatialPortals called `seedRing`, so the panel's only travel controls were
- * user-created portals: with none created, every registered destination in the
- * world had no entry point in the interface at all, and the panel said "only the
- * built-in ring exists" while listing nothing. Seeding is idempotent, so the
- * field and the panel agree and neither depends on the other being mounted.
+ * here at once. Seeding is idempotent, so the field and the sheet agree and
+ * neither depends on the other being mounted.
  */
 function usePortalRegistry(): PortalRecord[] {
   const registry = PortalRegistry.getInstance();
@@ -98,14 +101,13 @@ export default function SpatialNavigator() {
   const surface = useSurface();
   const workspace = useWorkspace();
   const compact = chatFillsScreen(workspace);
-  /* Collapsed until the person opens it. Opened by default it covered the
-     home's Notifications and App Library cards on desktop right after guest
-     entry; the rail itself stays visible, one tap away. */
-  const [open, setOpen] = useState(false);
 
-  /* Portals and the workspace layout are part of THIS interface, not a
-     separate settings screen: the rail that navigates the world also names
-     the connections in it and arranges the windows. */
+  /* Utility arc, collapsed until asked for. Opened by default it covered the
+     home's Notifications and App Library cards right after guest entry. */
+  const [open, setOpen] = useState(false);
+  /** Which category's destinations are orbiting on screen. */
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
+
   const portals = usePortalRegistry();
   const [portalPanel, setPortalPanel] = useState(false);
   const [portalTarget, setPortalTarget] = useState<SpatialSceneId>("studio");
@@ -118,12 +120,7 @@ export default function SpatialNavigator() {
   const manualCount = layout.entries.filter((entry) => entry.manual).length;
   const pinnedCount = layout.entries.filter((entry) => entry.pinned).length;
   const customPortals = portals.filter((portal) => !isBuiltinPortal(portal));
-  /* The ring's own destinations, in registry order: real ids, real labels, and
-     the same `planTravel` a created portal uses. */
   const builtinPortals = portals.filter((portal) => isBuiltinPortal(portal));
-  /* Who made each connection is part of its identity: a portal LÉLU created
-     and one the person created are both first-class, and the panel says which
-     is which instead of leaving it to be inferred from a label. */
   const agentPortals = customPortals.filter((portal) => portal.createdBy === "agent");
   const userPortals = customPortals.filter((portal) => portal.createdBy === "user");
 
@@ -155,15 +152,7 @@ export default function SpatialNavigator() {
     setPortalNotice(removed ? "Portal removed." : "The portal could not be removed.");
   };
 
-  // The rail belongs to the WORLD, not to the conversation: it is present
-  // while the chat interface is collapsed (the state the app opens in), so
-  // the Cosmos can be navigated without summoning chat at all. It steps
-  // aside only when a phone chat owns the whole screen.
-  // The Chat Universe brings its own rail and composer; the world's rail
-  // steps aside while it is open so it never covers the Universe composer.
   const universeOpen = useUniverseOpen();
-  // An application window owns a phone screen. Its controls were being
-  // covered by this floating rail; the window's own close/palette remain.
   const phoneWindowOpen =
     genesis.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720;
   const hidden = surface.chatOwnsScreen || universeOpen || phoneWindowOpen;
@@ -174,12 +163,37 @@ export default function SpatialNavigator() {
   const voice = genesis.voice;
   const chatOpen = genesis.activePanel === "chat";
 
-  /* Never over the chat composer. The composer sits inside the chat
-     window's stacking context, so the composer layer cannot rise above this
-     rail; instead the rail measures the composer and lifts itself clear
-     (collapsing the tall capability groups if lifting would run off the
-     top). Found live in the Mission 10.3 20-turn run: the open groups
-     covered the textarea and the typed turn could not be entered. */
+  /*
+   * The orbit is a fixed composition: five categories at five angles. The
+   * list is NOT reordered by the current scene — an orb that moved when you
+   * travelled would break the map you just learned.
+   */
+  const groups = useMemo(() => dockGroups(), []);
+  const ring = useMemo(() => orbitRing(groups.length), [groups.length]);
+  const activeGroup = groupFor(spatial.current);
+  const openGroup: DockGroup | null = useMemo(
+    () => groups.find((group) => group.id === openCategory) ?? null,
+    [groups, openCategory],
+  );
+  const openIndex = openGroup ? groups.findIndex((group) => group.id === openGroup.id) : -1;
+  const openParent: OrbitPoint | null = openIndex >= 0 ? ring[openIndex] : null;
+  const satellites = useMemo(
+    () => (openGroup && openParent ? satelliteOffsets(openGroup.entries.length, openParent.angle, 62) : []),
+    [openGroup, openParent],
+  );
+  /*
+   * A phone band is ~264px tall: the category ring, the Core and a second
+   * constellation do not fit (measured — the fan covered four category
+   * orbs and then clipped the band's top). There the open category's
+   * destinations simply take the ring's own slots, and the categories
+   * step aside while it is open.
+   */
+  const compactSlots = useMemo(
+    () => (compact && openGroup ? orbitRing(openGroup.entries.length) : []),
+    [compact, openGroup],
+  );
+
+  /* Never over the chat composer: measure and lift the band clear. */
   const navRef = useRef<HTMLDivElement | null>(null);
   const [lift, setLift] = useState(0);
   useEffect(() => {
@@ -197,7 +211,6 @@ export default function SpatialNavigator() {
         return;
       }
       const r = nav.getBoundingClientRect();
-      // The rect at the natural (un-lifted) position.
       const current = Number(nav.dataset.spatialComposerClearance ?? 0) || 0;
       const natural = { top: r.top + current, bottom: r.bottom + current, left: r.left, right: r.right };
       const c = composer.getBoundingClientRect();
@@ -212,8 +225,6 @@ export default function SpatialNavigator() {
       if (!frame) frame = requestAnimationFrame(measure);
     };
     schedule();
-    // The chat window can be dragged or resized, and the composer grows
-    // with its text: re-measure on resize, and on a slow interval.
     const timer = window.setInterval(schedule, 400);
     window.addEventListener("resize", schedule);
     return () => {
@@ -223,92 +234,128 @@ export default function SpatialNavigator() {
     };
   }, [chatOpen, hidden, open]);
 
-  /* A tap or click outside the open menu closes it, like any menu. */
+  /* A tap or click outside the orbit closes what is open, like any menu. */
   useEffect(() => {
-    if (!open) return;
+    if (!open && !openCategory && !portalPanel) return;
     const onPointerDown = (event: PointerEvent) => {
       const nav = navRef.current;
-      if (nav && event.target instanceof Node && !nav.contains(event.target)) setOpen(false);
+      if (nav && event.target instanceof Node && !nav.contains(event.target)) {
+        setOpen(false);
+        setOpenCategory(null);
+      }
     };
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [open]);
+  }, [open, openCategory, portalPanel]);
+
+  /* Escape steps back out of the orbit before it leaves the world. */
+  useEffect(() => {
+    if (!open && !openCategory) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (openCategory) setOpenCategory(null);
+      else setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, openCategory]);
 
   if (hidden) return null;
 
-  const button = (scene: SpatialSceneId) => {
-    const destination = destinationFor(scene);
-    const isActive = spatial.current === scene;
-    const isHovered = spatial.interaction.hovered === scene;
-    return (
-      <button
-        key={scene}
-        type="button"
-        data-spatial-scene={scene}
-        aria-label={`Travel to ${destination.label}`}
-        title={`${destination.label} — ${destination.hint}`}
-        onClick={() => runtime.travel(scene)}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          padding: compact ? "7px 9px" : "6px 11px",
-          borderRadius: 999,
-          border: `1px solid ${isActive ? `${destination.accent}88` : "rgba(148,163,184,0.18)"}`,
-          background: isActive
-            ? `${destination.accent}22`
-            : isHovered
-              ? "rgba(148,163,184,0.14)"
-              : "rgba(8,16,38,0.55)",
-          color: isActive ? destination.accent : "rgba(214,228,244,0.86)",
-          font: "600 11px system-ui, sans-serif",
-          letterSpacing: "0.02em",
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease",
-        }}
-        onPointerEnter={() => runtime.hover(scene)}
-        onPointerLeave={() => runtime.hover(null)}
-      >
-        <span aria-hidden style={{ fontSize: 12 }}>
-          {DOCK_GLYPHS[scene] ?? "◇"}
-        </span>
-        {!compact && <span>{destination.label}</span>}
-      </button>
-    );
-  };
+  const pointStyle = (point: OrbitPoint): CSSProperties => ({
+    left: `calc(50% + (var(--orbit-rx) * ${point.x.toFixed(4)}))`,
+    top: `calc(100% - (var(--core) / 2) + (var(--orbit-ry) * ${point.y.toFixed(4)}))`,
+  });
+
+  /** The inner arc: utilities, only while the Core's caret is open. */
+  const utilities = [
+    {
+      id: "voice",
+      label: voice === "idle" ? "Talk to LÉLU" : `LÉLU voice: ${voice}`,
+      glyph: voice === "idle" ? "🎙" : "◉",
+      active: voice !== "idle",
+      title: "Speak with LÉLU — no chat window needed",
+      run: () => {
+        void VoiceEngine.getInstance().toggle();
+      },
+      testId: "voice",
+    },
+    {
+      id: "creation",
+      testId: "creation",
+      label: "Open Creation Studio",
+      glyph: "▤",
+      active: genesis.activePanel === "creation",
+      title: "Open the Creation Studio — documents, decks, graphs and drawings",
+      run: () => openPanel("creation"),
+    },
+    {
+      id: "portals",
+      testId: "portals",
+      label: portalPanel ? "Close portals and layout" : "Portals and layout",
+      glyph: "◇",
+      active: portalPanel,
+      title: "Create a portal, or arrange the workspace windows",
+      run: () => setPortalPanel((value) => !value),
+    },
+    {
+      id: "chat",
+      testId: "chat",
+      label: chatOpen ? "Dismiss the chat" : "Summon the chat",
+      glyph: chatOpen ? "✕" : "✉",
+      active: chatOpen,
+      title: chatOpen ? "Dismiss the conversation" : "Summon the conversation",
+      run: () => openPanel(chatOpen ? "none" : "chat"),
+    },
+    ...(compact
+      ? []
+      : [
+          {
+            id: "minimise",
+            testId: "minimise",
+            label: "Minimise the interface",
+            glyph: "—",
+            active: false,
+            title: "Minimise the interface",
+            run: () => minimize(),
+          },
+        ]),
+  ];
+  const utilityRing = orbitRing(utilities.length, 128);
 
   const control = (
+    scene: SpatialSceneId,
     label: string,
     glyph: string,
-    onClick: () => void,
-    options: { testId?: string; active?: boolean; title?: string } = {},
+    run: () => void,
+    options: { testId: string; active: boolean; title: string },
   ) => (
     <button
-      key={label}
+      key={options.testId}
       type="button"
-      data-spatial-control={options.testId ?? label}
+      data-spatial-scene={scene}
+      data-spatial-control={options.testId}
       aria-label={label}
-      title={options.title ?? label}
       aria-pressed={options.active}
-      onClick={onClick}
+      title={options.title}
+      onClick={run}
+      onPointerEnter={() => runtime.hover(scene)}
+      onPointerLeave={() => runtime.hover(null)}
       style={{
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        width: 30,
-        height: 30,
+        width: 34,
+        height: 34,
         borderRadius: 999,
-        border: `1px solid ${options.active ? "rgba(103,232,249,0.6)" : "rgba(148,163,184,0.2)"}`,
-        background: options.active ? "rgba(34,211,238,0.18)" : "rgba(8,16,38,0.62)",
-        color: options.active ? "#a5f3fc" : "rgba(214,228,244,0.85)",
+        border: `1px solid ${options.active ? "rgba(103,232,249,0.6)" : "rgba(148,163,184,0.24)"}`,
+        background: options.active ? "rgba(34,211,238,0.2)" : "rgba(8,16,38,0.66)",
+        color: options.active ? "#a5f3fc" : "rgba(214,228,244,0.9)",
         cursor: "pointer",
         padding: 0,
         fontSize: 13,
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
       }}
     >
       <span aria-hidden>{glyph}</span>
@@ -324,204 +371,203 @@ export default function SpatialNavigator() {
       data-spatial-destination={spatial.destination ?? ""}
       data-spatial-progress={progress}
       data-spatial-transition={spatial.transition?.kind ?? ""}
+      data-spatial-category={openCategory ?? ""}
+      className="lso"
       style={{
-        position: "fixed",
-        left: compact ? 8 : 92,
-        right: 12,
-        bottom: compact ? "calc(84px + env(safe-area-inset-bottom, 0px))" : 20,
+        left: "50%",
+        right: "auto",
+        bottom: compact ? "calc(74px + env(safe-area-inset-bottom, 0px))" : 14,
         zIndex: layer("navigation"),
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 6,
-        pointerEvents: "none",
-        transform: lift > 0 ? `translateY(-${lift}px)` : undefined,
+        transform: `translateX(-50%)${lift > 0 ? ` translateY(-${lift}px)` : ""}`,
       }}
     >
-      {travelling ? (
-        <div
-          aria-hidden
-          style={{
-            width: "min(420px, 80%)",
-            height: 2,
-            borderRadius: 2,
-            background: "rgba(148,163,184,0.2)",
-            overflow: "hidden",
+      <div className="lso-field" data-compact={compact ? "true" : "false"}>
+        {/* The orbit itself: a hairline the orbs sit on, so their place reads. */}
+        <div className="lso-rings" aria-hidden />
+
+        {groups.map((group, index) => {
+          const point = ring[index];
+          const isOpen = openCategory === group.id;
+          const holdsCurrent = activeGroup === group.id;
+          return (
+            <button
+              key={group.id}
+              type="button"
+              data-spatial-group-orb={group.id}
+              data-open={isOpen ? "true" : "false"}
+              data-current={holdsCurrent ? "true" : "false"}
+              aria-label={`${group.label}: ${group.entries.map((entry) => entry.label).join(", ")}`}
+              aria-expanded={isOpen}
+              title={`${group.label} — ${group.entries.map((entry) => entry.label).join(" · ")}`}
+              className="lso-orb lso-category"
+              style={{ ...pointStyle(point), "--accent": group.accent } as CSSProperties}
+              onClick={() => {
+                setOpen(false);
+                setOpenCategory(isOpen ? null : group.id);
+              }}
+            >
+              <span className="lso-glyph" aria-hidden>{group.glyph}</span>
+              <span className="lso-count" aria-hidden>{group.entries.length}</span>
+              <span className="lso-name" aria-hidden>{group.label}</span>
+            </button>
+          );
+        })}
+
+        {openGroup && openParent ? (
+          <div data-spatial-groups data-category={openGroup.id} className="lso-cluster">
+            {openGroup.entries.map((entry, index) => {
+              const offset = satellites[index] ?? { dx: 0, dy: 0 };
+              const current = spatial.current === entry.scene;
+              return (
+                <button
+                  key={entry.scene}
+                  type="button"
+                  data-spatial-scene={entry.scene}
+                  data-spatial-group={openGroup.id}
+                  data-current={current ? "true" : "false"}
+                  aria-label={`Travel to ${entry.label}`}
+                  aria-current={current ? "true" : undefined}
+                  title={`${entry.label} — ${entry.hint}`}
+                  className="lso-orb lso-satellite"
+                                    style={
+                    compactSlots[index]
+                      ? ({ ...pointStyle(compactSlots[index]), "--accent": entry.accent } as CSSProperties)
+                      : ({
+                          "--lso-left": `calc(50% + (var(--orbit-rx) * ${openParent.x.toFixed(4)}) + ${offset.dx}px)`,
+                          "--lso-top": `calc(100% - (var(--core) / 2) + (var(--orbit-ry) * ${openParent.y.toFixed(4)}) + ${offset.dy}px)`,
+                          "--accent": entry.accent,
+                        } as CSSProperties)
+                  }
+                  data-slot={compactSlots[index] ? "ring" : "fan"}
+                  onClick={() => {
+                    setOpenCategory(null);
+                    runtime.travel(entry.scene);
+                  }}
+                  onPointerEnter={() => runtime.hover(entry.scene)}
+                  onPointerLeave={() => runtime.hover(null)}
+                >
+                  <span className="lso-glyph" aria-hidden>{entry.glyph ?? DOCK_GLYPHS[entry.scene] ?? "◇"}</span>
+                  <span className="lso-name" aria-hidden>{entry.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {/* The utilities are an inner arc: present only when asked for. */}
+        {open ? (
+          <div className="lso-utilities" aria-label="Interface controls">
+            {utilities.map((item, index) => {
+              const point = utilityRing[index];
+              return (
+                <span
+                  key={item.id}
+                  className="lso-utility"
+                  style={{
+                    left: `calc(50% + (var(--orbit-rx) * 0.46 * ${point.x.toFixed(4)}))`,
+                    top: `calc(100% - (var(--core) / 2) + (var(--orbit-ry) * 0.46 * ${point.y.toFixed(4)}))`,
+                  }}
+                >
+                  {control(active.id, item.label, item.glyph, item.run, {
+                    testId: item.testId,
+                    active: item.active,
+                    title: item.title,
+                  })}
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {/* Transient transit controls: only while a flight is running. */}
+        {travelling ? (
+          <div className="lso-transit" aria-label="Transition controls">
+            {travelling && spatial.transition && !spatial.transition.interrupted
+              ? control("core", "Stop the transition", "❚❚", () => runtime.interrupt(), {
+                  testId: "interrupt",
+                  active: false,
+                  title: "Stop the transition",
+                })
+              : null}
+            {spatial.transition?.interrupted
+              ? control("core", "Resume the transition", "▶", () => runtime.resume(), {
+                  testId: "resume",
+                  active: false,
+                  title: "Resume the transition",
+                })
+              : null}
+            {spatial.transition
+              ? control("core", "Reverse the transition", "↺", () => runtime.reverse(), {
+                  testId: "reverse",
+                  active: false,
+                  title: "Reverse the transition",
+                })
+              : null}
+          </div>
+        ) : null}
+
+        {/* LÉLU CORE: the anchor. It never moves; it is what you come back to. */}
+        <button
+          type="button"
+          data-spatial-control="core"
+          data-active={spatial.current === "core" ? "true" : "false"}
+          aria-label={`Return to LÉLU's core${active.id === "core" ? " (you are here)" : ""}`}
+          title="LÉLU Core — return here"
+          className="lso-core"
+          onClick={() => {
+            setOpenCategory(null);
+            runtime.travel("core", { kind: "return-to-core" });
           }}
         >
-          <div
-            style={{
-              width: `${progress}%`,
-              height: "100%",
-              background: active.accent,
-              transition: "width 0.08s linear",
-            }}
-          />
-        </div>
-      ) : null}
+          <svg className="lso-progress" viewBox="0 0 100 100" aria-hidden>
+            <circle
+              cx="50"
+              cy="50"
+              r="46"
+              pathLength={100}
+              strokeDasharray={100}
+              strokeDashoffset={travelling ? 100 - progress : 100}
+              style={{ stroke: active.accent }}
+            />
+          </svg>
+          <span className="lso-core-halo" aria-hidden />
+          <span className="lso-core-body" aria-hidden />
+        </button>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          maxWidth: "100%",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          /*
-           * INPUT ROUTING: this pill's background is decoration. It sits over
-           * the live Cosmos, so if the container owns the pointer a person can
-           * never press a portal that happens to be behind it. The controls
-           * inside re-take the pointer (see `button`, `control` and the
-           * rule set in index.css); the gaps let the world through.
-           */
-          pointerEvents: "none",
-          padding: compact ? "6px 7px" : "8px 10px",
-          borderRadius: compact ? 14 : 18,
-          background: "rgba(4,10,26,0.55)",
-          border: "1px solid rgba(125,211,252,0.12)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
+        {/* One caret, attached to the Core: the utilities are one tap away. */}
         <button
           type="button"
           data-spatial-control="expand"
-          aria-label={open ? "Collapse spatial navigation" : "Open spatial navigation"}
+          aria-label={open ? "Collapse the interface controls" : "Open the interface controls"}
+          aria-expanded={open}
           title={hovered ? `${hovered.label} — ${hovered.hint}` : `${active.label} — ${active.hint}`}
-          onClick={() => setOpen((value) => !value)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-            padding: "6px 10px",
-            borderRadius: 999,
-            border: `1px solid ${active.accent}55`,
-            background: `${active.accent}18`,
-            color: active.accent,
-            font: "700 11px system-ui, sans-serif",
-            letterSpacing: "0.08em",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
+          className="lso-caret"
+          data-open={open ? "true" : "false"}
+          onClick={() => {
+            setOpenCategory(null);
+            setOpen((value) => !value);
           }}
         >
-          <span aria-hidden>{DOCK_GLYPHS[active.id] ?? "◇"}</span>
-          {open ? (travelling ? `${active.label} · ${progress}%` : active.label) : "Spatial"}
+          <span aria-hidden>{open ? "▾" : "▴"}</span>
         </button>
 
-        <span aria-hidden style={{ width: 1, height: 18, background: "rgba(148,163,184,0.2)" }} />
-
-        {control(
-          "Return to the core",
-          "◎",
-          () => runtime.travel("core", { kind: "return-to-core" }),
-          { testId: "core", title: "Return to LÉLU's core" },
+        {hovered && !openGroup ? (
+          <p className="lso-hint" aria-live="polite">
+            {hovered.label} — {hovered.hint}
+          </p>
+        ) : (
+          <p className="lso-hint" aria-live="polite">
+            {openGroup
+              ? `${openGroup.label} · ${openGroup.entries.length} destination${openGroup.entries.length === 1 ? "" : "s"}`
+              : travelling
+                ? `${active.label} · ${progress}%`
+                : `${active.label} — ${active.hint}`}
+          </p>
         )}
-        {travelling && spatial.transition && !spatial.transition.interrupted
-          ? control("Stop the transition", "❚❚", () => runtime.interrupt(), { testId: "interrupt" })
-          : null}
-        {spatial.transition?.interrupted
-          ? control("Resume the transition", "▶", () => runtime.resume(), { testId: "resume" })
-          : null}
-        {spatial.transition
-          ? control("Reverse the transition", "↺", () => runtime.reverse(), { testId: "reverse" })
-          : null}
-
-        {/* Voice without chat: the mic talks to LÉLU directly. No panel opens. */}
-        {control(
-          voice === "idle" ? "Talk to LÉLU" : `LÉLU voice: ${voice}`,
-          voice === "idle" ? "🎙" : "◉",
-          () => {
-            void VoiceEngine.getInstance().toggle();
-          },
-          { testId: "voice", active: voice !== "idle", title: "Speak with LÉLU — no chat window needed" },
-        )}
-
-        {/*
-          The Studio destination opens Visual Studio; the canonical Creation
-          Studio (panel id `creation`) had no control in the spatial shell at
-          all — the dock that names it is not rendered on desktop, so the one
-          surface for documents, decks, graphs and drawings was unreachable
-          without chat. This opens that SAME panel through GenesisCore's own
-          openPanel; it is an entry point, not a second studio.
-        */}
-        {control("Open Creation Studio", "▤", () => openPanel("creation"), {
-          testId: "creation",
-          title: "Open the Creation Studio — documents, decks, graphs and drawings",
-        })}
-
-        {control(portalPanel ? "Close portals and layout" : "Portals and layout", "◇", () => setPortalPanel((value) => !value), {
-          testId: "portals",
-          active: portalPanel,
-          title: "Create a portal, or arrange the workspace windows",
-        })}
-
-        {/* Chat is summonable and dismissible: a destination, not the frame. */}
-        {control(
-          chatOpen ? "Dismiss the chat" : "Summon the chat",
-          chatOpen ? "✕" : "✉",
-          () => openPanel(chatOpen ? "none" : "chat"),
-          { testId: "chat", active: chatOpen, title: chatOpen ? "Dismiss the conversation" : "Summon the conversation" },
-        )}
-
-        {compact
-          ? null
-          : control("Minimise the interface", "—", () => minimize(), { testId: "minimise" })}
       </div>
 
-      {/* Grouped capabilities, not a row of unrelated chips: the group the
-          person is looking at leads, and only destinations the scene graph
-          really has can appear here. */}
-      {open ? (
-        <div
-          data-spatial-groups
-          style={{
-            display: "grid",
-            gap: 4,
-            width: "min(600px, 100%)",
-            /* Panel surface is decoration: only its chips own the pointer. */
-            pointerEvents: "none",
-            padding: "8px 10px",
-            borderRadius: 18,
-            background: "rgba(4,10,26,0.55)",
-            border: "1px solid rgba(125,211,252,0.12)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-          }}
-        >
-          {orderedGroups(spatial.current).map((group) => (
-            <div
-              key={group.id}
-              data-spatial-group={group.id}
-              style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}
-            >
-              <span
-                aria-hidden
-                style={{
-                  flex: "0 0 auto",
-                  width: compact ? 34 : 98,
-                  textAlign: "right",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  font: "600 8.5px system-ui, sans-serif",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: `${group.accent}b0`,
-                }}
-              >
-                {compact ? group.glyph : group.label}
-              </span>
-              <span
-                aria-hidden
-                style={{ flex: "0 0 auto", width: 1, height: 18, background: "rgba(148,163,184,0.16)" }}
-              />
-              <span style={{ display: "flex", flexWrap: "wrap", gap: 5, minWidth: 0 }}>
-                {group.entries.map((entry) => button(entry.scene))}
-              </span>
-            </div>
-          ))}
-          {/* Environments created through the world engine, from the same store. */}
+      {open && !portalPanel ? (
+        <div className="lso-sheet lso-worlds">
           <SavedWorlds compact={compact} />
         </div>
       ) : null}
@@ -532,19 +578,8 @@ export default function SpatialNavigator() {
           data-portal-count={customPortals.length}
           data-portal-agent-count={agentPortals.length}
           data-portal-user-count={userPortals.length}
-          style={{
-            display: "grid",
-            gap: 7,
-            width: "min(620px, 100%)",
-            /* Panel surface is decoration: only its fields and buttons own it. */
-            pointerEvents: "none",
-            padding: "9px 11px",
-            borderRadius: 16,
-            background: "rgba(4,10,26,0.72)",
-            border: "1px solid rgba(125,211,252,0.18)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-          }}
+          className="lso-sheet"
+          style={{ pointerEvents: "none" }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span
@@ -610,8 +645,6 @@ export default function SpatialNavigator() {
                 The built-in ring did not register on this device.
               </span>
             ) : null}
-            {/* Every registered destination, travelable by pointer without aiming
-                at 3D geometry. Same registry ids the world portals use. */}
             {builtinPortals.map((portal) => {
               const destination = destinationFor(portal.destination);
               return (
@@ -729,19 +762,6 @@ export default function SpatialNavigator() {
               {manualCount} placed · {pinnedCount} pinned
             </span>
           </div>
-        </div>
-      ) : null}
-
-      {hovered && !open ? (
-        <div
-          style={{
-            font: "500 10.5px system-ui, sans-serif",
-            color: "rgba(186,230,253,0.7)",
-            letterSpacing: "0.06em",
-            pointerEvents: "none",
-          }}
-        >
-          {hovered.label} — {hovered.hint}
         </div>
       ) : null}
     </div>

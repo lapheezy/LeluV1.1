@@ -39,6 +39,10 @@ dist-ssr
 .lelu-sandbox/
 # Server-side runtime state (autonomy levels + audit) — never committed.
 .lelu-runtime/
+
+# The self-development laboratory: experiment worktrees, discovery state and
+# collected evidence. Experiments are copies; the repository is the source.
+.lelu-lab/
 .lelu-studio/
 
 

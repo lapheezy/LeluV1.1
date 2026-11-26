@@ -197,6 +197,85 @@ export default class SelfModel {
     this.removeItem(field, value);
   }
 
+  /**
+   * Correct the self-model from a RECONCILED capability assessment.
+   *
+   * The model used to be seeded once and never compared with what the
+   * system had actually become, so it kept reporting limitations that had
+   * been removed. This is the one place that correction happens:
+   *
+   *   · capabilities become the set that is operational WITH evidence;
+   *   · limitations newer evidence resolved are removed, and limitations
+   *     that are still true are kept — including evidence another system
+   *     wrote (a self-test result, for example);
+   *   · the active improvement titles are managed here, while any line
+   *     another system recorded is preserved.
+   *
+   * Returns the changes, so reconciliation can be journalled.
+   */
+  public reconcileFromAwareness(input: {
+    operational: string[];
+    unavailable: string[];
+    limitations: string[];
+    improvements: string[];
+    resolvedLimitations: string[];
+    obsoleteLimitations: string[];
+  }): string[] {
+    const before = this.state;
+    const obsolete = new Set(input.obsoleteLimitations.map((line) => line.trim()));
+    const unique = (lines: string[]) => [...new Set(lines.map((line) => line.trim()).filter(Boolean))];
+
+    const capabilities = unique(input.operational);
+    const unavailable = unique([
+      ...input.unavailable,
+      ...before.unavailable.filter((line) => !obsolete.has(line.trim())),
+    ]);
+    const limitations = unique([
+      ...input.limitations,
+      ...before.limitations.filter((line) => !obsolete.has(line.trim())),
+    ]);
+    /* Titles this reconciliation manages carry a marker, so a line another
+       system added (its own evidence) is never swept away. */
+    const managed = before.improvements.filter((line) => !line.startsWith("Improvement: "));
+    const improvements = unique([
+      ...managed,
+      ...input.improvements.map((title) => `Improvement: ${title}`),
+    ]);
+
+    const same = (a: string[], b: string[]) => a.length === b.length && a.every((line, index) => line === b[index]);
+    if (
+      same(capabilities, before.capabilities) &&
+      same(unavailable, before.unavailable) &&
+      same(limitations, before.limitations) &&
+      same(improvements, before.improvements)
+    ) {
+      return [];
+    }
+
+    const changes: string[] = [];
+    for (const line of before.limitations) {
+      if (!limitations.includes(line)) changes.push(`Limitation resolved: ${line}`);
+    }
+    for (const line of limitations) {
+      if (!before.limitations.includes(line)) changes.push(`Limitation confirmed: ${line}`);
+    }
+    for (const line of before.improvements) {
+      if (!improvements.includes(line) && line.startsWith("Improvement: ")) changes.push(`Recommendation retired: ${line.slice(13)}`);
+    }
+    for (const line of capabilities) {
+      if (!before.capabilities.includes(line)) changes.push(`Capability confirmed: ${line}`);
+    }
+
+    this.commit({
+      ...before,
+      capabilities,
+      unavailable,
+      limitations,
+      improvements,
+    });
+    return changes;
+  }
+
   /** Sync capabilities + projects from the real environment. Returns the
       list of changes made, so the cognitive loop can report them. */
   public syncFromEnvironment(env: {

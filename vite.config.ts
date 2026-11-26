@@ -27,6 +27,7 @@ import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
+import { labApiPlugin } from "./plugins/labApi.ts";
 import { voiceApiPlugin } from "./plugins/voiceApi.ts";
 import { livekitApiPlugin } from "./plugins/livekitApi.ts";
 import { voxApiPlugin } from "./plugins/voxApi.ts";
@@ -345,6 +346,13 @@ export default defineConfig(({ mode, command }) => {
       },
 
       githubApiPlugin(envReader),
+
+      // The self-development laboratory: repository authority, evidence-based
+      // discovery, isolated experiment worktrees, genealogy and experimental
+      // previews. Real git, real files, real commands — see plugins/labApi.ts
+      // for the boundary it refuses to cross (no push, no merge, no deploy).
+      labApiPlugin({ root: process.cwd() }),
+
       voiceApiPlugin(envReader),
       livekitApiPlugin(envReader),
       voxApiPlugin(envReader),

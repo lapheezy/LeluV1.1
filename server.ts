@@ -47,6 +47,7 @@ import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
+import { createLabApi } from "./plugins/labApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
 import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
@@ -480,6 +481,9 @@ rssApi.attach(middlewares);
 quad9Api.attach(middlewares);
 nekoApi.attach(middlewares);
 createGithubApi().attach(middlewares);
+// The self-development laboratory — the same middleware the Vite dev server
+// mounts, so the engineering environment is not a dev-only capability.
+createLabApi({ root: process.cwd() }).attach(middlewares);
 // Page reader and knowledge relay — the same implementations Vite dev mounts.
 // Both require a Supabase-verified signed-in user (plugins/requestGuard.ts);
 // the reader fetches through plugins/safeFetch.ts (SSRF containment).

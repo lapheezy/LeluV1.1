@@ -19,6 +19,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { isActiveLifecycle, sameTopic, type ImprovementLifecycle, type LifecycleEvent } from "./ImprovementLifecycle";
 
 export type OpportunityKind =
   | "Bug"
@@ -185,6 +186,20 @@ export interface ImprovementProposal {
   lastExecution?: ProposalExecution;
   /** Earlier runs, newest last (bounded). */
   executions?: ProposalExecution[];
+  /**
+   * The reconciled lifecycle — orthogonal to the workflow status. It answers
+   * "does this still describe the system?", which the status alone never
+   * could: an Integrated proposal and a limitation that has since been
+   * removed both had to sit in the active list.
+   */
+  lifecycle?: ImprovementLifecycle;
+  lifecycleReason?: string;
+  /** Set when another proposal supersedes this one (a duplicate, or done). */
+  supersededBy?: string;
+  /** When a run's own checks verified the improvement. */
+  verifiedAt?: number;
+  /** Every lifecycle transition, oldest first (bounded, append-only). */
+  history?: LifecycleEvent[];
 }
 
 const KEY = "lelu.improvements.v1";
@@ -395,21 +410,51 @@ export default class ImprovementQueue {
     return this.proposals.filter((proposal) => proposal.status === status);
   }
 
+  /**
+   * Open work: still describes the system, not already finished, and not
+   * retired as a superseded recommendation or a historical record.
+   */
   public open(): ImprovementProposal[] {
-    return this.proposals.filter((proposal) =>
-      !["Integrated", "Rejected", "Rolled Back"].includes(proposal.status),
-    );
+    return this.proposals.filter((proposal) => {
+      if (!isActiveLifecycle(proposal.lifecycle)) return false;
+      /* Reopened work is actionable again even though its last recorded
+         workflow status is still the one it was completed with. */
+      if (proposal.lifecycle === "Reopened") return true;
+      return !["Integrated", "Recorded", "Rejected", "Rolled Back"].includes(proposal.status);
+    });
   }
 
-  /** Whether an open proposal already covers a similar title — used by
-      the opportunity detector to avoid duplicates. */
+  /** The same set as `open()`, named for what it is. */
+  public active(): ImprovementProposal[] {
+    return this.open();
+  }
+
+  /**
+   * Whether an active proposal already covers the same work. Compared by
+   * topic, not by a prefix: "Add reusable agent workflows" and "Build
+   * reusable workflows for agents" are one recommendation, not two.
+   */
   public hasOpenSimilar(title: string): boolean {
-    const key = title.toLowerCase().slice(0, 28);
-    return this.proposals.some(
-      (proposal) =>
-        !["Integrated", "Rejected", "Rolled Back"].includes(proposal.status) &&
-        proposal.title.toLowerCase().includes(key),
-    );
+    return this.open().some((proposal) => sameTopic(proposal.title, title));
+  }
+
+  /** Apply a reconciled lifecycle patch, preserving its history. */
+  public applyLifecycle(id: string, patch: Partial<ImprovementProposal>): void {
+    this.update(id, patch);
+  }
+
+  /** Historical records, retired but never deleted. */
+  public archived(): ImprovementProposal[] {
+    return this.proposals.filter((proposal) => !this.open().includes(proposal));
+  }
+
+  public lifecycleCounts(): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const proposal of this.proposals) {
+      const key = proposal.lifecycle ?? "Unreconciled";
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
   }
 
   public statusCounts(): Record<ImprovementStatus, number> {

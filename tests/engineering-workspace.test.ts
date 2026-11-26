@@ -115,7 +115,14 @@ test("the command whitelist is the only thing the runtime will run", () => {
   // command, and accepts a raw string only on exact whitelist match.
   const values = Object.values(ENGINEER_OPERATIONS);
   assert.ok(!values.includes("rm -rf /"));
-  assert.equal(ENGINEER_OPERATIONS["typecheck"], "bun tsc -b --noEmit");
+  // Mission 43: fixed constants AND executable on the host that serves them.
+  // These were `bun …`, which exits 127 on a Node/npm runtime — a validation
+  // that cannot execute is not a verdict, and it read as a failed change.
+  assert.equal(ENGINEER_OPERATIONS["typecheck"], "npx tsc -b --force");
+  assert.equal(ENGINEER_OPERATIONS["build"], "npm run build");
+  for (const command of values) {
+    assert.ok(!command.includes("bun "), `"${command}" needs bun, which is not installed on this runtime`);
+  }
   assert.equal(ENGINEER_OPERATIONS["definitely-not-an-operation"], undefined);
 });
 

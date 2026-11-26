@@ -30,6 +30,7 @@ import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
 import Sentinel from "../sentinel/Sentinel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
+import SelfAwareness from "../selfdev/SelfAwareness";
 import ToolRegistry from "../tools/ToolRegistry";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
@@ -234,6 +235,14 @@ export interface CognitiveContextSnapshot {
   }>;
 
   /**
+   * Reconciled self-awareness: what she can do WITH evidence, what was
+   * resolved, what her own recommendations no longer describe. Built from
+   * the capability registry, the evidence table and the development
+   * journal — never from the seeded strings the self-model started with.
+   */
+  selfAwareness: string;
+
+  /**
    * Real, currently-available actions gated behind explicit user
    * confirmation (risk level 2+ — device actions, external calls,
    * anything destructive), from the ToolRegistry risk/permission
@@ -381,6 +390,7 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     checkpoints,
     recentErrors,
     pendingImprovements,
+    selfAwareness: describeSelfAwarenessSafely(),
     builtAt: Date.now(),
   };
 }
@@ -541,6 +551,20 @@ function describeAutonomousWork(): string {
     return lines.join("\n");
   } catch {
     return "Autonomous objective state is unavailable in this runtime.";
+  }
+}
+
+/**
+ * The reconciled capability picture. A failure here must not cost the
+ * whole context, but it must not be silent either: the text says the
+ * assessment is unavailable, so cognition cannot mistake a missing
+ * report for a clean one.
+ */
+function describeSelfAwarenessSafely(): string {
+  try {
+    return SelfAwareness.getInstance().describe();
+  } catch (error) {
+    return `Self-awareness assessment unavailable: ${error instanceof Error ? error.message : String(error)}`;
   }
 }
 
@@ -734,6 +758,18 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     sections.push(
       `## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}\n` +
         "If the user's current message explicitly asks for that exact action, that request is the confirmation — do it, do not ask again.",
+    );
+  }
+
+  // Her reconciled state. This is where capability questions must be
+  // answered from — the self-model's own prose is corrected elsewhere, and
+  // a resolved limitation must never come back through this section.
+  if (ctx.selfAwareness) {
+    sections.push(
+      `## YOUR RECONCILED SELF-AWARENESS (capability registry + evidence)\n${ctx.selfAwareness}\n` +
+        "Answer questions about what you can do, what you improved, what was resolved and what is " +
+        "outdated FROM THIS SECTION. A limitation listed as resolved is not a current limitation; " +
+        "an improvement listed as outdated must not be recommended again.",
     );
   }
 

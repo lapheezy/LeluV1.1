@@ -39,7 +39,8 @@ GenesisChat.send → Orchestrator.process → AIService → AIRouter.route
 LÉLU → workspace / validation
   project.* → EngineeringWorkspace → POST /api/engineer/{workspace,read,write,list,delete,command,git}
             → plugins/engineerApi.ts → nodeAdapters (real copy in .lelu-sandbox/<id>, node_modules symlinked)
-            → command whitelist: typecheck = bun tsc -b --noEmit · test = npm test · build = bun run build
+            → command whitelist: typecheck = npx tsc -b --force · test = npm test · build = npm run build
+              (Mission 43: the bun forms exited 127 on a Node host — see MISSION-43)
             → apply/commit: server identity (Supabase) + single-use grant + confirm
 
 LÉLU → sandbox

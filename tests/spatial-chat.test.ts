@@ -4,6 +4,7 @@ import test from "node:test";
 import SpatialIntentBus from "../src/core/spatial/SpatialIntentBus";
 import SpatialSceneGraph from "../src/core/spatial/SpatialSceneGraph";
 import SpatialResolver, {
+  looksLikeObjectReference,
   parseSpatialCommand,
 } from "../src/core/router/SpatialResolver";
 import type RouterContext from "../src/core/router/RouterContext";
@@ -137,4 +138,33 @@ test("chat resolver: a scene listing reports real contents", async () => {
   assert.ok(listed.response);
   assert.match(listed.response.text, /Scene revision 2: 2 objects/);
   assert.match(listed.response.text, /"Comet"/);
+});
+
+test("chat parser: a laboratory request is not a scene command", () => {
+  // MEASURED (Mission 44.2): these two prompts were claimed by the spatial
+  // resolver and answered "Prepared: Build 4 objects — 3 zones, 1 hub, 3
+  // links" without ever reaching a provider or the laboratory tools.
+  assert.equal(
+    parseSpatialCommand(
+      "Use your laboratory to report the repository HEAD, the current branch and the scheduler state.",
+    ),
+    null,
+  );
+  assert.equal(
+    parseSpatialCommand(
+      "Inspect the experiment exp-experiment-selector with your laboratory tooling and tell me exactly what it changed.",
+    ),
+    null,
+  );
+  // The same words DO name geometry when the sentence asks to build one.
+  const compose = parseSpatialCommand("build a laboratory with three research zones");
+  assert.equal(compose?.intent.op, "scene.compose");
+});
+
+test("chat parser: a short object reference still reads the scene", () => {
+  const inspect = parseSpatialCommand("inspect the egg");
+  assert.equal(inspect?.intent.op, "scene.inspect");
+  if (inspect?.intent.op === "scene.inspect") assert.equal(inspect.intent.target, "egg");
+  assert.equal(looksLikeObjectReference("red cube"), true);
+  assert.equal(looksLikeObjectReference("the experiment and what it changed"), false);
 });

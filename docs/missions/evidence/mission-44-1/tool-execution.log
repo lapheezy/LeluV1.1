@@ -1,0 +1,40 @@
+tools offered to a model: 72
+laboratory tools offered: ["lab_repository","lab_discoveries","lab_diff","lab_verification","lab_experiment","lab_preview","lab_file","lab_history"]
+
+▸ What did you discover today?
+  lab.discoveries ok=true 213ms 1618 chars
+  Discovery disc-mwx6ohz4-c501c4 — 12m ago at 543da7c on freebuff/08af6cc9ef212913e6b7209b Status: already-known (repeats disc-mwx5s6if-c501c4) · priori
+
+▸ Show me the repository's current branch and latest changes.
+  lab.repository ok=true 182ms 757 chars
+  Repository: lapheezy/LeluV1.1 on freebuff/08af6cc9ef212913e6b7209b HEAD: 543da7c — Replace the 2.1 hair shell with scalp-rooted volumetric locks (Code
+
+▸ Show me the exact diff from the last experiment.
+  lab.diff ok=true 62ms 3277 chars
+  Experiment exp-experiment-selector (lelu-lab/exp-experiment-selector) Baseline f4f042d → 5ff4a33 Committed: 5ff4a33 — Let the laboratory inspect any e
+
+▸ Where did this implementation originate?
+  lab.file ok=true 39ms 469 chars
+  src/app/scene/genesis/GenesisSelfDevelopmentLab.tsx — 1097 lines No commit history: this file is new in the working tree. Last change: none Contributo
+
+▸ What was the original implementation?
+  lab.file ok=true 2ms 467 chars
+  plugins/engineerApi.ts — 1014 lines, 42664 bytes (showing 12) ``` /** * ========================================================== * LÉLU — ENGINEERIN
+
+▸ Run verification on this experiment.
+  lab.verification ok=true 1ms 147 chars
+  Experiment exp-experiment-selector — status verified Commit: 5ff4a33 Recorded checks (newest last): • typecheck: exit 0 in 28s — passed (11m ago)
+
+▸ Show me the experiment preview.
+  lab.preview ok=true 2ms 112 chars
+  Preview for exp-experiment-selector is running on port 3002 (pid 30298), started 11m ago. http://127.0.0.1:3002/
+
+▸ Continue that experiment.
+  lab.experiment ok=true 1ms 796 chars
+  • exp-engineer-ops (lelu-lab/exp-engineer-ops) — base 543da7c, open, preview :3002 • exp-work-queue-check (lelu-lab/exp-work-queue-check) — base 543da
+
+▸ Show me your development history.
+  lab.history ok=true 10ms 598 chars
+  2026-11-26T06:42 lab experiment-concluded exp-experiment-selector 2026-11-26T06:42 lab preview-started exp-experiment-selector 2026-11-26T06:42 lab ex
+
+executables in the dispatch table: 187

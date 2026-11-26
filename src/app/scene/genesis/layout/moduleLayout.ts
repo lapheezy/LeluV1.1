@@ -228,6 +228,58 @@ export function restoreAutoLayout(
  * A viewport change must not lose geometry. Auto rects are re-tiled; manual
  * rects are only clamped, never moved to a different place on purpose.
  */
+/**
+ * A landscape phone: wider than a tablet's column, shorter than a laptop.
+ * MEASURED (Mission 44.1/44.2): at 844×390 a full-height window covered 20 of
+ * 20 laboratory controls, so nothing in the panel beneath could be clicked.
+ */
+export const SHORT_VIEWPORT_MAX_HEIGHT = 520;
+/**
+ * The share of a short viewport the topmost window may OWN.
+ *
+ * The rest is what makes every other window reachable: its title bar (raise,
+ * minimise, close) and the first row of its controls stay visible and
+ * clickable, which is the whole point of a window manager. 0.65 leaves ~137 px
+ * at 390 px tall — one header plus one control row.
+ */
+export const LANDSCAPE_TOP_SHARE = 0.65;
+
+/**
+ * Keep the window beneath reachable in landscape.
+ *
+ * Only the TOPMOST window is bounded, and only when the viewport is short and
+ * more than one window is visible: the person's own arrangement is otherwise
+ * untouched, nothing is minimised automatically, and desktop/portrait geometry
+ * never changes. The bounded window is docked to the bottom edge, so the strip
+ * it uncovers is the top of the window it was covering — where its controls and
+ * its title bar live.
+ */
+export function landscapeReflow(
+  entries: ModuleLayoutEntry[],
+  viewport: LayoutViewport,
+): ModuleLayoutEntry[] {
+  if (viewport.height > SHORT_VIEWPORT_MAX_HEIGHT) return entries;
+  const visible = entries.filter((entry) => !entry.minimized);
+  if (visible.length < 2) return entries;
+
+  const top = [...visible].sort((a, b) => b.zIndex - a.zIndex)[0];
+  const height = Math.max(
+    Math.min(MIN_ENTRY_HEIGHT, viewport.height),
+    Math.round(viewport.height * LANDSCAPE_TOP_SHARE),
+  );
+  if (top.rect.height <= height) return entries;
+
+  const rect = { ...top.rect, height, y: Math.max(0, viewport.height - height) };
+  return entries.map((entry) => (entry.moduleId === top.moduleId ? { ...entry, rect } : entry));
+}
+
+/**
+ * A viewport change must not lose geometry. Auto rects are re-tiled; manual
+ * rects are only clamped, never moved to a different place on purpose.
+ *
+ * The landscape bound is applied last, to whatever the arrangement produced,
+ * so it holds for a hand-placed chat as well as a tiled one.
+ */
 export function reflowForViewport(
   entries: ModuleLayoutEntry[],
   viewport: LayoutViewport,
@@ -236,7 +288,7 @@ export function reflowForViewport(
   const clamped = entries.map((entry) =>
     entry.manual ? { ...entry, rect: saneRect(entry.rect, viewport) } : entry,
   );
-  return autoArrange(clamped, viewport, insets);
+  return landscapeReflow(autoArrange(clamped, viewport, insets), viewport);
 }
 
 /**

@@ -27,6 +27,7 @@ import EngineeringToolset from "./EngineeringToolset";
 import EngineeringChat from "./EngineeringChat";
 import NotificationProvider from "../notifications/NotificationProvider";
 import ImprovementQueue from "./ImprovementQueue";
+import SelfAwareness from "./SelfAwareness";
 import Sentinel from "../sentinel/Sentinel";
 
 export interface StartupCheck {
@@ -183,10 +184,21 @@ export default class StartupDiagnostic {
       check("Notifications", false, error instanceof Error ? error.message : String(error));
     }
 
-    /* 15 — Improvement state machine. */
+    /* 15 — Improvement state machine, reconciled against evidence. */
     try {
       const queue = ImprovementQueue.getInstance();
-      check("Improvement state machine", true, `${queue.list().length} proposal(s), ${queue.open().length} open`);
+      /* Boot is a reconciliation point: stale recommendations are retired
+         and resolved limitations leave the self-model before anything reads
+         them — otherwise a reload restores an outdated picture of her. */
+      const reconciliation = SelfAwareness.getInstance().reconcile();
+      const snapshot = SelfAwareness.getInstance().assess();
+      check(
+        "Improvement state machine",
+        true,
+        `${queue.list().length} proposal(s), ${queue.open().length} active, ${snapshot.outdatedRecommendations.length} retired; ` +
+          `${snapshot.counts.operational} capability(ies) operational with evidence` +
+          (reconciliation.changed ? `, reconciled ${reconciliation.retired.length} this boot` : ""),
+      );
     } catch (error) {
       check("Improvement state machine", false, error instanceof Error ? error.message : String(error));
     }

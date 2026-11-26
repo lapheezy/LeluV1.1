@@ -65,6 +65,11 @@ import ToolStats from "../agentic/ToolStats";
 import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
 import { consentFor, findChat } from "../multichat/ChatConsent";
 import { CHAT_SCOPED } from "../multichat/ContextProvenance";
+// Mission 44: the self-development laboratory's tools join the SAME table as
+// everything else. They reach the laboratory's engine through its API, so a
+// conversation can inspect the repository, read the exact diff, run a declared
+// check and report findings without a second chat or store.
+import { LAB_EXECUTORS } from "../selfdev/lab/LabTools";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -2594,10 +2599,11 @@ const EXECUTORS: ToolExecutor[] = [
   ...FORGE_EXECUTORS,
   ...WORLD_EXECUTORS,
   ...AGENTIC_EXECUTORS,
+  ...LAB_EXECUTORS,
 ];
 
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS, ...LAB_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 // Mission 8's executors are additive: an id Claude already owns keeps its

@@ -1,0 +1,42 @@
+{
+  "captured": "2026-11-26",
+  "how": "Chrome (headless, Playwright) against the running Vite dev server; values are getBoundingClientRect() in CSS pixels.",
+  "build": { "branch": "freebuff/08af6cc9ef212913e6b7209b", "head": "543da7c+dirty" },
+  "desktop": {
+    "viewport": [1440, 900],
+    "band": { "x": 505, "y": 594, "w": 430, "h": 292, "widthPercentOfViewport": 30 },
+    "core": { "x": 683, "y": 812, "w": 74, "h": 74 },
+    "categoryOrbs": 5,
+    "categoryTouch": 52,
+    "categoryOrbOverlaps": 0,
+    "openCategory": "environment",
+    "destinations": ["cosmos", "galaxy", "planet", "portal", "browser"],
+    "destinationTouch": 46,
+    "destinationOverlaps": 0,
+    "destinationsInsideViewport": true,
+    "destinationsCoverCore": false,
+    "travel": { "clicked": "cosmos", "currentAfter": "cosmos", "transitionAfter": "" },
+    "returnToCore": { "currentAfter": "core" }
+  },
+  "phone": {
+    "viewport": [390, 844],
+    "band": { "x": 8, "y": 506, "w": 374, "h": 264, "widthPercentOfViewport": 96 },
+    "core": { "x": 158, "y": 696, "w": 74, "h": 74 },
+    "categoryOrbs": 5,
+    "categoryTouch": 50,
+    "categoryOrbOverlaps": 0,
+    "compactOpenCategory": "environment",
+    "destinationsUseRingSlots": true,
+    "destinationTouch": 46,
+    "destinationOverlaps": 0,
+    "destinationsInsideViewport": true,
+    "destinationsCoverCore": false,
+    "categoriesHiddenWhileOpen": true,
+    "hint": "Environment · 5 destinations"
+  },
+  "notes": [
+    "Before the fix the spatial navigation was a full-width row of pill tabs; the band that replaced it is 30% of a desktop viewport and 96% of a phone's.",
+    "A ring of destinations around a category put one orb at y=795 in a 768px viewport (off the bottom), which is why the desktop destinations fan upwards.",
+    "On a 390px phone the same fan covered four category orbs and clipped the band's top, so compact screens place the destinations in the ring's own slots instead."
+  ]
+}
