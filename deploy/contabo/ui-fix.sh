@@ -54,12 +54,22 @@ scope() {  # $1 = patch → every path it touches must be in FILES
   [ -z "$bad_paths" ] && ok "patch touches only allowed front-end files ($(wc -l <<<"$touched"))" || { bad "patch touches files outside the allow-list: $bad_paths— rejected"; return 1; }
 }
 
-served_ok() {  # the running app serves an index whose script exists
-  local html js
+served_ok() {  # the running app is up and serves the build that is on disk
+  # 1. the app answers and has a build
+  curl -fsS -m 5 "$H/healthz" 2>/dev/null | grep -Eq '"ok": *true' || return 1
   curl -fsS -m 5 "$H/healthz" 2>/dev/null | grep -Eq '"dist": *true' || return 1
-  html=$(curl -fsS -m 5 "$H/" 2>/dev/null) || return 1
-  js=$(grep -oE '/assets/[A-Za-z0-9._-]+\.js' <<<"$html" | head -1)
-  [ -n "$js" ] && curl -fsS -m 10 -o /dev/null "$H$js" 2>/dev/null
+  # 2. the page: 200 with the app, or — behind LÉLU's sign-in gate, as in
+  #    production — 303 to /auth/login, whose page must load
+  local code; code=$(curl -s -m 5 -o /dev/null -w '%{http_code} %{redirect_url}' "$H/" 2>/dev/null)
+  case "$code" in
+    200*) ;;
+    30[1237]*/auth/login) curl -fsS -m 5 -o /dev/null "$H/auth/login" 2>/dev/null || return 1 ;;
+    *) return 1 ;;
+  esac
+  # 3. the build on disk (server.ts reads it per request) is complete: its
+  #    index names a script that exists. Gated assets cannot be fetched here.
+  local js; js=$(grep -oE '/assets/[A-Za-z0-9._-]+\.js' "$APP/dist/index.html" 2>/dev/null | head -1)
+  [ -n "$js" ] && [ -s "$APP/dist$js" ]
 }
 
 # The patch usually sits in root's home (0700); git runs as lelu, so it gets a copy

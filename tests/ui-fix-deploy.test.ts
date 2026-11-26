@@ -40,7 +40,7 @@ const touched = () => sh("git", ["apply", "--numstat", PATCH]).out.trim().split(
 
 interface Rig { root: string; app: string; bk: string; run: (...a: string[]) => { status: number; out: string }; close: () => void; lelu: (...a: string[]) => string }
 
-async function rig(opts: { tscFails?: boolean; leakyBuild?: boolean; drift?: boolean } = {}): Promise<Rig> {
+async function rig(opts: { tscFails?: boolean; leakyBuild?: boolean; drift?: boolean; gate?: boolean } = {}): Promise<Rig> {
   const root = mkdtempSync(join(tmpdir(), "lelu-uifix-"));
   chmodSync(root, 0o755);
   const app = join(root, "app"), bk = join(root, "backups"), env = join(root, "lelu.env");
@@ -74,20 +74,24 @@ echo "<html><script type=module src=\\"/assets/index-$h.js\\"></script></html>" 
   const port = 41000 + Math.floor(Math.random() * 2000);
   const server: ChildProcess = spawn("python3", ["-I", "-c", `
 import http.server, os, json, sys
-APP = sys.argv[1]
+APP = sys.argv[1]; GATE = sys.argv[3] == "1"
 class H(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_GET(self):
         d = os.path.join(APP, "dist")
         if self.path == "/healthz":
-            body = json.dumps({"ok": True, "dist": os.path.exists(os.path.join(d, "index.html"))}).encode(); ctype = "application/json"
+            body = json.dumps({"ok": True, "dist": os.path.exists(os.path.join(d, "index.html")), "accessGate": GATE}).encode(); ctype = "application/json"
+        elif self.path == "/auth/login" and GATE:
+            body = b"<form method=post action=/auth/login></form>"; ctype = "text/html"
+        elif GATE:  # production's access gate: no session -> the login page
+            self.send_response(303); self.send_header("Location", "/auth/login"); self.end_headers(); return
         else:
             p = os.path.join(d, "index.html" if self.path == "/" else self.path.lstrip("/"))
             if not os.path.isfile(p): self.send_response(404); self.end_headers(); return
             body = open(p, "rb").read(); ctype = "text/html"
         self.send_response(200); self.send_header("Content-Type", ctype); self.end_headers(); self.wfile.write(body)
 http.server.HTTPServer(("127.0.0.1", int(sys.argv[2])), H).serve_forever()
-`, app, String(port)], { stdio: "ignore" });
+`, app, String(port), opts.gate === false ? "0" : "1"], { stdio: "ignore" });
   for (let i = 0; i < 50 && sh("curl", ["-fsS", "-m", "1", `http://127.0.0.1:${port}/healthz`], true).status !== 0; i++) await new Promise((r) => setTimeout(r, 100));
 
   const source = readFileSync(SCRIPT, "utf8");
@@ -116,8 +120,8 @@ const patchCopy = (r: Rig, name: string, body: string) => {
   const p = join(home, name); writeFileSync(p, body); chmodSync(p, 0o600); return p;
 };
 
-test("the shipped patch applies to integration-head files, swaps dist/ live, and rolls back exactly", { skip: !canRun }, async () => {
-  const r = await rig({ drift: true });
+for (const gate of [true, false]) test(`the shipped patch applies to integration-head files, swaps dist/ live, and rolls back exactly (${gate ? "behind the sign-in gate, as in production" : "no gate"})`, { skip: !canRun }, async () => {
+  const r = await rig({ drift: true, gate });
   try {
     const before = served(r);
     const driftBefore = r.lelu("status", "--porcelain");
@@ -127,6 +131,7 @@ test("the shipped patch applies to integration-head files, swaps dist/ live, and
     assert.equal(recon.status, 0, recon.out);
     assert.match(recon.out, /patch touches only allowed front-end files \(8\)/);
     assert.match(recon.out, /the patch applies cleanly/);
+    assert.match(recon.out, /PASS  the app serves its current build/, "a healthy gated app is healthy (Mission 3.7.1: it read as FAIL)");
 
     const apply = r.run("apply", patch);
     assert.equal(apply.status, 0, apply.out);
@@ -192,3 +197,19 @@ for (const [name, opts, expect] of [
     }
   });
 }
+
+test("the health check still fails a broken app behind the gate (missing script, missing build)", { skip: !canRun }, async () => {
+  const r = await rig({ gate: true });
+  try {
+    const patch = patchCopy(r, "ui.patch", readFileSync(PATCH, "utf8"));
+    const js = readFileSync(join(r.app, "dist", "index.html"), "utf8").match(/\/assets\/[^"]+\.js/)![0];
+    rmSync(join(r.app, "dist", js));
+    const noScript = r.run("recon", patch);
+    assert.match(noScript.out, /FAIL  the app is not serving correctly right now/);
+    assert.notEqual(r.run("apply", patch).status, 0, "apply refuses on an unhealthy app");
+    rmSync(join(r.app, "dist"), { recursive: true, force: true });
+    assert.match(r.run("recon", patch).out, /FAIL  the app is not serving correctly right now/);
+  } finally {
+    r.close();
+  }
+});
