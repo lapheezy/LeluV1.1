@@ -40,7 +40,7 @@ const touched = () => sh("git", ["apply", "--numstat", PATCH]).out.trim().split(
 
 interface Rig { root: string; app: string; bk: string; run: (...a: string[]) => { status: number; out: string }; close: () => void; lelu: (...a: string[]) => string }
 
-async function rig(opts: { tscFails?: boolean; leakyBuild?: boolean; drift?: boolean; gate?: boolean } = {}): Promise<Rig> {
+async function rig(opts: { tscFails?: boolean; leakyBuild?: boolean; drift?: boolean; gate?: boolean; extra?: string } = {}): Promise<Rig> {
   const root = mkdtempSync(join(tmpdir(), "lelu-uifix-"));
   chmodSync(root, 0o755);
   const app = join(root, "app"), bk = join(root, "backups"), env = join(root, "lelu.env");
@@ -61,7 +61,10 @@ rm -rf "$out"; mkdir -p "$out/assets"
 h=$(cat src/app/scene/genesis/GenesisInterface.tsx | sha256sum | cut -c1-8)
 echo "console.log('lelu $h'${opts.leakyBuild ? `,'${SECRET}'` : ""})" > "$out/assets/index-$h.js"
 echo "<html><script type=module src=\\"/assets/index-$h.js\\"></script></html>" > "$out/index.html"
+[ -f ${join(root, "extra.js")} ] && cp ${join(root, "extra.js")} "$out/assets/extra.js"
+exit 0
 `, { mode: 0o755 });
+  if (opts.extra !== undefined) writeFileSync(join(root, "extra.js"), opts.extra, { mode: 0o644 });
   writeFileSync(join(bin, "npx"), `#!/bin/sh\ntool=$1; shift; exec "$(dirname "$0")/$tool" "$@"\n`, { mode: 0o755 });
   writeFileSync(env, `VITE_SUPABASE_URL=https://example.supabase.co\nOPENROUTER_API_KEY=${SECRET}\n`, { mode: 0o600 });
   const git = (...a: string[]) => sh("git", ["-C", app, "-c", "user.name=t", "-c", "user.email=t@t", ...a]);
@@ -213,3 +216,49 @@ test("the health check still fails a broken app behind the gate (missing script,
     r.close();
   }
 });
+
+/* ---------------- Mission 3.7.2: the credential scan ---------------- */
+
+/** Excalidraw's public Firebase web key, read from the installed package (never written into this repo). */
+function excalidrawKey(): string {
+  const b = readFileSync("node_modules/@excalidraw/excalidraw/dist/prod/chunk-ZUYEQ4TG.js", "utf8");
+  return b.match(/AIza[0-9A-Za-z_-]{35}/)![0];
+}
+const fake = (prefix: string, body: string, n: number) => prefix + body.repeat(Math.ceil(n / body.length)).slice(0, n);
+
+test("the production false positives pass: key-type checks naming sb_secret_, and Excalidraw's public Firebase key", { skip: !canRun }, async () => {
+  const key = excalidrawKey();
+  const r = await rig({ extra: `const isSecret=(k)=>k.startsWith("sb_secret_")||k.startsWith("sbp_");\nconst cfg={"apiKey":"${key}","authDomain":"excalidraw-room-persistence.firebaseapp.com"};\n` });
+  try {
+    const a = r.run("apply", patchCopy(r, "ui.patch", readFileSync(PATCH, "utf8")));
+    assert.equal(a.status, 0, a.out);
+    assert.match(a.out, /INFO  new build: Google API key 831eae7f580f in assets\/extra\.js — on the public list/);
+    assert.match(a.out, /PASS  no credential patterns in the new build/);
+    assert.ok(!a.out.includes(key), "even a public key's value is never printed");
+  } finally {
+    r.close();
+  }
+});
+
+for (const [kind, value] of [
+  ["Supabase secret key", fake("sb_secret_", "Zx9_Qw7-Lm3", 31)],
+  ["Google API key", fake("AIza", "Sy0Ab1Cd2Ef3", 35)],
+  ["Groq key", fake("gsk_", "R4nd0mK3y", 52)],
+  ["Anthropic key", fake("sk-ant-", "api03xYz", 40)],
+  ["OpenRouter key", fake("sk-or-v1-", "0f1e2d3c", 64)],
+] as const) {
+  test(`a genuine-shaped ${kind} in the build still blocks the deploy, unprinted`, { skip: !canRun }, async () => {
+    const r = await rig({ extra: `const leaked = "${value}";\n` });
+    try {
+      const before = served(r);
+      const a = r.run("apply", patchCopy(r, "ui.patch", readFileSync(PATCH, "utf8")));
+      assert.notEqual(a.status, 0);
+      assert.match(a.out, new RegExp(`FAIL  new build: ${kind} [0-9a-f]{12} in assets/extra\\.js — value not shown`));
+      assert.match(a.out, /patch reversed/);
+      assert.ok(!a.out.includes(value.slice(4, 14)), "no part of the value printed");
+      assert.equal(served(r), before, "live build untouched");
+    } finally {
+      r.close();
+    }
+  });
+}

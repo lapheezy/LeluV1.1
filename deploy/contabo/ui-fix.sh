@@ -80,6 +80,47 @@ stage() {
   install -m 0644 "$1" "$STAGE/ui.patch" && echo "$STAGE/ui.patch"
 }
 
+# Credential scan of a build. Prints KIND, FILE and a 12-hex fingerprint per hit,
+# never any character of a value. Exit 1 on any hit not on the public list.
+#
+# Mission 3.7.2: the first production run was refused on false positives only:
+#   - `sb_secret_` alone matched supabase-js and LÉLU's own key classifiers,
+#     which test startsWith("sb_secret_") to REFUSE secret keys; a real key
+#     has a body after the prefix, so the body is now required;
+#   - one Google-shaped key: Excalidraw's public Firebase web key, shipped in
+#     the @excalidraw/excalidraw npm package (excalidraw-room-persistence).
+#     Exactly that key (SHA-256 below) is allowed; any other Google key is not.
+PUBLIC_KEY_SHA256="831eae7f580f7721f62d7f654e8c071879bcafd6452d5613f8db051f15082b85"  # Excalidraw's Firebase web key (public by design)
+scan_build() {  # $1 = build dir, $2 = label
+  python3 -I - "$1" "$2" "$PUBLIC_KEY_SHA256" <<'PY'
+import hashlib, os, re, sys
+root, label, allowed = sys.argv[1], sys.argv[2], set(sys.argv[3].split())
+pat = re.compile(rb"sk-ant-[A-Za-z0-9]|gsk_[A-Za-z0-9]{20}|sk-or-v1-[a-f0-9]{20}|AIza[0-9A-Za-z_-]{30}|sb_secret_[A-Za-z0-9_-]{20,}")
+kinds = ((b"sk-ant-", "Anthropic key"), (b"gsk_", "Groq key"), (b"sk-or-v1-", "OpenRouter key"), (b"AIza", "Google API key"), (b"sb_secret_", "Supabase secret key"))
+bad = 0
+for d, _, files in os.walk(root):
+    for f in sorted(files):
+        p = os.path.join(d, f)
+        try:
+            data = open(p, "rb").read()
+        except OSError:
+            continue
+        for m in pat.finditer(data):
+            end = m.end()
+            while end < len(data) and (chr(data[end]).isalnum() or data[end:end + 1] in b"_-"):
+                end += 1
+            full = hashlib.sha256(data[m.start():end]).hexdigest()
+            kind = next(k for pre, k in kinds if m.group(0).startswith(pre))
+            where = os.path.relpath(p, root)
+            if full in allowed:
+                print(f"INFO  {label}: {kind} {full[:12]} in {where} — on the public list (Excalidraw's Firebase web key)")
+            else:
+                bad += 1
+                print(f"FAIL  {label}: {kind} {full[:12]} in {where} — value not shown")
+sys.exit(1 if bad else 0)
+PY
+}
+
 recon() {  # $1 = the operator's patch file
   local patch; patch=$(stage "${1:?usage: recon <patch>}") || { bad "patch could not be staged — nothing changed"; return; }
   checks "$patch"
@@ -137,9 +178,9 @@ apply_fix() {
   # The build reads public VITE_* values only, as install.sh does; nothing is printed.
   ( set -a; [ -f "$ENV_FILE" ] && . "$ENV_FILE"; set +a; as_lelu "npx vite build --outDir dist.next --emptyOutDir" ) >"$dir/build.log" 2>&1 \
     && [ -f "$APP/dist.next/index.html" ] && ok "build complete ($(find "$APP/dist.next" -type f | wc -l) files)" || { bad "build failed (see $dir/build.log)"; restore "$dir"; return; }
-  if grep -rEqo 'sk-ant-[A-Za-z0-9]|gsk_[A-Za-z0-9]{20}|sk-or-v1-[a-f0-9]{20}|AIza[0-9A-Za-z_-]{30}|sb_secret_' "$APP/dist.next" 2>/dev/null; then
-    bad "a credential pattern appears in the new build — not swapped"; restore "$dir"; return
-  fi
+  echo "== credential scan"
+  [ -d "$APP/dist" ] && { scan_build "$APP/dist" "live build (information only)" || true; }
+  scan_build "$APP/dist.next" "new build" || { bad "a credential pattern appears in the new build — not swapped"; restore "$dir"; return; }
   ok "no credential patterns in the new build"
   echo "== swap (no restart)"
   mv "$APP/dist" "$dir/dist" && mv "$APP/dist.next" "$APP/dist" && ok "dist/ swapped; previous build kept in $dir/dist" || { bad "swap failed"; restore "$dir"; return; }
