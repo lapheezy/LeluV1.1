@@ -39,6 +39,7 @@ FILES=(
   src/og/components/core/panels/SettingsPanel.tsx
   src/core/persistence/emailAuth.ts
   src/core/persistence/SupabasePersistence.ts
+  src/core/voice/VoiceEngine.ts
   src/app/scene/genesis/home/homeComposition.css
   src/app/scene/genesis/avatar/presencePlacement.ts
   src/app/scene/genesis/GenesisCommandPalette.tsx

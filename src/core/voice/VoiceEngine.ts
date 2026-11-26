@@ -69,6 +69,21 @@ export type VoiceErrorKind =
 const SPEECH_CHUNK_SIZE = 200;
 
 /**
+ * Where the first complete spoken block of a STREAMING reply ends (an index
+ * into `rest`), or null when no complete block has arrived yet.
+ *
+ * A block ends at a sentence end followed by whitespace, at a ! or ? that
+ * ends the text so far, at a full stop ending the text so far, or at a line
+ * break — EXCEPT a full stop right after a digit at the very end of what has
+ * arrived: "mission 22." may be "mission 22.8" whose "8" is in the next
+ * chunk (measured: "22.8" was spoken as "twenty-two." … "eight").
+ */
+export function nextSpeechBoundary(rest: string): number | null {
+  const match = rest.match(/^[\s\S]*?(?:[.!?]\s+|[!?]$|(?<!\d)\.$|\n+)/);
+  return match ? match[0].length : null;
+}
+
+/**
  * Split text into chunks speechSynthesis can speak smoothly — long
  * single utterances get cut off or stall on some engines. Splits on
  * sentence boundaries first; a single "sentence" longer than the
@@ -2953,10 +2968,10 @@ class VoiceEngine {
     // a boundary the whole block became ONE request, which the speech server
     // refuses over 900 characters (413, found in the live M22.9 run) — and
     // that part of the answer was never spoken.
-    const match = rest.match(/^[\s\S]*?(?:[.!?](?:\s+|$)|\n+)/);
-    if (!match) return;
-    const block = match[0].trim();
-    this.streamCursor += match[0].length;
+    const end = nextSpeechBoundary(rest);
+    if (end === null) return;
+    const block = rest.slice(0, end).trim();
+    this.streamCursor += end;
     if (!block) return;
     // A single sentence longer than a segment is split like any other reply.
     if (block.length > SPEECH_CHUNK_SIZE) {

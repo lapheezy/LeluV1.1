@@ -7,6 +7,7 @@
 #   bash https-ip.sh stage      serve ACME challenges on :80, then a Let's Encrypt DRY RUN (no cert saved)
 #   bash https-ip.sh issue      obtain the real certificate (6-day "shortlived" IP cert, auto-renewed)
 #   bash https-ip.sh enable     add :443 to the EXISTING server block; verify a real TLS connection
+#   bash https-ip.sh redirect   (after enable) send plain-http visitors to https — ACME stays on http
 #   bash https-ip.sh rollback   undo the latest run (repeat to step further back)
 #   bash https-ip.sh rollback all   every edited nginx file and the firewall rule back to the original
 #
@@ -31,6 +32,7 @@ WEBROOT=/var/www/lelu-acme
 SNIP_DIR=${LELU_NGINX_SNIPPETS:-/etc/nginx/snippets}
 SNIP_ACME=$SNIP_DIR/lelu-acme.conf
 SNIP_TLS=$SNIP_DIR/lelu-tls.conf
+SNIP_REDIRECT=$SNIP_DIR/lelu-https-redirect.conf
 LIVE=${LELU_TLS_LIVE:-/etc/letsencrypt/live/$NAME}
 STATE=/opt/lelu/rollback/https
 CURL_CA=${LELU_TLS_TEST_CACERT:+--cacert $LELU_TLS_TEST_CACERT}   # only for an offline rehearsal
@@ -106,6 +108,19 @@ check() {
   [ -f "$LIVE/fullchain.pem" ] && info "certificate present, expires $(openssl x509 -enddate -noout -in "$LIVE/fullchain.pem" | cut -d= -f2)" || info "no certificate yet"
   [ -n "$f" ] && { grep -qF "include $SNIP_ACME;" "$f" && info "ACME include present" || info "ACME include absent"; grep -qF "include $SNIP_TLS;" "$f" && info "TLS include present" || info "TLS include absent"; }
   command -v ufw >/dev/null && info "ufw $(ufw status | head -1 | awk '{print $2}')"
+  if [ -n "$f" ]; then
+    grep -qE 'proxy_set_header[[:space:]]+X-Forwarded-Proto' "$f" && ok "app location sends X-Forwarded-Proto (Secure cookie over HTTPS)" \
+      || bad "app location does not send X-Forwarded-Proto — over HTTPS the session cookie would not be Secure"
+    grep -qE 'proxy_set_header[[:space:]]+Upgrade' "$f" && info "app location passes WebSocket upgrades" || info "app location does not pass WebSocket upgrades (the app itself serves none; LiveKit connects to its own URL)"
+  fi
+  echo "== live voice transport (names and schemes only)"
+  local lk lkp; lk=$( ( set -a; . /etc/lelu/lelu.env 2>/dev/null; set +a; printf '%s' "${LIVEKIT_URL:-}" ) ); lkp=$( ( set -a; . /etc/lelu/lelu.env 2>/dev/null; set +a; printf '%s' "${LIVEKIT_PUBLIC_URL:-${LIVEKIT_URL:-}}" ) )
+  if [ -z "$lk" ]; then info "LiveKit not configured — voice uses the browser session (recognition + Groq Whisper, server speech route)"
+  else
+    info "LiveKit server URL scheme: ${lk%%://*}; browser URL scheme: ${lkp%%://*}"
+    case "$lkp" in wss://*) ok "browser LiveKit URL is wss:// (works from an HTTPS page)";; *) bad "browser LiveKit URL is not wss:// — an HTTPS page cannot open it (mixed content)";; esac
+  fi
+  ss -ltn 2>/dev/null | grep -qE ':7880\b' && info "a LiveKit server listens locally on :7880" || info "no local LiveKit server on :7880"
   info "http://$IP/healthz → $(http_code "http://$IP/healthz")"
   local t; t=$(curl -s -m 10 $CURL_CA -o /dev/null -w '%{http_code} verify=%{ssl_verify_result}' "https://$IP/healthz" 2>&1)
   info "https://$IP/healthz → $t"
@@ -190,20 +205,41 @@ EOF
   openssl s_client -connect "$IP:443" -servername "$IP" </dev/null 2>/dev/null | openssl x509 -noout -issuer -enddate 2>/dev/null | sed 's/^/INFO  /'
   [ "$(http_code "http://$IP/healthz")" = 200 ] && ok "http://$IP/healthz still 200 (HTTP preserved)" || bad "HTTP broke"
   # Session over HTTPS: the app marks its cookie Secure when nginx says the scheme is https.
-  local hdr; hdr=$( ( set -a; . /etc/lelu/lelu.env; set +a
-      python3 -c 'import os,sys,urllib.parse; sys.stdout.write("password="+urllib.parse.quote(os.environ.get("LELU_ACCESS_PASSWORD","")))' |
-      curl -s -m 10 $CURL_CA -D - -o /dev/null -c /tmp/lelu-https.jar -X POST --data-binary @- -H 'content-type: application/x-www-form-urlencoded' "https://$IP/auth/login" ) )
-  chmod 600 /tmp/lelu-https.jar 2>/dev/null
-  echo "$hdr" | head -1 | grep -q ' 303' && ok "login over HTTPS 303" || bad "login over HTTPS: $(echo "$hdr" | head -1)"
-  echo "$hdr" | grep -i '^set-cookie:' | grep -qi '; *secure' && ok "session cookie is Secure over HTTPS" \
-    || bad "session cookie NOT Secure over HTTPS — nginx must send 'proxy_set_header X-Forwarded-Proto \$scheme;' in the app location"
-  [ "$(curl -s -m 10 $CURL_CA -b /tmp/lelu-https.jar -o /dev/null -w '%{http_code}' "https://$IP/api/voice/status")" = 200 ] && ok "authenticated API over HTTPS 200 (session continuity)" || bad "authenticated API over HTTPS failed"
-  rm -f /tmp/lelu-https.jar
+  # Read-only: this never signs in, and changes nothing about sign-in.
+  grep -qE 'proxy_set_header[[:space:]]+X-Forwarded-Proto' "$f" && ok "app location sends X-Forwarded-Proto: the session cookie is Secure over HTTPS" \
+    || bad "app location does not send X-Forwarded-Proto — add 'proxy_set_header X-Forwarded-Proto \$scheme;' to it"
+  [ "$(curl -s -m 10 $CURL_CA -o /dev/null -w '%{http_code}' "https://$IP/auth/login")" = 200 ] && ok "sign-in page over HTTPS 200" || bad "sign-in page over HTTPS failed"
+  [ "$(curl -s -m 10 $CURL_CA -o /dev/null -w '%{http_code}' "https://$IP/api/voice/status")" = 401 ] && ok "APIs over HTTPS still require a session (401)" || info "https://$IP/api/voice/status did not answer 401"
 }
 
-# Runs are directories named <UTC stamp>-<stage|enable>; a restored run is
+redirect() {
+  RUN=$STATE/$(date -u +%Y%m%dT%H%M%SZ)-redirect
+  echo "== redirect: plain http → https (certificate renewal stays on http)"
+  tls_ok || { bad "https://$IP is not serving a verified certificate — run enable first"; exit 1; }
+  local f; f=$(server_file); [ "$(echo "$f" | grep -c .)" = 1 ] || { bad "app server block not identified — run check"; exit 1; }
+  cat > "$SNIP_REDIRECT" <<'EOF'
+# LÉLU — plain http goes to https (https-ip.sh redirect). ACME challenges stay
+# on http so renewals never depend on the certificate they renew. No HSTS.
+set $lelu_to_https "";
+if ($scheme = http) { set $lelu_to_https "y"; }
+if ($request_uri ~ "^/\.well-known/acme-challenge/") { set $lelu_to_https ""; }
+if ($lelu_to_https = y) { return 301 https://$host$request_uri; }
+EOF
+  add_include "$f" "$SNIP_REDIRECT" || { bad "could not add the redirect include"; restore_run "$RUN"; exit 1; }
+  nginx_apply || exit 1
+  redirected() { [ "$(curl -s -m 10 -o /dev/null -w '%{http_code} %{redirect_url}' "http://$IP/healthz")" = "301 https://$IP/healthz" ]; }
+  settle redirected  # a reload takes effect when the new workers take over
+  local loc; loc=$(curl -s -m 10 -o /dev/null -w '%{http_code} %{redirect_url}' "http://$IP/healthz")
+  if [ "$loc" = "301 https://$IP/healthz" ] && tls_ok; then ok "http://$IP → 301 https://$IP; https 200 with a verified certificate"
+  else bad "redirect check failed ($loc) — reverting"; restore_run "$RUN"; touch "$RUN/rolled-back"; exit 1; fi
+  local tok; tok=lelu-selftest-$RANDOM; ( umask 022; echo "$tok" > "$WEBROOT/.well-known/acme-challenge/$tok" )
+  [ "$(http_code "http://$IP/.well-known/acme-challenge/$tok")" = 200 ] && ok "ACME challenges still served on http (renewals unaffected)" || bad "ACME path is redirected — renewal would break; run: bash https-ip.sh rollback"
+  rm -f "$WEBROOT/.well-known/acme-challenge/$tok"
+}
+
+# Runs are directories named <UTC stamp>-<stage|enable|redirect>; a restored run is
 # marked, never deleted, so repeated `rollback` steps back one layer at a time.
-runs() { ls -1d "$STATE"/2*-stage "$STATE"/2*-enable 2>/dev/null | sort; }
+runs() { ls -1d "$STATE"/2*-stage "$STATE"/2*-enable "$STATE"/2*-redirect 2>/dev/null | sort; }
 rollback() {
   local arg=${1:-} run
   if [ "$arg" = all ]; then
@@ -230,7 +266,7 @@ rollback() {
 
 install -d -m 0700 "$STATE"
 case "${1:-}" in
-  check) check;; stage) stage;; issue) issue;; enable) enable;; rollback) rollback "${2:-}";;
-  *) echo "usage: $0 check | stage | issue | enable | rollback [all|<run-dir>]"; exit 2;;
+  check) check;; stage) stage;; issue) issue;; enable) enable;; redirect) redirect;; rollback) rollback "${2:-}";;
+  *) echo "usage: $0 check | stage | issue | enable | redirect | rollback [all|<run-dir>]"; exit 2;;
 esac
 exit $FAILED
