@@ -32,7 +32,8 @@
  */
 
 import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { InModuleWindow } from "./moduleWindowContext";
+import { InModuleWindow, ModuleWindowMeta } from "./moduleWindowContext";
+import { useCosmosLanguage } from "./cosmosLanguage/useCosmosLanguage";
 import { motion } from "framer-motion";
 import { genesisTheme } from "./GenesisTheme";
 import PinchZoomContainer from "./PinchZoomContainer";
@@ -135,6 +136,10 @@ export default function GenesisWindowFrame({
   const reduceMotion = prefersReducedMotion();
   const narrow = useIsNarrow();
   const inModuleWindow = useContext(InModuleWindow);
+  /* The active layout's language decides how this panel's own heading reads. */
+  const windowMeta = useContext(ModuleWindowMeta);
+  const cosmos = useCosmosLanguage();
+  const headingKind = cosmos.composition.heading;
   const frameRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; originWidth: number; originHeight: number } | null>(null);
@@ -514,6 +519,7 @@ export default function GenesisWindowFrame({
            title bar. */
         <div
           data-lelu-panel-heading
+          data-cl-heading={headingKind === "plain" ? undefined : headingKind}
           style={{
             display: "flex",
             alignItems: "flex-start",
@@ -523,12 +529,16 @@ export default function GenesisWindowFrame({
             flexShrink: 0,
           }}
         >
+          {headingKind === "plain" ? (
           <div style={{ minWidth: 0 }}>
             {/* No eyebrow here. Application identity is the host's title bar
                 (glyph + label); repeating "Genesis Core" above every panel's
                 own title is precisely the legacy chrome this phase removes. */}
             <div style={{ fontWeight: 600, fontSize: 13, overflowWrap: "anywhere" }}>{title}</div>
           </div>
+          ) : (
+            <LanguageHeading kind={headingKind} title={title} eyebrow={eyebrow} index={windowMeta?.index ?? 1} role={windowMeta?.role ?? ""} />
+          )}
           {extraActions ? (
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>{extraActions}</div>
           ) : null}
@@ -646,4 +656,61 @@ export default function GenesisWindowFrame({
       ) : null}
     </motion.div>
   );
+}
+
+/**
+ * A panel's own heading in the active composition — a different structure
+ * per composition, the same title and live counts the panel passes in.
+ */
+function LanguageHeading({ kind, title, eyebrow, index, role }: { kind: string; title: ReactNode; eyebrow: string; index: number; role: string }) {
+  const two = String(index).padStart(2, "0");
+  // Panels pass "Name · live detail" — the composition decides how the two parts read.
+  const text = typeof title === "string" ? title : null;
+  const [main, ...rest] = text ? text.split(" · ") : [null];
+  const head = main ?? title;
+  const detail = rest.length ? rest.join(" · ") : null;
+  switch (kind) {
+    case "numbered":
+      return (
+        <div style={{ minWidth: 0, display: "flex", alignItems: "flex-end" }}>
+          <span className="clh-num">{two}</span>
+          <div>
+            {detail ? <span className="clh-kicker">{detail}</span> : null}
+            <div className="clh-title">{head}</div>
+          </div>
+        </div>
+      );
+    case "headline":
+      return (
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <span className="clh-kicker">No. {two} · {role || eyebrow}</span>
+          <div className="clh-title">{head}</div>
+          {detail ? <span className="clh-dek">{detail}</span> : null}
+        </div>
+      );
+    case "bracket":
+      return (
+        <div style={{ minWidth: 0 }}>
+          <div className="clh-title">{head}</div>
+          <span className="clh-coord">
+            SYS.{two} · {role.toUpperCase() || "MODULE"}
+            {detail ? ` · ${detail.toUpperCase()}` : ""}
+          </span>
+        </div>
+      );
+    case "plate":
+      return (
+        <div style={{ minWidth: 0 }}>
+          <div className="clh-title">{head}</div>
+          {detail ? <span className="clh-kicker" style={{ marginTop: 4 }}>{detail}</span> : null}
+        </div>
+      );
+    default:
+      return (
+        <div style={{ minWidth: 0 }}>
+          <div className="clh-title">{head}</div>
+          {detail ? <span className="clh-kicker" style={{ marginTop: 4 }}>{detail}</span> : null}
+        </div>
+      );
+  }
 }

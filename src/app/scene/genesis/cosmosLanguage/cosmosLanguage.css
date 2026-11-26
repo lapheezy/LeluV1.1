@@ -1,0 +1,613 @@
+/* ==========================================================
+ * LÉLU — INFINITE COSMOS COMPOSITION STYLESHEET
+ *
+ * Read only when a non-default language is active: every rule is keyed
+ * on :root[data-cosmos-language] / [data-cosmos-composition] /
+ * [data-cosmos-tone], which CosmosLanguageRuntime sets and removes. With
+ * the original glass nothing here matches.
+ *
+ * Variables come from the language (CosmosLanguages.languageVariables),
+ * scoped to the surfaces it owns. Sections:
+ *   1  window frame (all compositions)            5  shared roles: controls
+ *   2  window chrome per composition              6  composition flourishes
+ *   3  vertical title (scroll)                    7  panel headings
+ *   4  shared roles: text, surfaces, status       8  mobile
+ * Browser, Neural Map and Settings have their own sections at the end.
+ * ========================================================== */
+
+/* ---------- 1. Window frame ---------- */
+:root[data-cosmos-language] [data-lelu-module-window] {
+  color: var(--cl-ink);
+  font-family: var(--cl-font);
+  background-color: var(--cl-paper) !important;
+  border: var(--cl-rule-w) solid var(--cl-frame) !important;
+  transition-property: left, top, width, height, border-radius, box-shadow, background-color !important;
+  /* A heavier rule must not grow the window: its outer box stays exactly
+     the rectangle she placed, in every language. */
+  box-sizing: border-box;
+}
+:root[data-cosmos-language] [data-lelu-module-window][data-lelu-steward="sheet"] {
+  border: none !important;
+}
+:root[data-cosmos-language] [data-lelu-module-window]::selection,
+:root[data-cosmos-language] [data-lelu-module-window] *::selection {
+  background: var(--cl-accent);
+  color: var(--cl-paper);
+}
+
+/* ---------- 2. Chrome ---------- */
+:root[data-cosmos-language] .cl-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--cl-bar);
+  color: var(--cl-bar-ink);
+  border-bottom: var(--cl-rule-w) solid var(--cl-rule);
+  font-family: var(--cl-font-head);
+  position: relative;
+}
+:root[data-cosmos-language] .cl-chrome .clc-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--cl-bar-ink);
+}
+:root[data-cosmos-language] .cl-chrome .clc-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+:root[data-cosmos-language] .cl-chrome .clc-title b {
+  font-weight: var(--cl-head-weight);
+  text-transform: var(--cl-head-case);
+  letter-spacing: var(--cl-head-track);
+}
+:root[data-cosmos-language] .cl-actions-handle button {
+  border-radius: var(--cl-radius) !important;
+  border: var(--cl-rule-w) solid var(--cl-rule) !important;
+  background: transparent !important;
+  color: var(--cl-bar-ink) !important;
+}
+:root[data-cosmos-language] .clc-controls {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+:root[data-cosmos-language] .clc-btn {
+  font: inherit;
+  font-size: 11px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  cursor: pointer;
+  color: var(--cl-bar-ink);
+  background: transparent;
+  border: var(--cl-rule-w) solid var(--cl-rule);
+  border-radius: var(--cl-radius);
+  line-height: 1;
+}
+:root[data-cosmos-language] .clc-btn:hover,
+:root[data-cosmos-language] .clc-btn:focus-visible {
+  background: var(--cl-accent);
+  color: var(--cl-paper);
+  outline: none;
+}
+:root[data-cosmos-language] .clc-btn[data-on="true"] {
+  background: var(--cl-accent);
+  color: var(--cl-paper);
+}
+:root[data-cosmos-language] .clc-lamp {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  background: var(--cl-ink-2);
+  border-radius: 999px;
+}
+:root[data-cosmos-language] .clc-lamp[data-status="active"],
+:root[data-cosmos-language] .clc-lamp[data-status="complete"] { background: var(--cl-ok, #22c55e); }
+:root[data-cosmos-language] .clc-lamp[data-status="loading"],
+:root[data-cosmos-language] .clc-lamp[data-status="attention"] { background: var(--cl-warn, #eab308); }
+:root[data-cosmos-language] .clc-lamp[data-status="failed"] { background: var(--cl-danger); }
+
+/* console: a prompt line, function keys */
+:root[data-cosmos-composition="console"] .cl-chrome {
+  font-family: var(--cl-font-mono);
+  font-size: 12px;
+  border-bottom: 1px dashed var(--cl-rule);
+}
+:root[data-cosmos-composition="console"] .cl-chrome .clc-title { gap: 4px; font-weight: 400; color: var(--cl-ink-2); }
+:root[data-cosmos-composition="console"] .cl-chrome .clc-title b { color: var(--cl-ink); }
+:root[data-cosmos-composition="console"] .cl-chrome .clc-box { color: var(--cl-rule); }
+:root[data-cosmos-composition="console"] .clc-btn { border: none; padding: 0 2px; color: var(--cl-accent); min-width: 0; }
+:root[data-cosmos-composition="console"] .clc-lamp { border-radius: 0; width: 7px; height: 12px; animation: cl-blink 1.1s steps(1) infinite; background: var(--cl-ink); }
+:root[data-cosmos-composition="console"] .cl-actions-handle button { border-style: dashed !important; }
+@keyframes cl-blink { 50% { opacity: 0; } }
+
+/* grid: index number, flush-left title, word controls */
+:root[data-cosmos-composition="grid"] .cl-chrome { padding-left: 0; border-bottom-width: calc(var(--cl-rule-w) * 1.5); }
+:root[data-cosmos-composition="grid"] .cl-actions-handle { order: 5; }
+:root[data-cosmos-composition="grid"] .clc-index {
+  display: inline-grid;
+  place-items: center;
+  height: 40px;
+  min-width: 48px;
+  background: var(--cl-accent);
+  color: var(--cl-paper);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+:root[data-cosmos-language="bauhaus"] .clc-index { border-radius: 999px; height: 32px; min-width: 32px; margin-left: 6px; background: var(--cl-accent); }
+:root[data-cosmos-composition="grid"] .clc-title b { font-size: 15px; }
+:root[data-cosmos-composition="grid"] .clc-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.6; }
+:root[data-cosmos-composition="grid"] .clc-btn { border: none; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+
+/* editorial: nameplate between rules */
+:root[data-cosmos-composition="editorial"] .cl-chrome {
+  justify-content: center;
+  border-bottom: 3px double var(--cl-rule);
+}
+:root[data-cosmos-composition="editorial"] .clc-label { text-align: center; }
+:root[data-cosmos-composition="editorial"] .clc-title { width: 100%; justify-content: space-between; }
+:root[data-cosmos-composition="editorial"] .clc-title b { font-size: 18px; font-style: italic; font-family: var(--cl-font-head); }
+:root[data-cosmos-language="artdeco"] .cl-chrome .clc-title b { font-style: normal; font-size: 13px; }
+:root[data-cosmos-composition="editorial"] .clc-folio { font-family: var(--cl-font); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.65; }
+:root[data-cosmos-composition="editorial"] .clc-btn { border: none; font-family: var(--cl-font); font-style: italic; font-size: 11px; }
+:root[data-cosmos-composition="editorial"] .clc-lamp { display: none; }
+
+/* slab: title block, heavy block controls */
+:root[data-cosmos-composition="slab"] .cl-chrome { border-bottom-width: var(--cl-rule-w); padding-left: 6px; }
+:root[data-cosmos-composition="slab"] .clc-title b {
+  background: var(--cl-paper);
+  color: var(--cl-ink);
+  border: var(--cl-rule-w) solid var(--cl-rule);
+  padding: 2px 10px;
+  box-shadow: 3px 3px 0 var(--cl-rule);
+  font-size: 13px;
+}
+:root[data-cosmos-language="constructivist"] .clc-title b { transform: skewX(-12deg); background: var(--cl-ink); color: var(--cl-paper); box-shadow: 4px 4px 0 var(--cl-paper); }
+:root[data-cosmos-language="memphis"] .clc-title b { border-radius: 999px; background: var(--cl-accent-3); }
+:root[data-cosmos-composition="slab"] .clc-tag { font-family: var(--cl-font-mono); font-weight: 700; font-size: 12px; }
+:root[data-cosmos-composition="slab"] .clc-btn { background: var(--cl-paper); color: var(--cl-ink); box-shadow: 2px 2px 0 var(--cl-rule); font-weight: 900; }
+:root[data-cosmos-composition="slab"] .clc-btn[data-cl-control="close"] { background: var(--cl-accent-2); }
+:root[data-cosmos-composition="slab"] .clc-btn[data-cl-control="max"] { background: var(--cl-accent-3); color: var(--cl-paper); }
+:root[data-cosmos-language="memphis"] .clc-btn { border-radius: 999px; }
+:root[data-cosmos-composition="slab"] .clc-lamp { border-radius: 0; width: 12px; height: 12px; border: 2px solid var(--cl-rule); }
+
+/* scroll: quiet bar, ink dots (the title hangs vertically, see §3) */
+:root[data-cosmos-composition="scroll"] .cl-chrome { border-bottom: 1px solid var(--cl-frame); background: var(--cl-paper); }
+:root[data-cosmos-composition="scroll"] .clc-kicker { font-family: var(--cl-font-head); letter-spacing: 0.3em; font-size: 12px; color: var(--cl-ink-2); }
+:root[data-cosmos-composition="scroll"] .clc-seal {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: var(--cl-accent);
+  color: var(--cl-paper);
+  font-family: var(--cl-font-head);
+  font-size: 12px;
+  border-radius: 3px;
+}
+:root[data-cosmos-composition="scroll"] .clc-btn,
+:root[data-cosmos-composition="organic"] .clc-btn {
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--cl-ink);
+}
+:root[data-cosmos-composition="scroll"] .clc-btn[data-cl-control="close"] { background: var(--cl-accent); border-color: var(--cl-accent); }
+:root[data-cosmos-composition="scroll"] .clc-lamp { background: transparent; border: 1px solid var(--cl-ink-2); }
+
+/* hud: bracketed designation, readout */
+:root[data-cosmos-composition="hud"] .cl-chrome {
+  font-family: var(--cl-font-head);
+  border-bottom: 1px solid var(--cl-rule);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+:root[data-cosmos-composition="hud"] .clc-title { color: var(--cl-accent); gap: 6px; font-size: 12px; }
+:root[data-cosmos-composition="hud"] .clc-readout { font-family: var(--cl-font-mono); font-size: 10px; opacity: 0.7; letter-spacing: 0.08em; color: var(--cl-ink-2); }
+:root[data-cosmos-composition="hud"] .clc-btn { border-color: var(--cl-accent); color: var(--cl-accent); font-family: var(--cl-font-mono); clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px); }
+:root[data-cosmos-composition="hud"] .clc-lamp { border-radius: 0; transform: rotate(45deg); box-shadow: 0 0 8px var(--cl-accent); }
+
+/* bezel: engraved plate, screws, lamps, toggles */
+:root[data-cosmos-composition="bezel"] .cl-chrome {
+  background: linear-gradient(180deg, #4b5259, #2f343a);
+  border-bottom: 2px solid #15181b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+}
+:root[data-cosmos-composition="bezel"] .clc-title { background: #1b1e21; padding: 3px 8px; border-radius: 3px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.12); }
+:root[data-cosmos-composition="bezel"] .clc-title b { color: var(--cl-accent); text-shadow: 0 0 6px rgba(255,176,0,0.55); font-family: var(--cl-font-mono); font-size: 12px; }
+:root[data-cosmos-composition="bezel"] .clc-readout { font-family: var(--cl-font-mono); font-size: 10px; color: var(--cl-accent-2); text-shadow: 0 0 5px rgba(57,211,83,0.6); }
+:root[data-cosmos-composition="bezel"] .clc-screw {
+  width: 9px; height: 9px; border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #c7ccd1, #5b6168 70%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4);
+  position: relative;
+}
+:root[data-cosmos-composition="bezel"] .clc-screw::after { content: ""; position: absolute; left: 1px; right: 1px; top: 4px; height: 1px; background: #2b2f33; transform: rotate(35deg); }
+:root[data-cosmos-composition="bezel"] .clc-btn {
+  font-family: var(--cl-font-mono); font-size: 9px; letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #5c636b, #3a3f45); color: #e6e6e1;
+  border: 1px solid #15181b; border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 0 #15181b;
+}
+:root[data-cosmos-composition="bezel"] .clc-btn[data-cl-control="close"] { background: linear-gradient(180deg, #d33, #8b1a1a); }
+:root[data-cosmos-composition="bezel"] .clc-btn[data-on="true"] { background: linear-gradient(180deg, #ffbe33, #b97e00); color: #1b1e21; }
+:root[data-cosmos-composition="bezel"] .clc-lamp { width: 11px; height: 11px; box-shadow: 0 0 8px currentColor, inset 0 -2px 2px rgba(0,0,0,0.4); border: 1px solid #15181b; }
+
+/* organic: pebble title, seed controls */
+:root[data-cosmos-composition="organic"] .cl-chrome { border-bottom: none; background: transparent; padding: 6px 14px 0; }
+:root[data-cosmos-composition="organic"] .clc-title b {
+  background: var(--cl-paper-2);
+  padding: 4px 14px;
+  border-radius: 999px 60% 999px 70%;
+  font-family: var(--cl-font-head);
+  font-size: 14px;
+}
+:root[data-cosmos-composition="organic"] .clc-btn { border-color: var(--cl-accent); }
+:root[data-cosmos-composition="organic"] .clc-btn[data-cl-control="close"] { background: var(--cl-accent-2); border-color: var(--cl-accent-2); }
+:root[data-cosmos-composition="organic"] .clc-btn[data-cl-control="max"] { background: var(--cl-accent); }
+
+/* glass in a non-default language (Y2K): gel bar, aqua pills */
+:root[data-cosmos-language="y2k"] .cl-chrome {
+  background: linear-gradient(180deg, #f9fbfe 0%, #cfdbe8 48%, #b4c5d8 52%, #dbe5ef 100%);
+  border-bottom: 1px solid #7f9bb8;
+}
+:root[data-cosmos-language="y2k"] .clc-title b { font-style: italic; color: #0a2540; text-shadow: 0 1px 0 #fff; }
+:root[data-cosmos-language="y2k"] .clc-btn {
+  border-radius: 999px; border: 1px solid #3a6fa8; color: #fff;
+  background: radial-gradient(ellipse at 50% 25%, #bfe7ff 0 20%, #2aa7ff 55%, #0062c4 100%);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+}
+:root[data-cosmos-language="y2k"] .clc-btn[data-cl-control="close"] { background: radial-gradient(ellipse at 50% 25%, #ffd1e0 0 20%, #ff4f8a 55%, #b0003a 100%); border-color: #a01045; }
+:root[data-cosmos-language="y2k"] .clc-lamp { background: radial-gradient(circle at 35% 30%, #efffc0, #8ee000 60%, #4c8a00); width: 10px; height: 10px; }
+
+/* ---------- 3. Vertical title (scroll) ---------- */
+.cl-vertical-title { display: none; }
+:root[data-cosmos-composition="scroll"] .cl-vertical-title {
+  display: flex;
+  position: absolute;
+  top: 52px;
+  right: 6px;
+  bottom: 14px;
+  width: 26px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 1;
+}
+:root[data-cosmos-composition="scroll"] .cl-vertical-title span {
+  writing-mode: vertical-rl;
+  font-family: var(--cl-font-head);
+  letter-spacing: 0.45em;
+  font-size: 13px;
+  color: var(--cl-ink);
+  border-left: 1px solid var(--cl-rule);
+  padding-left: 4px;
+}
+:root[data-cosmos-composition="scroll"] .cl-vertical-title .cl-hanko {
+  font-style: normal;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--cl-paper);
+  background: var(--cl-accent);
+  border-radius: 3px;
+  font-family: var(--cl-font-head);
+  font-size: 13px;
+  transform: rotate(-4deg);
+}
+:root[data-cosmos-composition="scroll"] [data-lelu-module-content] { padding-right: 34px; }
+
+/* ---------- 4. Shared roles: text, surfaces, status ---------- */
+:root[data-cosmos-tone="light"] [data-lelu-module-window] { --cl-ok: #1a7f37; --cl-warn: #9a6700; }
+:root[data-cosmos-tone="dark"] [data-lelu-module-window] { --cl-ok: #4ade80; --cl-warn: #facc15; }
+
+:root[data-cosmos-language] [data-lelu-module-content] {
+  color: var(--cl-ink);
+  font-family: var(--cl-font);
+  scrollbar-color: var(--cl-rule) transparent;
+}
+/* Every piece of text speaks the language's ink — panels hard-code a
+   light-on-dark palette inline, which a paper language cannot read. */
+:root[data-cosmos-language] [data-lelu-module-content] :is(div, section, article, aside, header, footer, nav, main, p, span, strong, b, em, small, label, li, dt, dd, td, th, summary, h1, h2, h3, h4, h5, h6, blockquote, figcaption, legend) {
+  color: var(--cl-ink) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] a { color: var(--cl-accent) !important; }
+/* Meaning carried by colour survives as the language's own ok / warn / danger. */
+:root[data-cosmos-language] [data-lelu-module-content] :is([style*="rgb(134, 239, 172)"], [style*="rgb(74, 222, 128)"], [style*="rgb(52, 211, 153)"], [style*="rgba(74, 222, 128"]) { color: var(--cl-ok) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] :is([style*="rgb(252, 165, 165)"], [style*="rgb(248, 113, 113)"], [style*="rgba(248, 113, 113"]) { color: var(--cl-danger) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] :is([style*="rgb(253, 224, 71)"], [style*="rgb(253, 230, 138)"], [style*="rgb(250, 204, 21)"], [style*="rgb(251, 191, 36)"], [style*="rgba(250, 204, 21"]) { color: var(--cl-warn) !important; }
+
+/* Surfaces: inline glass/tints become the language's inset paper. */
+:root[data-cosmos-language] [data-lelu-module-content] :is(div, section, article, aside, li, form, fieldset, details, header, footer, nav, ul, pre, table, label)[style*="background"] {
+  background: var(--cl-paper-2) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] :is(div, section, article, aside, li, form, fieldset, details, header, footer, nav, ul, pre, table, label, button, span)[style*="border:"] {
+  border-color: var(--cl-rule) !important;
+  border-radius: var(--cl-radius) !important;
+}
+/* Status dots stay status dots. */
+:root[data-cosmos-language] [data-lelu-module-content] span[style*="border-radius: 999px"][style*="width: 6px"],
+:root[data-cosmos-language] [data-lelu-module-content] span[style*="border-radius: 999px"][style*="width: 8px"] {
+  background: var(--cl-accent) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] :is(h1, h2, h3, h4) {
+  font-family: var(--cl-font-head);
+  font-weight: var(--cl-head-weight);
+  text-transform: var(--cl-head-case);
+  letter-spacing: var(--cl-head-track);
+}
+:root[data-cosmos-language] [data-lelu-module-content] :is(code, pre, kbd, samp) {
+  font-family: var(--cl-font-mono) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] hr {
+  border: none;
+  border-top: var(--cl-rule-w) solid var(--cl-rule);
+}
+/* Media is shown as made (documented exception: the user's work and live renders). */
+:root[data-cosmos-language] [data-lelu-module-content] :is(img, video, canvas, iframe, svg image) {
+  filter: none !important;
+}
+
+/* ---------- 5. Shared roles: controls ---------- */
+:root[data-cosmos-language] [data-lelu-module-content] button:not(.lbr-tab button):not([data-cl-keep]) {
+  font-family: inherit !important;
+  color: var(--cl-ink) !important;
+  background: var(--cl-paper) !important;
+  border: var(--cl-rule-w) solid var(--cl-rule) !important;
+  border-radius: var(--cl-radius) !important;
+  box-shadow: none !important;
+  transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+:root[data-cosmos-language] [data-lelu-module-content] button:not(:disabled):hover {
+  background: var(--cl-accent) !important;
+  color: var(--cl-paper) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] button:not(:disabled):hover * { color: var(--cl-paper) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] button[aria-pressed="true"],
+:root[data-cosmos-language] [data-lelu-module-content] button[aria-selected="true"],
+:root[data-cosmos-language] [data-lelu-module-content] button[data-on="true"] {
+  background: var(--cl-ink) !important;
+  color: var(--cl-paper) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] :is(button[aria-pressed="true"], button[aria-selected="true"], button[data-on="true"]) * { color: var(--cl-paper) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] :is(input, textarea, select) {
+  font-family: inherit !important;
+  color: var(--cl-ink) !important;
+  background: var(--cl-paper) !important;
+  border: var(--cl-rule-w) solid var(--cl-rule) !important;
+  border-radius: var(--cl-radius) !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] :is(input, textarea)::placeholder { color: var(--cl-ink-2) !important; opacity: 0.8; }
+:root[data-cosmos-language] [data-lelu-module-content] :is(button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--cl-accent) !important;
+  outline-offset: 2px;
+}
+
+/* console controls: [ bracketed ] words */
+:root[data-cosmos-composition="console"] [data-lelu-module-content] button:not([data-cl-keep]) {
+  border-style: dashed !important;
+  font-family: var(--cl-font-mono) !important;
+}
+:root[data-cosmos-composition="console"] [data-lelu-module-content] button:not([data-cl-keep]):not(.lbr-ico):not(.lbr-new):not(.lbr-x):not(.lbr-go):not([aria-label^="Show"]):not([aria-label^="Hide"])::before { content: "[ "; color: var(--cl-ink-2); }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] button:not([data-cl-keep]):not(.lbr-ico):not(.lbr-new):not(.lbr-x):not(.lbr-go):not([aria-label^="Show"]):not([aria-label^="Hide"])::after { content: " ]"; color: var(--cl-ink-2); }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] :is(input, textarea) { border-width: 0 0 1px !important; border-style: dashed !important; caret-color: var(--cl-ink); }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] :is(h1, h2, h3)::before { content: "## "; color: var(--cl-accent); }
+
+/* grid: flush-left, flat, numbered sections */
+:root[data-cosmos-composition="grid"] [data-lelu-module-content] :is(div, p, span, strong, small, h1, h2, h3, h4, li, label) { text-align: left !important; }
+:root[data-cosmos-language] .cl-chrome .clc-label { text-align: left; }
+:root[data-cosmos-composition="editorial"] .cl-chrome .clc-label { text-align: center; }
+:root[data-cosmos-composition="grid"] [data-lelu-module-content] { counter-reset: cl-section; }
+:root[data-cosmos-composition="grid"] [data-lelu-module-content] button:not([data-cl-keep]) { font-weight: 700 !important; }
+:root[data-cosmos-language="bauhaus"] [data-lelu-module-content] button:not([data-cl-keep]) { border-radius: 999px !important; }
+:root[data-cosmos-language="bauhaus"] [data-lelu-module-content] button:not([data-cl-keep]):nth-of-type(3n+1):hover { background: var(--cl-accent) !important; }
+:root[data-cosmos-language="bauhaus"] [data-lelu-module-content] button:not([data-cl-keep]):nth-of-type(3n+2):hover { background: var(--cl-accent-2) !important; }
+:root[data-cosmos-language="bauhaus"] [data-lelu-module-content] button:not([data-cl-keep]):nth-of-type(3n):hover { background: var(--cl-accent-3) !important; color: var(--cl-ink) !important; }
+
+/* editorial: text buttons, ruled fields */
+:root[data-cosmos-composition="editorial"] [data-lelu-module-content] button:not([data-cl-keep]) {
+  border-width: 0 0 1px !important;
+  font-style: italic;
+  background: transparent !important;
+}
+:root[data-cosmos-composition="editorial"] [data-lelu-module-content] :is(input, textarea, select) { border-width: 0 0 1px !important; background: transparent !important; }
+:root[data-cosmos-language="artdeco"] [data-lelu-module-content] button:not([data-cl-keep]) { font-style: normal; text-transform: uppercase; letter-spacing: 0.18em; font-size: 11px !important; }
+
+/* slab: chunky blocks with hard shadows */
+:root[data-cosmos-composition="slab"] [data-lelu-module-content] button:not([data-cl-keep]) {
+  box-shadow: 3px 3px 0 var(--cl-rule) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+}
+:root[data-cosmos-composition="slab"] [data-lelu-module-content] button:not(:disabled):active { transform: translate(3px, 3px); box-shadow: none !important; }
+:root[data-cosmos-composition="slab"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"] {
+  border-width: var(--cl-rule-w) !important;
+  border-style: solid !important;
+  box-shadow: 5px 5px 0 var(--cl-rule) !important;
+}
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"]:nth-of-type(3n+1) { box-shadow: 6px 6px 0 var(--cl-accent) !important; }
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"]:nth-of-type(3n+2) { box-shadow: 6px 6px 0 var(--cl-accent-2) !important; }
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"]:nth-of-type(3n) { box-shadow: 6px 6px 0 var(--cl-accent-3) !important; }
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] button:not([data-cl-keep]) { border-radius: 999px !important; }
+:root[data-cosmos-language="constructivist"] [data-lelu-module-content] button:not([data-cl-keep]) { box-shadow: -3px 3px 0 var(--cl-accent) !important; }
+
+/* scroll: hairlines, ink stamps */
+:root[data-cosmos-composition="scroll"] [data-lelu-module-content] button:not([data-cl-keep]) { border-width: 1px !important; letter-spacing: 0.12em; }
+:root[data-cosmos-composition="scroll"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"] { border-width: 0 0 0 1px !important; border-radius: 0 !important; background: transparent !important; }
+
+/* hud: chamfered keys and panels */
+:root[data-cosmos-composition="hud"] [data-lelu-module-content] button:not([data-cl-keep]) {
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px !important;
+  border-color: var(--cl-accent) !important;
+  color: var(--cl-accent) !important;
+}
+:root[data-cosmos-composition="hud"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"] {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+/* bezel: raised hardware buttons, recessed wells */
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] button:not([data-cl-keep]) {
+  background: linear-gradient(180deg, #5c636b, #3a3f45) !important;
+  border: 1px solid #15181b !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 0 #15181b !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px !important;
+}
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] :is(input, textarea, select) {
+  background: #121416 !important;
+  color: var(--cl-accent) !important;
+  font-family: var(--cl-font-mono) !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8) !important;
+  border-color: #15181b !important;
+}
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.5) !important;
+}
+
+/* organic: pebbles */
+:root[data-cosmos-composition="organic"] [data-lelu-module-content] button:not([data-cl-keep]) { border-radius: 999px 70% 999px 80% !important; border-color: var(--cl-accent) !important; }
+:root[data-cosmos-composition="organic"] [data-lelu-module-content] :is(div, section, article, li)[style*="border:"] { border-radius: 26px 40px 30px 44px !important; border-color: transparent !important; }
+:root[data-cosmos-composition="organic"] [data-lelu-module-content] :is(input, textarea, select) { border-radius: 999px !important; }
+
+/* y2k glass: gel buttons */
+:root[data-cosmos-language="y2k"] [data-lelu-module-content] button:not([data-cl-keep]) {
+  border-radius: 999px !important;
+  border-color: #3a6fa8 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #e3edf7 49%, #c9dbee 51%, #eef5fc 100%) !important;
+}
+:root[data-cosmos-language="y2k"] [data-lelu-module-content] button:not(:disabled):hover { background: radial-gradient(ellipse at 50% 20%, #bfe7ff 0 20%, #2aa7ff 55%, #0062c4 100%) !important; }
+
+/* ---------- 6. Frame flourishes ---------- */
+/* hud: corner brackets */
+:root[data-cosmos-composition="hud"] [data-lelu-module-window]::before,
+:root[data-cosmos-composition="hud"] [data-lelu-module-window]::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  z-index: 2;
+  border: 2px solid var(--cl-accent);
+}
+:root[data-cosmos-composition="hud"] [data-lelu-module-window]::before { top: 3px; left: 3px; border-right: none; border-bottom: none; }
+:root[data-cosmos-composition="hud"] [data-lelu-module-window]::after { bottom: 3px; right: 3px; border-left: none; border-top: none; }
+/* bezel: hazard stripe foot */
+:root[data-cosmos-composition="bezel"] [data-lelu-module-window]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 28px;
+  bottom: 0;
+  height: 5px;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, #ffb000 0 8px, #1b1e21 8px 16px);
+  opacity: 0.85;
+}
+/* artdeco: stepped gilt corners */
+:root[data-cosmos-language="artdeco"] [data-lelu-module-window]::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid rgba(201,164,76,0.55);
+  clip-path: polygon(0 14px, 14px 14px, 14px 0, calc(100% - 14px) 0, calc(100% - 14px) 14px, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 14px calc(100% - 14px), 0 calc(100% - 14px));
+}
+/* constructivist: diagonal banner */
+:root[data-cosmos-language="constructivist"] [data-lelu-module-window]::before {
+  content: "";
+  position: absolute;
+  right: -40px;
+  bottom: 26px;
+  width: 180px;
+  height: 18px;
+  background: var(--cl-accent);
+  transform: rotate(-28deg);
+  pointer-events: none;
+  opacity: 0.9;
+  z-index: 0;
+}
+/* organic: cell-shaped window */
+:root[data-cosmos-composition="organic"] [data-lelu-module-window]:not([data-lelu-steward="sheet"]) {
+  border-radius: 34px 52px 40px 60px / 44px 36px 56px 40px !important;
+  border-color: transparent !important;
+}
+/* exhibition: wall label under the title, generous margins */
+:root[data-cosmos-language="exhibition"] [data-lelu-module-content] { padding: 10px 18px; }
+:root[data-cosmos-language="exhibition"] .cl-chrome { border-bottom: 1px solid var(--cl-rule); }
+:root[data-cosmos-language="exhibition"] .clc-title b { font-style: normal; font-weight: 300; font-size: 16px; letter-spacing: 0.02em; }
+/* focus: the raised window speaks louder */
+:root[data-cosmos-language] [data-lelu-module-window]:focus-within { outline: 2px solid var(--cl-accent); outline-offset: 2px; }
+:root[data-cosmos-composition="slab"] [data-lelu-module-window]:focus-within { outline: none; }
+:root[data-cosmos-composition="organic"] [data-lelu-module-window]:focus-within { outline: none; }
+
+/* ---------- 7. Panel headings (GenesisWindowFrame inside a window) ---------- */
+:root[data-cosmos-language] [data-lelu-panel-heading][data-cl-heading] { font-family: var(--cl-font-head); }
+:root[data-cosmos-language] [data-cl-heading] .clh-title { font-weight: var(--cl-head-weight); }
+[data-cl-heading] .clh-kicker { display: block; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6; margin-bottom: 2px; }
+[data-cl-heading="prompt"] .clh-title { font-family: var(--cl-font-mono); }
+[data-cl-heading="prompt"] .clh-title::before { content: "> "; color: var(--cl-accent); }
+[data-cl-heading="prompt"] .clh-title::after { content: "_"; animation: cl-blink 1.1s steps(1) infinite; color: var(--cl-ink); }
+[data-cl-heading="numbered"] { border-bottom: var(--cl-rule-w) solid var(--cl-rule); margin-bottom: 10px; }
+[data-cl-heading="numbered"] .clh-num { font-size: 34px; font-weight: 800; line-height: 0.9; color: var(--cl-accent); margin-right: 10px; letter-spacing: -0.04em; }
+[data-cl-heading="numbered"] .clh-title { font-size: 20px; letter-spacing: -0.01em; line-height: 1.1; }
+[data-cl-heading="headline"] { text-align: center; border-bottom: 1px solid var(--cl-rule); margin: 0 14px 12px; padding-left: 0 !important; padding-right: 0 !important; }
+[data-cl-heading="headline"] .clh-title { font-size: 24px; line-height: 1.1; font-style: italic; }
+:root[data-cosmos-language="artdeco"] [data-cl-heading="headline"] .clh-title { font-style: normal; font-size: 18px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--cl-accent); }
+:root[data-cosmos-language="exhibition"] [data-cl-heading="headline"] { text-align: left; border-bottom: none; }
+:root[data-cosmos-language="exhibition"] [data-cl-heading="headline"] .clh-title { font-style: normal; font-weight: 300; font-size: 26px; }
+[data-cl-heading="headline"] .clh-dek { display: block; font-size: 11px; font-style: italic; opacity: 0.7; margin-top: 4px; font-family: var(--cl-font); }
+[data-cl-heading="block"] .clh-title { display: inline-block; background: var(--cl-ink); color: var(--cl-paper) !important; padding: 4px 12px; font-size: 18px; text-transform: uppercase; box-shadow: 5px 5px 0 var(--cl-accent); }
+:root[data-cosmos-language="constructivist"] [data-cl-heading="block"] .clh-title { transform: rotate(-2deg); background: var(--cl-accent); }
+:root[data-cosmos-language="memphis"] [data-cl-heading="block"] .clh-title { border-radius: 999px; background: var(--cl-accent-2); color: var(--cl-ink) !important; text-transform: none; }
+[data-cl-heading="vertical"] .clh-title { font-size: 20px; letter-spacing: 0.2em; font-weight: 500; }
+[data-cl-heading="vertical"] { padding-top: 22px !important; padding-bottom: 18px !important; }
+[data-cl-heading="bracket"] .clh-title { text-transform: uppercase; letter-spacing: 0.2em; color: var(--cl-accent); }
+[data-cl-heading="bracket"] .clh-title::before { content: "◤ "; }
+[data-cl-heading="bracket"] .clh-coord { font-family: var(--cl-font-mono); font-size: 10px; opacity: 0.6; display: block; margin-top: 3px; letter-spacing: 0.1em; }
+[data-cl-heading="plate"] .clh-title { display: inline-block; padding: 3px 10px; background: #1b1e21; color: var(--cl-accent) !important; font-family: var(--cl-font-mono); text-transform: uppercase; letter-spacing: 0.1em; border-radius: 3px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.9); }
+[data-cl-heading="soft"] .clh-title { font-size: 20px; font-family: var(--cl-font-head); }
+[data-cl-heading="soft"] .clh-title::after { content: ""; display: block; width: 46px; height: 6px; border-radius: 999px; background: var(--cl-accent); margin-top: 6px; }
+
+/* ---------- 8. Mobile: each composition is re-composed for a phone ---------- */
+@media (max-width: 719px) {
+  :root[data-cosmos-composition="grid"] .clc-kicker,
+  :root[data-cosmos-composition="editorial"] .clc-folio,
+  :root[data-cosmos-composition="hud"] .clc-readout,
+  :root[data-cosmos-composition="bezel"] .clc-readout { display: none; }
+  :root[data-cosmos-composition="console"] .cl-chrome .clc-title { font-size: 11px; }
+  /* A phone sheet has no room for a vertical band: the title becomes a seal row. */
+  :root[data-cosmos-composition="scroll"] .cl-vertical-title { display: none; }
+  :root[data-cosmos-composition="scroll"] [data-lelu-module-content] { padding-right: 0; }
+  :root[data-cosmos-composition="hud"] [data-lelu-module-window]::before,
+  :root[data-cosmos-composition="hud"] [data-lelu-module-window]::after { width: 12px; height: 12px; }
+  :root[data-cosmos-language="constructivist"] [data-lelu-module-window]::before { display: none; }
+  [data-cl-heading="numbered"] .clh-num { font-size: 26px; }
+  [data-cl-heading="headline"] .clh-title { font-size: 20px; }
+  :root[data-cosmos-composition="organic"] [data-lelu-module-window] { border-radius: 26px 26px 0 0 !important; }
+}
+
+/* Heading blocks print in reverse: they must outrank the shared ink rule (§4). */
+:root[data-cosmos-language] [data-lelu-module-content] [data-cl-heading="block"] .clh-title,
+:root[data-cosmos-language] [data-lelu-module-content] [data-cl-heading="block"] .clh-title * { color: var(--cl-paper) !important; }
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] [data-cl-heading="block"] .clh-title,
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] [data-cl-heading="block"] .clh-title * { color: var(--cl-ink) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] [data-cl-heading="plate"] .clh-title,
+:root[data-cosmos-language] [data-lelu-module-content] [data-cl-heading="plate"] .clh-title * { color: var(--cl-accent) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] [data-cl-heading="numbered"] .clh-num { color: var(--cl-accent) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] [data-cl-heading="bracket"] .clh-title { color: var(--cl-accent) !important; }
+:root[data-cosmos-language="artdeco"] [data-lelu-module-content] [data-cl-heading="headline"] .clh-title { color: var(--cl-accent) !important; }

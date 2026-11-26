@@ -24,6 +24,10 @@ import { useEffect, useMemo, useState } from "react";
 import { layer } from "../../../core/ui/Layers";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import HomeStore from "./home/homeStore";
+import { TEMPLATES } from "./home/homeComposition";
+import { NeuralView } from "./neural/neuralView";
+import { languageFor, languageOfLayout } from "../../../core/interface/CosmosLanguages";
 import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import { openStudioMode } from "./GenesisVisualStudio";
@@ -113,6 +117,19 @@ export default function GenesisCommandPalette({
       { id: "open-video", label: "Open Video workspace", hint: "Motion Studio", run: () => openPanel("video") },
       { id: "open-projects-panel", label: "Open Projects", hint: "Projects", run: () => openPanel("projects") },
       { id: "open-settings", label: "Open Settings", hint: "System", run: () => openPanel("settings") },
+      { id: "open-browser", label: "Open Browser", hint: "Research", run: () => openPanel("browser") },
+      { id: "open-neural-map", label: "Open Neural Map", hint: "Cosmos", run: () => NeuralView.openStandalone(null, { over: true, from: "palette" }) },
+      // Infinite Cosmos: switch the layout — and every open window's design
+      // language — without leaving the windows (HomeStore keeps each
+      // layout's own arrangement; nothing is overwritten).
+      ...TEMPLATES.map((t) => ({
+        id: `layout-${t.id}`,
+        label: `Layout: ${t.name}`,
+        hint: languageFor(languageOfLayout(t)).name,
+        run: () => {
+          HomeStore.switchLayout(t.id);
+        },
+      })),
       { id: "open-knowledge", label: "Open Knowledge providers", hint: "System", run: () => openPanel("knowledge") },
       { id: "close-panel", label: "Close active panel", hint: "Genesis Core", run: () => openPanel("none") },
       { id: "clear-chat", label: "Clear conversation history", hint: "Genesis Core", run: () => clearConversation() },

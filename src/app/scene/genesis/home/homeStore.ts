@@ -437,6 +437,24 @@ class HomeStoreImpl {
     return created;
   }
 
+  /**
+   * Switch the Cosmos to a layout from anywhere (palette, LÉLU, a window):
+   * the presentation she already has for it is applied — with her own
+   * arrangement intact — and one is created only the first time. Nothing she
+   * arranged is overwritten; the previous presentation stays in the list.
+   */
+  switchLayout(template: TemplateId): HomePresentation {
+    const { list, activeId } = this.state.presentations;
+    const existing = list
+      .filter((p) => p.template === template)
+      .sort((a, b) => (a.id === activeId ? -1 : b.id === activeId ? 1 : b.updatedAt - a.updatedAt))[0];
+    if (existing) {
+      if (existing.id !== activeId) this.applyPresentation(existing.id);
+      return existing;
+    }
+    return this.createPresentation(template);
+  }
+
   private freeName(wanted: string): string {
     const taken = new Set(this.state.presentations.list.map((p) => p.name));
     const base = wanted.slice(0, 56) || "Home";

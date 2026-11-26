@@ -1,0 +1,101 @@
+/* ==========================================================
+ * LÉLU SETTINGS — navigation per composition (Infinite Cosmos)
+ * Only present under a non-default language (SettingsNav renders for
+ * every composition but glass). Paged compositions hide the sections
+ * that are not chosen; their controls stay mounted.
+ * ========================================================== */
+
+[data-cl-settings-paged] > [data-cl-current="false"] { display: none !important; }
+.cls-nav { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav button {
+  font-family: var(--cl-font) !important;
+  color: var(--cl-ink) !important;
+  background: transparent !important;
+  border: var(--cl-rule-w) solid var(--cl-rule) !important;
+  border-radius: var(--cl-radius) !important;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav button[data-on="true"] { background: var(--cl-ink) !important; color: var(--cl-paper) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav button[data-on="true"] * { color: var(--cl-paper) !important; }
+
+/* command: a shell menu */
+.cls-nav[data-cl-nav="command"] { font-family: var(--cl-font-mono); border: 1px dashed var(--cl-rule); padding: 6px 8px; gap: 2px 4px; }
+.cls-prompt { color: var(--cl-accent); margin-right: 6px; font-size: 12px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="command"] button { border: none !important; font-family: var(--cl-font-mono) !important; padding: 1px 6px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="command"] button::before { content: "" !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="command"] button::after { content: "" !important; }
+
+/* index: a numbered column beside the sections */
+[data-cl-settings="index"] { display: grid !important; grid-template-columns: 168px minmax(0, 1fr); column-gap: 18px; align-items: start; }
+[data-cl-settings="index"] > * { grid-column: 2; }
+.cls-nav[data-cl-nav="index"] { grid-column: 1 !important; grid-row: 1 / span 12; position: sticky; top: 0; flex-direction: column; align-items: stretch; gap: 0; border-top: calc(var(--cl-rule-w) * 1.5) solid var(--cl-rule); }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="index"] button { border-width: 0 0 1px !important; text-align: left; padding: 9px 4px; font-weight: 700; font-size: 13px; display: flex; gap: 10px; align-items: baseline; }
+.cls-nav[data-cl-nav="index"] b { color: var(--cl-accent); font-size: 16px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="index"] button[data-on="true"] b { color: var(--cl-accent) !important; }
+:root[data-cosmos-language="bauhaus"] .cls-nav[data-cl-nav="index"] b { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: var(--cl-accent-2); color: var(--cl-paper) !important; font-size: 11px; }
+:root[data-cosmos-language="bauhaus"] [data-lelu-module-content] .cls-nav[data-cl-nav="index"] button:nth-child(3n+1) b { background: var(--cl-accent); }
+:root[data-cosmos-language="bauhaus"] [data-lelu-module-content] .cls-nav[data-cl-nav="index"] button:nth-child(3n) b { background: var(--cl-accent-3); color: var(--cl-ink) !important; }
+
+/* contents: a printed table of contents */
+.cls-nav[data-cl-nav="contents"] { flex-direction: column; align-items: stretch; gap: 0; border-top: 3px double var(--cl-rule); border-bottom: 1px solid var(--cl-rule); padding: 8px 0; columns: 2; display: block; }
+.cls-contents-title { display: block; font-family: var(--cl-font-head); font-style: italic; font-size: 20px; text-align: center; margin-bottom: 6px; column-span: all; }
+:root[data-cosmos-language="artdeco"] .cls-contents-title { font-style: normal; text-transform: uppercase; letter-spacing: 0.3em; color: var(--cl-accent); font-size: 14px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="contents"] button { border: none !important; width: 100%; display: flex; align-items: baseline; gap: 6px; padding: 3px 4px; font-style: italic; break-inside: avoid; }
+.cls-nav[data-cl-nav="contents"] button i { flex: 1; border-bottom: 1px dotted var(--cl-ink-2); transform: translateY(-3px); }
+.cls-nav[data-cl-nav="contents"] button b { font-style: normal; font-family: var(--cl-font-head); }
+
+/* tabs: heavy blocks */
+.cls-nav[data-cl-nav="tabs"] { gap: 10px; padding-bottom: 4px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="tabs"] button { font-weight: 900 !important; text-transform: uppercase; box-shadow: 4px 4px 0 var(--cl-rule) !important; padding: 8px 12px; background: var(--cl-paper) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="tabs"] button[data-on="true"] { background: var(--cl-accent) !important; color: var(--cl-ink) !important; transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--cl-rule) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="tabs"] button[data-on="true"] * { color: var(--cl-ink) !important; }
+:root[data-cosmos-language="constructivist"] [data-lelu-module-content] .cls-nav[data-cl-nav="tabs"] button[data-on="true"] { background: var(--cl-accent) !important; color: var(--cl-paper) !important; }
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] .cls-nav[data-cl-nav="tabs"] button { border-radius: 999px !important; }
+:root[data-cosmos-language="memphis"] [data-lelu-module-content] .cls-nav[data-cl-nav="tabs"] button:nth-child(3n+2)[data-on="true"] { background: var(--cl-accent-2) !important; }
+
+/* vertical: tabs hang on the right */
+[data-cl-settings="vertical"] { display: grid !important; grid-template-columns: minmax(0, 1fr) 54px; column-gap: 12px; align-items: start; }
+[data-cl-settings="vertical"] > * { grid-column: 1; }
+.cls-nav[data-cl-nav="vertical"] { grid-column: 2 !important; grid-row: 1 / span 12; flex-direction: column; gap: 8px; position: sticky; top: 0; border-left: 1px solid var(--cl-rule); padding-left: 8px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="vertical"] button { border: none !important; padding: 8px 4px; }
+.cls-vtext { writing-mode: vertical-rl; font-family: var(--cl-font-head); letter-spacing: 0.25em; font-size: 12px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="vertical"] button[data-on="true"] { background: var(--cl-accent) !important; }
+
+/* dial: a radial selector */
+.cls-nav[data-cl-nav="dial"] { justify-content: center; }
+.cls-dial { position: relative; flex-shrink: 0; }
+.cls-dial-svg circle { stroke: var(--cl-rule); stroke-width: 1; }
+.cls-dial-svg .cls-dial-inner { stroke-dasharray: 2 4; }
+.cls-dial-svg line { stroke: var(--cl-accent); stroke-width: 1; }
+.cls-dial-svg .cls-dial-needle { stroke-width: 2; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="dial"] button { width: 42px; height: 26px; padding: 0; font-family: var(--cl-font-mono) !important; font-size: 10px; letter-spacing: 0.08em; background: var(--cl-paper) !important; }
+.cls-dial-read { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--cl-font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cl-accent); pointer-events: none; text-align: center; padding: 0 70px; }
+
+/* switchboard: hardware keys with lamps */
+.cls-nav[data-cl-nav="switchboard"] { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 10px; background: #1e2124; border-radius: 4px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.8); }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="switchboard"] button {
+  display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 4px;
+  background: linear-gradient(180deg, #5c636b, #3a3f45) !important; border: 1px solid #15181b !important; border-radius: 4px !important;
+  font-family: var(--cl-font-mono) !important; font-size: 10px; letter-spacing: 0.1em; color: #e6e6e1 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 0 #15181b !important;
+}
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="switchboard"] button[data-on="true"] { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 0 #15181b !important; color: #ffb000 !important; }
+.cls-lamp { width: 9px; height: 9px; border-radius: 999px; background: #3b1010; border: 1px solid #15181b; }
+.cls-nav[data-cl-nav="switchboard"] button[data-on="true"] .cls-lamp { background: #39d353; box-shadow: 0 0 8px #39d353; }
+
+/* pebbles */
+.cls-nav[data-cl-nav="pebbles"] { gap: 8px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="pebbles"] button { border-radius: 999px 70% 999px 80% !important; border-color: var(--cl-accent) !important; padding: 6px 14px; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="pebbles"] button:nth-child(2n) { border-radius: 70% 999px 80% 999px !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .cls-nav[data-cl-nav="pebbles"] button[data-on="true"] { background: var(--cl-accent) !important; }
+
+/* phones and narrow windows: side navigation folds above the sections */
+@container (max-width: 560px) {
+  [data-cl-settings="index"], [data-cl-settings="vertical"] { display: flex !important; flex-direction: column; }
+  .cls-nav[data-cl-nav="index"], .cls-nav[data-cl-nav="vertical"] { position: static; flex-direction: row; flex-wrap: wrap; border: none; padding: 0; }
+  .cls-vtext { writing-mode: horizontal-tb; letter-spacing: 0.1em; }
+  .cls-nav[data-cl-nav="contents"] { columns: 1; }
+  .cls-nav[data-cl-nav="switchboard"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

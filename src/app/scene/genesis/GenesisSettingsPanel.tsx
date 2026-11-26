@@ -31,6 +31,8 @@ import SupabasePersistence, { type SupabaseAuthState } from "../../../core/persi
 import { getEnvironment } from "../../../core/Environment";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
 import UsageSection from "./UsageSection";
+import { useCosmosLanguage } from "./cosmosLanguage/useCosmosLanguage";
+import SettingsNav, { SETTINGS_SECTIONS, type SettingsSectionId } from "./cosmosLanguage/SettingsNav";
 import VoiceResourceSection from "./VoiceResourceSection";
 
 const LEVELS: { value: NotificationLevel; label: string }[] = [
@@ -243,6 +245,22 @@ const LINKS: { id: GenesisPanel; label: string; description: string }[] = [
 ];
 
 export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelProps) {
+  /*
+   * Infinite Cosmos: the active composition decides how Settings is
+   * navigated (command line, numbered index, contents, tabs, dial,
+   * switchboard…). Paged compositions show one section at a time; every
+   * control stays mounted and every setting keeps working.
+   */
+  const cosmos = useCosmosLanguage();
+  const paged = cosmos.composition.settings.paged;
+  const [section, setSection] = useState<SettingsSectionId>("overview");
+  const sectionOn = (id: SettingsSectionId): "true" | "false" | undefined => (paged ? (section === id ? "true" : "false") : undefined);
+  const selectSection = (id: SettingsSectionId) => {
+    setSection(id);
+    if (!paged && typeof document !== "undefined") {
+      document.querySelector(`[data-settings-section="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
   const { openPanel, clearConversation, state } = useGenesisState();
   const [memoryCount, setMemoryCount] = useState<number | null>(null);
   const [avatarName, setAvatarName] = useState<string>("Lélu");
@@ -367,8 +385,15 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
       maxHeight="min(90svh, 860px)"
       elevation="focus"
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+      <div
+        style={{ display: "flex", flexDirection: "column", gap: 14 }}
+        data-cl-settings={cosmos.composition.settings.nav}
+        data-cl-settings-paged={paged ? "true" : undefined}
+      >
+        {cosmos.composition.settings.nav !== "none" ? (
+          <SettingsNav kind={cosmos.composition.settings.nav} sections={SETTINGS_SECTIONS} current={section} onSelect={selectSection} />
+        ) : null}
+        <div data-settings-section="overview" data-cl-current={sectionOn("overview")} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
             <strong style={{ color: "#e7c883" }}>{avatarName}</strong> · {memoryCount ?? "…"} local memories ·{" "}
             {stores.agents} agents · {stores.projects} projects · {stores.sketches} sketches · {stores.renders} renders ·{" "}
@@ -376,7 +401,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
         </div>
 
-        <div style={{ border: "1px solid rgba(125, 211, 252, 0.25)", borderRadius: 14, padding: 12 }}>
+        <div data-settings-section="identity" data-cl-current={sectionOn("identity")} style={{ border: "1px solid rgba(125, 211, 252, 0.25)", borderRadius: 14, padding: 12 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
             Cloud identity · Supabase
           </div>
@@ -457,7 +482,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           {authState.status === "degraded" ? <div style={{ color: "#fde68a", fontSize: 11, marginTop: 8 }}>Cloud sync is degraded; local state is still active.</div> : null}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div data-settings-section="destinations" data-cl-current={sectionOn("destinations")} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {LINKS.map((link) => (
             <button
               key={link.id}
@@ -481,7 +506,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
         </div>
 
         {/* Live local runtime status — honest probed state of every companion backend */}
-        <div style={{ border: "1px solid rgba(34, 211, 238, 0.25)", borderRadius: 14, padding: 12 }}>
+        <div data-settings-section="runtime" data-cl-current={sectionOn("runtime")} style={{ border: "1px solid rgba(34, 211, 238, 0.25)", borderRadius: 14, padding: 12 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 10 }}>
             Local runtime · live
           </div>
@@ -543,7 +568,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           )}
         </div>
 
-        <div style={{ border: "1px solid rgba(125, 211, 252, 0.25)", borderRadius: 14, padding: 12 }}>
+        <div data-settings-section="proactive" data-cl-current={sectionOn("proactive")} style={{ border: "1px solid rgba(125, 211, 252, 0.25)", borderRadius: 14, padding: 12 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 10 }}>
             Proactive intelligence
           </div>
@@ -673,7 +698,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
         </div>
 
-        <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12 }}>
+        <div data-settings-section="data" data-cl-current={sectionOn("data")} style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
             Data
           </div>
@@ -732,7 +757,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
         </div>
 
-        <div style={{ border: "1px solid rgba(34, 211, 238, 0.25)", borderRadius: 14, padding: 12 }}>
+        <div data-settings-section="engine" data-cl-current={sectionOn("engine")} style={{ border: "1px solid rgba(34, 211, 238, 0.25)", borderRadius: 14, padding: 12 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 10 }}>
             Local-first model engine
           </div>
@@ -783,7 +808,7 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
         </div>
 
-        <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12, fontSize: 12, lineHeight: 1.6, opacity: 0.85 }}>
+        <div data-settings-section="foundation" data-cl-current={sectionOn("foundation")} style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12, fontSize: 12, lineHeight: 1.6, opacity: 0.85 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
             Offline-first foundation
           </div>

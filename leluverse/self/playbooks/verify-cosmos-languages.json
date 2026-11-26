@@ -1,0 +1,14 @@
+{
+ "id": "verify-cosmos-languages",
+ "title": "Check that every Infinite Cosmos layout changes every window, and that nothing is lost when I switch",
+ "for": "LÉLU",
+ "why": "A layout of mine names a design language (Swiss, Editorial, Neo-Brutalist, Japanese Ma, Futurist HUD, Industrial Control, the Retro Terminal's console…). Switching layout must re-compose the Browser, Settings, the Neural Map and every other window — not just the background — while the same windows stay open where they were, the Browser keeps its page, Settings keeps every control and the Neural Map keeps its data. This replays that in the real app (dev server on 5173, or LELU_BASE) and writes desktop and phone screenshots plus verification.json. It needs Playwright's Chromium; it spends nothing.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-26-infinite-cosmos-layout-languages.md",
+ "steps": [
+  {"id": "all-layouts", "title": "Every layout, desktop and phone, windows open while switching", "kind": "tsx", "script": "scripts/verify-cosmos-languages.mjs", "args": [], "why": "Writes artifacts/infinite-cosmos/{desktop,mobile}/*.jpg and verification.json. Set ONLY=retro-terminal,swiss-international to check a few."},
+  {"id": "look", "title": "Look at the screenshots", "kind": "note", "why": "Tests prove attributes; only eyes prove a language reads as itself. Open three or four desktop and phone images side by side: if two layouts look like the same thing in different colours, the composition is not doing its job."},
+  {"id": "add-a-language", "title": "To add a language of my own", "kind": "note", "why": "Add it to LANGUAGES in src/core/interface/CosmosLanguages.ts (palette, fonts, shape, shadow, pattern) and point it at an existing composition if it is structurally compatible; only a genuinely different structure earns a new composition (then every component that switches on composition — LanguageWindowChrome, the Browser, SettingsNav, neuralLanguage.ts and the stylesheets — needs a branch). Then give a layout in TEMPLATES (home/homeComposition.ts) `language: \"<id>\"`, run npm test and this playbook."}
+ ]
+}

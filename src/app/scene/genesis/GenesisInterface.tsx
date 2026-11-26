@@ -193,6 +193,7 @@ import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
 import Sentinel from "../../../core/sentinel/Sentinel";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 import LeluSignInGate from "./LeluSignInGate";
+import CosmosLanguageRuntime from "./cosmosLanguage/CosmosLanguageRuntime";
 const GenesisBriefingsPanel = lazy(() => import("./GenesisBriefingsPanel"));
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
@@ -1023,6 +1024,8 @@ export default function GenesisInterface() {
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every
           scene so tools remain part of the canonical chat surface. */}
+      {/* The active layout's design language reaches every window from here. */}
+      <CosmosLanguageRuntime />
       <GenesisModuleHost renderers={MODULE_RENDERERS} resolve={resolveModule} labelFor={labelForModule} />
 
       {/* Interface orchestration: the live bridge LÉLU's interface.* tools

@@ -27,6 +27,10 @@ import { NeuralView } from "./neuralView";
 import { useNeuralRelations, useNeuralVersion, useNeuralView } from "./useNeural";
 import EntityPanel from "./EntityPanel";
 import "./neural.css";
+import "../cosmosLanguage/neuralLanguage.css";
+import { neuralGeometry, neuralLinkPath } from "./neuralLanguage";
+import { useCosmosLanguage } from "../cosmosLanguage/useCosmosLanguage";
+import type { CompositionSpec } from "../../../../core/interface/CosmosLanguages";
 
 const TYPE_COLOR: Record<NeuralEntity["type"], string> = {
   "cosmos-core": "#7dd3fc",
@@ -51,36 +55,148 @@ const TYPE_COLOR: Record<NeuralEntity["type"], string> = {
 
 const TYPES = Object.keys(TYPE_COLOR) as NeuralEntity["type"][];
 
-function Neighbourhood({ focus }: { focus: string }) {
+const CAP: Record<string, number> = { list: 26, grid: 24, matrix: 24, vertical: 28, columns: 28, radar: 28, cluster: 28, ring: 28 };
+
+/** One related entity, drawn in the composition's node language. */
+function NodeMark({ kind, x, y, color, label }: { kind: string; x: number; y: number; color: string; label: string }) {
+  switch (kind) {
+    case "text":
+      return <rect x={x - 5} y={y - 5} width={10} height={10} fill={color} />;
+    case "square":
+      return <rect x={x - 10} y={y - 10} width={20} height={20} fill={color} className="nm-mark" />;
+    case "serif":
+      return <circle cx={x} cy={y} r={6} fill="none" stroke={color} strokeWidth={1.5} className="nm-mark" />;
+    case "block":
+      return (
+        <g className="nm-mark">
+          <rect x={x - 11} y={y - 7} width={26} height={22} className="nm-block-shadow" />
+          <rect x={x - 14} y={y - 10} width={26} height={22} fill={color} className="nm-block" />
+        </g>
+      );
+    case "seal":
+      return (
+        <g className="nm-mark">
+          <rect x={x - 11} y={y - 11} width={22} height={22} rx={3} className="nm-seal" />
+          <text x={x} y={y + 4} textAnchor="middle" className="nm-seal-text">{label.slice(0, 1)}</text>
+        </g>
+      );
+    case "reticle":
+      return (
+        <g className="nm-mark" stroke={color} fill="none">
+          <circle cx={x} cy={y} r={9} strokeWidth={1.2} />
+          <path d={`M${x - 14},${y} h8 M${x + 6},${y} h8 M${x},${y - 14} v8 M${x},${y + 6} v8`} strokeWidth={1.2} />
+        </g>
+      );
+    case "lamp":
+      return (
+        <g className="nm-mark">
+          <circle cx={x} cy={y} r={11} className="nm-lamp-bezel" />
+          <circle cx={x} cy={y} r={7} fill={color} className="nm-lamp" />
+        </g>
+      );
+    case "blob": {
+      const d = `M${x - 12},${y} C${x - 12},${y - 10} ${x - 2},${y - 13} ${x + 6},${y - 10} C${x + 14},${y - 7} ${x + 13},${y + 6} ${x + 6},${y + 10} C${x - 2},${y + 14} ${x - 12},${y + 9} ${x - 12},${y}Z`;
+      return <path d={d} fill={color} fillOpacity={0.8} className="nm-mark" />;
+    }
+    default:
+      return <circle cx={x} cy={y} r={11} fill={color} fillOpacity={0.85} />;
+  }
+}
+
+function Neighbourhood({ focus, composition }: { focus: string; composition: CompositionSpec }) {
   const relations = useNeuralRelations(focus);
   const entity = neuralMap().get(focus);
-  const visible = relations.filter((n) => n.relation.type !== "operated-by").slice(0, 28);
+  const layout = composition.neural.layout;
+  const visible = relations.filter((n) => n.relation.type !== "operated-by").slice(0, CAP[layout] ?? 28);
   const size = 520;
   const c = size / 2;
-  const r = 190;
+  const geo = neuralGeometry(layout, visible.length, size, visible.map((n) => n.direction));
+  const nodeKind = composition.neural.node;
+  const glass = composition.id === "glass";
+  const focusColor = entity ? TYPE_COLOR[entity.type] : "#475569";
   return (
-    <svg className="nm-graph" viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Neighbourhood of ${entity?.label ?? focus}`} data-neural-graph={focus}>
+    <svg
+      className="nm-graph"
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label={`Neighbourhood of ${entity?.label ?? focus}`}
+      data-neural-graph={focus}
+      data-neural-layout={layout}
+      data-neural-node={nodeKind}
+      data-neural-link={composition.neural.link}
+    >
+      {geo.guides.map((g, i) =>
+        g.kind === "ring" ? (
+          <circle key={i} cx={c} cy={c} r={g.r} className="nm-guide" fill="none" />
+        ) : g.kind === "hline" ? (
+          <line key={i} x1={0} x2={size} y1={g.y} y2={g.y} className="nm-guide" />
+        ) : (
+          <line key={i} x1={g.x} x2={g.x} y1={0} y2={size} className="nm-guide" />
+        ),
+      )}
       {visible.map((n, i) => {
-        const a = (i / Math.max(1, visible.length)) * Math.PI * 2 - Math.PI / 2;
-        const x = c + Math.cos(a) * r;
-        const y = c + Math.sin(a) * r;
+        const { x, y } = geo.nodes[i];
         const other = n.direction === "out" ? n.relation.to : n.relation.from;
         const color = n.entity ? TYPE_COLOR[n.entity.type] : "#475569";
+        const label = (n.entity?.label ?? other).slice(0, 22);
+        const word = RELATION_WORDS[n.relation.type as NeuralRelationType][n.direction];
+        const lx = geo.label === "right" ? x + 12 : geo.label === "left" ? x - 16 : x;
+        const ly = geo.label === "below" ? y + 26 : y + 4;
+        const anchor = geo.label === "right" ? "start" : geo.label === "left" ? "end" : "middle";
         return (
           <g key={n.relation.id} className="nm-node" data-to={other} onClick={() => NeuralView.focus(other)} style={{ cursor: "pointer" }}>
-            <line x1={c} y1={c} x2={x} y2={y} stroke={color} strokeOpacity={0.45} strokeWidth={1.4} strokeDasharray={n.direction === "in" ? "4 4" : undefined} />
-            <text x={(c + x) / 2} y={(c + y) / 2 - 4} textAnchor="middle" className="nm-edge-label">
-              {RELATION_WORDS[n.relation.type as NeuralRelationType][n.direction]}
-            </text>
-            <circle cx={x} cy={y} r={11} fill={color} fillOpacity={0.85} />
-            <text x={x} y={y + 26} textAnchor="middle" className="nm-node-label">
-              {(n.entity?.label ?? other).slice(0, 22)}
+            {glass ? (
+              <line x1={c} y1={c} x2={x} y2={y} stroke={color} strokeOpacity={0.45} strokeWidth={1.4} strokeDasharray={n.direction === "in" ? "4 4" : undefined} />
+            ) : (
+              <path
+                d={neuralLinkPath(composition.neural.link, geo.focus, { x, y })}
+                className="nm-link"
+                data-direction={n.direction}
+                stroke={color}
+                fill="none"
+                strokeDasharray={n.direction === "in" || composition.neural.link === "dashed" ? "4 4" : undefined}
+              />
+            )}
+            {/* The ring keeps its mid-link words; denser layouts print the
+                relation under the node instead, where it cannot collide. */}
+            {glass ? (
+              <text x={(geo.focus.x + x) / 2} y={(geo.focus.y + y) / 2 - 4} textAnchor="middle" className="nm-edge-label">
+                {word}
+              </text>
+            ) : geo.label === "right" ? null : (
+              <text x={lx} y={geo.label === "below" ? ly + 11 : ly + 12} textAnchor={anchor} className="nm-edge-label">
+                {word}
+              </text>
+            )}
+            <NodeMark kind={nodeKind} x={x} y={y} color={color} label={label} />
+            <text x={lx} y={ly} textAnchor={anchor} className="nm-node-label">
+              {geo.label === "right" ? `${word} · ${label}` : label}
             </text>
           </g>
         );
       })}
-      <circle cx={c} cy={c} r={30} fill={entity ? TYPE_COLOR[entity.type] : "#475569"} />
-      <text x={c} y={c + 50} textAnchor="middle" className="nm-node-label nm-focus-label">
+      {glass ? (
+        <circle cx={c} cy={c} r={30} fill={focusColor} />
+      ) : (
+        <g className="nm-focus-mark" data-focus-kind={nodeKind}>
+          {nodeKind === "text" || nodeKind === "square" || nodeKind === "block" || nodeKind === "seal" || nodeKind === "lamp" ? (
+            <rect x={geo.focus.x - 18} y={geo.focus.y - 18} width={36} height={36} rx={nodeKind === "seal" ? 4 : nodeKind === "lamp" ? 18 : 0} fill={focusColor} className="nm-focus-shape" />
+          ) : nodeKind === "reticle" ? (
+            <g stroke={focusColor} fill="none" className="nm-focus-shape">
+              <circle cx={geo.focus.x} cy={geo.focus.y} r={24} strokeWidth={2} />
+              <circle cx={geo.focus.x} cy={geo.focus.y} r={6} fill={focusColor} />
+            </g>
+          ) : (
+            <circle cx={geo.focus.x} cy={geo.focus.y} r={nodeKind === "serif" ? 22 : 28} fill={focusColor} className="nm-focus-shape" />
+          )}
+        </g>
+      )}
+      <text
+        x={glass ? c : geo.label === "right" ? geo.focus.x + 26 : geo.focus.x}
+        y={glass ? c + 50 : geo.label === "right" ? geo.focus.y + 5 : geo.focus.y + 40}
+        textAnchor={glass ? "middle" : geo.label === "right" ? "start" : geo.label === "left" ? "end" : "middle"}
+        className="nm-node-label nm-focus-label"
+      >
         {entity?.label ?? focus}
       </text>
       {relations.length > visible.length ? (
@@ -92,9 +208,35 @@ function Neighbourhood({ focus }: { focus: string }) {
   );
 }
 
+/** The map's own name, as each composition would print it. */
+function mapTitle(composition: string, focusLabel: string): string {
+  switch (composition) {
+    case "console":
+      return `neural-map --focus "${focusLabel}"`;
+    case "grid":
+      return "Neural Map — Index";
+    case "editorial":
+      return "The Neural Map: An Atlas";
+    case "slab":
+      return "NEURAL MAP!";
+    case "scroll":
+      return "神経 · Neural Map";
+    case "hud":
+      return "NEURAL MAP // SCAN";
+    case "bezel":
+      return "NEURAL MAP · CONSOLE 1";
+    case "organic":
+      return "The Neural Garden";
+    default:
+      return "Neural Map";
+  }
+}
+
 export default function NeuralMapView({ embedded = false }: { embedded?: boolean }) {
   const view = useNeuralView();
   const version = useNeuralVersion();
+  // The active layout's language: the map is laid out and drawn in it.
+  const cosmos = useCosmosLanguage();
   const [text, setText] = useState("");
   const [type, setType] = useState<NeuralEntity["type"] | "">("");
   const map = neuralMap();
@@ -103,14 +245,15 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
   // every update, so these are simply read on render.
   void version;
   const stats = map.stats();
+  const entityLabel = map.get(focus)?.label ?? focus;
   const last = map.updateStats().at(-1);
   const hits = map.search({ text: text || undefined, types: type ? [type] : undefined, limit: 200 }).filter((e) => type || e.authority !== "referenced");
 
   const style: CSSProperties | undefined = embedded ? { position: "absolute", inset: 0 } : undefined;
   return (
-    <div className="nm-standalone" data-neural-map-view data-embedded={embedded ? "true" : "false"} data-layer={view.standalone.layer ?? "base"} data-from={view.standalone.from ?? ""} style={style} role="region" aria-label="Neural Map">
+    <div className="nm-standalone" data-neural-map-view data-embedded={embedded ? "true" : "false"} data-layer={view.standalone.layer ?? "base"} data-from={view.standalone.from ?? ""} data-cl-neural={cosmos.composition.id} style={style} role="region" aria-label="Neural Map">
       <header className="nm-top">
-        <strong>Neural Map</strong>
+        <strong data-cl-map-title>{mapTitle(cosmos.composition.id, entityLabel)}</strong>
         <small data-neural-stats>
           {stats.entities} entities · {stats.relations} relations · {Object.keys(stats.byAuthority).length} authorities
           {last ? ` · last update ${last.authority} ${last.ms} ms` : ""}
@@ -156,7 +299,7 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
           </ul>
         </aside>
         <main className="nm-centre">
-          <Neighbourhood focus={focus} />
+          <Neighbourhood focus={focus} composition={cosmos.composition} />
         </main>
         <section className="nm-side">
           <EntityPanel id={focus} onFollow={(id) => NeuralView.focus(id)} />

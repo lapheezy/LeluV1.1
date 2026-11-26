@@ -12,3 +12,16 @@
 import { createContext } from "react";
 
 export const InModuleWindow = createContext(false);
+
+/**
+ * Which window a panel is in, for the active design language: its folio
+ * number among the open windows, its role and its label (an editorial
+ * heading prints "No. 03", a grid heading the index number).
+ */
+export interface ModuleWindowMetaValue {
+  id: string;
+  index: number;
+  role: string;
+  label: string;
+}
+export const ModuleWindowMeta = createContext<ModuleWindowMetaValue | null>(null);
