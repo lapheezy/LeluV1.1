@@ -14,42 +14,93 @@
  * seconds: turns were cut or ran past their end. The audio thread is
  * not delayed by the page, so the decision is right even when the page
  * hears about it late.
+ *
+ * Live conversation: the detector also reports the ONSET of speech (150 ms
+ * of speech energy with at least one voiced 50 ms window), not only the end
+ * of the turn, and how much of the turn was voiced (see TurnResult.voicedMs).
+ * That is what lets her stop talking when the person starts, instead of
+ * after they have finished and been transcribed.
  * ==========================================================
  */
 
 export interface TurnResult {
   spoke: boolean;
+  /**
+   * Milliseconds of VOICED sound in the turn: periodic at a speaking pitch
+   * (70–400 Hz) after pre-emphasis. Noise, a clatter, a cough or a fan has
+   * none (measured: pink, brown, white noise and noise bursts 0 ms; real
+   * speech at least 200 ms per 3 s). Whisper turns such sound into "Thank
+   * you." or "."; a turn without voiced sound is not sent to it.
+   */
+  voicedMs: number;
   ms: number;
   peak: number;
   threshold: number;
   silenceMs: number;
 }
 
-const PROCESSOR = `
+/** The processor's source (exported so its rule can be tested off the audio thread). */
+export const TURN_DETECTOR_SOURCE = `
 class LeluTurnDetector extends AudioWorkletProcessor {
   constructor() {
     super();
     this.t = 0; this.sum = 0; this.n = 0; this.floor = []; this.threshold = 0.015;
     this.speech = 0; this.silence = 0; this.spoke = false; this.peak = 0; this.done = false;
     this.window = Math.round(sampleRate * 0.05);
+    // Voicing: decimate to ~12 kHz, pre-emphasise (whitens noise), and look for
+    // a strong autocorrelation peak at a speaking pitch, per 50 ms.
+    this.dec = Math.max(1, Math.round(sampleRate / 12000));
+    this.vsr = sampleRate / this.dec;
+    this.vwin = Math.round(this.vsr * 0.05);
+    this.vbuf = new Float32Array(this.vwin); this.vn = 0; this.acc = 0; this.accN = 0; this.prev = 0;
+    this.minLag = Math.round(this.vsr / 400); this.maxLag = Math.round(this.vsr / 70);
+    this.voiced = 0; this.onsetSent = false;
     this.port.onmessage = (e) => { if (e.data === "stop") this.finish(); };
   }
   finish() {
     if (this.done) return;
     this.done = true;
-    this.port.postMessage({ spoke: this.spoke, ms: this.t, peak: this.peak, threshold: this.threshold, silenceMs: this.silence });
+    this.port.postMessage({ spoke: this.spoke, ms: this.t, peak: this.peak, threshold: this.threshold, silenceMs: this.silence, voicedMs: this.voiced });
   }
   process(inputs) {
     if (this.done) return false;
     const channel = inputs[0] && inputs[0][0];
     if (!channel) return true;
-    for (let i = 0; i < channel.length; i++) this.sum += channel[i] * channel[i];
+    for (let i = 0; i < channel.length; i++) {
+      this.sum += channel[i] * channel[i];
+      this.acc += channel[i]; this.accN += 1;
+      if (this.accN === this.dec) {
+        const x = this.acc / this.dec; this.acc = 0; this.accN = 0;
+        this.vbuf[this.vn++] = x - 0.95 * this.prev; this.prev = x;
+        if (this.vn === this.vwin) { this.voicing(); this.vn = 0; }
+      }
+    }
     this.n += channel.length;
     if (this.n >= this.window) {
       this.step(Math.sqrt(this.sum / this.n), (this.n / sampleRate) * 1000);
       this.sum = 0; this.n = 0;
     }
     return true;
+  }
+  voicing() {
+    if (this.t < 300) return;
+    const b = this.vbuf, n = this.vwin;
+    let e = 0;
+    for (let i = 0; i < n; i++) e += b[i] * b[i];
+    if (Math.sqrt(e / n) < 0.004) return;
+    let best = 0;
+    for (let lag = this.minLag; lag <= this.maxLag; lag++) {
+      let c = 0, e1 = 0, e2 = 0;
+      for (let i = 0; i + lag < n; i++) { const a = b[i], d = b[i + lag]; c += a * d; e1 += a * a; e2 += d * d; }
+      const r = c / Math.sqrt(e1 * e2 + 1e-12);
+      if (r > best) best = r;
+    }
+    if (best > 0.45) this.voiced += 50;
+    // Onset = speech energy AND a voiced window: a clatter does not hold her.
+    if (this.spoke && this.voiced >= 50 && !this.onsetSent) {
+      this.onsetSent = true;
+      this.port.postMessage({ onset: true, ms: this.t });
+    }
   }
   step(level, dt) {
     this.t += dt;
@@ -62,7 +113,13 @@ class LeluTurnDetector extends AudioWorkletProcessor {
     const speaking = level > this.threshold && (!this.spoke || level > this.peak * 0.2);
     if (speaking) {
       this.speech += dt; this.silence = 0;
-      if (this.speech >= 150) this.spoke = true;
+      if (this.speech >= 150 && !this.spoke) {
+        this.spoke = true;
+        if (this.voiced >= 50 && !this.onsetSent) {
+          this.onsetSent = true;
+          this.port.postMessage({ onset: true, ms: this.t });
+        }
+      }
       if (level > this.peak) this.peak = level;
     } else {
       this.silence += dt;
@@ -85,11 +142,12 @@ export async function detectTurnOnAudioThread(
   ctx: AudioContext,
   source: AudioNode,
   cancelled: () => boolean,
+  onOnset?: () => void,
 ): Promise<TurnResult | null> {
   if (typeof AudioWorkletNode === "undefined" || !ctx.audioWorklet) return null;
   try {
     if (!loaded.has(ctx)) {
-      const url = URL.createObjectURL(new Blob([PROCESSOR], { type: "application/javascript" }));
+      const url = URL.createObjectURL(new Blob([TURN_DETECTOR_SOURCE], { type: "application/javascript" }));
       try {
         await ctx.audioWorklet.addModule(url);
       } finally {
@@ -107,7 +165,11 @@ export async function detectTurnOnAudioThread(
       const poll = setInterval(() => {
         if (cancelled()) node.port.postMessage("stop");
       }, 200);
-      node.port.onmessage = (event: MessageEvent<TurnResult>) => {
+      node.port.onmessage = (event: MessageEvent<TurnResult | { onset: true; ms: number }>) => {
+        if ("onset" in event.data) {
+          onOnset?.();
+          return;
+        }
         clearInterval(poll);
         try {
           source.disconnect(node);
@@ -116,7 +178,7 @@ export async function detectTurnOnAudioThread(
         } catch {
           // already disconnected
         }
-        resolve(event.data);
+        resolve(event.data as TurnResult);
       };
     });
   } catch (error) {

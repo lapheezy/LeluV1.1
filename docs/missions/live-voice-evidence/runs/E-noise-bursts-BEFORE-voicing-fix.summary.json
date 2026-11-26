@@ -1,0 +1,319 @@
+{
+ "label": "C-barge-in-mid-audio",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): C5.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "Tell me about the moon in three sentences.",
+   "reply": "The Moon is Earth’s sole natural satellite, orbiting about 384 000 km away and exerting roughly one‑sixth of Earth’s surface gravity. Its face we see is a mix of dark basaltic plains and bright impact craters, while the far side—always hidden from us—is heavily scarred and mountainous. It drives the tides, helps stabilize our planet’s tilt, and the Apollo missions proved it’s a volcanic body by bringing back rock samples.",
+   "spokenEnd": 23.36,
+   "vadEnd": 23.87,
+   "transcript": 24.17,
+   "userMsg": 24.81,
+   "firstText": 26.28,
+   "firstAudio": 26.03,
+   "speechEndToTranscriptS": 0.81,
+   "transcriptToFirstTextS": 2.11,
+   "transcriptToFirstAudioS": 1.86,
+   "speechEndToFirstAudioS": 2.67,
+   "textBeforeAudio": false,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    0
+   ],
+   "spokenText": [
+    "The Moon is Earth's sole natural satellite,",
+    "orbiting about three hundred eighty-four zero zero zero km away and exerting roughly one‑sixth of Earth's surface gravity."
+   ]
+  },
+  {
+   "heard": "Thank you.",
+   "reply": "You’re welcome.",
+   "spokenEnd": 33.96,
+   "vadEnd": 35.01,
+   "transcript": 35.62,
+   "userMsg": 35.78,
+   "firstText": 37.06,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.66,
+   "transcriptToFirstTextS": 1.44,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "You're welcome."
+   ]
+  },
+  {
+   "heard": ".",
+   "reply": "Anything on your mind?",
+   "spokenEnd": 36.96,
+   "vadEnd": 38.08,
+   "transcript": 38.51,
+   "userMsg": 41.89,
+   "firstText": 42.8,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.55,
+   "transcriptToFirstTextS": 4.29,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Anything on your mind?"
+   ]
+  },
+  {
+   "heard": ".",
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "spokenEnd": 39.96,
+   "vadEnd": 41.02,
+   "transcript": 41.32,
+   "userMsg": 48.08,
+   "firstText": 49.46,
+   "firstAudio": 50.36,
+   "speechEndToTranscriptS": 1.36,
+   "transcriptToFirstTextS": 8.14,
+   "transcriptToFirstAudioS": 9.04,
+   "speechEndToFirstAudioS": 10.4,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    6108
+   ],
+   "spokenText": [
+    "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+   ]
+  },
+  {
+   "heard": ".",
+   "reply": "Is there something you’d like to talk about?",
+   "spokenEnd": 42.96,
+   "vadEnd": 44.14,
+   "transcript": 44.47,
+   "userMsg": 62.95,
+   "firstText": 64.39,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.51,
+   "transcriptToFirstTextS": 19.92,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Is there something you'd like to talk about?"
+   ]
+  },
+  {
+   "heard": ".",
+   "reply": null,
+   "spokenEnd": 45.96,
+   "vadEnd": 47.07,
+   "transcript": 47.46,
+   "userMsg": 68.82,
+   "firstText": null,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.5,
+   "transcriptToFirstTextS": null,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    9118
+   ],
+   "spokenText": [
+    "Whenever you feel like chatting,"
+   ]
+  },
+  {
+   "heard": ".",
+   "reply": "Whenever you feel like chatting, just",
+   "spokenEnd": 48.96,
+   "vadEnd": 50.02,
+   "transcript": 50.13,
+   "userMsg": 79.22,
+   "firstText": 79.22,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.17,
+   "transcriptToFirstTextS": 29.09,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "What would you like to explore?"
+   ]
+  },
+  {
+   "heard": ".",
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "spokenEnd": 51.96,
+   "vadEnd": 53.03,
+   "transcript": 53.15,
+   "userMsg": 83.87,
+   "firstText": 84.91,
+   "firstAudio": 90.08,
+   "speechEndToTranscriptS": 1.19,
+   "transcriptToFirstTextS": 31.76,
+   "transcriptToFirstAudioS": 36.93,
+   "speechEndToFirstAudioS": 38.12,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    9172
+   ],
+   "spokenText": [
+    "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+   ]
+  },
+  {
+   "heard": "Wait. What is the moon made of? One sentence.",
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "spokenEnd": 54.96,
+   "vadEnd": 56.1,
+   "transcript": 56.16,
+   "userMsg": 113.97,
+   "firstText": 114.47,
+   "firstAudio": 116.57,
+   "speechEndToTranscriptS": 1.2,
+   "transcriptToFirstTextS": 58.31,
+   "transcriptToFirstAudioS": 60.41,
+   "speechEndToFirstAudioS": 61.61,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 2,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    26281,
+    0
+   ],
+   "spokenText": [
+    "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 9,
+  "herMessages": 9,
+  "bargeIns": 1,
+  "holds": 14,
+  "holdsResumed": 10,
+  "lastHold": {
+   "reason": "transcription-failed",
+   "heldMs": 1598,
+   "at": 1795727424104
+  },
+  "lastInterruption": {
+   "at": 1795727361539,
+   "heldWithinMs": 0,
+   "stoppedAfterOnsetMs": 2054
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 16,
+   "recorded": 13,
+   "unexplained": 3,
+   "spoken": 3,
+   "silent": 10,
+   "noticeSpoken": 3,
+   "byOutcome": {
+    "spoke": 3,
+    "echo-suppressed": 6,
+    "provider-unavailable": 3,
+    "duplicate-suppressed": 1
+   },
+   "last": "provider-unavailable"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   null,
+   "echo-suppressed",
+   "spoke",
+   "echo-suppressed",
+   "provider-unavailable",
+   "echo-suppressed",
+   null,
+   "echo-suppressed",
+   null,
+   "echo-suppressed",
+   "spoke",
+   "echo-suppressed",
+   "duplicate-suppressed",
+   "provider-unavailable",
+   "provider-unavailable"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 65,
+  "voxcpm2CpuPctPeak": 200,
+  "voxcpm2RssMiBPeak": 7138,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 59,
+  "chromiumCpuPctAvg": 186,
+  "chromiumRssMiBPeak": 2176
+ }
+}

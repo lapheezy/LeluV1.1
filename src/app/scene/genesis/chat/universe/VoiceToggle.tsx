@@ -30,7 +30,7 @@
  * ==========================================================
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as Icons from "lucide-react";
 
 import { useGenesis } from "../../GenesisCore";
@@ -42,12 +42,31 @@ import { voiceStatus } from "../../../../../core/voice/voiceStatus";
 export default function VoiceToggle({ conversationId }: { conversationId: string | null }) {
   const genesis = useGenesis();
   const { state, diagnostics } = useVoice();
+  // "Voice session ended" for a few seconds after a session stops, so the
+  // stopped state is seen, not inferred from a label disappearing.
+  const [justEnded, setJustEnded] = useState(false);
+  const wasActive = useRef(state.active);
+  useEffect(() => {
+    if (wasActive.current && !state.active && !state.error) {
+      setJustEnded(true);
+      const timer = setTimeout(() => setJustEnded(false), 4000);
+      wasActive.current = state.active;
+      return () => clearTimeout(timer);
+    }
+    if (state.active) setJustEnded(false);
+    wasActive.current = state.active;
+    return undefined;
+  }, [state.active, state.error]);
   const status = voiceStatus({
     active: state.active,
     phase: state.phase,
     captureSuspended: state.captureSuspended,
     ttsStage: diagnostics.ttsStage,
     audioPlaying: diagnostics.audioPlaying,
+    speechHeld: diagnostics.speechHeld,
+    userSpeaking: diagnostics.userSpeaking,
+    earsReady: diagnostics.earsReady,
+    justEnded,
   });
   const [dismissed, setDismissed] = useState<string | null>(null);
   const capture = state.active ? (state.captureSuspended ? "suspended" : "live") : "off";
@@ -80,7 +99,7 @@ export default function VoiceToggle({ conversationId }: { conversationId: string
         aria-pressed={state.active}
         aria-label={state.active ? (state.captureSuspended ? "Microphone paused — stop voice" : "Stop listening") : "Talk to LÉLU"}
         aria-describedby={error ? "lcu-voice-error" : undefined}
-        title={state.active ? (state.captureSuspended ? "Microphone paused" : `Listening — ${state.phase}`) : "Talk to LÉLU"}
+        title={state.active ? (state.captureSuspended ? "Microphone paused" : "End the voice session") : "Talk to LÉLU — one tap starts a live conversation"}
         onClick={() => {
           // A new attempt replaces the previous error.
           if (state.error) setDismissed(state.error);

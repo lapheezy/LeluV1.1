@@ -1,0 +1,2151 @@
+{
+ "label": "G-iphone13-emulation",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): G.wav",
+ "viewport": "iPhone 13 emulation (Chromium), not a physical phone",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,g1,sil:58,g2,sil:80",
+  "totalSeconds": 164.4,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "g1",
+    "at": 20,
+    "seconds": 2.56
+   },
+   {
+    "item": "sil:58",
+    "at": 22.56,
+    "seconds": 58
+   },
+   {
+    "item": "g2",
+    "at": 80.56,
+    "seconds": 3.84
+   },
+   {
+    "item": "sil:80",
+    "at": 84.4,
+    "seconds": 80
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "Tell me about the moon in three sentences.",
+   "firstSeen": 23.8,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Right — so the Moon is Earth’s sole natural satellite, orbiting about 384 400 km away and measuring roughly 3 474 km across. It’s tidally locked, so the same side always faces us, and its gravity drives the ocean tides while helping keep Earth’s axial tilt stable. Its surface is a barren, airless landscape of basaltic plains and countless impact craters, where temperatures swing from scorching heat to freezing cold.",
+   "firstSeen": 25.09,
+   "lastGrew": 25.29
+  },
+  {
+   "role": "user",
+   "text": "Wait. What is the moon made of? One sentence.",
+   "firstSeen": 85.37,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "The Moon is composed mainly of silicate rock—oxygen, silicon, magnesium, iron, calcium and aluminum—with a small metallic iron‑nickel core.",
+   "firstSeen": 86.56,
+   "lastGrew": 86.77
+  },
+  {
+   "role": "user",
+   "text": "Thanks! Bye for now.",
+   "firstSeen": 150.21,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Take care!",
+   "firstSeen": 151.26,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": 1225,
+   "firstAudioLatencyMs": 14503,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 14521,
+   "audioContextState": "unknown",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 5490,
+    "characters": null,
+    "at": 1795729675147,
+    "streaming": "off:slower-than-realtime",
+    "modelLoads": null,
+    "synthesisMs": 5439,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 1,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795729599398,
+   "speechHeld": false,
+   "holds": 1,
+   "holdsResumed": 0,
+   "lastHold": {
+    "reason": "interrupted",
+    "heldMs": 4446,
+    "at": 1795729603844
+   },
+   "lastInterruption": {
+    "at": 1795729603844,
+    "heldWithinMs": 0,
+    "stoppedAfterOnsetMs": 4446
+   },
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": 423,
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 2,
+    "recorded": 2,
+    "unexplained": 0,
+    "spoken": 2,
+    "silent": 0,
+    "noticeSpoken": 0,
+    "byOutcome": {
+     "spoke": 2
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "7d311bdb-88b2-4b30-a1f5-e5827955f592",
+    "text": "Tell me about the moon in three sentences.",
+    "at": 1795729542251,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "a2c37135-5f5b-404a-929c-3240e58ee938",
+    "text": "Wait. What is the moon made of? One sentence.",
+    "at": 1795729603847,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "a2c37135-5f5b-404a-929c-3240e58ee938",
+   "transcriptAt": 1795729603843,
+   "firstTextAt": 1795729605068,
+   "firstAudioAt": 1795729618346,
+   "firstAudibleAt": 1795729618364
+  }
+ },
+ "media": [
+  {
+   "t": 42.19,
+   "id": 1,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 42.2,
+   "id": 1,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 45.94,
+   "id": 1,
+   "event": "pause",
+   "at": 3.68
+  },
+  {
+   "t": 45.94,
+   "id": 1,
+   "event": "ended",
+   "at": 3.68
+  },
+  {
+   "t": 99.77,
+   "id": 2,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 99.78,
+   "id": 2,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 102.7,
+   "id": 2,
+   "event": "pause",
+   "at": 2.88
+  },
+  {
+   "t": 102.7,
+   "id": 2,
+   "event": "ended",
+   "at": 2.88
+  },
+  {
+   "t": 130.29,
+   "id": 3,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 130.32,
+   "id": 3,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 137.07,
+   "id": 3,
+   "event": "pause",
+   "at": 6.72
+  },
+  {
+   "t": 137.07,
+   "id": 3,
+   "event": "ended",
+   "at": 6.72
+  },
+  {
+   "t": 156.57,
+   "id": 4,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 156.59,
+   "id": 4,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 157.59,
+   "id": 4,
+   "event": "pause",
+   "at": 0.96
+  },
+  {
+   "t": 157.59,
+   "id": 4,
+   "event": "ended",
+   "at": 0.96
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.08,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7145,
+   "serverRssMiB": 58,
+   "chromiumRssMiB": 1991
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1995,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 6,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1809,
+   "chromiumCpu": 105
+  },
+  {
+   "t": 8,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1814,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1818,
+   "chromiumCpu": 102
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1548,
+   "chromiumCpu": 110
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1544,
+   "chromiumCpu": 96
+  },
+  {
+   "t": 16,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1546,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 18,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1551,
+   "chromiumCpu": 97
+  },
+  {
+   "t": 20,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1549,
+   "chromiumCpu": 95
+  },
+  {
+   "t": 22,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1646,
+   "chromiumCpu": 114
+  },
+  {
+   "t": 24,
+   "voxcpm2RssMiB": 7145,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1649,
+   "chromiumCpu": 98
+  },
+  {
+   "t": 26.1,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 100,
+   "serverRssMiB": 59,
+   "serverCpu": 2,
+   "chromiumRssMiB": 1663,
+   "chromiumCpu": 119
+  },
+  {
+   "t": 28,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1572,
+   "chromiumCpu": 96
+  },
+  {
+   "t": 30,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1569,
+   "chromiumCpu": 36
+  },
+  {
+   "t": 32,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1557,
+   "chromiumCpu": 19
+  },
+  {
+   "t": 34,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1551,
+   "chromiumCpu": 20
+  },
+  {
+   "t": 36,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1551,
+   "chromiumCpu": 20
+  },
+  {
+   "t": 38,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1534,
+   "chromiumCpu": 20
+  },
+  {
+   "t": 40.1,
+   "voxcpm2RssMiB": 7151,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1545,
+   "chromiumCpu": 91
+  },
+  {
+   "t": 42,
+   "voxcpm2RssMiB": 7128,
+   "voxcpm2Cpu": 190,
+   "serverRssMiB": 59,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1548,
+   "chromiumCpu": 88
+  },
+  {
+   "t": 44,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 192,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1720,
+   "chromiumCpu": 67
+  },
+  {
+   "t": 46,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1714,
+   "chromiumCpu": 23
+  },
+  {
+   "t": 48.1,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1565,
+   "chromiumCpu": 83
+  },
+  {
+   "t": 50,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1523,
+   "chromiumCpu": 91
+  },
+  {
+   "t": 52,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1534,
+   "chromiumCpu": 23
+  },
+  {
+   "t": 54,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1485,
+   "chromiumCpu": 31
+  },
+  {
+   "t": 56,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1500,
+   "chromiumCpu": 82
+  },
+  {
+   "t": 58,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1490,
+   "chromiumCpu": 90
+  },
+  {
+   "t": 60,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1498,
+   "chromiumCpu": 21
+  },
+  {
+   "t": 62,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1491,
+   "chromiumCpu": 19
+  },
+  {
+   "t": 64,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1500,
+   "chromiumCpu": 84
+  },
+  {
+   "t": 66,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1491,
+   "chromiumCpu": 87
+  },
+  {
+   "t": 68,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1499,
+   "chromiumCpu": 22
+  },
+  {
+   "t": 70,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 183,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1491,
+   "chromiumCpu": 27
+  },
+  {
+   "t": 72,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1498,
+   "chromiumCpu": 91
+  },
+  {
+   "t": 74.1,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1491,
+   "chromiumCpu": 89
+  },
+  {
+   "t": 76.1,
+   "voxcpm2RssMiB": 7107,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1499,
+   "chromiumCpu": 22
+  },
+  {
+   "t": 78.1,
+   "voxcpm2RssMiB": 7226,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1491,
+   "chromiumCpu": 20
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 7403,
+   "voxcpm2Cpu": 190,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1498,
+   "chromiumCpu": 83
+  },
+  {
+   "t": 82,
+   "voxcpm2RssMiB": 7283,
+   "voxcpm2Cpu": 190,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1699,
+   "chromiumCpu": 113
+  },
+  {
+   "t": 84,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 185,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1701,
+   "chromiumCpu": 31
+  },
+  {
+   "t": 86,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 150,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1677,
+   "chromiumCpu": 72
+  },
+  {
+   "t": 88,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 150,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1497,
+   "chromiumCpu": 108
+  },
+  {
+   "t": 90,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1493,
+   "chromiumCpu": 89
+  },
+  {
+   "t": 92,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1487,
+   "chromiumCpu": 23
+  },
+  {
+   "t": 94,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1477,
+   "chromiumCpu": 28
+  },
+  {
+   "t": 96,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1488,
+   "chromiumCpu": 84
+  },
+  {
+   "t": 98,
+   "voxcpm2RssMiB": 7189,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1491,
+   "chromiumCpu": 94
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7187,
+   "voxcpm2Cpu": 188,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1518,
+   "chromiumCpu": 27
+  },
+  {
+   "t": 102,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1616,
+   "chromiumCpu": 50
+  },
+  {
+   "t": 104,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1624,
+   "chromiumCpu": 79
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1552,
+   "chromiumCpu": 101
+  },
+  {
+   "t": 108,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1511,
+   "chromiumCpu": 33
+  },
+  {
+   "t": 110,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1514,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 112,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1513,
+   "chromiumCpu": 104
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1514,
+   "chromiumCpu": 104
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1511,
+   "chromiumCpu": 27
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1505,
+   "chromiumCpu": 20
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1514,
+   "chromiumCpu": 78
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1512,
+   "chromiumCpu": 106
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1510,
+   "chromiumCpu": 23
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1504,
+   "chromiumCpu": 24
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7188,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1509,
+   "chromiumCpu": 76
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7195,
+   "voxcpm2Cpu": 179,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1512,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 23,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1647,
+   "chromiumCpu": 56
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1637,
+   "chromiumCpu": 22
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1642,
+   "chromiumCpu": 89
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1533,
+   "chromiumCpu": 110
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1533,
+   "chromiumCpu": 112
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1531,
+   "chromiumCpu": 98
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1533,
+   "chromiumCpu": 108
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1537,
+   "chromiumCpu": 115
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1536,
+   "chromiumCpu": 105
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1535,
+   "chromiumCpu": 113
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 91,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1510,
+   "chromiumCpu": 131
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1513,
+   "chromiumCpu": 116
+  },
+  {
+   "t": 156.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1509,
+   "chromiumCpu": 45
+  },
+  {
+   "t": 158.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 50,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1501,
+   "chromiumCpu": 50
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1499,
+   "chromiumCpu": 112
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1500,
+   "chromiumCpu": 113
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1500,
+   "chromiumCpu": 109
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1501,
+   "chromiumCpu": 115
+  },
+  {
+   "t": 168.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1512,
+   "chromiumCpu": 111
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1514,
+   "chromiumCpu": 115
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1511,
+   "chromiumCpu": 102
+  },
+  {
+   "t": 174.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1510,
+   "chromiumCpu": 103
+  },
+  {
+   "t": 176.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1516,
+   "chromiumCpu": 112
+  },
+  {
+   "t": 178.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1521,
+   "chromiumCpu": 108
+  },
+  {
+   "t": 180.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1525,
+   "chromiumCpu": 107
+  },
+  {
+   "t": 182.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1528,
+   "chromiumCpu": 107
+  },
+  {
+   "t": 184.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1532,
+   "chromiumCpu": 106
+  },
+  {
+   "t": 186.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1533,
+   "chromiumCpu": 113
+  },
+  {
+   "t": 188.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1542,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 190.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1541,
+   "chromiumCpu": 105
+  },
+  {
+   "t": 192.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1548,
+   "chromiumCpu": 103
+  },
+  {
+   "t": 194.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1556,
+   "chromiumCpu": 112
+  },
+  {
+   "t": 196.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1561,
+   "chromiumCpu": 117
+  },
+  {
+   "t": 198.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1559,
+   "chromiumCpu": 115
+  },
+  {
+   "t": 200.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1565,
+   "chromiumCpu": 109
+  },
+  {
+   "t": 202.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1762,
+   "chromiumCpu": 141
+  },
+  {
+   "t": 204.1,
+   "voxcpm2RssMiB": 7194,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1804,
+   "chromiumCpu": 56
+  }
+ ],
+ "screenshots": [
+  "G-iphone13-emulation-01-loaded.jpg",
+  "G-iphone13-emulation-02-hearing.jpg",
+  "G-iphone13-emulation-03-speaking-1.jpg",
+  "G-iphone13-emulation-04-held-for-barge-in.jpg",
+  "G-iphone13-emulation-03-speaking-2.jpg",
+  "G-iphone13-emulation-03-speaking-3.jpg",
+  "G-iphone13-emulation-05-before-end.jpg",
+  "G-iphone13-emulation-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 1.84,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.05,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 206,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.16,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.16,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.18,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.18,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.59,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 2.66,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.24,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 582,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.09,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.13,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 7.47,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 2338,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 14.07,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-01-loaded.jpg"
+  },
+  {
+   "t": 0.07,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.07,
+   "kind": "scenario",
+   "spec": "sil:20,g1,sil:58,g2,sil:80",
+   "totalSeconds": 164.4,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "g1",
+     "at": 20,
+     "seconds": 2.56
+    },
+    {
+     "item": "sil:58",
+     "at": 22.56,
+     "seconds": 58
+    },
+    {
+     "item": "g2",
+     "at": 80.56,
+     "seconds": 3.84
+    },
+    {
+     "item": "sil:80",
+     "at": 84.4,
+     "seconds": 80
+    }
+   ]
+  },
+  {
+   "t": 0.08,
+   "kind": "state",
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.09,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.1,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 11,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.1,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.12,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 10,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.13,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.13,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 0.29,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 10.2,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10071,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 20.26,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10044,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 20.88,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 21.48,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-02-hearing.jpg"
+  },
+  {
+   "t": 23.24,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2978,\"voicedMs\":1250,\"spoke\":true,\"ms\":2987,\"peak\":0.4606,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 23.25,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 23.34,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 23.67,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 417,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 23.78,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 23.8,
+   "kind": "message",
+   "index": 0,
+   "role": "user",
+   "text": "Tell me about the moon in three sentences."
+  },
+  {
+   "t": 25.02,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Right, so the Moon is Earth's sole natural satellite,"
+  },
+  {
+   "t": 25.09,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 25.09,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "Right — so the Moon is Earth’s sole natural satellite, orbiting about 384 400 km"
+  },
+  {
+   "t": 25.23,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1445,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 33.29,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10038,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 38.42,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 42.19,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "orbiting about three hundred eighty-four four hundred km away and measuring roughly three four hundred seventy-four km across."
+  },
+  {
+   "t": 42.2,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 17157,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "17144",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.31",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.66",
+    "x-lelu-audio-seconds": "3.68"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-01.wav"
+  },
+  {
+   "t": 42.33,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 42.98,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-03-speaking-1.jpg"
+  },
+  {
+   "t": 43.36,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10059,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 46.04,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 53.38,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10023,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 54.48,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 54.49,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 54.49,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 62.5,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 63.41,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10024,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 73.45,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10043,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 80.98,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 81.7,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-04-held-for-barge-in.jpg"
+  },
+  {
+   "t": 83.19,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "It's tidally locked, so the same side always faces us, and its gravity drives the ocean tides while helping keep Earth's axial tilt stable."
+  },
+  {
+   "t": 83.22,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 41009,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "40946",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.66",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.92",
+    "x-lelu-audio-seconds": "8.32"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-02.wav"
+  },
+  {
+   "t": 84.84,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11389,\"voicedMs\":1450,\"spoke\":true,\"ms\":11381,\"peak\":0.4389,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 84.85,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 84.86,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 84.86,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 13,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 84.95,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 85.27,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 406,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 85.27,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 2075,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 85.37,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 85.37,
+   "kind": "message",
+   "index": 2,
+   "role": "user",
+   "text": "Wait. What is the moon made of? One sentence."
+  },
+  {
+   "t": 85.72,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 85.75,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 85.75,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 85.75,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 86.54,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The Moon is composed mainly of silicate rock,"
+  },
+  {
+   "t": 86.56,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 86.56,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "The Moon is composed mainly of silicate rock—oxygen, silicon,"
+  },
+  {
+   "t": 86.58,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 829,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 94.89,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10040,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 99.77,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "oxygen, silicon, magnesium, iron, calcium and aluminum, with a small metallic iron‑nickel core."
+  },
+  {
+   "t": 99.78,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 13230,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "13222",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.92",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.59",
+    "x-lelu-audio-seconds": "2.88"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-03.wav"
+  },
+  {
+   "t": 99.97,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 100.59,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-03-speaking-2.jpg"
+  },
+  {
+   "t": 102.64,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 102.89,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 104.92,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10025,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 114.97,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10039,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 125,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10026,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 130.31,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 30522,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "30464",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.59",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.53",
+    "x-lelu-audio-seconds": "6.72"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-04.wav"
+  },
+  {
+   "t": 130.49,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 131.04,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-03-speaking-3.jpg"
+  },
+  {
+   "t": 135.03,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10026,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 137.2,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 145.07,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10039,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 150.21,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 150.21,
+   "kind": "message",
+   "index": 4,
+   "role": "user",
+   "text": "Thanks! Bye for now."
+  },
+  {
+   "t": 150.22,
+   "kind": "typed",
+   "text": "Thanks! Bye for now.",
+   "sessionActive": true
+  },
+  {
+   "t": 150.26,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 151.08,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Take care!"
+  },
+  {
+   "t": 151.1,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 839,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 151.26,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 151.26,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "Take care!"
+  },
+  {
+   "t": 155.11,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10038,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 156.58,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 5491,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "5439",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.53",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "5.67",
+    "x-lelu-audio-seconds": "0.96"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-05.wav"
+  },
+  {
+   "t": 156.63,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 157.66,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 165.16,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10040,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 166.84,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 175.22,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10061,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 185.27,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10048,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 195.33,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10056,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 198.98,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 198.99,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 198.99,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 201,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-05-before-end.jpg"
+  },
+  {
+   "t": 201.13,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 201.16,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5799,\"voicedMs\":0,\"spoke\":false,\"ms\":5820,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":5538}"
+  },
+  {
+   "t": 202.63,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-06-ended.jpg"
+  }
+ ]
+}

@@ -120,6 +120,51 @@ class Cancelled(Exception):
     """The client went away before its generation began."""
 
 
+class CancelledMidGeneration(Cancelled):
+    """The client went away WHILE its sentence was being generated."""
+
+    def __init__(self, steps: int):
+        super().__init__(f"client gone after {steps} generation steps")
+        self.steps = steps
+
+
+# Live conversation: stop a sentence nobody will hear.
+#
+# A barge-in aborts the page's request, but model.generate() used to run the
+# sentence to its end ("client_gone_after_generation"): at RTF 9 a 119-character
+# sentence held the worker for about a minute, the reply to the interruption
+# queued behind it, timed out, and the page reported her voice failed (measured
+# in the live run). VoxCPM2 generates in steps (`for i in tqdm(range(max_len))`
+# in voxcpm/model/voxcpm2.py, ~0.5–1.5 s each here). The module's tqdm is
+# wrapped so that, between two steps, the request's cancellation check runs and
+# a gone client ends the generation. The model's computation is not changed.
+# VOXCPM_CANCEL_MID_SENTENCE=0 turns this off.
+_step_check = threading.local()
+
+
+def _install_step_cancellation() -> bool:
+    if _env("VOXCPM_CANCEL_MID_SENTENCE", "1") == "0":
+        return False
+    try:
+        import voxcpm.model.voxcpm2 as v2
+    except Exception:
+        return False
+    original = getattr(v2, "tqdm", None)
+    if original is None or getattr(original, "_lelu_cancellable", False):
+        return original is not None
+
+    def cancellable(iterable, *args, **kwargs):
+        check = getattr(_step_check, "fn", None)
+        for step, item in enumerate(original(iterable, *args, **kwargs)):
+            if check is not None and step > 0 and check():
+                raise CancelledMidGeneration(step)
+            yield item
+
+    cancellable._lelu_cancellable = True  # type: ignore[attr-defined]
+    v2.tqdm = cancellable
+    return True
+
+
 class FairTurn:
     """
     One generation at a time, in ARRIVAL order.
@@ -310,12 +355,10 @@ class Engine:
         text = _env("VOXCPM_SELFTEST_TEXT", "Hello, I am ready.")
         started = time.time()
         with self._generation_lock:
-            wav = model.generate(
-                text=text,
-                reference_wav_path=str(self.reference_path),
-                cfg_value=self.config.cfg_value,
-                inference_timesteps=self.config.timesteps,
-            )
+            # Through the same path real sentences take: her reference is
+            # encoded here, once, before READY — the first person to speak does
+            # not wait for it — and READY proves that path speaks.
+            wav = self._generate(model, text, self.config.cfg_value, self.config.timesteps)
         samples = np.asarray(wav, dtype="float32").reshape(-1)
         rate = self.sample_rate or 24000
         seconds = len(samples) / float(rate) if rate else 0.0
@@ -429,6 +472,7 @@ class Engine:
                 raise
             self.load_seconds = round(time.time() - started, 1)
             self.load_error = None
+            self.mid_sentence_cancel = _install_step_cancellation()
             # Loaded is not ready: prove the weights speak before saying so.
             self._model = model
             self._set_state("INITIALIZING")
@@ -522,12 +566,11 @@ class Engine:
             # sentence is not synthesis, and counting it inflated the RTF the
             # page sizes its wait on (measured 18.75 for a real 7–8).
             started = time.time()
-            wav = model.generate(
-                text=text,
-                reference_wav_path=str(self.reference_path),
-                cfg_value=cfg_value,
-                inference_timesteps=timesteps,
-            )
+            _step_check.fn = cancelled
+            try:
+                wav = self._generate(model, text, cfg_value, timesteps)
+            finally:
+                _step_check.fn = None
         elapsed_ms = int((time.time() - started) * 1000)
         audio = self._wav_bytes(wav)
         sample_rate = self.sample_rate or 24000
@@ -543,6 +586,64 @@ class Engine:
         self._cache_put(key, audio)
         return audio, meta
 
+    # Her reference, encoded once. VoxCPM.generate() builds this prompt cache
+    # (one pass of the 12 s reference through the audio VAE encoder) inside
+    # EVERY call, i.e. for every sentence she says. The library exposes the
+    # two steps separately (build_prompt_cache / _generate_with_prompt_cache,
+    # the exact calls generate() makes), so the cache is built once per
+    # reference file and reused. VOXCPM_REUSE_REFERENCE=0 restores the
+    # per-call path. Measured cost of one encode: `referenceEncodeMs` in /health.
+    _prompt_cache = None
+    _prompt_cache_for = None
+    reference_encode_ms = None
+
+    def _reference_cache(self, model):
+        ref = str(self.reference_path)
+        if self._prompt_cache is None or self._prompt_cache_for != ref:
+            started = time.time()
+            self._prompt_cache = model.tts_model.build_prompt_cache(reference_wav_path=ref)
+            self.reference_encode_ms = int((time.time() - started) * 1000)
+            self._prompt_cache_for = ref
+            sys.stderr.write(json.dumps({"event": "reference_cached", "encodeMs": self.reference_encode_ms}) + "\n")
+        return self._prompt_cache
+
+    def _generate(self, model, text: str, cfg_value: float, timesteps: int, streaming: bool = False):
+        """One generation in her voice; a list-free generator when streaming."""
+        import re as _re
+
+        reuse = _env("VOXCPM_REUSE_REFERENCE", "1") != "0" and hasattr(getattr(model, "tts_model", None), "build_prompt_cache")
+        if not reuse:
+            call = model.generate_streaming if streaming else model.generate
+            return call(text=text, reference_wav_path=str(self.reference_path), cfg_value=cfg_value, inference_timesteps=timesteps)
+        cache = self._reference_cache(model)
+        # The same normalisation and arguments VoxCPM._generate uses.
+        clean = _re.sub(r"\s+", " ", text.replace("\n", " "))
+        result = model.tts_model._generate_with_prompt_cache(
+            target_text=clean,
+            prompt_cache=cache,
+            min_len=2,
+            max_len=4096,
+            inference_timesteps=timesteps,
+            cfg_value=cfg_value,
+            retry_badcase=True,
+            retry_badcase_max_times=3,
+            retry_badcase_ratio_threshold=6.0,
+            streaming=streaming,
+        )
+        if streaming:
+            def chunks():
+                try:
+                    for wav, _, _ in result:
+                        yield wav.squeeze(0).cpu().numpy()
+                finally:
+                    result.close()
+            return chunks()
+        try:
+            wav, _, _ = next(result)
+        finally:
+            result.close()
+        return wav.squeeze(0).cpu().numpy()
+
     def stream_for(self, text: str, cfg_value: "float | None" = None, timesteps: "int | None" = None, cancelled=None):
         """Yield raw PCM16 chunks as the model produces them."""
         import numpy as np
@@ -554,12 +655,7 @@ class Engine:
         produced = 0
         with self._generation_lock.turn(cancelled):
             started = time.time()
-            for chunk in model.generate_streaming(
-                text=text,
-                reference_wav_path=str(self.reference_path),
-                cfg_value=cfg_value,
-                inference_timesteps=timesteps,
-            ):
+            for chunk in self._generate(model, text, cfg_value, timesteps, streaming=True):
                 if chunk is None or len(chunk) == 0:
                     continue
                 produced += len(chunk)
@@ -598,6 +694,9 @@ class Engine:
             "loaded": loaded,
             "loadSeconds": self.load_seconds,
             "loadError": self.load_error,
+            "referenceReused": _env("VOXCPM_REUSE_REFERENCE", "1") != "0",
+            "referenceEncodeMs": self.reference_encode_ms,
+            "cancelMidSentence": bool(getattr(self, "mid_sentence_cancel", False)),
             "sampleRate": self.sample_rate,
             "reference": self.reference_meta or None,
             "queueDepth": self.pending,
@@ -798,6 +897,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("X-Lelu-Cached", "1" if meta.get("cached") else "0")
             self.end_headers()
             self.wfile.write(audio)
+        except CancelledMidGeneration as exc:
+            sys.stderr.write(json.dumps({"event": "cancelled_mid_generation", "chars": len(text), "steps": exc.steps}) + "\n")
         except Cancelled:
             sys.stderr.write(json.dumps({"event": "cancelled_before_start", "chars": len(text)}) + "\n")
         except (BrokenPipeError, ConnectionResetError):

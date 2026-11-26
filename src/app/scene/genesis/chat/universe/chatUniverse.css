@@ -74,7 +74,30 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 .lcu-voice-status[data-lelu-voice-status="speaking"] { border-color: rgba(167, 139, 250, 0.7); }
 .lcu-voice-status[data-lelu-voice-status="voice-failed"] { border-color: rgba(248, 113, 113, 0.65); }
 .lcu-voice:has(.lcu-voice-error) .lcu-voice-status { display: none; }
+.lcu-voice-status[data-lelu-voice-status="hearing"] { border-color: rgba(52, 211, 153, 0.7); }
+.lcu-voice-status[data-lelu-voice-status="ended"] { opacity: 0.85; }
+/* Live conversation: the status chip floats above the composer; while it is
+   shown the thread keeps room under its last line so the chip never covers
+   a message (found on the iPhone 13 viewport in the finalization run). */
+:root:has([data-lelu-voice-status]) .lcu-thread { padding-bottom: 46px; scroll-padding-bottom: 46px; }
 .lcu-voice-stop { color: #fca5a5; }
+/* Phones: a floating chip covered the thread's text while she spoke (iPhone 13
+   emulation, live conversation run). On a narrow screen the voice status and
+   its error take their own full-width row INSIDE the composer, above the
+   input — in the layout flow, so the thread ends above them and nothing is
+   covered. The microphone, Stop and Send stay in the input row. */
+@media (max-width: 640px) {
+  .lcu-win-composer, .lcu-composer { flex-wrap: wrap; position: relative; }
+  .lcu-win-composer .lcu-voice, .lcu-composer .lcu-voice { display: contents; }
+  .lcu-win-composer .lcu-voice-status, .lcu-composer .lcu-voice-status,
+  .lcu-win-composer .lcu-voice-error, .lcu-composer .lcu-voice-error {
+    position: static; order: -1; flex: 1 0 100%; max-width: none; width: auto; box-sizing: border-box; margin: 0 2px 2px;
+  }
+  .lcu-win-composer .lcu-voice-status, .lcu-composer .lcu-voice-status { text-align: center; padding: 4px 10px; }
+  :root:has([data-lelu-voice-status]) .lcu-thread { padding-bottom: 10px; scroll-padding-bottom: 10px; }
+}
+.lcu-msg-interim { align-self: flex-end; opacity: 0.7; font-style: italic; }
+.lcu-msg-interim .lcu-bubble { background: rgba(168, 85, 247, 0.3); border: 1px dashed rgba(240, 171, 252, 0.5); }
 @media (pointer: coarse) { .lcu-voice-stop { min-width: 44px; min-height: 44px; } }
 .lcu-icon.sm[data-lelu-voice-capture="live"][data-lelu-voice-phase="listening"] { animation: lcu-voice-pulse 1.6s ease-in-out infinite; }
 @keyframes lcu-voice-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.55); } 50% { box-shadow: 0 0 0 6px rgba(236, 72, 153, 0.18); } }

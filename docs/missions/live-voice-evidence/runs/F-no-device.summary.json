@@ -1,0 +1,42 @@
+{
+ "label": "F-no-device",
+ "input": "no capture device",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [],
+ "session": {
+  "userMessages": 0,
+  "herMessages": 0,
+  "bargeIns": 0,
+  "holds": 0,
+  "holdsResumed": 0,
+  "lastHold": null,
+  "lastInterruption": null,
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 0,
+   "recorded": 0,
+   "unexplained": 0,
+   "spoken": 0,
+   "silent": 0,
+   "noticeSpoken": 0,
+   "byOutcome": {},
+   "last": null
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "NotFoundError: Requested device not found"
+  ],
+  "turnOutcomes": []
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 0,
+  "voxcpm2CpuPctPeak": 0,
+  "voxcpm2RssMiBPeak": 7347,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 73,
+  "chromiumCpuPctAvg": 187,
+  "chromiumRssMiBPeak": 1735
+ }
+}

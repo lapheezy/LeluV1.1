@@ -1,0 +1,5056 @@
+{
+ "label": "C-barge-in-mid-audio",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): C5.wav",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,g1,sil:10,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,g2,sil:80",
+  "totalSeconds": 191.4,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "g1",
+    "at": 20,
+    "seconds": 2.56
+   },
+   {
+    "item": "sil:10",
+    "at": 22.56,
+    "seconds": 10
+   },
+   {
+    "item": "burst:0.6",
+    "at": 32.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 33.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 35.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 36.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 38.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 39.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 41.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 42.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 44.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 45.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 47.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 48.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 50.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 51.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 53.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 54.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 56.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 57.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 59.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 60.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 62.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 63.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 65.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 66.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 68.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 69.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 71.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 72.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 74.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 75.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 77.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 78.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 80.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 81.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 83.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 84.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 86.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 87.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 89.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 90.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 92.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 93.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 95.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 96.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 98.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 99.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 101.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 102.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "burst:0.6",
+    "at": 104.56,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2.4",
+    "at": 105.16,
+    "seconds": 2.4
+   },
+   {
+    "item": "g2",
+    "at": 107.56,
+    "seconds": 3.84
+   },
+   {
+    "item": "sil:80",
+    "at": 111.4,
+    "seconds": 80
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "Tell me about the moon in three sentences.",
+   "firstSeen": 24.81,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "The Moon is Earth’s sole natural satellite, orbiting about 384 000 km away and exerting roughly one‑sixth of Earth’s surface gravity. Its face we see is a mix of dark basaltic plains and bright impact craters, while the far side—always hidden from us—is heavily scarred and mountainous. It drives the tides, helps stabilize our planet’s tilt, and the Apollo missions proved it’s a volcanic body by bringing back rock samples.",
+   "firstSeen": 26.28,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Thank you.",
+   "firstSeen": 35.78,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "You’re welcome.",
+   "firstSeen": 37.06,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": ".",
+   "firstSeen": 41.89,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Anything on your mind?",
+   "firstSeen": 42.8,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": ".",
+   "firstSeen": 48.08,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 49.46,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": ".",
+   "firstSeen": 62.95,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Is there something you’d like to talk about?",
+   "firstSeen": 64.39,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": ".",
+   "firstSeen": 68.82,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Whenever you feel like chatting, just",
+   "firstSeen": 79.22,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": ".",
+   "firstSeen": 79.22,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "What would you like to explore?",
+   "firstSeen": 80.68,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": ".",
+   "firstSeen": 83.87,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 84.91,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Wait. What is the moon made of? One sentence.",
+   "firstSeen": 113.97,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 114.47,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": null,
+   "firstAudioLatencyMs": 9582,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 9603,
+   "audioContextState": "unknown",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 127,
+    "characters": null,
+    "at": 1795727442349,
+    "streaming": "off:slower-than-realtime",
+    "modelLoads": null,
+    "synthesisMs": 0,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 1,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795727434635,
+   "speechHeld": false,
+   "holds": 14,
+   "holdsResumed": 10,
+   "lastHold": {
+    "reason": "transcription-failed",
+    "heldMs": 1598,
+    "at": 1795727424104
+   },
+   "lastInterruption": {
+    "at": 1795727361539,
+    "heldWithinMs": 0,
+    "stoppedAfterOnsetMs": 2054
+   },
+   "transcriptionsInFlight": 0,
+   "speechToTranscriptMs": 512,
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 16,
+    "recorded": 13,
+    "unexplained": 3,
+    "spoken": 3,
+    "silent": 10,
+    "noticeSpoken": 3,
+    "byOutcome": {
+     "spoke": 3,
+     "echo-suppressed": 6,
+     "provider-unavailable": 3,
+     "duplicate-suppressed": 1
+    },
+    "last": "provider-unavailable"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "c4252e23-9fe7-4a0a-bb9a-29f8405781fb",
+    "text": "Tell me about the moon in three sentences.",
+    "at": 1795727350088,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "fbde4cf4-067f-4d65-b14d-d9f914bbb8fb",
+    "text": "Thank you.",
+    "at": 1795727361542,
+    "outcome": null
+   },
+   {
+    "index": 3,
+    "turnId": "7a00b4eb-3032-4501-8f02-4bd18c1ad8d1",
+    "text": ".",
+    "at": 1795727364440,
+    "outcome": "echo-suppressed"
+   },
+   {
+    "index": 4,
+    "turnId": "3995875a-1ae0-4a45-82aa-f566d1f6e582",
+    "text": ".",
+    "at": 1795727367253,
+    "outcome": "spoke"
+   },
+   {
+    "index": 5,
+    "turnId": "d23a2840-2955-46d1-838e-cc473af62f44",
+    "text": ".",
+    "at": 1795727370466,
+    "outcome": "echo-suppressed"
+   },
+   {
+    "index": 6,
+    "turnId": "d5c3b97c-fd5b-41ac-869f-c0278382570e",
+    "text": ".",
+    "at": 1795727373383,
+    "outcome": "provider-unavailable"
+   },
+   {
+    "index": 7,
+    "turnId": "eccb50e9-71cd-4126-9fa1-771615abebe2",
+    "text": ".",
+    "at": 1795727385240,
+    "outcome": "echo-suppressed"
+   },
+   {
+    "index": 8,
+    "turnId": "88a369bc-cd1f-4419-9249-8c7f6d31508f",
+    "text": ".",
+    "at": 1795727388330,
+    "outcome": null
+   },
+   {
+    "index": 9,
+    "turnId": "b2c9a232-e5f7-4a7a-b1b5-552c5b0a3089",
+    "text": ".",
+    "at": 1795727391246,
+    "outcome": "echo-suppressed"
+   },
+   {
+    "index": 10,
+    "turnId": "c2455b75-115d-4337-a746-f7f3bbff78ae",
+    "text": ".",
+    "at": 1795727394596,
+    "outcome": null
+   },
+   {
+    "index": 11,
+    "turnId": "528cd22c-5756-4079-b9b8-4dff1fc6d07b",
+    "text": ".",
+    "at": 1795727404528,
+    "outcome": "echo-suppressed"
+   },
+   {
+    "index": 12,
+    "turnId": "b23639bf-6fed-43e8-a55a-02a0b7501227",
+    "text": ".",
+    "at": 1795727404530,
+    "outcome": "spoke"
+   },
+   {
+    "index": 13,
+    "turnId": "544d3313-5975-4b5c-b666-c48fa59f007f",
+    "text": ".",
+    "at": 1795727405993,
+    "outcome": "echo-suppressed"
+   },
+   {
+    "index": 14,
+    "turnId": "863ea4eb-50ed-45b3-8afa-a9a1bd0d271d",
+    "text": ".",
+    "at": 1795727406468,
+    "outcome": "duplicate-suppressed"
+   },
+   {
+    "index": 15,
+    "turnId": "40b9a0a6-06ea-4dec-bbd6-90129c7905af",
+    "text": ".",
+    "at": 1795727409345,
+    "outcome": "provider-unavailable"
+   },
+   {
+    "index": 16,
+    "turnId": "6b686af3-1b3f-41db-8726-89ad700b1ff0",
+    "text": "Wait. What is the moon made of? One sentence.",
+    "at": 1795727439059,
+    "outcome": "provider-unavailable"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "6b686af3-1b3f-41db-8726-89ad700b1ff0",
+   "transcriptAt": 1795727439055,
+   "firstTextAt": null,
+   "firstAudioAt": 1795727448637,
+   "firstAudibleAt": 1795727448658
+  }
+ },
+ "media": [
+  {
+   "t": 25.9,
+   "id": 1,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 26.03,
+   "id": 1,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 29.13,
+   "id": 1,
+   "event": "pause",
+   "at": 3.04
+  },
+  {
+   "t": 29.13,
+   "id": 1,
+   "event": "ended",
+   "at": 3.04
+  },
+  {
+   "t": 50.21,
+   "id": 2,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 50.36,
+   "id": 2,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 51.59,
+   "id": 2,
+   "event": "pause",
+   "at": 1.18
+  },
+  {
+   "t": 53.14,
+   "id": 2,
+   "event": "play()",
+   "at": 1.18
+  },
+  {
+   "t": 53.14,
+   "id": 2,
+   "event": "playing",
+   "at": 1.24
+  },
+  {
+   "t": 53.25,
+   "id": 2,
+   "event": "pause",
+   "at": 1.28
+  },
+  {
+   "t": 53.25,
+   "id": 2,
+   "event": "ended",
+   "at": 1.28
+  },
+  {
+   "t": 89.95,
+   "id": 3,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 90.08,
+   "id": 3,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 90.58,
+   "id": 3,
+   "event": "pause",
+   "at": 0.45
+  },
+  {
+   "t": 92.09,
+   "id": 3,
+   "event": "play()",
+   "at": 0.45
+  },
+  {
+   "t": 92.1,
+   "id": 3,
+   "event": "playing",
+   "at": 0.51
+  },
+  {
+   "t": 93.63,
+   "id": 3,
+   "event": "pause",
+   "at": 1.92
+  },
+  {
+   "t": 95.08,
+   "id": 3,
+   "event": "play()",
+   "at": 1.92
+  },
+  {
+   "t": 95.16,
+   "id": 3,
+   "event": "playing",
+   "at": 0.02
+  },
+  {
+   "t": 96.6,
+   "id": 3,
+   "event": "pause",
+   "at": 1.45
+  },
+  {
+   "t": 98.19,
+   "id": 3,
+   "event": "play()",
+   "at": 1.45
+  },
+  {
+   "t": 98.19,
+   "id": 3,
+   "event": "playing",
+   "at": 1.51
+  },
+  {
+   "t": 98.69,
+   "id": 3,
+   "event": "pause",
+   "at": 1.92
+  },
+  {
+   "t": 98.69,
+   "id": 3,
+   "event": "ended",
+   "at": 1.92
+  },
+  {
+   "t": 116.31,
+   "id": 4,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 116.57,
+   "id": 4,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 122.72,
+   "id": 4,
+   "event": "pause",
+   "at": 5.92
+  },
+  {
+   "t": 122.72,
+   "id": 5,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 122.72,
+   "id": 4,
+   "event": "ended",
+   "at": 5.92
+  },
+  {
+   "t": 122.75,
+   "id": 5,
+   "event": "playing",
+   "at": 0
+  },
+  {
+   "t": 128.76,
+   "id": 5,
+   "event": "pause",
+   "at": 5.92
+  },
+  {
+   "t": 128.76,
+   "id": 5,
+   "event": "ended",
+   "at": 5.92
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.8,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 6954,
+   "serverRssMiB": 55,
+   "chromiumRssMiB": 2075
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2075,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 6.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1984,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 8.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1988,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 10.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1995,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 12.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2014,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2007,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 16.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2013,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 18.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2022,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 20.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2039,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 22.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2033,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 24.1,
+   "voxcpm2RssMiB": 6954,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 55,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2040,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 26.1,
+   "voxcpm2RssMiB": 6957,
+   "voxcpm2Cpu": 10,
+   "serverRssMiB": 57,
+   "serverCpu": 2,
+   "chromiumRssMiB": 2086,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 28.1,
+   "voxcpm2RssMiB": 6958,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 56,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2130,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 30.1,
+   "voxcpm2RssMiB": 6958,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 56,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2145,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 32.1,
+   "voxcpm2RssMiB": 6958,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 56,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2147,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 34.1,
+   "voxcpm2RssMiB": 6958,
+   "voxcpm2Cpu": 193,
+   "serverRssMiB": 56,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2140,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 36.1,
+   "voxcpm2RssMiB": 6958,
+   "voxcpm2Cpu": 176,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2170,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 38.1,
+   "voxcpm2RssMiB": 6964,
+   "voxcpm2Cpu": 121,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2176,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 40.1,
+   "voxcpm2RssMiB": 6964,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1891,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 42.1,
+   "voxcpm2RssMiB": 6964,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1894,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 44.1,
+   "voxcpm2RssMiB": 6971,
+   "voxcpm2Cpu": 193,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1894,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 46.1,
+   "voxcpm2RssMiB": 6971,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1811,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 48.1,
+   "voxcpm2RssMiB": 6971,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 58,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1799,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 50.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 143,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1807,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 52.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1807,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 54.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1805,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 56.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1786,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 58.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1789,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 60.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1785,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 62.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1787,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 64.1,
+   "voxcpm2RssMiB": 6978,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 58,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1791,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 66.1,
+   "voxcpm2RssMiB": 7027,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1808,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 68.1,
+   "voxcpm2RssMiB": 7027,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1798,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 70.1,
+   "voxcpm2RssMiB": 7027,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1817,
+   "chromiumCpu": 193
+  },
+  {
+   "t": 72.1,
+   "voxcpm2RssMiB": 7027,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 57,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1820,
+   "chromiumCpu": 192
+  },
+  {
+   "t": 74.1,
+   "voxcpm2RssMiB": 7133,
+   "voxcpm2Cpu": 150,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1812,
+   "chromiumCpu": 194
+  },
+  {
+   "t": 76.1,
+   "voxcpm2RssMiB": 7133,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1796,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 78.1,
+   "voxcpm2RssMiB": 7133,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 58,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1805,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 7138,
+   "voxcpm2Cpu": 141,
+   "serverRssMiB": 58,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1808,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 82.1,
+   "voxcpm2RssMiB": 7138,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1810,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 84.1,
+   "voxcpm2RssMiB": 7138,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 58,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1811,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 86.1,
+   "voxcpm2RssMiB": 7138,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1823,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 88.1,
+   "voxcpm2RssMiB": 7138,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 58,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1816,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 90.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 183,
+   "serverRssMiB": 53,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1815,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 92.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1809,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 94.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1811,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 96.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1812,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 98.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1815,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1819,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 102.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1813,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 104.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1813,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1813,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 108.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1823,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 110.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1830,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 112.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1819,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7069,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1830,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 187,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1843,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 18,
+   "serverRssMiB": 53,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1855,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1889,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1887,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1895,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1902,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1917,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1922,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1923,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1925,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1932,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1937,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1955,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1952,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1942,
+   "chromiumCpu": 193
+  },
+  {
+   "t": 156.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1943,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 158.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1938,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1945,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1940,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1941,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1914,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 168.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1918,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1922,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1912,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 174.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1913,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 176.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1923,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 178.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 180.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1860,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 182.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1855,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 184.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 186.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 188.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 190.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 192.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 194.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 196.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 198.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 200.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 202.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 204.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 206.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 208.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1859,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 210.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 212.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1860,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 214.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 216.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1886,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 218.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 220.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1885,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 222.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1892,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 224.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1899,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 226.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1892,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 228.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1895,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 230.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1899,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 232.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1900,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 234.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1918,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 236.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 53,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1921,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 238.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1914,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 240.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1915,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 242.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 51,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 244.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 51,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 246.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 51,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1931,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 248.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 51,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1934,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 250.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1938,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 252.1,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1942,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 254.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1963,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 256.2,
+   "voxcpm2RssMiB": 7076,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 52,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1942,
+   "chromiumCpu": 193
+  }
+ ],
+ "screenshots": [
+  "C-barge-in-mid-audio-01-loaded.jpg",
+  "C-barge-in-mid-audio-02-hearing.jpg",
+  "C-barge-in-mid-audio-03-speaking-1.jpg",
+  "C-barge-in-mid-audio-04-held-for-barge-in.jpg",
+  "C-barge-in-mid-audio-03-speaking-2.jpg",
+  "C-barge-in-mid-audio-03-speaking-3.jpg",
+  "C-barge-in-mid-audio-05-before-end.jpg",
+  "C-barge-in-mid-audio-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 2.22,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.65,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 425,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.77,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.77,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.77,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.77,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 3,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.11,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.11,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 0,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 4.7,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 4.81,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 8.24,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 3421,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 17.32,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-01-loaded.jpg"
+  },
+  {
+   "t": 0.55,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.55,
+   "kind": "scenario",
+   "spec": "sil:20,g1,sil:10,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,burst:0.6,sil:2.4,g2,sil:80",
+   "totalSeconds": 191.4,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "g1",
+     "at": 20,
+     "seconds": 2.56
+    },
+    {
+     "item": "sil:10",
+     "at": 22.56,
+     "seconds": 10
+    },
+    {
+     "item": "burst:0.6",
+     "at": 32.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 33.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 35.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 36.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 38.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 39.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 41.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 42.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 44.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 45.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 47.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 48.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 50.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 51.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 53.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 54.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 56.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 57.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 59.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 60.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 62.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 63.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 65.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 66.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 68.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 69.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 71.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 72.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 74.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 75.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 77.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 78.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 80.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 81.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 83.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 84.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 86.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 87.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 89.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 90.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 92.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 93.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 95.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 96.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 98.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 99.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 101.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 102.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "burst:0.6",
+     "at": 104.56,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2.4",
+     "at": 105.16,
+     "seconds": 2.4
+    },
+    {
+     "item": "g2",
+     "at": 107.56,
+     "seconds": 3.84
+    },
+    {
+     "item": "sil:80",
+     "at": 111.4,
+     "seconds": 80
+    }
+   ]
+  },
+  {
+   "t": 0.55,
+   "kind": "state",
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.81,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.81,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 5,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.83,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.95,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 122,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.95,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.95,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 1.09,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 11.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10057,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 21.15,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10129,\"peak\":0.2986,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":0}"
+  },
+  {
+   "t": 21.93,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 22.4,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-02-hearing.jpg"
+  },
+  {
+   "t": 23.87,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2612,\"spoke\":true,\"ms\":2708,\"peak\":0.462,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 23.87,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 24,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 24.17,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 301,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 24.52,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 24.81,
+   "kind": "message",
+   "index": 0,
+   "role": "user",
+   "text": "Tell me about the moon in three sentences."
+  },
+  {
+   "t": 25.61,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The Moon is Earth's sole natural satellite,"
+  },
+  {
+   "t": 25.71,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 25.77,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1238,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 25.9,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "orbiting about three hundred eighty-four zero zero zero km away and exerting roughly one‑sixth of Earth's surface gravity."
+  },
+  {
+   "t": 25.95,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 287,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "0",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "1",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.49",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime"
+   },
+   "saved": "audio/C-barge-in-mid-audio-tts-01.wav"
+  },
+  {
+   "t": 26.02,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 26.28,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 26.28,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "The Moon is Earth’s sole natural satellite, orbiting about 384 000 km away and exerting roughly one‑sixth of Earth’s surface gravity. Its face we see is a mix of dark basaltic plains and bright impact"
+  },
+  {
+   "t": 26.58,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-03-speaking-1.jpg"
+  },
+  {
+   "t": 29.41,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 33.57,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 33.8,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-04-held-for-barge-in.jpg"
+  },
+  {
+   "t": 34.06,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 35.01,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11076,\"spoke\":true,\"ms\":11110,\"peak\":0.0441,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 35.01,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 35.22,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 35.62,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 611,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 35.66,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 9757,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 35.78,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 35.78,
+   "kind": "message",
+   "index": 2,
+   "role": "user",
+   "text": "Thank you."
+  },
+  {
+   "t": 35.93,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 36.76,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 36.81,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "You're welcome."
+  },
+  {
+   "t": 36.81,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 880,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 37.06,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 37.06,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "You’re welcome."
+  },
+  {
+   "t": 38.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":2991,\"peak\":0.1382,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 38.08,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 38.33,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 38.51,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 423,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 39.61,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 41.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":2815,\"peak\":0.1421,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 41.02,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 41.21,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 41.32,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 300,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 41.43,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 41.54,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 41.89,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 41.89,
+   "kind": "message",
+   "index": 4,
+   "role": "user",
+   "text": "."
+  },
+  {
+   "t": 42.55,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 5736,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 42.65,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Anything on your mind?"
+  },
+  {
+   "t": 42.67,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1132,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 42.8,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 42.8,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "Anything on your mind?"
+  },
+  {
+   "t": 44.14,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":3106,\"peak\":0.1364,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 44.15,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 44.28,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 44.47,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 319,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 45.53,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 47.07,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2717,\"spoke\":true,\"ms\":2895,\"peak\":0.1425,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 47.07,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 47.29,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 47.46,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 390,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 47.58,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 47.87,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 47.89,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 48.08,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 48.08,
+   "kind": "message",
+   "index": 6,
+   "role": "user",
+   "text": "."
+  },
+  {
+   "t": 48.63,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 48.63,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 48.64,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 429,
+   "ms": 752,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 48.69,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 48.75,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 48.76,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 429,
+   "ms": 65,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 48.78,
+   "kind": "request",
+   "url": "/api/model/cerebras/chat/completions"
+  },
+  {
+   "t": 48.8,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 6142,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "6108",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.19",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.77",
+    "x-lelu-audio-seconds": "1.28"
+   },
+   "saved": "audio/C-barge-in-mid-audio-tts-02.wav"
+  },
+  {
+   "t": 49.28,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+   "t": 49.28,
+   "kind": "response",
+   "url": "/api/model/cerebras/chat/completions",
+   "status": 401,
+   "ms": 493,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 49.28,
+   "kind": "console",
+   "level": "error",
+   "text": "[CerebrasProvider] API request failed {status: 401, message: Wrong API Key, model: gpt-oss-120b}"
+  },
+  {
+   "t": 49.32,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+  },
+  {
+   "t": 49.46,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 49.46,
+   "kind": "message",
+   "index": 7,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 50.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2966,\"peak\":0.1526,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 50.03,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 50.13,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 50.13,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 102,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 50.21,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 9s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727384934,\"retryAfterSeconds\":9}"
+  },
+  {
+   "t": 50.22,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 50.46,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 50.76,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-03-speaking-2.jpg"
+  },
+  {
+   "t": 51.69,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 53.03,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":2997,\"peak\":0.1355,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 53.04,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 53.06,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 53.15,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 53.15,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 6s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727384934,\"retryAfterSeconds\":6}"
+  },
+  {
+   "t": 53.15,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 116,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 53.35,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 54.79,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 56.1,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2904,\"peak\":0.1326,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 56.1,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 56.15,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 56.16,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 56.16,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 60,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 56.16,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 3s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727384934,\"retryAfterSeconds\":3}"
+  },
+  {
+   "t": 56.44,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 57.72,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 59.05,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2870,\"peak\":0.1346,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 59.05,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 59.32,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 59.32,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 279,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 60.1,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 60.71,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 62.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2994,\"peak\":0.1397,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 62.09,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 62.09,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 62.09,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 0,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 62.17,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 62.41,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 319,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 62.54,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 62.95,
+   "kind": "message",
+   "index": 8,
+   "role": "user",
+   "text": "."
+  },
+  {
+   "t": 63.8,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 64.11,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Is there something you'd like to talk about?"
+  },
+  {
+   "t": 64.11,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1572,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 64.2,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 14883,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 64.39,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 64.39,
+   "kind": "message",
+   "index": 9,
+   "role": "assistant",
+   "text": "Is there something you’d like to talk about?"
+  },
+  {
+   "t": 64.98,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2927,\"peak\":0.1451,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 65.01,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 65.11,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 65.33,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 322,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 66.67,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 66.89,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 68.09,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":3105,\"peak\":0.1398,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 68.1,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 68.1,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 68.68,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 577,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 68.74,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 68.82,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 68.82,
+   "kind": "message",
+   "index": 10,
+   "role": "user",
+   "text": "."
+  },
+  {
+   "t": 70.5,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 71.17,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":3061,\"peak\":0.1421,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 71.18,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 71.31,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 71.61,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 431,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 72.93,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 73.86,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 9742,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "9118",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.77",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.75",
+    "x-lelu-audio-seconds": "1.92"
+   },
+   "saved": "audio/C-barge-in-mid-audio-tts-03.wav"
+  },
+  {
+   "t": 74,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":2811,\"peak\":0.1434,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 74.01,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 74.13,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 74.34,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 328,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 75.8,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 77.04,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":3024,\"peak\":0.1346,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 77.04,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 77.17,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 77.42,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 379,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 78.46,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 78.61,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Whenever you feel like chatting,"
+  },
+  {
+   "t": 78.72,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 9975,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 78.72,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 78.77,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 79.22,
+   "kind": "message",
+   "index": 11,
+   "role": "assistant",
+   "text": "Whenever you feel like chatting, just"
+  },
+  {
+   "t": 79.22,
+   "kind": "message",
+   "index": 12,
+   "role": "user",
+   "text": "."
+  },
+  {
+   "t": 80.11,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "What would you like to explore?"
+  },
+  {
+   "t": 80.2,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 1595,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 80.2,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1436,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 80.21,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2926,\"spoke\":true,\"ms\":3161,\"peak\":0.1406,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 80.21,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 80.42,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 80.55,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 342,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 80.68,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 80.68,
+   "kind": "message",
+   "index": 13,
+   "role": "assistant",
+   "text": "What would you like to explore?"
+  },
+  {
+   "t": 81.73,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 82.99,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2560,\"spoke\":true,\"ms\":2687,\"peak\":0.1344,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 82.99,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 83.1,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 83.33,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 331,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 83.48,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 83.87,
+   "kind": "message",
+   "index": 14,
+   "role": "user",
+   "text": "."
+  },
+  {
+   "t": 84.11,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 84.11,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 429,
+   "ms": 632,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 84.24,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 84.33,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 84.36,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 429,
+   "ms": 125,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 84.6,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 84.91,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 84.91,
+   "kind": "message",
+   "index": 15,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 86.03,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"spoke\":true,\"ms\":3028,\"peak\":0.1342,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 86.03,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 86.08,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 86.18,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 145,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 86.19,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 86.19,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 23s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":23}"
+  },
+  {
+   "t": 86.42,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 87.81,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 89.18,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":3142,\"peak\":0.1343,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 89.21,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 89.21,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 89.21,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 20s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":20}"
+  },
+  {
+   "t": 89.21,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 0,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 89.31,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 89.99,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+  },
+  {
+   "t": 90.09,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 90.1,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 9838,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "9172",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.75",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.78",
+    "x-lelu-audio-seconds": "1.92"
+   },
+   "saved": "audio/C-barge-in-mid-audio-tts-04.wav"
+  },
+  {
+   "t": 90.58,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-03-speaking-3.jpg"
+  },
+  {
+   "t": 90.83,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 91.97,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":2778,\"peak\":0.1443,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 91.99,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 92.1,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 92.1,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 17s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":17}"
+  },
+  {
+   "t": 92.11,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 110,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 92.23,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 92.49,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 92.72,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 92.75,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 92.84,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 93.75,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 94.98,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":3004,\"peak\":0.1411,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 95.02,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 95.07,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 95.07,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 95.07,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 53,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 95.08,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 14s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":14}"
+  },
+  {
+   "t": 95.28,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 96.59,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 96.82,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 98.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2926,\"spoke\":true,\"ms\":3093,\"peak\":0.1429,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 98.08,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 98.09,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 98.1,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 98.19,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 102,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 98.19,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 11s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":11}"
+  },
+  {
+   "t": 98.39,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 98.62,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 98.92,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 99.66,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 99.98,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 100.98,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 101.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":2898,\"peak\":0.14,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 101.02,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 101.1,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 101.23,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 213,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 101.26,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 101.34,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 8s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":8}"
+  },
+  {
+   "t": 101.48,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 102.67,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 104.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2717,\"spoke\":true,\"ms\":2927,\"peak\":0.1429,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 104.08,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 104.13,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 104.14,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 56,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 104.14,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 5s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":5}"
+  },
+  {
+   "t": 104.34,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 105.68,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 107.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":2881,\"peak\":0.1447,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 107.02,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 107.11,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 107.12,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 429,
+   "ms": 103,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 107.15,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 107.15,
+   "kind": "console",
+   "level": "error",
+   "text": "[VoiceEngine] Whisper fallback error: Whisper transcription failed (429): {\"ok\":false,\"code\":\"PROVIDER_COOLDOWN\",\"error\":\"groq is cooling down after a rate limit; retry in 2s.\",\"provider\":\"groq\",\"retryAfterAt\":1795727434381,\"retryAfterSeconds\":2}"
+  },
+  {
+   "t": 107.36,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 108.74,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 109,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 112.63,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5381,\"spoke\":true,\"ms\":5605,\"peak\":0.3888,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 112.63,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 112.84,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 113.14,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 505,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 113.97,
+   "kind": "message",
+   "index": 16,
+   "role": "user",
+   "text": "Wait. What is the moon made of? One sentence."
+  },
+  {
+   "t": 113.97,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 113.97,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 114.09,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 114.23,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 114.47,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 114.47,
+   "kind": "message",
+   "index": 17,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 116.31,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+  },
+  {
+   "t": 116.43,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 116.45,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 26315,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "26281",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.78",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.44",
+    "x-lelu-audio-seconds": "5.92"
+   },
+   "saved": "audio/C-barge-in-mid-audio-tts-05.wav"
+  },
+  {
+   "t": 116.57,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 235,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "0",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "1",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.44",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime"
+   },
+   "saved": "audio/C-barge-in-mid-audio-tts-06.wav"
+  },
+  {
+   "t": 122.89,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10250,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 128.97,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 132.96,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10067,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 133.75,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 143.17,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10207,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 153.27,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10098,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 163.41,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10130,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 173.68,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10267,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 183.74,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10053,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 194,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10252,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 199.12,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 204.13,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10092,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 214.34,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10237,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 215.98,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 216.04,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 216.06,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 224.56,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10211,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 234.84,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10276,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 244.89,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10047,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 253.07,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-05-before-end.jpg"
+  },
+  {
+   "t": 253.55,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 253.71,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":8673,\"spoke\":false,\"ms\":8712,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":8411}"
+  },
+  {
+   "t": 254.68,
+   "kind": "screenshot",
+   "file": "C-barge-in-mid-audio-06-ended.jpg"
+  }
+ ]
+}

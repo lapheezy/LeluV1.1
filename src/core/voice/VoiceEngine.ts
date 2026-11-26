@@ -23,7 +23,11 @@ import {
   elevenLabsReady,
   forgetElevenLabsStatus,
   getLastSynthesis,
+  holdSpeaking,
+  isSpeechHeld,
+  resumeSpeaking,
   speakText,
+  speechWorkerRtf,
   stopSpeaking,
   ttsQueueDepth,
 } from "./elevenLabsTts";
@@ -81,6 +85,33 @@ const SPEECH_CHUNK_SIZE = 200;
 export function nextSpeechBoundary(rest: string): number | null {
   const match = rest.match(/^[\s\S]*?(?:[.!?]\s+|[!?]$|(?<!\d)\.$|\n+)/);
   return match ? match[0].length : null;
+}
+
+/**
+ * Where the FIRST spoken piece of a reply ends, for a slow speech worker.
+ *
+ * VoxCPM2 on a CPU costs a fixed ~4 s per request plus ~0.2 s per character
+ * (measured: a 27-character clause in 9.6 s, an 89-character sentence in
+ * 22.6 s). Her first word waits for the whole first piece, so the first piece
+ * ends at the first clause break (", " "; " ": " " — " "—" " (") once it holds at least
+ * three words, instead of at the end of the sentence. Later pieces are whole
+ * sentences again, synthesised while she is already speaking. Falls back to
+ * nextSpeechBoundary when no clause break comes before the sentence end.
+ */
+export function firstSpeechBoundary(rest: string): number | null {
+  const sentence = nextSpeechBoundary(rest);
+  // ", " "; " ": " " — " "—" (unspaced em dash) " (" — each ends a clause.
+  const clause = /[,;:]\s+|\s[—–-]\s+|—|\s(?=\()/g;
+  let match: RegExpExecArray | null;
+  while ((match = clause.exec(rest)) !== null) {
+    const end = match.index + match[0].length;
+    if (sentence !== null && end >= sentence) break;
+    const head = rest.slice(0, match.index).trim();
+    // A digit on both sides is a number ("1,000"), not a clause.
+    if (/\d$/.test(head) && /^\d/.test(rest.slice(end))) continue;
+    if (head.length >= 12 && head.split(/\s+/).length >= 3) return end;
+  }
+  return sentence;
 }
 
 /**
@@ -374,6 +405,33 @@ export interface VoiceDiagnostics {
   } | null;
   /** Times the user spoke over her and she stopped, this session. */
   bargeIns: number;
+
+  /* ---- live conversation (continuous session, barge-in) ---- */
+  /**
+   * Something is actually capturing speech: the browser recogniser reported
+   * it started, or the turn recorder is recording. Not the same as holding a
+   * stream — between the two the label says "Starting…", not "Listening".
+   */
+  earsReady: boolean;
+  /** The voice detector hears the person speaking right now. */
+  userSpeaking: boolean;
+  /** When speech onset was last detected (ms epoch). */
+  lastOnsetAt: number | null;
+  /** Her playback is paused because the person started talking over her. */
+  speechHeld: boolean;
+  /** Holds this session, and how many ended with her carrying on. */
+  holds: number;
+  holdsResumed: number;
+  /** How the last hold ended and how long it lasted. */
+  lastHold: { reason: string; heldMs: number; at: number } | null;
+  /** The last real interruption: onset → paused, onset → stopped. */
+  lastInterruption: { at: number; heldWithinMs: number | null; stoppedAfterOnsetMs: number | null } | null;
+  /** Utterances recorded and still being transcribed (the mic keeps listening meanwhile). */
+  transcriptionsInFlight: number;
+  /** Loud sounds that were not speech (no voicing) and were never transcribed. */
+  nonSpeechTurns: number;
+  /** End of the person's speech → transcript handled, last utterance. */
+  speechToTranscriptMs: number | null;
   /**
    * The mic stays open while she speaks (full-duplex capture). Without a
    * physical device this is the simulated path — the hardware gate is
@@ -521,7 +579,8 @@ async function transcribeViaWhisperUnmetered(audioBlob: Blob): Promise<string> {
   const data = await response.json();
   const raw = typeof data?.text === "string" ? data.text.trim() : "";
   // Noise transcribed as the name hint is not something the person said.
-  const text = isPromptEcho(raw) ? "" : raw;
+  // Whisper's prompt, or nothing pronounceable ("." "…"): silence, not a turn.
+  const text = isPromptEcho(raw) || !/[\p{L}\p{N}]/u.test(raw) ? "" : raw;
 
   // An empty transcript is silence, not a failure: the loop goes back to
   // listening. (Throwing here logged an error for every quiet moment.)
@@ -559,8 +618,33 @@ const FATAL_RECOGNITION_KINDS: ReadonlySet<VoiceErrorKind> = new Set(["permissio
 export function isBargeIn(heard: string, spoken: string): boolean {
   const text = heard.trim();
   if (!text) return false;
-  if (text.split(/\s+/).filter(Boolean).length < 2) return false;
+  const words = text.split(/\s+/).filter(Boolean);
+  // One word interrupts only when it is a word people interrupt with
+  // ("stop", "wait", "no"): "okay" or "mm" over her is listening, not a turn.
+  if (words.length < 2 && !INTERRUPT_WORDS.has(words[0].toLowerCase().replace(/[^\p{L}]/gu, ""))) return false;
   return !isEchoUtterance(text, spoken);
+}
+
+/**
+ * The context a spoken turn carries to her model (live conversation).
+ *
+ * A voice turn used to reach her as an ordinary user message, so she told
+ * the person "you told me by typing" about something they had said aloud.
+ * And after a barge-in her conversation still held her WHOLE written reply,
+ * while the person had heard only part of it. This says both, plainly. Pure,
+ * so the wording is testable.
+ */
+export function spokenTurnNote(interruption: { heard: string; at: number } | null, now = Date.now()): string {
+  const lines = ["This message was spoken aloud in a live voice conversation and transcribed; answer as speech."];
+  if (interruption && now - interruption.at < 120_000) {
+    const heard = interruption.heard.trim();
+    lines.push(
+      heard
+        ? `The person interrupted you while you were speaking your previous reply. They heard only this much of it: "${heard}". They did not hear the rest.`
+        : "The person interrupted you before they heard any of your previous reply.",
+    );
+  }
+  return lines.join(" ");
 }
 
 /* ---------------------------------------------------------
@@ -698,6 +782,15 @@ class VoiceEngine {
   private livekitSpeaking = false;
   private livekitTurn = 0;
   private readonly livekitListeners = new Set<(status: import("./livekitTransport").LivekitStatus | null) => void>();
+
+  /**
+   * Least voiced sound for a turn to count as speech. Half the weakest 3 s
+   * window of a real recorded human voice measured (200 ms at threshold 0.45);
+   * every noise measured scored 0.
+   */
+  private static readonly MIN_VOICED_MS = 100;
+  /** Loud turns dropped as not speech (noise, clatter), this session. */
+  private nonSpeechTurns = 0;
 
   /** How long each recording chunk is (ms) before sending to Whisper. */
   private static readonly WHISPER_CHUNK_MS = 5000;
@@ -1207,7 +1300,7 @@ class VoiceEngine {
       this.releaseStream(this.mediaStream);
       this.mediaStream = null;
     }
-    this.patchDiagnostics({ micStreamActive: false, recognitionActive: false, micInterrupted: false });
+    this.patchDiagnostics({ micStreamActive: false, recognitionActive: false, micInterrupted: false, earsReady: false, userSpeaking: false, speechHeld: false });
 
     this._turn = null;        // interim cleared
     this.updateState({
@@ -1612,11 +1705,19 @@ class VoiceEngine {
         // is the user (not her own voice coming back), she stops talking
         // and the user's words become the next turn.
         const heard = (finalText || interimText).trim();
-        if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
+        // Live barge-in on this path too: the first recognised word that is
+        // not her own voice holds her at once; the rule below then decides.
+        if (heard && (this.isSpeaking() || isSpeechHeld()) && !isEchoUtterance(heard, this.lastSpokenText)) this.onSpeechOnset();
+        if ((this.isSpeaking() || isSpeechHeld()) && isBargeIn(heard, this.lastSpokenText)) {
           this.bargeIns += 1;
           this.patchDiagnostics({ bargeIns: this.bargeIns });
+          this.noteInterruption();
+          this.settleHold("interrupted");
           this.cancelSpeech();
           this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
+        } else if (finalText.trim()) {
+          // A final result that does not interrupt (her echo, "mm"): she carries on.
+          this.settleHold("not-an-interruption");
         }
 
         if (interimText) {
@@ -1658,6 +1759,8 @@ class VoiceEngine {
         const recognizerOnly = event.error === "audio-capture" && ownMicLive;
         if ((diagnosis.kind === "service" || diagnosis.kind === "offline" || recognizerOnly) && this._state.active) {
           console.info("[VoiceEngine] Browser speech service unavailable — switching to Whisper.");
+          // Not listening until the recorder actually runs: the label must not say so.
+          this.patchDiagnostics({ earsReady: false });
           this.stopRecognition();
           this.startWhisperFallback();
           return;
@@ -1667,6 +1770,7 @@ class VoiceEngine {
 
       recognition.onstart = () => {
         this.recognitionRunning = true;
+        this.patchDiagnostics({ earsReady: true });
       };
 
       recognition.onend = () => {
@@ -1761,6 +1865,7 @@ class VoiceEngine {
       }
       if (heardAt && !this.webSpeechGotResult && now - heardAt > VoiceEngine.WEB_SPEECH_SILENT_MS) {
         console.info("[VoiceEngine] Browser recognizer heard speech but returned nothing — switching to Whisper.");
+        this.patchDiagnostics({ earsReady: false });
         this.stopRecognition();
         this.startWhisperFallback();
       }
@@ -1883,8 +1988,16 @@ class VoiceEngine {
   }
 
   /**
-   * Continuous loop: record a short chunk of audio, check for speech,
-   * transcribe via Groq Whisper, feed to handleUserSpeech, repeat.
+   * Continuous loop: record one spoken turn, hand it to transcription, and
+   * record the NEXT turn at once.
+   *
+   * Live conversation: the loop used to await each transcription before it
+   * recorded again, so for 0.7–2 s after every utterance the microphone was
+   * not listening, and a person who went on talking ("…and also, what about
+   * Mars?") lost their words. Transcriptions now run while the next turn is
+   * recorded, and are HANDLED strictly in the order they were spoken
+   * (`transcriptChain`), so two quick utterances still become two messages in
+   * the right order.
    */
   private async whisperFallbackLoop(): Promise<void> {
     if (!this.whisperFallbackActive || !this.mediaStream) return;
@@ -1898,67 +2011,28 @@ class VoiceEngine {
     let again = false;
 
     try {
-      // Record a chunk of audio
       // One spoken turn (voice-activity detected), not a fixed slice of time.
-      const chunk = await this.recordUtterance();
+      const chunk = await this.recordUtterance(() => this.onSpeechOnset());
+      const speechEndedAt = Date.now();
+      this.patchDiagnostics({ userSpeaking: false });
 
       // If voice was stopped during recording, bail out
       if (!this.whisperFallbackActive || !this._state.active) return;
 
       if (!chunk || chunk.size === 0) {
-        // Nothing said — keep listening
+        // Nothing said — keep listening. A hold from a too-short sound is released.
+        this.settleHold("no-speech");
         again = true;
         return;
       }
-
-      // Transcribe: ElevenLabs Scribe when configured, Groq Whisper otherwise.
-      // While she speaks or thinks, the phase is hers to show, not ours.
-      const busy = this.isSpeaking() || (this._turn !== null && this._turn.response === null);
-      if (!busy) this.updateState({ ...this._state, phase: "processing" });
-      const { text: transcript, provenance } = await this.transcribeUtterance(chunk);
-
-      if (!this.whisperFallbackActive || !this._state.active) return;
-
-      if (transcript.trim()) {
-        this.emitInterim("");
-        const heard = transcript.trim();
-        // BARGE-IN on the recording path. The loop keeps listening while she
-        // speaks; what it hears is either the user (she stops, their words
-        // become the next turn) or her own voice coming back through the mic
-        // (handleUserSpeech's echo filter drops it). Same rule as the Web
-        // Speech path. Before, this path stopped listening while she spoke,
-        // so she could not be interrupted at all.
-        if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
-          this.bargeIns += 1;
-          this.patchDiagnostics({ bargeIns: this.bargeIns });
-          this.cancelSpeech();
-          this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
-        }
-        this.handleUserSpeech(heard, provenance);
-        // Keep listening through her thinking and speaking.
-        again = true;
-      } else {
-        // Silence — go back to listening (unless she is speaking or thinking)
-        if (!busy) this.updateState({ ...this._state, phase: "listening" });
-        again = true;
-      }
+      this.transcribeInOrder(chunk, speechEndedAt);
+      again = true;
     } catch (error) {
       if (!this.whisperFallbackActive) return;
-      if (error instanceof BudgetExhaustedError) {
-        // A spent transcription budget is not a transient error: say so and
-        // stop listening, rather than recording utterances it may not send.
-        this.stopWhisperFallback();
-        this.setError(budgetNotice(error), "service");
-        return;
-      }
-      const msg = error instanceof Error ? error.message : String(error);
-      console.error("[VoiceEngine] Whisper fallback error:", msg);
-      // The person spoke and nothing could transcribe it: say so (on screen).
-      this.noteFailure({ kind: "transcription-failure", message: "I couldn't make out what you said — transcription failed. Please say it again." });
-
-      // Don't treat transient errors as fatal — retry after a short delay
+      console.error("[VoiceEngine] capture error:", error instanceof Error ? error.message : error);
+      this.settleHold("capture-error");
+      // Not fatal: listen again shortly (a lost track is handled by the capture lifecycle).
       if (this._state.active) {
-        this.updateState({ ...this._state, phase: "listening" });
         this.whisperFallbackTimer = setTimeout(() => {
           this.whisperFallbackTimer = null;
           this.whisperFallbackLoop();
@@ -1968,6 +2042,158 @@ class VoiceEngine {
       this.whisperLoopBusy = false;
       if (again) setTimeout(() => this.whisperFallbackLoop(), 0);
     }
+  }
+
+  /** Transcriptions handled one after another, in the order they were spoken. */
+  private transcriptChain: Promise<void> = Promise.resolve();
+  private transcriptionsInFlight = 0;
+
+  private transcribeInOrder(chunk: Blob, speechEndedAt: number): void {
+    const epoch = this.sessionEpoch;
+    // While she speaks or thinks, the phase is hers to show, not ours.
+    const busy = this.isSpeaking() || (this._turn !== null && this._turn.response === null);
+    if (!busy) this.updateState({ ...this._state, phase: "processing" });
+    this.transcriptionsInFlight += 1;
+    this.patchDiagnostics({ transcriptionsInFlight: this.transcriptionsInFlight });
+    // Started NOW (in parallel with the next recording), handled in order.
+    const job = this.transcribeUtterance(chunk).then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    );
+    this.transcriptChain = this.transcriptChain
+      .then(async () => {
+        const result = await job;
+        this.transcriptionsInFlight = Math.max(0, this.transcriptionsInFlight - 1);
+        this.patchDiagnostics({ transcriptionsInFlight: this.transcriptionsInFlight });
+        if (epoch !== this.sessionEpoch || !this.whisperFallbackActive || !this._state.active) return;
+        if (!result.ok) {
+          this.onTranscriptionError(result.error);
+          return;
+        }
+        const { text: transcript, provenance } = result.value;
+        this.patchDiagnostics({ speechToTranscriptMs: Date.now() - speechEndedAt });
+        const heard = transcript.trim();
+        if (!heard) {
+          // Silence, noise, or Whisper's own prompt: no turn, and she goes on.
+          this.settleHold("no-words");
+          if (!this.isSpeaking() && !(this._turn !== null && this._turn.response === null)) {
+            this.updateState({ ...this._state, phase: "listening" });
+          }
+          return;
+        }
+        this.emitInterim("");
+        // BARGE-IN on the recording path. The loop keeps listening while she
+        // speaks; what it hears is either the user (she stops, their words
+        // become the next turn) or her own voice coming back through the mic
+        // (handleUserSpeech's echo filter drops it).
+        if ((this.isSpeaking() || isSpeechHeld()) && isBargeIn(heard, this.lastSpokenText)) {
+          this.bargeIns += 1;
+          this.patchDiagnostics({ bargeIns: this.bargeIns });
+          this.noteInterruption();
+          this.settleHold("interrupted");
+          this.cancelSpeech();
+          this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
+        } else {
+          // Her own voice, or words that do not interrupt: she carries on.
+          this.settleHold("not-an-interruption");
+        }
+        await this.handleUserSpeech(heard, provenance);
+      })
+      .catch((error: unknown) => {
+        console.error("[VoiceEngine] transcript handling failed:", error instanceof Error ? error.message : error);
+      });
+  }
+
+  private onTranscriptionError(error: unknown): void {
+    this.settleHold("transcription-failed");
+    if (error instanceof BudgetExhaustedError) {
+      // A spent transcription budget is not a transient error: say so and
+      // stop listening, rather than recording utterances it may not send.
+      this.stopWhisperFallback();
+      this.setError(budgetNotice(error), "service");
+      return;
+    }
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[VoiceEngine] Whisper fallback error:", msg);
+    // The person spoke and nothing could transcribe it: say so (on screen).
+    // The microphone keeps listening; the next utterance is tried afresh.
+    this.noteFailure({ kind: "transcription-failure", message: "I couldn't make out what you said — transcription failed. Please say it again." });
+    if (this._state.active && !this.isSpeaking()) this.updateState({ ...this._state, phase: "listening" });
+  }
+
+  /* ---------------------------------------------------------
+   * Live barge-in: hold on speech onset, decide on the transcript.
+   * --------------------------------------------------------- */
+
+  /** When the current hold began (null: not holding). */
+  private holdStartedAt: number | null = null;
+  private holdTimer: ReturnType<typeof setTimeout> | null = null;
+  private holds = 0;
+  private holdsResumed = 0;
+  /** What she had audibly said of the reply that was interrupted, for her next turn. */
+  private interruption: { heard: string; at: number } | null = null;
+  /** Spoken segments of the current reply whose audio has started. */
+  private audibleSegments: string[] = [];
+
+  /** The voice detector heard the person start speaking. */
+  private onSpeechOnset(): void {
+    const at = Date.now();
+    this.patchDiagnostics({ userSpeaking: true, lastOnsetAt: at });
+    // Only her audible voice (or a sentence about to play) is held; while she
+    // is silent there is nothing to stop.
+    if (!this.isSpeaking() || this.holdStartedAt !== null) return;
+    if (!holdSpeaking()) return;
+    this.holdStartedAt = at;
+    this.holds += 1;
+    this.patchDiagnostics({ speechHeld: true, holds: this.holds, audioPlaying: false });
+    // A hold is never left hanging: a transcription that never answers (the
+    // network went away) releases it, and she carries on.
+    if (this.holdTimer) clearTimeout(this.holdTimer);
+    this.holdTimer = setTimeout(() => this.settleHold("hold-timeout"), VoiceEngine.HOLD_MAX_MS);
+  }
+
+  /** Longest a hold may last before she resumes on her own. */
+  private static readonly HOLD_MAX_MS = 30_000;
+
+  private settleHold(reason: string): void {
+    if (this.holdTimer) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+    const startedAt = this.holdStartedAt;
+    if (startedAt === null) return;
+    this.holdStartedAt = null;
+    const interrupted = reason === "interrupted";
+    if (!interrupted) {
+      this.holdsResumed += 1;
+      resumeSpeaking();
+    }
+    this.patchDiagnostics({
+      speechHeld: false,
+      holdsResumed: this.holdsResumed,
+      // Resumed: audio is playing again if a sentence was playing when held.
+      ...(interrupted ? {} : { audioPlaying: this._diagnostics.ttsStage === "playing" }),
+      lastHold: { reason, heldMs: Date.now() - startedAt, at: Date.now() },
+    });
+  }
+
+  /** Remember what the person had heard of her reply when they cut in. */
+  private noteInterruption(): void {
+    // A reply cut off before any of it was heard still gets its reason in the
+    // turn ledger (M23.0: no turn may end unexplained). One that had already
+    // started speaking keeps "spoke".
+    const interrupted = this._turn?.id ?? null;
+    if (interrupted && !this.turnOutcomes.has(interrupted)) this.recordTurnOutcome(interrupted, "cancelled");
+    const heard = this.audibleSegments.join(" ").trim();
+    this.interruption = { heard: heard.slice(-600), at: Date.now() };
+    const onsetAt = this._diagnostics.lastOnsetAt;
+    this.patchDiagnostics({
+      lastInterruption: {
+        at: Date.now(),
+        heldWithinMs: this.holdStartedAt !== null && onsetAt ? this.holdStartedAt - onsetAt : null,
+        stoppedAfterOnsetMs: onsetAt ? Date.now() - onsetAt : null,
+      },
+    });
   }
 
   /**
@@ -1987,7 +2213,7 @@ class VoiceEngine {
    * nothing is uploaded. A turn is capped at 20 s. Falls back to a fixed
    * chunk when Web Audio is unavailable.
    */
-  private async recordUtterance(): Promise<Blob | null> {
+  private async recordUtterance(onOnset?: () => void): Promise<Blob | null> {
     if (!this.mediaStream) return null;
     const Ctx =
       typeof AudioContext !== "undefined"
@@ -2026,6 +2252,8 @@ class VoiceEngine {
       recorder.onerror = () => resolve();
     });
     recorder.start(250);
+    // The session's ears are running now (not when the stream was granted).
+    if (!this._diagnostics.earsReady) this.patchDiagnostics({ earsReady: true });
 
     const STEP = 50;
     const started = Date.now();
@@ -2044,6 +2272,7 @@ class VoiceEngine {
       ctx,
       source,
       () => !this.whisperFallbackActive || !this._state.active || !this.mediaStream,
+      onOnset,
     );
     let detectedOn = "main";
     if (onAudioThread) {
@@ -2083,7 +2312,10 @@ class VoiceEngine {
         if (speaking) {
           speechMs += dt;
           silenceMs = 0;
-          if (speechMs >= 150) spoke = true;
+          if (speechMs >= 150 && !spoke) {
+            spoke = true;
+            onOnset?.();
+          }
           if (level > peak) peak = level;
         } else {
           silenceMs += dt;
@@ -2107,8 +2339,15 @@ class VoiceEngine {
     } catch {
       // ignore
     }
-    console.debug("[VoiceEngine] turn", JSON.stringify({ on: detectedOn, audioMs: onAudioThread ? Math.round(onAudioThread.ms) : undefined, spoke, ms: Date.now() - started, peak: +peak.toFixed(4), threshold: +threshold.toFixed(4), lastLevel: +lastLevel.toFixed(4), minLevel: +minLevel.toFixed(4), silenceMs }));
+    console.debug("[VoiceEngine] turn", JSON.stringify({ on: detectedOn, audioMs: onAudioThread ? Math.round(onAudioThread.ms) : undefined, voicedMs: onAudioThread?.voicedMs, spoke, ms: Date.now() - started, peak: +peak.toFixed(4), threshold: +threshold.toFixed(4), lastLevel: +lastLevel.toFixed(4), minLevel: +minLevel.toFixed(4), silenceMs }));
     if (!spoke || parts.length === 0) return null;
+    // Loud but not voiced (noise, a clatter, a cough): not speech, not sent to
+    // the transcriber, which would answer "Thank you." or "." (measured).
+    if (onAudioThread && onAudioThread.voicedMs < VoiceEngine.MIN_VOICED_MS) {
+      this.nonSpeechTurns += 1;
+      this.patchDiagnostics({ nonSpeechTurns: this.nonSpeechTurns });
+      return null;
+    }
     return new Blob(parts, { type: mime || "audio/webm" });
   }
 
@@ -2513,7 +2752,10 @@ class VoiceEngine {
       const consent = await captureSpendConsent(text, "spoken").catch(() => null);
       const { captureCapabilityDecision } = await import("../acquisition/CapabilityLedgerClient");
       const decision = await captureCapabilityDecision(text, "spoken").catch(() => null);
-      const note = [consent?.note, decision?.note].filter(Boolean).join("\n\n") || undefined;
+      // Spoken, and (after a barge-in) what of her last reply was actually heard.
+      const spoken = spokenTurnNote(this.interruption);
+      this.interruption = null;
+      const note = [spoken, consent?.note, decision?.note].filter(Boolean).join("\n\n") || undefined;
       // The conversation and the transcript's provenance travel with the
       // turn: memory consolidation records which recogniser produced the
       // words, so a later reader can tell speech from typing.
@@ -2855,7 +3097,13 @@ class VoiceEngine {
     this.cancelFlag = true;
     this.chainActive = false;
     this.streaming = false;
-    this.patchDiagnostics({ streaming: false });
+    // A stop ends any hold too: stopSpeaking() drops the held audio.
+    if (this.holdTimer) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+    this.holdStartedAt = null;
+    this.patchDiagnostics({ streaming: false, speechHeld: false });
     // Real audio, not just the browser queue: barge-in must stop a playing
     // MP3 too, or she keeps talking over the user.
     stopSpeaking();
@@ -2915,6 +3163,7 @@ class VoiceEngine {
     this.streamFinalizing = false;
     this.streaming = true;
     this.lastSpokenText = "";
+    this.audibleSegments = [];
     this.patchDiagnostics({ streaming: true });
     this.updateState({ ...this._state, phase: "speaking" });
     return ownerId;
@@ -2970,7 +3219,11 @@ class VoiceEngine {
     // a boundary the whole block became ONE request, which the speech server
     // refuses over 900 characters (413, found in the live M22.9 run) — and
     // that part of the answer was never spoken.
-    const end = nextSpeechBoundary(rest);
+    // The reply's first piece ends at a clause when her voice is slower than
+    // real time (see firstSpeechBoundary): her first word comes sooner.
+    const rtf = speechWorkerRtf();
+    const first = this.streamCursor === 0 && this.elevenLabs && rtf !== null && rtf > 1;
+    const end = first ? firstSpeechBoundary(rest) : nextSpeechBoundary(rest);
     if (end === null) return;
     const block = rest.slice(0, end).trim();
     this.streamCursor += end;
@@ -3082,7 +3335,11 @@ class VoiceEngine {
           this.noteFirstAudio(turn);
           this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
         },
-        onAudible: () => this.noteAudible(turn),
+        onAudible: () => {
+          this.noteAudible(turn);
+          // What the person has actually heard of this reply (for an interruption).
+          if (this._turn?.id === turnId) this.audibleSegments.push(segment);
+        },
         onEnd: () => this.patchDiagnostics({ audioPlaying: false, ttsStage: "ended" }),
         // A streamed sentence her voice could not produce used to vanish
         // without a trace (no onFail was given): the reply went silent
@@ -3323,6 +3580,18 @@ class VoiceEngine {
       speakerDevices: this.speakerDevices,
       warmSynthesis: getLastSynthesis(),
       bargeIns: this.bargeIns,
+      // Declared after the first computeDiagnostics() call, hence the fallbacks.
+      earsReady: false,
+      userSpeaking: false,
+      lastOnsetAt: null,
+      speechHeld: false,
+      holds: this.holds ?? 0,
+      holdsResumed: this.holdsResumed ?? 0,
+      lastHold: null,
+      lastInterruption: null,
+      transcriptionsInFlight: this.transcriptionsInFlight ?? 0,
+      nonSpeechTurns: this.nonSpeechTurns ?? 0,
+      speechToTranscriptMs: null,
       fullDuplex: this.whisperFallbackActive,
       speechOutcome: this.speechOutcomeSummary(),
 

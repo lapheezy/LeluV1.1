@@ -1,0 +1,2425 @@
+{
+ "label": "D-voice-and-typing",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): D.wav",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,d1,sil:75,d2,sil:70",
+  "totalSeconds": 173.96,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "d1",
+    "at": 20,
+    "seconds": 4.96
+   },
+   {
+    "item": "sil:75",
+    "at": 24.96,
+    "seconds": 75
+   },
+   {
+    "item": "d2",
+    "at": 99.96,
+    "seconds": 4
+   },
+   {
+    "item": "sil:70",
+    "at": 103.96,
+    "seconds": 70
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "My favorite color is green. Please remember that and just say OK.",
+   "firstSeen": 27.07,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "OK",
+   "firstSeen": 28.55,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "What is my favourite colour? Answer in one short sentence.",
+   "firstSeen": 63,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Your favourite colour is green.",
+   "firstSeen": 64.88,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "And what did we just talk about?",
+   "firstSeen": 104.03,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "We just talked about you telling me your favourite colour is green and confirming I’ve remembered it.",
+   "firstSeen": 105.07,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "One sentence.",
+   "firstSeen": 106.44,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "We just discussed you stating your favourite colour is green.",
+   "firstSeen": 107.71,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": 1409,
+   "firstAudioLatencyMs": 17518,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 17654,
+   "audioContextState": "unknown",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 16081,
+    "characters": null,
+    "at": 1795728303258,
+    "streaming": "off:slower-than-realtime",
+    "modelLoads": null,
+    "synthesisMs": 16001,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 1,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795728283735,
+   "speechHeld": false,
+   "holds": 0,
+   "holdsResumed": 0,
+   "lastHold": null,
+   "lastInterruption": {
+    "at": 1795728285745,
+    "heldWithinMs": null,
+    "stoppedAfterOnsetMs": 2010
+   },
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": 455,
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 3,
+    "recorded": 2,
+    "unexplained": 1,
+    "spoken": 2,
+    "silent": 0,
+    "noticeSpoken": 0,
+    "byOutcome": {
+     "spoke": 2
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "2a529055-6892-4b37-915b-ce476b71deae",
+    "text": "My favorite color is green. Please remember that and just say OK.",
+    "at": 1795728206587,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "d319c02c-bc8d-4747-b6b7-1cbf80e512eb",
+    "text": "And what did we just talk about?",
+    "at": 1795728283490,
+    "outcome": null
+   },
+   {
+    "index": 3,
+    "turnId": "e73c9645-51fa-458c-8bfd-2732127d2ba1",
+    "text": "One sentence.",
+    "at": 1795728285750,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "e73c9645-51fa-458c-8bfd-2732127d2ba1",
+   "transcriptAt": 1795728285745,
+   "firstTextAt": 1795728287154,
+   "firstAudioAt": 1795728303263,
+   "firstAudibleAt": 1795728303399
+  }
+ },
+ "media": [
+  {
+   "t": 33.45,
+   "id": 1,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 33.81,
+   "id": 1,
+   "event": "playing",
+   "at": 0.04
+  },
+  {
+   "t": 34.63,
+   "id": 1,
+   "event": "pause",
+   "at": 0.8
+  },
+  {
+   "t": 34.63,
+   "id": 1,
+   "event": "ended",
+   "at": 0.8
+  },
+  {
+   "t": 75.1,
+   "id": 2,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 75.7,
+   "id": 2,
+   "event": "playing",
+   "at": 0.13
+  },
+  {
+   "t": 77.68,
+   "id": 2,
+   "event": "pause",
+   "at": 2.08
+  },
+  {
+   "t": 77.68,
+   "id": 2,
+   "event": "ended",
+   "at": 2.08
+  },
+  {
+   "t": 123.43,
+   "id": 3,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 123.57,
+   "id": 3,
+   "event": "playing",
+   "at": 0.02
+  },
+  {
+   "t": 126.97,
+   "id": 3,
+   "event": "pause",
+   "at": 3.36
+  },
+  {
+   "t": 126.97,
+   "id": 3,
+   "event": "ended",
+   "at": 3.36
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.5,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7309,
+   "serverRssMiB": 64,
+   "chromiumRssMiB": 2058
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2056,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 6.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1730,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 8.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1734,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1731,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1732,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 14.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1741,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 16.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1743,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 18.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1735,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 20.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1734,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 22,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1740,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 24.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1758,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 26.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1753,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 28.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1765,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 30.1,
+   "voxcpm2RssMiB": 7312,
+   "voxcpm2Cpu": 177,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1794,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 32.1,
+   "voxcpm2RssMiB": 7312,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1803,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 34.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 106,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 36.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1838,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 38.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1842,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 40.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1855,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 42.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 44.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 46.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1793,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 48.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 1,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1789,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 50.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1794,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 52.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1802,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 54.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1815,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 56.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1825,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 58.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1822,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 60.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1827,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 62.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1846,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 64.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1877,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 66.1,
+   "voxcpm2RssMiB": 7310,
+   "voxcpm2Cpu": 131,
+   "serverRssMiB": 64,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1896,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 68.1,
+   "voxcpm2RssMiB": 7310,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1898,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 70.1,
+   "voxcpm2RssMiB": 7310,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1894,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 72.1,
+   "voxcpm2RssMiB": 7310,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1897,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 74.1,
+   "voxcpm2RssMiB": 7309,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1895,
+   "chromiumCpu": 195
+  },
+  {
+   "t": 76.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 39,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 194
+  },
+  {
+   "t": 78.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1839,
+   "chromiumCpu": 192
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1829,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 82.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1835,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 84.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1834,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 86.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1836,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 88.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1840,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 90.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1840,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 92.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1828,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 94.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1838,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 96.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1842,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 98.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1843,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1832,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 102.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1844,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 104.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1845,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 114,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 108.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 106,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 110.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 112.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1863,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1855,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7307,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 119,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1850,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1852,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1860,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1859,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1855,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 156.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 158.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 168.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1859,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 174.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 176.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 178.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 180.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 182.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1863,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 184.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 186.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 188.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1878,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 190.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1887,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 192.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1890,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 194.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 196.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1902,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 198.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1920,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 200.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1921,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 202.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1922,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 204.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1941,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 206.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1948,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 208.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1950,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 210.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1940,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 212.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1941,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 214.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1938,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 216.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1939,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 218.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1940,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 220.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1913,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 222.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1912,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 224.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1913,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 226.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1914,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 228.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1927,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 230.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 232.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1927,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 234.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1916,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 236.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1929,
+   "chromiumCpu": 188
+  }
+ ],
+ "screenshots": [
+  "D-voice-and-typing-01-loaded.jpg",
+  "D-voice-and-typing-02-hearing.jpg",
+  "D-voice-and-typing-03-speaking-1.jpg",
+  "D-voice-and-typing-03-speaking-2.jpg",
+  "D-voice-and-typing-03-speaking-3.jpg",
+  "D-voice-and-typing-05-before-end.jpg",
+  "D-voice-and-typing-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 1.83,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.05,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 192,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.45,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.45,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.45,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.45,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 3.61,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.75,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.84,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 90,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.55,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.58,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 7.5,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1913,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 16.63,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-01-loaded.jpg"
+  },
+  {
+   "t": 0.33,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.33,
+   "kind": "scenario",
+   "spec": "sil:20,d1,sil:75,d2,sil:70",
+   "totalSeconds": 173.96,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "d1",
+     "at": 20,
+     "seconds": 4.96
+    },
+    {
+     "item": "sil:75",
+     "at": 24.96,
+     "seconds": 75
+    },
+    {
+     "item": "d2",
+     "at": 99.96,
+     "seconds": 4
+    },
+    {
+     "item": "sil:70",
+     "at": 103.96,
+     "seconds": 70
+    }
+   ]
+  },
+  {
+   "t": 0.34,
+   "kind": "state",
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.51,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.51,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 3,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.59,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.71,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.83,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 124,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.83,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "starting",
+   "label": "Starting the microphone…",
+   "error": null
+  },
+  {
+   "t": 0.84,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.84,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 1.05,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 11.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10241,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 21.39,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 21.71,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-02-hearing.jpg"
+  },
+  {
+   "t": 26.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":14942,\"voicedMs\":2150,\"spoke\":true,\"ms\":14989,\"peak\":0.4249,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 26.08,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 26.19,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 26.75,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 26.75,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 669,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 26.97,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 27.07,
+   "kind": "message",
+   "index": 0,
+   "role": "user",
+   "text": "My favorite color is green. Please remember that and just say OK."
+  },
+  {
+   "t": 28.2,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1231,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 28.22,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "OK."
+  },
+  {
+   "t": 28.3,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 28.55,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 28.55,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "OK"
+  },
+  {
+   "t": 33.6,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 5228,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "4912",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.6",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "6.14",
+    "x-lelu-audio-seconds": "0.8"
+   },
+   "saved": "audio/D-voice-and-typing-tts-01.wav"
+  },
+  {
+   "t": 33.69,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 33.97,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 34.42,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-03-speaking-1.jpg"
+  },
+  {
+   "t": 34.77,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 34.99,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 36.26,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10164,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 44.08,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 46.61,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10348,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 52.25,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 52.35,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 52.37,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 56.9,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10274,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 60.5,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 62.9,
+   "kind": "typed",
+   "text": "What is my favourite colour? Answer in one short sentence.",
+   "sessionActive": true
+  },
+  {
+   "t": 63,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 63,
+   "kind": "message",
+   "index": 2,
+   "role": "user",
+   "text": "What is my favourite colour? Answer in one short sentence."
+  },
+  {
+   "t": 63.81,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 404 ()"
+  },
+  {
+   "t": 63.96,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 64.73,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Your favourite colour is green."
+  },
+  {
+   "t": 64.77,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 806,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 64.88,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 64.88,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "Your favourite colour is green."
+  },
+  {
+   "t": 67.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10120,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 75.12,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 10321,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "9773",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "6.14",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.7",
+    "x-lelu-audio-seconds": "2.08"
+   },
+   "saved": "audio/D-voice-and-typing-tts-02.wav"
+  },
+  {
+   "t": 75.52,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 76.02,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 76.77,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-03-speaking-2.jpg"
+  },
+  {
+   "t": 77.12,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10095,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 77.91,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 85.05,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 87.32,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10193,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 97.48,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10155,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 100.88,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 103.3,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5538,\"voicedMs\":1150,\"spoke\":true,\"ms\":5815,\"peak\":0.4109,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 103.3,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 103.31,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 103.36,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 103.36,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 55,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 103.53,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 103.66,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 299,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 103.73,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 104.03,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 104.03,
+   "kind": "message",
+   "index": 4,
+   "role": "user",
+   "text": "And what did we just talk about?"
+  },
+  {
+   "t": 104.93,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "We just talked about you telling me your favourite colour is green and confirming I've remembered it."
+  },
+  {
+   "t": 104.94,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1213,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 105.07,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 105.07,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "We just talked about you telling me your favourite colour is green and confirming I’ve remembered it."
+  },
+  {
+   "t": 105.46,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1829,\"voicedMs\":450,\"spoke\":true,\"ms\":2149,\"peak\":0.2488,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 105.47,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 105.54,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 105.94,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 476,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 106.02,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 1088,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 106.02,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 106.12,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 106.44,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 106.44,
+   "kind": "message",
+   "index": 6,
+   "role": "user",
+   "text": "One sentence."
+  },
+  {
+   "t": 107.35,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "We just discussed you stating your favourite colour is green."
+  },
+  {
+   "t": 107.35,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1234,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 107.46,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 107.71,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 107.71,
+   "kind": "message",
+   "index": 7,
+   "role": "assistant",
+   "text": "We just discussed you stating your favourite colour is green."
+  },
+  {
+   "t": 115.62,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10116,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 117.39,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 123.45,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 16081,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "16001",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.7",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.76",
+    "x-lelu-audio-seconds": "3.36"
+   },
+   "saved": "audio/D-voice-and-typing-tts-03.wav"
+  },
+  {
+   "t": 123.67,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 124.04,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-03-speaking-3.jpg"
+  },
+  {
+   "t": 125.71,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10066,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 127.22,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 136.04,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10246,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 146.16,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10113,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 156.25,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10086,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 166.32,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10071,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 176.66,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10323,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 182.87,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 186.74,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10076,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 197.14,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10313,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 199.39,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 199.4,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 199.44,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 207.17,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10020,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 217.36,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10188,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 227.38,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10021,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 234.79,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-05-before-end.jpg"
+  },
+  {
+   "t": 235.17,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7680,\"voicedMs\":0,\"spoke\":false,\"ms\":7784,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":7419}"
+  },
+  {
+   "t": 235.17,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 236.38,
+   "kind": "screenshot",
+   "file": "D-voice-and-typing-06-ended.jpg"
+  }
+ ]
+}

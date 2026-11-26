@@ -230,6 +230,13 @@ function stripMarkdown(text: string): string {
   out = out.replace(/[‘’‚‹›]/g, "'");
   out = out.replace(/[–—]/g, ", ");
   out = out.replace(/…/g, "...");
+  // A bracketed aside is written, not said: "(roughly 984 feet)" became a
+  // sentence of its own beginning with "(", which VoxCPM2 kept regenerating
+  // (its bad-case retry) until the page gave up on it (live run, 67 s). Said
+  // as an aside between commas; a stray bracket is dropped. "≈" is "about".
+  out = out.replace(/≈\s*/g, "about ");
+  out = out.replace(/\s*\(([^()]*)\)/g, (_match, inner: string) => (inner.trim() ? `, ${inner.trim()},` : ""));
+  out = out.replace(/[()[\]]/g, " ");
   out = out.replace(/[•·]/g, ", ");
 
   // Symbols that carry no sound.
@@ -297,11 +304,16 @@ export function toSpokenText(text: string): string {
   out = out.replace(/\s+/g, " ").trim();
   out = out.replace(/\s+([,.;:!?])/g, "$1");
   out = out.replace(/([,;:])(?:\s*[,;:])+/g, "$1");
+  // An aside closing a sentence: "feet,." is "feet."
+  out = out.replace(/[,;:]\s*([.!?])/g, "$1");
   out = out.replace(/\.{3,}/g, "...");
   out = out.replace(/^[,;:.\s]+/, "");
   // A reply that ends without terminal punctuation gets a full stop, so the
-  // engine does not run it into whatever is spoken next.
-  if (out && !/[.!?…]$/.test(out)) out = `${out}.`;
+  // engine does not run it into whatever is spoken next. A piece that ends on
+  // a clause mark on purpose (the first clause of a reply, cut early so her
+  // voice starts sooner) keeps it: "surface,." was being sent, and a comma
+  // keeps the rising, continuing intonation the rest of the sentence needs.
+  if (out && !/[.!?…,;:—–]$/.test(out)) out = `${out}.`;
 
   return out.trim();
 }

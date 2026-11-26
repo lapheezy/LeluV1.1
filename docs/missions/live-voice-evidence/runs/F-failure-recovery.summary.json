@@ -1,0 +1,308 @@
+{
+ "label": "F-failure-recovery",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): F.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "What day comes after Monday?",
+   "reply": "Right now it's 9:33:06 PM UTC on Thursday, November 26, 2026 (2026-11-26 21:33:06 UTC).",
+   "spokenEnd": 24.74,
+   "vadEnd": 25.61,
+   "transcript": 25.94,
+   "userMsg": 23.87,
+   "firstText": 24.1,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.2,
+   "transcriptToFirstTextS": -1.84,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Right now it's nine:thirty-three:zero six PM UTC on Thursday, November twenty-six two thousand twenty-six (two thousand twenty-six-11-26 twenty-one:thirty-three:zero six UTC)."
+   ]
+  },
+  {
+   "heard": "One short sentence.",
+   "reply": "Tuesday.",
+   "spokenEnd": 78.9,
+   "vadEnd": 158.61,
+   "transcript": 159.22,
+   "userMsg": 26.41,
+   "firstText": 27.04,
+   "firstAudio": 32.5,
+   "speechEndToTranscriptS": 80.32,
+   "transcriptToFirstTextS": -132.18,
+   "transcriptToFirstAudioS": -126.72,
+   "speechEndToFirstAudioS": -46.4,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    5560
+   ],
+   "spokenText": [
+    "Tuesday."
+   ]
+  },
+  {
+   "heard": "What color is the sky?",
+   "reply": "The sky is typically blue on a clear day.",
+   "spokenEnd": 157.74,
+   "vadEnd": 158.61,
+   "transcript": 159.22,
+   "userMsg": 80.14,
+   "firstText": 82.72,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.48,
+   "transcriptToFirstTextS": -76.5,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The sky is typically blue on a clear day."
+   ]
+  },
+  {
+   "heard": "How many legs does a spider have? One short sentence.",
+   "reply": "A spider has eight legs.",
+   "spokenEnd": 220.62,
+   "vadEnd": 221.57,
+   "transcript": 253.95,
+   "userMsg": 159.82,
+   "firstText": 160.95,
+   "firstAudio": 171.91,
+   "speechEndToTranscriptS": 33.33,
+   "transcriptToFirstTextS": -93,
+   "transcriptToFirstAudioS": -82.04,
+   "speechEndToFirstAudioS": -48.71,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    10903
+   ],
+   "spokenText": [
+    "A spider has eight legs."
+   ]
+  },
+  {
+   "heard": "Roughly how tall is it?",
+   "reply": "Could you let me know what you’re asking about?",
+   "spokenEnd": 252.22,
+   "vadEnd": 253.46,
+   "transcript": 253.95,
+   "userMsg": 254.56,
+   "firstText": 255.31,
+   "firstAudio": 264.43,
+   "speechEndToTranscriptS": 1.73,
+   "transcriptToFirstTextS": 1.36,
+   "transcriptToFirstAudioS": 10.48,
+   "speechEndToFirstAudioS": 12.21,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    8960
+   ],
+   "spokenText": [
+    "Could you let me know what you're asking about?"
+   ]
+  },
+  {
+   "heard": "What day comes after Monday?",
+   "reply": "Right now it's 9:37:56 PM UTC on Thursday, November 26, 2026 (2026-11-26 21:37:56 UTC).",
+   "spokenEnd": null,
+   "vadEnd": 23.39,
+   "transcript": 23.66,
+   "userMsg": 313.86,
+   "firstText": 314.14,
+   "firstAudio": null,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 290.48,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Right now it's nine:thirty-seven:fifty-six PM UTC on Thursday, November twenty-six two thousand twenty-six (two thousand twenty-six-11-26 twenty-one:thirty-seven:fifty-six UTC)."
+   ]
+  },
+  {
+   "heard": "One short sentence.",
+   "reply": "Tuesday.",
+   "spokenEnd": null,
+   "vadEnd": 23.39,
+   "transcript": 23.66,
+   "userMsg": 316.33,
+   "firstText": 317.57,
+   "firstAudio": 322.26,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 293.91,
+   "transcriptToFirstAudioS": 298.6,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    4986
+   ],
+   "spokenText": [
+    "Tuesday."
+   ]
+  },
+  {
+   "heard": "What color is the sky?",
+   "reply": "The sky is blue.",
+   "spokenEnd": null,
+   "vadEnd": 23.39,
+   "transcript": 23.66,
+   "userMsg": 368.49,
+   "firstText": 369.27,
+   "firstAudio": null,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 345.61,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The sky is blue."
+   ]
+  },
+  {
+   "heard": "One short sentence.",
+   "reply": "The sky is blue.",
+   "spokenEnd": null,
+   "vadEnd": 23.39,
+   "transcript": 23.66,
+   "userMsg": 370.32,
+   "firstText": 371.3,
+   "firstAudio": 378.48,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 347.64,
+   "transcriptToFirstAudioS": 354.82,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    7348
+   ],
+   "spokenText": [
+    "The sky is blue."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 9,
+  "herMessages": 9,
+  "bargeIns": 3,
+  "holds": 2,
+  "holdsResumed": 0,
+  "lastHold": {
+   "reason": "interrupted",
+   "heldMs": 1926,
+   "at": 1795729078342
+  },
+  "lastInterruption": {
+   "at": 1795729132340,
+   "heldWithinMs": null,
+   "stoppedAfterOnsetMs": 1737
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 9,
+   "recorded": 8,
+   "unexplained": 1,
+   "spoken": 7,
+   "silent": 1,
+   "noticeSpoken": 0,
+   "byOutcome": {
+    "spoke": 7,
+    "playback-failed": 1
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 1,
+  "captureLosses": 1,
+  "tracksAfterEnd": [
+   "ended",
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   "spoke",
+   "playback-failed",
+   "spoke",
+   "spoke",
+   "spoke",
+   "spoke",
+   null,
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": -150,
+  "voxcpm2CpuPctPeak": 200,
+  "voxcpm2RssMiBPeak": 9671,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 73,
+  "chromiumCpuPctAvg": 185,
+  "chromiumRssMiBPeak": 2129
+ }
+}

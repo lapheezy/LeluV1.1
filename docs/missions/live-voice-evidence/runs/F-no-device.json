@@ -1,0 +1,234 @@
+{
+ "label": "F-no-device",
+ "base": "http://127.0.0.1:4173/",
+ "input": "no capture device",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": null,
+ "messages": [],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "unknown",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": false,
+   "audioGenerated": false,
+   "audioPlaying": false,
+   "ttsStage": "idle",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": null,
+   "firstAudioLatencyMs": null,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": null,
+   "audioContextState": "unknown",
+   "speakerDevices": null,
+   "warmSynthesis": null,
+   "bargeIns": 0,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": null,
+   "speechHeld": false,
+   "holds": 0,
+   "holdsResumed": 0,
+   "lastHold": null,
+   "lastInterruption": null,
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": null,
+   "fullDuplex": false,
+   "speechOutcome": {
+    "started": 0,
+    "recorded": 0,
+    "unexplained": 0,
+    "spoken": 0,
+    "silent": 0,
+    "noticeSpoken": 0,
+    "byOutcome": {},
+    "last": null
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 0,
+   "micStreamsReleased": 0,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [],
+  "turnLatency": null
+ },
+ "media": [],
+ "tracks": [
+  {
+   "at": 0.3,
+   "error": "NotFoundError: Requested device not found"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7347,
+   "serverRssMiB": 73,
+   "chromiumRssMiB": 1731
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 73,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1735,
+   "chromiumCpu": 187
+  }
+ ],
+ "screenshots": [
+  "F-no-device-01-loaded.jpg",
+  "F-no-device-05-before-end.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 2.23,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.31,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 78,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.41,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.41,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.41,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.41,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.99,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.35,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.5,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 143,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.46,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.55,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 7.49,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1935,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 17.41,
+   "kind": "screenshot",
+   "file": "F-no-device-01-loaded.jpg"
+  },
+  {
+   "t": 0.34,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.34,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Microphone error: NotFoundError: Requested device not found → no-device"
+  },
+  {
+   "t": 0.34,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.34,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 0,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.42,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": "No microphone was found on this device."
+  },
+  {
+   "t": 5.52,
+   "kind": "screenshot",
+   "file": "F-no-device-05-before-end.jpg"
+  }
+ ]
+}

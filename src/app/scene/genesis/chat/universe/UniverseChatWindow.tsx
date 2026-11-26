@@ -33,6 +33,7 @@ import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
 import VoiceToggle from "./VoiceToggle";
+import VoiceInterim from "./VoiceInterim";
 import Model3DView from "../Model3DView";
 import SpatialSurfaces from "../SpatialSurface";
 
@@ -315,6 +316,8 @@ export default function UniverseChatWindow({
           </motion.div>
         ))}
       </AnimatePresence>
+      {/* Live conversation: the words being recognised, as the person's line in progress. */}
+      <VoiceInterim conversationId={conversation.id} />
       {/* Mission 5.7: spatial work lives in this thread, not in a destination. */}
       <SpatialSurfaces conversationId={conversation.id} />
       {conversation.processing ? (

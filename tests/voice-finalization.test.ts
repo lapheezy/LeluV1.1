@@ -200,12 +200,17 @@ test("the page waits as long as the worker needs, and no longer than it must", a
   assert.equal(await tts.elevenLabsReady(), true);
   for (let index = 1; index <= 8; index += 1) void tts.speakText(`Sentence number ${index}.`);
   await new Promise((resolve) => setTimeout(resolve, 30));
-  assert.equal(started.length, 1 + tts.SYNTHESIS_AHEAD, "only the playing sentence and the look-ahead are requested");
+  // Live conversation: against a worker slower than real time, ONE request
+  // is in flight at a time (it generates one sentence at a time anyway, and
+  // two sent together reached it out of order in the live run — see
+  // tests/voice-live-conversation.test.ts). Look-ahead stays bounded either way.
+  assert.equal(started.length, 1, "only one sentence is requested from a slow worker at a time");
+  assert.ok(started.length <= 1 + tts.SYNTHESIS_AHEAD, "never more than the playing sentence and the look-ahead");
 
   tts.stopSpeaking();
   await new Promise((resolve) => setTimeout(resolve, 10));
   assert.ok(signals.length > 0 && signals.every((signal) => signal.aborted), "a stop aborts every request already sent");
-  assert.equal(started.length, 1 + tts.SYNTHESIS_AHEAD, "and nothing further is requested");
+  assert.equal(started.length, 1, "and nothing further is requested");
 });
 
 /* ------------------------------ ears ------------------------------ */

@@ -1,0 +1,69 @@
+{
+ "speaker": "VoxCPM2 conditioned on the Piper 'amy' sample (synthetic test speaker, not a person, not LÉLU)",
+ "clips": {
+  "a1": {
+   "text": "Hi Lélu. What is the capital of France? Please answer in one short sentence.",
+   "seconds": 4.96
+  },
+  "a2": {
+   "text": "And what is the most famous tower there?",
+   "seconds": 2.88
+  },
+  "a3": {
+   "text": "Roughly how tall is it?",
+   "seconds": 1.6
+  },
+  "c1": {
+   "text": "Tell me about the ocean in three or four sentences.",
+   "seconds": 4.8
+  },
+  "c2": {
+   "text": "Wait, stop. What about the planet Mars instead? One sentence.",
+   "seconds": 4.48
+  },
+  "c3": {
+   "text": "Hold on. Which planet is the largest? One short sentence.",
+   "seconds": 4
+  },
+  "d1": {
+   "text": "My favourite colour is green. Please remember that, and just say okay.",
+   "seconds": 4.96
+  },
+  "d2": {
+   "text": "And what did we just talk about? One sentence.",
+   "seconds": 4
+  },
+  "e1": {
+   "text": "Talking with Lélu.",
+   "seconds": 1.28
+  },
+  "e2": {
+   "text": "Can you hear me? Answer in one short sentence.",
+   "seconds": 3.68
+  },
+  "f1": {
+   "text": "What day comes after Monday? One short sentence.",
+   "seconds": 4.32
+  },
+  "f2": {
+   "text": "What colour is the sky? One short sentence.",
+   "seconds": 4.16
+  },
+  "f3": {
+   "text": "How many legs does a spider have? One short sentence.",
+   "seconds": 3.84
+  },
+  "f4": {
+   "text": "What is two plus two? One short sentence.",
+   "seconds": 2.88
+  },
+  "g1": {
+   "text": "Tell me about the moon in three sentences.",
+   "seconds": 2.56
+  },
+  "g2": {
+   "text": "Wait. What is the moon made of? One sentence.",
+   "seconds": 3.84
+  }
+ }
+}

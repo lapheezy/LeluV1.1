@@ -101,7 +101,7 @@ let finishCurrent: (() => void) | null = null;
  * the previous segment is still playing, so the next blob is normally
  * ready before the current one ends.
  *
- * Order is preserved by one pump; `halted` makes a stop drop both the
+ * Order is preserved by one pump; a stop marks every segment cancelled, which drops both the
  * playing segment and everything already synthesising behind it.
  */
 /**
@@ -128,6 +128,14 @@ interface QueuedSegment {
   /** Resolves when this segment is over, played or not: callers await it. */
   settled: Promise<void>;
   settle: () => void;
+  /**
+   * This segment was stopped. Per segment, not global: `halted` is cleared
+   * by the next reply's first sentence, and a pump still awaiting an
+   * interrupted sentence then saw "not halted", got the aborted request's
+   * null and called its onFail — the engine counted a sentence nobody wanted
+   * as a voice failure and handed it to a different voice.
+   */
+  cancelled?: boolean;
 }
 
 const queue: QueuedSegment[] = [];
@@ -158,21 +166,50 @@ function startSynthesis(segment: QueuedSegment): Promise<PreparedAudio | null> {
     for (const other of inFlight) aheadChars += other.text.length;
     inFlight.add(segment);
     void segment.settled.then(() => inFlight.delete(segment));
+    synthesising += 1;
     segment.audio = synthesize(segment.text, segment.delivery, segment.controller, aheadChars);
+    void segment.audio.finally(() => {
+      synthesising = Math.max(0, synthesising - 1);
+      // The next sentence may go now (see fillAhead).
+      fillAhead();
+    });
   }
   return segment.audio;
 }
 
-/** Start synthesis for the next SYNTHESIS_AHEAD queued segments, no more. */
+/** Segments whose synthesis request has been sent and not yet answered. */
+let synthesising = 0;
+
+/**
+ * Start synthesis for the next SYNTHESIS_AHEAD queued segments, no more.
+ *
+ * A worker slower than real time generates one sentence at a time anyway, and
+ * two requests sent in the same millisecond can reach it in either order:
+ * measured in the live run, the reply's second sentence was generated first
+ * and the first waited 38 s behind it. Against such a worker the next request
+ * is sent when the previous one has been answered, so it arrives in order.
+ */
 function fillAhead(): void {
-  for (const segment of queue.slice(0, SYNTHESIS_AHEAD)) void startSynthesis(segment);
+  const serial = (statusCache?.workerRtf ?? 0) > 1;
+  for (const segment of queue.slice(0, SYNTHESIS_AHEAD)) {
+    if (segment.audio) continue;
+    if (serial && synthesising > 0) break;
+    void startSynthesis(segment);
+  }
 }
-/** A stop happened: never play what was synthesising when it arrived. */
-let halted = false;
 /** Segments played since the last stop (diagnostics, evidence). */
 let playedSegments = 0;
 
 /** How many segments are synthesising or playing behind the current one. */
+/**
+ * The speech worker's measured real-time factor, as /api/voice/status last
+ * reported it (null: unknown or not a local worker). Above 1 the worker is
+ * slower than real time — VoxCPM2 on a CPU.
+ */
+export function speechWorkerRtf(): number | null {
+  return statusCache?.workerRtf ?? null;
+}
+
 export function ttsQueueDepth(): number {
   return queue.length + (current ? 1 : 0);
 }
@@ -322,9 +359,23 @@ function playBlob(blob: Blob, callbacks: SpeakCallbacks): Promise<boolean> {
     audio.onerror = () => done(false);
     // "playing" is the browser's own report that samples reached the output
     // device, which is a later and more honest moment than handing over a URL.
-    audio.onplaying = () => callbacks.onAudible?.();
+    // Once: a held element fires "playing" again when it is resumed.
+    let audible = false;
+    audio.onplaying = () => {
+      if (audible) return;
+      audible = true;
+      callbacks.onAudible?.();
+    };
     callbacks.onStart?.();
-    void audio.play().catch(() => done(false));
+    // A hold that lands before the audio has started rejects this play()
+    // with AbortError ("interrupted by a call to pause()"). That is a pause,
+    // not a failure: resumeSpeaking() plays the element again. Treating it as
+    // a failure (found in the live run) marked her voice failed and handed
+    // the reply to a different voice.
+    void audio.play().catch((error: unknown) => {
+      if (held && (error as { name?: string } | null)?.name === "AbortError") return;
+      done(false);
+    });
   });
 }
 
@@ -404,9 +455,13 @@ async function playPcm(
       }
     }
     if (!started) return false;
-    await new Promise<void>((resolve) =>
-      setTimeout(resolve, Math.max(0, Math.ceil((endAt - ctx.currentTime) * 1000)) + 20),
-    );
+    // Audio time, not wall time: a hold suspends the context, and the
+    // segment must not be reported finished while it is paused.
+    while (!stopped && ctx.currentTime < endAt) {
+      await new Promise<void>((resolve) =>
+        setTimeout(resolve, Math.min(250, Math.max(20, Math.ceil((endAt - ctx.currentTime) * 1000) + 20))),
+      );
+    }
     if (stopped) return false;
     playedSegments += 1;
     return true;
@@ -436,7 +491,7 @@ async function pump(): Promise<void> {
   try {
     while (queue.length > 0) {
       const segment = queue.shift() as QueuedSegment;
-      if (halted) {
+      if (segment.cancelled) {
         segment.settle();
         continue;
       }
@@ -444,7 +499,14 @@ async function pump(): Promise<void> {
       const audio = startSynthesis(segment);
       fillAhead();
       const prepared = await audio;
-      if (halted) {
+      if (segment.cancelled) {
+        segment.settle();
+        continue;
+      }
+      // Held (the person started talking over her): the next sentence waits
+      // until the hold is released or the reply is stopped.
+      await whileHeld();
+      if (segment.cancelled) {
         segment.settle();
         continue;
       }
@@ -455,7 +517,7 @@ async function pump(): Promise<void> {
       }
       const played = await play(prepared, segment.callbacks);
       if (played) segment.callbacks.onEnd?.();
-      else if (!halted) segment.callbacks.onFail?.();
+      else if (!segment.cancelled) segment.callbacks.onFail?.();
       else segment.callbacks.onEnd?.();
       segment.settle();
     }
@@ -526,16 +588,84 @@ export function speakText(
   const settled = new Promise<void>((resolve) => {
     settle = resolve;
   });
-  halted = false;
   queue.push({ text: trimmed, delivery, audio: null, controller: null, callbacks, settled, settle });
   fillAhead();
   void pump();
   return settled;
 }
 
+/* -------------------------------- hold -------------------------------- *
+ * Barge-in used to wait for the interrupting sentence to END and be
+ * TRANSCRIBED before her audio stopped: she talked over the person for the
+ * whole of their sentence plus a second or two. Now the microphone's voice
+ * detector holds her the moment speech begins (holdSpeaking), and the
+ * transcript decides: a real interruption stops her (stopSpeaking), and her
+ * own voice coming back, a cough or nothing at all resumes her exactly where
+ * she paused (resumeSpeaking). Nothing is discarded by a hold.
+ * ----------------------------------------------------------------------- */
+
+let held = false;
+let holdWaiters: Array<() => void> = [];
+
+function whileHeld(): Promise<void> {
+  if (!held) return Promise.resolve();
+  return new Promise<void>((resolve) => holdWaiters.push(resolve));
+}
+
+function releaseHold(resumeAudio: boolean): void {
+  if (!held) return;
+  held = false;
+  if (resumeAudio) {
+    // Held at its very end (found live): play() on an ended element starts it
+    // over, and she said the sentence twice. Finish it instead.
+    if (current && (current.ended || (Number.isFinite(current.duration) && current.currentTime >= current.duration - 0.05))) {
+      const audio = current;
+      queueMicrotask(() => audio.onended?.(new Event("ended")));
+    } else if (current) void current.play().catch(() => finishCurrent?.());
+    if (sharedContext && sharedContext.state === "suspended") void sharedContext.resume().catch(() => {});
+  }
+  const waiters = holdWaiters;
+  holdWaiters = [];
+  for (const resolve of waiters) resolve();
+}
+
+/** Is playback held for a possible interruption? */
+export function isSpeechHeld(): boolean {
+  return held;
+}
+
+/**
+ * Pause her where she is, without discarding anything. Returns true when
+ * there was audio to hold (something playing, or a sentence about to play).
+ */
+export function holdSpeaking(): boolean {
+  if (held) return true;
+  const audible = Boolean(current || activePcm);
+  if (!audible && !pumpSegment && queue.length === 0) return false;
+  held = true;
+  if (current) {
+    try {
+      current.pause();
+    } catch {
+      // a player that cannot pause keeps playing; the transcript still decides
+    }
+  }
+  // PCM chunks are scheduled on the shared output context: suspending it
+  // pauses them in place.
+  if (activePcm && sharedContext && sharedContext.state === "running") void sharedContext.suspend().catch(() => {});
+  return true;
+}
+
+/** It was not an interruption: carry on from where she paused. */
+export function resumeSpeaking(): void {
+  releaseHold(true);
+}
+
 /** Stop whatever she is saying — barge-in, or a new reply taking over. */
 export function stopSpeaking(): void {
-  halted = true;
+  if (pumpSegment) pumpSegment.cancelled = true;
+  for (const segment of queue) segment.cancelled = true;
+  releaseHold(false);
   // Incremental PCM: stop the scheduled buffers and abort the stream, which
   // also ends synthesis on the server.
   activePcm?.stop();

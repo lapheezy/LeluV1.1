@@ -1,0 +1,165 @@
+{
+ "label": "D-voice-and-typing",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): D.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "My favorite color is green. Please remember that and just say OK.",
+   "reply": "OK",
+   "spokenEnd": 25.46,
+   "vadEnd": 26.08,
+   "transcript": 26.75,
+   "userMsg": 27.07,
+   "firstText": 28.55,
+   "firstAudio": 33.81,
+   "speechEndToTranscriptS": 1.29,
+   "transcriptToFirstTextS": 1.8,
+   "transcriptToFirstAudioS": 7.06,
+   "speechEndToFirstAudioS": 8.35,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    4912
+   ],
+   "spokenText": [
+    "OK."
+   ]
+  },
+  {
+   "heard": "What is my favourite colour? Answer in one short sentence.",
+   "reply": "Your favourite colour is green.",
+   "spokenEnd": 104.46,
+   "vadEnd": 105.46,
+   "transcript": 105.94,
+   "userMsg": 63,
+   "firstText": 64.88,
+   "firstAudio": 75.7,
+   "speechEndToTranscriptS": 1.48,
+   "transcriptToFirstTextS": -41.06,
+   "transcriptToFirstAudioS": -30.24,
+   "speechEndToFirstAudioS": -28.76,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    9773
+   ],
+   "spokenText": [
+    "Your favourite colour is green."
+   ]
+  },
+  {
+   "heard": "And what did we just talk about?",
+   "reply": "We just talked about you telling me your favourite colour is green and confirming I’ve remembered it.",
+   "spokenEnd": null,
+   "vadEnd": 26.08,
+   "transcript": 26.75,
+   "userMsg": 104.03,
+   "firstText": 105.07,
+   "firstAudio": null,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 78.32,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": null,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "We just talked about you telling me your favourite colour is green and confirming I've remembered it."
+   ]
+  },
+  {
+   "heard": "One sentence.",
+   "reply": "We just discussed you stating your favourite colour is green.",
+   "spokenEnd": null,
+   "vadEnd": 26.08,
+   "transcript": 26.75,
+   "userMsg": 106.44,
+   "firstText": 107.71,
+   "firstAudio": 123.57,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 80.96,
+   "transcriptToFirstAudioS": 96.82,
+   "speechEndToFirstAudioS": null,
+   "textBeforeAudio": true,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 1,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [
+    16001
+   ],
+   "spokenText": [
+    "We just discussed you stating your favourite colour is green."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 4,
+  "herMessages": 4,
+  "bargeIns": 1,
+  "holds": 0,
+  "holdsResumed": 0,
+  "lastHold": null,
+  "lastInterruption": {
+   "at": 1795728285745,
+   "heldWithinMs": null,
+   "stoppedAfterOnsetMs": 2010
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 3,
+   "recorded": 2,
+   "unexplained": 1,
+   "spoken": 2,
+   "silent": 0,
+   "noticeSpoken": 0,
+   "byOutcome": {
+    "spoke": 2
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   null,
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 27,
+  "voxcpm2CpuPctPeak": 199,
+  "voxcpm2RssMiBPeak": 7346,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 65,
+  "chromiumCpuPctAvg": 186,
+  "chromiumRssMiBPeak": 2058
+ }
+}

@@ -1,0 +1,58 @@
+{
+ "worker": "http://127.0.0.1:8788",
+ "at": "2026-11-26T19:26:33.948Z",
+ "rows": [
+  {
+   "steps": 10,
+   "text": "clause",
+   "chars": 27,
+   "status": 200,
+   "cached": "0",
+   "wallMs": 10887,
+   "synthesisMs": 10838,
+   "audioSeconds": 1.6,
+   "rtf": 6.77,
+   "heard": "Sure, I can help with that.",
+   "wordAccuracy": 1
+  },
+  {
+   "steps": 10,
+   "text": "sentence",
+   "chars": 89,
+   "status": 200,
+   "cached": "0",
+   "wallMs": 18188,
+   "synthesisMs": 18184,
+   "audioSeconds": 4.96,
+   "rtf": 3.67,
+   "heard": "The ocean covers about 70% of the planet, and most of it is still unexplored.",
+   "wordAccuracy": 0.875
+  },
+  {
+   "steps": 6,
+   "text": "clause",
+   "chars": 27,
+   "status": 200,
+   "cached": "0",
+   "wallMs": 4262,
+   "synthesisMs": 4258,
+   "audioSeconds": 1.6,
+   "rtf": 2.66,
+   "heard": "Sure, I can help with that.",
+   "wordAccuracy": 1
+  },
+  {
+   "steps": 6,
+   "text": "sentence",
+   "chars": 89,
+   "status": 200,
+   "cached": "0",
+   "wallMs": 13856,
+   "synthesisMs": 13852,
+   "audioSeconds": 5.12,
+   "rtf": 2.71,
+   "heard": "The ocean covers about 70% of the planet, and most of it is still unexplored.",
+   "wordAccuracy": 0.875
+  }
+ ]
+}

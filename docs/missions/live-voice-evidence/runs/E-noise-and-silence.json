@@ -1,0 +1,1889 @@
+{
+ "label": "E-noise-and-silence",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): E.wav",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,noise:4,sil:12,burst:0.6,sil:2,burst:0.6,sil:2,burst:0.6,sil:10,clicks:3,sil:25,e2,sil:50",
+  "totalSeconds": 133.48,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "noise:4",
+    "at": 20,
+    "seconds": 4
+   },
+   {
+    "item": "sil:12",
+    "at": 24,
+    "seconds": 12
+   },
+   {
+    "item": "burst:0.6",
+    "at": 36,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2",
+    "at": 36.6,
+    "seconds": 2
+   },
+   {
+    "item": "burst:0.6",
+    "at": 38.6,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:2",
+    "at": 39.2,
+    "seconds": 2
+   },
+   {
+    "item": "burst:0.6",
+    "at": 41.2,
+    "seconds": 0.6
+   },
+   {
+    "item": "sil:10",
+    "at": 41.8,
+    "seconds": 10
+   },
+   {
+    "item": "clicks:3",
+    "at": 51.8,
+    "seconds": 3
+   },
+   {
+    "item": "sil:25",
+    "at": 54.8,
+    "seconds": 25
+   },
+   {
+    "item": "e2",
+    "at": 79.8,
+    "seconds": 3.68
+   },
+   {
+    "item": "sil:50",
+    "at": 83.48,
+    "seconds": 50
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "Can you hear me?",
+   "firstSeen": 83.4,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "The last thing I worked on was “Self-study: What do I actually know about Procedural environment generation, and is it true?”, but I never received a confirmed result, so I won't claim it succeeded. Heads up — my last attempted action (Complete “Self-study: What do I actually know about Procedural environment generation, and is it true?”) could NOT be verified against telemetry. Yes — I'm connected. AI providers: CONNECTED — 1/9 confirmed working, last response via “Groq”. Memory persistence: verified (write+read round-trip OK). System health is degraded (“Self-study: What do I actually know a",
+   "firstSeen": 83.4,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Answer in one short sentence.",
+   "firstSeen": 86.23,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Yes, I can hear you.",
+   "firstSeen": 86.83,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": true,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": 1256,
+   "firstAudioLatencyMs": 9137,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 9404,
+   "audioContextState": "unknown",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 7682,
+    "characters": null,
+    "at": 1795728551935,
+    "streaming": "off:slower-than-realtime",
+    "modelLoads": null,
+    "synthesisMs": 7643,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 1,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795728540690,
+   "speechHeld": false,
+   "holds": 0,
+   "holdsResumed": 0,
+   "lastHold": null,
+   "lastInterruption": {
+    "at": 1795728542978,
+    "heldWithinMs": null,
+    "stoppedAfterOnsetMs": 2288
+   },
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 4,
+   "speechToTranscriptMs": 332,
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 2,
+    "recorded": 2,
+    "unexplained": 0,
+    "spoken": 2,
+    "silent": 0,
+    "noticeSpoken": 0,
+    "byOutcome": {
+     "spoke": 2
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "5276dda6-3d74-4bf3-81b4-f4fcd8f50468",
+    "text": "Can you hear me?",
+    "at": 1795728540780,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "c7e36dab-034c-432c-a496-6d415ecc57d6",
+    "text": "Answer in one short sentence.",
+    "at": 1795728542983,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "c7e36dab-034c-432c-a496-6d415ecc57d6",
+   "transcriptAt": 1795728542978,
+   "firstTextAt": 1795728544234,
+   "firstAudioAt": 1795728552115,
+   "firstAudibleAt": 1795728552382
+  }
+ },
+ "media": [
+  {
+   "t": 94.35,
+   "id": 1,
+   "event": "play()",
+   "at": 0
+  },
+  {
+   "t": 94.61,
+   "id": 1,
+   "event": "playing",
+   "at": 0.07
+  },
+  {
+   "t": 96.17,
+   "id": 1,
+   "event": "pause",
+   "at": 1.6
+  },
+  {
+   "t": 96.17,
+   "id": 1,
+   "event": "ended",
+   "at": 1.6
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.59,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7346,
+   "serverRssMiB": 66,
+   "chromiumRssMiB": 2093
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 66,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2082,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 6,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 66,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2013,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 8,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2010,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2024,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2024,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2033,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 16,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2040,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 18.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2051,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 20,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2053,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 22.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2071,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 24.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2070,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 26,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2088,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 28.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1826,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 30,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1826,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 32.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1837,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 34,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1829,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 36.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1834,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 38.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1834,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 40,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1828,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 42.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1834,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 44,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1825,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 46,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1731,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 48.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1711,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 50.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1704,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 52,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1702,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 54,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1706,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 56.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1713,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 58.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1702,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 60.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1700,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 62.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1690,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 64.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1694,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 66.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1691,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 68,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1720,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 70,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1725,
+   "chromiumCpu": 197
+  },
+  {
+   "t": 72.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1726,
+   "chromiumCpu": 193
+  },
+  {
+   "t": 74.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1722,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 76.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1725,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 78.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1723,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1724,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 82.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1718,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 84.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 84,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1750,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 86.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 149,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1744,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 88.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 155,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1763,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 90.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1750,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 92.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1736,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 94.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 194,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1720,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 96.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 6,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1777,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 98.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1777,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1776,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 102.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1771,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 104.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1784,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1789,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 108.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1785,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 110.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1798,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 112.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1815,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1820,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1822,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1836,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1848,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1841,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1848,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1890,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1898,
+   "chromiumCpu": 179
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1901,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1911,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1914,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1915,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1938,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1937,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1941,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1903,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1903,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1903,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 156.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1846,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 158.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1843,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1855,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 168.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1847,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1789,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1798,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 174.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1801,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 176.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1797,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 178.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1787,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 180.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1792,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 182.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1797,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 184.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1802,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 186.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 1,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1803,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 188.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1812,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 190.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1816,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 192.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1831,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 194.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1833,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 196.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1836,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 198.1,
+   "voxcpm2RssMiB": 7347,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1851,
+   "chromiumCpu": 186
+  }
+ ],
+ "screenshots": [
+  "E-noise-and-silence-01-loaded.jpg",
+  "E-noise-and-silence-02-hearing.jpg",
+  "E-noise-and-silence-03-speaking-1.jpg",
+  "E-noise-and-silence-05-before-end.jpg",
+  "E-noise-and-silence-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 1.6,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 1.94,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 337,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.95,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.95,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.95,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.95,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 3.24,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.27,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.34,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 63,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.35,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 6,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 8.12,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 2119,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 17.09,
+   "kind": "screenshot",
+   "file": "E-noise-and-silence-01-loaded.jpg"
+  },
+  {
+   "t": 0.5,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.5,
+   "kind": "scenario",
+   "spec": "sil:20,noise:4,sil:12,burst:0.6,sil:2,burst:0.6,sil:2,burst:0.6,sil:10,clicks:3,sil:25,e2,sil:50",
+   "totalSeconds": 133.48,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "noise:4",
+     "at": 20,
+     "seconds": 4
+    },
+    {
+     "item": "sil:12",
+     "at": 24,
+     "seconds": 12
+    },
+    {
+     "item": "burst:0.6",
+     "at": 36,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2",
+     "at": 36.6,
+     "seconds": 2
+    },
+    {
+     "item": "burst:0.6",
+     "at": 38.6,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:2",
+     "at": 39.2,
+     "seconds": 2
+    },
+    {
+     "item": "burst:0.6",
+     "at": 41.2,
+     "seconds": 0.6
+    },
+    {
+     "item": "sil:10",
+     "at": 41.8,
+     "seconds": 10
+    },
+    {
+     "item": "clicks:3",
+     "at": 51.8,
+     "seconds": 3
+    },
+    {
+     "item": "sil:25",
+     "at": 54.8,
+     "seconds": 25
+    },
+    {
+     "item": "e2",
+     "at": 79.8,
+     "seconds": 3.68
+    },
+    {
+     "item": "sil:50",
+     "at": 83.48,
+     "seconds": 50
+    }
+   ]
+  },
+  {
+   "t": 0.5,
+   "kind": "state",
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.61,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.77,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 163,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.78,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.81,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.91,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 98,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.94,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.94,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 1.02,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 11.07,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10138,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 21.96,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10867,\"voicedMs\":0,\"spoke\":true,\"ms\":10893,\"peak\":0.0152,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 32.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10119,\"peak\":0,\"threshold\":0.0162,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 36.18,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 38.38,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6217,\"voicedMs\":0,\"spoke\":true,\"ms\":6301,\"peak\":0.2095,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 41.01,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2456,\"voicedMs\":0,\"spoke\":true,\"ms\":2561,\"peak\":0.2202,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 43.7,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2456,\"voicedMs\":0,\"spoke\":true,\"ms\":2675,\"peak\":0.2284,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 52.72,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 52.75,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 52.84,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 53.83,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":100,\"spoke\":false,\"ms\":10126,\"peak\":0.302,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":470}"
+  },
+  {
+   "t": 60.96,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 63.95,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":100,\"spoke\":false,\"ms\":10121,\"peak\":0.302,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":8516}"
+  },
+  {
+   "t": 74.23,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10271,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 80.9,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 81.31,
+   "kind": "screenshot",
+   "file": "E-noise-and-silence-02-hearing.jpg"
+  },
+  {
+   "t": 82.33,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7941,\"voicedMs\":500,\"spoke\":true,\"ms\":8103,\"peak\":0.484,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 82.34,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 82.37,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 82.44,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 98,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 82.45,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 82.92,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 83.01,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 557,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 83.14,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The last thing I worked on was \"Self-study: What do I actually know about Procedural environment generation, and is it true?\", but I never received a confirmed result, so I won't claim it succeeded."
+  },
+  {
+   "t": 83.15,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 83.4,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 83.4,
+   "kind": "message",
+   "index": 0,
+   "role": "user",
+   "text": "Can you hear me?"
+  },
+  {
+   "t": 83.4,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "The last thing I worked on was “Self-study: What do I actually know about Procedural environment generation, and is it true?”, but I never received a confirmed result, so I won't claim it succeeded. H"
+  },
+  {
+   "t": 84.88,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2403,\"voicedMs\":800,\"spoke\":true,\"ms\":2444,\"peak\":0.2066,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 84.89,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 85.05,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 85.14,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 250,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 85.22,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 2074,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 85.36,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 85.58,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 86.23,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 86.23,
+   "kind": "message",
+   "index": 2,
+   "role": "user",
+   "text": "Answer in one short sentence."
+  },
+  {
+   "t": 86.49,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Yes, I can hear you."
+  },
+  {
+   "t": 86.51,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 86.61,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1029,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 86.83,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 86.83,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "Yes, I can hear you."
+  },
+  {
+   "t": 94.44,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 7764,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-synthesis-ms": "7643",
+    "x-lelu-worker": "local",
+    "x-lelu-cached": "0",
+    "content-type": "audio/wav",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.76",
+    "x-lelu-voice": "lelu-reference",
+    "x-lelu-streaming": "off:slower-than-realtime",
+    "x-lelu-rtf": "4.78",
+    "x-lelu-audio-seconds": "1.6"
+   },
+   "saved": "audio/E-noise-and-silence-tts-01.wav"
+  },
+  {
+   "t": 94.44,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 94.79,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 95.17,
+   "kind": "screenshot",
+   "file": "E-noise-and-silence-03-speaking-1.jpg"
+  },
+  {
+   "t": 95.18,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10211,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 96.36,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 105.51,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10320,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 110.28,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 115.75,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10149,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 125.89,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10133,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 136.01,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10123,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 146.23,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10213,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 156.37,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10132,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 166.63,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10257,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 175.45,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 177.12,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10387,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 187.29,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10163,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 192.04,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 192.14,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 192.16,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 195.01,
+   "kind": "screenshot",
+   "file": "E-noise-and-silence-05-before-end.jpg"
+  },
+  {
+   "t": 195.32,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7993,\"voicedMs\":0,\"spoke\":false,\"ms\":8021,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":7732}"
+  },
+  {
+   "t": 195.32,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 196.56,
+   "kind": "screenshot",
+   "file": "E-noise-and-silence-06-ended.jpg"
+  }
+ ]
+}
