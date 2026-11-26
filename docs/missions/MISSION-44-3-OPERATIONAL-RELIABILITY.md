@@ -240,7 +240,8 @@ the exact tree that is committed.
 ## 10. Branch, commit, working tree
 
 - Branch: `mission/44-3-operational-reliability`
-- Checkpoint commit: `21421e9` — "Checkpoint the self-development laboratory work before Mission 44.3"
-- Final commit: this report and the mission's changes (see `git log -1` after the closing commit)
-- Canonical branch `freebuff/08af6cc9ef212913e6b7209b` is **unchanged** at `543da7c`
-- Nothing pushed, merged, deployed or published; no production surface touched
+- Checkpoint commit: **`21421e9`** — "Checkpoint the self-development laboratory work before Mission 44.3" (95 files, preserves all of 44.2)
+- Final commit: **`db9901b`** — "Stop the avatar from painting a CPU rasteriser to death, and keep her claims sourced" (17 files: the renderer fix, the lab provenance, the scheduler wake-up, the router record guard, the system-prompt evidence rule, 6 new tests, this report and the evidence)
+- Working tree at the end: one untracked scratch file (`pw-probe.mjs`, a Playwright probe from an earlier mission), deliberately left untouched; the two discarded verification logs remain on disk and out of git
+- Canonical branch `freebuff/08af6cc9ef212913e6b7209b` is **unchanged** at `543da7c`; the 8 `lelu-lab/exp-*` worktrees and branches are untouched
+- Nothing pushed, merged, deployed or published; no production surface touched. No push was attempted, so the branch exists locally only.
