@@ -21,6 +21,12 @@
  * (measured: desktop showed "Microphone permission denied…", the iPhone
  * viewport showed nothing). The message now sits beside the control that
  * caused it, on every device, until dismissed or the next attempt.
+ *
+ * Voice finalization: the control now says what the voice is really doing
+ * (voiceStatus.ts — "Generating her voice…" is not "Speaking"), and offers
+ * "Stop speaking" while her voice is generated or played. That stops her
+ * and aborts the synthesis, and leaves the microphone listening; the
+ * microphone button itself ends the whole voice session.
  * ==========================================================
  */
 
@@ -31,15 +37,40 @@ import { useGenesis } from "../../GenesisCore";
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
 import VoiceEngine from "../../../../../core/voice/VoiceEngine";
 import { useVoice } from "../../../../../core/voice/useVoice";
+import { voiceStatus } from "../../../../../core/voice/voiceStatus";
 
 export default function VoiceToggle({ conversationId }: { conversationId: string | null }) {
   const genesis = useGenesis();
-  const { state } = useVoice();
+  const { state, diagnostics } = useVoice();
+  const status = voiceStatus({
+    active: state.active,
+    phase: state.phase,
+    captureSuspended: state.captureSuspended,
+    ttsStage: diagnostics.ttsStage,
+    audioPlaying: diagnostics.audioPlaying,
+  });
   const [dismissed, setDismissed] = useState<string | null>(null);
   const capture = state.active ? (state.captureSuspended ? "suspended" : "live") : "off";
   const error = !state.active && state.error && state.error !== dismissed ? state.error : null;
   return (
     <span className="lcu-voice" data-lelu-voice-wrap>
+      {status.label ? (
+        <span className="lcu-voice-status" role="status" aria-live="polite" data-lelu-voice-status={status.key}>
+          {status.label}
+        </span>
+      ) : null}
+      {status.canStopSpeech ? (
+        <button
+          type="button"
+          className="lcu-icon sm lcu-voice-stop"
+          data-lelu-voice-stop-speaking
+          aria-label="Stop speaking"
+          title="Stop speaking"
+          onClick={() => VoiceEngine.getInstance().cancelSpeech()}
+        >
+          <Icons.Square size={15} fill="currentColor" aria-hidden />
+        </button>
+      ) : null}
       <button
         type="button"
         className="lcu-icon sm"

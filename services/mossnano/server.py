@@ -127,7 +127,11 @@ class Config:
         self.port = int(_env("MOSS_PORT", "8789"))
         self.token = _env("MOSS_TOKEN", "")
         self.threads = int(_env("MOSS_THREADS", "3"))
-        self.reference = Path(_env("MOSS_REFERENCE_AUDIO", str(ROOT / "public" / "audio" / "voice" / "lelu-voice-reference.m4a")))
+        # Not under public/ (that is served to browsers); the old path is a fallback for an unmoved checkout.
+        reference_new = ROOT / "services" / "voice-reference" / "lelu-voice-reference.m4a"
+        reference_old = ROOT / "public" / "audio" / "voice" / "lelu-voice-reference.m4a"
+        default_reference = reference_new if reference_new.exists() or not reference_old.exists() else reference_old
+        self.reference = Path(_env("MOSS_REFERENCE_AUDIO", str(default_reference)))
         self.reference_seconds = float(_env("MOSS_REFERENCE_SECONDS", "12"))
         self.max_chars = int(_env("MOSS_MAX_CHARS", "900"))
         self.max_queue = int(_env("MOSS_MAX_QUEUE", "4"))

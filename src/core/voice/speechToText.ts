@@ -18,6 +18,24 @@ import { localTranscriptionKey, postTranscription, WHISPER_NAME_HINT } from "./t
 import type { VoiceErrorKind } from "./VoiceEngine";
 
 /**
+ * Does this frame's permissions policy allow the microphone? null when the
+ * browser does not say (Safari, Firefox) or this is not a page at all.
+ */
+export function microphoneAllowedByFramePolicy(): boolean | null {
+  if (typeof document === "undefined") return null;
+  const doc = document as Document & {
+    permissionsPolicy?: { allowsFeature(feature: string): boolean };
+    featurePolicy?: { allowsFeature(feature: string): boolean };
+  };
+  const policy = doc.permissionsPolicy ?? doc.featurePolicy;
+  try {
+    return policy ? policy.allowsFeature("microphone") : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Classify a getUserMedia() rejection into a diagnosis LÉLU can act
  * on. "permission" must mean the user actually denied the mic — never
  * a stand-in for "no mic exists" (NotFoundError), "the mic is
@@ -26,10 +44,24 @@ import type { VoiceErrorKind } from "./VoiceEngine";
  * of which needs a different fix from the user and previously all
  * surfaced as the same "permission denied".
  */
-export function mapMediaError(error: { name?: string }): { kind: VoiceErrorKind; message: string } {
+export function mapMediaError(
+  error: { name?: string },
+  embedPolicy: () => boolean | null = microphoneAllowedByFramePolicy,
+): { kind: VoiceErrorKind; message: string } {
   switch (error.name) {
     case "NotAllowedError":
     case "PermissionDeniedError":
+      // Chromium reports a frame whose parent did not grant the microphone
+      // (`<iframe>` without allow="microphone") as the same NotAllowedError
+      // "Permission denied" a person's refusal gives (measured, voice
+      // finalization 2026-11-26). Telling that person to "allow mic access"
+      // asks for something no prompt will offer.
+      if (embedPolicy() === false) {
+        return {
+          kind: "blocked-embed",
+          message: "This page is embedded without microphone access (the frame needs allow=\"microphone\"). Open LÉLU in its own tab to talk.",
+        };
+      }
       return { kind: "permission", message: "Microphone permission denied. Please allow mic access." };
     case "NotFoundError":
     case "DevicesNotFoundError":

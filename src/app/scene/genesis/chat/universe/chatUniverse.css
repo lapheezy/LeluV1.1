@@ -68,7 +68,14 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 /* Phone: the microphone is a primary control — a full 44 px touch target. */
 @media (pointer: coarse) { .lcu-icon.sm[data-lelu-voice-toggle] { width: 44px; height: 44px; } }
 /* M23: recording state that reads at a glance, and the mic's own error. */
-.lcu-voice { position: relative; display: inline-flex; flex: 0 0 auto; }
+.lcu-voice { position: relative; display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+/* What the voice is really doing (voiceStatus.ts). Above the composer so it never covers the conversation or the draft. */
+.lcu-voice-status { position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 4; width: max-content; max-width: min(260px, calc(100vw - 32px)); padding: 5px 10px; border-radius: 999px; background: var(--lcu-glass-strong); border: 1px solid rgba(255, 255, 255, 0.14); color: var(--lcu-ink); font: 500 12px/1.3 system-ui, sans-serif; pointer-events: none; }
+.lcu-voice-status[data-lelu-voice-status="speaking"] { border-color: rgba(167, 139, 250, 0.7); }
+.lcu-voice-status[data-lelu-voice-status="voice-failed"] { border-color: rgba(248, 113, 113, 0.65); }
+.lcu-voice:has(.lcu-voice-error) .lcu-voice-status { display: none; }
+.lcu-voice-stop { color: #fca5a5; }
+@media (pointer: coarse) { .lcu-voice-stop { min-width: 44px; min-height: 44px; } }
 .lcu-icon.sm[data-lelu-voice-capture="live"][data-lelu-voice-phase="listening"] { animation: lcu-voice-pulse 1.6s ease-in-out infinite; }
 @keyframes lcu-voice-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.55); } 50% { box-shadow: 0 0 0 6px rgba(236, 72, 153, 0.18); } }
 @media (prefers-reduced-motion: reduce) { .lcu-icon.sm[data-lelu-voice-toggle] { animation: none !important; } }

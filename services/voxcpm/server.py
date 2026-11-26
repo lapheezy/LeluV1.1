@@ -8,7 +8,7 @@ LÉLU's own voice, synthesised by the real OpenBMB VoxCPM2 model
 (`openbmb/VoxCPM2`, https://github.com/OpenBMB/VoxCPM) from the
 reference recording committed in this repository:
 
-    public/audio/voice/lelu-voice-reference.m4a
+    services/voice-reference/lelu-voice-reference.m4a  (never under public/)
 
 WHY A SIDECAR
 -------------
@@ -66,7 +66,9 @@ import hashlib
 import io
 import json
 import os
+import select
 import signal
+import socket
 import subprocess
 import sys
 import threading
@@ -75,7 +77,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_REFERENCE = ROOT / "public" / "audio" / "voice" / "lelu-voice-reference.m4a"
+# Her reference voice. Not under public/: everything there is copied into
+# dist/ and served to any browser (it was, until 2026-11-26). The old path is
+# still read if a checkout has not moved the file yet.
+_REFERENCE_NEW = ROOT / "services" / "voice-reference" / "lelu-voice-reference.m4a"
+_REFERENCE_OLD = ROOT / "public" / "audio" / "voice" / "lelu-voice-reference.m4a"
+DEFAULT_REFERENCE = _REFERENCE_NEW if _REFERENCE_NEW.exists() or not _REFERENCE_OLD.exists() else _REFERENCE_OLD
 
 
 def _memory() -> dict:
@@ -92,9 +99,97 @@ def _memory() -> dict:
     return out
 
 
+def _available_gib() -> "float | None":
+    """MemAvailable of the machine in GiB (Linux /proc only), or None."""
+    try:
+        with open("/proc/meminfo", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("MemAvailable:"):
+                    return round(int(line.split()[1]) / 1048576, 2)
+    except OSError:
+        pass
+    return None
+
+
 def _env(name: str, default: str) -> str:
     value = os.environ.get(name)
     return default if value is None or value.strip() == "" else value.strip()
+
+
+class Cancelled(Exception):
+    """The client went away before its generation began."""
+
+
+class FairTurn:
+    """
+    One generation at a time, in ARRIVAL order.
+
+    `threading.Lock` is not fair: with three sentences of one reply waiting,
+    the worker generated the third, then the second, and the first — the one
+    the page was waiting to play — last (measured, 2026-11-26). Tickets make
+    the order the order of arrival. A waiter whose client has gone gives up
+    its turn instead of generating audio nobody will hear.
+    """
+
+    def __init__(self) -> None:
+        self._cond = threading.Condition()
+        self._next_ticket = 0
+        self._serving = 0
+
+    def acquire(self, cancelled=None) -> None:
+        with self._cond:
+            ticket = self._next_ticket
+            self._next_ticket += 1
+            try:
+                while self._serving != ticket:
+                    self._cond.wait(timeout=0.25)
+                    if cancelled is not None and self._serving != ticket and cancelled():
+                        raise Cancelled()
+            except Cancelled:
+                # Give the turn away: everyone after us moves up.
+                self._skip(ticket)
+                raise
+
+    def _skip(self, ticket: int) -> None:
+        # Mark this ticket as done without running; called with the lock held.
+        self._skipped = getattr(self, "_skipped", set())
+        self._skipped.add(ticket)
+        self._advance()
+
+    def _advance(self) -> None:
+        skipped = getattr(self, "_skipped", set())
+        while self._serving in skipped:
+            skipped.discard(self._serving)
+            self._serving += 1
+        self._cond.notify_all()
+
+    def release(self) -> None:
+        with self._cond:
+            self._serving += 1
+            self._advance()
+
+    def turn(self, cancelled=None):
+        lock = self
+
+        class _Turn:
+            def __enter__(self_inner):
+                lock.acquire(cancelled)
+                return self_inner
+
+            def __exit__(self_inner, *exc):
+                lock.release()
+                return False
+
+        return _Turn()
+
+    # `with engine._generation_lock:` keeps working (self-test).
+    def __enter__(self):
+        self.acquire()
+        return self
+
+    def __exit__(self, *exc):
+        self.release()
+        return False
 
 
 class Config:
@@ -119,6 +214,15 @@ class Config:
         self.warmup = _env("VOXCPM_WARMUP", "1") == "1"
         # torch.compile is a CUDA optimisation; on CPU it costs minutes.
         self.optimize = _env("VOXCPM_OPTIMIZE", "0") == "1"
+        # Weights are fetched by bootstrap.py (disk check, resumable,
+        # verified), never as a side effect of loading: a missing 5 GB
+        # snapshot is reported as FAILED/weights-missing instead.
+        self.allow_download = _env("VOXCPM_ALLOW_DOWNLOAD", "0") == "1"
+        # Loading VoxCPM2 on CPU peaks far above its steady RSS (measured
+        # 11 GiB peak, 6.6 GiB steady on 2026-11-13). Below this much free
+        # memory the load is refused instead of being OOM-killed mid-way,
+        # which used to take the machine's other services down with it.
+        self.min_available_gib = float(_env("VOXCPM_MIN_AVAILABLE_GB", "8"))
 
     def as_dict(self) -> dict:
         return {
@@ -132,6 +236,8 @@ class Config:
             "maxQueue": self.max_queue,
             "authRequired": bool(self.token),
             "optimize": self.optimize,
+            "allowDownload": self.allow_download,
+            "minAvailableGb": self.min_available_gib,
         }
 
 
@@ -148,7 +254,7 @@ class Engine:
         self.config = config
         self._model = None
         self._load_lock = threading.Lock()
-        self._generation_lock = threading.Lock()
+        self._generation_lock = FairTurn()
         self._cache: "dict[str, bytes]" = {}
         self._cache_order: "list[str]" = []
         self._cache_lock = threading.Lock()
@@ -289,6 +395,14 @@ class Engine:
             except Exception as exc:  # pragma: no cover - reported, not raised
                 self.load_error = f"voxcpm import failed: {type(exc).__name__}: {exc}"
                 raise RuntimeError(self.load_error) from exc
+            available = _available_gib()
+            if available is not None and available < self.config.min_available_gib:
+                self.load_error = (
+                    f"insufficient-memory: {available} GiB available, "
+                    f"{self.config.min_available_gib} GiB required to load (VOXCPM_MIN_AVAILABLE_GB)"
+                )
+                self._set_state("FAILED", f"load: {self.load_error}")
+                raise RuntimeError(self.load_error)
             started = time.time()
             self._set_state("LOADING")
             try:
@@ -297,9 +411,20 @@ class Engine:
                     load_denoiser=False,
                     device=self.config.device,
                     optimize=self.config.optimize,
+                    local_files_only=not self.config.allow_download,
                 )
+            except MemoryError as exc:
+                self.load_error = f"out-of-memory: {exc}"
+                self._set_state("FAILED", f"load: {self.load_error}")
+                raise
             except Exception as exc:
-                self.load_error = f"{type(exc).__name__}: {exc}"
+                text = f"{type(exc).__name__}: {exc}"
+                if not self.config.allow_download and (
+                    "LocalEntryNotFound" in text or "local_files_only" in text or "offline" in text.lower()
+                    or "not found" in text.lower() and "snapshot" in text.lower()
+                ):
+                    text = "weights-missing: run services/voxcpm/bootstrap.py to fetch them (" + text[:300] + ")"
+                self.load_error = text
                 self._set_state("FAILED", f"load: {self.load_error}")
                 raise
             self.load_seconds = round(time.time() - started, 1)
@@ -379,7 +504,9 @@ class Engine:
         sf.write(buffer, samples, self.sample_rate or 24000, format="WAV", subtype="PCM_16")
         return buffer.getvalue()
 
-    def wav_for(self, text: str, cfg_value: "float | None" = None, timesteps: "int | None" = None) -> "tuple[bytes, dict]":
+    def wav_for(
+        self, text: str, cfg_value: "float | None" = None, timesteps: "int | None" = None, cancelled=None
+    ) -> "tuple[bytes, dict]":
         """Synthesise `text` in her voice and return a complete WAV."""
         cfg_value = self.config.cfg_value if cfg_value is None else float(cfg_value)
         timesteps = self.config.timesteps if timesteps is None else int(timesteps)
@@ -390,8 +517,11 @@ class Engine:
             return cached, {"cached": True, "ms": 0, "audioSeconds": None, "rtf": None}
 
         model = self.ensure_model()
-        started = time.time()
-        with self._generation_lock:
+        with self._generation_lock.turn(cancelled):
+            # Timed from our turn, not from arrival: waiting behind another
+            # sentence is not synthesis, and counting it inflated the RTF the
+            # page sizes its wait on (measured 18.75 for a real 7–8).
+            started = time.time()
             wav = model.generate(
                 text=text,
                 reference_wav_path=str(self.reference_path),
@@ -413,7 +543,7 @@ class Engine:
         self._cache_put(key, audio)
         return audio, meta
 
-    def stream_for(self, text: str, cfg_value: "float | None" = None, timesteps: "int | None" = None):
+    def stream_for(self, text: str, cfg_value: "float | None" = None, timesteps: "int | None" = None, cancelled=None):
         """Yield raw PCM16 chunks as the model produces them."""
         import numpy as np
 
@@ -421,9 +551,9 @@ class Engine:
         timesteps = self.config.timesteps if timesteps is None else int(timesteps)
         self.prepare_reference()
         model = self.ensure_model()
-        started = time.time()
         produced = 0
-        with self._generation_lock:
+        with self._generation_lock.turn(cancelled):
+            started = time.time()
             for chunk in model.generate_streaming(
                 text=text,
                 reference_wav_path=str(self.reference_path),
@@ -461,7 +591,7 @@ class Engine:
             "stateError": self.state_error,
             "selftest": self.selftest_result,
             "pid": os.getpid(),
-            "memory": _memory(),
+            "memory": {**_memory(), "availableGiB": _available_gib()},
             "engine": "voxcpm2",
             "modelId": self.config.model_id,
             "device": self.config.device,
@@ -587,6 +717,16 @@ class Handler(BaseHTTPRequestHandler):
             return
         self._json(404, {"ok": False, "error": f"no route {path}"})
 
+    def _client_gone(self) -> bool:
+        """True once the client has closed its connection (STOP, timeout)."""
+        try:
+            readable, _, _ = select.select([self.connection], [], [], 0)
+            if readable:
+                return self.connection.recv(1, socket.MSG_PEEK) == b""
+        except OSError:
+            return True
+        return False
+
     def _speech(self) -> None:
         try:
             body = self._body()
@@ -643,7 +783,7 @@ class Handler(BaseHTTPRequestHandler):
             if stream:
                 self._speech_stream(text, cfg_value, timesteps)
                 return
-            audio, meta = self.engine.wav_for(text, cfg_value, timesteps)
+            audio, meta = self.engine.wav_for(text, cfg_value, timesteps, cancelled=self._client_gone)
             self.send_response(200)
             self.send_header("Content-Type", "audio/wav")
             self.send_header("Content-Length", str(len(audio)))
@@ -658,6 +798,10 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("X-Lelu-Cached", "1" if meta.get("cached") else "0")
             self.end_headers()
             self.wfile.write(audio)
+        except Cancelled:
+            sys.stderr.write(json.dumps({"event": "cancelled_before_start", "chars": len(text)}) + "\n")
+        except (BrokenPipeError, ConnectionResetError):
+            sys.stderr.write(json.dumps({"event": "client_gone_after_generation", "chars": len(text)}) + "\n")
         except FileNotFoundError as exc:
             self._json(503, {"ok": False, "error": str(exc)})
         except RuntimeError as exc:
@@ -686,11 +830,14 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         cancelled = False
         try:
-            for chunk in self.engine.stream_for(text, cfg_value, timesteps):
+            for chunk in self.engine.stream_for(text, cfg_value, timesteps, cancelled=self._client_gone):
                 self.wfile.write(f"{len(chunk):X}\r\n".encode("ascii"))
                 self.wfile.write(chunk)
                 self.wfile.write(b"\r\n")
                 self.wfile.flush()
+        except Cancelled:
+            cancelled = True
+            sys.stderr.write(json.dumps({"event": "cancelled_before_start", "chars": len(text)}) + "\n")
         except (BrokenPipeError, ConnectionResetError):
             # The client closed (STOP / barge-in). Leaving the loop closes the
             # generator, which ends the generation: that is the cancellation.

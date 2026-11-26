@@ -57,6 +57,26 @@ export function localTranscriptionKey(): string {
 /** Vocabulary hint for Whisper so her name is transcribed as written. */
 export const WHISPER_NAME_HINT = "Talking with Lélu.";
 
+const normalizeForEcho = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+/**
+ * Whisper given audio with no words in it repeats its prompt. Measured with
+ * the real transcriber (voice finalization, 2026-11-26): five seconds of pink
+ * noise came back as "Talking with Lélu." with `no_speech_prob` 0, the VAD had
+ * passed it as speech, and it was posted to the conversation as something the
+ * person said — and answered. A transcript that is only the hint is nothing.
+ */
+export function isPromptEcho(transcript: string, prompt: string = WHISPER_NAME_HINT): boolean {
+  const heard = normalizeForEcho(transcript);
+  return heard.length > 0 && heard === normalizeForEcho(prompt);
+}
+
 /**
  * Post a prepared multipart transcription request.
  *

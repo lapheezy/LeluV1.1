@@ -13,7 +13,7 @@
  * ==========================================================
  */
 
-import { localTranscriptionKey, postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
+import { isPromptEcho, localTranscriptionKey, postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
@@ -519,7 +519,9 @@ async function transcribeViaWhisperUnmetered(audioBlob: Blob): Promise<string> {
   }
 
   const data = await response.json();
-  const text = typeof data?.text === "string" ? data.text.trim() : "";
+  const raw = typeof data?.text === "string" ? data.text.trim() : "";
+  // Noise transcribed as the name hint is not something the person said.
+  const text = isPromptEcho(raw) ? "" : raw;
 
   // An empty transcript is silence, not a failure: the loop goes back to
   // listening. (Throwing here logged an error for every quiet moment.)
@@ -3063,14 +3065,20 @@ class VoiceEngine {
    * and every streamed answer actually takes.
    */
   private speakStreamSegment(segment: string): void {
-    this.recordTurnOutcome(this._turn?.id ?? null, "spoke");
+    // "spoke" is recorded when audio actually starts, not when the sentence is
+    // queued: a sentence the worker never produced used to leave the turn
+    // marked "spoke" while nothing was heard.
+    const turnId = this._turn?.id ?? null;
     const turn = this.turnLatency;
+    // Her voice is being generated: a state of its own until audio starts.
+    if (this._diagnostics.ttsStage !== "playing") this.patchDiagnostics({ ttsRequested: true, ttsStage: "requested" });
     this.streamSegmentsPending += 1;
     this.chainActive = true;
     void speakText(
       segment,
       {
         onStart: () => {
+          this.recordTurnOutcome(turnId, "spoke");
           this.noteFirstAudio(turn);
           this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
         },
@@ -3080,7 +3088,7 @@ class VoiceEngine {
         // without a trace (no onFail was given): the reply went silent
         // mid-answer and nothing said why. It is now reported, and spoken by
         // the browser's own voice where one exists. The text is in the chat.
-        onFail: () => this.onStreamSegmentFailed(segment),
+        onFail: () => this.onStreamSegmentFailed(segment, turnId),
       },
       this.deliveryFor(segment),
     ).finally(() => {
@@ -3092,8 +3100,9 @@ class VoiceEngine {
     });
   }
 
-  private onStreamSegmentFailed(segment: string): void {
+  private onStreamSegmentFailed(segment: string, turnId: string | null = null): void {
     if (this.cancelFlag) return;
+    if (turnId && this.turnOutcomes.get(turnId) !== "spoke") this.recordTurnOutcome(turnId, "playback-failed");
     this.demoteFromElevenLabs();
     const browserVoice = typeof speechSynthesis !== "undefined" && (speechSynthesis.getVoices?.().length ?? 0) > 0;
     this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed", ...(browserVoice ? {} : { ttsAvailable: false }) });

@@ -56,11 +56,32 @@ export function getLastSynthesis(): typeof lastSynthesis {
 
 /** A synthesis request with no response headers by then has failed. */
 const TTS_HEADER_TIMEOUT_MS = 15_000;
+/** Seconds of speech per character of text (measured on her voice, ~0.07). */
+const SPEECH_SECONDS_PER_CHAR = 0.08;
+/** Never wait longer than this for one sentence, however slow the worker. */
+const TTS_HEADER_TIMEOUT_CAP_MS = 300_000;
+
+/**
+ * How long to wait for a sentence's response headers.
+ *
+ * A worker slower than real time is answered as one whole WAV per sentence
+ * (plugins/voxApi.ts), so its headers come only when the sentence is done:
+ * VoxCPM2 on a 4-core CPU took 19.5 s for 3.2 s of speech. The fixed 15 s
+ * limit aborted every such sentence, and she never spoke. The wait now
+ * scales with the sentence and with the pace the server reported for the
+ * worker (`workerRtf` in /api/voice/status), with a 2× margin; a fast or
+ * unknown engine keeps the 15 s limit, so a hung one still fails fast.
+ */
+export function ttsHeaderTimeoutMs(characters: number, workerRtf: number | null): number {
+  if (workerRtf === null || !Number.isFinite(workerRtf) || workerRtf <= 1) return TTS_HEADER_TIMEOUT_MS;
+  const expected = characters * SPEECH_SECONDS_PER_CHAR * workerRtf * 1000;
+  return Math.min(TTS_HEADER_TIMEOUT_CAP_MS, Math.max(TTS_HEADER_TIMEOUT_MS, TTS_HEADER_TIMEOUT_MS + 2 * expected));
+}
 
 /** How long a status answer is trusted before asking again. */
 const STATUS_TTL_MS = 60_000;
 
-let statusCache: { at: number; configured: boolean } | null = null;
+let statusCache: { at: number; configured: boolean; workerRtf: number | null } | null = null;
 let current: HTMLAudioElement | null = null;
 /**
  * Resolves the segment currently being awaited. Pausing an element fires
@@ -98,7 +119,11 @@ type PreparedAudio =
 
 interface QueuedSegment {
   text: string;
-  audio: Promise<PreparedAudio | null>;
+  delivery?: SpeechProfileId;
+  /** Started lazily (see SYNTHESIS_AHEAD); null until then. */
+  audio: Promise<PreparedAudio | null> | null;
+  /** Aborts this segment's request — a stop must end synthesis server-side too. */
+  controller: AbortController | null;
   callbacks: SpeakCallbacks;
   /** Resolves when this segment is over, played or not: callers await it. */
   settled: Promise<void>;
@@ -107,6 +132,41 @@ interface QueuedSegment {
 
 const queue: QueuedSegment[] = [];
 let pumping = false;
+/**
+ * How many segments behind the one playing may be synthesising at once.
+ *
+ * Every sentence of a long reply used to be requested the moment it arrived.
+ * Against a speech worker slower than real time (VoxCPM2 on a CPU, RTF 5–10)
+ * the sixth request met the worker's full queue (HTTP 503), the engine
+ * demoted the rest of the reply to the browser's voice, and after a STOP the
+ * worker went on generating every queued sentence nobody would hear. Two
+ * ahead still hides synthesis behind playback for a worker that keeps up.
+ */
+export const SYNTHESIS_AHEAD = 2;
+/** The segment the pump is awaiting or playing, so a stop can abort it. */
+let pumpSegment: QueuedSegment | null = null;
+
+/** Segments whose synthesis has started and that have not settled yet. */
+const inFlight = new Set<QueuedSegment>();
+
+function startSynthesis(segment: QueuedSegment): Promise<PreparedAudio | null> {
+  if (!segment.audio) {
+    segment.controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    // The worker generates one sentence at a time, in arrival order: this one
+    // also waits for every sentence already sent ahead of it.
+    let aheadChars = 0;
+    for (const other of inFlight) aheadChars += other.text.length;
+    inFlight.add(segment);
+    void segment.settled.then(() => inFlight.delete(segment));
+    segment.audio = synthesize(segment.text, segment.delivery, segment.controller, aheadChars);
+  }
+  return segment.audio;
+}
+
+/** Start synthesis for the next SYNTHESIS_AHEAD queued segments, no more. */
+function fillAhead(): void {
+  for (const segment of queue.slice(0, SYNTHESIS_AHEAD)) void startSynthesis(segment);
+}
 /** A stop happened: never play what was synthesising when it arrived. */
 let halted = false;
 /** Segments played since the last stop (diagnostics, evidence). */
@@ -122,7 +182,12 @@ export function ttsPlayedSegments(): number {
 }
 
 /** Resolve to playable audio, or null when the provider refused/failed. */
-async function synthesize(text: string, delivery?: SpeechProfileId): Promise<PreparedAudio | null> {
+async function synthesize(
+  text: string,
+  delivery?: SpeechProfileId,
+  segmentController: AbortController | null = null,
+  aheadChars = 0,
+): Promise<PreparedAudio | null> {
   // Metered and budget-gated like every billed call (kind "api",
   // source "elevenlabs-tts"). A spent budget lands in onFail, whose
   // fallback is the browser's own (free) voice — never another paid one.
@@ -134,8 +199,10 @@ async function synthesize(text: string, delivery?: SpeechProfileId): Promise<Pre
   // the "speaking" state) forever: no headers within the limit is a failed
   // segment, which the caller reports and falls back from. The timer is
   // cleared once headers arrive, so a long streamed body is never cut.
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  const headerTimer = controller ? setTimeout(() => controller.abort(), TTS_HEADER_TIMEOUT_MS) : null;
+  const controller = segmentController ?? (typeof AbortController !== "undefined" ? new AbortController() : null);
+  const headerTimer = controller
+    ? setTimeout(() => controller.abort(), ttsHeaderTimeoutMs(text.length + aheadChars, statusCache?.workerRtf ?? null))
+    : null;
   try {
     response = await fetch("/api/voice/tts", {
       ...(controller ? { signal: controller.signal } : {}),
@@ -373,7 +440,10 @@ async function pump(): Promise<void> {
         segment.settle();
         continue;
       }
-      const prepared = await segment.audio;
+      pumpSegment = segment;
+      const audio = startSynthesis(segment);
+      fillAhead();
+      const prepared = await audio;
       if (halted) {
         segment.settle();
         continue;
@@ -390,6 +460,7 @@ async function pump(): Promise<void> {
       segment.settle();
     }
   } finally {
+    pumpSegment = null;
     pumping = false;
   }
 }
@@ -402,13 +473,14 @@ export async function elevenLabsReady(): Promise<boolean> {
   try {
     const response = await fetch("/api/voice/status", { headers: { Accept: "application/json" } });
     if (!response.ok) throw new Error(`status ${response.status}`);
-    const data = (await response.json()) as { configured?: unknown };
+    const data = (await response.json()) as { configured?: unknown; workerRtf?: unknown };
     const configured = data.configured === true;
-    statusCache = { at: now, configured };
+    const workerRtf = typeof data.workerRtf === "number" && Number.isFinite(data.workerRtf) ? data.workerRtf : null;
+    statusCache = { at: now, configured, workerRtf };
     return configured;
   } catch {
     // Unreachable server is reported as unavailable, never assumed working.
-    statusCache = { at: now, configured: false };
+    statusCache = { at: now, configured: false, workerRtf: null };
     return false;
   }
 }
@@ -455,7 +527,8 @@ export function speakText(
     settle = resolve;
   });
   halted = false;
-  queue.push({ text: trimmed, audio: synthesize(trimmed, delivery), callbacks, settled, settle });
+  queue.push({ text: trimmed, delivery, audio: null, controller: null, callbacks, settled, settle });
+  fillAhead();
   void pump();
   return settled;
 }
@@ -483,6 +556,11 @@ export function stopSpeaking(): void {
     }
   }
   finish?.();
-  // Anything already synthesising behind it must not start afterwards.
-  for (const segment of queue.splice(0)) segment.settle();
+  // Anything already synthesising behind it must not start afterwards, and
+  // its request is aborted so the speech worker stops generating it.
+  pumpSegment?.controller?.abort();
+  for (const segment of queue.splice(0)) {
+    segment.controller?.abort();
+    segment.settle();
+  }
 }

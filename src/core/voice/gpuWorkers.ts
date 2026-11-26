@@ -18,7 +18,7 @@
  * The contract is identical on every one of them because they all
  * run the same file. A worker going to sleep is therefore an
  * availability fact, not an identity change: her voice comes from
- * `public/audio/voice/lelu-voice-reference.m4a`, which travels with
+ * `services/voice-reference/lelu-voice-reference.m4a`, which travels with
  * the code, never with the machine.
  *
  * WHAT THIS MODULE REFUSES TO DO
@@ -79,7 +79,24 @@ export interface VoxcpmHealth {
   loadSeconds: number | null;
   loadError: string | null;
   referenceSeconds: number | null;
+  /**
+   * The worker's own measured real-time factor (synthesis seconds per second
+   * of audio): its last generation, else its start-up self-test. Above 1 the
+   * worker produces audio slower than it plays, so a stream of it stutters.
+   */
+  rtf: number | null;
   checkedAt: number;
+}
+
+/** RTF from a worker /health payload: `last.rtf`, else the self-test timing. */
+export function workerRtf(payload: Record<string, unknown>): number | null {
+  const last = (payload.last ?? null) as Record<string, unknown> | null;
+  if (last && typeof last.rtf === "number" && Number.isFinite(last.rtf) && last.rtf > 0) return last.rtf;
+  const selftest = (payload.selftest ?? null) as Record<string, unknown> | null;
+  if (selftest && typeof selftest.ms === "number" && typeof selftest.audioSeconds === "number" && selftest.audioSeconds > 0) {
+    return Math.round((selftest.ms / 1000 / selftest.audioSeconds) * 100) / 100;
+  }
+  return null;
 }
 
 export type EnvReader = (name: string) => string | undefined;
@@ -223,6 +240,7 @@ export async function probeVoxcpmWorker(
     loadSeconds: null,
     loadError: null,
     referenceSeconds: null,
+    rtf: null,
     checkedAt: started,
   };
 
@@ -276,6 +294,7 @@ export async function probeVoxcpmWorker(
       loadSeconds: typeof payload.loadSeconds === "number" ? payload.loadSeconds : null,
       loadError,
       referenceSeconds: reference && typeof reference.seconds === "number" ? reference.seconds : null,
+      rtf: workerRtf(payload),
       checkedAt: Date.now(),
     };
   } catch (error) {
@@ -415,6 +434,7 @@ export class VoxcpmPool {
                 loadSeconds: last.loadSeconds,
                 loadError: last.loadError,
                 referenceSeconds: last.referenceSeconds,
+                rtf: last.rtf,
                 checkedAt: last.checkedAt,
               }
             : null,

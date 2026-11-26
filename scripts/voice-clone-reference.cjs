@@ -3,7 +3,7 @@
  * ==========================================================
  * HER VOICE, FROM THE CLIP IN THIS REPOSITORY
  *
- * `public/audio/voice/lelu-voice-reference.m4a` is the only voice asset
+ * `services/voice-reference/lelu-voice-reference.m4a` is the only voice asset
  * committed here, and until now nothing read it. This script turns it into
  * a speakable voice and points her identity at the result:
  *
@@ -26,7 +26,7 @@ const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
 const ENV_PATH = path.join(ROOT, ".env.local");
-const CLIP_PATH = path.join(ROOT, "public/audio/voice/lelu-voice-reference.m4a");
+const CLIP_PATH = path.join(ROOT, "services/voice-reference/lelu-voice-reference.m4a");
 const CLONE_NAME = "L\u00e9lu";
 const API = "https://api.elevenlabs.io/v1";
 const MODEL = "eleven_v3";
@@ -82,7 +82,7 @@ async function cloneFromClip(key) {
   form.append("name", CLONE_NAME);
   form.append(
     "description",
-    "Cloned from public/audio/voice/lelu-voice-reference.m4a, the reference clip committed to this repository.",
+    "Cloned from services/voice-reference/lelu-voice-reference.m4a, the reference clip committed to this repository.",
   );
   form.append(
     "files",

@@ -311,6 +311,23 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     ? new VoxcpmPool(parseVoxcpmWorkers(readEnv ?? ((name) => process.env[name])), { cooldownMs: 15_000 })
     : null;
   const WORKER_VOICE_ID = "worker:lelu-reference";
+  // A worker far slower than real time (VoxCPM2 on a CPU: RTF 5–10 measured)
+  // is asked for whole sentences instead of a stream that plays as fragments.
+  // 2.0 keeps MOSS-TTS-Nano (RTF 0.8–1.3 on the VPS) streaming as before.
+  const workerStreamMaxRtf = Number(readSecret(readEnv, ["VOXCPM_STREAM_MAX_RTF"]) || "2");
+
+  /**
+   * The chosen worker's last measured real-time factor, from the pool's
+   * cached health (no network call). The page sizes its wait on it: VoxCPM2
+   * on a CPU needs 5–10 s per second of speech, and a fixed 15 s header
+   * timeout aborted every sentence it was still generating.
+   */
+  function lastWorkerRtf(): number | null {
+    const snapshot = speechWorkers?.snapshot();
+    if (!snapshot) return null;
+    const chosen = snapshot.workers.find((entry) => entry.id === snapshot.chosen) ?? snapshot.workers.find((entry) => entry.last?.available);
+    return chosen?.last?.rtf ?? null;
+  }
 
   function localVoiceId(): string | null {
     const config = localVoiceConfig();
@@ -541,6 +558,20 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       next();
       return;
     }
+    // The worker's pace is part of the answer (see lastWorkerRtf). Before the
+    // pool has ever checked it, ask once — bounded at 3 s — so the page's
+    // first sentence is not given a fast engine's timeout.
+    if (speechWorkers && lastWorkerRtf() === null) {
+      void speechWorkers
+        .select({ timeoutMs: 3000 })
+        .catch(() => null)
+        .then(() => answerStatus(res));
+      return;
+    }
+    answerStatus(res);
+  }
+
+  function answerStatus(res: ConnectLikeRes): void {
     const { keyCount, voiceId, modelId, sttModelId } = voiceConfig();
     // Presence, not health: this makes no network call and claims nothing
     // about whether a credential is still accepted upstream. ElevenLabs is
@@ -558,7 +589,7 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       voiceId: worker ?? local ?? voiceId,
       modelId,
       sttModelId,
-      ...(worker ? { provider: "speech-worker", localVoice: true } : {}),
+      ...(worker ? { provider: "speech-worker", localVoice: true, workerRtf: lastWorkerRtf() } : {}),
       ...(local ? { provider: "local-piper", localVoice: true } : {}),
       ...(keyCount > 0 && !spend.allowed ? { spend: spend.code } : {}),
     });
@@ -610,6 +641,7 @@ export function createVoiceApi(readEnv?: ReadEnv): {
           stream: wantsStream,
           res: res as unknown as ServerResponse,
           extraHeaders: { "X-Lelu-Voice-Provider": WORKER_VOICE_ID, ...(wantsStream ? { "X-Lelu-Streaming": "worker" } : {}) },
+          maxStreamRtf: workerStreamMaxRtf,
         });
         if (outcome === "handled") return;
       }

@@ -106,13 +106,29 @@ export async function relayWorkerSpeech(options: {
   res: ServerResponse;
   fetchImpl?: typeof fetch;
   extraHeaders?: Record<string, string>;
+  /**
+   * Stream only from a worker whose measured RTF is at most this. Above it the
+   * worker produces audio slower than it plays, and a PCM stream of it plays
+   * as fragments separated by silence; one whole WAV per sentence plays
+   * cleanly instead. Omit to always honour `stream` (the /vox/speech route).
+   */
+  maxStreamRtf?: number;
 }): Promise<"handled" | "no-ready-worker"> {
-  const { pool, text, format, stream, res } = options;
+  const { pool, text, res } = options;
+  let { format, stream } = options;
   const doFetch = options.fetchImpl ?? fetch;
   const chosen = await pool.select({ timeoutMs: 3000 });
   if (!chosen) return "no-ready-worker";
   const worker = pool.worker(chosen.worker);
   if (!worker) return "no-ready-worker";
+  let streamingNote: string | null = null;
+  if (stream && options.maxStreamRtf !== undefined && chosen.rtf !== null && chosen.rtf > options.maxStreamRtf) {
+    // Not faked either way: the worker is asked for the whole sentence and
+    // the page is told why it is not streamed.
+    stream = false;
+    format = "wav";
+    streamingNote = "off:slower-than-realtime";
+  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new Error("timeout")), speechTimeoutMs(text.length));
@@ -156,6 +172,8 @@ export async function relayWorkerSpeech(options: {
   const rate = l16SampleRate(upstream.headers.get("content-type"));
   if (rate && !upstream.headers.has("x-lelu-sample-rate")) res.setHeader("X-Lelu-Sample-Rate", String(rate));
   for (const [name, value] of Object.entries(options.extraHeaders ?? {})) res.setHeader(name, value);
+  if (streamingNote) res.setHeader("X-Lelu-Streaming", streamingNote);
+  if (chosen.rtf !== null) res.setHeader("X-Lelu-Worker-Rtf", String(chosen.rtf));
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Lelu-Worker", worker.id);
   try {
