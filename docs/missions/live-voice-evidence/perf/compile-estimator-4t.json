@@ -1,0 +1,84 @@
+{
+ "variant": "compile-estimator-4t",
+ "threads": 4,
+ "inferenceTimesteps": 10,
+ "compile": "estimator",
+ "loadSeconds": 14.9,
+ "referenceEncodeMs": 2308,
+ "warmupSeconds": 33.0,
+ "torch": "2.15.0+cpu",
+ "rows": [
+  {
+   "variant": "compile-estimator-4t",
+   "text": "clause",
+   "rep": 0,
+   "ms": 4285,
+   "audioSeconds": 1.6,
+   "rtf": 2.68,
+   "steps": 9,
+   "components_ms": {
+    "feat_encoder": 411,
+    "estimator": 2108,
+    "base_lm": 944,
+    "residual_lm": 256,
+    "vae_decode": 194
+   },
+   "calls": {
+    "feat_encoder": 11,
+    "estimator": 90,
+    "base_lm": 9,
+    "residual_lm": 9,
+    "vae_decode": 1
+   },
+   "file": "compile-estimator-4t-clause-0.wav"
+  },
+  {
+   "variant": "compile-estimator-4t",
+   "text": "sentence",
+   "rep": 0,
+   "ms": 8903,
+   "audioSeconds": 3.2,
+   "rtf": 2.78,
+   "steps": 19,
+   "components_ms": {
+    "feat_encoder": 638,
+    "estimator": 4434,
+    "base_lm": 1966,
+    "residual_lm": 561,
+    "vae_decode": 946
+   },
+   "calls": {
+    "feat_encoder": 21,
+    "estimator": 180,
+    "base_lm": 19,
+    "residual_lm": 19,
+    "vae_decode": 1
+   },
+   "file": "compile-estimator-4t-sentence-0.wav"
+  },
+  {
+   "variant": "compile-estimator-4t",
+   "text": "long",
+   "rep": 0,
+   "ms": 12917,
+   "audioSeconds": 4.8,
+   "rtf": 2.69,
+   "steps": 29,
+   "components_ms": {
+    "feat_encoder": 868,
+    "estimator": 6510,
+    "base_lm": 3049,
+    "residual_lm": 854,
+    "vae_decode": 1216
+   },
+   "calls": {
+    "feat_encoder": 31,
+    "estimator": 270,
+    "base_lm": 29,
+    "residual_lm": 29,
+    "vae_decode": 1
+   },
+   "file": "compile-estimator-4t-long-0.wav"
+  }
+ ]
+}

@@ -642,6 +642,7 @@ export function createVoiceApi(readEnv?: ReadEnv): {
           res: res as unknown as ServerResponse,
           extraHeaders: { "X-Lelu-Voice-Provider": WORKER_VOICE_ID, ...(wantsStream ? { "X-Lelu-Streaming": "worker" } : {}) },
           maxStreamRtf: workerStreamMaxRtf,
+          clientBuffers: body.buffered === true,
         });
         if (outcome === "handled") return;
       }

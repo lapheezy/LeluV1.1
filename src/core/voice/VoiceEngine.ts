@@ -32,6 +32,7 @@ import {
   ttsQueueDepth,
 } from "./elevenLabsTts";
 import { toSpokenText } from "./spokenText";
+import { joinSegments, SEGMENT_END_SILENCE_MS, turnGraceMs, turnShape } from "./turnTaking";
 import { resolveSpeechDelivery } from "./speechDelivery";
 import { DEFAULT_SPEECH_PROFILE, type SpeechProfileId } from "./speechProfile";
 import LeluIdentity from "../identity/LeluIdentity";
@@ -432,6 +433,10 @@ export interface VoiceDiagnostics {
   nonSpeechTurns: number;
   /** End of the person's speech → transcript handled, last utterance. */
   speechToTranscriptMs: number | null;
+  /** A turn whose words are in but which may not be finished (turnTaking.ts). */
+  pendingTurn: { text: string; shape: string; segments: number; dueAt: number } | null;
+  /** How the last turn was handed to her: its shape, segments, and the wait after the last segment. */
+  lastTurnCommit: { reason: string; shape: string; segments: number; waitedMs: number; at: number } | null;
   /**
    * The mic stays open while she speaks (full-duplex capture). Without a
    * physical device this is the simulated path — the hardware gate is
@@ -635,13 +640,18 @@ export function isBargeIn(heard: string, spoken: string): boolean {
  * so the wording is testable.
  */
 export function spokenTurnNote(interruption: { heard: string; at: number } | null, now = Date.now()): string {
-  const lines = ["This message was spoken aloud in a live voice conversation and transcribed; answer as speech."];
+  // A short opening sentence is what lets her voice start soon: on a CPU her
+  // first word waits for the whole first sentence to be generated.
+  const lines = [
+    "This message was spoken aloud in a live voice conversation and transcribed; answer as speech.",
+    "Open with a short first sentence of a few words, then continue if more is needed.",
+  ];
   if (interruption && now - interruption.at < 120_000) {
     const heard = interruption.heard.trim();
     lines.push(
       heard
-        ? `The person interrupted you while you were speaking your previous reply. They heard only this much of it: "${heard}". They did not hear the rest.`
-        : "The person interrupted you before they heard any of your previous reply.",
+        ? `The person interrupted you while you were speaking your previous reply. They heard only this much of it: "${heard}". They did not hear the rest. Answer what they have just said; do not continue or repeat the interrupted reply unless they ask for it.`
+        : "The person interrupted you before they heard any of your previous reply. Answer what they have just said; do not continue the interrupted reply unless they ask for it.",
     );
   }
   return lines.join(" ");
@@ -1291,6 +1301,9 @@ class VoiceEngine {
     // Everything still awaiting on behalf of this session is now stale.
     this.sessionEpoch += 1;
     this.recovering = null;
+    this.discardPendingTurn();
+    this.vadFloor = null;
+    this.closeCapture();
     this.cancelSpeech();
     this.cancelInFlightTurn("voice stopped");
     this.stopRecognition();
@@ -2022,6 +2035,7 @@ class VoiceEngine {
       if (!chunk || chunk.size === 0) {
         // Nothing said — keep listening. A hold from a too-short sound is released.
         this.settleHold("no-speech");
+        this.releasePendingTurn();
         again = true;
         return;
       }
@@ -2076,6 +2090,7 @@ class VoiceEngine {
         if (!heard) {
           // Silence, noise, or Whisper's own prompt: no turn, and she goes on.
           this.settleHold("no-words");
+          this.releasePendingTurn();
           if (!this.isSpeaking() && !(this._turn !== null && this._turn.response === null)) {
             this.updateState({ ...this._state, phase: "listening" });
           }
@@ -2097,7 +2112,8 @@ class VoiceEngine {
           // Her own voice, or words that do not interrupt: she carries on.
           this.settleHold("not-an-interruption");
         }
-        await this.handleUserSpeech(heard, provenance);
+        // A segment, not yet a turn: the person may not have finished.
+        this.addTurnSegment(heard, provenance, speechEndedAt);
       })
       .catch((error: unknown) => {
         console.error("[VoiceEngine] transcript handling failed:", error instanceof Error ? error.message : error);
@@ -2106,6 +2122,8 @@ class VoiceEngine {
 
   private onTranscriptionError(error: unknown): void {
     this.settleHold("transcription-failed");
+    // What was already understood of this turn still goes to her.
+    this.releasePendingTurn();
     if (error instanceof BudgetExhaustedError) {
       // A spent transcription budget is not a transient error: say so and
       // stop listening, rather than recording utterances it may not send.
@@ -2119,6 +2137,89 @@ class VoiceEngine {
     // The microphone keeps listening; the next utterance is tried afresh.
     this.noteFailure({ kind: "transcription-failure", message: "I couldn't make out what you said — transcription failed. Please say it again." });
     if (this._state.active && !this.isSpeaking()) this.updateState({ ...this._state, phase: "listening" });
+  }
+
+  /* ---------------------------------------------------------
+   * Natural end of turn (turnTaking.ts): segments join one turn until the
+   * person has finished, judged by what they said.
+   * --------------------------------------------------------- */
+
+  private pendingTurn: {
+    text: string;
+    provenance?: TranscriptProvenance;
+    lastSegmentEnd: number;
+    continuing: boolean;
+    segments: number;
+  } | null = null;
+  private pendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private addTurnSegment(text: string, provenance: TranscriptProvenance | undefined, segmentEndedAt: number): void {
+    // Her own voice coming back is dropped per segment, before it could be
+    // joined to the person's words.
+    if (this.lastSpokenText && isEchoUtterance(text, this.lastSpokenText)) {
+      this.lastSpokenText = "";
+      this.recordSuppressedUtterance("echo-suppressed", text);
+      this.releasePendingTurn();
+      return;
+    }
+    if (this.pendingTurn) {
+      this.pendingTurn.text = joinSegments(this.pendingTurn.text, text);
+      this.pendingTurn.segments += 1;
+      this.pendingTurn.lastSegmentEnd = segmentEndedAt;
+      this.pendingTurn.continuing = false;
+      if (provenance) this.pendingTurn.provenance = provenance;
+    } else {
+      this.pendingTurn = { text, provenance, lastSegmentEnd: segmentEndedAt, continuing: false, segments: 1 };
+    }
+    // The words so far, as the person's line in progress in the thread.
+    this.emitInterim(this.pendingTurn.text);
+    this.scheduleTurnCommit();
+  }
+
+  private scheduleTurnCommit(): void {
+    const turn = this.pendingTurn;
+    if (!turn || turn.continuing) return;
+    if (this.pendingTimer) clearTimeout(this.pendingTimer);
+    const shape = turnShape(turn.text);
+    const due = turn.lastSegmentEnd + turnGraceMs(turn.text);
+    this.patchDiagnostics({ pendingTurn: { text: turn.text, shape, segments: turn.segments, dueAt: due } });
+    this.pendingTimer = setTimeout(() => this.commitTurn("finished"), Math.max(0, due - Date.now()));
+  }
+
+  /** A continuation that turned out to be no speech: hand the turn over now. */
+  private releasePendingTurn(): void {
+    const turn = this.pendingTurn;
+    if (!turn || !turn.continuing) return;
+    turn.continuing = false;
+    this.scheduleTurnCommit();
+  }
+
+  private commitTurn(reason: string): void {
+    if (this.pendingTimer) {
+      clearTimeout(this.pendingTimer);
+      this.pendingTimer = null;
+    }
+    const turn = this.pendingTurn;
+    if (!turn) return;
+    this.pendingTurn = null;
+    this.emitInterim("");
+    this.patchDiagnostics({
+      pendingTurn: null,
+      lastTurnCommit: {
+        reason,
+        shape: turnShape(turn.text),
+        segments: turn.segments,
+        waitedMs: Date.now() - turn.lastSegmentEnd,
+        at: Date.now(),
+      },
+    });
+    void this.handleUserSpeech(turn.text, turn.provenance);
+  }
+
+  private discardPendingTurn(): void {
+    if (this.pendingTimer) clearTimeout(this.pendingTimer);
+    this.pendingTimer = null;
+    this.pendingTurn = null;
   }
 
   /* ---------------------------------------------------------
@@ -2139,6 +2240,14 @@ class VoiceEngine {
   private onSpeechOnset(): void {
     const at = Date.now();
     this.patchDiagnostics({ userSpeaking: true, lastOnsetAt: at });
+    // Speaking again before the turn was handed over: it is the same turn.
+    if (this.pendingTurn) {
+      this.pendingTurn.continuing = true;
+      if (this.pendingTimer) {
+        clearTimeout(this.pendingTimer);
+        this.pendingTimer = null;
+      }
+    }
     // Only her audible voice (or a sentence about to play) is held; while she
     // is silent there is nothing to stop.
     if (!this.isSpeaking() || this.holdStartedAt !== null) return;
@@ -2150,6 +2259,38 @@ class VoiceEngine {
     // network went away) releases it, and she carries on.
     if (this.holdTimer) clearTimeout(this.holdTimer);
     this.holdTimer = setTimeout(() => this.settleHold("hold-timeout"), VoiceEngine.HOLD_MAX_MS);
+  }
+
+  /** The session's capture graph, reused by every segment (see recordUtterance). */
+  private capture: { ctx: AudioContext; stream: MediaStream; source: MediaStreamAudioSourceNode } | null = null;
+
+  private closeCapture(): void {
+    const capture = this.capture;
+    this.capture = null;
+    if (!capture) return;
+    try {
+      capture.source.disconnect();
+    } catch {
+      // already disconnected
+    }
+    void capture.ctx.close().catch(() => {});
+  }
+
+  /** Noise floor carried from one segment to the next (vadWorklet.ts). */
+  private vadFloor: number | null = null;
+
+  /**
+   * Sound (not yet confirmed speech) at the start of a segment while a turn
+   * waits to be handed over: keep waiting until that segment is understood.
+   * Her voice is not held for this; only confirmed voiced speech does that.
+   */
+  private onSoundActivity(): void {
+    if (!this.pendingTurn) return;
+    this.pendingTurn.continuing = true;
+    if (this.pendingTimer) {
+      clearTimeout(this.pendingTimer);
+      this.pendingTimer = null;
+    }
   }
 
   /** Longest a hold may last before she resumes on her own. */
@@ -2209,7 +2350,8 @@ class VoiceEngine {
    *
    * Energy-based voice activity on the live stream (AnalyserNode): the noise
    * floor is learned from the first ~300 ms, speech is energy above it for
-   * ≥150 ms, the turn ends after 900 ms below it. No speech within 10 s →
+   * ≥150 ms, the segment ends after SEGMENT_END_SILENCE_MS below it (whether
+   * the TURN has ended is decided on its words, turnTaking.ts). No speech within 10 s →
    * nothing is uploaded. A turn is capped at 20 s. Falls back to a fixed
    * chunk when Web Audio is unavailable.
    */
@@ -2222,14 +2364,24 @@ class VoiceEngine {
     if (!Ctx || typeof MediaRecorder === "undefined") return this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
 
     const stream = this.mediaStream;
+    // One capture context and stream source for the whole session (not one per
+    // segment): building a context, resuming it and loading the detector took
+    // up to a second on a busy page, and speech resuming in that gap — the
+    // rest of a sentence after a pause — was not heard (live run, natural turns).
     let ctx: AudioContext;
+    let source: MediaStreamAudioSourceNode;
     try {
-      ctx = new Ctx();
-      await ctx.resume().catch(() => {});
+      if (!this.capture || this.capture.stream !== stream || this.capture.ctx.state === "closed") {
+        this.closeCapture();
+        const created = new Ctx();
+        this.capture = { ctx: created, stream, source: created.createMediaStreamSource(stream) };
+      }
+      ctx = this.capture.ctx;
+      source = this.capture.source;
+      if (ctx.state !== "running") await ctx.resume().catch(() => {});
     } catch {
       return this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
     }
-    const source = ctx.createMediaStreamSource(stream);
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 1024;
     source.connect(analyser);
@@ -2273,10 +2425,13 @@ class VoiceEngine {
       source,
       () => !this.whisperFallbackActive || !this._state.active || !this.mediaStream,
       onOnset,
+      { threshold: this.vadFloor, onActivity: () => this.onSoundActivity() },
     );
     let detectedOn = "main";
     if (onAudioThread) {
       detectedOn = "audio";
+      // The floor this segment worked with is the next segment's starting point.
+      if (onAudioThread.threshold > 0) this.vadFloor = Math.min(0.06, Math.max(0.012, onAudioThread.threshold));
       spoke = onAudioThread.spoke;
       peak = onAudioThread.peak;
       threshold = onAudioThread.threshold;
@@ -2322,7 +2477,7 @@ class VoiceEngine {
           if (!spoke) speechMs = 0;
         }
         const done =
-          (spoke && silenceMs >= 900) || // end of the turn
+          (spoke && silenceMs >= SEGMENT_END_SILENCE_MS) || // end of the segment (turnTaking.ts)
           elapsed >= 20_000 || // cap
           (!spoke && elapsed >= 10_000); // nothing said
         if (done) {
@@ -2334,8 +2489,8 @@ class VoiceEngine {
     if (recorder.state === "recording") recorder.stop();
     await stopped;
     try {
-      source.disconnect();
-      await ctx.close();
+      // The session's context and source stay for the next segment.
+      source.disconnect(analyser);
     } catch {
       // ignore
     }
@@ -3592,6 +3747,8 @@ class VoiceEngine {
       transcriptionsInFlight: this.transcriptionsInFlight ?? 0,
       nonSpeechTurns: this.nonSpeechTurns ?? 0,
       speechToTranscriptMs: null,
+      pendingTurn: null,
+      lastTurnCommit: null,
       fullDuplex: this.whisperFallbackActive,
       speechOutcome: this.speechOutcomeSummary(),
 

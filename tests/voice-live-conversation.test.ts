@@ -205,6 +205,9 @@ test("a spoken turn says it was spoken, and what of her reply was heard", () => 
   const cut = spokenTurnNote({ heard: "The ocean covers about seventy percent of the planet,", at: now - 5000 }, now);
   assert.match(cut, /interrupted you/);
   assert.match(cut, /"The ocean covers about seventy percent of the planet,"/);
+  // Found live: told only what was heard, she went on with the interrupted
+  // answer instead of answering the new question.
+  assert.match(cut, /Answer what they have just said; do not continue/);
   assert.match(spokenTurnNote({ heard: "", at: now - 1000 }, now), /before they heard any/);
   // An old interruption is not this turn's context.
   assert.doesNotMatch(spokenTurnNote({ heard: "x", at: now - 10 * 60_000 }, now), /interrupted/);

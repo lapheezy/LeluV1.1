@@ -113,6 +113,13 @@ export async function relayWorkerSpeech(options: {
    * cleanly instead. Omit to always honour `stream` (the /vox/speech route).
    */
   maxStreamRtf?: number;
+  /**
+   * The page buffers a stream itself and starts playing only once the rest of
+   * the sentence cannot overtake it (live conversation). Then a worker slower
+   * than real time still streams: she starts about one sentence-length sooner
+   * than with a whole WAV, and never plays in fragments.
+   */
+  clientBuffers?: boolean;
 }): Promise<"handled" | "no-ready-worker"> {
   const { pool, text, res } = options;
   let { format, stream } = options;
@@ -122,7 +129,9 @@ export async function relayWorkerSpeech(options: {
   const worker = pool.worker(chosen.worker);
   if (!worker) return "no-ready-worker";
   let streamingNote: string | null = null;
-  if (stream && options.maxStreamRtf !== undefined && chosen.rtf !== null && chosen.rtf > options.maxStreamRtf) {
+  if (stream && options.clientBuffers && chosen.rtf !== null && options.maxStreamRtf !== undefined && chosen.rtf > options.maxStreamRtf) {
+    streamingNote = "buffered";
+  } else if (stream && options.maxStreamRtf !== undefined && chosen.rtf !== null && chosen.rtf > options.maxStreamRtf) {
     // Not faked either way: the worker is asked for the whole sentence and
     // the page is told why it is not streamed.
     stream = false;
@@ -173,6 +182,7 @@ export async function relayWorkerSpeech(options: {
   if (rate && !upstream.headers.has("x-lelu-sample-rate")) res.setHeader("X-Lelu-Sample-Rate", String(rate));
   for (const [name, value] of Object.entries(options.extraHeaders ?? {})) res.setHeader(name, value);
   if (streamingNote) res.setHeader("X-Lelu-Streaming", streamingNote);
+  // The worker's measured pace, for a page that decides when to start playing.
   if (chosen.rtf !== null) res.setHeader("X-Lelu-Worker-Rtf", String(chosen.rtf));
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("X-Lelu-Worker", worker.id);

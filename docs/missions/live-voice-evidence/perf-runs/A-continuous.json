@@ -1,0 +1,3438 @@
+{
+ "label": "A-continuous",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): A2.wav",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,a1,sil:45,a2,sil:45,a3,sil:50",
+  "totalSeconds": 169.44,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "a1",
+    "at": 20,
+    "seconds": 4.96
+   },
+   {
+    "item": "sil:45",
+    "at": 24.96,
+    "seconds": 45
+   },
+   {
+    "item": "a2",
+    "at": 69.96,
+    "seconds": 2.88
+   },
+   {
+    "item": "sil:45",
+    "at": 72.84,
+    "seconds": 45
+   },
+   {
+    "item": "a3",
+    "at": 117.84,
+    "seconds": 1.6
+   },
+   {
+    "item": "sil:50",
+    "at": 119.44,
+    "seconds": 50
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "Hi Lélu. What is the capital of France? Please answer in one short sentence.",
+   "firstSeen": 26.84,
+   "lastGrew": 27.28
+  },
+  {
+   "role": "assistant",
+   "text": "Paris is the capital of France.",
+   "firstSeen": 29.46,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "And what is the most famous tower there?",
+   "firstSeen": 74.83,
+   "lastGrew": 75.04
+  },
+  {
+   "role": "assistant",
+   "text": "The Eiffel Tower is the most famous tower in France — per Wikipedia.",
+   "firstSeen": 77.35,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Roughly how tall is it?",
+   "firstSeen": 121.34,
+   "lastGrew": 121.81
+  },
+  {
+   "role": "assistant",
+   "text": "About 300 metres tall (roughly 984 feet). Huh, would you like the exact official height?",
+   "firstSeen": 122.54,
+   "lastGrew": 122.77
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": 1225,
+   "firstAudioLatencyMs": 12502,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 12608,
+   "audioContextState": "running",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 10983,
+    "characters": null,
+    "at": 1795734421929,
+    "streaming": "buffered",
+    "modelLoads": null,
+    "synthesisMs": null,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 0,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795734394955,
+   "speechHeld": false,
+   "holds": 0,
+   "holdsResumed": 0,
+   "lastHold": null,
+   "lastInterruption": null,
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": 386,
+   "pendingTurn": null,
+   "lastTurnCommit": {
+    "reason": "finished",
+    "shape": "question",
+    "segments": 1,
+    "waitedMs": 627,
+    "at": 1795734397341
+   },
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 3,
+    "recorded": 3,
+    "unexplained": 0,
+    "spoken": 3,
+    "silent": 0,
+    "noticeSpoken": 0,
+    "byOutcome": {
+     "spoke": 3
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "e55dd2a4-7335-407d-8ba8-369fa9e7d8a6",
+    "text": "Hi Lélu. What is the capital of France? Please answer in one short sentence.",
+    "at": 1795734302659,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "b97fb60f-70a3-4858-9a56-5f485a83c149",
+    "text": "And what is the most famous tower there?",
+    "at": 1795734350739,
+    "outcome": "spoke"
+   },
+   {
+    "index": 3,
+    "turnId": "903e6549-06f0-44fd-86a2-578ceeda3028",
+    "text": "Roughly how tall is it?",
+    "at": 1795734397345,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "903e6549-06f0-44fd-86a2-578ceeda3028",
+   "transcriptAt": 1795734397100,
+   "firstTextAt": 1795734398325,
+   "firstAudioAt": 1795734409602,
+   "firstAudibleAt": 1795734409708
+  }
+ },
+ "media": [],
+ "pcm": [
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 38.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 38.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 38.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 39.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 40.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.53,
+   "event": "scheduled",
+   "dueAt": 40.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.84,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 38.86,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.11,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.2,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.29,
+   "event": "scheduled",
+   "dueAt": 40.46,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 39.39,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.57,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.66,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.85,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 39.94,
+   "event": "scheduled",
+   "dueAt": 40.61,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 40.06,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 40.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 40.35,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 40.46,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 40.67,
+   "event": "scheduled",
+   "dueAt": 40.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 40.67,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 40.82,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 40.97,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.31,
+   "event": "scheduled",
+   "dueAt": 41.33,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 41.59,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 91.5,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 91.66,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 91.82,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 91.98,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 92.14,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 92.3,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 92.46,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 92.62,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 92.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 92.94,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 93.1,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 93.26,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 93.42,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 93.58,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 93.74,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 93.9,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 94.06,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 94.22,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.48,
+   "event": "scheduled",
+   "dueAt": 94.38,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 91.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 91.92,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 92.14,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 92.15,
+   "event": "scheduled",
+   "dueAt": 94.62,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 92.27,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 92.45,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 92.56,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 92.77,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 92.86,
+   "event": "scheduled",
+   "dueAt": 94.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 92.86,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.05,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.19,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.4,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.5,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.63,
+   "event": "scheduled",
+   "dueAt": 94.93,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.73,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.84,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.08,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.19,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.32,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.53,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.64,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.79,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.02,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.14,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 99.46,
+   "event": "scheduled",
+   "dueAt": 99.48,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 99.46,
+   "event": "scheduled",
+   "dueAt": 99.64,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 99.46,
+   "event": "scheduled",
+   "dueAt": 99.8,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 99.46,
+   "event": "scheduled",
+   "dueAt": 99.96,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 99.46,
+   "event": "scheduled",
+   "dueAt": 100.12,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 99.46,
+   "event": "scheduled",
+   "dueAt": 100.28,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 99.67,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 99.88,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 99.99,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 100.17,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 100.34,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 100.47,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 133.72,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 133.88,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 134.04,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 134.2,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 134.36,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 134.52,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 134.68,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 134.84,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 135,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 135.16,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 135.32,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 133.7,
+   "event": "scheduled",
+   "dueAt": 135.48,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 134.05,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 134.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 134.27,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 134.47,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 134.66,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 134.77,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 134.96,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 135.13,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 135.24,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 135.46,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 135.57,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 135.77,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 144.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 144.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 144.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 145.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 145.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 145.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 145.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 145.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 145.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 146.11,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 146.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 146.43,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.65,
+   "event": "scheduled",
+   "dueAt": 146.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 144.88,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 145.08,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 145.2,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 145.39,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 145.48,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 145.7,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 145.83,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 146.03,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 146.13,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 146.34,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 146.44,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 146.61,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 146.83,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 157.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 158.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 158.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 158.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 158.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 158.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 158.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 159.11,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.01,
+   "event": "scheduled",
+   "dueAt": 159.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 157.23,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 157.41,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 157.54,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 157.76,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 157.85,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.11,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.25,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.36,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.59,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.71,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 158.96,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 159.11,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 159.31,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 159.45,
+   "event": "ended",
+   "duration": 0.16
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.62,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7020,
+   "serverRssMiB": 60,
+   "chromiumRssMiB": 2145
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2143,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 6,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2056,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 8,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2068,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2070,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2067,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2072,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 16,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2089,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 18.1,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2081,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 20.1,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2085,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 22.1,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2097,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 24,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2096,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 26.1,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2108,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 28.1,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2135,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 30.1,
+   "voxcpm2RssMiB": 7020,
+   "voxcpm2Cpu": 99,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2149,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 32.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2165,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 34.1,
+   "voxcpm2RssMiB": 7067,
+   "voxcpm2Cpu": 194,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2174,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 36.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2149,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 38.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2162,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 40.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2207,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 42,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 124,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1918,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 44,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1911,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 46,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1909,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 48,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1908,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 50,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1904,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 52,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1904,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 54.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1893,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 56.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1899,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 58.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1889,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 60.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1901,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 62.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 64.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1847,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 66.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1854,
+   "chromiumCpu": 178
+  },
+  {
+   "t": 68.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1852,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 70.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1852,
+   "chromiumCpu": 179
+  },
+  {
+   "t": 72.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1852,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 74.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 193
+  },
+  {
+   "t": 76.1,
+   "voxcpm2RssMiB": 6948,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1901,
+   "chromiumCpu": 195
+  },
+  {
+   "t": 78.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 85,
+   "serverRssMiB": 62,
+   "serverCpu": 2,
+   "chromiumRssMiB": 1899,
+   "chromiumCpu": 192
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1904,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 82.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1903,
+   "chromiumCpu": 179
+  },
+  {
+   "t": 84.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1884,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 86.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 88.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 195,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 90.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 92.1,
+   "voxcpm2RssMiB": 6953,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 94.1,
+   "voxcpm2RssMiB": 6998,
+   "voxcpm2Cpu": 187,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1889,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 96.1,
+   "voxcpm2RssMiB": 7075,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1895,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 98.1,
+   "voxcpm2RssMiB": 7123,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1887,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 104,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1902,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 102.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1906,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 104.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1900,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1834,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 108.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1827,
+   "chromiumCpu": 178
+  },
+  {
+   "t": 110.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1839,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 112.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1846,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1838,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1846,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1850,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1882,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 116,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1897,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 161,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1904,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 162,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1917,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 161,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7104,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1911,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7109,
+   "voxcpm2Cpu": 155,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1922,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7137,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7238,
+   "voxcpm2Cpu": 167,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1923,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7118,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1939,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7144,
+   "voxcpm2Cpu": 162,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1933,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7144,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1953,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1961,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1957,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1959,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 170,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1970,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1972,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 156.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1980,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 158.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 71,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2001,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1978,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1968,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1971,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1965,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 168.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1939,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1941,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1929,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 174.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1929,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 176.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1940,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 178.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1939,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 180.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 182.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 184.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 186.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 188.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 1,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1878,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 190.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 192.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 194.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 196.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 198.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 200.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 202.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 204.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 206.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1884,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 208.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 210.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1896,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 212.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1898,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 214.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1900,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 216.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1894,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 218.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1912,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 220.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 1,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1912,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 222.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1904,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 224.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1907,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 226.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1912,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 228.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1917,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 230.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 232.3,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1906,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 234.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1919,
+   "chromiumCpu": 184
+  }
+ ],
+ "screenshots": [
+  "A-continuous-01-loaded.jpg",
+  "A-continuous-02-hearing.jpg",
+  "A-continuous-03-speaking-1.jpg",
+  "A-continuous-03-speaking-2.jpg",
+  "A-continuous-03-speaking-3.jpg",
+  "A-continuous-05-before-end.jpg",
+  "A-continuous-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 2.05,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.36,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 314,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.83,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.83,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.83,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.83,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 3.37,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.46,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.51,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 47,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.4,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.45,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 8.21,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 2755,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 16.29,
+   "kind": "screenshot",
+   "file": "A-continuous-01-loaded.jpg"
+  },
+  {
+   "t": 0.51,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.51,
+   "kind": "scenario",
+   "spec": "sil:20,a1,sil:45,a2,sil:45,a3,sil:50",
+   "totalSeconds": 169.44,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "a1",
+     "at": 20,
+     "seconds": 4.96
+    },
+    {
+     "item": "sil:45",
+     "at": 24.96,
+     "seconds": 45
+    },
+    {
+     "item": "a2",
+     "at": 69.96,
+     "seconds": 2.88
+    },
+    {
+     "item": "sil:45",
+     "at": 72.84,
+     "seconds": 45
+    },
+    {
+     "item": "a3",
+     "at": 117.84,
+     "seconds": 1.6
+    },
+    {
+     "item": "sil:50",
+     "at": 119.44,
+     "seconds": 50
+    }
+   ]
+  },
+  {
+   "t": 0.52,
+   "kind": "state",
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.64,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.7,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 61,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.8,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.83,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.91,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 75,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.92,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.92,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 1.03,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 1.24,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 11.09,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10171,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 21.13,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 21.38,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 21.76,
+   "kind": "screenshot",
+   "file": "A-continuous-02-hearing.jpg"
+  },
+  {
+   "t": 26.06,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":14681,\"voicedMs\":2050,\"spoke\":true,\"ms\":14944,\"peak\":0.4272,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 26.06,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 26.07,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 26.37,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 26.58,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 522,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 26.84,
+   "kind": "message",
+   "index": 0,
+   "role": "user-interim",
+   "text": "Hi Lélu. What is the capital of France? Please answer in one short sentence.…"
+  },
+  {
+   "t": 27.7,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 404 ()"
+  },
+  {
+   "t": 27.74,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 29.07,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Paris is the capital of France."
+  },
+  {
+   "t": 29.15,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1416,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 29.17,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 29.46,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 29.46,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "Paris is the capital of France."
+  },
+  {
+   "t": 36.12,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10054,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 37.12,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 38.67,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 38.97,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 39.29,
+   "kind": "screenshot",
+   "file": "A-continuous-03-speaking-1.jpg"
+  },
+  {
+   "t": 41.33,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 12248,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.63"
+   },
+   "saved": "audio/A-continuous-tts-01.wav"
+  },
+  {
+   "t": 41.89,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 45.55,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 45.65,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 45.66,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 46.23,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10104,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 53.89,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 56.39,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10070,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 66.67,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10281,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 70.35,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 71.33,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 74.26,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7262,\"voicedMs\":1200,\"spoke\":true,\"ms\":7578,\"peak\":0.2209,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 74.26,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 74.3,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 40,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 74.32,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 74.56,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 74.7,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 377,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 74.83,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 74.83,
+   "kind": "message",
+   "index": 2,
+   "role": "user-interim",
+   "text": "And what is the most famous tower there?…"
+  },
+  {
+   "t": 75.35,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 75.35,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 75.45,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 77.18,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The Eiffel Tower is the most famous tower in France,"
+  },
+  {
+   "t": 77.35,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 77.35,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "The Eiffel Tower is the most famous tower in France — per Wikipedia."
+  },
+  {
+   "t": 77.35,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1905,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 78.53,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "per Wikipedia."
+  },
+  {
+   "t": 84.65,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10373,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 91.7,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 91.92,
+   "kind": "screenshot",
+   "file": "A-continuous-03-speaking-2.jpg"
+  },
+  {
+   "t": 93.64,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 16446,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.78"
+   },
+   "saved": "audio/A-continuous-tts-02.wav"
+  },
+  {
+   "t": 94.9,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10246,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 95.26,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 99.56,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 20932,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.78"
+   },
+   "saved": "audio/A-continuous-tts-03.wav"
+  },
+  {
+   "t": 99.57,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 99.77,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 100.47,
+   "kind": "screenshot",
+   "file": "A-continuous-03-speaking-3.jpg"
+  },
+  {
+   "t": 100.68,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 102.99,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 105.02,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10119,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 115.07,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10048,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 119.19,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 120.83,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5538,\"voicedMs\":850,\"spoke\":true,\"ms\":5738,\"peak\":0.1918,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 120.83,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 121.05,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 121.2,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 372,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 121.34,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 121.34,
+   "kind": "message",
+   "index": 4,
+   "role": "user-interim",
+   "text": "Roughly how tall is it?…"
+  },
+  {
+   "t": 121.49,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 122.54,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 122.54,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "About"
+  },
+  {
+   "t": 122.64,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "About three hundred metres tall."
+  },
+  {
+   "t": 122.74,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1250,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 122.77,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 124.1,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "roughly nine hundred eighty-four feet."
+  },
+  {
+   "t": 130.87,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10049,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 133.72,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 11071,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "6.07"
+   },
+   "saved": "audio/A-continuous-tts-04.wav"
+  },
+  {
+   "t": 133.94,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 135.05,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Huh, would you like the exact official height?"
+  },
+  {
+   "t": 135.78,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 136.08,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 140.93,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10056,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 144.66,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 20547,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "6.07"
+   },
+   "saved": "audio/A-continuous-tts-05.wav"
+  },
+  {
+   "t": 144.77,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 147.01,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 151.05,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10114,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 157.02,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 21967,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.75"
+   },
+   "saved": "audio/A-continuous-tts-06.wav"
+  },
+  {
+   "t": 157.13,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 159.69,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 161.16,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10106,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 168.41,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 171.31,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10151,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 181.6,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10186,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 191.83,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10224,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 193.18,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 193.25,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 193.34,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 202.18,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10247,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 212.44,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10128,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 222.58,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10157,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 231.31,
+   "kind": "screenshot",
+   "file": "A-continuous-05-before-end.jpg"
+  },
+  {
+   "t": 231.96,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 231.98,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":9143,\"voicedMs\":0,\"spoke\":false,\"ms\":9260,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":8882}"
+  },
+  {
+   "t": 233.24,
+   "kind": "screenshot",
+   "file": "A-continuous-06-ended.jpg"
+  },
+  {
+   "t": 234.36,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ]
+}

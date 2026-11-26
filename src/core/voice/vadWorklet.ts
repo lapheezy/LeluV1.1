@@ -4,7 +4,8 @@
  *
  * The same rule as VoiceEngine's main-thread detector — noise floor
  * from the first 300 ms (capped, in case the person is already
- * talking), speech after 150 ms above it, the turn ends after 900 ms
+ * talking), speech after 150 ms above it, the segment ends after
+ * SEGMENT_END_SILENCE_MS (turnTaking.ts; was a fixed 900 ms turn end)
  * below it (or below a fifth of the speaker's own peak, for automatic
  * gain control), 20 s cap, nothing said in 10 s → no turn — but
  * measured in AUDIO time inside an AudioWorklet.
@@ -22,6 +23,8 @@
  * after they have finished and been transcribed.
  * ==========================================================
  */
+
+import { SEGMENT_END_SILENCE_MS } from "./turnTaking";
 
 export interface TurnResult {
   spoke: boolean;
@@ -42,9 +45,14 @@ export interface TurnResult {
 /** The processor's source (exported so its rule can be tested off the audio thread). */
 export const TURN_DETECTOR_SOURCE = `
 class LeluTurnDetector extends AudioWorkletProcessor {
-  constructor() {
+  constructor(options) {
     super();
-    this.t = 0; this.sum = 0; this.n = 0; this.floor = []; this.threshold = 0.015;
+    // A floor carried over from the previous segment: no blind 300 ms at the
+    // start of this one (speech resuming after a pause is heard at once).
+    const preset = options && options.processorOptions ? options.processorOptions.threshold : undefined;
+    this.preset = typeof preset === "number" && preset > 0;
+    this.activitySent = false;
+    this.t = 0; this.sum = 0; this.n = 0; this.floor = []; this.threshold = this.preset ? preset : 0.015;
     this.speech = 0; this.silence = 0; this.spoke = false; this.peak = 0; this.done = false;
     this.window = Math.round(sampleRate * 0.05);
     // Voicing: decimate to ~12 kHz, pre-emphasise (whitens noise), and look for
@@ -83,7 +91,7 @@ class LeluTurnDetector extends AudioWorkletProcessor {
     return true;
   }
   voicing() {
-    if (this.t < 300) return;
+    if (!this.preset && this.t < 300) return;
     const b = this.vbuf, n = this.vwin;
     let e = 0;
     for (let i = 0; i < n; i++) e += b[i] * b[i];
@@ -104,11 +112,17 @@ class LeluTurnDetector extends AudioWorkletProcessor {
   }
   step(level, dt) {
     this.t += dt;
-    if (this.t < 300) { this.floor.push(level); return; }
+    if (!this.preset && this.t < 300) { this.floor.push(level); return; }
     if (this.floor.length) {
       const sorted = this.floor.slice().sort((a, b) => a - b);
       this.threshold = Math.min(0.06, Math.max(0.012, sorted[Math.floor(sorted.length / 2)] * 2.5));
       this.floor = [];
+    }
+    // Any sound above the floor, at once (50 ms): not yet speech, but enough to
+    // keep a turn that may be continuing from being handed over.
+    if (level > this.threshold && !this.activitySent) {
+      this.activitySent = true;
+      this.port.postMessage({ activity: true, ms: this.t });
     }
     const speaking = level > this.threshold && (!this.spoke || level > this.peak * 0.2);
     if (speaking) {
@@ -125,7 +139,7 @@ class LeluTurnDetector extends AudioWorkletProcessor {
       this.silence += dt;
       if (!this.spoke) this.speech = 0;
     }
-    if ((this.spoke && this.silence >= 900) || this.t >= 20000 || (!this.spoke && this.t >= 10000)) this.finish();
+    if ((this.spoke && this.silence >= ${SEGMENT_END_SILENCE_MS}) || this.t >= 20000 || (!this.spoke && this.t >= 10000)) this.finish();
   }
 }
 registerProcessor("lelu-turn-detector", LeluTurnDetector);
@@ -143,6 +157,7 @@ export async function detectTurnOnAudioThread(
   source: AudioNode,
   cancelled: () => boolean,
   onOnset?: () => void,
+  options: { threshold?: number | null; onActivity?: () => void } = {},
 ): Promise<TurnResult | null> {
   if (typeof AudioWorkletNode === "undefined" || !ctx.audioWorklet) return null;
   try {
@@ -155,7 +170,11 @@ export async function detectTurnOnAudioThread(
       }
       loaded.add(ctx);
     }
-    const node = new AudioWorkletNode(ctx, "lelu-turn-detector", { numberOfInputs: 1, numberOfOutputs: 1 });
+    const node = new AudioWorkletNode(ctx, "lelu-turn-detector", {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      ...(options.threshold ? { processorOptions: { threshold: options.threshold } } : {}),
+    });
     // Pulled by the destination so it runs; silent, so nothing is heard.
     const mute = ctx.createGain();
     mute.gain.value = 0;
@@ -165,7 +184,11 @@ export async function detectTurnOnAudioThread(
       const poll = setInterval(() => {
         if (cancelled()) node.port.postMessage("stop");
       }, 200);
-      node.port.onmessage = (event: MessageEvent<TurnResult | { onset: true; ms: number }>) => {
+      node.port.onmessage = (event: MessageEvent<TurnResult | { onset: true; ms: number } | { activity: true; ms: number }>) => {
+        if ("activity" in event.data) {
+          options.onActivity?.();
+          return;
+        }
         if ("onset" in event.data) {
           onOnset?.();
           return;

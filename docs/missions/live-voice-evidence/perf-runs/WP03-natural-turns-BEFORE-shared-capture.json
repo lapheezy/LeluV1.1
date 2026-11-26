@@ -1,0 +1,5731 @@
+{
+ "label": "WP03-natural-turns",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): T.wav",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,f1,sil:45,c1-head,sil:1.6,c1-tail,sil:45,a1-head,sil:1.0,a1-tail,sil:45,g1-head@0.85,sil:2.2,g1-tail@0.85,sil:45,f4@1.2,sil:45",
+  "totalSeconds": 269.24,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "f1",
+    "at": 20,
+    "seconds": 4.32
+   },
+   {
+    "item": "sil:45",
+    "at": 24.32,
+    "seconds": 45
+   },
+   {
+    "item": "c1-head",
+    "at": 69.32,
+    "seconds": 1.42
+   },
+   {
+    "item": "sil:1.6",
+    "at": 70.74,
+    "seconds": 1.6
+   },
+   {
+    "item": "c1-tail",
+    "at": 72.34,
+    "seconds": 3.38
+   },
+   {
+    "item": "sil:45",
+    "at": 75.72,
+    "seconds": 45
+   },
+   {
+    "item": "a1-head",
+    "at": 120.72,
+    "seconds": 2.62
+   },
+   {
+    "item": "sil:1.0",
+    "at": 123.34,
+    "seconds": 1
+   },
+   {
+    "item": "a1-tail",
+    "at": 124.34,
+    "seconds": 2.34
+   },
+   {
+    "item": "sil:45",
+    "at": 126.68,
+    "seconds": 45
+   },
+   {
+    "item": "g1-head@0.85",
+    "at": 171.68,
+    "seconds": 1.08
+   },
+   {
+    "item": "sil:2.2",
+    "at": 172.76,
+    "seconds": 2.2
+   },
+   {
+    "item": "g1-tail@0.85",
+    "at": 174.96,
+    "seconds": 1.89
+   },
+   {
+    "item": "sil:45",
+    "at": 176.85,
+    "seconds": 45
+   },
+   {
+    "item": "f4@1.2",
+    "at": 221.85,
+    "seconds": 2.39
+   },
+   {
+    "item": "sil:45",
+    "at": 224.24,
+    "seconds": 45
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "What day comes after Monday? One short sentence.",
+   "firstSeen": 23.27,
+   "lastGrew": 26.23
+  },
+  {
+   "role": "assistant",
+   "text": "Right now it's 11:24:00 PM UTC on Thursday, November 26, 2026 (2026-11-26 23:24:00 UTC).",
+   "firstSeen": 26.23,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Tell me about the ocean in three or four sentences.",
+   "firstSeen": 73.31,
+   "lastGrew": 76.95
+  },
+  {
+   "role": "assistant",
+   "text": "The ocean covers over 70 % of Earth’s surface. It regulates climate by storing solar heat and distributing it through currents like the Gulf Stream. Its diverse ecosystems, from sunlit coral reefs to dark abyssal plains, support countless species and provide food, oxygen, and livelihoods for humanity.",
+   "firstSeen": 78.82,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Hi Lélu. What is the capital of France?",
+   "firstSeen": 125.15,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 127.99,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Please answer in one short sentence.",
+   "firstSeen": 128.28,
+   "lastGrew": 128.83
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 128.83,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Tell me about the Moon in three sentences.",
+   "firstSeen": 174.74,
+   "lastGrew": 179.22
+  },
+  {
+   "role": "assistant",
+   "text": "Earth's only natural satellite. It orbits about 384,000 km away, taking roughly 27 days to circle the planet and another 27 days to show the same face. Its surface is scarred with ancient impact craters, and its thin regolith reflects sunlight, creating the familiar phases we see from Earth.",
+   "firstSeen": 180.04,
+   "lastGrew": 180.33
+  },
+  {
+   "role": "user",
+   "text": "What is 2 plus 2? One short sentence.",
+   "firstSeen": 225.88,
+   "lastGrew": 226.2
+  },
+  {
+   "role": "assistant",
+   "text": "2 plus 4 equals 4.",
+   "firstSeen": 227.69,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": true,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": 1882,
+   "firstAudioLatencyMs": 10153,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 10293,
+   "audioContextState": "running",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 1297,
+    "characters": null,
+    "at": 1795735643272,
+    "streaming": "buffered",
+    "modelLoads": null,
+    "synthesisMs": null,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 4,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795735636868,
+   "speechHeld": false,
+   "holds": 3,
+   "holdsResumed": 0,
+   "lastHold": {
+    "reason": "interrupted",
+    "heldMs": 3191,
+    "at": 1795735640059
+   },
+   "lastInterruption": {
+    "at": 1795735640059,
+    "heldWithinMs": 0,
+    "stoppedAfterOnsetMs": 3191
+   },
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": 424,
+   "pendingTurn": null,
+   "lastTurnCommit": {
+    "reason": "finished",
+    "shape": "statement",
+    "segments": 1,
+    "waitedMs": 960,
+    "at": 1795735640595
+   },
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 6,
+    "recorded": 6,
+    "unexplained": 0,
+    "spoken": 4,
+    "silent": 2,
+    "noticeSpoken": 1,
+    "byOutcome": {
+     "spoke": 4,
+     "provider-unavailable": 2
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "b6dfcfd5-48f7-4450-9fa7-3348108f1891",
+    "text": "What day comes after Monday? One short sentence.",
+    "at": 1795735440520,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "31dcb8e1-c3a9-49a2-8932-894fefc5e925",
+    "text": "Tell me about the ocean in three or four sentences.",
+    "at": 1795735491182,
+    "outcome": "spoke"
+   },
+   {
+    "index": 3,
+    "turnId": "079ef268-da0a-4213-ae05-0f54ae525539",
+    "text": "Hi Lélu. What is the capital of France?",
+    "at": 1795735539438,
+    "outcome": "provider-unavailable"
+   },
+   {
+    "index": 4,
+    "turnId": "051541a7-d8c7-4ca7-b9f7-6399fa7bf809",
+    "text": "Please answer in one short sentence.",
+    "at": 1795735542918,
+    "outcome": "provider-unavailable"
+   },
+   {
+    "index": 5,
+    "turnId": "16060257-4994-4eab-ad23-6eeb36414d69",
+    "text": "Tell me about the Moon in three sentences.",
+    "at": 1795735593068,
+    "outcome": "spoke"
+   },
+   {
+    "index": 6,
+    "turnId": "6fa5d9e9-ad0e-4feb-a425-372c840952b9",
+    "text": "What is 2 plus 2? One short sentence.",
+    "at": 1795735640603,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "6fa5d9e9-ad0e-4feb-a425-372c840952b9",
+   "transcriptAt": 1795735640055,
+   "firstTextAt": 1795735641937,
+   "firstAudioAt": 1795735650208,
+   "firstAudibleAt": 1795735650348
+  }
+ },
+ "media": [],
+ "pcm": [
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 69.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 69.43,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 69.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 69.75,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 69.91,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 70.07,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 70.23,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 70.39,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 70.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 70.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 70.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 71.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 72.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 72.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 72.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 72.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 72.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 72.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 73.11,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 73.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 73.43,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 73.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 73.75,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 73.91,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 74.07,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 74.23,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 74.39,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 74.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 74.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 74.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 75.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 76.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 76.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 76.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 76.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 76.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 76.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 77.11,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 77.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 77.43,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 77.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 77.75,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 77.91,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 78.07,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 78.23,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 78.39,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 78.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.25,
+   "event": "scheduled",
+   "dueAt": 78.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 69.54,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 69.99,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 69.99,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 69.99,
+   "event": "scheduled",
+   "dueAt": 78.94,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 70,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 70.42,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 70.43,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 70.43,
+   "event": "suspend"
+  },
+  {
+   "t": 70.78,
+   "event": "scheduled",
+   "dueAt": 79.46,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 71.49,
+   "event": "scheduled",
+   "dueAt": 80.33,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 72.25,
+   "event": "scheduled",
+   "dueAt": 81.25,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 73.02,
+   "event": "scheduled",
+   "dueAt": 82.17,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "stopped"
+  },
+  {
+   "t": 73.04,
+   "event": "resume"
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 73.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 94.39,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 94.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 94.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 94.86,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.02,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.18,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.34,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.5,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.66,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.82,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 95.98,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 96.14,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 96.3,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 96.46,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 96.62,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 96.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 96.94,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 97.1,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 97.26,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 97.42,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.37,
+   "event": "scheduled",
+   "dueAt": 97.58,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.59,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.8,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.91,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.02,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.22,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.36,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.55,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.67,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.87,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.08,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.21,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.31,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.53,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.62,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.85,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 96.95,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 97.2,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 97.33,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 97.44,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 97.67,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 97.79,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 121.37,
+   "event": "suspend"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 123.66,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 123.82,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 123.98,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 124.14,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 124.3,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 124.46,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 124.62,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 124.78,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 124.94,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 125.1,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 125.26,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 125.42,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 125.58,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 125.74,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 125.9,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 126.06,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 126.22,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 126.38,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 126.54,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 126.7,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 126.86,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.02,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.18,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.34,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.5,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.66,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.82,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 127.98,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 128.14,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 128.3,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 128.46,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 128.62,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 128.78,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 128.94,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 123.64,
+   "event": "scheduled",
+   "dueAt": 129.1,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "stopped"
+  },
+  {
+   "t": 124.72,
+   "event": "resume"
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 124.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 188.72,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 188.88,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 189.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 189.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 189.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 189.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 189.68,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 189.84,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.69,
+   "event": "scheduled",
+   "dueAt": 190,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.7,
+   "event": "scheduled",
+   "dueAt": 190.16,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.7,
+   "event": "scheduled",
+   "dueAt": 190.32,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 188.7,
+   "event": "scheduled",
+   "dueAt": 190.48,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 189.03,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 189.14,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 189.34,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 189.44,
+   "event": "scheduled",
+   "dueAt": 190.72,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 189.44,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 189.62,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 189.83,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 189.96,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 190.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 190.26,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 190.47,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 190.7,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 190.82,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 190.95,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 222.35,
+   "event": "suspend"
+  },
+  {
+   "t": 225.54,
+   "event": "resume"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 235.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 235.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 236.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 237.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.69,
+   "event": "scheduled",
+   "dueAt": 237.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 235.94,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 236.06,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 236.28,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 236.36,
+   "event": "scheduled",
+   "dueAt": 237.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 236.36,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 236.59,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 236.68,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 236.89,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 237,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 237,
+   "event": "scheduled",
+   "dueAt": 237.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 237.2,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 237.41,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 237.5,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 237.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 237.69,
+   "event": "scheduled",
+   "dueAt": 237.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 237.8,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 238,
+   "event": "ended",
+   "duration": 0.16
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.31,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7321,
+   "serverRssMiB": 67,
+   "chromiumRssMiB": 2152
+  },
+  {
+   "t": 4.1,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2141,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 6,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2067,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 8,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2067,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2065,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2065,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2067,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 16,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2071,
+   "chromiumCpu": 179
+  },
+  {
+   "t": 18,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2075,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 20,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2085,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 22,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2088,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 24,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2089,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 26.1,
+   "voxcpm2RssMiB": 7321,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2106,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 28,
+   "voxcpm2RssMiB": 7297,
+   "voxcpm2Cpu": 186,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2125,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 30,
+   "voxcpm2RssMiB": 7350,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2127,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 32,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2132,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 34,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2135,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 36,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2129,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 38,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2132,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 40,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 195,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2139,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 42,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2140,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 44,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2138,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 46,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2153,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 48,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2154,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 50.1,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2160,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 52,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2161,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 54,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 2167,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 56,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2158,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 58,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2171,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 60,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2165,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 62.1,
+   "voxcpm2RssMiB": 7440,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2170,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 64,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2183,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 66.1,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 2176,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 68.1,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1917,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 70,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1963,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 72.1,
+   "voxcpm2RssMiB": 7348,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1990,
+   "chromiumCpu": 195
+  },
+  {
+   "t": 74,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 138,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1980,
+   "chromiumCpu": 195
+  },
+  {
+   "t": 76,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1970,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 78,
+   "voxcpm2RssMiB": 7324,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1943,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 7353,
+   "voxcpm2Cpu": 171,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1960,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 82,
+   "voxcpm2RssMiB": 7327,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1960,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 84.1,
+   "voxcpm2RssMiB": 7308,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1945,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 86.1,
+   "voxcpm2RssMiB": 7308,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1927,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 88.1,
+   "voxcpm2RssMiB": 7308,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1927,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 90.1,
+   "voxcpm2RssMiB": 7351,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1921,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 92.1,
+   "voxcpm2RssMiB": 7357,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1922,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 94.1,
+   "voxcpm2RssMiB": 7303,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1932,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 96.1,
+   "voxcpm2RssMiB": 7330,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1934,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 98.1,
+   "voxcpm2RssMiB": 7406,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1925,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7341,
+   "voxcpm2Cpu": 170,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1923,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 102.1,
+   "voxcpm2RssMiB": 7341,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1926,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 104.1,
+   "voxcpm2RssMiB": 7365,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1929,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7365,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1845,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 108,
+   "voxcpm2RssMiB": 7341,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 110.1,
+   "voxcpm2RssMiB": 7341,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1848,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 112.1,
+   "voxcpm2RssMiB": 7365,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1860,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7365,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1848,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7365,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7341,
+   "voxcpm2Cpu": 161,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7341,
+   "voxcpm2Cpu": 167,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7365,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1858,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7368,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 95,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7306,
+   "voxcpm2Cpu": 74,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 52,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1867,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1865,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1858,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 156.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1857,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 158.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1858,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1863,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1860,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 168.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 1,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 193
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 192
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1860,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 174.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 176.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1856,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 178.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 180.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 19,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 182.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 184.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 186.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 188.1,
+   "voxcpm2RssMiB": 7255,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1859,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 190.1,
+   "voxcpm2RssMiB": 7277,
+   "voxcpm2Cpu": 189,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 192.1,
+   "voxcpm2RssMiB": 7354,
+   "voxcpm2Cpu": 167,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 194.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 170,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1862,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 196.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1867,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 198.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 170,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 200.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 202.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 204.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 170,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 206.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1867,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 208.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 210.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 212.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 214.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 216.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1864,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 218.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1867,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 220.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 222.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 224.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 226.1,
+   "voxcpm2RssMiB": 7346,
+   "voxcpm2Cpu": 175,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 228.1,
+   "voxcpm2RssMiB": 7239,
+   "voxcpm2Cpu": 134,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1896,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 230.1,
+   "voxcpm2RssMiB": 7358,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 232.1,
+   "voxcpm2RssMiB": 7322,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 234.1,
+   "voxcpm2RssMiB": 7462,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 236.1,
+   "voxcpm2RssMiB": 7298,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 238.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 158,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 240.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1881,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 242.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 244.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 246.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 248.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 250.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 252.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 254.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 256.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 258.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 260.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 262.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 264.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 266.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1878,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 268.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 270.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1867,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 272.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 274.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 276.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 278.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 280.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 282.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 284.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 286.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 1,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1885,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 288.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 290.2,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1882,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 292.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1878,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 294.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1877,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 296.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 298.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1882,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 300.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 302.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1881,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 304.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 306.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 308.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 310.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 312.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 314.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 316.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 68,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1882,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 318.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 191
+  },
+  {
+   "t": 320.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 322.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 324.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 326.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1881,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 328.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 330.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 332.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 334.1,
+   "voxcpm2RssMiB": 7370,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1877,
+   "chromiumCpu": 185
+  }
+ ],
+ "screenshots": [
+  "WP03-natural-turns-01-loaded.jpg",
+  "WP03-natural-turns-02-hearing.jpg",
+  "WP03-natural-turns-03-speaking-1.jpg",
+  "WP03-natural-turns-03-speaking-2.jpg",
+  "WP03-natural-turns-04-held-for-barge-in.jpg",
+  "WP03-natural-turns-03-speaking-3.jpg",
+  "WP03-natural-turns-05-before-end.jpg",
+  "WP03-natural-turns-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 2.3,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.46,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.46,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.46,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.46,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.57,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 271,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 3.05,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.19,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.75,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 565,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.91,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.91,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 7.79,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1875,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 17.05,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-01-loaded.jpg"
+  },
+  {
+   "t": 0.2,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.2,
+   "kind": "scenario",
+   "spec": "sil:20,f1,sil:45,c1-head,sil:1.6,c1-tail,sil:45,a1-head,sil:1.0,a1-tail,sil:45,g1-head@0.85,sil:2.2,g1-tail@0.85,sil:45,f4@1.2,sil:45",
+   "totalSeconds": 269.24,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "f1",
+     "at": 20,
+     "seconds": 4.32
+    },
+    {
+     "item": "sil:45",
+     "at": 24.32,
+     "seconds": 45
+    },
+    {
+     "item": "c1-head",
+     "at": 69.32,
+     "seconds": 1.42
+    },
+    {
+     "item": "sil:1.6",
+     "at": 70.74,
+     "seconds": 1.6
+    },
+    {
+     "item": "c1-tail",
+     "at": 72.34,
+     "seconds": 3.38
+    },
+    {
+     "item": "sil:45",
+     "at": 75.72,
+     "seconds": 45
+    },
+    {
+     "item": "a1-head",
+     "at": 120.72,
+     "seconds": 2.62
+    },
+    {
+     "item": "sil:1.0",
+     "at": 123.34,
+     "seconds": 1
+    },
+    {
+     "item": "a1-tail",
+     "at": 124.34,
+     "seconds": 2.34
+    },
+    {
+     "item": "sil:45",
+     "at": 126.68,
+     "seconds": 45
+    },
+    {
+     "item": "g1-head@0.85",
+     "at": 171.68,
+     "seconds": 1.08
+    },
+    {
+     "item": "sil:2.2",
+     "at": 172.76,
+     "seconds": 2.2
+    },
+    {
+     "item": "g1-tail@0.85",
+     "at": 174.96,
+     "seconds": 1.89
+    },
+    {
+     "item": "sil:45",
+     "at": 176.85,
+     "seconds": 45
+    },
+    {
+     "item": "f4@1.2",
+     "at": 221.85,
+     "seconds": 2.39
+    },
+    {
+     "item": "sil:45",
+     "at": 224.24,
+     "seconds": 45
+    }
+   ]
+  },
+  {
+   "t": 0.2,
+   "kind": "state",
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.35,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.44,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.44,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 85,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.44,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.56,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 120,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.57,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.57,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 0.7,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 10.77,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10193,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 20.64,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 20.89,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-02-hearing.jpg"
+  },
+  {
+   "t": 22.73,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11912,\"voicedMs\":1150,\"spoke\":true,\"ms\":11947,\"peak\":0.4424,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 22.73,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 22.84,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 23.06,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 333,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 23.27,
+   "kind": "message",
+   "index": 0,
+   "role": "user-interim",
+   "text": "What day comes after Monday?…"
+  },
+  {
+   "t": 23.56,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 25.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2142,\"voicedMs\":600,\"spoke\":true,\"ms\":2344,\"peak\":0.2582,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 25.08,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 25.09,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 25.29,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 212,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 26.18,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Right now it's eleven:twenty-four:zero zero PM UTC on Thursday, November twenty-six two thousand twenty-six two thousand twenty-six-11-26 twenty-three:twenty-four:zero zero UTC."
+  },
+  {
+   "t": 26.23,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 26.23,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "Right now it's 11:24:00 PM UTC on Thursday, November 26, 2026 (2026-11-26 23:24:00 UTC)."
+  },
+  {
+   "t": 35.21,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10116,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 36.04,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 45.49,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10206,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 52.34,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 52.44,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 52.52,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 55.63,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10132,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 60.59,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 65.74,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10110,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 69.37,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 71.84,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5956,\"voicedMs\":600,\"spoke\":true,\"ms\":5991,\"peak\":0.2156,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 71.84,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 72,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 157,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 72.24,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 73.02,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 772,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 73.04,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-03-speaking-1.jpg"
+  },
+  {
+   "t": 73.05,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 46872,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 73.31,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 73.31,
+   "kind": "message",
+   "index": 2,
+   "role": "user-interim",
+   "text": "Tell me about the...…"
+  },
+  {
+   "t": 75.72,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3448,\"voicedMs\":1500,\"spoke\":true,\"ms\":3740,\"peak\":0.2209,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 75.75,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 75.87,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 76.16,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 76.25,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 501,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 76.85,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 78.33,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The ocean covers over seventy percent of Earth's surface."
+  },
+  {
+   "t": 78.33,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 78.56,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1704,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 78.82,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 78.82,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "The ocean covers over 70 % of Earth’s surface. It regulates climate by storing solar heat and distributing it through currents like the Gulf Stream. Its diverse ecosystems, from sunlit coral reefs to "
+  },
+  {
+   "t": 79.43,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "It regulates climate by storing solar heat and distributing it through currents like the Gulf Stream."
+  },
+  {
+   "t": 85.97,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10107,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 93.43,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 94.39,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 16048,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5"
+   },
+   "saved": "audio/WP03-natural-turns-tts-01.wav"
+  },
+  {
+   "t": 94.59,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 94.81,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-03-speaking-2.jpg"
+  },
+  {
+   "t": 95.87,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Its diverse ecosystems, from sunlit coral reefs to dark abyssal plains, support countless species and provide food, oxygen, and livelihoods for humanity."
+  },
+  {
+   "t": 96.32,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10332,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 98.07,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 106.53,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10109,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 116.65,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10117,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 117.83,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 121.51,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 121.77,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-04-held-for-barge-in.jpg"
+  },
+  {
+   "t": 123.65,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 44210,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5"
+   },
+   "saved": "audio/WP03-natural-turns-tts-02.wav"
+  },
+  {
+   "t": 123.76,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 124.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7262,\"voicedMs\":1000,\"spoke\":true,\"ms\":7319,\"peak\":0.2298,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 124.1,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 124.2,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 124.72,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 620,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 124.82,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 28945,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 124.92,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 125.15,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 125.15,
+   "kind": "message",
+   "index": 4,
+   "role": "user",
+   "text": "Hi Lélu. What is the capital of France?"
+  },
+  {
+   "t": 125.47,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 125.49,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 125.58,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 125.63,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 126.78,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1149,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 126.79,
+   "kind": "request",
+   "url": "/api/model/cerebras/chat/completions"
+  },
+  {
+   "t": 127.29,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+   "t": 127.3,
+   "kind": "response",
+   "url": "/api/model/cerebras/chat/completions",
+   "status": 401,
+   "ms": 505,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 127.31,
+   "kind": "console",
+   "level": "error",
+   "text": "[CerebrasProvider] API request failed {status: 401, message: Wrong API Key, model: gpt-oss-120b}"
+  },
+  {
+   "t": 127.34,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+  },
+  {
+   "t": 127.41,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 127.42,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3135,\"voicedMs\":900,\"spoke\":true,\"ms\":3323,\"peak\":0.2471,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 127.44,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 127.67,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 127.99,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 127.99,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 128.01,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 664,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 128.01,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 569,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 128.28,
+   "kind": "message",
+   "index": 6,
+   "role": "user-interim",
+   "text": "Please answer in one short sentence.…"
+  },
+  {
+   "t": 128.83,
+   "kind": "message",
+   "index": 7,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 137.63,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10105,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 147.69,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10065,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 157.75,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10058,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 167.95,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10199,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 172.51,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 172.76,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 173.94,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5799,\"voicedMs\":750,\"spoke\":true,\"ms\":5991,\"peak\":0.1922,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 173.95,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 173.96,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 173.97,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 17,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 173.99,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 174.18,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 174.42,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 407,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 174.74,
+   "kind": "message",
+   "index": 8,
+   "role": "user-interim",
+   "text": "Tell me about the...…"
+  },
+  {
+   "t": 174.81,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 174.82,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 174.86,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 175.42,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 177.64,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3500,\"voicedMs\":1000,\"spoke\":true,\"ms\":3678,\"peak\":0.1663,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 177.67,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 177.75,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 178.14,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 470,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 178.77,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 178.9,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 179.88,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Earth's only natural satellite."
+  },
+  {
+   "t": 180.04,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 180.04,
+   "kind": "message",
+   "index": 9,
+   "role": "assistant",
+   "text": "Earth's only"
+  },
+  {
+   "t": 180.18,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1288,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 181.14,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "It orbits about three hundred eighty-four thousand km away, taking roughly twenty-seven days to circle the planet and another twenty-seven days to show the same face."
+  },
+  {
+   "t": 187.84,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10198,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 188.93,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 189.23,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-03-speaking-3.jpg"
+  },
+  {
+   "t": 189.45,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 9562,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.22"
+   },
+   "saved": "audio/WP03-natural-turns-tts-03.wav"
+  },
+  {
+   "t": 190.84,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Its surface is scarred with ancient impact craters, and its thin regolith reflects sunlight, creating the familiar phases we see from Earth."
+  },
+  {
+   "t": 191.09,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 191.59,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 197.9,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10058,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 208.13,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10221,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 218.3,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10150,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 222.36,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 222.58,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 225.12,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6583,\"voicedMs\":850,\"spoke\":true,\"ms\":6748,\"peak\":0.2006,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 225.13,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 225.23,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 225.54,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 413,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 225.57,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 44435,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 225.57,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 34736,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 225.67,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 225.88,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 225.88,
+   "kind": "message",
+   "index": 10,
+   "role": "user-interim",
+   "text": "What is 2 plus 2? One short sentence.…"
+  },
+  {
+   "t": 226.2,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 226.32,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 226.32,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 226.32,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 226.36,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 227.43,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 227.45,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1094,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 227.47,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "two plus four equals four."
+  },
+  {
+   "t": 227.69,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 227.69,
+   "kind": "message",
+   "index": 11,
+   "role": "assistant",
+   "text": "2 plus 4 equals 4."
+  },
+  {
+   "t": 235.39,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10259,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 235.95,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 237.7,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 10227,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.56"
+   },
+   "saved": "audio/WP03-natural-turns-tts-04.wav"
+  },
+  {
+   "t": 238.11,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 240.16,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 245.63,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10230,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 248.53,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 250.15,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1628,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 255.94,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10309,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 266.04,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10094,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 276.29,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10241,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 286.42,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10040,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 296.61,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10167,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 303.69,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 306.72,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10122,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 311.74,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 311.84,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 311.86,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 317.01,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10211,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 327.07,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10059,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 330.8,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-05-before-end.jpg"
+  },
+  {
+   "t": 331.53,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 331.63,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":4441,\"voicedMs\":0,\"spoke\":false,\"ms\":4473,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":4441}"
+  },
+  {
+   "t": 332.7,
+   "kind": "screenshot",
+   "file": "WP03-natural-turns-06-ended.jpg"
+  }
+ ]
+}

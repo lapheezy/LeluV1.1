@@ -14,6 +14,7 @@
  *   firstAudio  her voice started playing (the media element's "playing")
  *   ttsEngine   X-Lelu-Engine of every sentence of the reply
  *   played      sentences whose audio reached "ended" (played through), of those requested
+ *   pcm…        streamed playback (Web Audio): seconds scheduled, and stops (an interruption)
  * Times are seconds after the single microphone tap. Page-observed times carry
  * the harness's 200 ms polling and the page's own lag on its CPU core.
  */
@@ -32,6 +33,10 @@ function analyse(file) {
   const ttsRes = tl.filter((e) => (e.kind === "response" || e.kind === "request-failed") && /\/api\/voice\/tts/.test(e.url));
   const playing = run.media.filter((m) => m.event === "playing");
   const ended = run.media.filter((m) => m.event === "ended");
+  // Streamed PCM (Web Audio): buffers due to sound, ignoring the tiny unlock buffer.
+  const pcm = (run.pcm ?? []).filter((p) => p.event !== "scheduled" || p.duration > 0.05);
+  const pcmScheduled = pcm.filter((p) => p.event === "scheduled");
+  const pcmStopped = pcm.filter((p) => p.event === "stopped");
   const turns = userMsgs.map((u, i) => {
     const next = userMsgs[i + 1]?.firstSeen ?? Infinity;
     const reply = herMsgs.find((m) => m.firstSeen >= u.firstSeen && m.firstSeen < next) ?? null;
@@ -41,8 +46,15 @@ function analyse(file) {
     const window = (t) => t >= u.firstSeen && t < next;
     const requests = ttsReq.filter((r) => window(r.t));
     const responses = ttsRes.filter((r) => window(r.t));
-    const firstAudio = playing.find((p) => window(p.t))?.t ?? null;
+    const pcmHere = pcmScheduled.filter((p) => window(p.t));
+    const mediaFirst = playing.find((p) => window(p.t))?.t ?? null;
+    const pcmFirst = pcmHere.length ? Math.min(...pcmHere.map((p) => p.dueAt ?? p.t)) : null;
+    const firstAudio = [mediaFirst, pcmFirst].filter((x) => x !== null).sort((a, b) => a - b)[0] ?? null;
+    const pcmLast = pcmHere.length ? Math.max(...pcmHere.map((p) => (p.dueAt ?? p.t) + p.duration)) : null;
+    const mediaLast = ended.filter((p) => window(p.t)).map((p) => p.t).sort((a, b) => b - a)[0] ?? null;
+    const lastAudio = [pcmLast, mediaLast].filter((x) => x !== null).sort((a, b) => b - a)[0] ?? null;
     const endedHere = ended.filter((p) => window(p.t)).length;
+    const stopsHere = pcmStopped.filter((p) => window(p.t)).length;
     return {
       heard: u.text,
       reply: reply?.text ?? null,
@@ -56,7 +68,10 @@ function analyse(file) {
       transcriptToFirstTextS: transcript !== null && reply ? +(reply.firstSeen - transcript).toFixed(2) : null,
       transcriptToFirstAudioS: transcript !== null && firstAudio !== null ? +(firstAudio - transcript).toFixed(2) : null,
       speechEndToFirstAudioS: spokenEnd !== null && firstAudio !== null ? +(firstAudio - spokenEnd).toFixed(2) : null,
+      firstAudioToCompletedS: firstAudio !== null && lastAudio !== null ? +(lastAudio - firstAudio).toFixed(2) : null,
       textBeforeAudio: reply && firstAudio !== null ? reply.firstSeen <= firstAudio : null,
+      pcmSecondsScheduled: +pcmHere.reduce((a, p) => a + p.duration, 0).toFixed(2),
+      pcmStops: stopsHere,
       sentencesRequested: requests.length,
       sentencesPlayedThrough: endedHere,
       ttsEngines: [...new Set(responses.map((r) => r.headers?.["x-lelu-engine"] ?? (r.kind === "request-failed" ? `failed:${r.error}` : `HTTP ${r.status}`)))],

@@ -138,7 +138,16 @@ const pgrep = (pattern) => {
     const entry = { url: url.slice(0, 90), status: response?.status(), ms, headers: picked };
     if (/\/api\/voice\/tts/.test(url) && response?.ok()) {
       try {
-        const body = await response.body();
+        let body = await response.body();
+        // Streamed PCM16 is saved as a playable WAV (the header the stream lacks).
+        if (/audio\/l16/i.test(headers["content-type"] ?? "")) {
+          const rate = Number(headers["x-lelu-sample-rate"]) || Number((headers["content-type"].match(/rate=(\d+)/) ?? [])[1]) || 48000;
+          const head = Buffer.alloc(44);
+          head.write("RIFF", 0); head.writeUInt32LE(36 + body.length, 4); head.write("WAVE", 8); head.write("fmt ", 12);
+          head.writeUInt32LE(16, 16); head.writeUInt16LE(1, 20); head.writeUInt16LE(1, 22); head.writeUInt32LE(rate, 24);
+          head.writeUInt32LE(rate * 2, 28); head.writeUInt16LE(2, 32); head.writeUInt16LE(16, 34); head.write("data", 36); head.writeUInt32LE(body.length, 40);
+          body = Buffer.concat([head, body]);
+        }
         const file = path.join(out, "audio", `${label}-tts-${String(++ttsIndex).padStart(2, "0")}.wav`);
         fs.writeFileSync(file, body);
         entry.saved = path.relative(out, file);
@@ -153,7 +162,35 @@ const pgrep = (pattern) => {
 
   /* ------------------------- observation only ------------------------- */
   await page.addInitScript(() => {
-    window.__acc = { tracks: [], media: [] };
+    window.__acc = { tracks: [], media: [], pcm: [] };
+    // Web Audio playback (streamed PCM): every scheduled buffer, when it is due
+    // to sound, how long it is, and when it ended; and the output context's
+    // suspend/resume (a hold). Observation only.
+    if (typeof AudioBufferSourceNode !== "undefined") {
+      const start = AudioBufferSourceNode.prototype.start;
+      AudioBufferSourceNode.prototype.start = function (when, ...rest) {
+        const ctx = this.context;
+        const duration = this.buffer ? this.buffer.duration : 0;
+        const dueInMs = Math.max(0, ((when ?? ctx.currentTime) - ctx.currentTime) * 1000);
+        window.__acc.pcm.push({ t: Date.now(), event: "scheduled", dueAt: Date.now() + dueInMs, duration: +duration.toFixed(3), ctx: ctx.state });
+        this.addEventListener("ended", () => window.__acc.pcm.push({ t: Date.now(), event: "ended", duration: +duration.toFixed(3) }), { once: true });
+        return start.call(this, when, ...rest);
+      };
+      const stop = AudioBufferSourceNode.prototype.stop;
+      AudioBufferSourceNode.prototype.stop = function (...args) {
+        window.__acc.pcm.push({ t: Date.now(), event: "stopped" });
+        return stop.apply(this, args);
+      };
+    }
+    if (typeof AudioContext !== "undefined") {
+      for (const name of ["suspend", "resume"]) {
+        const original = AudioContext.prototype[name];
+        AudioContext.prototype[name] = function (...args) {
+          if (this.state !== (name === "suspend" ? "suspended" : "running")) window.__acc.pcm.push({ t: Date.now(), event: name });
+          return original.apply(this, args);
+        };
+      }
+    }
     const md = navigator.mediaDevices;
     if (md && md.getUserMedia) {
       const original = md.getUserMedia.bind(md);
@@ -207,6 +244,7 @@ const pgrep = (pattern) => {
   const tracks = () =>
     page.evaluate(() => (window.__acc?.tracks ?? []).map((entry) => (entry.track ? { at: entry.at, kind: entry.kind, readyState: entry.track.readyState } : entry)));
   const media = () => page.evaluate(() => window.__acc?.media ?? []);
+  const pcm = () => page.evaluate(() => window.__acc?.pcm ?? []);
 
   /* ------------------------------ open chat ------------------------------ */
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
@@ -375,6 +413,7 @@ const pgrep = (pattern) => {
     messages: finalMessages.map((m, i) => ({ ...m, firstSeen: seen[i]?.firstSeen ?? null, lastGrew: seen[i]?.lastGrew ?? null })),
     voice: final ? { phase: final.phase, active: final.active, diagnostics: final.diagnostics, turns: final.turns, turnLatency: final.turnLatency } : null,
     media: (await media()).map((m) => ({ ...m, t: +((m.t - t0) / 1000).toFixed(2) })),
+    pcm: (await pcm()).map((m) => ({ ...m, t: +((m.t - t0) / 1000).toFixed(2), ...(m.dueAt ? { dueAt: +((m.dueAt - t0) / 1000).toFixed(2) } : {}) })),
     tracks: (await tracks()).map((tr) => ({ ...tr, at: tr.at ? +((tr.at - t0) / 1000).toFixed(2) : undefined })),
     resources: samples,
     screenshots: shots,

@@ -116,6 +116,15 @@ def _env(name: str, default: str) -> str:
     return default if value is None or value.strip() == "" else value.strip()
 
 
+def _torch_threads() -> "int | None":
+    try:
+        import torch
+
+        return int(torch.get_num_threads())
+    except Exception:
+        return None
+
+
 class Cancelled(Exception):
     """The client went away before its generation began."""
 
@@ -473,6 +482,7 @@ class Engine:
             self.load_seconds = round(time.time() - started, 1)
             self.load_error = None
             self.mid_sentence_cancel = _install_step_cancellation()
+            self.compiled = self._compile(model)
             # Loaded is not ready: prove the weights speak before saying so.
             self._model = model
             self._set_state("INITIALIZING")
@@ -481,6 +491,17 @@ class Engine:
                 self.selftest_result = self._selftest(model)
             except Exception as exc:
                 self.selftest_result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+            if not self.selftest_result.get("ok") and self.compiled == "estimator":
+                # A compile can only fail on first use. Fall back to the
+                # uncompiled estimator (correct, only slower) and test again.
+                decoder = model.tts_model.feat_decoder
+                decoder.estimator = getattr(decoder.estimator, "_orig_mod", decoder.estimator)
+                sys.stderr.write(json.dumps({"event": "compile_fallback", "selftest": self.selftest_result}) + "\n")
+                self.compiled = "failed"
+                try:
+                    self.selftest_result = self._selftest(model)
+                except Exception as exc:
+                    self.selftest_result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
             if not self.selftest_result.get("ok"):
                 self._model = None  # never serve weights that failed to speak
                 self._set_state("FAILED", f"selftest: {self.selftest_result}")
@@ -597,6 +618,34 @@ class Engine:
     _prompt_cache_for = None
     reference_encode_ms = None
 
+    compiled = "off"
+
+    def _compile(self, model) -> str:
+        """
+        Compile the diffusion estimator for this CPU (live conversation).
+
+        The estimator runs `inference_timesteps` times per generation step and
+        is ~55 % of a sentence's time; VoxCPM compiles only on CUDA. Inductor's
+        CPU backend took it from 31 to 24 ms per call (RTF 3.1 -> 2.7 on 4
+        cores, services/voxcpm/bench_step.py). Same weights, same arithmetic.
+        Compiling the language-model steps instead recompiled every step (RTF
+        11.8) and is not offered. The compile itself happens in the self-test,
+        before READY. VOXCPM_COMPILE=off disables it; a machine without a C++
+        compiler falls back to the uncompiled model and /health says so.
+        """
+        mode = _env("VOXCPM_COMPILE", "estimator").lower()
+        if mode in ("off", "0", "none", "false"):
+            return "off"
+        try:
+            import torch
+
+            decoder = model.tts_model.feat_decoder
+            decoder.estimator = torch.compile(decoder.estimator, dynamic=False)
+            return "estimator"
+        except Exception as exc:  # never fatal: the uncompiled model is correct, only slower
+            sys.stderr.write(json.dumps({"event": "compile_skipped", "error": f"{type(exc).__name__}: {exc}"[:300]}) + "\n")
+            return "failed"
+
     def _reference_cache(self, model):
         ref = str(self.reference_path)
         if self._prompt_cache is None or self._prompt_cache_for != ref:
@@ -697,6 +746,8 @@ class Engine:
             "referenceReused": _env("VOXCPM_REUSE_REFERENCE", "1") != "0",
             "referenceEncodeMs": self.reference_encode_ms,
             "cancelMidSentence": bool(getattr(self, "mid_sentence_cancel", False)),
+            "compiled": self.compiled,
+            "threads": _torch_threads(),
             "sampleRate": self.sample_rate,
             "reference": self.reference_meta or None,
             "queueDepth": self.pending,

@@ -1,0 +1,3958 @@
+{
+ "label": "WP04-interrupt-during-audio",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): W4.wav",
+ "viewport": "desktop 1440x900",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,g1,sil:13.7,c2,sil:13.7,c3,sil:13.7,g2,sil:60",
+  "totalSeconds": 135.98,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "g1",
+    "at": 20,
+    "seconds": 2.56
+   },
+   {
+    "item": "sil:13.7",
+    "at": 22.56,
+    "seconds": 13.7
+   },
+   {
+    "item": "c2",
+    "at": 36.26,
+    "seconds": 4.48
+   },
+   {
+    "item": "sil:13.7",
+    "at": 40.74,
+    "seconds": 13.7
+   },
+   {
+    "item": "c3",
+    "at": 54.44,
+    "seconds": 4
+   },
+   {
+    "item": "sil:13.7",
+    "at": 58.44,
+    "seconds": 13.7
+   },
+   {
+    "item": "g2",
+    "at": 72.14,
+    "seconds": 3.84
+   },
+   {
+    "item": "sil:60",
+    "at": 75.98,
+    "seconds": 60
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "Tell me about the moon in three sentences.",
+   "firstSeen": 25.02,
+   "lastGrew": 25.78
+  },
+  {
+   "role": "assistant",
+   "text": "Earth's lone satellite. It orbits our planet every 27.3 days, showing phases as sunlight reflects off its surface. Its gravity shapes tides and stabilizes Earth's tilt, helping life thrive.",
+   "firstSeen": 26.62,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Wait, stop. What about the planet Mars instead? One sentence.",
+   "firstSeen": 43.31,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Mars is a cold, rocky planet with a thin carbon‑dioxide atmosphere, towering volcanoes, and ancient river‑carved valleys.",
+   "firstSeen": 44.14,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Hold on, which planet is the largest?",
+   "firstSeen": 58.78,
+   "lastGrew": 59.04
+  },
+  {
+   "role": "assistant",
+   "text": "Jupiter is the largest planet in our solar system, a gas giant about 11 times Earth's diameter and over twice the mass of all the other planets combined.",
+   "firstSeen": 60,
+   "lastGrew": 60.3
+  },
+  {
+   "role": "user",
+   "text": "Wait. What is the moon made of?",
+   "firstSeen": 78.03,
+   "lastGrew": 78.7
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 80.89,
+   "lastGrew": null
+  },
+  {
+   "role": "user",
+   "text": "Thanks. Can you summarise what we covered, in one sentence?",
+   "firstSeen": 126.84,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "firstSeen": 127.6,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": null,
+   "firstAudioLatencyMs": 29548,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 29678,
+   "audioContextState": "running",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 34990,
+    "characters": null,
+    "at": 1795734731247,
+    "streaming": "buffered",
+    "modelLoads": null,
+    "synthesisMs": null,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 3,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795734640160,
+   "speechHeld": false,
+   "holds": 3,
+   "holdsResumed": 0,
+   "lastHold": {
+    "reason": "interrupted",
+    "heldMs": 4684,
+    "at": 1795734644844
+   },
+   "lastInterruption": {
+    "at": 1795734644844,
+    "heldWithinMs": 0,
+    "stoppedAfterOnsetMs": 4684
+   },
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": 1418,
+   "pendingTurn": null,
+   "lastTurnCommit": {
+    "reason": "finished",
+    "shape": "unfinished",
+    "segments": 1,
+    "waitedMs": 2105,
+    "at": 1795734645531
+   },
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 4,
+    "recorded": 4,
+    "unexplained": 0,
+    "spoken": 4,
+    "silent": 0,
+    "noticeSpoken": 1,
+    "byOutcome": {
+     "spoke": 4
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "23cbf15e-d5ba-476b-8c6d-c627889d2c30",
+    "text": "Tell me about the moon in three sentences.",
+    "at": 1795734592120,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "70e22b72-60c9-46e5-8c75-b559dbbea823",
+    "text": "Wait, stop. What about the planet Mars instead? One sentence.",
+    "at": 1795734609805,
+    "outcome": "spoke"
+   },
+   {
+    "index": 3,
+    "turnId": "04622d6a-dabd-42f1-bfb4-16e5d423773e",
+    "text": "Hold on, which planet is the largest?",
+    "at": 1795734625802,
+    "outcome": "spoke"
+   },
+   {
+    "index": 4,
+    "turnId": "f2988321-2751-4ea1-be0e-ebda12bbfbb0",
+    "text": "Wait. What is the moon made of?",
+    "at": 1795734645536,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "f2988321-2751-4ea1-be0e-ebda12bbfbb0",
+   "transcriptAt": 1795734644844,
+   "firstTextAt": null,
+   "firstAudioAt": 1795734674392,
+   "firstAudibleAt": 1795734674522
+  }
+ },
+ "media": [],
+ "pcm": [
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 36.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 37.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 37.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.01,
+   "event": "scheduled",
+   "dueAt": 37.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 36.3,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 36.39,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 36.57,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 36.7,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 36.84,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 36.94,
+   "event": "scheduled",
+   "dueAt": 37.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.08,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 37.21,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 37.21,
+   "event": "suspend"
+  },
+  {
+   "t": 37.84,
+   "event": "scheduled",
+   "dueAt": 38.42,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 38.82,
+   "event": "scheduled",
+   "dueAt": 39.56,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "stopped"
+  },
+  {
+   "t": 42.54,
+   "event": "resume"
+  },
+  {
+   "t": 42.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 42.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 42.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 42.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 42.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 42.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 50.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 50.75,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 50.91,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 51.07,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 51.23,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 51.39,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 51.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.57,
+   "event": "scheduled",
+   "dueAt": 51.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 50.84,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 50.93,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 51.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 51.26,
+   "event": "scheduled",
+   "dueAt": 51.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 51.26,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 51.48,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 51.57,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 51.8,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 51.9,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 52.02,
+   "event": "scheduled",
+   "dueAt": 52.04,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 52.05,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 52.27,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 55.43,
+   "event": "suspend"
+  },
+  {
+   "t": 58.41,
+   "event": "resume"
+  },
+  {
+   "t": 73.05,
+   "event": "suspend"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 75.76,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 75.92,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 76.08,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 76.24,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 76.4,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 76.56,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 76.72,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 76.88,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 77.04,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 77.2,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 77.36,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 77.52,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 77.68,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 77.84,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 78,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 78.16,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 78.32,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 78.48,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 75.74,
+   "event": "scheduled",
+   "dueAt": 78.64,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 76.83,
+   "event": "scheduled",
+   "dueAt": 79.89,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "stopped"
+  },
+  {
+   "t": 77.73,
+   "event": "resume"
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 77.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 107.3,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 107.46,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 107.62,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 107.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 107.94,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 108.1,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 108.26,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 108.42,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 108.58,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 108.74,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 108.9,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 109.06,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 109.22,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 109.38,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 109.54,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 109.7,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 109.86,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.02,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.18,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.34,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.5,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.66,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.82,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 110.98,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 111.14,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 111.3,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 111.46,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 111.62,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 111.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 111.94,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 112.1,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.28,
+   "event": "scheduled",
+   "dueAt": 112.26,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 107.55,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 107.67,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 107.79,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108.13,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108.38,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108.41,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108.68,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108.8,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 108.91,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 109.13,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 109.25,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 109.37,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 109.61,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 109.72,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 109.93,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.03,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.27,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.42,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.53,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.68,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.84,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 110.98,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 111.2,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 111.31,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 111.5,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 111.62,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 111.82,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 111.94,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 112.1,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 112.33,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 112.44,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 159.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 160.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 161.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 161.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 161.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 161.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 161.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 161.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 162.11,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 162.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 162.43,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 162.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 162.75,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 162.91,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 163.07,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 163.23,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 163.39,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 163.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 163.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 163.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 164.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 165.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 165.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 165.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 165.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 165.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 165.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 159.85,
+   "event": "scheduled",
+   "dueAt": 166.11,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 160.24,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 160.4,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 160.51,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 160.61,
+   "event": "scheduled",
+   "dueAt": 166.43,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 160.73,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 160.86,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 161.07,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 161.17,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 161.31,
+   "event": "scheduled",
+   "dueAt": 166.59,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 161.31,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 161.47,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 161.62,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 161.9,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.05,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.05,
+   "event": "scheduled",
+   "dueAt": 166.75,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 162.23,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.4,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.54,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.71,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.75,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 162.91,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 163.18,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 163.33,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 163.52,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 163.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 163.79,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 163.98,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 164.13,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 164.3,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 164.39,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 164.52,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 164.67,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 164.91,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 165.03,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 165.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 165.37,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 165.47,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 165.68,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 165.79,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166.1,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166.28,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166.44,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166.64,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166.74,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 166.94,
+   "event": "ended",
+   "duration": 0.16
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.41,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7125,
+   "serverRssMiB": 70,
+   "chromiumRssMiB": 1893
+  },
+  {
+   "t": 4.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1887,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 6,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1805,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 8,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1809,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1800,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1817,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1818,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 16,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1811,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 18,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1826,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 20,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1828,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 22,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 70,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1825,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 24,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1827,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 26.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1847,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 28,
+   "voxcpm2RssMiB": 7244,
+   "voxcpm2Cpu": 136,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 30,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 64,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 32.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 34.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 36.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1877,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 38.1,
+   "voxcpm2RssMiB": 7125,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1913,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 40.1,
+   "voxcpm2RssMiB": 7152,
+   "voxcpm2Cpu": 161,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1913,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 42.1,
+   "voxcpm2RssMiB": 7128,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 65,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1922,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 44.1,
+   "voxcpm2RssMiB": 7077,
+   "voxcpm2Cpu": 84,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1870,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 46.1,
+   "voxcpm2RssMiB": 7122,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 64,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1879,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 48.1,
+   "voxcpm2RssMiB": 7098,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 50.1,
+   "voxcpm2RssMiB": 7098,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1853,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 52.1,
+   "voxcpm2RssMiB": 7100,
+   "voxcpm2Cpu": 195,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 54.1,
+   "voxcpm2RssMiB": 7098,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 56.1,
+   "voxcpm2RssMiB": 7154,
+   "voxcpm2Cpu": 161,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1866,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 58.1,
+   "voxcpm2RssMiB": 7154,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 60.1,
+   "voxcpm2RssMiB": 7180,
+   "voxcpm2Cpu": 78,
+   "serverRssMiB": 65,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1900,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 62.1,
+   "voxcpm2RssMiB": 7183,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1910,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 64.1,
+   "voxcpm2RssMiB": 7159,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1921,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 66.1,
+   "voxcpm2RssMiB": 7159,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 68.1,
+   "voxcpm2RssMiB": 7159,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1898,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 70.1,
+   "voxcpm2RssMiB": 7164,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1913,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 72.1,
+   "voxcpm2RssMiB": 7135,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1915,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 74.1,
+   "voxcpm2RssMiB": 7183,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1944,
+   "chromiumCpu": 193
+  },
+  {
+   "t": 76.1,
+   "voxcpm2RssMiB": 7183,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 65,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1945,
+   "chromiumCpu": 192
+  },
+  {
+   "t": 78.1,
+   "voxcpm2RssMiB": 7233,
+   "voxcpm2Cpu": 157,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1936,
+   "chromiumCpu": 195
+  },
+  {
+   "t": 80.1,
+   "voxcpm2RssMiB": 7240,
+   "voxcpm2Cpu": 16,
+   "serverRssMiB": 65,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1979,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 82.1,
+   "voxcpm2RssMiB": 7268,
+   "voxcpm2Cpu": 150,
+   "serverRssMiB": 66,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1972,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 84.1,
+   "voxcpm2RssMiB": 7268,
+   "voxcpm2Cpu": 200,
+   "serverRssMiB": 66,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1975,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 86.1,
+   "voxcpm2RssMiB": 7232,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1949,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 88.1,
+   "voxcpm2RssMiB": 7256,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 90.1,
+   "voxcpm2RssMiB": 7236,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 92.1,
+   "voxcpm2RssMiB": 7260,
+   "voxcpm2Cpu": 194,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1915,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 94.1,
+   "voxcpm2RssMiB": 7260,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1912,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 96.1,
+   "voxcpm2RssMiB": 7261,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1901,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 98.1,
+   "voxcpm2RssMiB": 7256,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1914,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 100.1,
+   "voxcpm2RssMiB": 7260,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 102.1,
+   "voxcpm2RssMiB": 7257,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1917,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 104.1,
+   "voxcpm2RssMiB": 7261,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 106.1,
+   "voxcpm2RssMiB": 7252,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1906,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 108.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 112,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1909,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 110.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1906,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 112.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1905,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 114.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1858,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1863,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 118.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1858,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 120.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1858,
+   "chromiumCpu": 192
+  },
+  {
+   "t": 122.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1868,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 124.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1869,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 126.1,
+   "voxcpm2RssMiB": 7281,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1861,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 128.1,
+   "voxcpm2RssMiB": 7285,
+   "voxcpm2Cpu": 66,
+   "serverRssMiB": 65,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1886,
+   "chromiumCpu": 181
+  },
+  {
+   "t": 130.1,
+   "voxcpm2RssMiB": 7266,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1886,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 132.1,
+   "voxcpm2RssMiB": 7266,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1899,
+   "chromiumCpu": 187
+  },
+  {
+   "t": 134.1,
+   "voxcpm2RssMiB": 7270,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1873,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 136.1,
+   "voxcpm2RssMiB": 7337,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 138.1,
+   "voxcpm2RssMiB": 7268,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1871,
+   "chromiumCpu": 184
+  },
+  {
+   "t": 140.1,
+   "voxcpm2RssMiB": 7271,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1872,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 142.1,
+   "voxcpm2RssMiB": 7271,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1875,
+   "chromiumCpu": 183
+  },
+  {
+   "t": 144.1,
+   "voxcpm2RssMiB": 7274,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 146.1,
+   "voxcpm2RssMiB": 7279,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1874,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 148.1,
+   "voxcpm2RssMiB": 7271,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1886,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 150.1,
+   "voxcpm2RssMiB": 7271,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1887,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 152.1,
+   "voxcpm2RssMiB": 7223,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 63,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 154.1,
+   "voxcpm2RssMiB": 7221,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1885,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 156.2,
+   "voxcpm2RssMiB": 7268,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1876,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 158.1,
+   "voxcpm2RssMiB": 7272,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1877,
+   "chromiumCpu": 190
+  },
+  {
+   "t": 160.1,
+   "voxcpm2RssMiB": 7272,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1880,
+   "chromiumCpu": 189
+  },
+  {
+   "t": 162.1,
+   "voxcpm2RssMiB": 7268,
+   "voxcpm2Cpu": 196,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1881,
+   "chromiumCpu": 182
+  },
+  {
+   "t": 164.1,
+   "voxcpm2RssMiB": 7221,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 63,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1881,
+   "chromiumCpu": 180
+  },
+  {
+   "t": 166.1,
+   "voxcpm2RssMiB": 7257,
+   "voxcpm2Cpu": 158,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1889,
+   "chromiumCpu": 185
+  },
+  {
+   "t": 168.1,
+   "voxcpm2RssMiB": 7269,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1883,
+   "chromiumCpu": 188
+  },
+  {
+   "t": 170.1,
+   "voxcpm2RssMiB": 7245,
+   "voxcpm2Cpu": 161,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1891,
+   "chromiumCpu": 186
+  },
+  {
+   "t": 172.1,
+   "voxcpm2RssMiB": 7245,
+   "voxcpm2Cpu": 143,
+   "serverRssMiB": 64,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1899,
+   "chromiumCpu": 185
+  }
+ ],
+ "screenshots": [
+  "WP04-interrupt-during-audio-01-loaded.jpg",
+  "WP04-interrupt-during-audio-02-hearing.jpg",
+  "WP04-interrupt-during-audio-03-speaking-1.jpg",
+  "WP04-interrupt-during-audio-04-held-for-barge-in.jpg",
+  "WP04-interrupt-during-audio-03-speaking-2.jpg",
+  "WP04-interrupt-during-audio-03-speaking-3.jpg",
+  "WP04-interrupt-during-audio-05-before-end.jpg",
+  "WP04-interrupt-during-audio-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 2.09,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.31,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 216,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.6,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.6,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.6,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.6,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 3.45,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 3.77,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 3.94,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 173,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.83,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.88,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 7.89,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 2005,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 18.09,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-01-loaded.jpg"
+  },
+  {
+   "t": 0.4,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.4,
+   "kind": "scenario",
+   "spec": "sil:20,g1,sil:13.7,c2,sil:13.7,c3,sil:13.7,g2,sil:60",
+   "totalSeconds": 135.98,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "g1",
+     "at": 20,
+     "seconds": 2.56
+    },
+    {
+     "item": "sil:13.7",
+     "at": 22.56,
+     "seconds": 13.7
+    },
+    {
+     "item": "c2",
+     "at": 36.26,
+     "seconds": 4.48
+    },
+    {
+     "item": "sil:13.7",
+     "at": 40.74,
+     "seconds": 13.7
+    },
+    {
+     "item": "c3",
+     "at": 54.44,
+     "seconds": 4
+    },
+    {
+     "item": "sil:13.7",
+     "at": 58.44,
+     "seconds": 13.7
+    },
+    {
+     "item": "g2",
+     "at": 72.14,
+     "seconds": 3.84
+    },
+    {
+     "item": "sil:60",
+     "at": 75.98,
+     "seconds": 60
+    }
+   ]
+  },
+  {
+   "t": 0.41,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.51,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.61,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 195,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.75,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.75,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.75,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 0.75,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 0,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 1,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 11.06,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10314,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 21.29,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 21.56,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-02-hearing.jpg"
+  },
+  {
+   "t": 23.8,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12434,\"voicedMs\":1400,\"spoke\":true,\"ms\":12718,\"peak\":0.4601,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 23.8,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 23.84,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 24.31,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 24.9,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 1096,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 25.02,
+   "kind": "message",
+   "index": 0,
+   "role": "user-interim",
+   "text": "Tell me about the moon in three sentences.…"
+  },
+  {
+   "t": 25.09,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 26.35,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Earth's lone satellite."
+  },
+  {
+   "t": 26.38,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 26.47,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1384,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 26.62,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 26.62,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "Earth's lone satellite. It orbits our planet every 27.3 days, showing phases as sunlight reflects off its surface. Its gravity shapes tides and stabilizes Earth's tilt, helping life thrive."
+  },
+  {
+   "t": 28.24,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "It orbits our planet every twenty-seven point three days, showing phases as sunlight reflects off its surface."
+  },
+  {
+   "t": 33.97,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10160,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 34.91,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 36.31,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 36.84,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-03-speaking-1.jpg"
+  },
+  {
+   "t": 37.38,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 38.01,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-04-held-for-barge-in.jpg"
+  },
+  {
+   "t": 38.94,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 12474,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.13"
+   },
+   "saved": "audio/WP04-interrupt-during-audio-tts-01.wav"
+  },
+  {
+   "t": 40.28,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Its gravity shapes tides and stabilizes Earth's tilt, helping life thrive."
+  },
+  {
+   "t": 41.67,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":7628,\"voicedMs\":1350,\"spoke\":true,\"ms\":7695,\"peak\":0.2823,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 41.67,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 41.95,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 42.54,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 864,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 42.55,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 14306,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 42.55,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 2261,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 42.7,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 42.92,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 43.06,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 43.31,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 43.31,
+   "kind": "message",
+   "index": 2,
+   "role": "user",
+   "text": "Wait, stop. What about the planet Mars instead? One sentence."
+  },
+  {
+   "t": 43.95,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Mars is a cold,"
+  },
+  {
+   "t": 44.13,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1210,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 44.14,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 44.14,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "Mars is a cold, rocky planet with a thin carbon‑dioxide atmosphere, towering volcanoes, and ancient river‑carved valleys."
+  },
+  {
+   "t": 45.35,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "rocky planet with a thin carbon‑dioxide atmosphere, towering volcanoes, and ancient river‑carved valleys."
+  },
+  {
+   "t": 50.73,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 51.16,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-03-speaking-2.jpg"
+  },
+  {
+   "t": 51.9,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10221,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 52.17,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 8106,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.96"
+   },
+   "saved": "audio/WP04-interrupt-during-audio-tts-02.wav"
+  },
+  {
+   "t": 52.38,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 55.55,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 55.83,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 58.13,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6008,\"voicedMs\":950,\"spoke\":true,\"ms\":6224,\"peak\":0.231,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 58.14,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 58.3,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 58.41,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 271,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 58.52,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 13167,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 58.52,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 58.78,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 58.78,
+   "kind": "message",
+   "index": 4,
+   "role": "user-interim",
+   "text": "Hold on, which planet is the largest?…"
+  },
+  {
+   "t": 58.95,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 59.04,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 59.9,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Jupiter is the largest planet in our solar system,"
+  },
+  {
+   "t": 60,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 60,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "Jupiter is the largest planet in our solar system, a gas giant about"
+  },
+  {
+   "t": 60.12,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1170,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 61.2,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "a gas giant about eleven times Earth's diameter and over twice the mass of all the other planets combined."
+  },
+  {
+   "t": 68.49,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":150,\"spoke\":false,\"ms\":10339,\"peak\":0.1634,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9509}"
+  },
+  {
+   "t": 73.49,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 75.76,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 76.32,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6949,\"voicedMs\":1000,\"spoke\":true,\"ms\":7721,\"peak\":0.2338,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 76.34,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 76.34,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 76.87,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 532,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 76.94,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 16941,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.03"
+   },
+   "saved": "audio/WP04-interrupt-during-audio-tts-03.wav"
+  },
+  {
+   "t": 76.94,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 77.71,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 769,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 77.75,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 16554,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 78.03,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 78.03,
+   "kind": "message",
+   "index": 6,
+   "role": "user-interim",
+   "text": "Wait. What is the moon made of?…"
+  },
+  {
+   "t": 78.44,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-03-speaking-3.jpg"
+  },
+  {
+   "t": 78.7,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 79.13,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 79.13,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 79.13,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 ()"
+  },
+  {
+   "t": 79.17,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 79.97,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  },
+  {
+   "t": 79.98,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 429,
+   "ms": 812,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 80,
+   "kind": "request",
+   "url": "/api/model/cerebras/chat/completions"
+  },
+  {
+   "t": 80.55,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+   "t": 80.55,
+   "kind": "response",
+   "url": "/api/model/cerebras/chat/completions",
+   "status": 401,
+   "ms": 550,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 80.55,
+   "kind": "console",
+   "level": "error",
+   "text": "[CerebrasProvider] API request failed {status: 401, message: Wrong API Key, model: gpt-oss-120b}"
+  },
+  {
+   "t": 80.56,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+  },
+  {
+   "t": 80.69,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 80.89,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 80.89,
+   "kind": "message",
+   "index": 7,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 87.45,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10586,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 93.12,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 93.13,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 93.15,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 97.77,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10348,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 101.25,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 101.35,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 107.42,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 26738,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.15"
+   },
+   "saved": "audio/WP04-interrupt-during-audio-tts-04.wav"
+  },
+  {
+   "t": 107.55,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 107.79,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 107.99,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10224,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 109.72,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 112.56,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 118.23,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10226,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 126.84,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 126.84,
+   "kind": "message",
+   "index": 8,
+   "role": "user",
+   "text": "Thanks. Can you summarise what we covered, in one sentence?"
+  },
+  {
+   "t": 126.93,
+   "kind": "typed",
+   "text": "Thanks. Can you summarise what we covered, in one sentence?",
+   "sessionActive": true
+  },
+  {
+   "t": 127.19,
+   "kind": "request",
+   "url": "/api/model/cerebras/chat/completions"
+  },
+  {
+   "t": 127.33,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  },
+  {
+   "t": 127.36,
+   "kind": "response",
+   "url": "/api/model/cerebras/chat/completions",
+   "status": 401,
+   "ms": 170,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 127.4,
+   "kind": "console",
+   "level": "error",
+   "text": "[CerebrasProvider] API request failed {status: 401, message: Wrong API Key, model: gpt-oss-120b}"
+  },
+  {
+   "t": 127.43,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "I'm in offline mode right now, all AI providers are unreachable or unconfigured, so I can't generate new answers."
+  },
+  {
+   "t": 127.6,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 127.6,
+   "kind": "message",
+   "index": 9,
+   "role": "assistant",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 128.49,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10165,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 129.15,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+  },
+  {
+   "t": 138.62,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10126,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 148.83,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10116,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 150.52,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 159.03,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10076,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 159.86,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 160.5,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 162.14,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 34630,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "5.2"
+   },
+   "saved": "audio/WP04-interrupt-during-audio-tts-05.wav"
+  },
+  {
+   "t": 167.1,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 169.1,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10069,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 170.62,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-05-before-end.jpg"
+  },
+  {
+   "t": 171.1,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 41947,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 171.11,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 171.11,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1776,\"voicedMs\":0,\"spoke\":false,\"ms\":1914,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":1515}"
+  },
+  {
+   "t": 172.21,
+   "kind": "screenshot",
+   "file": "WP04-interrupt-during-audio-06-ended.jpg"
+  }
+ ]
+}

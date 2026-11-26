@@ -13,7 +13,8 @@
  *            "a1,sil:40,a2,sil:40,a3,sil:60".
  *
  *   node scripts/live-conversation-mic.cjs gen --worker http://127.0.0.1:8789 --questions q.json --dir <dir>
- *   node scripts/live-conversation-mic.cjs compose --dir <dir> --spec "a1,sil:40,a2" --out scenario.wav
+ *   node scripts/live-conversation-mic.cjs compose --dir <dir> --spec "a1,sil:40,a2@0.85" --out scenario.wav
+ *   node scripts/live-conversation-mic.cjs cut --dir <dir> --from c1 --start 0 --end 1.42 --as c1-head
  *
  * Spec items: <id> (a generated clip), sil:<s>, noise:<s> (pink noise at a
  * room-ish level), burst:<s> (a short loud noise, like a cough or a clatter),
@@ -68,7 +69,9 @@ function compose() {
   const timeline = [];
   let t = 0;
   spec.forEach((item, index) => {
-    const [kind, arg] = item.split(":");
+    // "<id>@<tempo>": the clip spoken faster (>1) or slower (<1), pitch unchanged.
+    const [spec, tempo] = item.split("@");
+    const [kind, arg] = spec.split(":");
     const part = path.join(tmp, `${String(index).padStart(3, "0")}.wav`);
     const pcm = ["-ac", "1", "-ar", "48000", "-c:a", "pcm_s16le"];
     if (kind === "sil") ff(["-f", "lavfi", "-i", `anullsrc=r=48000:cl=mono`, "-t", arg, ...pcm, part]);
@@ -77,7 +80,7 @@ function compose() {
     else if (kind === "burst") ff(["-f", "lavfi", "-i", `anoisesrc=c=pink:r=48000:a=0.25`, "-t", arg, ...pcm, part]);
     else if (kind === "clicks")
       ff(["-f", "lavfi", "-i", `aevalsrc='if(lt(mod(t\\,0.7)\\,0.012)\\,0.5*sin(2*PI*1800*t)\\,0)':s=48000`, "-t", arg, ...pcm, part]);
-    else ff(["-i", path.join(dir, `${kind}.wav`), ...pcm, part]);
+    else ff(["-i", path.join(dir, `${kind}.wav`), ...(tempo ? ["-af", `atempo=${Number(tempo)}`] : []), ...pcm, part]);
     const seconds = duration(part);
     timeline.push({ item, at: +t.toFixed(2), seconds: +seconds.toFixed(2) });
     t += seconds;
@@ -91,7 +94,20 @@ function compose() {
   console.log(JSON.stringify({ out, totalSeconds: +t.toFixed(2), timeline }));
 }
 
+// "cut": a fragment of a clip at word boundaries (times from Whisper word timestamps),
+// with 10 ms fades so the cut does not click: --from <id> --start <s> --end <s> --as <id>.
+function cut() {
+  const from = path.join(dir, `${opt("from")}.wav`);
+  const target = path.join(dir, `${opt("as")}.wav`);
+  const start = Number(opt("start", "0"));
+  const end = opt("end") ? Number(opt("end")) : duration(from);
+  const length = end - start;
+  ff(["-ss", String(start), "-t", String(length), "-i", from, "-af", `afade=t=in:d=0.01,afade=t=out:st=${Math.max(0, length - 0.01).toFixed(3)}:d=0.01`, "-c:a", "pcm_s16le", target]);
+  console.log(JSON.stringify({ as: opt("as"), from: opt("from"), start, end: +end.toFixed(2) }));
+}
+
 if (mode === "gen") gen().catch((e) => (console.error(e), process.exit(1)));
+else if (mode === "cut") cut();
 else if (mode === "compose") compose();
 else {
   console.error("usage: gen | compose");

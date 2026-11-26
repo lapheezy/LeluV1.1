@@ -170,6 +170,44 @@ test("VOXCPM_STREAM_MAX_RTF moves the line", async () => {
   }
 });
 
+test("a page that buffers gets a stream even from a slow worker (live conversation)", async () => {
+  const worker = await fakeWorker(6.9);
+  const app = await serve({ VOXCPM_BASE_URL: worker.url, VOXCPM_LOCAL_FALLBACK: "0" });
+  try {
+    const response = await speak(app.base, { text: "She starts a sentence-length sooner.", stream: true, buffered: true });
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type") ?? "", /^audio\/L16/i, "PCM as it is generated, not one whole WAV");
+    assert.equal(response.headers.get("x-lelu-streaming"), "buffered", "and the page is told it must buffer");
+    assert.equal(response.headers.get("x-lelu-worker-rtf"), "6.9", "with the worker's pace to buffer by");
+    await response.arrayBuffer();
+    assert.equal(worker.bodies.at(-1)?.stream, true);
+    // A page that does not buffer still gets the whole WAV.
+    const plain = await speak(app.base, { text: "Without buffering.", stream: true });
+    assert.equal(plain.headers.get("x-lelu-streaming"), "off:slower-than-realtime");
+    await plain.arrayBuffer();
+  } finally {
+    app.close();
+    await worker.close();
+  }
+});
+
+test("a buffered stream starts once the rest of the sentence cannot overtake it", async () => {
+  const { pcmStartReady, estimateSpeechSeconds } = await import("../src/core/voice/elevenLabsTts");
+  // RTF 3: a 3 s sentence needs 2 s buffered (+0.3 s margin) before it may start.
+  assert.equal(pcmStartReady({ producedSeconds: 1.9, expectedSeconds: 3, pace: 1 / 3, complete: false }), false);
+  assert.equal(pcmStartReady({ producedSeconds: 2.35, expectedSeconds: 3, pace: 1 / 3, complete: false }), true);
+  // A worker that keeps up starts with the first chunk.
+  assert.equal(pcmStartReady({ producedSeconds: 0.1, expectedSeconds: 3, pace: 1.2, complete: false }), true);
+  // The stream ended: play what there is.
+  assert.equal(pcmStartReady({ producedSeconds: 0.8, expectedSeconds: 3, pace: 0.3, complete: true }), true);
+  assert.equal(pcmStartReady({ producedSeconds: 0, expectedSeconds: 3, pace: 0.3, complete: true }), false);
+  // Longer than estimated: never waits for more than it has already produced.
+  assert.equal(pcmStartReady({ producedSeconds: 4, expectedSeconds: 3, pace: 1 / 3, complete: false }), true);
+  // The estimate: ~0.068 s per character, never under 0.6 s.
+  assert.ok(Math.abs(estimateSpeechSeconds("The Eiffel Tower is the most famous tower in France.") - 3.5) < 0.1);
+  assert.equal(estimateSpeechSeconds("Hi."), 0.6);
+});
+
 /* ------------------------------ page queue ------------------------------ */
 
 test("the page waits as long as the worker needs, and no longer than it must", async () => {

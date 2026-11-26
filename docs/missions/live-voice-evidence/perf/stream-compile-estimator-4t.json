@@ -1,0 +1,347 @@
+{
+ "variant": "stream-compile-estimator-4t",
+ "threads": 4,
+ "inferenceTimesteps": 10,
+ "compile": "estimator",
+ "loadSeconds": 15.2,
+ "referenceEncodeMs": 2694,
+ "warmupSeconds": 8.8,
+ "torch": "2.15.0+cpu",
+ "rows": [
+  {
+   "variant": "stream-compile-estimator-4t",
+   "text": "clause",
+   "rep": 0,
+   "ms": 3698,
+   "audioSeconds": 1.12,
+   "rtf": 3.3,
+   "steps": 6,
+   "components_ms": {
+    "feat_encoder": 347,
+    "estimator": 1646,
+    "vae_decode": 450,
+    "base_lm": 660,
+    "residual_lm": 177
+   },
+   "calls": {
+    "feat_encoder": 8,
+    "estimator": 63,
+    "vae_decode": 7,
+    "base_lm": 6,
+    "residual_lm": 6
+   },
+   "file": "stream-compile-estimator-4t-clause-0.wav",
+   "firstChunkMs": 938,
+   "chunks": 7,
+   "pace": [
+    [
+     0.94,
+     0.16
+    ],
+    [
+     1.39,
+     0.32
+    ],
+    [
+     1.83,
+     0.48
+    ],
+    [
+     2.33,
+     0.64
+    ],
+    [
+     2.78,
+     0.8
+    ],
+    [
+     3.23,
+     0.96
+    ],
+    [
+     3.7,
+     1.12
+    ]
+   ],
+   "safeStartMs": 2737
+  },
+  {
+   "variant": "stream-compile-estimator-4t",
+   "text": "sentence",
+   "rep": 0,
+   "ms": 8801,
+   "audioSeconds": 3.04,
+   "rtf": 2.9,
+   "steps": 18,
+   "components_ms": {
+    "feat_encoder": 640,
+    "estimator": 4123,
+    "vae_decode": 1185,
+    "base_lm": 1923,
+    "residual_lm": 539
+   },
+   "calls": {
+    "feat_encoder": 20,
+    "estimator": 171,
+    "vae_decode": 19,
+    "base_lm": 18,
+    "residual_lm": 18
+   },
+   "file": "stream-compile-estimator-4t-sentence-0.wav",
+   "firstChunkMs": 845,
+   "chunks": 19,
+   "pace": [
+    [
+     0.85,
+     0.16
+    ],
+    [
+     1.34,
+     0.32
+    ],
+    [
+     1.81,
+     0.48
+    ],
+    [
+     2.25,
+     0.64
+    ],
+    [
+     2.66,
+     0.8
+    ],
+    [
+     3.1,
+     0.96
+    ],
+    [
+     3.57,
+     1.12
+    ],
+    [
+     4.05,
+     1.28
+    ],
+    [
+     4.48,
+     1.44
+    ],
+    [
+     4.93,
+     1.6
+    ],
+    [
+     5.44,
+     1.76
+    ],
+    [
+     5.89,
+     1.92
+    ],
+    [
+     6.32,
+     2.08
+    ],
+    [
+     6.75,
+     2.24
+    ],
+    [
+     7.15,
+     2.4
+    ],
+    [
+     7.56,
+     2.56
+    ],
+    [
+     7.97,
+     2.72
+    ],
+    [
+     8.39,
+     2.88
+    ],
+    [
+     8.8,
+     3.04
+    ]
+   ],
+   "safeStartMs": 5920
+  },
+  {
+   "variant": "stream-compile-estimator-4t",
+   "text": "long",
+   "rep": 0,
+   "ms": 16599,
+   "audioSeconds": 5.76,
+   "rtf": 2.88,
+   "steps": 35,
+   "components_ms": {
+    "feat_encoder": 991,
+    "estimator": 7859,
+    "vae_decode": 2488,
+    "base_lm": 3745,
+    "residual_lm": 1056
+   },
+   "calls": {
+    "feat_encoder": 37,
+    "estimator": 324,
+    "vae_decode": 36,
+    "base_lm": 35,
+    "residual_lm": 35
+   },
+   "file": "stream-compile-estimator-4t-long-0.wav",
+   "firstChunkMs": 717,
+   "chunks": 36,
+   "pace": [
+    [
+     0.72,
+     0.16
+    ],
+    [
+     1.13,
+     0.32
+    ],
+    [
+     1.54,
+     0.48
+    ],
+    [
+     2.01,
+     0.64
+    ],
+    [
+     2.49,
+     0.8
+    ],
+    [
+     2.95,
+     0.96
+    ],
+    [
+     3.41,
+     1.12
+    ],
+    [
+     3.85,
+     1.28
+    ],
+    [
+     4.33,
+     1.44
+    ],
+    [
+     4.75,
+     1.6
+    ],
+    [
+     5.19,
+     1.76
+    ],
+    [
+     5.69,
+     1.92
+    ],
+    [
+     6.16,
+     2.08
+    ],
+    [
+     6.68,
+     2.24
+    ],
+    [
+     7.17,
+     2.4
+    ],
+    [
+     7.6,
+     2.56
+    ],
+    [
+     8.15,
+     2.72
+    ],
+    [
+     8.6,
+     2.88
+    ],
+    [
+     9.09,
+     3.04
+    ],
+    [
+     9.55,
+     3.2
+    ],
+    [
+     9.99,
+     3.36
+    ],
+    [
+     10.43,
+     3.52
+    ],
+    [
+     10.86,
+     3.68
+    ],
+    [
+     11.38,
+     3.84
+    ],
+    [
+     11.81,
+     4.0
+    ],
+    [
+     12.24,
+     4.16
+    ],
+    [
+     12.66,
+     4.32
+    ],
+    [
+     13.08,
+     4.48
+    ],
+    [
+     13.53,
+     4.64
+    ],
+    [
+     13.97,
+     4.8
+    ],
+    [
+     14.37,
+     4.96
+    ],
+    [
+     14.83,
+     5.12
+    ],
+    [
+     15.25,
+     5.28
+    ],
+    [
+     15.67,
+     5.44
+    ],
+    [
+     16.15,
+     5.6
+    ],
+    [
+     16.6,
+     5.76
+    ]
+   ],
+   "safeStartMs": 10998
+  }
+ ]
+}

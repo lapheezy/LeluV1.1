@@ -115,7 +115,118 @@ let finishCurrent: (() => void) | null = null;
  */
 type PreparedAudio =
   | { kind: "blob"; blob: Blob }
-  | { kind: "pcm"; body: ReadableStream<Uint8Array>; sampleRate: number };
+  | { kind: "pcm"; feed: PcmFeed; sampleRate: number; plan: BufferedStartPlan | null };
+
+/**
+ * A stream from a worker slower than real time, played from a buffer: the
+ * page starts once the rest of the sentence can no longer overtake playback.
+ */
+interface BufferedStartPlan {
+  /** Estimated length of the sentence's audio, from its text. */
+  expectedSeconds: number;
+  /** Worker real-time factor as the server measured it (seconds of work per second of audio). */
+  rtf: number | null;
+}
+
+/**
+ * Seconds of speech a sentence will take, from its spoken text. Measured on
+ * VoxCPM2 with her reference: 0.041-0.070 s per character; the upper part of
+ * that range is used so the estimate errs towards starting a little late
+ * (which costs a fraction of a second) rather than early (which would leave a
+ * gap in her voice).
+ */
+export function estimateSpeechSeconds(text: string): number {
+  return Math.max(0.6, text.trim().length * 0.068);
+}
+
+/**
+ * May a buffered stream start playing now? Playback must never overtake
+ * generation: with `pace` seconds of audio produced per second, a sentence of
+ * `expected` seconds can start once `expected * (1 - pace)` is buffered (plus
+ * a margin). Pure, so the rule is testable.
+ */
+export function pcmStartReady(input: {
+  producedSeconds: number;
+  expectedSeconds: number;
+  /** Audio seconds produced per wall second (1/RTF); null when unknown. */
+  pace: number | null;
+  complete: boolean;
+  marginSeconds?: number;
+}): boolean {
+  if (input.complete) return input.producedSeconds > 0;
+  if (input.pace === null || !Number.isFinite(input.pace) || input.pace >= 1) return input.producedSeconds > 0;
+  const expected = Math.max(input.expectedSeconds, input.producedSeconds);
+  return input.producedSeconds >= expected * (1 - Math.max(0, input.pace)) + (input.marginSeconds ?? 0.3);
+}
+
+/**
+ * A response body drained into memory from the moment its headers arrive.
+ *
+ * A sentence synthesised ahead used to be read only when its turn to play
+ * came; against a streaming worker the unread socket filled (one step is
+ * ~15 KB) and the worker stalled mid-generation until the page caught up.
+ */
+class PcmFeed {
+  private readonly parts: Uint8Array[] = [];
+  private waiters: Array<() => void> = [];
+  private readonly reader: ReadableStreamDefaultReader<Uint8Array>;
+  bytes = 0;
+  done = false;
+  failed = false;
+  firstAt: number | null = null;
+  readonly openedAt = Date.now();
+
+  constructor(body: ReadableStream<Uint8Array>) {
+    this.reader = body.getReader();
+    void this.pull();
+  }
+
+  private wake(): void {
+    const waiters = this.waiters;
+    this.waiters = [];
+    for (const resolve of waiters) resolve();
+  }
+
+  private async pull(): Promise<void> {
+    try {
+      for (;;) {
+        const { value, done } = await this.reader.read();
+        if (done) break;
+        if (value && value.length > 0) {
+          if (this.firstAt === null) this.firstAt = Date.now();
+          this.parts.push(value);
+          this.bytes += value.length;
+          this.wake();
+        }
+      }
+    } catch {
+      this.failed = true;
+    } finally {
+      this.done = true;
+      this.wake();
+    }
+  }
+
+  /** Every chunk in order, waiting for the next while the stream is open. */
+  async *chunks(): AsyncGenerator<Uint8Array> {
+    let index = 0;
+    for (;;) {
+      while (index < this.parts.length) yield this.parts[index++]!;
+      if (this.done) return;
+      await new Promise<void>((resolve) => this.waiters.push(resolve));
+    }
+  }
+
+  /** Resolves when more data arrives or the stream ends. */
+  changed(): Promise<void> {
+    if (this.done) return Promise.resolve();
+    return new Promise<void>((resolve) => this.waiters.push(resolve));
+  }
+
+  cancel(): void {
+    void this.reader.cancel().catch(() => {});
+  }
+}
 
 interface QueuedSegment {
   text: string;
@@ -251,7 +362,10 @@ async function synthesize(
       // `delivery` names one of the closed profiles in speechProfile.ts. The
       // server validates it against that set; a profile is a delivery choice,
       // never a change to her words.
-      body: JSON.stringify({ text, stream: true, ...(delivery ? { delivery } : {}) }),
+      // `buffered`: this page starts a stream from a slower-than-real-time
+      // worker only once it cannot run dry (pcmStartReady), so the server may
+      // stream from it instead of sending one whole WAV.
+      body: JSON.stringify({ text, stream: true, buffered: true, ...(delivery ? { delivery } : {}) }),
     });
   } catch (error) {
     if (headerTimer) clearTimeout(headerTimer);
@@ -296,11 +410,14 @@ async function synthesize(
   const type = (response.headers.get("Content-Type") ?? "").toLowerCase();
   if (type.startsWith("audio/l16") && response.body) {
     const declared = Number(response.headers.get("X-Lelu-Sample-Rate"));
+    const buffered = response.headers.get("X-Lelu-Streaming") === "buffered";
+    const rtf = headerNumber("X-Lelu-Worker-Rtf") ?? statusCache?.workerRtf ?? null;
     return {
       kind: "pcm",
-      body: response.body,
+      feed: new PcmFeed(response.body),
       // The header is the authority; 16 kHz is only a last resort.
       sampleRate: Number.isFinite(declared) && declared > 0 ? declared : 16_000,
+      plan: buffered ? { expectedSeconds: estimateSpeechSeconds(text), rtf } : null,
     };
   }
   const blob = await response.blob();
@@ -383,23 +500,31 @@ function playBlob(blob: Blob, callbacks: SpeakCallbacks): Promise<boolean> {
  * Play 16-bit mono PCM as it arrives.
  *
  * Each network chunk becomes one AudioBuffer scheduled after the previous
- * one, so playback is continuous, in order, and starts with the first chunk —
- * not with the last. A stop halts every scheduled source and cancels the
- * reader, which aborts the request and kills the synthesiser server-side.
+ * one, so playback is continuous and in order. From a worker that keeps up,
+ * playback starts with the first chunk. From one slower than real time
+ * (`plan`), chunks are held until the rest of the sentence can no longer
+ * overtake playback (pcmStartReady): she starts about one sentence-length
+ * sooner than with a whole WAV, and never in fragments. A stop halts every
+ * scheduled source and cancels the stream, which ends the generation.
  */
 async function playPcm(
-  body: ReadableStream<Uint8Array>,
+  feed: PcmFeed,
   sampleRate: number,
   callbacks: SpeakCallbacks,
+  plan: BufferedStartPlan | null = null,
 ): Promise<boolean> {
   const ctx = audioContext();
-  if (!ctx) return false;
-  const reader = body.getReader();
+  if (!ctx) {
+    feed.cancel();
+    return false;
+  }
   const sources: AudioBufferSourceNode[] = [];
+  const pending: AudioBuffer[] = [];
   let stopped = false;
   let started = false;
   let endAt = ctx.currentTime;
   let tail = new Uint8Array(0);
+  let producedSeconds = 0;
   const handle = {
     stop: () => {
       stopped = true;
@@ -410,50 +535,70 @@ async function playPcm(
           // already finished
         }
       }
-      void reader.cancel().catch(() => {});
+      feed.cancel();
     },
   };
   activePcm = handle;
+
+  const schedule = (buffer: AudioBuffer) => {
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    // Immediately after the previous chunk: continuous, never over it.
+    const startAt = Math.max(ctx.currentTime + 0.02, endAt);
+    source.start(startAt);
+    endAt = startAt + buffer.duration;
+    sources.push(source);
+    if (!started) {
+      started = true;
+      callbacks.onStart?.();
+      // Report the moment the first buffer is due to be heard, not queued.
+      const delayMs = Math.max(0, Math.round((startAt - ctx.currentTime) * 1000));
+      setTimeout(() => {
+        if (!stopped) callbacks.onAudible?.();
+      }, delayMs);
+    }
+  };
+
+  const ready = (complete: boolean) => {
+    if (!plan) return producedSeconds > 0;
+    // Measured pace once there is enough of it; the server's RTF before that.
+    const since = feed.firstAt === null ? 0 : (Date.now() - feed.firstAt) / 1000;
+    const measured = since >= 1 && producedSeconds > 0 ? producedSeconds / since : null;
+    const pace = measured ?? (plan.rtf && plan.rtf > 0 ? 1 / plan.rtf : null);
+    return pcmStartReady({ producedSeconds, expectedSeconds: plan.expectedSeconds, pace, complete });
+  };
+
   try {
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (stopped || !value || value.length === 0) break;
+    for await (const value of feed.chunks()) {
+      if (stopped) break;
       const merged = new Uint8Array(tail.length + value.length);
       merged.set(tail);
       merged.set(value, tail.length);
       const usable = merged.length - (merged.length % 2);
       const samples = usable / 2;
-      if (samples === 0) {
-        tail = merged;
-        continue;
-      }
+      tail = merged.slice(usable);
+      if (samples === 0) continue;
       const view = new DataView(merged.buffer, merged.byteOffset, usable);
       const buffer = ctx.createBuffer(1, samples, sampleRate);
       const channel = buffer.getChannelData(0);
       for (let index = 0; index < samples; index += 1) {
         channel[index] = view.getInt16(index * 2, true) / 32768;
       }
-      tail = merged.slice(usable);
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(ctx.destination);
-      // Schedule immediately after the previous chunk: continuous, never over it.
-      const startAt = Math.max(ctx.currentTime + 0.02, endAt);
-      source.start(startAt);
-      endAt = startAt + buffer.duration;
-      sources.push(source);
-      if (!started) {
-        started = true;
-        callbacks.onStart?.();
-        // The first buffer is scheduled a moment ahead; report the moment it
-        // is actually due to be heard rather than the moment it was queued.
-        const delayMs = Math.max(0, Math.round((startAt - ctx.currentTime) * 1000));
-        setTimeout(() => {
-          if (!stopped) callbacks.onAudible?.();
-        }, delayMs);
+      producedSeconds += buffer.duration;
+      if (started) {
+        schedule(buffer);
+        continue;
       }
+      pending.push(buffer);
+      if (ready(false)) for (const held of pending.splice(0)) schedule(held);
     }
+    if (stopped || feed.failed) {
+      if (!stopped) handle.stop();
+      return false;
+    }
+    // The stream ended before the start rule fired: play what there is.
+    if (!started && pending.length > 0 && ready(true)) for (const held of pending.splice(0)) schedule(held);
     if (!started) return false;
     // Audio time, not wall time: a hold suspends the context, and the
     // segment must not be reported finished while it is paused.
@@ -480,7 +625,7 @@ async function playPcm(
 }
 
 function play(prepared: PreparedAudio, callbacks: SpeakCallbacks): Promise<boolean> {
-  if (prepared.kind === "pcm") return playPcm(prepared.body, prepared.sampleRate, callbacks);
+  if (prepared.kind === "pcm") return playPcm(prepared.feed, prepared.sampleRate, callbacks, prepared.plan);
   return playBlob(prepared.blob, callbacks);
 }
 
@@ -693,4 +838,7 @@ export function stopSpeaking(): void {
     segment.controller?.abort();
     segment.settle();
   }
+  // A stop during a hold leaves nothing scheduled: the output context the
+  // hold suspended is resumed so the next reply starts in a clean state.
+  if (sharedContext && sharedContext.state === "suspended") void sharedContext.resume().catch(() => {});
 }
