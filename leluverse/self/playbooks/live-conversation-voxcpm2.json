@@ -1,0 +1,19 @@
+{
+ "id": "live-conversation-voxcpm2",
+ "title": "Hold a live spoken conversation in my VoxCPM2 voice, and prove it turn by turn in the real app",
+ "for": "LÉLU",
+ "why": "One tap should open a conversation, not a single recording: I keep listening, every utterance becomes a message in the same thread, I write and then speak each answer, and I stop when someone talks over me. On a CPU my voice is about 5x slower than real time, so the proof also has to keep the browser and my voice worker on separate cores. This is how it was built and measured on 2026-11-26.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-26-live-voice-conversation.md",
+ "steps": [
+  {"id": "voice", "title": "Follow speak-with-voxcpm2 to install VoxCPM2 and fetch its weights", "kind": "note", "why": "Same worker, same weights. Its reference is now encoded once before READY (VOXCPM_REUSE_REFERENCE, default on) and it stops a sentence nobody will hear between two steps (VOXCPM_CANCEL_MID_SENTENCE, default on)."},
+  {"id": "worker", "title": "OMP_NUM_THREADS=2 taskset -c 2-3 .venv-voxcpm/bin/python services/voxcpm/server.py --port 8788 --warmup", "kind": "note", "why": "On a 4-core machine with a software-rendered browser, the browser needs two cores or its audio thread drops whole utterances, and it must not share my worker's cores or I slow down eightfold."},
+  {"id": "serve", "title": "npm run build; bash scripts/live-conversation-serve.sh <log>", "kind": "note", "why": "Starts the built app with only Groq and Cerebras keys passed in, so no other model or voice can stand in for mine."},
+  {"id": "speaker", "title": "node scripts/live-conversation-mic.cjs compose --dir docs/missions/live-voice-evidence/mic --spec \"sil:20,a1,sil:80,a2,sil:80,a3,sil:70\" --out <scenario.wav>", "kind": "note", "why": "Builds the conversation the test speaker will say: questions, silences, noise bursts. The clips are a synthetic voice, not a person and not me; say so wherever a result is reported. 'gen' makes new clips with a worker conditioned on a non-human reference."},
+  {"id": "session", "title": "taskset -c 0,1 node scripts/verify-live-conversation.cjs --mic <scenario.wav> --out <dir> --label <name> [--mobile] [--type-at s|text] [--offline a-b] [--kill-worker-at s] [--restart-worker-at s] [--end-track-at s]", "kind": "note", "why": "Taps my microphone once and watches the whole session: messages as they appear, my states, every voice request with its headers and audio, media play/pause/ended, CPU and memory."},
+  {"id": "read", "title": "node scripts/live-conversation-report.cjs <dir>/<name>.json", "kind": "note", "why": "Per turn: when the words ended, when I had them, when my answer was written, when I was heard, which engine spoke each sentence, and how many played to the end."},
+  {"id": "bench", "title": "node scripts/voice-live-latency-bench.cjs --worker http://127.0.0.1:8788 --out <dir> --steps 10,6,4", "kind": "note", "why": "Measures what my first word costs per text length and diffusion steps, and checks each clip through Whisper. Four steps garbled words; six kept them but my resemblance to myself was not measured, so the default stays ten until someone listens."},
+  {"id": "listen", "title": "A person talks with me on a desktop and an iPhone over HTTPS, interrupts me, types, and tells me whether it felt like a conversation", "kind": "note", "why": "No container has a microphone or a speaker, and only a person can judge pace and whether my voice sounds like me."}
+ ]
+}
