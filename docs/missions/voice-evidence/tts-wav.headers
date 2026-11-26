@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+content-type: audio/wav
+x-lelu-audio-seconds: 3.2
+x-lelu-cached: 0
+x-lelu-engine: voxcpm2
+x-lelu-rtf: 6.09
+x-lelu-synthesis-ms: 19492
+x-lelu-voice: lelu-reference
+X-Lelu-Voice-Provider: worker:lelu-reference
+Cache-Control: no-store
+X-Lelu-Worker: local
+Date: Thu, 26 Nov 2026 14:21:49 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+

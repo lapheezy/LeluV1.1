@@ -1,0 +1,17 @@
+{
+ "id": "speak-with-voxcpm2",
+ "title": "Speak in my VoxCPM2 voice through the real app on a CPU machine, and prove the whole loop",
+ "for": "LÉLU",
+ "why": "VoxCPM2 is my default voice, conditioned on my reference recording, and it is free (Apache-2.0, no account). On a CPU it is 6–8× slower than real time, so the page must wait for whole sentences instead of streaming them, and the browser must not share the worker's cores. This is how it was made to speak in the app on 2026-11-26.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-26-voice-finalization-voxcpm2.md",
+ "steps": [
+  {"id": "install", "title": "bash services/voxcpm/install.sh", "kind": "note", "why": "Creates .venv-voxcpm with exactly one matching torch/torchaudio pair (CPU here) and voxcpm 2.0.3. A newer resolver may bump minor packages; the committed requirements.lock records the set that worked first."},
+  {"id": "weights", "title": ".venv-voxcpm/bin/python services/voxcpm/bootstrap.py", "kind": "note", "why": "4.96 GB of weights, checked against free disk first, resumable and verified per file. The worker never downloads them itself (it reports FAILED weights-missing instead) unless VOXCPM_ALLOW_DOWNLOAD=1."},
+  {"id": "worker", "title": "OMP_NUM_THREADS=3 taskset -c 1-3 .venv-voxcpm/bin/python services/voxcpm/server.py --port 8788 --warmup", "kind": "note", "why": "Needs ≥8 GiB free to load (peak 11.1 GiB) and stays at ~7 GiB. READY only after a real self-test (~20 s). On a machine where a browser shares the cores, keep them apart: sharing made one sentence take 200 s."},
+  {"id": "app", "title": "npm run build; then VOXCPM_BASE_URL=http://127.0.0.1:8788 VOICE_PROVIDER=voxcpm bun run server.ts", "kind": "note", "why": "/api/voice/status then reports provider speech-worker and my worker's RTF; /api/voice/tts answers with X-Lelu-Engine: voxcpm2. Leave paid keys out of the environment unless the owner has authorized spending."},
+  {"id": "prove", "title": "node scripts/verify-voice-finalization.cjs --mic <question.wav> --out <dir> --label run1 --voice (and --type, --interrupt, --deny, --no-device, --mobile)", "kind": "note", "why": "Drives my real UI: Chat, the conversation, the mic button, Stop speaking. It records phases, every voice request with its headers, the audio I produced, and whether the mic track ended. The capture file is not a person: say so wherever the result is reported."},
+  {"id": "listen", "title": "A person speaks to me on a desktop and an iPhone over HTTPS, hears me, and presses Stop", "kind": "note", "why": "No container has a microphone or a speaker. That check, and whether my voice sounds like me (measured similarity 0.38 against my own 0.78), need a human."}
+ ]
+}

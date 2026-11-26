@@ -1,0 +1,256 @@
+{
+  "label": "run4-no-device",
+  "base": "http://127.0.0.1:4173/",
+  "input": "no capture device",
+  "viewport": "desktop 1440x900",
+  "messages": [],
+  "voice": {
+    "phase": "idle",
+    "active": false,
+    "diagnostics": {
+      "sttSupported": true,
+      "ttsSupported": true,
+      "micAvailable": true,
+      "groqKeyAvailable": true,
+      "secureContext": true,
+      "micPermission": "unknown",
+      "recognitionSupported": true,
+      "ttsAvailable": true,
+      "micStreamActive": false,
+      "recognitionActive": false,
+      "transcriptReceived": false,
+      "responseReceived": false,
+      "ttsRequested": false,
+      "audioGenerated": false,
+      "audioPlaying": false,
+      "ttsStage": "idle",
+      "streaming": false,
+      "staleStreamsDropped": 0,
+      "firstTextLatencyMs": null,
+      "firstAudioLatencyMs": null,
+      "ttsQueueDepth": 0,
+      "firstAudibleLatencyMs": null,
+      "audioContextState": "unknown",
+      "speakerDevices": null,
+      "warmSynthesis": null,
+      "bargeIns": 0,
+      "fullDuplex": false,
+      "speechOutcome": {
+        "started": 0,
+        "recorded": 0,
+        "unexplained": 0,
+        "spoken": 0,
+        "silent": 0,
+        "noticeSpoken": 0,
+        "byOutcome": {},
+        "last": null
+      },
+      "micStreamsOpen": 0,
+      "micStreamsAcquired": 0,
+      "micStreamsReleased": 0,
+      "micInterrupted": false,
+      "captureRecoveries": 0,
+      "captureLosses": 0,
+      "pageVisible": true,
+      "lifecycleListeners": 4
+    },
+    "turnLatency": null,
+    "turns": []
+  },
+  "media": [],
+  "tracks": [
+    {
+      "at": 1795706610416,
+      "error": "NotFoundError: Requested device not found"
+    }
+  ],
+  "timeline": [
+    {
+      "t": 453,
+      "kind": "phase",
+      "phase": null,
+      "active": null,
+      "ttsStage": null
+    },
+    {
+      "t": 6502,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/model/status"
+    },
+    {
+      "t": 7479,
+      "kind": "response",
+      "url": "/api/model/status",
+      "status": 200,
+      "ms": 976,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 8371,
+      "kind": "phase",
+      "phase": "idle",
+      "active": false,
+      "ttsStage": "idle"
+    },
+    {
+      "t": 8569,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 8569,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 8570,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 8571,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 11078,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 11486,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/model/status"
+    },
+    {
+      "t": 11859,
+      "kind": "response",
+      "url": "/api/model/status",
+      "status": 200,
+      "ms": 372,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 13548,
+      "kind": "chat-tap",
+      "attempt": 0
+    },
+    {
+      "t": 15762,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 16386,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/chat/completions"
+    },
+    {
+      "t": 19693,
+      "kind": "response",
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "ms": 3306,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 20844,
+      "kind": "chat-tap",
+      "attempt": 1
+    },
+    {
+      "t": 33290,
+      "kind": "open-chat",
+      "card": "Open New chat",
+      "cards": [
+        "Open New chat",
+        "Open Engineering"
+      ]
+    },
+    {
+      "t": 43776,
+      "kind": "screenshot",
+      "file": "run4-no-device-01-loaded.jpg"
+    },
+    {
+      "t": 44018,
+      "kind": "messages-at-load",
+      "messages": []
+    },
+    {
+      "t": 46258,
+      "kind": "mic-clicked"
+    },
+    {
+      "t": 46279,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/voice/status"
+    },
+    {
+      "t": 46748,
+      "kind": "console",
+      "level": "warning",
+      "text": "[VoiceEngine] Microphone error: NotFoundError: Requested device not found → no-device"
+    },
+    {
+      "t": 46748,
+      "kind": "response",
+      "url": "/api/voice/status",
+      "status": 200,
+      "ms": 468,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      }
+    },
+    {
+      "t": 49875,
+      "kind": "screenshot",
+      "file": "run4-no-device-03-mic-on.jpg"
+    },
+    {
+      "t": 50527,
+      "kind": "after-click",
+      "phase": "idle",
+      "active": false,
+      "error": "No microphone was found on this device.",
+      "tracks": [
+        {
+          "at": 1795706610416,
+          "error": "NotFoundError: Requested device not found"
+        }
+      ]
+    },
+    {
+      "t": 52511,
+      "kind": "screenshot",
+      "file": "run4-no-device-04-error.jpg"
+    },
+    {
+      "t": 53199,
+      "kind": "tracks-after-stop",
+      "tracks": [
+        {
+          "at": 1795706610416,
+          "error": "NotFoundError: Requested device not found"
+        }
+      ],
+      "phase": "idle"
+    }
+  ]
+}

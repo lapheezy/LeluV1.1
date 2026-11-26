@@ -1,0 +1,59 @@
+{
+ "model": "speechbrain/spkrec-ecapa-voxceleb (cosine)",
+ "rows": [
+  {
+   "item": "REAL her: ref 12-30 s vs ref 30-48 s",
+   "vs_heldout": 0.779
+  },
+  {
+   "item": "VoxCPM2 WITH her reference (ref-1.wav)",
+   "vs_heldout_mean": 0.396,
+   "vs_conditioning": 0.508
+  },
+  {
+   "item": "VoxCPM2 WITH her reference (ref-2.wav)",
+   "vs_heldout_mean": 0.369,
+   "vs_conditioning": 0.434
+  },
+  {
+   "item": "VoxCPM2 WITH her reference (ref-3.wav)",
+   "vs_heldout_mean": 0.377,
+   "vs_conditioning": 0.319
+  },
+  {
+   "item": "VoxCPM2 WITHOUT reference \u2014 generic (noref-1.wav)",
+   "vs_heldout_mean": 0.018,
+   "vs_conditioning": 0.039
+  },
+  {
+   "item": "VoxCPM2 WITHOUT reference \u2014 generic (noref-2.wav)",
+   "vs_heldout_mean": 0.002,
+   "vs_conditioning": 0.021
+  },
+  {
+   "item": "VoxCPM2 WITHOUT reference \u2014 generic (noref-3.wav)",
+   "vs_heldout_mean": -0.008,
+   "vs_conditioning": 0.042
+  },
+  {
+   "item": "app output run1-voice-tts-01.wav",
+   "vs_heldout_mean": 0.345,
+   "vs_conditioning": 0.374
+  },
+  {
+   "item": "app output run2-continuity-tts-02.wav",
+   "vs_heldout_mean": 0.343,
+   "vs_conditioning": 0.488
+  },
+  {
+   "item": "app output run3-interrupt-tts-01.wav",
+   "vs_heldout_mean": 0.437,
+   "vs_conditioning": 0.482
+  },
+  {
+   "item": "NEG test speaker espeak-ng (raw_q1.wav)",
+   "vs_heldout_mean": -0.062,
+   "vs_conditioning": -0.065
+  }
+ ]
+}

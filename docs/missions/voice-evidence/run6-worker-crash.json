@@ -1,0 +1,588 @@
+{
+  "label": "run6-worker-crash",
+  "base": "http://127.0.0.1:4173/",
+  "input": "injected audio file (not a physical microphone): q1.wav",
+  "viewport": "desktop 1440x900",
+  "messages": [
+    {
+      "role": "user",
+      "text": "Hello Lélu. My favorite color is green. Please remember that and answer me in one short sentence."
+    },
+    {
+      "role": "assistant",
+      "text": "Got it, I’ll remember that your favorite color is green."
+    }
+  ],
+  "voice": {
+    "phase": "idle",
+    "active": false,
+    "diagnostics": {
+      "sttSupported": true,
+      "ttsSupported": true,
+      "micAvailable": true,
+      "groqKeyAvailable": true,
+      "secureContext": true,
+      "micPermission": "granted",
+      "recognitionSupported": true,
+      "ttsAvailable": false,
+      "micStreamActive": false,
+      "recognitionActive": false,
+      "transcriptReceived": false,
+      "responseReceived": false,
+      "ttsRequested": true,
+      "audioGenerated": false,
+      "audioPlaying": false,
+      "ttsStage": "failed",
+      "streaming": false,
+      "staleStreamsDropped": 0,
+      "firstTextLatencyMs": 11634,
+      "firstAudioLatencyMs": null,
+      "ttsQueueDepth": 0,
+      "firstAudibleLatencyMs": null,
+      "audioContextState": "unknown",
+      "speakerDevices": 3,
+      "warmSynthesis": {
+        "ms": 841,
+        "characters": null,
+        "at": 1795706980165,
+        "streaming": null,
+        "modelLoads": null,
+        "synthesisMs": null,
+        "profile": null,
+        "coldStart": false
+      },
+      "bargeIns": 0,
+      "fullDuplex": true,
+      "speechOutcome": {
+        "started": 1,
+        "recorded": 1,
+        "unexplained": 0,
+        "spoken": 0,
+        "silent": 1,
+        "noticeSpoken": 0,
+        "byOutcome": {
+          "playback-failed": 1
+        },
+        "last": "playback-failed"
+      },
+      "micStreamsOpen": 0,
+      "micStreamsAcquired": 1,
+      "micStreamsReleased": 1,
+      "micInterrupted": false,
+      "captureRecoveries": 0,
+      "captureLosses": 0,
+      "pageVisible": true,
+      "lifecycleListeners": 4
+    },
+    "turnLatency": {
+      "turnId": "2387ca34-81be-41c9-83e5-123d6aac2eaa",
+      "transcriptAt": 1795706967590,
+      "firstTextAt": 1795706979224,
+      "firstAudioAt": null,
+      "firstAudibleAt": null
+    },
+    "turns": [
+      {
+        "index": 1,
+        "turnId": "2387ca34-81be-41c9-83e5-123d6aac2eaa",
+        "text": "Hello Lélu. My favorite color is green. Please remember that and answer me in one short sentence.",
+        "at": 1795706967596,
+        "outcome": "playback-failed"
+      }
+    ]
+  },
+  "media": [],
+  "tracks": [
+    {
+      "kind": "audio",
+      "label": "Fake Default Audio Input",
+      "readyState": "ended"
+    }
+  ],
+  "timeline": [
+    {
+      "t": 244,
+      "kind": "phase",
+      "phase": null,
+      "active": null,
+      "ttsStage": null
+    },
+    {
+      "t": 7475,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/model/status"
+    },
+    {
+      "t": 9162,
+      "kind": "response",
+      "url": "/api/model/status",
+      "status": 200,
+      "ms": 1686,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 9752,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 9808,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 9808,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 9808,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 11788,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 12485,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/model/status"
+    },
+    {
+      "t": 12770,
+      "kind": "response",
+      "url": "/api/model/status",
+      "status": 200,
+      "ms": 285,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 15222,
+      "kind": "chat-tap",
+      "attempt": 0
+    },
+    {
+      "t": 15887,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 16517,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/chat/completions"
+    },
+    {
+      "t": 17975,
+      "kind": "response",
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "ms": 1457,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 25023,
+      "kind": "chat-tap",
+      "attempt": 1
+    },
+    {
+      "t": 36868,
+      "kind": "open-chat",
+      "card": "Open New chat",
+      "cards": [
+        "Open New chat",
+        "Open Engineering"
+      ]
+    },
+    {
+      "t": 48740,
+      "kind": "screenshot",
+      "file": "run6-worker-crash-01-loaded.jpg"
+    },
+    {
+      "t": 48938,
+      "kind": "messages-at-load",
+      "messages": []
+    },
+    {
+      "t": 51269,
+      "kind": "mic-clicked"
+    },
+    {
+      "t": 51537,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/voice/status"
+    },
+    {
+      "t": 51540,
+      "kind": "phase",
+      "phase": "idle",
+      "active": false,
+      "ttsStage": "idle"
+    },
+    {
+      "t": 51840,
+      "kind": "response",
+      "url": "/api/voice/status",
+      "status": 200,
+      "ms": 302,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      }
+    },
+    {
+      "t": 53553,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/voice/status"
+    },
+    {
+      "t": 53557,
+      "kind": "phase",
+      "phase": "listening",
+      "active": true,
+      "ttsStage": "idle"
+    },
+    {
+      "t": 57423,
+      "kind": "response",
+      "url": "/api/voice/status",
+      "status": 200,
+      "ms": 3869,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      }
+    },
+    {
+      "t": 58905,
+      "kind": "screenshot",
+      "file": "run6-worker-crash-03-mic-on.jpg"
+    },
+    {
+      "t": 59138,
+      "kind": "console",
+      "level": "warning",
+      "text": "[VoiceEngine] Recognition error: audio-capture"
+    },
+    {
+      "t": 59138,
+      "kind": "console",
+      "level": "info",
+      "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+    },
+    {
+      "t": 59875,
+      "kind": "after-click",
+      "phase": "listening",
+      "active": true,
+      "error": null,
+      "tracks": [
+        {
+          "kind": "audio",
+          "label": "Fake Default Audio Input",
+          "readyState": "live"
+        }
+      ]
+    },
+    {
+      "t": 65976,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 68900,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":8620,\"spoke\":true,\"ms\":9750,\"peak\":0.3089,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 68913,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/audio/transcriptions"
+    },
+    {
+      "t": 68915,
+      "kind": "phase",
+      "phase": "processing",
+      "active": true,
+      "ttsStage": "idle"
+    },
+    {
+      "t": 69952,
+      "kind": "response",
+      "url": "/api/model/groq/audio/transcriptions",
+      "status": 200,
+      "ms": 1039,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 74216,
+      "kind": "screenshot",
+      "file": "run6-worker-crash-05-processing.jpg"
+    },
+    {
+      "t": 78967,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/chat/completions"
+    },
+    {
+      "t": 81947,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/voice/tts"
+    },
+    {
+      "t": 82431,
+      "kind": "response",
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "ms": 3463,
+      "headers": {
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "t": 82452,
+      "kind": "phase",
+      "phase": "speaking",
+      "active": true,
+      "ttsStage": "requested"
+    },
+    {
+      "t": 82782,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+    },
+    {
+      "t": 82793,
+      "kind": "phase",
+      "phase": "listening",
+      "active": true,
+      "ttsStage": "failed"
+    },
+    {
+      "t": 86555,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14148,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 87800,
+      "kind": "screenshot",
+      "file": "run6-worker-crash-06-speaking.jpg"
+    },
+    {
+      "t": 93936,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 94232,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 94716,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 95084,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 95415,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 98592,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11126,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 104088,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 110138,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11214,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 121700,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11282,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 124789,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 132984,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10998,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 144042,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 144480,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 145212,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11899,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 153289,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 156138,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10890,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 167635,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11242,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 178960,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11088,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 190518,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11128,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 192060,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 192370,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 200949,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 201227,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 201891,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11089,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 213878,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11749,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 213940,
+      "kind": "screenshot",
+      "file": "run6-worker-crash-08-after-turn.jpg"
+    },
+    {
+      "t": 216958,
+      "kind": "phase",
+      "phase": "idle",
+      "active": false,
+      "ttsStage": "failed"
+    },
+    {
+      "t": 217245,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2038,\"spoke\":false,\"ms\":2962,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":1776}"
+    },
+    {
+      "t": 217292,
+      "kind": "mic-stopped"
+    },
+    {
+      "t": 219406,
+      "kind": "tracks-after-stop",
+      "tracks": [
+        {
+          "kind": "audio",
+          "label": "Fake Default Audio Input",
+          "readyState": "ended"
+        }
+      ],
+      "phase": "idle"
+    },
+    {
+      "t": 219942,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    }
+  ]
+}

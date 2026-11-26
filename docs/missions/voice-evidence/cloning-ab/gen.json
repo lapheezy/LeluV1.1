@@ -1,0 +1,44 @@
+[
+  {
+    "file": "ref-1.wav",
+    "cond": "ref",
+    "text": "Got it. Your favourite colour is green, and I will remember it.",
+    "seconds": 4.8,
+    "ms": 23307
+  },
+  {
+    "file": "noref-1.wav",
+    "cond": "noref",
+    "text": "Got it. Your favourite colour is green, and I will remember it.",
+    "seconds": 3.68,
+    "ms": 14368
+  },
+  {
+    "file": "ref-2.wav",
+    "cond": "ref",
+    "text": "The ocean stretched beyond the horizon, calm and silver in the morning light.",
+    "seconds": 4.32,
+    "ms": 21008
+  },
+  {
+    "file": "noref-2.wav",
+    "cond": "noref",
+    "text": "The ocean stretched beyond the horizon, calm and silver in the morning light.",
+    "seconds": 6.08,
+    "ms": 23860
+  },
+  {
+    "file": "ref-3.wav",
+    "cond": "ref",
+    "text": "I am here with you. Tell me what you would like to do next.",
+    "seconds": 3.68,
+    "ms": 17895
+  },
+  {
+    "file": "noref-3.wav",
+    "cond": "noref",
+    "text": "I am here with you. Tell me what you would like to do next.",
+    "seconds": 3.36,
+    "ms": 12899
+  }
+]

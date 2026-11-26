@@ -1,0 +1,588 @@
+{
+  "label": "run7-mobile",
+  "base": "http://127.0.0.1:4173/",
+  "input": "injected audio file (not a physical microphone): story.wav",
+  "viewport": "iPhone 13 emulation (Chromium), not a physical phone",
+  "messages": [
+    {
+      "role": "user",
+      "text": "Lélu, please tell me a long story about the ocean in at least eight sentences."
+    },
+    {
+      "role": "assistant",
+      "text": "Right — so the ocean stretched beyond the horizon, a glassy plain that swallowed the sun each evening and spit it out anew at dawn. A lone fisherman named Mara set out before the first light, her small boat cutting through the quiet like a whispered secret. The water sang beneath her hull, a low hum that seemed to carry stories of ancient tides and forgotten wrecks. As she drifted farther, a sudde"
+    }
+  ],
+  "voice": {
+    "phase": "idle",
+    "active": false,
+    "diagnostics": {
+      "sttSupported": true,
+      "ttsSupported": true,
+      "micAvailable": true,
+      "groqKeyAvailable": true,
+      "secureContext": true,
+      "micPermission": "granted",
+      "recognitionSupported": true,
+      "ttsAvailable": true,
+      "micStreamActive": false,
+      "recognitionActive": false,
+      "transcriptReceived": false,
+      "responseReceived": false,
+      "ttsRequested": true,
+      "audioGenerated": true,
+      "audioPlaying": false,
+      "ttsStage": "ended",
+      "streaming": false,
+      "staleStreamsDropped": 0,
+      "firstTextLatencyMs": 1708,
+      "firstAudioLatencyMs": 49778,
+      "ttsQueueDepth": 0,
+      "firstAudibleLatencyMs": 49918,
+      "audioContextState": "unknown",
+      "speakerDevices": 3,
+      "warmSynthesis": {
+        "ms": 47805,
+        "characters": null,
+        "at": 1795707268028,
+        "streaming": "off:slower-than-realtime",
+        "modelLoads": null,
+        "synthesisMs": 47772,
+        "profile": null,
+        "coldStart": false
+      },
+      "bargeIns": 0,
+      "fullDuplex": true,
+      "speechOutcome": {
+        "started": 1,
+        "recorded": 1,
+        "unexplained": 0,
+        "spoken": 1,
+        "silent": 0,
+        "noticeSpoken": 0,
+        "byOutcome": {
+          "spoke": 1
+        },
+        "last": "spoke"
+      },
+      "micStreamsOpen": 0,
+      "micStreamsAcquired": 1,
+      "micStreamsReleased": 1,
+      "micInterrupted": false,
+      "captureRecoveries": 0,
+      "captureLosses": 0,
+      "pageVisible": true,
+      "lifecycleListeners": 4
+    },
+    "turnLatency": {
+      "turnId": "2adfe13d-1e4d-41bb-8b6d-3ca752fdeeba",
+      "transcriptAt": 1795707218267,
+      "firstTextAt": 1795707219975,
+      "firstAudioAt": 1795707268045,
+      "firstAudibleAt": 1795707268185
+    },
+    "turns": [
+      {
+        "index": 1,
+        "turnId": "2adfe13d-1e4d-41bb-8b6d-3ca752fdeeba",
+        "text": "Lélu, please tell me a long story about the ocean in at least eight sentences.",
+        "at": 1795707218271,
+        "outcome": "spoke"
+      }
+    ]
+  },
+  "media": [
+    {
+      "t": 1795707268045,
+      "event": "play()"
+    },
+    {
+      "t": 1795707268185,
+      "event": "playing"
+    }
+  ],
+  "tracks": [
+    {
+      "kind": "audio",
+      "label": "Fake Default Audio Input",
+      "readyState": "ended"
+    }
+  ],
+  "timeline": [
+    {
+      "t": 457,
+      "kind": "phase",
+      "phase": null,
+      "active": null,
+      "ttsStage": null
+    },
+    {
+      "t": 9360,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/model/status"
+    },
+    {
+      "t": 11312,
+      "kind": "response",
+      "url": "/api/model/status",
+      "status": 200,
+      "ms": 1951,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 11643,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 11643,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 11643,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 11643,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "t": 14219,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 14404,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/model/status"
+    },
+    {
+      "t": 14637,
+      "kind": "response",
+      "url": "/api/model/status",
+      "status": 200,
+      "ms": 233,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 15640,
+      "kind": "chat-tap",
+      "attempt": 0
+    },
+    {
+      "t": 17597,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 18280,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/chat/completions"
+    },
+    {
+      "t": 20636,
+      "kind": "chat-tap",
+      "attempt": 1
+    },
+    {
+      "t": 20636,
+      "kind": "response",
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "ms": 2356,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 24683,
+      "kind": "open-chat",
+      "card": "Open New chat",
+      "cards": [
+        "Open New chat",
+        "Open Engineering"
+      ]
+    },
+    {
+      "t": 27792,
+      "kind": "screenshot",
+      "file": "run7-mobile-01-loaded.jpg"
+    },
+    {
+      "t": 27796,
+      "kind": "messages-at-load",
+      "messages": []
+    },
+    {
+      "t": 27864,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/voice/status"
+    },
+    {
+      "t": 27868,
+      "kind": "mic-clicked"
+    },
+    {
+      "t": 27882,
+      "kind": "response",
+      "url": "/api/voice/status",
+      "status": 200,
+      "ms": 17,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      }
+    },
+    {
+      "t": 27956,
+      "kind": "request",
+      "method": "GET",
+      "url": "/api/voice/status"
+    },
+    {
+      "t": 28011,
+      "kind": "phase",
+      "phase": "listening",
+      "active": true,
+      "ttsStage": "idle"
+    },
+    {
+      "t": 28034,
+      "kind": "response",
+      "url": "/api/voice/status",
+      "status": 200,
+      "ms": 78,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      }
+    },
+    {
+      "t": 28148,
+      "kind": "console",
+      "level": "warning",
+      "text": "[VoiceEngine] Recognition error: audio-capture"
+    },
+    {
+      "t": 28153,
+      "kind": "console",
+      "level": "info",
+      "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+    },
+    {
+      "t": 30773,
+      "kind": "screenshot",
+      "file": "run7-mobile-03-mic-on.jpg"
+    },
+    {
+      "t": 30800,
+      "kind": "after-click",
+      "phase": "listening",
+      "active": true,
+      "error": null,
+      "tracks": [
+        {
+          "kind": "audio",
+          "label": "Fake Default Audio Input",
+          "readyState": "live"
+        }
+      ]
+    },
+    {
+      "t": 42082,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":13793,\"spoke\":true,\"ms\":13914,\"peak\":0.3778,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+    },
+    {
+      "t": 42089,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/audio/transcriptions"
+    },
+    {
+      "t": 42198,
+      "kind": "phase",
+      "phase": "processing",
+      "active": true,
+      "ttsStage": "idle"
+    },
+    {
+      "t": 43116,
+      "kind": "screenshot",
+      "file": "run7-mobile-05-processing.jpg"
+    },
+    {
+      "t": 44224,
+      "kind": "response",
+      "url": "/api/model/groq/audio/transcriptions",
+      "status": 200,
+      "ms": 2134,
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "t": 44846,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/model/groq/chat/completions"
+    },
+    {
+      "t": 46196,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/voice/tts"
+    },
+    {
+      "t": 46196,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/voice/tts"
+    },
+    {
+      "t": 46196,
+      "kind": "request",
+      "method": "POST",
+      "url": "/api/voice/tts"
+    },
+    {
+      "t": 46228,
+      "kind": "phase",
+      "phase": "speaking",
+      "active": true,
+      "ttsStage": "requested"
+    },
+    {
+      "t": 46999,
+      "kind": "response",
+      "url": "/api/model/groq/chat/completions",
+      "status": 200,
+      "ms": 2153,
+      "headers": {
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "t": 48740,
+      "kind": "screenshot",
+      "file": "run7-mobile-06-speaking.jpg"
+    },
+    {
+      "t": 54351,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10115,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 64406,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10046,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 65766,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 74503,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10088,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 82133,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 82192,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 82234,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 82313,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 82405,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 84734,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10175,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 90450,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 94107,
+      "kind": "response",
+      "url": "/api/voice/tts",
+      "status": 200,
+      "ms": 47801,
+      "headers": {
+        "x-lelu-voice-provider": "worker:lelu-reference",
+        "x-lelu-synthesis-ms": "47772",
+        "x-lelu-worker": "local",
+        "x-lelu-cached": "0",
+        "content-type": "audio/wav",
+        "x-lelu-engine": "voxcpm2",
+        "x-lelu-worker-rtf": "8.73",
+        "x-lelu-voice": "lelu-reference",
+        "x-lelu-streaming": "off:slower-than-realtime",
+        "x-lelu-rtf": "6.49",
+        "x-lelu-audio-seconds": "7.36"
+      },
+      "saved": "audio/run7-mobile-tts-01.wav",
+      "bytes": 706604
+    },
+    {
+      "t": 94299,
+      "kind": "audible",
+      "sinceClickMs": 66503
+    },
+    {
+      "t": 94916,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10147,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 96975,
+      "kind": "request-failed",
+      "url": "/api/voice/tts",
+      "ms": 50779,
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "t": 96980,
+      "kind": "request-failed",
+      "url": "/api/voice/tts",
+      "ms": 50784,
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "t": 97086,
+      "kind": "interrupt-tap",
+      "via": "stop-speaking-button",
+      "afterAudibleMs": 2581
+    },
+    {
+      "t": 97092,
+      "kind": "phase",
+      "phase": "listening",
+      "active": true,
+      "ttsStage": "ended"
+    },
+    {
+      "t": 97428,
+      "kind": "after-interrupt",
+      "phase": "listening",
+      "active": true,
+      "ttsStage": "ended"
+    },
+    {
+      "t": 99104,
+      "kind": "screenshot",
+      "file": "run7-mobile-07-interrupted.jpg"
+    },
+    {
+      "t": 104996,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10075,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 106925,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 106973,
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "t": 114173,
+      "kind": "post-interrupt-playback",
+      "newPlayingEvents": 0
+    },
+    {
+      "t": 115282,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":10253,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+    },
+    {
+      "t": 116099,
+      "kind": "screenshot",
+      "file": "run7-mobile-08-after-turn.jpg"
+    },
+    {
+      "t": 116560,
+      "kind": "mic-stopped"
+    },
+    {
+      "t": 116563,
+      "kind": "phase",
+      "phase": "idle",
+      "active": false,
+      "ttsStage": "ended"
+    },
+    {
+      "t": 116645,
+      "kind": "console",
+      "level": "debug",
+      "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":470,\"spoke\":false,\"ms\":1312,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":209}"
+    },
+    {
+      "t": 118137,
+      "kind": "tracks-after-stop",
+      "tracks": [
+        {
+          "kind": "audio",
+          "label": "Fake Default Audio Input",
+          "readyState": "ended"
+        }
+      ],
+      "phase": "idle"
+    }
+  ]
+}
