@@ -27,6 +27,7 @@
  */
 
 import { readStyle, type HomeStyle } from "./homeStyle";
+import { isLanguageId } from "../../../../core/interface/CosmosLanguages";
 
 export const HOME_MODULES = ["weather", "lelu", "now", "apps", "workspaces", "notifications", "library", "activity", "ask"] as const;
 export type HomeModuleId = (typeof HOME_MODULES)[number];
@@ -136,7 +137,22 @@ export type BuiltinTemplateId =
   | "adaptive-intelligence"
   | "workspace-deck"
   | "living-ecosystem"
-  | "retro-terminal";
+  | "retro-terminal"
+  // Infinite Cosmos design languages: each layout carries a window language
+  | "swiss-international"
+  | "bauhaus-workshop"
+  | "editorial-magazine"
+  | "art-deco-salon"
+  | "exhibition-hall"
+  | "neo-brutalist"
+  | "constructivist-poster"
+  | "memphis-milano"
+  | "japanese-ma"
+  | "y2k-aqua"
+  | "organic-biome"
+  | "futurist-hud"
+  | "observatory"
+  | "industrial-control";
 
 export type ModuleSize = "s" | "m" | "l" | "xl";
 export const SIZES: ModuleSize[] = ["s", "m", "l", "xl"];
@@ -203,6 +219,12 @@ export interface HomeTemplate {
   deviceParams?: Partial<Record<DeviceClass, LayoutParams>>;
   /** The look this layout suggests (concepts that are about a look, e.g. layered glass). */
   style?: Partial<HomeStyle>;
+  /**
+   * The design language every workspace window speaks while this layout is
+   * active (core/interface/CosmosLanguages). Absent: the original glass —
+   * or, for a terminal composition, the Retro Terminal's console.
+   */
+  language?: string;
   /** Which of the sixty concepts it realises (1-based), if any. */
   concept?: number;
   /** Layouts it was blended or merged from. */
@@ -371,6 +393,162 @@ export const TEMPLATES: HomeTemplate[] = [
     sizes: { now: "m", activity: "m", workspaces: "m", notifications: "m", apps: "l", weather: "s", lelu: "s", library: "s" },
     // The terminal's own command line replaces "Ask LÉLU"; it stays available from the dock.
     hidden: ["ask"],
+  }),
+  /* ---- Infinite Cosmos: layouts that bring a design language to every window ---- */
+  T({
+    id: "swiss-international",
+    name: "Swiss International",
+    blurb: "A strict modular grid on white: numbered sections, one red, flush-left grotesk — every window an index page.",
+    language: "swiss",
+    kind: { phone: "column", tablet: "grid", desktop: "grid" },
+    params: { density: 0.35 },
+    deviceParams: { phone: { maxWidth: 0, rail: true } },
+    order: ["now", "workspaces", "apps", "notifications", "activity", "library", "weather", "lelu"],
+    sizes: {},
+    style: { theme: "mono", radius: 0, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "bauhaus-workshop",
+    name: "Bauhaus Workshop",
+    blurb: "Primary colours and pure geometry: a bento of squares on cream, circles for controls.",
+    language: "bauhaus",
+    kind: { phone: "bento", tablet: "bento", desktop: "bento" },
+    order: ["lelu", "apps", "now", "workspaces", "weather", "notifications", "library", "activity"],
+    sizes: { lelu: "m", apps: "l", now: "m", workspaces: "l", weather: "s", notifications: "m", library: "s", activity: "m" },
+    style: { theme: "desert", radius: 0, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "editorial-magazine",
+    name: "Editorial Magazine",
+    blurb: "A broadsheet: three columns of stories, hairline rules, Didone headlines; windows read like pages.",
+    language: "editorial",
+    kind: { phone: "column", tablet: "masonry", desktop: "masonry" },
+    params: { lanes: 3, density: 0.6 },
+    deviceParams: { phone: { maxWidth: 0 } },
+    order: ["now", "workspaces", "notifications", "activity", "lelu", "library", "apps", "weather"],
+    sizes: { now: "l", workspaces: "l", notifications: "m", activity: "m", lelu: "m", library: "s", apps: "m", weather: "s" },
+    style: { theme: "desert", font: "serif", headingFont: "didone", radius: 0, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "art-deco-salon",
+    name: "Art Deco Salon",
+    blurb: "Symmetry and gold: modules fan out from LÉLU like a sunburst; windows are lacquered, gilt-edged.",
+    language: "artdeco",
+    kind: { phone: "column", tablet: "radial", desktop: "radial" },
+    order: ["lelu", "now", "apps", "workspaces", "notifications", "library", "activity", "weather"],
+    sizes: { lelu: "l", now: "m", apps: "m", workspaces: "m", notifications: "s", library: "s", activity: "s", weather: "s" },
+    style: { theme: "gilded", border: "gold", font: "geometric", headingFont: "didone", radius: 0, opacity: 0.9 },
+  }),
+  T({
+    id: "exhibition-hall",
+    name: "Exhibition Hall",
+    blurb: "A white-cube gallery you walk along: one work per wall, wall labels, vast margins.",
+    language: "exhibition",
+    kind: { phone: "deck", tablet: "deck", desktop: "deck" },
+    order: ["workspaces", "lelu", "now", "apps", "library", "notifications", "activity", "weather"],
+    sizes: {},
+    style: { theme: "mono", radius: 0, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "neo-brutalist",
+    name: "Neo-Brutalist",
+    blurb: "Loud status strip on top, raw blocks below; black outlines and hard shadows everywhere.",
+    language: "brutalist",
+    kind: { phone: "strip", tablet: "strip", desktop: "strip" },
+    params: { density: 0.2 },
+    order: ["weather", "now", "notifications", "activity", "apps", "workspaces", "lelu", "library"],
+    sizes: { weather: "s", now: "s", notifications: "s", activity: "s", apps: "xl", workspaces: "l", lelu: "m", library: "m" },
+    style: { theme: "mono", radius: 0, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "constructivist-poster",
+    name: "Constructivist Poster",
+    blurb: "Agitprop lanes under red banners; condensed capitals, diagonal bars, windows as posters.",
+    language: "constructivist",
+    kind: { phone: "column", tablet: "lanes", desktop: "lanes" },
+    params: { lanes: 3, laneNames: ["ТРУД · WORK", "ЗНАНИЕ · KNOW", "МИР · WORLD"] },
+    order: ["workspaces", "apps", "now", "activity", "library", "notifications", "lelu", "weather"],
+    sizes: {},
+    style: { theme: "ember", radius: 0, opacity: 1, tint: 0.2 },
+  }),
+  T({
+    id: "memphis-milano",
+    name: "Memphis Milano",
+    blurb: "Cards dealt at playful angles on a confetti table; candy colours and offset shadows.",
+    language: "memphis",
+    kind: { phone: "bento", tablet: "scatter", desktop: "scatter" },
+    params: { tilt: 7 },
+    order: ["lelu", "apps", "now", "workspaces", "notifications", "weather", "library", "activity"],
+    sizes: { lelu: "m", apps: "l", now: "m", workspaces: "l", notifications: "m", weather: "s", library: "s", activity: "m" },
+    style: { theme: "sakura", radius: 18, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "japanese-ma",
+    name: "Japanese Ma",
+    blurb: "One surface on stage, the rest in a quiet side strip; emptiness is part of the composition.",
+    language: "japanese",
+    kind: { phone: "column", tablet: "stage", desktop: "stage" },
+    params: { ratio: 0.62, density: 1 },
+    order: ["lelu", "now", "workspaces", "apps", "notifications", "library", "activity", "weather"],
+    sizes: {},
+    style: { theme: "sakura", font: "humanist", headingFont: "serif", radius: 2, opacity: 1, tint: 0 },
+  }),
+  T({
+    id: "y2k-aqua",
+    name: "Y2K Aqua",
+    blurb: "Carousel rows of glossy, brushed-chrome pills — the millennium desktop, reborn.",
+    language: "y2k",
+    kind: { phone: "rows", tablet: "rows", desktop: "rows" },
+    params: { lanes: 3 },
+    order: ["lelu", "now", "apps", "workspaces", "notifications", "library", "activity", "weather"],
+    sizes: {},
+    style: { theme: "glacier", border: "neon", radius: 14, opacity: 0.85 },
+  }),
+  T({
+    id: "organic-biome",
+    name: "Organic Biome",
+    blurb: "Near and far layers like a canopy; soft cells, sage and clay, nothing square.",
+    language: "organic",
+    kind: { phone: "masonry", tablet: "layered", desktop: "layered" },
+    params: { lanes: 2, depth: 0.5 },
+    order: ["lelu", "weather", "now", "workspaces", "apps", "library", "notifications", "activity"],
+    sizes: { lelu: "l", weather: "m", now: "m", workspaces: "l", apps: "m", library: "s", notifications: "s", activity: "s" },
+    style: { theme: "forest", border: "nature", font: "humanist", headingFont: "storybook", radius: 28 },
+  }),
+  T({
+    id: "futurist-hud",
+    name: "Futurist HUD",
+    blurb: "Modules orbit LÉLU as targets on a heads-up display; every window an instrument.",
+    language: "scifi",
+    kind: { phone: "grid", tablet: "orbit", desktop: "orbit" },
+    params: { density: 0.2 },
+    order: ["lelu", "now", "activity", "notifications", "apps", "workspaces", "weather", "library"],
+    sizes: { lelu: "l", now: "s", activity: "s", notifications: "s", apps: "m", workspaces: "m", weather: "s", library: "s" },
+    style: { theme: "neon-city", border: "lightning", font: "condensed", headingFont: "condensed", radius: 0 },
+  }),
+  T({
+    id: "observatory",
+    name: "Observatory",
+    blurb: "A star chart: modules are linked bodies on a graticule; windows are brass instruments.",
+    language: "observatory",
+    kind: { phone: "column", tablet: "constellation", desktop: "constellation" },
+    params: { links: true },
+    deviceParams: { phone: { rail: true } },
+    order: ["lelu", "weather", "now", "activity", "workspaces", "apps", "library", "notifications"],
+    sizes: { lelu: "l", weather: "m", now: "m", activity: "s", workspaces: "m", apps: "m", library: "s", notifications: "s" },
+    style: { theme: "galaxy", border: "stardust", font: "serif", headingFont: "serif", radius: 4 },
+  }),
+  T({
+    id: "industrial-control",
+    name: "Industrial Control",
+    blurb: "A control desk: the process on the main screen, gauges and alarms on the side panel.",
+    language: "industrial",
+    kind: { phone: "grid", tablet: "split", desktop: "split" },
+    params: { ratio: 0.64, density: 0.1 },
+    order: ["activity", "now", "notifications", "workspaces", "apps", "weather", "library", "lelu"],
+    sizes: { activity: "l", now: "m", notifications: "m", workspaces: "l", apps: "m", weather: "s", library: "s", lelu: "s" },
+    pinned: ["notifications"],
+    style: { theme: "volcanic", font: "condensed", headingFont: "condensed", radius: 3, opacity: 0.95 },
   }),
 ];
 
@@ -1268,6 +1446,7 @@ export function readLayout(raw: unknown): HomeTemplate | null {
     floats: rectMap(r.floats),
     groups,
     ...(style ? { style } : {}),
+    ...(typeof r.language === "string" && isLanguageId(r.language) ? { language: r.language } : {}),
     ...(typeof r.concept === "number" ? { concept: r.concept } : {}),
     ...(Array.isArray(r.parents) ? { parents: (r.parents as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 8) } : {}),
     ...(r.custom ? { custom: true } : {}),

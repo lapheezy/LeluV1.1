@@ -27,7 +27,7 @@ import { isCompact, planWorkspace, type StewardWindow } from "../../../core/inte
 import WorkspaceBar from "./layout/WorkspaceBar";
 import { useContentOverflowWatch, useStewardViewport } from "./layout/stewardHooks";
 import { chatFillsScreen } from "./chat/chatLayout";
-import { InModuleWindow } from "./moduleWindowContext";
+import { InModuleWindow, ModuleWindowMeta } from "./moduleWindowContext";
 import { APP_WINDOW_Z, CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { useUniverseOpen } from "./chat/universe/universeOpen";
@@ -40,6 +40,9 @@ const layoutSnapshot = () => layoutTick;
 import { genesisTheme } from "./GenesisTheme";
 import { kindOf, type StewardPlacement } from "../../../core/interface/WorkspaceSteward";
 import RadialMenu, { type RadialItem } from "../../ui/radial/RadialMenu";
+import { useCosmosLanguage } from "./cosmosLanguage/useCosmosLanguage";
+import LanguageWindowChrome from "./cosmosLanguage/LanguageWindowChrome";
+import { participationFor } from "../../../core/interface/CosmosLanguages";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "#64748b",
@@ -107,6 +110,9 @@ interface FloatingWindowProps {
  */
 function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, placement, folded = false, zBase, sheetBar }: FloatingWindowProps) {
   const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel } = useGenesisActions();
+  /* The active layout's design language: every window speaks it (WP03). */
+  const cosmos = useCosmosLanguage();
+  const participation = participationFor(id);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.visualViewport?.height ?? window.innerHeight : 800,
@@ -595,32 +601,10 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
     { id: "close", label: `Close ${label}`, icon: <span aria-hidden style={{ fontSize: 16 }}>✕</span>, onSelect: () => closeModule(id) },
   ];
 
-  const chrome = (
-    <div
-      data-lelu-module-chrome={id}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-      style={{
-        height: CHROME_HEIGHT,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "0 10px",
-        // Interface themes restyle the chrome through these variables;
-        // unset, each falls back to Session 1's genesisTheme value.
-        borderBottom: `var(--lelu-border-soft, ${genesisTheme.glass.borderSoft})`,
-        background: "var(--lelu-chrome-bg, rgba(8,16,38,0.82))",
-        cursor: "grab",
-        touchAction: "none",
-        userSelect: "none",
-        WebkitUserSelect: "none",
-        flexShrink: 0,
-      }}
-    >
-      {/* M23: the window's glyph is its actions handle — hold (or tap) for the
-          shared radial: snap, expand, minimise, pin, close. */}
+  /* M23: the window's glyph is its actions handle — hold (or tap) for the
+     shared radial: snap, expand, minimise, pin, close. Every composition's
+     chrome carries the same handle. */
+  const actionsHandle = (
       <RadialMenu id={`window-${id}`} label={`${label} window actions`} items={windowItems}>
         {(trigger) => (
           <button
@@ -650,6 +634,33 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
           </button>
         )}
       </RadialMenu>
+  );
+
+  const glassChrome = (
+    <div
+      data-lelu-module-chrome={id}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      style={{
+        height: CHROME_HEIGHT,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "0 10px",
+        // Interface themes restyle the chrome through these variables;
+        // unset, each falls back to Session 1's genesisTheme value.
+        borderBottom: `var(--lelu-border-soft, ${genesisTheme.glass.borderSoft})`,
+        background: "var(--lelu-chrome-bg, rgba(8,16,38,0.82))",
+        cursor: "grab",
+        touchAction: "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        flexShrink: 0,
+      }}
+    >
+      {actionsHandle}
       <strong data-lelu-text="title" style={{ ...genesisTheme.text.label, fontSize: 11.5, letterSpacing: "0.1em", opacity: 1, color: "var(--lelu-color-text, #dbeafe)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
         {label}
       </strong>
@@ -696,6 +707,54 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
     </div>
   );
 
+  /*
+   * Every composition other than the original glass draws its own bar —
+   * a different arrangement, the same actions (LanguageWindowChrome).
+   */
+  const chrome =
+    cosmos.composition.id === "glass" ? (
+      glassChrome
+    ) : (
+      <LanguageWindowChrome
+        id={id}
+        label={label}
+        composition={cosmos.composition}
+        role={participation.role}
+        index={cascadeIndex + 1}
+        status={mod.status}
+        pinned={pinned}
+        isExpanded={isExpanded}
+        compactScreen={compactScreen}
+        actionsHandle={actionsHandle}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={endDrag}
+        onPin={() => layoutStore.pin(id, !pinned)}
+        onMinimize={() => minimizeModule(id)}
+        onToggleExpand={() => (isExpanded ? setModulePresentation(id, "inline") : expandModule(id))}
+        onClose={() => closeModule(id)}
+        onBackToChat={() => {
+          minimizeModule(id);
+          openPanel("chat");
+        }}
+      />
+    );
+  const windowMeta = useMemo(() => ({ id, index: cascadeIndex + 1, role: participation.role, label }), [id, cascadeIndex, participation.role, label]);
+  /** What the language knows about this window, for its stylesheet and for tests. */
+  const cosmosAttrs = {
+    "data-cosmos-role": participation.role,
+    "data-cosmos-impl": participation.implementation,
+    "data-cosmos-index": cascadeIndex + 1,
+  };
+  /** The hanging-scroll composition titles a window vertically, beside its content. */
+  const verticalTitle =
+    cosmos.composition.chrome.title === "vertical" ? (
+      <div className="cl-vertical-title" aria-hidden data-cl-vertical-title>
+        <span>{label}</span>
+        <i className="cl-hanko">{label.slice(0, 1)}</i>
+      </div>
+    ) : null;
+
   const header = stewardSheet && sheetBar ? sheetBar : chrome;
 
   if (isExpanded) {
@@ -721,6 +780,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
           data-presentation="expanded"
           data-lelu-surface="window"
           data-lelu-window={id}
+          {...cosmosAttrs}
           style={{
             pointerEvents: "auto",
             /*
@@ -745,15 +805,18 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
           }}
         >
           {chrome}
+          {verticalTitle}
           <div data-lelu-module-content={id} style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
               <InModuleWindow.Provider value={true}>
+          <ModuleWindowMeta.Provider value={windowMeta}>
                 {/* Modules are code-split (see GenesisInterface): a panel's own
                     chunk arrives on first open, so the window shows its empty
                     content area for a moment rather than the boot paying for
                     thirty panels nobody opened. */}
                 <Suspense fallback={null}>{render({ onClose: () => closeModule(id) })}</Suspense>
-              </InModuleWindow.Provider>
+                </ModuleWindowMeta.Provider>
+          </InModuleWindow.Provider>
             </div>
           </div>
         </div>
@@ -769,6 +832,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
       data-presentation="inline"
       data-lelu-surface="window"
       data-lelu-window={id}
+      {...cosmosAttrs}
       data-lelu-fullscreen={phoneSheet ? "" : undefined}
       data-lelu-steward={placement ? (stewardSheet ? "sheet" : "placed") : undefined}
       data-lelu-steward-rect={placement ? `${placement.rect.x},${placement.rect.y},${placement.rect.width},${placement.rect.height}` : undefined}
@@ -847,6 +911,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
       }}
     >
       {header}
+      {verticalTitle}
       {/* position: relative contains panels' absolutely-positioned layers
           (e.g. the browser's overlays) inside the content area, so they can
           never paint over the title bar and steal its drag gesture. */}
@@ -856,8 +921,10 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
         style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", containerType: "inline-size", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}
       >
         <InModuleWindow.Provider value={true}>
+          <ModuleWindowMeta.Provider value={windowMeta}>
           <Suspense fallback={null}>{render({ onClose: () => closeModule(id) })}</Suspense>
-        </InModuleWindow.Provider>
+          </ModuleWindowMeta.Provider>
+          </InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner (a phone sheet is the screen: none) */}
       {stewardSheet ? null : <div

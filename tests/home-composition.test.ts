@@ -23,9 +23,12 @@ import {
 const overlaps = (a: GridCell, b: GridCell) =>
   a.col < b.col + b.w && b.col < a.col + a.w && a.row < b.row + b.h && b.row < a.row + a.h;
 
-test("there are exactly thirteen compositions (twelve + the Retro Terminal), each with a distinct id", () => {
-  assert.equal(TEMPLATES.length, 13);
-  assert.equal(new Set(TEMPLATES.map((t) => t.id)).size, 13);
+test("the thirteen original compositions (twelve + the Retro Terminal) all remain, and every id is distinct", () => {
+  const ORIGINAL = ["lelu-central", "bento-universe", "cosmos-orbit", "spatial-home", "executive-command", "organic-asymmetry", "creative-gallery", "project-hub", "minimal-focus", "adaptive-intelligence", "workspace-deck", "living-ecosystem", "retro-terminal"];
+  for (const id of ORIGINAL) assert.ok(TEMPLATES.some((t) => t.id === id), `${id} is still a layout`);
+  // Infinite Cosmos adds fourteen layouts that each carry a window design language.
+  assert.equal(TEMPLATES.length, 27);
+  assert.equal(new Set(TEMPLATES.map((t) => t.id)).size, 27);
 });
 
 test("every composition solves on every device with every module accounted for, and no grid overlaps", () => {

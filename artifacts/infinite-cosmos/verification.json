@@ -1,0 +1,2253 @@
+{
+  "base": "http://127.0.0.1:5173/",
+  "at": "2026-11-26T16:29:01.365Z",
+  "layouts": 27,
+  "languages": 16,
+  "failures": 0,
+  "results": [
+    {
+      "scope": "setup",
+      "name": "Browser, Settings, Research and Files windows are open",
+      "ok": true,
+      "note": "browser settings knowledge projects"
+    },
+    {
+      "scope": "setup",
+      "name": "Browser navigated to the typed address",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "lelu-central",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "lelu-central",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "lelu-central",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "bento-universe",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "bento-universe",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "bento-universe",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "bento-universe",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "cosmos-orbit",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "spatial-home",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "spatial-home",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "spatial-home",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "spatial-home",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "executive-command",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "executive-command",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "executive-command",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "executive-command",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "executive-command",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "executive-command",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "executive-command",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "executive-command",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "executive-command",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "executive-command",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "executive-command",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "executive-command",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "organic-asymmetry",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "creative-gallery",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "project-hub",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "project-hub",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "project-hub",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "project-hub",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "project-hub",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "project-hub",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "project-hub",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "project-hub",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "project-hub",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "project-hub",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "project-hub",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "project-hub",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "minimal-focus",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "adaptive-intelligence",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "workspace-deck",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "language \"cosmic\" is active",
+      "ok": true,
+      "note": "cosmic"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "living-ecosystem",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "language \"terminal\" is active",
+      "ok": true,
+      "note": "terminal"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:console settings:console knowledge:console projects:console"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Browser renders the console composition",
+      "ok": true,
+      "note": "console"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Settings navigates as \"command\"",
+      "ok": true,
+      "note": "command"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "panel headings read as \"prompt\"",
+      "ok": true,
+      "note": "prompt,prompt,prompt"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Neural Map lays out as \"list\"",
+      "ok": true,
+      "note": "console/list"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "26 nodes · 95 entities · 55 relations · 11 authorit"
+    },
+    {
+      "scope": "retro-terminal",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "swiss-international",
+      "name": "language \"swiss\" is active",
+      "ok": true,
+      "note": "swiss"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "swiss-international",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:grid settings:grid knowledge:grid projects:grid"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Browser renders the grid composition",
+      "ok": true,
+      "note": "grid"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Settings navigates as \"index\"",
+      "ok": true,
+      "note": "index"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "panel headings read as \"numbered\"",
+      "ok": true,
+      "note": "numbered,numbered,numbered"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "null"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Neural Map lays out as \"grid\"",
+      "ok": true,
+      "note": "grid/grid"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "24 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "swiss-international",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "language \"bauhaus\" is active",
+      "ok": true,
+      "note": "bauhaus"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:grid settings:grid knowledge:grid projects:grid"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Browser renders the grid composition",
+      "ok": true,
+      "note": "grid"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Settings navigates as \"index\"",
+      "ok": true,
+      "note": "index"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "panel headings read as \"numbered\"",
+      "ok": true,
+      "note": "numbered,numbered,numbered"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "null"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Neural Map lays out as \"grid\"",
+      "ok": true,
+      "note": "grid/grid"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "24 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "bauhaus-workshop",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "language \"editorial\" is active",
+      "ok": true,
+      "note": "editorial"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:editorial settings:editorial knowledge:editorial projects:editorial"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Browser renders the editorial composition",
+      "ok": true,
+      "note": "editorial"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Settings navigates as \"contents\"",
+      "ok": true,
+      "note": "contents"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "panel headings read as \"headline\"",
+      "ok": true,
+      "note": "headline,headline,headline"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "null"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Neural Map lays out as \"columns\"",
+      "ok": true,
+      "note": "editorial/columns"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "editorial-magazine",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "language \"artdeco\" is active",
+      "ok": true,
+      "note": "artdeco"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:editorial settings:editorial knowledge:editorial projects:editorial"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Browser renders the editorial composition",
+      "ok": true,
+      "note": "editorial"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Settings navigates as \"contents\"",
+      "ok": true,
+      "note": "contents"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "panel headings read as \"headline\"",
+      "ok": true,
+      "note": "headline,headline,headline"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "null"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Neural Map lays out as \"columns\"",
+      "ok": true,
+      "note": "editorial/columns"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "art-deco-salon",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "language \"exhibition\" is active",
+      "ok": true,
+      "note": "exhibition"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:editorial settings:editorial knowledge:editorial projects:editorial"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Browser renders the editorial composition",
+      "ok": true,
+      "note": "editorial"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Settings navigates as \"contents\"",
+      "ok": true,
+      "note": "contents"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "panel headings read as \"headline\"",
+      "ok": true,
+      "note": "headline,headline,headline"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "null"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Neural Map lays out as \"columns\"",
+      "ok": true,
+      "note": "editorial/columns"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "exhibition-hall",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "language \"brutalist\" is active",
+      "ok": true,
+      "note": "brutalist"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:slab settings:slab knowledge:slab projects:slab"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Browser renders the slab composition",
+      "ok": true,
+      "note": "slab"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Settings navigates as \"tabs\"",
+      "ok": true,
+      "note": "tabs"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "panel headings read as \"block\"",
+      "ok": true,
+      "note": "block,block,block"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Neural Map lays out as \"matrix\"",
+      "ok": true,
+      "note": "slab/matrix"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "24 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "neo-brutalist",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "language \"constructivist\" is active",
+      "ok": true,
+      "note": "constructivist"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:slab settings:slab knowledge:slab projects:slab"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Browser renders the slab composition",
+      "ok": true,
+      "note": "slab"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Settings navigates as \"tabs\"",
+      "ok": true,
+      "note": "tabs"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "panel headings read as \"block\"",
+      "ok": true,
+      "note": "block,block,block"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Neural Map lays out as \"matrix\"",
+      "ok": true,
+      "note": "slab/matrix"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "24 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "constructivist-poster",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "language \"memphis\" is active",
+      "ok": true,
+      "note": "memphis"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:slab settings:slab knowledge:slab projects:slab"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Browser renders the slab composition",
+      "ok": true,
+      "note": "slab"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Settings navigates as \"tabs\"",
+      "ok": true,
+      "note": "tabs"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "panel headings read as \"block\"",
+      "ok": true,
+      "note": "block,block,block"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Neural Map lays out as \"matrix\"",
+      "ok": true,
+      "note": "slab/matrix"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "24 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "memphis-milano",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "language \"japanese\" is active",
+      "ok": true,
+      "note": "japanese"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:scroll settings:scroll knowledge:scroll projects:scroll"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Browser renders the scroll composition",
+      "ok": true,
+      "note": "scroll"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Settings navigates as \"vertical\"",
+      "ok": true,
+      "note": "vertical"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "panel headings read as \"vertical\"",
+      "ok": true,
+      "note": "vertical,vertical,vertical"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Neural Map lays out as \"vertical\"",
+      "ok": true,
+      "note": "scroll/vertical"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "japanese-ma",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "language \"y2k\" is active",
+      "ok": true,
+      "note": "y2k"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:glass settings:glass knowledge:glass projects:glass"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "Browser renders the glass composition",
+      "ok": true,
+      "note": "glass"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "Settings navigates as \"none\"",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "panel headings read as \"plain\"",
+      "ok": true,
+      "note": "plain,plain,plain"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "Neural Map lays out as \"ring\"",
+      "ok": true,
+      "note": "glass/ring"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "y2k-aqua",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "organic-biome",
+      "name": "language \"organic\" is active",
+      "ok": true,
+      "note": "organic"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "organic-biome",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:organic settings:organic knowledge:organic projects:organic"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Browser renders the organic composition",
+      "ok": true,
+      "note": "organic"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Settings navigates as \"pebbles\"",
+      "ok": true,
+      "note": "pebbles"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "panel headings read as \"soft\"",
+      "ok": true,
+      "note": "soft,soft,soft"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "null"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Neural Map lays out as \"cluster\"",
+      "ok": true,
+      "note": "organic/cluster"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "organic-biome",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "language \"scifi\" is active",
+      "ok": true,
+      "note": "scifi"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:hud settings:hud knowledge:hud projects:hud"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Browser renders the hud composition",
+      "ok": true,
+      "note": "hud"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Settings navigates as \"dial\"",
+      "ok": true,
+      "note": "dial"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "panel headings read as \"bracket\"",
+      "ok": true,
+      "note": "bracket,bracket,bracket"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Neural Map lays out as \"radar\"",
+      "ok": true,
+      "note": "hud/radar"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "futurist-hud",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "observatory",
+      "name": "language \"observatory\" is active",
+      "ok": true,
+      "note": "observatory"
+    },
+    {
+      "scope": "observatory",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "observatory",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:hud settings:hud knowledge:hud projects:hud"
+    },
+    {
+      "scope": "observatory",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "observatory",
+      "name": "Browser renders the hud composition",
+      "ok": true,
+      "note": "hud"
+    },
+    {
+      "scope": "observatory",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "observatory",
+      "name": "Settings navigates as \"dial\"",
+      "ok": true,
+      "note": "dial"
+    },
+    {
+      "scope": "observatory",
+      "name": "panel headings read as \"bracket\"",
+      "ok": true,
+      "note": "bracket,bracket,bracket"
+    },
+    {
+      "scope": "observatory",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "observatory",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "observatory",
+      "name": "Neural Map lays out as \"radar\"",
+      "ok": true,
+      "note": "hud/radar"
+    },
+    {
+      "scope": "observatory",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "28 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "observatory",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "industrial-control",
+      "name": "language \"industrial\" is active",
+      "ok": true,
+      "note": "industrial"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "the same four windows are still open",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "industrial-control",
+      "name": "every window carries its role and the composition's chrome",
+      "ok": true,
+      "note": "browser:bezel settings:bezel knowledge:bezel projects:bezel"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "window geometry survived the switch",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Browser renders the bezel composition",
+      "ok": true,
+      "note": "bezel"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Browser kept its tab, address and page",
+      "ok": true,
+      "note": "https://example.org/"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Settings navigates as \"switchboard\"",
+      "ok": true,
+      "note": "switchboard"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "panel headings read as \"plate\"",
+      "ok": true,
+      "note": "plate,plate,plate"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Settings navigation reaches a section",
+      "ok": true,
+      "note": "true"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "a Settings toggle still flips",
+      "ok": true,
+      "note": "flipped"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Neural Map lays out as \"matrix\"",
+      "ok": true,
+      "note": "bezel/matrix"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Neural Map shows its real data",
+      "ok": true,
+      "note": "24 nodes · 104 entities · 63 relations · 11 authori"
+    },
+    {
+      "scope": "industrial-control",
+      "name": "Neural Map follows a clicked node",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "desktop",
+      "name": "no page errors",
+      "ok": true,
+      "note": ""
+    },
+    {
+      "scope": "phone/lelu-central",
+      "name": "Browser sheet speaks glass and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"\",\"browser\":\"glass\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/lelu-central",
+      "name": "Settings sheet speaks glass and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"\",\"browser\":null,\"settings\":\"none\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/retro-terminal",
+      "name": "Browser sheet speaks console and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#12100e\",\"browser\":\"console\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/retro-terminal",
+      "name": "Settings sheet speaks console and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#12100e\",\"browser\":null,\"settings\":\"command\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/swiss-international",
+      "name": "Browser sheet speaks grid and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#ffffff\",\"browser\":\"grid\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/swiss-international",
+      "name": "Settings sheet speaks grid and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#ffffff\",\"browser\":null,\"settings\":\"index\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/bauhaus-workshop",
+      "name": "Browser sheet speaks grid and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#f2ead8\",\"browser\":\"grid\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/bauhaus-workshop",
+      "name": "Settings sheet speaks grid and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#f2ead8\",\"browser\":null,\"settings\":\"index\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/editorial-magazine",
+      "name": "Browser sheet speaks editorial and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#f7f2e7\",\"browser\":\"editorial\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/editorial-magazine",
+      "name": "Settings sheet speaks editorial and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#f7f2e7\",\"browser\":null,\"settings\":\"contents\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/art-deco-salon",
+      "name": "Browser sheet speaks editorial and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#0d0d0f\",\"browser\":\"editorial\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/art-deco-salon",
+      "name": "Settings sheet speaks editorial and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#0d0d0f\",\"browser\":null,\"settings\":\"contents\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/exhibition-hall",
+      "name": "Browser sheet speaks editorial and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#fafaf8\",\"browser\":\"editorial\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/exhibition-hall",
+      "name": "Settings sheet speaks editorial and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#fafaf8\",\"browser\":null,\"settings\":\"contents\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/neo-brutalist",
+      "name": "Browser sheet speaks slab and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#fffdf5\",\"browser\":\"slab\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/neo-brutalist",
+      "name": "Settings sheet speaks slab and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#fffdf5\",\"browser\":null,\"settings\":\"tabs\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/constructivist-poster",
+      "name": "Browser sheet speaks slab and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#efe6d2\",\"browser\":\"slab\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/constructivist-poster",
+      "name": "Settings sheet speaks slab and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#efe6d2\",\"browser\":null,\"settings\":\"tabs\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/memphis-milano",
+      "name": "Browser sheet speaks slab and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#fff7f0\",\"browser\":\"slab\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/memphis-milano",
+      "name": "Settings sheet speaks slab and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#fff7f0\",\"browser\":null,\"settings\":\"tabs\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/japanese-ma",
+      "name": "Browser sheet speaks scroll and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#f5f0e6\",\"browser\":\"scroll\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/japanese-ma",
+      "name": "Settings sheet speaks scroll and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#f5f0e6\",\"browser\":null,\"settings\":\"vertical\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/y2k-aqua",
+      "name": "Browser sheet speaks glass and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#dfe7f0\",\"browser\":\"glass\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/y2k-aqua",
+      "name": "Settings sheet speaks glass and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#dfe7f0\",\"browser\":null,\"settings\":\"none\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/organic-biome",
+      "name": "Browser sheet speaks organic and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#eef0e4\",\"browser\":\"organic\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/organic-biome",
+      "name": "Settings sheet speaks organic and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#eef0e4\",\"browser\":null,\"settings\":\"pebbles\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/futurist-hud",
+      "name": "Browser sheet speaks hud and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#03090f\",\"browser\":\"hud\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/futurist-hud",
+      "name": "Settings sheet speaks hud and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#03090f\",\"browser\":null,\"settings\":\"dial\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/observatory",
+      "name": "Browser sheet speaks hud and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#0b1426\",\"browser\":\"hud\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/observatory",
+      "name": "Settings sheet speaks hud and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#0b1426\",\"browser\":null,\"settings\":\"dial\",\"inside\":true}"
+    },
+    {
+      "scope": "phone/industrial-control",
+      "name": "Browser sheet speaks bezel and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#2b2f33\",\"browser\":\"bezel\",\"settings\":null,\"inside\":true}"
+    },
+    {
+      "scope": "phone/industrial-control",
+      "name": "Settings sheet speaks bezel and fits the screen",
+      "ok": true,
+      "note": "{\"paper\":\"#2b2f33\",\"browser\":null,\"settings\":\"switchboard\",\"inside\":true}"
+    },
+    {
+      "scope": "phone",
+      "name": "no page errors",
+      "ok": true,
+      "note": ""
+    }
+  ]
+}

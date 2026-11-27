@@ -1,0 +1,257 @@
+/* ==========================================================
+ * LÉLU BROWSER — per composition (Infinite Cosmos)
+ * Keys on .lbr[data-cl-browser] (GenesisBrowserPanel), which only
+ * appears under a non-default language; the glass composition and the
+ * default look are untouched. The embedded page itself is another
+ * site's document and is framed, never restyled.
+ * ========================================================== */
+
+:root[data-cosmos-language] .lbr[data-cl-browser] {
+  background: var(--cl-paper);
+  color: var(--cl-ink);
+  font-family: var(--cl-font);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "mast" "tabs" "bar" "actions" "research" "page" "summary" "foot";
+}
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-mast { grid-area: mast; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-tabs { grid-area: tabs; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-bar { grid-area: bar; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-actions { grid-area: actions; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-research { grid-area: research; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-page { grid-area: page; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-summary { grid-area: summary; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-foot { grid-area: foot; }
+
+:root[data-cosmos-language] .lbr[data-cl-browser] :is(.lbr-tabs, .lbr-bar, .lbr-actions, .lbr-foot) {
+  background: var(--cl-paper) !important;
+  color: var(--cl-ink);
+}
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-tab { color: var(--cl-ink-2); border-radius: var(--cl-radius) var(--cl-radius) 0 0; }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-tab[data-on="true"] { color: var(--cl-ink); }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-tab-glow { background: var(--cl-paper-2); box-shadow: inset 0 3px 0 var(--cl-accent); border-radius: inherit; }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-fav { background: var(--cl-accent); color: var(--cl-paper); border-radius: var(--cl-radius); font-family: var(--cl-font-head); }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-address {
+  background: var(--cl-paper);
+  border: var(--cl-rule-w) solid var(--cl-rule);
+  border-radius: var(--cl-radius);
+}
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-address:focus-within { border-color: var(--cl-accent); box-shadow: 0 0 0 2px var(--cl-accent); }
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { border: none !important; background: transparent !important; color: var(--cl-ink) !important; font-family: var(--cl-font) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-go { background: var(--cl-accent) !important; color: var(--cl-paper) !important; border-color: var(--cl-accent) !important; }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-idle {
+  background: var(--cl-paper);
+  color: var(--cl-ink);
+}
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-idle h2 { color: var(--cl-ink) !important; font-family: var(--cl-font-head); text-transform: var(--cl-head-case); letter-spacing: var(--cl-head-track); }
+:root[data-cosmos-language] .lbr[data-cl-browser] :is(.lbr-reader) { background: var(--cl-paper); color: var(--cl-ink); }
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-reader :is(h1, p) { color: var(--cl-ink) !important; }
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-reader h1 { font-family: var(--cl-font-head); }
+:root[data-cosmos-language] .lbr[data-cl-browser] :is(.lbr-research, .lbr-summary, .lbr-slow, .lbr-hint) {
+  background: var(--cl-paper-2);
+  color: var(--cl-ink);
+  border: var(--cl-rule-w) solid var(--cl-rule);
+  border-radius: var(--cl-radius);
+}
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-page { border-top: var(--cl-rule-w) solid var(--cl-rule); }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-foot { border-top: var(--cl-rule-w) solid var(--cl-rule); color: var(--cl-ink-2); font-size: 10.5px; }
+.lbr-mast { display: none; }
+:root[data-cosmos-language] .lbr[data-cl-browser] > .lbr-mast { display: flex; }
+
+/* ---- console: a prompt, tab line, function keys ---- */
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] { font-family: var(--cl-font-mono); }
+:root[data-cosmos-composition="console"] .lbr-mast {
+  justify-content: space-between; gap: 12px; padding: 6px 10px; font-size: 11.5px;
+  border-bottom: 1px dashed var(--cl-rule); color: var(--cl-ink-2);
+}
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-tabs { padding: 4px 8px; gap: 2px; border-bottom: 1px dashed var(--cl-rule); }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-tab { height: 22px; min-width: 0; max-width: 200px; padding: 0 6px; border-radius: 0; }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-tab-glow { background: var(--cl-ink); box-shadow: none; }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-tab[data-on="true"] { color: var(--cl-paper); }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-fav { background: transparent; color: inherit; width: auto; font-family: var(--cl-font-mono); }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-address { border: none; border-bottom: 1px dashed var(--cl-rule); border-radius: 0; padding-left: 4px; }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-lock { color: var(--cl-accent); font-size: 14px; opacity: 1; }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { font-family: var(--cl-font-mono) !important; caret-color: var(--cl-ink); }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip::before,
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip::after { content: none; }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-actions { order: 9; border-top: 1px dashed var(--cl-rule); padding: 4px 8px; grid-area: foot; }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] { grid-template-areas: "mast" "tabs" "bar" "research" "research" "page" "summary" "foot"; }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] > .lbr-foot { display: none; }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip { border: none !important; padding: 0 6px; height: 22px; }
+:root[data-cosmos-composition="console"] .lbr[data-cl-browser] .lbr-idle h2::before { content: "$ "; color: var(--cl-accent); }
+
+/* ---- grid: an index column of numbered tabs, headline address ---- */
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] {
+  grid-template-columns: 172px minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "mast mast"
+    "tabs bar"
+    "tabs actions"
+    "tabs research"
+    "tabs page"
+    "tabs summary"
+    "foot foot";
+}
+:root[data-cosmos-composition="grid"] .lbr-mast {
+  align-items: stretch; gap: 0; border-bottom: calc(var(--cl-rule-w) * 1.5) solid var(--cl-rule);
+}
+:root[data-cosmos-composition="grid"] .lbr-mast b {
+  display: grid; place-items: center; min-width: 172px; font-size: 44px; font-weight: 800; letter-spacing: -0.04em;
+  color: var(--cl-accent); border-right: var(--cl-rule-w) solid var(--cl-rule);
+}
+:root[data-cosmos-composition="grid"] .lbr-mast span { display: flex; flex-direction: column; justify-content: center; padding: 8px 14px; }
+:root[data-cosmos-composition="grid"] .lbr-mast strong { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+:root[data-cosmos-composition="grid"] .lbr-mast small { font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; opacity: 0.6; margin-top: 6px; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tabs {
+  flex-direction: column; align-items: stretch; overflow-y: auto; overflow-x: hidden; padding: 0; gap: 0;
+  border-right: var(--cl-rule-w) solid var(--cl-rule);
+}
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tab { min-width: 0; max-width: none; border-radius: 0; border-bottom: 1px solid var(--cl-rule); height: 40px; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tab-glow { box-shadow: inset 6px 0 0 var(--cl-accent); }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tabs { counter-reset: tabn; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tab { counter-increment: tabn; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-fav { background: transparent; color: var(--cl-accent); font-weight: 800; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-fav::before { content: counter(tabn, decimal-leading-zero); }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-fav { font-size: 0; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-fav::before { font-size: 12px; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-new { width: 100%; border-radius: 0; height: 36px; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-address { border-width: 0 0 calc(var(--cl-rule-w) * 1.5); border-radius: 0; height: 44px; }
+:root[data-cosmos-composition="grid"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { font-size: 18px !important; font-weight: 700 !important; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-idle { place-content: start; text-align: left; padding: 28px; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-idle h2 { font-size: 56px; letter-spacing: -0.04em; }
+:root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-quick { justify-content: flex-start; }
+
+/* ---- editorial: nameplate, dateline, footnoted actions ---- */
+:root[data-cosmos-composition="editorial"] .lbr-mast {
+  flex-direction: column; align-items: center; padding: 10px 14px 6px; gap: 2px;
+  border-bottom: 3px double var(--cl-rule);
+}
+:root[data-cosmos-composition="editorial"] .lbr-mast strong { font-family: var(--cl-font-head); font-size: 30px; font-style: italic; line-height: 1; }
+:root[data-cosmos-language="artdeco"] .lbr-mast strong { font-style: normal; letter-spacing: 0.3em; text-transform: uppercase; font-size: 22px; color: var(--cl-accent); }
+:root[data-cosmos-composition="editorial"] .lbr-mast small { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.7; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-tabs { justify-content: center; border-bottom: 1px solid var(--cl-rule); padding: 0 8px; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-tab { border-radius: 0; height: 28px; font-variant: small-caps; letter-spacing: 0.06em; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-tab-glow { background: transparent; box-shadow: inset 0 -2px 0 var(--cl-accent); }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-fav { display: none; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-address { border-width: 0 0 1px; border-radius: 0; }
+:root[data-cosmos-composition="editorial"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { font-family: var(--cl-font-head) !important; font-size: 17px !important; font-style: italic; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-actions { justify-content: center; }
+:root[data-cosmos-composition="editorial"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip { border: none !important; font-style: italic; font-family: var(--cl-font) !important; height: 24px; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-idle h2 { font-size: 46px; font-style: italic; }
+:root[data-cosmos-language="artdeco"] .lbr[data-cl-browser] .lbr-idle h2 { font-style: normal; letter-spacing: 0.24em; color: var(--cl-accent) !important; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-idle p { font-style: italic; }
+:root[data-cosmos-composition="editorial"] .lbr[data-cl-browser] .lbr-foot { text-align: center; font-style: italic; }
+:root[data-cosmos-language="exhibition"] .lbr-mast strong { font-style: normal; font-weight: 300; font-family: var(--cl-font); letter-spacing: 0.02em; }
+:root[data-cosmos-language="exhibition"] .lbr-mast { align-items: flex-start; border-bottom: 1px solid var(--cl-rule); padding: 18px 24px 10px; }
+:root[data-cosmos-language="exhibition"] .lbr[data-cl-browser] .lbr-idle { place-content: end start; text-align: left; padding: 40px; }
+:root[data-cosmos-language="exhibition"] .lbr[data-cl-browser] .lbr-idle h2 { font-style: normal; font-weight: 300; }
+
+/* ---- slab: loud tab blocks, a block address ---- */
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-tabs { padding: 10px 10px 0; gap: 8px; }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-tab { border: var(--cl-rule-w) solid var(--cl-rule); border-bottom: none; background: var(--cl-paper-2); font-weight: 800; text-transform: uppercase; }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-tab[data-on="true"] { background: var(--cl-accent); }
+:root[data-cosmos-language="memphis"] .lbr[data-cl-browser] .lbr-tab { border-radius: 18px 18px 0 0; }
+:root[data-cosmos-language="constructivist"] .lbr[data-cl-browser] .lbr-tab { transform: skewX(-10deg); }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-tab-glow { display: none; }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-bar { border-top: var(--cl-rule-w) solid var(--cl-rule); padding: 10px; }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-address { height: 48px; box-shadow: 5px 5px 0 var(--cl-rule); }
+:root[data-cosmos-composition="slab"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { font-size: 18px !important; font-weight: 800 !important; text-transform: uppercase; }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-idle h2 { font-size: 54px; text-transform: uppercase; font-weight: 900; background: var(--cl-accent); padding: 0 14px; box-shadow: 8px 8px 0 var(--cl-rule); border: var(--cl-rule-w) solid var(--cl-rule); justify-self: center; }
+:root[data-cosmos-language="constructivist"] .lbr[data-cl-browser] .lbr-idle h2 { transform: rotate(-4deg); color: var(--cl-paper) !important; }
+:root[data-cosmos-language="memphis"] .lbr[data-cl-browser] .lbr-idle h2 { border-radius: 999px; background: var(--cl-accent-3); }
+:root[data-cosmos-composition="slab"] .lbr[data-cl-browser] .lbr-page { border-top-width: var(--cl-rule-w); }
+
+/* ---- scroll: tabs hang on the right, stamped actions ---- */
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] {
+  grid-template-columns: minmax(0, 1fr) 58px;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "bar tabs" "actions tabs" "research tabs" "page tabs" "summary tabs" "foot foot";
+}
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-tabs { flex-direction: column; align-items: center; padding: 8px 0; overflow-y: auto; border-left: 1px solid var(--cl-rule); gap: 10px; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-tab { writing-mode: vertical-rl; min-width: 0; height: auto; max-height: 180px; width: 36px; padding: 8px 0; border-radius: 2px; font-family: var(--cl-font-head); letter-spacing: 0.2em; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-tab-glow { background: transparent; box-shadow: inset -2px 0 0 var(--cl-accent); }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-fav { writing-mode: horizontal-tb; background: var(--cl-accent); border-radius: 3px; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-address { border-width: 0 0 1px; border-radius: 0; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-idle { place-content: center end; text-align: right; padding: 40px 48px; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-idle h2 { font-family: var(--cl-font-head); font-weight: 400; letter-spacing: 0.3em; font-size: 32px; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-idle h2::after { content: "印"; display: inline-grid; place-items: center; width: 34px; height: 34px; margin-left: 12px; background: var(--cl-accent); color: var(--cl-paper); font-size: 18px; letter-spacing: 0; border-radius: 3px; vertical-align: middle; }
+:root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-quick { justify-content: flex-end; }
+:root[data-cosmos-composition="scroll"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip { border-color: var(--cl-accent) !important; color: var(--cl-accent) !important; }
+
+/* ---- hud: readout strip, reticle address, tabs as targets along the bottom ---- */
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto auto;
+  grid-template-areas: "mast" "bar" "actions" "research" "page" "summary" "tabs" "foot";
+}
+:root[data-cosmos-composition="hud"] .lbr-mast { gap: 14px; padding: 5px 12px; font-family: var(--cl-font-mono); font-size: 10.5px; letter-spacing: 0.14em; color: var(--cl-accent); border-bottom: 1px solid var(--cl-rule); }
+:root[data-cosmos-composition="hud"] .lbr-mast [data-secure="true"] { color: var(--cl-ok, #4ade80); }
+:root[data-cosmos-composition="hud"] .lbr-mast [data-secure="false"] { color: var(--cl-accent-2); }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-tabs { border-top: 1px solid var(--cl-rule); padding: 6px 8px; gap: 6px; }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-tab { border: 1px solid var(--cl-rule); border-radius: 0; height: 28px; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-tab-glow { background: rgba(0, 229, 255, 0.12); box-shadow: inset 0 -2px 0 var(--cl-accent); }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-address { border-color: var(--cl-accent); clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-lock { color: var(--cl-accent); font-size: 16px; opacity: 1; }
+:root[data-cosmos-composition="hud"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { font-family: var(--cl-font-mono) !important; letter-spacing: 0.08em; }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-idle { background: radial-gradient(circle at 50% 50%, transparent 0 60px, rgba(0,229,255,0.25) 61px 62px, transparent 63px 120px, rgba(0,229,255,0.15) 121px 122px, transparent 123px), var(--cl-paper); }
+:root[data-cosmos-language="observatory"] .lbr[data-cl-browser] .lbr-idle { background: radial-gradient(circle at 50% 50%, transparent 0 80px, rgba(200,161,90,0.35) 81px 82px, transparent 83px 150px, rgba(200,161,90,0.2) 151px 152px, transparent 153px), var(--cl-paper); }
+:root[data-cosmos-composition="hud"] .lbr[data-cl-browser] .lbr-idle h2 { text-transform: uppercase; letter-spacing: 0.3em; font-size: 26px; color: var(--cl-accent) !important; }
+
+/* ---- bezel: LED readout, recessed address, toggle switches ---- */
+:root[data-cosmos-composition="bezel"] .lbr-mast { align-items: center; gap: 10px; padding: 8px 10px; background: linear-gradient(180deg, #3a3f45, #2b2f33); border-bottom: 2px solid #15181b; }
+:root[data-cosmos-composition="bezel"] .lbr-led { flex: 1; font-family: var(--cl-font-mono); font-size: 15px; letter-spacing: 0.12em; color: #ffb000; background: #120f08; padding: 4px 10px; border-radius: 3px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.9); text-shadow: 0 0 8px rgba(255,176,0,0.7); white-space: nowrap; overflow: hidden; }
+:root[data-cosmos-composition="bezel"] .lbr-led-2 { flex: 0 0 auto; color: #39d353; text-shadow: 0 0 8px rgba(57,211,83,0.7); }
+:root[data-cosmos-composition="bezel"] .lbr-lamp { width: 14px; height: 14px; border-radius: 999px; background: #5a1010; border: 1px solid #15181b; }
+:root[data-cosmos-composition="bezel"] .lbr-lamp[data-on="true"] { background: #39d353; box-shadow: 0 0 10px #39d353; }
+:root[data-cosmos-composition="bezel"] .lbr[data-cl-browser] .lbr-tab { border-radius: 3px 3px 0 0; background: #24282c; border: 1px solid #15181b; border-bottom: none; text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; }
+:root[data-cosmos-composition="bezel"] .lbr[data-cl-browser] .lbr-tab-glow { background: #3a3f45; box-shadow: inset 0 3px 0 #ffb000; }
+:root[data-cosmos-composition="bezel"] .lbr[data-cl-browser] .lbr-address { background: #121416; border-color: #15181b; box-shadow: inset 0 2px 5px rgba(0,0,0,0.9); }
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-address input { color: #ffb000 !important; font-family: var(--cl-font-mono) !important; }
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip { min-width: 72px; justify-content: center; border-radius: 4px !important; font-family: var(--cl-font-mono) !important; position: relative; padding-top: 10px; height: 36px; }
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip::before { content: ""; position: absolute; top: 4px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 999px; background: #5a1010; }
+:root[data-cosmos-composition="bezel"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-chip[data-on="true"]::before { background: #39d353; box-shadow: 0 0 6px #39d353; }
+:root[data-cosmos-composition="bezel"] .lbr[data-cl-browser] .lbr-idle h2 { font-family: var(--cl-font-mono); color: #ffb000 !important; text-shadow: 0 0 10px rgba(255,176,0,0.6); text-transform: uppercase; letter-spacing: 0.2em; }
+
+/* ---- organic: pebble address, drifting tabs ---- */
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-tabs { padding: 8px 12px 4px; gap: 8px; }
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-tab { border-radius: 999px 70% 999px 80%; background: var(--cl-paper-2); height: 30px; }
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-tab[data-on="true"] { background: var(--cl-accent); color: var(--cl-paper); }
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-tab-glow { display: none; }
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-address { border-radius: 999px 60% 999px 70% / 999px 80% 999px 60%; border-color: var(--cl-accent); height: 44px; }
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-page { border-top: none; margin: 0 10px 8px; border-radius: 26px 40px 30px 44px; overflow: hidden; }
+:root[data-cosmos-composition="organic"] .lbr[data-cl-browser] .lbr-idle h2 { font-family: var(--cl-font-head); font-style: italic; color: var(--cl-accent) !important; }
+
+/* ---- y2k glass: chrome bar and aqua address ---- */
+:root[data-cosmos-language="y2k"] .lbr[data-cl-browser] :is(.lbr-tabs, .lbr-bar, .lbr-actions) { background: linear-gradient(180deg, #f9fbfe, #cfdbe8) !important; }
+:root[data-cosmos-language="y2k"] .lbr[data-cl-browser] .lbr-address { border-radius: 999px; box-shadow: inset 0 2px 4px rgba(10,37,64,0.25); background: #fff; }
+:root[data-cosmos-language="y2k"] .lbr[data-cl-browser] .lbr-tab { border-radius: 12px 12px 0 0; }
+:root[data-cosmos-language="y2k"] .lbr[data-cl-browser] .lbr-tab-glow { background: linear-gradient(180deg, #ffffff, #dfe9f4); box-shadow: inset 0 2px 0 #0096ff; }
+:root[data-cosmos-language="y2k"] .lbr[data-cl-browser] .lbr-idle h2 { font-style: italic; color: #0062c4 !important; text-shadow: 0 2px 0 #fff, 0 3px 6px rgba(0,0,0,0.2); }
+
+/* ---- narrow windows and phones: side tabs fold back to the top ---- */
+@container (max-width: 560px) {
+  :root[data-cosmos-composition="grid"] .lbr[data-cl-browser],
+  :root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "mast" "tabs" "bar" "actions" "research" "page" "summary" "foot";
+  }
+  :root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tabs,
+  :root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-tabs { flex-direction: row; overflow-x: auto; border: none; border-bottom: 1px solid var(--cl-rule); }
+  :root[data-cosmos-composition="scroll"] .lbr[data-cl-browser] .lbr-tab { writing-mode: horizontal-tb; width: auto; max-height: none; height: 30px; padding: 0 10px; }
+  :root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-tab { width: auto; min-width: 90px; }
+  :root[data-cosmos-composition="grid"] .lbr[data-cl-browser] .lbr-new { width: 36px; }
+  :root[data-cosmos-composition="grid"] .lbr-mast b { min-width: 64px; font-size: 30px; }
+  :root[data-cosmos-composition="grid"] .lbr-mast strong { font-size: 18px; }
+  :root[data-cosmos-composition="editorial"] .lbr-mast strong { font-size: 22px; }
+  :root[data-cosmos-composition="hud"] .lbr-mast span:nth-child(3) { display: none; }
+}
+
+/* ---- shared fixes: selected tab ink, short windows ---- */
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-tab[data-on="true"] :is(span, button) { color: inherit !important; }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-tab[data-on="true"] { color: var(--cl-paper) !important; }
+:root[data-cosmos-composition="console"] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-tab[data-on="true"] :is(span, button) { color: var(--cl-paper) !important; }
+:root[data-cosmos-language] .lbr[data-cl-browser] .lbr-idle { place-content: safe center; overflow: auto; }
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] :is(.lbr-ico, .lbr-new, .lbr-x, .lbr-go) { min-width: 30px; padding: 0 4px; white-space: nowrap; width: auto; }
+:root[data-cosmos-language] [data-lelu-module-content] .lbr[data-cl-browser] .lbr-x { border: none !important; background: transparent !important; }

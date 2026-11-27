@@ -33,6 +33,9 @@ import { bindMessage, ownerForTask } from "../../../core/multichat/TurnOwnership
 import BrowserTool from "../../../core/browser/BrowserTool";
 import { getEnvironment } from "../../../core/Environment";
 import AgentEventBus, { type AgentEvent, type AgentResultItem } from "../../../core/agent/AgentEvents";
+import { useCosmosLanguage } from "./cosmosLanguage/useCosmosLanguage";
+import type { CompositionSpec } from "../../../core/interface/CosmosLanguages";
+import "./cosmosLanguage/browserLanguage.css";
 
 const ai = AIService.getInstance();
 
@@ -132,7 +135,108 @@ function loadActive(tabs: BrowserTab[]): string {
   }
 }
 
+
+/**
+ * How the Browser speaks the active composition (Infinite Cosmos). The
+ * navigation, tabs, reader and every action are the same code in every
+ * composition; what changes is where the tabs live, what the address
+ * line is, how actions are labelled and whether a masthead reads out the
+ * page. Labels keep their accessible names, so nothing a person or a
+ * test reaches for moves out from under them.
+ */
+interface BrowserVoice {
+  placeholder: string;
+  go: string;
+  back: string;
+  forward: string;
+  reload: string;
+  action: (key: "reader" | "read" | "beside" | "board", text: string) => string;
+}
+
+const FKEY: Record<"reader" | "read" | "beside" | "board", string> = { reader: "F2", read: "F3", beside: "F4", board: "F5" };
+const FOOTNOTE: Record<"reader" | "read" | "beside" | "board", string> = { reader: "¹", read: "²", beside: "³", board: "⁴" };
+const SWITCH: Record<"reader" | "read" | "beside" | "board", string> = { reader: "READER", read: "READ", beside: "DOCK", board: "BOARD" };
+
+function browserVoice(composition: CompositionSpec): BrowserVoice {
+  switch (composition.browser.address) {
+    case "prompt":
+      return { placeholder: "open <address or search>", go: "↵", back: "<-", forward: "->", reload: "r", action: (k, t) => `${FKEY[k]} ${t.replace(/^[^A-Za-z]+/, "")}` };
+    case "headline":
+      return composition.browser.actions === "footnotes"
+        ? { placeholder: "Search the record, or enter an address", go: "Go", back: "‹", forward: "›", reload: "↻", action: (k, t) => `${FOOTNOTE[k]} ${t.replace(/^[^A-Za-z]+/, "")}` }
+        : { placeholder: "Address / Search", go: "Go →", back: "←", forward: "→", reload: "↻", action: (_k, t) => t.replace(/^[^A-Za-z]+/, "") };
+    case "block":
+      return { placeholder: "TYPE AN ADDRESS!", go: "GO!", back: "◀", forward: "▶", reload: "↻", action: (_k, t) => t.replace(/^[^A-Za-z]+/, "").toUpperCase() };
+    case "reticle":
+      return { placeholder: "ACQUIRE TARGET — address or query", go: "⌖", back: "◁", forward: "▷", reload: "⟲", action: (_k, t) => t.replace(/^[^A-Za-z]+/, "").toUpperCase() };
+    case "plate":
+      return { placeholder: "ENTER ADDRESS", go: "EXEC", back: "◂", forward: "▸", reload: "RST", action: (k) => SWITCH[k] };
+    case "pebble":
+      return { placeholder: "Where shall we wander?", go: "❀", back: "‹", forward: "›", reload: "↻", action: (_k, t) => t.replace(/^[^A-Za-z]+/, "") };
+    default:
+      if (composition.browser.actions === "stamps") {
+        return { placeholder: "所 · address or search", go: "→", back: "‹", forward: "›", reload: "↻", action: (_k, t) => `「${t.replace(/^[^A-Za-z]+/, "")}」` };
+      }
+      return { placeholder: "Search or enter a web address", go: "→", back: "‹", forward: "›", reload: "⟳", action: (_k, t) => t };
+  }
+}
+
+/** The masthead / readout above the page, for compositions that draw one. */
+function BrowserMasthead({ composition, host, url, tabIndex, tabCount, historyLength }: { composition: CompositionSpec; host: string; url: string; tabIndex: number; tabCount: number; historyLength: number }) {
+  const secure = url.startsWith("https://");
+  const where = host || "nowhere yet";
+  const date = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  switch (composition.id) {
+    case "console":
+      return (
+        <div className="lbr-mast" data-cl-mast="console">
+          <span>lelu@cosmos:~/browser$ open {url || "--"}</span>
+          <span>tab {tabIndex}/{tabCount} · hist {historyLength} · {secure ? "tls" : "plain"}</span>
+        </div>
+      );
+    case "grid":
+      return (
+        <div className="lbr-mast" data-cl-mast="grid">
+          <b>{String(tabIndex).padStart(2, "0")}</b>
+          <span>
+            <strong>{where}</strong>
+            <small>Tab {tabIndex} of {tabCount} · {historyLength} visited</small>
+          </span>
+        </div>
+      );
+    case "editorial":
+      return (
+        <div className="lbr-mast" data-cl-mast="editorial">
+          <small>{date}</small>
+          <strong>The Browser</strong>
+          <small>{where} · Vol. {tabIndex}, No. {Math.max(1, historyLength)}</small>
+        </div>
+      );
+    case "hud":
+      return (
+        <div className="lbr-mast" data-cl-mast="hud">
+          <span>TGT ▸ {where.toUpperCase()}</span>
+          <span>LINK {tabIndex}/{tabCount}</span>
+          <span>TRACE {historyLength}</span>
+          <span data-secure={secure}>{secure ? "SECURE" : "OPEN"}</span>
+        </div>
+      );
+    case "bezel":
+      return (
+        <div className="lbr-mast" data-cl-mast="bezel">
+          <span className="lbr-led">{where.toUpperCase().slice(0, 28)}</span>
+          <span className="lbr-led lbr-led-2">CH {String(tabIndex).padStart(2, "0")}</span>
+          <span className="lbr-lamp" data-on={secure} title={secure ? "secure" : "not secure"} />
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
 export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowserPanelProps) {
+  const cosmos = useCosmosLanguage();
+  const voice = browserVoice(cosmos.composition);
   const { addMessage, notify } = useGenesisState();
   // Neko (m1k1o/neko) self-hosted virtual browser: when VITE_NEKO_URL is
   // configured the panel can switch the embedded surface to the LIVE Neko
@@ -518,14 +622,32 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
   })();
 
   return (
-    <div className="lbr" data-lelu-browser data-view={active?.view ?? "page"}>
+    <div
+      className="lbr"
+      data-lelu-browser
+      data-view={active?.view ?? "page"}
+      data-cl-browser={cosmos.composition.id}
+      data-cl-tabs={cosmos.composition.browser.tabs}
+      data-cl-address={cosmos.composition.browser.address}
+      data-cl-actions={cosmos.composition.browser.actions}
+    >
+      {cosmos.composition.browser.masthead ? (
+        <BrowserMasthead
+          composition={cosmos.composition}
+          host={host}
+          url={active?.url ?? ""}
+          tabIndex={Math.max(1, tabs.findIndex((t) => t.id === active?.id) + 1)}
+          tabCount={tabs.length}
+          historyLength={active?.history.length ?? 0}
+        />
+      ) : null}
       {/* Tabs: real sessions, each with its own history; kept across reloads. */}
       <LayoutGroup id="lbr-tabs">
         <div className="lbr-tabs" role="tablist" aria-label="Browser tabs">
           {tabs.map((t) => (
             <motion.div layout key={t.id} className="lbr-tab" data-on={t.id === active?.id} role="tab" aria-selected={t.id === active?.id} onClick={() => selectTab(t.id)}>
               {t.id === active?.id ? <motion.span layoutId="lbr-tab-glow" className="lbr-tab-glow" transition={{ type: "spring", stiffness: 420, damping: 34 }} /> : null}
-              <span className="lbr-fav" aria-hidden>{(t.title || hostOf(t.url) || "N").slice(0, 1).toUpperCase()}</span>
+              <span className="lbr-fav" aria-hidden>{cosmos.composition.browser.tabs === "line" ? `${tabs.indexOf(t) + 1}:` : (t.title || hostOf(t.url) || "N").slice(0, 1).toUpperCase()}</span>
               <span className="lbr-tab-title">{t.title || hostOf(t.url) || "New tab"}</span>
               {tabs.length > 1 ? (
                 <button type="button" className="lbr-x" aria-label={`Close tab ${t.title || hostOf(t.url) || "New tab"}`} onClick={(e) => { e.stopPropagation(); closeTab(t.id); }}>×</button>
@@ -537,11 +659,11 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       </LayoutGroup>
 
       <div className="lbr-bar">
-        <button type="button" className="lbr-ico" aria-label="Back" disabled={!active || active.index <= 0} onClick={() => step(-1)}>‹</button>
-        <button type="button" className="lbr-ico" aria-label="Forward" disabled={!active || active.index >= active.history.length - 1} onClick={() => step(1)}>›</button>
-        <button type="button" className="lbr-ico" aria-label="Reload" disabled={!active?.url} onClick={reload}>⟳</button>
+        <button type="button" className="lbr-ico" aria-label="Back" disabled={!active || active.index <= 0} onClick={() => step(-1)}>{voice.back}</button>
+        <button type="button" className="lbr-ico" aria-label="Forward" disabled={!active || active.index >= active.history.length - 1} onClick={() => step(1)}>{voice.forward}</button>
+        <button type="button" className="lbr-ico" aria-label="Reload" disabled={!active?.url} onClick={reload}>{voice.reload}</button>
         <div className="lbr-address">
-          <span aria-hidden className="lbr-lock">{active?.url.startsWith("https://") ? "🔒" : "◌"}</span>
+          <span aria-hidden className="lbr-lock">{cosmos.composition.browser.address === "prompt" ? "$" : cosmos.composition.browser.address === "reticle" ? "⌖" : active?.url.startsWith("https://") ? "🔒" : "◌"}</span>
           <input
             value={address}
             onChange={(event) => setAddress(event.target.value)}
@@ -550,20 +672,20 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
             enterKeyHint="go"
             spellCheck={false}
             aria-label="Browser address"
-            placeholder="Search or enter a web address"
+            placeholder={voice.placeholder}
           />
-          <button type="button" className="lbr-go" onClick={() => go()} aria-label="Go">→</button>
+          <button type="button" className="lbr-go" onClick={() => go()} aria-label="Go">{voice.go}</button>
         </div>
       </div>
       <div className="lbr-actions">
-        <button type="button" className="lbr-chip" data-on={active?.view === "reader"} aria-pressed={active?.view === "reader"} disabled={!active?.url || mode === "neko"} onClick={toggleReader}>
-          ☰ Reader
+        <button type="button" className="lbr-chip" aria-label="Reader" data-on={active?.view === "reader"} aria-pressed={active?.view === "reader"} disabled={!active?.url || mode === "neko"} onClick={toggleReader}>
+          {voice.action("reader", "☰ Reader")}
         </button>
-        <button type="button" className="lbr-chip" onClick={readForLelu} disabled={reading || mode === "neko"} title="Extract this page's content and have Lélu read it through her chat pipeline">
-          {reading ? "Reading…" : "✦ Read for Lélu"}
+        <button type="button" className="lbr-chip" aria-label={reading ? "Reading…" : "Read for Lélu"} onClick={readForLelu} disabled={reading || mode === "neko"} title="Extract this page's content and have Lélu read it through her chat pipeline">
+          {reading ? "Reading…" : voice.action("read", "✦ Read for Lélu")}
         </button>
-        <button type="button" className="lbr-chip" onClick={besideChat} title="Put this browser beside the conversation">◫ Beside chat</button>
-        <button type="button" className="lbr-chip" onClick={toBoard} disabled={!active?.url} title="Add this page to the conversation's research board">⌘ To board</button>
+        <button type="button" className="lbr-chip" onClick={besideChat} title="Put this browser beside the conversation" aria-label="Beside chat">{voice.action("beside", "◫ Beside chat")}</button>
+        <button type="button" className="lbr-chip" onClick={toBoard} disabled={!active?.url} title="Add this page to the conversation's research board" aria-label="To board">{voice.action("board", "⌘ To board")}</button>
         {nekoStatus === "reachable" ? (
           <button type="button" className="lbr-chip" data-on={mode === "neko"} onClick={() => setMode((m) => (m === "neko" ? "inline" : "neko"))} title="Switch to the verified live Neko (m1k1o/neko) virtual browser session">
             {mode === "neko" ? "◉ Neko live" : "Neko live browser"}
