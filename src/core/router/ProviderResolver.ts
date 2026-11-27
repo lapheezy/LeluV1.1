@@ -12,7 +12,24 @@
 import { continuationContext } from "./continuationContext";
 import { resolveFirst } from "../resolveEnv";
 import { classifyChainFailure } from "../voice/turnFailure";
-import { contradictedCaptureClaims, contradictionNote, freshnessCorrection, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
+import {
+  claimEvidenceCounts,
+  contradictedCaptureClaims,
+  contradictionNote,
+  freshnessCorrection,
+  groundingNote,
+  ungroundedClaims,
+  type EarlierToolRun,
+} from "../tools/ClaimGrounding";
+import {
+  formatTurnMetrics,
+  newTurnMeasurement,
+  noteFallback,
+  noteFirstText,
+  noteProviderAttempt,
+  noteProviderFailure,
+  summarizeTurn,
+} from "./TurnMetrics";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIRequest, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
@@ -243,6 +260,20 @@ export default class ProviderResolver {
     /** Why each provider in the chain failed — so the final notice can say timeout vs network vs unavailable. */
     const chainErrors: string[] = [];
     /**
+     * Counts and timings for THIS turn (Mission 44.7). Every value is noted
+     * by the code that observed the event; the first delta is the one real
+     * measurement of "time to first text", not an estimate from the reply.
+     * Content-free: counts and milliseconds only.
+     */
+    const measurement = newTurnMeasurement(context.started || Date.now());
+    const userOnDelta = context.request.onDelta;
+    if (userOnDelta) {
+      context.request.onDelta = (text: string) => {
+        noteFirstText(measurement);
+        userOnDelta(text);
+      };
+    }
+    /**
      * Text a provider had already streamed before its connection broke.
      *
      * A streamed answer is shown as it arrives, so a break in the middle is
@@ -352,6 +383,8 @@ export default class ProviderResolver {
         continue;
       }
 
+      noteProviderAttempt(measurement);
+
       /** Tools that ran on THIS attempt — a fallback would repeat them. */
       const toolsBeforeRung = toolsReallyRun.length;
       try {
@@ -417,9 +450,14 @@ export default class ProviderResolver {
           },
         );
 
+        const summary = summarizeTurn(measurement, toolsReallyRun.length);
+        context.logger.info("ProviderResolver", formatTurnMetrics(summary), { turnMetrics: summary });
         return {
           handled: true,
-          response,
+          response: {
+            ...response,
+            metadata: { ...response.metadata, turnMetrics: summary },
+          },
         };
       } catch (error) {
         // A user Stop is not a provider failure. Marking it one put a
@@ -492,6 +530,7 @@ export default class ProviderResolver {
         const ranThisRung = toolsReallyRun.slice(toolsBeforeRung);
         if (ranThisRung.length > 0) {
           const names = [...new Set(ranThisRung.map((tool) => tool.tool))];
+          noteProviderFailure(measurement);
           context.aiProviders.markFailure(provider.name, message);
           AgentEventBus.getInstance().emit({
             type: "provider_status",
@@ -539,6 +578,8 @@ export default class ProviderResolver {
             },
           };
         }
+        noteProviderFailure(measurement);
+        noteFallback(measurement);
         context.aiProviders.markFailure(provider.name, message);
         chainErrors.push(message);
         AgentEventBus.getInstance().emit({
@@ -1154,10 +1195,20 @@ export default class ProviderResolver {
     // A result she reports must have a tool behind it (ClaimGrounding):
     // claims about tools that did not run successfully this turn are
     // marked "not verified" in the reply itself.
-    const ungrounded = ungroundedClaims(response.text ?? "", executed);
+    const ranThisTurn = [...(toolsReallyRun ?? []), ...executed];
+    // A tool result already in the conversation is real evidence — of an
+    // EARLIER turn. Passing it separately is what lets the note say "history,
+    // not a fresh check" instead of accusing her of inventing a result she
+    // really did produce a few minutes ago (Mission 44.7).
+    const earlierRuns: EarlierToolRun[] = (context.request.messages ?? [])
+      .filter((message) => message.role === "tool" && typeof message.toolName === "string" && message.toolName.length > 0)
+      .map((message) => ({ tool: String(message.toolName) }));
+    const ungrounded = ungroundedClaims(response.text ?? "", ranThisTurn, earlierRuns);
+    const evidence = claimEvidenceCounts(ungrounded);
     if (ungrounded.length > 0) {
       context.logger.info("ProviderResolver", "Reply claims tool results with no tool behind them", {
         claims: ungrounded.map((claim) => claim.label),
+        evidence,
         freshness: ungrounded.filter((claim) => claim.fresh).length,
         toolsExecuted: executed.map((entry) => entry.tool),
       });
@@ -1176,11 +1227,12 @@ export default class ProviderResolver {
       // A claim of a FRESH result is corrected before the reply, not after it:
       // the reader who stops at the first line must not be left believing an
       // old answer was a new check (Mission 44.6, measured on a phone).
-      text: `${freshnessCorrection(ungrounded)}${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
+      text: `${freshnessCorrection(ungrounded, { earlierRuns })}${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
         ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
+        ...(ungrounded.length ? { claimEvidence: evidence } : {}),
         ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
         ...(executed.length
