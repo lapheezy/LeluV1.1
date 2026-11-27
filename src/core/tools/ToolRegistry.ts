@@ -54,6 +54,49 @@ export interface ToolDefinition {
 
 type ToolListener = (tools: ToolDefinition[]) => void;
 
+/**
+ * How long the tool-availability refresh may hold a turn.
+ *
+ * The refresh is an optimisation: it decides which tools are OFFERED. It is
+ * never the answer, and it is awaited before the router's first stage, so a
+ * probe that never answers used to hold every turn open indefinitely (see
+ * computeAvailability). Bounded here, overridable so a test can prove it in
+ * milliseconds.
+ */
+export function availabilityProbeMs(): number {
+  const raw = typeof process !== "undefined" ? process.env?.LELU_AVAILABILITY_PROBE_MS : undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 50 ? parsed : 4_000;
+}
+
+/**
+ * The work's outcome, or a timeout — a caller is never left waiting forever.
+ *
+ * Returns rather than throws so "this probe did not answer" and "this probe
+ * failed" reach the same place, which is what both mean here.
+ */
+export async function settleWithin<T>(
+  work: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<{ ok: true; value: T } | { ok: false; error: unknown }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const value = await Promise.race([
+      work,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} did not answer within ${ms} ms`)), ms);
+        (timer as unknown as { unref?: () => void }).unref?.();
+      }),
+    ]);
+    return { ok: true, value };
+  } catch (error) {
+    return { ok: false, error };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export default class ToolRegistry {
   private static instance: ToolRegistry | null = null;
   private tools = new Map<string, ToolDefinition>();
@@ -296,7 +339,15 @@ export default class ToolRegistry {
   async ensureAvailability(maxAgeMs = 60_000): Promise<void> {
     if (this.refreshedAt && Date.now() - this.refreshedAt < maxAgeMs) return;
     if (!this.refreshing) {
-      this.refreshing = this.refreshAvailability().finally(() => {
+      this.refreshing = settleWithin(this.refreshAvailability(), availabilityProbeMs(), "tool availability").then(
+        (outcome) => {
+          if (!outcome.ok) {
+            console.warn("[ToolRegistry] availability probe did not finish in time; keeping the last known availability", {
+              error: outcome.error instanceof Error ? outcome.error.message : String(outcome.error),
+            });
+          }
+        },
+      ).finally(() => {
         this.refreshing = null;
       });
     }
@@ -330,15 +381,46 @@ export default class ToolRegistry {
     // turn awaits this refresh whenever it is stale, and the serial chain
     // was measured at ~1.6 s of a real turn before the model was called.
     // They start together now; each result is applied exactly as before.
-    const probeRuntime = (async () => {
-      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
-      return EngineeringWorkspace.getInstance().runtimeReachable();
-    })();
-    const probeAcquisition = (async () => {
-      const { default: AcquisitionRuntime } = await import("../acquisition/AcquisitionRuntime");
-      return AcquisitionRuntime.getInstance().status();
-    })();
-    const probeGitHub = GitHubIntegration.getInstance().getStatus();
+    // EACH PROBE IS BOUNDED, and the bound is part of the turn.
+    //
+    // Measured live (2026-11-27, Mission 44.5): a chat turn stopped after
+    // memory recall with no provider request at all — for minutes, on every
+    // turn, across reloads. `Promise.allSettled` here settles only when every
+    // probe settles, so ONE probe that never answers (a status call to a
+    // runtime whose socket is never closed) held the whole refresh open, and
+    // the router awaits this refresh before its first stage. The turn was
+    // therefore waiting on a tool-catalogue detail that must never outrank
+    // the answer. A probe that misses its deadline is "unreachable", which is
+    // already the meaning of a failed probe here.
+    const probeBudget = availabilityProbeMs();
+    const probeRuntime = settleWithin(
+      (async () => {
+        const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+        return EngineeringWorkspace.getInstance().runtimeReachable();
+      })(),
+      probeBudget,
+      "development runtime probe",
+    ).then((outcome) => {
+      if (!outcome.ok) throw outcome.error;
+      return outcome.value;
+    });
+    const probeAcquisition = settleWithin(
+      (async () => {
+        const { default: AcquisitionRuntime } = await import("../acquisition/AcquisitionRuntime");
+        return AcquisitionRuntime.getInstance().status();
+      })(),
+      probeBudget,
+      "acquisition runtime probe",
+    ).then((outcome) => {
+      if (!outcome.ok) throw outcome.error;
+      return outcome.value;
+    });
+    const probeGitHub = settleWithin(GitHubIntegration.getInstance().getStatus(), probeBudget, "GitHub probe").then(
+      (outcome) => {
+        if (!outcome.ok) throw outcome.error;
+        return outcome.value;
+      },
+    );
     // Settled up front so no probe can reject unobserved while another is awaited.
     const [runtimeProbe, acquisitionProbe, githubProbe] = await Promise.allSettled([probeRuntime, probeAcquisition, probeGitHub]);
 

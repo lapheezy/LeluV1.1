@@ -1,0 +1,238 @@
+{
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "credentialEnv": "GROQ_API_KEY_1",
+  "at": "2026-11-27T06:33:47.542Z",
+  "attempts": [
+    {
+      "provider": "groq",
+      "credentialEnv": "GROQ_API_KEY_1",
+      "model": "openai/gpt-oss-120b",
+      "stream": true,
+      "round": 1,
+      "elapsedMs": 454,
+      "requestBytes": 1136,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 0,
+        "reasoningChars": 73,
+        "toolCalls": [
+          {
+            "name": "lab_history",
+            "arguments": "{}"
+          }
+        ],
+        "deltaFields": [
+          "role",
+          "content",
+          "reasoning",
+          "channel",
+          "tool_calls"
+        ],
+        "chunkCount": 17,
+        "usage": {
+          "queue_time": 0.14702761,
+          "prompt_tokens": 251,
+          "prompt_time": 0.00951494,
+          "completion_tokens": 34,
+          "completion_time": 0.071076093,
+          "total_tokens": 285,
+          "total_time": 0.080591033,
+          "completion_tokens_details": {
+            "reasoning_tokens": 15
+          }
+        },
+        "finishReason": "tool_calls"
+      },
+      "parsed": {
+        "textChars": 0,
+        "toolCalls": [
+          {
+            "name": "lab_history",
+            "arguments": "{}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      },
+      "httpStatus": 200,
+      "note": "the provider streamed reasoning only; content was empty, so a reader that ignores reasoning deltas sees an empty answer"
+    },
+    {
+      "provider": "groq",
+      "credentialEnv": "GROQ_API_KEY_1",
+      "model": "openai/gpt-oss-120b",
+      "stream": true,
+      "round": 2,
+      "elapsedMs": 568,
+      "requestBytes": 1505,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 0,
+        "reasoningChars": 263,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "deltaFields": [
+          "role",
+          "content",
+          "reasoning",
+          "channel",
+          "tool_calls"
+        ],
+        "chunkCount": 83,
+        "usage": {
+          "queue_time": 0.180044693,
+          "prompt_tokens": 335,
+          "prompt_time": 0.013912565,
+          "completion_tokens": 99,
+          "completion_time": 0.206226161,
+          "total_tokens": 434,
+          "total_time": 0.220138726,
+          "completion_tokens_details": {
+            "reasoning_tokens": 81
+          }
+        },
+        "finishReason": "tool_calls"
+      },
+      "parsed": {
+        "textChars": 0,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      },
+      "httpStatus": 200,
+      "note": "the provider streamed reasoning only; content was empty, so a reader that ignores reasoning deltas sees an empty answer"
+    },
+    {
+      "provider": "groq",
+      "credentialEnv": "GROQ_API_KEY_1",
+      "model": "openai/gpt-oss-120b",
+      "stream": false,
+      "round": 1,
+      "elapsedMs": 493,
+      "requestBytes": 1491,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 0,
+        "reasoningChars": 274,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "deltaFields": [],
+        "chunkCount": 0,
+        "finishReason": "tool_calls",
+        "usage": {
+          "queue_time": 0.2231494,
+          "prompt_tokens": 335,
+          "prompt_time": 0.013944694,
+          "completion_tokens": 101,
+          "completion_time": 0.212013138,
+          "total_tokens": 436,
+          "total_time": 0.225957832,
+          "completion_tokens_details": {
+            "reasoning_tokens": 83
+          }
+        }
+      },
+      "parsed": {
+        "textChars": 0,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      },
+      "httpStatus": 200
+    },
+    {
+      "provider": "groq",
+      "credentialEnv": "GROQ_API_KEY_1",
+      "model": "openai/gpt-oss-120b",
+      "stream": false,
+      "round": 2,
+      "elapsedMs": 905,
+      "requestBytes": 1826,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 295,
+        "reasoningChars": 901,
+        "toolCalls": [],
+        "deltaFields": [],
+        "chunkCount": 0,
+        "finishReason": "stop",
+        "usage": {
+          "queue_time": 0.085802182,
+          "prompt_tokens": 394,
+          "prompt_time": 0.021667405,
+          "completion_tokens": 358,
+          "completion_time": 0.748489946,
+          "total_tokens": 752,
+          "total_time": 0.770157351,
+          "completion_tokens_details": {
+            "reasoning_tokens": 247
+          }
+        }
+      },
+      "parsed": {
+        "textChars": 295,
+        "toolCalls": [],
+        "finishReason": "stop"
+      },
+      "httpStatus": 200
+    },
+    {
+      "provider": "groq",
+      "credentialEnv": "GROQ_API_KEY_1",
+      "model": "openai/gpt-oss-120b",
+      "stream": true,
+      "round": 3,
+      "elapsedMs": 749,
+      "requestBytes": 221,
+      "toolCount": 0,
+      "raw": {
+        "contentChars": 606,
+        "reasoningChars": 228,
+        "toolCalls": [],
+        "deltaFields": [
+          "role",
+          "content",
+          "reasoning",
+          "channel"
+        ],
+        "chunkCount": 293,
+        "usage": {
+          "queue_time": 0.084831033,
+          "prompt_tokens": 101,
+          "prompt_time": 0.004803281,
+          "completion_tokens": 300,
+          "completion_time": 0.621626876,
+          "total_tokens": 401,
+          "total_time": 0.626430157,
+          "completion_tokens_details": {
+            "reasoning_tokens": 56
+          }
+        },
+        "finishReason": "length"
+      },
+      "parsed": {
+        "textChars": 606,
+        "toolCalls": [],
+        "finishReason": "length"
+      },
+      "httpStatus": 200,
+      "note": "tight output budget"
+    }
+  ]
+}

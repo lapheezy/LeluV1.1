@@ -1,0 +1,293 @@
+{
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "credentialEnv": "OPENROUTER_API_KEY",
+  "at": "2026-11-27T06:34:30.401Z",
+  "attempts": [
+    {
+      "provider": "openrouter",
+      "credentialEnv": "OPENROUTER_API_KEY",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "stream": true,
+      "round": 1,
+      "elapsedMs": 9468,
+      "requestBytes": 1155,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 0,
+        "reasoningChars": 314,
+        "toolCalls": [
+          {
+            "name": "lab_history",
+            "arguments": "{}"
+          }
+        ],
+        "deltaFields": [
+          "content",
+          "role",
+          "reasoning",
+          "reasoning_details",
+          "tool_calls"
+        ],
+        "chunkCount": 17,
+        "usage": {
+          "prompt_tokens": 431,
+          "completion_tokens": 82,
+          "total_tokens": 513,
+          "cost": 0,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0,
+            "upstream_inference_prompt_cost": 0,
+            "upstream_inference_completions_cost": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 66,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "finishReason": "tool_calls"
+      },
+      "parsed": {
+        "textChars": 0,
+        "toolCalls": [
+          {
+            "name": "lab_history",
+            "arguments": "{}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      },
+      "httpStatus": 200,
+      "note": "the provider streamed reasoning only; content was empty, so a reader that ignores reasoning deltas sees an empty answer"
+    },
+    {
+      "provider": "openrouter",
+      "credentialEnv": "OPENROUTER_API_KEY",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "stream": true,
+      "round": 2,
+      "elapsedMs": 969,
+      "requestBytes": 1524,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 0,
+        "reasoningChars": 49,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "deltaFields": [
+          "content",
+          "role",
+          "reasoning",
+          "reasoning_details",
+          "tool_calls"
+        ],
+        "chunkCount": 7,
+        "usage": {
+          "prompt_tokens": 530,
+          "completion_tokens": 27,
+          "total_tokens": 557,
+          "cost": 0,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0,
+            "upstream_inference_prompt_cost": 0,
+            "upstream_inference_completions_cost": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 10,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "finishReason": "tool_calls"
+      },
+      "parsed": {
+        "textChars": 0,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      },
+      "httpStatus": 200,
+      "note": "the provider streamed reasoning only; content was empty, so a reader that ignores reasoning deltas sees an empty answer"
+    },
+    {
+      "provider": "openrouter",
+      "credentialEnv": "OPENROUTER_API_KEY",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "stream": false,
+      "round": 1,
+      "elapsedMs": 1026,
+      "requestBytes": 1510,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 0,
+        "reasoningChars": 91,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "deltaFields": [],
+        "chunkCount": 0,
+        "finishReason": "tool_calls",
+        "usage": {
+          "prompt_tokens": 530,
+          "completion_tokens": 36,
+          "total_tokens": 566,
+          "cost": 0,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0,
+            "upstream_inference_prompt_cost": 0,
+            "upstream_inference_completions_cost": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 19,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        }
+      },
+      "parsed": {
+        "textChars": 0,
+        "toolCalls": [
+          {
+            "name": "lab_repository",
+            "arguments": "{}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      },
+      "httpStatus": 200
+    },
+    {
+      "provider": "openrouter",
+      "credentialEnv": "OPENROUTER_API_KEY",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "stream": false,
+      "round": 2,
+      "elapsedMs": 4387,
+      "requestBytes": 1845,
+      "toolCount": 3,
+      "raw": {
+        "contentChars": 336,
+        "reasoningChars": 678,
+        "toolCalls": [],
+        "deltaFields": [],
+        "chunkCount": 0,
+        "finishReason": "stop",
+        "usage": {
+          "prompt_tokens": 605,
+          "completion_tokens": 289,
+          "total_tokens": 894,
+          "cost": 0,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0,
+            "upstream_inference_prompt_cost": 0,
+            "upstream_inference_completions_cost": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 196,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        }
+      },
+      "parsed": {
+        "textChars": 336,
+        "toolCalls": [],
+        "finishReason": "stop"
+      },
+      "httpStatus": 200
+    },
+    {
+      "provider": "openrouter",
+      "credentialEnv": "OPENROUTER_API_KEY",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "stream": true,
+      "round": 3,
+      "elapsedMs": 4973,
+      "requestBytes": 240,
+      "toolCount": 0,
+      "raw": {
+        "contentChars": 740,
+        "reasoningChars": 118,
+        "toolCalls": [],
+        "deltaFields": [
+          "content",
+          "role",
+          "reasoning",
+          "reasoning_details"
+        ],
+        "chunkCount": 58,
+        "usage": {
+          "prompt_tokens": 49,
+          "completion_tokens": 300,
+          "total_tokens": 349,
+          "cost": 0,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0,
+            "upstream_inference_prompt_cost": 0,
+            "upstream_inference_completions_cost": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 34,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        },
+        "finishReason": "length"
+      },
+      "parsed": {
+        "textChars": 740,
+        "toolCalls": [],
+        "finishReason": "length"
+      },
+      "httpStatus": 200,
+      "note": "tight output budget"
+    }
+  ]
+}

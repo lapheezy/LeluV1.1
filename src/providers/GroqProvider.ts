@@ -18,6 +18,8 @@ import {
   toOpenAIMessages,
   trailingUserTurn,
   readOpenAIStream,
+  streamedCompletionAnswer,
+  EmptyCompletionError,
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
@@ -267,7 +269,11 @@ export default class GroqProvider implements AIProvider {
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error(describeEmptyChoice("Groq", choices?.[0]));
+      throw new EmptyCompletionError(
+        describeEmptyChoice("Groq", choices?.[0]),
+        isTruncating(choices?.[0]?.finish_reason),
+        choices?.[0]?.finish_reason,
+      );
     }
 
     const processingTime = Date.now() - started;
@@ -329,12 +335,13 @@ export default class GroqProvider implements AIProvider {
       throw new Error(message.startsWith("Groq stream interrupted") ? message : `Groq stream interrupted: ${message}`);
     }
 
-    if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
-      throw new Error("Groq returned no usable content.");
-    }
+    // An empty stream is classified, not collapsed: reasoning-only content is
+    // a real answer (the non-streamed reader has always used it), and a
+    // truncated one names its finish reason.
+    const answer = streamedCompletionAnswer(this.name, streamed);
 
     return {
-      text: streamed.text.trim(),
+      text: answer.text,
       provider: this.name,
       model,
       processingTime: Date.now() - started,
@@ -345,6 +352,7 @@ export default class GroqProvider implements AIProvider {
         finishReason: streamed.finishReason,
         truncated: isTruncating(streamed.finishReason),
         streamed: true,
+        ...(answer.fromReasoning ? { answerFromReasoning: true } : {}),
       },
     };
   }

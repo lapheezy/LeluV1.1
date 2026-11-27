@@ -28,7 +28,15 @@ import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observabil
 
 import { inspectRequest } from "../observability/RequestIntegrity";
 import { assessTurn, checkCall, inLoopNote, qualityNotice, type QualityCall } from "./qualityCheckpoint";
-import { partialWorkReply, summarizeToolResult, type ToolRunRecord } from "./partialWork";
+import {
+  partialWorkReply,
+  publicToolRun,
+  summarizeToolResult,
+  toolEvidence,
+  type ToolRunRecord,
+} from "./partialWork";
+import { DEFAULT_OUTPUT_TOKENS } from "../../providers/AIProvider";
+import { EmptyCompletionError } from "../../providers/openaiTools";
 /**
  * TERMINATION, not a round quota.
  *
@@ -108,6 +116,22 @@ function configuredMs(name: string): number | undefined {
 /** Too little left to be worth starting another provider. */
 const MIN_RUNG_SLICE_MS = 1_500;
 
+/**
+ * A round whose OUTPUT budget ran out is re-asked once, in this much room.
+ *
+ * Measured live (2026-11-27): both configured providers stream reasoning
+ * before content, and on Groq's gpt-oss-120b a 2048-token reply budget can be
+ * spent entirely on `reasoning` — the round comes back 200 with empty content
+ * and finish_reason=length. That is not a provider failure, it is a budget
+ * that was too small for the way this model answers, and asking again with
+ * more room is the fix. Bounded: one retry per round, never a ladder.
+ */
+const MIN_REPLY_TOKENS = 1_024;
+const MAX_REPLY_TOKENS = 4_096;
+
+/** How much of the fallback chain a recovered narration may use. */
+const MAX_NARRATION_PROVIDERS = 2;
+
 export default class ProviderResolver {
   private readonly rungBudgetMs: number;
   private readonly chainBudgetMs: number;
@@ -142,7 +166,10 @@ export default class ProviderResolver {
     messages: AIMessage[],
     tools: Array<{ name: string; description?: string; parameters?: unknown }>,
     tier: SchemaTier,
+    /** The reply budget this attempt will ask for, when it differs from the turn's. */
+    maxTokensOverride?: number,
   ) {
+    const replyBudget = maxTokensOverride ?? context.request.maxTokens;
     const fitted = fitRequestBudget({
       messages,
       prompt: context.request.prompt,
@@ -150,7 +177,7 @@ export default class ProviderResolver {
       tier,
       provider: provider.name,
       model: context.request.model,
-      ...(context.request.maxTokens ? { maxTokens: context.request.maxTokens } : {}),
+      ...(replyBudget ? { maxTokens: replyBudget } : {}),
       ...(this.requestCeilingBytes ? { limitBytes: this.requestCeilingBytes } : {}),
       protectedTail: 12,
     });
@@ -458,6 +485,21 @@ export default class ProviderResolver {
             `${provider.name} failed after running tools; not repeating them on another provider.`,
             { provider: provider.name, ran: names, fallbackReason: message.slice(0, 200) },
           );
+          // THE RESULTS SURVIVE THE PROVIDER. Falling through would replay the
+          // work; the offline notice would throw it away. Neither is right
+          // when the evidence is already in hand, so one bounded, TOOL-FREE
+          // attempt is made on the next provider to write the answer from what
+          // actually ran. Only when that fails too does the reply degrade to
+          // the step list (`partialWorkReply`), which claims nothing.
+          const narrated = await this.narrateFromResults(
+            context,
+            ranThisRung,
+            provider.name,
+            message,
+            ordered.slice(ordered.indexOf(provider) + 1),
+            this.chainBudgetMs - (Date.now() - chainStarted),
+          );
+          if (narrated) return { handled: true, response: narrated };
           return {
             handled: true,
             response: {
@@ -468,7 +510,7 @@ export default class ProviderResolver {
               metadata: {
                 success: false,
                 partial: true,
-                toolsExecuted: ranThisRung,
+                toolsExecuted: ranThisRung.map(publicToolRun),
                 // The same contract the fallback path keeps: work that
                 // happened before the answer is marked as such, so nothing
                 // reads it as the answering provider's own doing.
@@ -662,6 +704,29 @@ export default class ProviderResolver {
     };
   }
 
+  /**
+   * Count a streamed DELTA as progress.
+   *
+   * The rung deadline is a stall watchdog, and it only ever re-armed when a
+   * whole round returned. A provider that is streaming — visibly alive, tokens
+   * arriving — was therefore cut off at the same fixed budget as one that had
+   * gone silent. Measured 2026-11-27: OpenRouter's free reasoning model spent
+   * 7.4 s on its first tool round and 4.4 s on its second, so a three-round
+   * research turn crosses the 12 s deadline while working perfectly. A delta is
+   * the strongest evidence of life there is; it now resets the watchdog.
+   */
+  private withStreamingProgress(request: AIRequest, onProgress?: () => void): AIRequest {
+    const onDelta = request.onDelta;
+    if (!onProgress || !onDelta) return request;
+    return {
+      ...request,
+      onDelta: (text: string) => {
+        onProgress();
+        onDelta(text);
+      },
+    };
+  }
+
   private async generateWithTools(
     provider: AIProvider,
     context: RouterContext,
@@ -705,16 +770,6 @@ export default class ProviderResolver {
       }) as unknown as Record<string, unknown>,
     );
 
-    // No native tool support, or nothing currently executable to offer:
-    // the original single call, untouched. This is the fallback path —
-    // ToolCallInterceptor still salvages tool markup from these.
-    if (tools.length === 0) {
-      return gatedGenerate(provider, {
-        ...this.withRungSignal(context.request, rungSignal),
-        messages: fitted.messages,
-      });
-    }
-
     const taskId = String(context.request.timestamp ?? Date.now());
     const messages: AIMessage[] = [...fitted.messages];
     const executed: Array<ToolRunRecord> = [];
@@ -732,11 +787,123 @@ export default class ProviderResolver {
     // to catch.
     const requested: string[] = [];
 
-    let response = await gatedGenerate(provider, {
-      ...this.withRungSignal(context.request, rungSignal),
-      messages,
-      tools,
-    });
+    /**
+     * The reply budget this turn will ask for — raised once if it is spent.
+     * Providers that meter prompt and reply together count this against the
+     * same minute, so a round that was truncated is re-fitted to the ceiling
+     * for its new budget rather than sent blind (see sendRound).
+     */
+    let replyBudget = context.request.maxTokens ?? DEFAULT_OUTPUT_TOKENS;
+
+    /**
+     * Send ONE round, with the only retry that cannot repeat work.
+     *
+     * A round that comes back EMPTY and TRUNCATED (finish_reason=length) ran
+     * out of output while thinking: nothing was produced, so nothing can be
+     * replayed. It is re-asked once — with more reply room, and with the tool
+     * schemas withheld so the extra room is not paid for out of the same
+     * per-minute token ceiling. A round that already produced text or a tool
+     * call never reaches this path; it is returned as it is.
+     */
+    const sendRound = async (
+      roundMessages: AIMessage[],
+      roundTools: Array<{ name: string; description?: string; parameters?: unknown }>,
+      roundTier: SchemaTier,
+      continuation: boolean,
+    ): Promise<AIResponse> => {
+      const send = (
+        overrides: { budget?: number; tools?: typeof roundTools } = {},
+      ): Promise<AIResponse> => {
+        const budget = overrides.budget;
+        const toolsForRound = overrides.tools ?? roundTools;
+        const fittedRound =
+          budget === undefined
+            ? { messages: roundMessages, tools: toolsForRound }
+            : this.fitFor(provider, context, roundMessages, toolsForRound, roundTier, budget);
+        const request: AIRequest = this.withStreamingProgress(
+          {
+            ...this.withRungSignal(context.request, rungSignal),
+            // A continuation round re-reads tool results; LÉLU's full self-state
+            // was given on round 0 and is not re-sent (see continuationContext).
+            ...(continuation ? { context: continuationContext(context.request.context) } : {}),
+            messages: fittedRound.messages,
+            ...(budget === undefined ? {} : { maxTokens: budget }),
+            ...(fittedRound.tools.length
+              ? { tools: fittedRound.tools as NonNullable<AIRequest["tools"]> }
+              : {}),
+          },
+          onProgress,
+        );
+        return gatedGenerate(provider, request);
+      };
+
+      /** The one budget raise this round is allowed. */
+      const raise = (): number | null => {
+        const raised = Math.min(MAX_REPLY_TOKENS, Math.max(replyBudget, MIN_REPLY_TOKENS) * 2);
+        if (raised <= replyBudget) return null;
+        replyBudget = raised;
+        return raised;
+      };
+
+      try {
+        const first = await send();
+        // A reply the output budget CUT OFF is not a whole answer. Measured
+        // live 2026-11-27: a 300-token round returned 606 characters of a
+        // sentence with finish_reason=length, and 2048 does the same to a long
+        // one. Nothing was executed in that round, so asking again with more
+        // room cannot repeat work — and the answer the person keeps is the
+        // complete one. If the second attempt cannot improve on it, the real
+        // partial reply is returned rather than an error.
+        const truncatedAnswer =
+          first.metadata?.truncated === true && (first.toolCalls?.length ?? 0) === 0;
+        if (!truncatedAnswer) return first;
+        const raised = raise();
+        if (raised === null) return first;
+        context.logger.info(
+          "ProviderResolver",
+          `${provider.name}'s answer was cut off by the output budget; re-asking once with more room and no tools`,
+          {
+            provider: provider.name,
+            toTokens: raised,
+            finishReason: first.metadata?.finishReason,
+            partialChars: first.text?.length ?? 0,
+          },
+        );
+        try {
+          return await send({ budget: raised, tools: [] });
+        } catch {
+          return first;
+        }
+      } catch (error) {
+        if (!(error instanceof EmptyCompletionError) || !error.truncated) throw error;
+        const raised = raise();
+        if (raised === null) throw error;
+        context.logger.info(
+          "ProviderResolver",
+          `${provider.name}'s output budget ran out before it produced anything; re-asking once with more room and no tools`,
+          {
+            provider: provider.name,
+            toTokens: raised,
+            finishReason: error.finishReason,
+            round: continuation ? "continuation" : "first",
+          },
+        );
+        return await send({ budget: raised, tools: [] });
+      }
+    };
+
+    // No native tool support, or nothing currently executable to offer: the
+    // original single call — which now shares the round's truncation retry,
+    // because an answer cut off by the output budget is the same failure
+    // whether a tool was offered or not. ToolCallInterceptor still salvages
+    // tool markup from these replies.
+    if (tools.length === 0) {
+      const plain = await sendRound(messages, [], requestedTier, false);
+      onProgress?.();
+      return plain;
+    }
+
+    let response = await sendRound(messages, tools, requestedTier, false);
     // A round that came back is proof the rung is alive.
     onProgress?.();
     let promptMaterialized = false;
@@ -862,7 +1029,14 @@ export default class ProviderResolver {
         // round the chain falls through, and without this the cycle
         // would report "no action taken" about a workflow it really
         // created.
-        toolsReallyRun?.push({ tool: call.name, ok: result.ok, summary: summarizeToolResult(result.content) });
+        toolsReallyRun?.push({
+          tool: call.name,
+          ok: result.ok,
+          summary: summarizeToolResult(result.content),
+          // The body, capped: if the provider stops before writing the answer,
+          // this is what a recovered narration is written from.
+          content: toolEvidence(result.content),
+        });
         context.logger.info("ProviderResolver", `Tool ${call.name} -> ${result.ok ? "ok" : "failed"}`, {
           tool: call.name,
           ok: result.ok,
@@ -910,21 +1084,19 @@ export default class ProviderResolver {
       // round, so a long tool loop cannot walk into the same 413 the first
       // request was trimmed to avoid. The most recent twelve messages are
       // protected — that is this round's question and its results.
+      const roundTier: SchemaTier = stopReason
+        ? "NONE"
+        : tools.length === offeredTools.length
+          ? requestedTier
+          : "REDUCED";
       const refitted = this.fitFor(
         provider,
         context,
         messages,
         stopReason ? [] : tools,
-        stopReason ? "NONE" : tools.length === offeredTools.length ? requestedTier : "REDUCED",
+        roundTier,
       );
-      response = await gatedGenerate(provider, {
-        ...this.withRungSignal(context.request, rungSignal),
-        // A continuation round re-reads tool results; LÉLU's full self-state
-        // was given on round 0 and is not re-sent (see continuationContext).
-        context: continuationContext(context.request.context),
-        messages: refitted.messages,
-        ...(refitted.tools.length ? { tools: refitted.tools } : {}),
-      });
+      response = await sendRound(refitted.messages, refitted.tools, roundTier, true);
       onProgress?.();
 
       if (stopReason) break;
@@ -1022,6 +1194,133 @@ export default class ProviderResolver {
   }
 
   /**
+   * Write the answer from results that already exist.
+   *
+   * A provider can stop between "the tools ran" and "say what they mean".
+   * The evidence is still real, so the reply should be an answer about it —
+   * not a list of steps, and never the offline notice. This asks the NEXT
+   * provider for prose only:
+   *
+   *   • no tool schemas are offered, so no step can be executed twice, and
+   *     no second side effect is possible;
+   *   • the tool results travel as text, in the same request, so the answer
+   *     is grounded in what was measured rather than in what the model
+   *     believes;
+   *   • the model is told to name what the results do NOT cover, so a partial
+   *     answer is labelled partial instead of being padded;
+   *   • the attempt is bounded by the rung budget and capped at two providers.
+   *
+   * Null means no provider could write it — the caller then reports the step
+   * list it already has.
+   */
+  private async narrateFromResults(
+    context: RouterContext,
+    ran: ToolRunRecord[],
+    failedProvider: string,
+    reason: string,
+    candidates: AIProvider[],
+    remainingMs: number,
+  ): Promise<AIResponse | null> {
+    if (candidates.length === 0 || remainingMs < MIN_RUNG_SLICE_MS * 2) return null;
+
+    const evidence = ran
+      .slice(0, 8)
+      .map((record, index) => {
+        const body = record.content ?? record.summary ?? "(the tool returned no text)";
+        return `${index + 1}. ${record.tool} — ${record.ok ? "succeeded" : "failed"}\n${body}`;
+      })
+      .join("\n\n");
+
+    const instruction = [
+      `[system] ${failedProvider} stopped before writing the answer (${reason.slice(0, 160)}).`,
+      "The steps below have ALREADY RUN and their results are real. Nothing will be repeated.",
+      "You have no tools on this turn — do not ask for one. Answer the person's question using ONLY",
+      "these results, and say plainly which part of the question they do not cover. Do not invent a",
+      "result, a number or a source that is not below.",
+      "",
+      `The question was: ${context.request.prompt}`,
+      "",
+      "Results already obtained:",
+      evidence,
+    ].join("\n");
+
+    const narratedContext: RouterContext = {
+      ...context,
+      request: {
+        ...context.request,
+        // No history and no tool results as messages: a bare question keeps the
+        // narration request small, and an orphaned `tool` message would be
+        // rejected outright by the OpenAI-shaped providers.
+        messages: [{ role: "user", content: instruction }],
+        maxTokens: Math.max(context.request.maxTokens ?? 0, MIN_REPLY_TOKENS),
+      },
+    };
+
+    let budgetLeft = remainingMs;
+    for (const provider of candidates.slice(0, MAX_NARRATION_PROVIDERS)) {
+      if (budgetLeft < MIN_RUNG_SLICE_MS * 2) break;
+      if (!provider.canHandle(context.request.prompt)) continue;
+      const started = Date.now();
+      const slice = Math.min(this.rungBudgetMs, budgetLeft);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), slice);
+      try {
+        const response = await this.executeProvider(
+          provider,
+          narratedContext,
+          // Deliberately not recorded again: these are the same steps, and the
+          // caller attaches them once.
+          undefined,
+          controller.signal,
+          "none",
+        );
+        context.logger.info(
+          "ProviderResolver",
+          `${provider.name} wrote the answer from ${ran.length} completed step(s) after ${failedProvider} stopped`,
+          {
+            provider: provider.name,
+            failedProvider,
+            steps: ran.map((record) => record.tool),
+            latencyMs: Date.now() - started,
+          },
+        );
+        return {
+          ...response,
+          text:
+            `${response.text}\n\nProvenance: this answer was written from the ${ran.length} step(s) that ran ` +
+            `before ${failedProvider} stopped (${reason.slice(0, 120)}). No step was run again.`,
+          metadata: {
+            ...response.metadata,
+            success: true,
+            narratedAfterFailure: {
+              failedProvider,
+              narratedBy: response.provider,
+              steps: ran.map((record) => record.tool),
+            },
+            toolsExecuted: ran.map(publicToolRun),
+            toolsRanBeforeFallback: true,
+            toolLoopStopped: "narration-recovered",
+          },
+        };
+      } catch (error) {
+        // A Stop outranks the recovery: the person ended the turn.
+        if (stopped(context, error)) throwIfStopped(context, error);
+        const message = error instanceof Error ? error.message : String(error);
+        context.aiProviders.markFailure(provider.name, message);
+        context.logger.info(
+          "ProviderResolver",
+          `${provider.name} could not write the answer from completed step(s); the step list will be reported instead.`,
+          { provider: provider.name, fallbackReason: message.slice(0, 200) },
+        );
+      } finally {
+        clearTimeout(timer);
+      }
+      budgetLeft -= Date.now() - started;
+    }
+    return null;
+  }
+
+  /**
    * Carry the actions that really happened onto an answer that did not
    * come from the provider that performed them.
    *
@@ -1037,7 +1336,7 @@ export default class ProviderResolver {
       ...response,
       metadata: {
         ...response.metadata,
-        toolsExecuted: toolsReallyRun,
+        toolsExecuted: toolsReallyRun.map(publicToolRun),
         toolsRanBeforeFallback: true,
       },
     };

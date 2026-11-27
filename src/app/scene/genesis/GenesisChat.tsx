@@ -276,6 +276,30 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   /** Per-conversation tail of the turn queue. Different conversations run
    * concurrently; within one conversation turns stay in order. */
   const convTailsRef = useRef<Map<string, Promise<void>>>(new Map());
+  /**
+   * Every turn this surface has outstanding, so a stale indicator can be
+   * reconciled against the conversation the turn really belongs to.
+   *
+   * `sendingIn` is what makes the composer say "still replying"; it is only
+   * ever cleared by the `finally` of the `send()` call that set it. When that
+   * call's promise is left unsettled — a stream that never ended, a page that
+   * was hidden across a navigation — the reply is still written to the store
+   * by the message channel, while the composer stays disabled until a reload.
+   * That is the measured "stuck in Processing" turn: finished on the server,
+   * stuck on the client. These entries are what the watchdog below reads.
+   */
+  const pendingTurnsRef = useRef<
+    Array<{
+      conversationId: string;
+      exchangeId: string;
+      userMessageId: string;
+      startedAt: number;
+      finish: () => void;
+      tail: Promise<void>;
+      seenText?: string;
+      stableSince?: number;
+    }>
+  >([]);
   /** Set when the user presses Stop — lets send() settle silently. */
   const cancelledRef = useRef(false);
   /** Text to send again from a failure's "Try again", read once by send(). */
@@ -311,6 +335,101 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     readyMarkedRef.current = true;
     markPerf("CHAT_READY");
   }, [hidden]);
+
+  /**
+   * RECONCILE A TURN THAT FINISHED WITHOUT TELLING THE COMPOSER.
+   *
+   * The composer's "still replying" state is cleared by the `finally` of the
+   * `send()` that set it. If that call is left unsettled, the reply is still
+   * delivered and stored by the message channel — the conversation is complete
+   * on the server and stuck on the client, which is exactly what was reported
+   * after Mission 44.4 (Send disabled until reload; after reload the reply is
+   * there).
+   *
+   * So the store, not the promise, is treated as the truth:
+   *
+   *   • a reply for this turn's own user message, unchanged across two checks,
+   *     means the turn is DONE. The indicator, the queue tail and the claim are
+   *     released here, so the reply becomes visible and the composer usable
+   *     without a reload. Twice-checked because a reply is upserted on every
+   *     streamed delta — a still-streaming answer must not be mistaken for a
+   *     finished one;
+   *   • a turn past the tool loop's own ceiling (8 min) plus a margin cannot
+   *     still be producing anything, so it is released too. Nothing claims the
+   *     work succeeded; the reply that was stored is whatever really arrived.
+   *
+   * Navigation and refresh are covered by the same rule: the store survives
+   * both, and this runs on focus and on visibility.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    /** A reply must be unchanged this long before it counts as finished. */
+    const STABLE_MS = 8_000;
+    /** Past the 8-minute tool loop, plus provider and consolidation margin. */
+    const MAX_TURN_MS = 11 * 60_000;
+
+    const recover = (track: (typeof pendingTurnsRef.current)[number], why: "replied" | "expired") => {
+      const store = MultiChatStore.getInstance();
+      pendingTurnsRef.current = pendingTurnsRef.current.filter((entry) => entry !== track);
+      if (convTailsRef.current.get(track.conversationId) === track.tail) {
+        convTailsRef.current.delete(track.conversationId);
+      }
+      // Settle the queue: a turn waiting behind this one must not be stranded.
+      track.finish();
+      releaseTurn(track.conversationId);
+      const stillWorking = pendingTurnsRef.current.some(
+        (entry) => entry.conversationId === track.conversationId,
+      );
+      store.setProcessing(track.conversationId, stillWorking);
+      store.flush();
+      setSendingIn((current) => {
+        const at = current.indexOf(track.conversationId);
+        return at < 0 ? current : [...current.slice(0, at), ...current.slice(at + 1)];
+      });
+      if (!stillWorking && MultiChatStore.getInstance().getActiveId() === track.conversationId) {
+        setDialogue("listening");
+      }
+      console.warn("[GenesisChat] recovered a turn the composer still called processing", {
+        conversationId: track.conversationId,
+        exchangeId: track.exchangeId,
+        why,
+        elapsedMs: Date.now() - track.startedAt,
+      });
+    };
+
+    const reconcile = () => {
+      if (pendingTurnsRef.current.length === 0) return;
+      for (const track of [...pendingTurnsRef.current]) {
+        const messages = MultiChatStore.getInstance().get(track.conversationId)?.messages ?? [];
+        const anchor = messages.findIndex((message) => message.id === track.userMessageId);
+        const reply = anchor >= 0
+          ? [...messages.slice(anchor + 1)].reverse().find((message) => message.role === "assistant" && message.text.trim())
+          : undefined;
+        if (reply) {
+          if (track.seenText !== reply.text) {
+            track.seenText = reply.text;
+            track.stableSince = Date.now();
+          } else if (Date.now() - (track.stableSince ?? Date.now()) >= STABLE_MS) {
+            recover(track, "replied");
+            continue;
+          }
+        }
+        if (Date.now() - track.startedAt > MAX_TURN_MS) recover(track, "expired");
+      }
+    };
+
+    const timer = window.setInterval(reconcile, 4_000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") reconcile();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", reconcile);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", reconcile);
+    };
+  }, [setDialogue]);
 
   // Live artifact stream: when LÉLU's execution produces a real image
   useEffect(() => {
@@ -823,6 +942,21 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     const thisTurn = new Promise<void>((resolve) => { finishTurn = resolve; });
     convTailsRef.current.set(turnConversationId, thisTurn);
     setSendingIn((current) => [...current, turnConversationId]);
+    pendingTurnsRef.current = [
+      ...pendingTurnsRef.current,
+      {
+        conversationId: turnConversationId,
+        exchangeId,
+        userMessageId,
+        startedAt: Date.now(),
+        finish: finishTurn,
+        tail: thisTurn,
+      },
+    ];
+    // The turn is now visible as work in progress to every surface that reads
+    // the store (the Chat Universe's presence and card dots), not only to this
+    // component's own indicator.
+    MultiChatStore.getInstance().setProcessing(turnConversationId, true);
     // The message is in the conversation the moment it is sent, even when
     // it has to wait for the turn ahead of it — bound to its own chat, so
     // a switch while it waits cannot move it.
@@ -1093,6 +1227,13 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         const at = current.indexOf(turnConversationId);
         return at < 0 ? current : [...current.slice(0, at), ...current.slice(at + 1)];
       });
+      pendingTurnsRef.current = pendingTurnsRef.current.filter(
+        (track) => track.exchangeId !== exchangeId,
+      );
+      MultiChatStore.getInstance().setProcessing(
+        turnConversationId,
+        pendingTurnsRef.current.some((track) => track.conversationId === turnConversationId),
+      );
       if (convTailsRef.current.get(turnConversationId) === thisTurn) {
         convTailsRef.current.delete(turnConversationId);
       }

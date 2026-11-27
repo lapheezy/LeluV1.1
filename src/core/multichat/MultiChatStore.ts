@@ -177,7 +177,15 @@ export default class MultiChatStore {
     if (!stored || !Array.isArray(stored.conversations) || stored.conversations.length === 0) {
       return [];
     }
-    this.cache = stored.conversations;
+    // A page that has just loaded has no turn in flight, so a persisted
+    // `processing: true` is by definition a turn that ended while the tab was
+    // closed, reloaded or navigated away from. Left alone it is a spinner that
+    // never goes out — the measured discrepancy between "the server finished
+    // this turn" and "the client still says Processing". The flag is
+    // re-asserted by the turn that is actually running.
+    this.cache = stored.conversations.map((conversation) =>
+      conversation.processing ? { ...conversation, processing: false } : conversation,
+    );
     return this.cache;
   }
 

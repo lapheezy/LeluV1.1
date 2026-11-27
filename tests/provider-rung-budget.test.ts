@@ -315,10 +315,17 @@ test("a turn that keeps executing tools is not cut off by the rung deadline", as
  * same messages and tools to the next provider repeats every one of them, and
  * the second attempt's failure then replaces the reply with the offline
  * notice — a conversation that looks stuck after a successful tool run.
+ *
+ * Mission 44.5 kept that invariant and closed the other half of the loss: the
+ * next provider IS asked to write the answer, with NO tool schemas, from the
+ * results that already exist. So the assertions below changed shape on
+ * purpose — the second provider is called, and what makes that safe is that it
+ * is offered nothing to run.
  */
 test("a rung that already ran tools is not replayed on the next provider", async () => {
   let primaryCalls = 0;
   let secondaryCalled = false;
+  let secondaryTools = -1;
 
   const primary = fakeProvider(
     "Primary",
@@ -341,8 +348,9 @@ test("a rung that already ran tools is not replayed on the next provider", async
   const secondary = fakeProvider(
     "Secondary",
     2,
-    async () => {
+    async (request) => {
       secondaryCalled = true;
+      secondaryTools = (request.tools ?? []).length;
       return { text: "the second provider answered", provider: "Secondary", model: "s-1", processingTime: 2 };
     },
     true,
@@ -351,21 +359,17 @@ test("a rung that already ran tools is not replayed on the next provider", async
   const { context } = harness([primary, secondary], { allowTools: true });
   const result = await new ProviderResolver({ rungBudgetMs: 5_000 }).execute(context);
 
-  assert.equal(secondaryCalled, false, "the work was handed to another provider, which would run it again");
-  assert.equal(primaryCalls, 2, "the failed rung was not the one that answered");
-  assert.equal(result.response?.provider, "Primary");
-  assert.match(
-    result.response?.text ?? "",
-    /lelu_no_such_tool_for_rung_test/,
-    "the reply did not say what actually ran",
-  );
+  // It IS asked to narrate the completed step — and it cannot repeat it,
+  // because the request carries no tool schemas at all.
+  assert.equal(secondaryCalled, true, "the completed step was discarded instead of being narrated");
+  assert.equal(secondaryTools, 0, "the recovering provider was offered tools, so it could repeat the work");
+  assert.equal(primaryCalls, 2, "the failed rung was not the one that did the work");
+  assert.equal(result.response?.provider, "Secondary");
+  assert.match(result.response?.text ?? "", /the second provider answered/);
+  assert.match(result.response?.text ?? "", /Provenance: this answer was written from the 1 step/);
   assert.equal(result.response?.metadata?.toolsExecuted?.length, 1);
-  assert.equal(result.response?.metadata?.toolLoopStopped, "provider-failed-after-tools");
-  // Provider exhaustion preserves completed work and never claims completion.
-  assert.match(result.response?.text ?? "", /NOT complete/);
-  assert.match(result.response?.text ?? "", /Still needs reasoning/);
-  assert.match(result.response?.text ?? "", /did not switch to any paid service/);
-  assert.equal(result.response?.metadata?.success, false);
+  assert.equal(result.response?.metadata?.toolLoopStopped, "narration-recovered");
+  assert.equal(result.response?.metadata?.toolsRanBeforeFallback, true);
 });
 
 /**

@@ -203,6 +203,63 @@ export function describeEmptyChoice(provider: string, choice: unknown): string {
   return `${provider} returned no usable content${reason ? ` (finish_reason=${reason})` : ""}.`;
 }
 
+/**
+ * A completion that carried no answer.
+ *
+ * The type exists so a caller can act on WHY instead of matching on prose:
+ * `truncated` is the one empty answer that a bigger reply budget fixes, and
+ * it is the difference between a reasoning model that spent its whole
+ * allowance thinking (retry with room) and a provider that simply declined
+ * (fall through). Mission 44.5 measured both, live.
+ */
+export class EmptyCompletionError extends Error {
+  readonly truncated: boolean;
+  readonly finishReason?: string;
+
+  constructor(message: string, truncated: boolean, finishReason?: string) {
+    super(message);
+    this.name = "EmptyCompletionError";
+    this.truncated = truncated;
+    this.finishReason = finishReason;
+  }
+}
+
+/**
+ * The answer a STREAMED reply actually carries, or a typed failure.
+ *
+ * A reasoning model streams its thinking into `reasoning`
+ * (`reasoning_content` on some gateways) and writes `content` only
+ * afterwards. Measured live on 2026-11-27: Groq's gpt-oss-120b streamed 162
+ * characters of reasoning and ZERO content on a tool round, and the same
+ * model with a tight budget streams reasoning only and stops with
+ * finish_reason=length. The non-streamed reader has always fallen back to the
+ * reasoning field (`extractOpenAIText`); the streaming reader did not, so the
+ * SAME provider answered in one mode and "returned no usable content" in the
+ * other. This is that fallback, one place, for every OpenAI-shaped provider.
+ */
+export function streamedCompletionAnswer(
+  provider: string,
+  reply: StreamedReply,
+): { text: string; fromReasoning: boolean } {
+  const text = reply.text.trim();
+  if (text) return { text, fromReasoning: false };
+  // A tool request is a complete reply with no prose in it.
+  if (reply.toolCalls.length > 0) return { text: "", fromReasoning: false };
+  const reasoning = (reply.reasoning ?? "").trim();
+  // A round the OUTPUT BUDGET cut off is retried with more room, never
+  // answered with the fragment of thought that consumed the budget: that
+  // fragment is not an answer, and presenting it as one is exactly the kind of
+  // confident half-sentence this runtime exists to avoid.
+  if (reasoning && !isTruncating(reply.finishReason)) {
+    return { text: reasoning, fromReasoning: true };
+  }
+  throw new EmptyCompletionError(
+    describeEmptyChoice(provider, { finish_reason: reply.finishReason }),
+    isTruncating(reply.finishReason),
+    reply.finishReason,
+  );
+}
+
 /* ------------------------------------------------------------------ *
  * STREAMING, WITH TOOLS
  *
@@ -221,6 +278,14 @@ export interface StreamedReply {
   toolCalls: ToolCall[];
   finishReason?: string;
   usage?: unknown;
+  /**
+   * Thinking the model streamed BEFORE (or instead of) its answer.
+   *
+   * Kept apart from `text` on purpose: it is never shown as the answer while
+   * a real one is arriving, and it is the only content some reasoning models
+   * produce when their budget runs out.
+   */
+  reasoning?: string;
 }
 
 interface ToolCallDelta {
@@ -266,6 +331,7 @@ export async function readOpenAIStream(
   const decoder = new TextDecoder();
   let buffer = "";
   let text = "";
+  let reasoning = "";
   let finishReason: string | undefined;
   let usage: unknown;
   const calls = new Map<number, { id: string; name: string; args: string }>();
@@ -276,7 +342,15 @@ export async function readOpenAIStream(
     const data = trimmed.slice(5).trim();
     if (!data || data === "[DONE]") return;
     let chunk: {
-      choices?: Array<{ delta?: { content?: string | null; tool_calls?: ToolCallDelta[] }; finish_reason?: string | null }>;
+      choices?: Array<{
+        delta?: {
+          content?: string | null;
+          reasoning?: string | null;
+          reasoning_content?: string | null;
+          tool_calls?: ToolCallDelta[];
+        };
+        finish_reason?: string | null;
+      }>;
       usage?: unknown;
     };
     try {
@@ -291,6 +365,14 @@ export async function readOpenAIStream(
     if (typeof delta?.content === "string" && delta.content.length > 0) {
       text += delta.content;
       onDelta(text);
+    }
+    // Reasoning is accumulated, never streamed to the caller: it is thinking,
+    // and it only becomes the answer when nothing else arrived (see
+    // streamedCompletionAnswer).
+    if (typeof delta?.reasoning === "string") {
+      reasoning += delta.reasoning;
+    } else if (typeof delta?.reasoning_content === "string") {
+      reasoning += delta.reasoning_content;
     }
     for (const part of delta?.tool_calls ?? []) {
       const index = typeof part.index === "number" ? part.index : calls.size;
@@ -323,5 +405,5 @@ export async function readOpenAIStream(
     .filter(([, call]) => call.name)
     .map(([index, call]) => ({ id: call.id || `call_${index}`, name: call.name, arguments: parseStreamedArgs(call.args) }));
 
-  return { text, toolCalls, finishReason, usage };
+  return { text, toolCalls, finishReason, usage, ...(reasoning ? { reasoning } : {}) };
 }

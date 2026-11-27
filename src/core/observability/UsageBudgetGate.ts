@@ -32,6 +32,49 @@
 
 import UsageLedger, { ALL_SOURCES, type PendingUsage, type UsageEvent, type UsageKind } from "./UsageLedger";
 
+/**
+ * How long an ACCOUNT-SIDE check may hold a turn.
+ *
+ * Measured live (2026-11-27, Mission 44.5): in a signed-in session every turn
+ * stopped right after memory recall — no provider request at all, the message
+ * stored, the composer saying "Processing" for minutes, and the same again
+ * after a reload. The one await between recall and the provider that can
+ * never settle is this gate's account call: `reserve` awaited the remote
+ * reservation, and a database call that does not answer holds `gatedGenerate`
+ * forever. A budget check is not an answer, so it gets a deadline, and a
+ * missed deadline takes the path a FAILED check already takes: the local
+ * ledger decides, and a covering account budget refuses the call with a
+ * message instead of leaving the turn hanging.
+ *
+ * Overridable so a test can prove the deadline in milliseconds.
+ */
+function accountCheckTimeoutMs(): number {
+  const configured =
+    typeof process !== "undefined" && process.env
+      ? Number(process.env.LELU_ACCOUNT_CHECK_TIMEOUT_MS)
+      : Number.NaN;
+  return Number.isFinite(configured) && configured >= 50 ? configured : 4_000;
+}
+
+/** Resolve `promise`, or reject once `ms` passes — whichever happens first. */
+function withDeadline<T>(promise: Promise<T>, ms: number, what: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${what} did not answer within ${ms} ms`)), ms);
+    // A pending deadline must never keep a process alive on its own.
+    (timer as unknown as { unref?: () => void }).unref?.();
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export interface RemoteReserveResult {
   allowed: boolean;
   reason?: string;
@@ -125,7 +168,10 @@ export default class UsageBudgetGate {
 
   async reserve(kind: UsageKind, source: string, options: { reserveTokens?: number } = {}): Promise<Reservation> {
     const tokens = Math.max(0, Math.floor(options.reserveTokens ?? 0));
-    if (this.remoteFactory() && !(await this.accountReady())) {
+    if (
+      this.remoteFactory() &&
+      !(await withDeadline(this.accountReady(), accountCheckTimeoutMs(), "the account's budgets").catch(() => false))
+    ) {
       throw new BudgetExhaustedError(
         kind,
         source,
@@ -152,7 +198,11 @@ export default class UsageBudgetGate {
     if (remote) {
       let result: RemoteReserveResult | null = null;
       try {
-        result = await remote.reserve({ id: reservation.id, kind, source, reserveTokens: tokens });
+        result = await withDeadline(
+          remote.reserve({ id: reservation.id, kind, source, reserveTokens: tokens }),
+          accountCheckTimeoutMs(),
+          "the account's budget check",
+        );
       } catch {
         // The account could not be checked. With no budget covering this
         // call there is nothing to enforce: send it, record it, sync later.
@@ -191,7 +241,15 @@ export default class UsageBudgetGate {
     const remote = reservation.accountChecked ? this.remoteFactory() : null;
     if (remote) {
       try {
-        await remote.settle(reservation.id, event);
+        // Bounded for the same reason as reserve: this runs AFTER the answer
+        // arrived but before the turn returns, so an account that never
+        // answers left the reply streamed on screen and the turn never
+        // settled — the "Processing" that outlives its own answer.
+        await withDeadline(
+          remote.settle(reservation.id, event),
+          accountCheckTimeoutMs(),
+          "the account's usage sync",
+        );
       } catch {
         this.unsettled.add(reservation.id); // UsageSync upserts it later by the same id
       }
@@ -203,7 +261,12 @@ export default class UsageBudgetGate {
   async release(reservation: Reservation): Promise<void> {
     this.inFlight.delete(reservation.id);
     const remote = reservation.accountChecked ? this.remoteFactory() : null;
-    if (remote) await remote.release(reservation.id).catch(() => undefined); // server TTL frees it anyway
+    if (remote) {
+      // Server TTL frees it anyway.
+      await withDeadline(remote.release(reservation.id), accountCheckTimeoutMs(), "the account's reservation release").catch(
+        () => undefined,
+      );
+    }
   }
 
   unsettledIds(): string[] {

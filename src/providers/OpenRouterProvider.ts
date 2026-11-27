@@ -20,6 +20,8 @@ import {
   trailingUserTurn,
   readOpenAIStream,
   isTruncating,
+  streamedCompletionAnswer,
+  EmptyCompletionError,
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
@@ -305,11 +307,12 @@ export default class OpenRouterProvider implements AIProvider {
         if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s while answering.`);
         throw error;
       }
-      if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
-        throw new Error("OpenRouter returned no usable content.");
-      }
+      // Reasoning-only streams are answers here too (see openaiTools):
+      // 44.5 measured OpenRouter streaming 254 characters of reasoning and no
+      // content on a two-tool round.
+      const answer = streamedCompletionAnswer(this.name, streamed);
       return {
-        text: streamed.text.trim(),
+        text: answer.text,
         provider: this.name,
         model: payload.model,
         processingTime: Date.now() - started,
@@ -321,6 +324,7 @@ export default class OpenRouterProvider implements AIProvider {
           // 200 ≠ complete: see GroqProvider for why this is named.
           truncated: isTruncating(streamed.finishReason),
           streamed: true,
+          ...(answer.fromReasoning ? { answerFromReasoning: true } : {}),
         },
       };
     }
@@ -351,7 +355,11 @@ export default class OpenRouterProvider implements AIProvider {
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error(describeEmptyChoice("OpenRouter", data?.choices?.[0]));
+      throw new EmptyCompletionError(
+        describeEmptyChoice("OpenRouter", data?.choices?.[0]),
+        isTruncating(data?.choices?.[0]?.finish_reason),
+        data?.choices?.[0]?.finish_reason,
+      );
     }
 
     return {

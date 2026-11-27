@@ -18,9 +18,33 @@ export interface ToolRunRecord {
   ok: boolean;
   /** First line of the tool's own result, trimmed — never model text. */
   summary?: string;
+  /**
+   * The tool's own result, capped — the evidence a later narration is written
+   * from when the provider that asked for the work stops before answering.
+   *
+   * It is deliberately NOT part of the reply metadata (`publicToolRun`): a
+   * result body belongs to the turn, not to the chat message that outlives it.
+   */
+  content?: string;
 }
 
 const MAX_SUMMARY = 160;
+
+/** How much of one tool result is kept as evidence for a narration. */
+export const MAX_TOOL_EVIDENCE = 4_000;
+
+/** A tool result, capped, ready to be shown to a model that must narrate it. */
+export function toolEvidence(content: string | undefined): string | undefined {
+  if (!content) return undefined;
+  return content.length > MAX_TOOL_EVIDENCE ? `${content.slice(0, MAX_TOOL_EVIDENCE - 1)}…` : content;
+}
+
+/** A record safe to attach to a reply's metadata (no result bodies). */
+export function publicToolRun(record: ToolRunRecord): ToolRunRecord {
+  const copy: ToolRunRecord = { tool: record.tool, ok: record.ok };
+  if (record.summary) copy.summary = record.summary;
+  return copy;
+}
 
 /** A one-line, secret-free digest of a tool result for the partial-work report. */
 export function summarizeToolResult(content: string | undefined): string | undefined {
