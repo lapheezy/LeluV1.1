@@ -94,3 +94,9 @@
   .mv-side { border-left: 0; }
   .mv-aspects button span { display: none; }
 }
+.a3 { position: relative; width: 100%; height: calc(100% - 26px); min-height: 320px; }
+.a3 canvas { touch-action: none; }
+.a3-caption { position: absolute; left: 10px; right: 10px; bottom: 6px; margin: 0; font-size: 11px; color: #cbd5e1; pointer-events: none; text-shadow: 0 1px 2px #000; }
+.a3-label { font: 11px/1.2 Inter, system-ui, sans-serif; color: #e2e8f0; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 3px #000; }
+.a3-label.a3-on { color: #fde68a; font-weight: 600; }
+.a3-tick { font: 10px Inter, system-ui, sans-serif; color: #94a3b8; white-space: nowrap; pointer-events: none; }

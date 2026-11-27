@@ -52,7 +52,8 @@ export function v1Graph(map: NeuralMapIndex, opts: { includeReferenced?: boolean
 /* ---------------------------------------------------------- V2 */
 
 export interface ArchitectureData {
-  nodes: Array<{ id: string; path: string; function: string; files: number; lines: number }>;
+  nodes: Array<{ id: string; path: string; function: string; files: number; lines: number; commits?: number; lastChanged?: string | null; daily?: number[] }>;
+  history?: { from: string; to: string; days: number };
   edges: Array<{ from: string; to: string; imports: number }>;
 }
 
@@ -95,7 +96,14 @@ export function v2Graph(data: ArchitectureData = architecture as ArchitectureDat
       evidence: "measured",
       weight: n.lines,
       source: { authority: "architecture", id: n.path },
-      facts: { path: n.path, files: n.files, lines: n.lines, function: FUNCTION_LABEL[n.function] ?? n.function },
+      facts: {
+        path: n.path,
+        files: n.files,
+        lines: n.lines,
+        function: FUNCTION_LABEL[n.function] ?? n.function,
+        ...(data.history?.days ? { [`commits (${data.history.from} → ${data.history.to})`]: n.commits ?? 0, "last changed": n.lastChanged ?? `before ${data.history.from}` } : {}),
+      },
+      ...(n.daily ? { series: n.daily } : {}),
     })),
   ];
   const edges: MvEdge[] = [
@@ -108,9 +116,11 @@ export function v2Graph(data: ArchitectureData = architecture as ArchitectureDat
     aspect: "v2",
     nodes,
     edges,
+    ...(data.history?.days ? { meta: { historyFrom: data.history.from, historyTo: data.history.to, historyDays: data.history.days } } : {}),
     gaps: [
       "Wiring is from static imports (what can call what), not runtime calls.",
-      "Live activity is not shown: no runtime telemetry feeds this aspect yet.",
+      "Live activity is shown only in the 3D views, counted from the event bus in this session; with no events it shows none.",
+      ...(data.history?.days ? [`Change history covers ${data.history.from} → ${data.history.to} only (the history this clone has).`] : []),
       "Function groupings are editorial (scripts/neural/build-cognitive-architecture.ts).",
     ],
   };

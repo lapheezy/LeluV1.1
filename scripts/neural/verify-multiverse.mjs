@@ -109,11 +109,44 @@ try {
   await page.click('[data-aspect="v2"]');
   await page.selectOption('select[aria-label="Shared layout"]', "nested-universes");
   await unobstructed(page, "desktop V2");
-  check("V2 states that live activity is not measured", /telemetry/i.test((await page.locator("[data-mv-gaps]").textContent()) ?? ""));
+  check("V2 states where live activity comes from", /event bus/i.test((await page.locator("[data-mv-gaps]").textContent()) ?? ""));
   await page.click('[data-aspect="v3"]');
   check("V3 states that agent conversations are not recorded yet", /self-dialogue/i.test((await page.locator("[data-mv-gaps]").textContent()) ?? ""));
 
-  // Saved view: save, reload, restore.
+  // WP12: the ten V2 architecture views render in WebGL (measured from the GPU and the pixels).
+  await page.click('[data-aspect="v2"]');
+  const VIEWS3D = ["anatomical-core", "neural-sphere", "exploded-layers", "neural-universe", "connectome-tractography", "glass-brain", "multiscale", "circuit-board", "temporal-activation", "subsystem-constellation"];
+  for (const v of VIEWS3D) {
+    await page.selectOption('select[aria-label="Architecture render"]', v);
+    await page.waitForFunction((id) => { const el = document.querySelector("[data-arch-view]"); return el?.dataset.archView === id && Number(el.dataset.glFrames ?? 0) > 10; }, v, { timeout: 30000 }).catch(() => {});
+    const r = await page.evaluate(() => {
+      const el = document.querySelector("[data-arch-view]");
+      const c = el?.querySelector("canvas");
+      let colours = 0;
+      if (c) {
+        const probe = document.createElement("canvas");
+        probe.width = 64; probe.height = 64;
+        const ctx = probe.getContext("2d");
+        ctx.drawImage(c, 0, 0, 64, 64);
+        const d = ctx.getImageData(0, 0, 64, 64).data;
+        const seen = new Set();
+        for (let i = 0; i < d.length; i += 4) seen.add(`${d[i] >> 3},${d[i + 1] >> 3},${d[i + 2] >> 3}`);
+        colours = seen.size;
+      }
+      return { view: el?.dataset.archView, nodes: Number(el?.dataset.archNodes), edges: Number(el?.dataset.archEdges), bars: Number(el?.dataset.archBars), particles: Number(el?.dataset.archParticles), calls: Number(el?.dataset.glCalls), triangles: Number(el?.dataset.glTriangles), colours, live: el?.querySelector("[data-live-summary]")?.textContent };
+    });
+    check(`V2 3D · ${v} renders in WebGL`, r.view === v && r.nodes > 60 && r.calls > 10 && r.triangles > 1000 && r.colours > 20, JSON.stringify(r));
+    if (["anatomical-core", "connectome-tractography", "exploded-layers", "multiscale", "circuit-board", "temporal-activation"].includes(v)) {
+      n += 1;
+      await page.screenshot({ path: `${OUT}/${String(n).padStart(2, "0")}-v2-3d-${v}.png` });
+    }
+  }
+  const liveText = await page.locator("[data-live-summary]").textContent();
+  check("V2 3D states live activity from the event bus as it is", /event bus this session/.test(liveText ?? ""), liveText);
+  await page.selectOption('select[aria-label="Architecture render"]', "2d");
+
+  // Saved view: save (on V3), reload, restore.
+  await page.click('[data-aspect="v3"]');
   await page.selectOption('select[aria-label="Shared layout"]', "temporal-river");
   await page.fill('input[aria-label="Name this view"]', "Society over time");
   await page.click("[data-mv-save]");

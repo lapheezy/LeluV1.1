@@ -13,7 +13,7 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { neuralMap } from "../../../../core/neural/NeuralMap";
 import { v1Graph, v2Graph, v3Graph } from "../../../../core/neural/multiverse/Aspects";
 import { LAYOUTS, layout as runLayout, type LayoutResult } from "../../../../core/neural/multiverse/Layouts";
@@ -24,6 +24,9 @@ import { EXECUTIVES } from "../../../../core/executive/ExecutiveBoard";
 import type { LeluAgent } from "../../../../core/agents/AgentTypes";
 import { NeuralView } from "./neuralView";
 import { useNeuralVersion } from "./useNeural";
+import { ARCH_VIEWS, type ArchViewId } from "../../../../core/neural/multiverse/Architecture3D";
+// WebGL only loads when a 3D view is chosen.
+const Architecture3DView = lazy(() => import("./Architecture3DView"));
 
 const PALETTE = ["#7dd3fc", "#a78bfa", "#f472b6", "#fbbf24", "#34d399", "#fb923c", "#60a5fa", "#e879f9", "#a3e635", "#f87171", "#2dd4bf", "#c084fc", "#facc15", "#94a3b8"];
 const THEMES: Record<ViewSettings["theme"], { bg: string; ink: string; guide: string }> = {
@@ -127,7 +130,21 @@ export default function MultiverseView({ settings, onChange }: { settings: ViewS
   return (
     <div className="mv" data-mv-aspect={settings.aspect} data-mv-layout={layoutId} data-mv-theme={settings.theme} data-mv-nodes={graph.nodes.length} data-mv-edges={graph.edges.length}>
       <aside className="mv-controls" aria-label="Layout and view controls">
-        <label>
+        {settings.aspect === "v2" ? (
+          <label>
+            Render
+            <select value={settings.view3d ?? "2d"} onChange={(e) => onChange({ view3d: e.target.value === "2d" ? null : (e.target.value as ArchViewId) })} aria-label="Architecture render">
+              <option value="2d">2D · shared layout</option>
+              {ARCH_VIEWS.map((v) => (
+                <option key={v.id} value={v.id}>
+                  3D · {v.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {settings.aspect === "v2" && settings.view3d ? <small className="mv-blurb">{ARCH_VIEWS.find((v) => v.id === settings.view3d)?.blurb}</small> : null}
+        <label hidden={settings.aspect === "v2" && !!settings.view3d}>
           Layout
           <select value={layoutId} onChange={(e) => onChange({ layout: e.target.value as ViewSettings["layout"] })} aria-label="Shared layout">
             {LAYOUTS.map((l) => (
@@ -222,6 +239,11 @@ export default function MultiverseView({ settings, onChange }: { settings: ViewS
         ) : null}
       </aside>
       <main className="mv-stage" style={{ background: theme.bg, color: theme.ink }}>
+        {settings.aspect === "v2" && settings.view3d ? (
+          <Suspense fallback={<p className="mv-hint">Loading the 3D view…</p>}>
+            <Architecture3DView graph={graph} view={settings.view3d} selected={settings.focus} onSelect={(id) => onChange({ focus: id })} colour={colour} motion={settings.motion} />
+          </Suspense>
+        ) : (
         <svg viewBox={`0 0 ${canvasW} ${canvasH}`} className="mv-svg" role="img" aria-label={`${settings.aspect.toUpperCase()} in ${layoutId}`} data-motion={settings.motion ? "on" : "off"}>
           {placed.guides.map((g, i) =>
             g.kind === "ring" ? (
@@ -305,6 +327,7 @@ export default function MultiverseView({ settings, onChange }: { settings: ViewS
             })}
           </g>
         </svg>
+        )}
         <p className="mv-legend">
           {graph.nodes.length} nodes · {graph.edges.length} relations · solid = declared/measured · dashed = inferred · dotted = classified
         </p>

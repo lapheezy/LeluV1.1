@@ -15,6 +15,7 @@
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
+import { execFileSync } from "node:child_process";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const CORE = join(ROOT, "src/core");
@@ -60,6 +61,55 @@ function subsystemOf(file: string): string | null {
 
 const IMPORT = /(?:from\s+|import\s*\(\s*)["'](\.{1,2}\/[^"']+)["']/g;
 
+/**
+ * Measured CHANGE activity (not processing): commits touching each subsystem
+ * per day, over the history this clone has. The window is reported as it is
+ * (a shallow clone has a short one); nothing is extrapolated.
+ */
+export function changeHistory(): { from: string; to: string; days: number; perSubsystem: Record<string, { commits: number; lastChanged: string; daily: number[] }> } {
+  let out = "";
+  try {
+    out = execFileSync("git", ["log", "--format=@%cs %H", "--name-only", "--", "src/core"], { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  } catch {
+    return { from: "", to: "", days: 0, perSubsystem: {} };
+  }
+  // In a shallow clone the boundary commits have no parent here, so git shows
+  // them as adding every file: they are not changes and are skipped.
+  let shallow = new Set<string>();
+  try {
+    const gitDir = execFileSync("git", ["rev-parse", "--git-dir"], { cwd: ROOT, encoding: "utf8" }).trim();
+    shallow = new Set(readFileSync(resolve(ROOT, gitDir, "shallow"), "utf8").split("\n").filter(Boolean));
+  } catch {
+    /* not shallow */
+  }
+  const commits: Array<{ day: string; subs: Set<string> }> = [];
+  let skipping = false;
+  for (const line of out.split("\n")) {
+    if (line.startsWith("@")) {
+      const [day, hash] = line.slice(1).split(" ");
+      skipping = shallow.has(hash);
+      if (!skipping) commits.push({ day, subs: new Set() });
+    } else if (!skipping && line.startsWith("src/core/") && commits.length) {
+      const rest = line.slice("src/core/".length).split("/");
+      commits.at(-1)!.subs.add(rest.length === 1 ? "core-root" : rest[0]);
+    }
+  }
+  if (!commits.length) return { from: "", to: "", days: 0, perSubsystem: {} };
+  const days = commits.map((c) => c.day).sort();
+  const from = days[0];
+  const to = days.at(-1)!;
+  const span = Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000) + 1;
+  const perSubsystem: Record<string, { commits: number; lastChanged: string; daily: number[] }> = {};
+  for (const c of commits)
+    for (const sub of c.subs) {
+      const r = (perSubsystem[sub] ??= { commits: 0, lastChanged: c.day, daily: new Array(span).fill(0) });
+      r.commits += 1;
+      if (c.day > r.lastChanged) r.lastChanged = c.day;
+      r.daily[Math.round((Date.parse(c.day) - Date.parse(from)) / 86_400_000)] += 1;
+    }
+  return { from, to, days: span, perSubsystem };
+}
+
 export function build() {
   const files = walk(CORE);
   const subsystems = new Map<string, { files: number; lines: number }>();
@@ -78,6 +128,7 @@ export function build() {
       edges.set(key, (edges.get(key) ?? 0) + 1);
     }
   }
+  const history = changeHistory();
   const nodes = [...subsystems.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([id, s]) => ({
@@ -86,14 +137,19 @@ export function build() {
       function: FUNCTION_OF[id] ?? "unclassified",
       files: s.files,
       lines: s.lines,
+      commits: history.perSubsystem[id]?.commits ?? 0,
+      lastChanged: history.perSubsystem[id]?.lastChanged ?? null,
+      daily: history.perSubsystem[id]?.daily ?? new Array(history.days).fill(0),
     }));
   return {
     generatedBy: "scripts/neural/build-cognitive-architecture.ts",
+    history: { from: history.from, to: history.to, days: history.days, note: "commits touching each subsystem per day, from this clone's git history; change activity, not runtime processing" },
     evidence: {
       nodes: "directory exists in src/core; file and line counts measured from the source",
       edges: "static relative imports between subsystems, counted (inferred wiring, not runtime calls)",
       function: "editorial classification of each directory (FUNCTION_OF in the generator)",
-      activity: "not measured here: no runtime telemetry is read by this generator",
+      history: "git commits touching each subsystem (measured change activity, not runtime processing)",
+      activity: "not measured here: live activity is read at runtime from the event bus, never from this file",
     },
     nodes,
     edges: [...edges.entries()]

@@ -48,6 +48,8 @@ export interface MvNode {
   /** Where to go back to the source of truth. */
   source: { authority: string; id: string };
   facts: Record<string, string | number | boolean>;
+  /** A measured series (e.g. commits per day), when the authority has one. */
+  series?: number[];
 }
 
 export interface MvEdge {
@@ -66,6 +68,8 @@ export interface MvGraph {
   edges: MvEdge[];
   /** What this aspect could not show, stated rather than hidden. */
   gaps: string[];
+  /** Aspect-level facts (e.g. the history window a series covers). */
+  meta?: Record<string, string | number>;
 }
 
 export const ASPECTS: Record<AspectId, { label: string; title: string; blurb: string }> = {

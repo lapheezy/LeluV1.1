@@ -109,7 +109,7 @@ test("V2 subsystems are real directories and its wiring is the real imports", ()
     assert.equal(n.evidence, "measured");
   }
   assert.ok(g.edges.filter((e) => e.kind === "imports").every((e) => e.evidence === "inferred" && (e.weight ?? 0) > 0));
-  assert.ok(g.gaps.some((x) => /telemetry/.test(x)), "says that activity is not measured");
+  assert.ok(g.gaps.some((x) => /event bus/.test(x)), "says where live activity comes from, and that none is shown without events");
 });
 
 test("V2's committed evidence matches the source as it is now", () => {
@@ -173,4 +173,47 @@ test("saved views reject malformed settings instead of trusting them", () => {
   assert.equal(s.layout, "neighbourhood");
   assert.equal(s.density, 2);
   assert.equal(s.theme, "cosmos");
+});
+
+/* ---------------------------------------------------------- WP12: V2 in 3D */
+
+import { ARCH_VIEWS, EVENT_SUBSYSTEM, archLayout, liveActivity } from "../src/core/neural/multiverse/Architecture3D";
+
+test("V2 has ten 3D architecture views and each places every real node in 3D", () => {
+  const g = v2Graph();
+  assert.equal(ARCH_VIEWS.length, 10);
+  for (const { id } of ARCH_VIEWS) {
+    const a = archLayout(id, g);
+    assert.deepEqual(archLayout(id, g), a, `${id} deterministic`);
+    for (const n of g.nodes) {
+      const p = a.positions[n.id];
+      assert.ok(p && p.every(Number.isFinite), `${id}: ${n.id} placed`);
+    }
+    // A real 3D view uses depth: not every node on one plane (except the board and the time axis).
+    if (id !== "circuit-board" && id !== "temporal-activation") {
+      const ys = new Set(g.nodes.map((n) => a.positions[n.id][1].toFixed(2)));
+      const zs = new Set(g.nodes.map((n) => a.positions[n.id][2].toFixed(2)));
+      assert.ok(ys.size > 3 && zs.size > 3, `${id} is three-dimensional`);
+    }
+  }
+});
+
+test("temporal activation draws exactly the measured commit days, and multiscale one particle per real file", () => {
+  const g = v2Graph();
+  const t = archLayout("temporal-activation", g);
+  const expected = g.nodes.filter((n) => n.kind === "subsystem").reduce((s, n) => s + (n.series ?? []).filter((c) => c > 0).length, 0);
+  assert.equal(t.bars!.length, expected);
+  assert.ok(t.bars!.every((b) => b.height > 0), "no invented zero-height activity");
+  const m = archLayout("multiscale", g);
+  const files = g.nodes.filter((n) => n.kind === "subsystem").reduce((s, n) => s + Number(n.facts.files), 0);
+  assert.equal(m.particles!.length, files);
+});
+
+test("live activity is counted from real events, by a table that names only real subsystems", () => {
+  const subsystems = new Set(v2Graph().nodes.filter((n) => n.kind === "subsystem").map((n) => n.label));
+  for (const [type, sub] of Object.entries(EVENT_SUBSYSTEM)) assert.ok(subsystems.has(sub), `${type} → ${sub} exists`);
+  const live = liveActivity([{ type: "tool_started" }, { type: "tool_result" }, { type: "memory_update" }, { type: "mystery" }]);
+  assert.deepEqual(live.bySubsystem, { "subsystem:tools": 2, "subsystem:memory": 1 });
+  assert.deepEqual(live.unmapped, { mystery: 1 }, "an unknown type is reported, not dropped");
+  assert.deepEqual(liveActivity([]).bySubsystem, {}, "no events, no activity");
 });

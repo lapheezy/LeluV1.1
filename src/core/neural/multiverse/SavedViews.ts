@@ -15,6 +15,7 @@
 
 import type { AspectId } from "./MultiverseTypes";
 import { LAYOUTS, type LayoutId } from "./Layouts";
+import { ARCH_VIEWS, type ArchViewId } from "./Architecture3D";
 
 export interface ViewSettings {
   aspect: AspectId;
@@ -28,6 +29,8 @@ export interface ViewSettings {
   density: number; // 0.5 … 2, node size multiplier
   motion: boolean;
   theme: "cosmos" | "paper" | "infrared";
+  /** V2 only: one of the ten 3D architecture views, or null for the 2D shared layout. */
+  view3d: ArchViewId | null;
 }
 
 export interface SavedView {
@@ -49,10 +52,12 @@ export const DEFAULT_SETTINGS: ViewSettings = {
   density: 1,
   motion: true,
   theme: "cosmos",
+  view3d: null,
 };
 
 const KEY = "lelu.neural.multiverse.views.v1";
 const LAYOUT_IDS = new Set<string>(["neighbourhood", ...LAYOUTS.map((l) => l.id)]);
+const VIEW3D_IDS = new Set<string>(ARCH_VIEWS.map((v) => v.id));
 
 interface Storage {
   getItem(k: string): string | null;
@@ -77,6 +82,7 @@ export function sanitize(s: Partial<ViewSettings> | undefined): ViewSettings {
     density: Number.isFinite(v.density) ? Math.min(2, Math.max(0.5, v.density)) : 1,
     motion: v.motion !== false,
     theme: v.theme === "paper" || v.theme === "infrared" ? v.theme : "cosmos",
+    view3d: typeof v.view3d === "string" && VIEW3D_IDS.has(v.view3d) ? v.view3d : null,
   };
 }
 
