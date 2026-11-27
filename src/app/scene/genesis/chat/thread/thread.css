@@ -96,10 +96,10 @@
   background: radial-gradient(circle at 35% 25%, #ffffff30, transparent 30%), linear-gradient(160deg, hsl(var(--hue) 70% 24% / .8), hsl(calc(var(--hue) + 25) 70% 10% / .85));
   border: 1.5px solid hsl(var(--hue) 95% 75% / .85); box-shadow: 0 0 26px hsl(var(--hue) 95% 60% / .6), 0 0 4px hsl(var(--accent) 95% 65% / .9), inset 0 -18px 40px hsl(var(--accent) 90% 55% / .2); }
 .rd-shape::before { content: ""; position: absolute; left: 50%; top: -10px; width: 26px; height: 26px; transform: translateX(-50%) rotate(45deg); border-radius: 4px 50% 4px 50%; background: inherit; border-top: 1.5px solid hsl(var(--hue) 95% 75% / .85); border-left: 1.5px solid hsl(var(--hue) 95% 75% / .85); }
-.rd-label { text-align: center; padding: 16% 10% 2%; font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rd-body { flex: 1; min-height: 0; margin: 0 12% 16%; overflow: hidden; border-radius: 40%; position: relative; }
+.rd-label { text-align: center; padding: 18% 18% 2%; font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rd-body { flex: 1; min-height: 0; margin: 0 17% 20%; overflow: hidden; border-radius: 40%; position: relative; }
 .rd-body .tm-bar { justify-content: center; }
-.rd-text { margin: 0; padding: 4px; font-size: 12.5px; text-align: center; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; }
+.rd-text { margin: 0; padding: 4px 6px; font-size: 12.5px; text-align: center; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; }
 .rd-drop[data-focused="true"] .rd-text { -webkit-line-clamp: 20; }
 .rd-shine { position: absolute; left: 22%; top: 18%; width: 14%; height: 8%; border-radius: 50%; background: #ffffff40; filter: blur(2px); pointer-events: none; }
 .rd-puddle { position: absolute; left: 0; right: 40px; bottom: 0; height: 120px; pointer-events: none; }

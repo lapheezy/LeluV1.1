@@ -214,7 +214,7 @@ export function layoutThread(base: BaseLayout, width: number, height: number, id
     case "workspace": {
       // A readable conversation column: at least 300 px.
       const chatW = Math.max(300, width * 0.25);
-      const chat = { x: width - chatW - pad / 2, y: 64, w: chatW, h: height - 150 };
+      const chat = { x: width - chatW - pad - 12, y: 64, w: chatW, h: height - 150 };
       const avatar = { x: pad, y: 8, w: Math.min(250, width * 0.17), h: Math.min(330, height * 0.42) };
       // Objects start right of her spot: she never stands on content.
       const left = avatar.x + avatar.w + pad;
