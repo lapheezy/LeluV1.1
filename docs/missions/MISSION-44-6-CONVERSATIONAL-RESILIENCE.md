@@ -172,7 +172,8 @@ replies that already existed, and at most one string carried on a stream error.
 ## 9. Branch and commits
 
 - Branch: `mission/44-6-conversational-resilience`, created from `fd9169d`
-- Delivery commit: recorded in the commit on this branch (`Mission 44.6: …`), pushed to
+- Delivery commit: **`313168b`** — "Stop presenting a stale result as a fresh check, and say when
+  a turn died" (21 files, +862 / −7), pushed to
   `origin/mission/44-6-conversational-resilience`
 - `mission/44-5-conversational-reliability` (`fd9169d`), `mission/44-4-recovery-acceptance`
   (`77ead33`) and canonical `freebuff/08af6cc9ef212913e6b7209b` (`543da7c`) untouched
