@@ -14,7 +14,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { interruptedTurnText } from "../src/core/multichat/interruptedTurn";
+import { interruptedTurnText, reusableRetryId } from "../src/core/multichat/interruptedTurn";
 
 const PAGE_START = 1_800_000_000_000;
 const before = PAGE_START - 120_000;
@@ -51,3 +51,26 @@ test("a stored message with no text is not a question to resend", () => {
   assert.equal(interruptedTurnText([{ role: "user", text: "   ", timestamp: before }], PAGE_START, false), null);
   assert.equal(interruptedTurnText([{ role: "user", timestamp: before }], PAGE_START, false), null);
 });
+
+/**
+ * Mission 44.7, measured in the Chat Universe window: pressing "Try again" on
+ * the interrupted-turn notice appended the same question a second time and
+ * answered it, so the thread read question, question, answer.
+ */
+test("a retry reuses the unanswered question instead of stacking a copy of it", () => {
+  const messages = [{ id: "m1", role: "user", text: "Which branch is checked out?", timestamp: before }];
+  assert.equal(reusableRetryId(messages, "  Which branch is checked out? "), "m1");
+  // Nothing to reuse: an empty conversation, a different question, no id.
+  assert.equal(reusableRetryId([], "hello"), null);
+  assert.equal(reusableRetryId(messages, "something else"), null);
+  assert.equal(reusableRetryId([{ role: "user", text: "x" }], "x"), null);
+});
+
+test("after a visible failure the retry is a new turn, and the failure stays readable", () => {
+  const messages = [
+    { id: "m1", role: "user", text: "Build it", timestamp: before },
+    { id: "m2", role: "assistant", text: "The provider failed.", timestamp: before + 1_000 },
+  ];
+  assert.equal(reusableRetryId(messages, "Build it"), null);
+});
+

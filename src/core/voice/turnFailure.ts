@@ -11,7 +11,14 @@
  *   playback-failure       her reply was generated but could not be played
  *   user-cancellation      the person stopped it (Stop, or barge-in)
  *   network-failure        the network itself failed
+ *   provider-rate-limited  the provider was reached and refused for capacity
+ *                          (429, the minute's tokens, an overloaded model)
  *   provider-unavailable   providers refused (quota, credit, key) — not a timeout
+ *
+ * Mission 44.7 measured the gap this fills: with every model call answered
+ * 429 on purpose, the reply said "all AI providers are unreachable or
+ * unconfigured" — the same mislabelled state this mission exists to remove.
+ * A rate-limited chain is a wait, not an outage, and now says so.
  *
  * Pure, so it is unit-tested.
  */
@@ -22,6 +29,7 @@ export type VoiceTurnFailureKind =
   | "playback-failure"
   | "user-cancellation"
   | "network-failure"
+  | "provider-rate-limited"
   | "provider-unavailable";
 
 export interface VoiceTurnFailure {
@@ -32,10 +40,18 @@ export interface VoiceTurnFailure {
 
 const TIMEOUT = /timed out|timeout|BodyStreamBuffer was aborted|deadline|rung budget|chain budget|took too long/i;
 const NETWORK = /failed to fetch|networkerror|network error|ERR_NETWORK|ERR_INTERNET|offline|ECONNRESET|ENOTFOUND|load failed/i;
+/**
+ * Reached, and refused for CAPACITY rather than for an account problem.
+ * 429 is the rate limit itself; 503/overloaded is the same condition on the
+ * provider's side. A spent DAILY quota is not here: that is a wait until
+ * tomorrow, which `provider-unavailable` already covers honestly.
+ */
+const RATE_LIMIT = /\b429\b|rate[- ]?limit|too many requests|tokens per minute|\btpm\b|overloaded|capacity|\b503\b|service unavailable/i;
 
 /** Classify one provider error message (not a user stop). */
-export function classifyProviderError(message: string): "provider-timeout" | "network-failure" | "provider-unavailable" {
+export function classifyProviderError(message: string): "provider-timeout" | "provider-rate-limited" | "network-failure" | "provider-unavailable" {
   if (TIMEOUT.test(message)) return "provider-timeout";
+  if (RATE_LIMIT.test(message)) return "provider-rate-limited";
   if (NETWORK.test(message) && !/\b(4\d\d|5\d\d)\b/.test(message)) return "network-failure";
   return "provider-unavailable";
 }
@@ -45,11 +61,16 @@ export function classifyProviderError(message: string): "provider-timeout" | "ne
  * anywhere in the chain is what the person needs to hear about (the
  * others are standing conditions such as a spent quota), then network.
  */
-export function classifyChainFailure(errors: string[]): "provider-timeout" | "network-failure" | "provider-unavailable" {
+export function classifyChainFailure(errors: string[]): "provider-timeout" | "provider-rate-limited" | "network-failure" | "provider-unavailable" {
   const kinds = errors.map(classifyProviderError);
   if (kinds.includes("provider-timeout")) return "provider-timeout";
+  // Capacity is what the person can act on ("wait a minute"), so it wins over
+  // an outage in the same chain — but a network failure with no refusal at all
+  // is still the network's fault.
+  if (kinds.length > 0 && kinds.every((kind) => kind === "provider-rate-limited")) return "provider-rate-limited";
   if (kinds.length > 0 && kinds.every((kind) => kind === "network-failure")) return "network-failure";
   if (kinds.includes("network-failure") && !kinds.includes("provider-unavailable")) return "network-failure";
+  if (kinds.includes("provider-rate-limited") && !kinds.includes("provider-unavailable")) return "provider-rate-limited";
   return "provider-unavailable";
 }
 
@@ -81,6 +102,7 @@ export function failureFromError(error: unknown): VoiceTurnFailure {
   const kind = classifyProviderError(message);
   const text =
     kind === "provider-timeout" ? "The model provider did not answer in time. Nothing was lost — ask again."
+    : kind === "provider-rate-limited" ? "Every provider is rate-limited or out of capacity right now. Nothing was lost — give it a minute and ask again."
     : kind === "network-failure" ? "The network failed while I was answering. Nothing was lost — ask again when you're back online."
     : "I couldn't get an answer from any provider. Nothing was lost — ask again.";
   return { kind, message: text };

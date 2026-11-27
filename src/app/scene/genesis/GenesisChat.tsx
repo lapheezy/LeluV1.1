@@ -86,7 +86,7 @@ import { useWorkspace } from "./useWorkspace";
 import SelectedArtifactChip from "./SelectedArtifactChip";
 import { layer } from "../../../core/ui/Layers";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
-import { interruptedTurnText } from "../../../core/multichat/interruptedTurn";
+import { interruptedTurnText, reusableRetryId } from "../../../core/multichat/interruptedTurn";
 import { bindMessage, bindTask, claimTurn, ownerForTask, releaseTurn } from "../../../core/multichat/TurnOwnership";
 import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../core/multichat/TurnActivity";
 import { recordTurnActivity } from "./chat/activityRecorder";
@@ -905,7 +905,17 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       setPendingMedia([]);
       setPendingFiles([]);
     }
-    const userMessageId = followUp?.userMessageId ?? crypto.randomUUID();
+    // A retry of a question with no answer after it — the interrupted-turn
+    // notice — is that same message asked again, not a second copy of it.
+    // Measured in Mission 44.7: "Try again" left the question twice in the
+    // thread under one answer. Read from the STORE, not this component's
+    // mirror: the click may have switched conversation in the same tick.
+    let retryMessageId: string | undefined;
+    if (retrying !== null && !followUp) {
+      const stored = MultiChatStore.getInstance().get(MultiChatStore.getInstance().getActiveId());
+      retryMessageId = reusableRetryId(stored?.messages ?? [], typed) ?? undefined;
+    }
+    const userMessageId = followUp?.userMessageId ?? retryMessageId ?? crypto.randomUUID();
     const attachments = media.map((item) => item.dataUrl);
     // An attached 3D file rides with the message it belongs to, parsed from its
     // own bytes — the upload is never re-encoded.
@@ -978,7 +988,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     // The message is in the conversation the moment it is sent, even when
     // it has to wait for the turn ahead of it — bound to its own chat, so
     // a switch while it waits cannot move it.
-    if (!followUp) {
+    if (!followUp && !retryMessageId) {
       bindMessage(userMessageId, turnConversationId);
       addMessage(userMessage);
     }

@@ -1475,7 +1475,12 @@ export default class ProviderResolver {
         text:
           failureKind === "provider-timeout"
             ? "I couldn't get an answer in time — the model provider took too long to reply and the other providers are unavailable right now. Nothing was lost; ask me again."
-            : "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
+            : failureKind === "provider-rate-limited"
+              // Measured live in Mission 44.7: injecting a 429 on every model
+              // call produced "all AI providers are unreachable or
+              // unconfigured". They were reached, and they answered.
+              ? "Every provider that could answer is rate-limited or out of capacity for this model right now, so the request never reached one. Nothing was lost — nothing ran and nothing was sent twice. Give it a minute and ask again."
+              : "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
         provider: "offline",
         model: "offline",
         processingTime: Date.now() - started,

@@ -63,7 +63,11 @@ test("the 20-turn run's errors classify correctly", () => {
   assert.equal(classifyProviderError("BodyStreamBuffer was aborted"), "provider-timeout");
   assert.equal(classifyProviderError("OpenRouter timed out after 30s"), "provider-timeout");
   assert.equal(classifyProviderError("Fireworks HTTP 412: Account is suspended"), "provider-unavailable");
-  assert.equal(classifyProviderError("Groq failed 429: Rate limit reached"), "provider-unavailable");
+  // Mission 44.7 corrected this expectation: a 429 means the provider was
+  // REACHED and refused for capacity, which is a wait, not an outage.
+  assert.equal(classifyProviderError("Groq failed 429: Rate limit reached"), "provider-rate-limited");
+  assert.equal(classifyProviderError("Cerebras HTTP 503: Service Unavailable"), "provider-rate-limited");
+  assert.equal(classifyProviderError("OpenRouter HTTP 500: internal error"), "provider-unavailable");
   assert.equal(classifyProviderError("OpenRouter network error: Failed to fetch"), "network-failure");
   // The exact chain seen per turn: OpenRouter timeout, then quota/credit refusals.
   assert.equal(classifyChainFailure([
@@ -73,6 +77,18 @@ test("the 20-turn run's errors classify correctly", () => {
   ]), "provider-timeout");
   assert.equal(classifyChainFailure(["Failed to fetch", "NetworkError when attempting to fetch resource."]), "network-failure");
   assert.equal(classifyChainFailure(["Cerebras HTTP 401: Wrong API Key"]), "provider-unavailable");
+  // Injecting a 429 on every call (Mission 44.7, in a browser): one kind, and
+  // it says "wait", not "unreachable".
+  assert.equal(classifyChainFailure(["OpenRouter HTTP 429: Rate limit reached"]), "provider-rate-limited");
+  assert.equal(
+    classifyChainFailure(["OpenRouter HTTP 429: rate limit", "Groq failed 429: Rate limit reached for model"]),
+    "provider-rate-limited",
+  );
+  // A mixed chain with a real refusal still reads as unavailable.
+  assert.equal(
+    classifyChainFailure(["Groq failed 429: rate limit", "Cerebras HTTP 401: Wrong API Key"]),
+    "provider-unavailable",
+  );
 });
 
 test("the offline notice is recognised as a failure, not an answer", () => {
