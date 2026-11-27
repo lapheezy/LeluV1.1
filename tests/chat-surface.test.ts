@@ -395,9 +395,11 @@ test("Step 3 (revised M15.3): under a phone sheet LÉLU's single presence stays 
   // paused — never a hidden canvas that keeps drawing.
   const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
   assert.doesNotMatch(companion, /return null;\s*\/\/ Where she belongs/, "no unmount under a sheet");
-  assert.match(companion, /paused=\{inWorld \|\| lowPowerRest\}/, "paused only when hidden in a world, or in the measured low-power rest");
+  // WP11 adds one more hidden-and-paused state: "away", while a full-screen
+  // surface (the standalone Neural Map) covers everything.
+  assert.match(companion, /paused=\{inWorld \|\| lowPowerRest \|\| place === "away"\}/, "paused only when hidden in a world, away behind a full-screen surface, or in the measured low-power rest");
   assert.match(companion, /const lowPowerRest = restsOnStill\(\{ besidePhoneSheet: underSheet, renderProfile \}\);/, "the rest is the measured light-device rule, not every phone");
-  assert.match(companion, /visibility: inWorld \? "hidden" : "visible"/, "hidden only in a world (where she stands in the scene) — never because windows crowd");
+  assert.match(companion, /visibility: inWorld \|\| place === "away" \? "hidden" : "visible"/, "hidden only in a world (where she stands in the scene) or behind a full-screen surface — never because windows crowd");
   assert.match(companion, /underSheet \? CHAT_WINDOW_Z \+ 10/, "above the sheet, not hidden behind it");
   assert.match(companion, /const underSheet = compact && !surface\.cosmosRendered;/);
   const profile = readFileSync("src/app/scene/genesis/avatar/presentationProfile.ts", "utf8");

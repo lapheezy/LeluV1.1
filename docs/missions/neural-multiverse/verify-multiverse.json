@@ -1,5 +1,5 @@
 {
- "at": "2026-11-27T19:09:47.992Z",
+ "at": "2026-11-27T20:15:06.216Z",
  "results": [
   {
    "name": "Neural Map opens with the aspect selector",
@@ -12,7 +12,7 @@
    "detail": ""
   },
   {
-   "name": "desktop V1: no control or stage of the map is covered (10 checked)",
+   "name": "desktop V1: no control or stage of the map is covered (11 checked)",
    "status": "VERIFIED",
    "detail": ""
   },
@@ -24,62 +24,62 @@
   {
    "name": "v1 · core-orbit draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"core-orbit\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"core-orbit\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · galactic-spiral draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"galactic-spiral\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"galactic-spiral\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · nested-universes draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"nested-universes\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"nested-universes\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · force-directed draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"force-directed\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"force-directed\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · dimensional-layers draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"dimensional-layers\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"dimensional-layers\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · radial-constellation draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"radial-constellation\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"radial-constellation\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · infinite-canvas draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"infinite-canvas\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"infinite-canvas\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · temporal-river draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"temporal-river\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"temporal-river\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · matrix-grid draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"matrix-grid\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"matrix-grid\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · topographic-field draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"topographic-field\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"topographic-field\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · chord-ring draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"chord-ring\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"chord-ring\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v1 · holographic-spatial draws every node it derived",
    "status": "VERIFIED",
-   "detail": "{\"aspect\":\"v1\",\"layout\":\"holographic-spatial\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"holographic-spatial\",\"nodes\":96,\"edges\":49,\"drawn\":96}"
   },
   {
    "name": "v2 · core-orbit draws every node it derived",
@@ -202,7 +202,7 @@
    "detail": "{\"aspect\":\"v3\",\"layout\":\"holographic-spatial\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
   },
   {
-   "name": "desktop V2: no control or stage of the map is covered (27 checked)",
+   "name": "desktop V2: no control or stage of the map is covered (28 checked)",
    "status": "VERIFIED",
    "detail": ""
   },
@@ -224,57 +224,57 @@
   {
    "name": "V2 3D · anatomical-core renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"anatomical-core\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":83,\"triangles\":40792,\"colours\":597,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"anatomical-core\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":83,\"triangles\":40792,\"colours\":593,\"live\":\"Live: 26 events on the event bus this session, 26 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · neural-sphere renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"neural-sphere\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":83,\"triangles\":40792,\"colours\":818,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"neural-sphere\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":79,\"triangles\":34320,\"colours\":844,\"live\":\"Live: 29 events on the event bus this session, 29 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · exploded-layers renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"exploded-layers\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":79,\"triangles\":34320,\"colours\":724,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"exploded-layers\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":67,\"triangles\":17208,\"colours\":714,\"live\":\"Live: 29 events on the event bus this session, 29 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · neural-universe renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"neural-universe\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":67,\"triangles\":17208,\"colours\":727,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"neural-universe\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":74,\"triangles\":31200,\"colours\":734,\"live\":\"Live: 32 events on the event bus this session, 32 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · connectome-tractography renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"connectome-tractography\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":67,\"triangles\":17208,\"colours\":745,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"connectome-tractography\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":497,\"triangles\":140392,\"colours\":722,\"live\":\"Live: 35 events on the event bus this session, 35 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · glass-brain renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"glass-brain\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":497,\"triangles\":140392,\"colours\":494,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"glass-brain\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":83,\"triangles\":40792,\"colours\":473,\"live\":\"Live: 38 events on the event bus this session, 38 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · multiscale renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"multiscale\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":655,\"calls\":497,\"triangles\":140392,\"colours\":471,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"multiscale\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":655,\"calls\":81,\"triangles\":34320,\"colours\":734,\"live\":\"Live: 39 events on the event bus this session, 39 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · circuit-board renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"circuit-board\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":83,\"triangles\":40792,\"colours\":730,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"circuit-board\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":78,\"triangles\":806,\"colours\":207,\"live\":\"Live: 42 events on the event bus this session, 42 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · temporal-activation renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"temporal-activation\",\"nodes\":80,\"edges\":0,\"bars\":81,\"particles\":0,\"calls\":81,\"triangles\":34320,\"colours\":188,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"temporal-activation\",\"nodes\":80,\"edges\":0,\"bars\":81,\"particles\":0,\"calls\":130,\"triangles\":23816,\"colours\":113,\"live\":\"Live: 42 events on the event bus this session, 42 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D · subsystem-constellation renders in WebGL",
    "status": "VERIFIED",
-   "detail": "{\"view\":\"subsystem-constellation\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":136,\"triangles\":26392,\"colours\":173,\"live\":\"Live: 21 events on the event bus this session, 21 mapped to subsystems.\"}"
+   "detail": "{\"view\":\"subsystem-constellation\",\"nodes\":80,\"edges\":415,\"bars\":0,\"particles\":0,\"calls\":80,\"triangles\":34320,\"colours\":181,\"live\":\"Live: 42 events on the event bus this session, 42 mapped to subsystems.\"}"
   },
   {
    "name": "V2 3D states live activity from the event bus as it is",
    "status": "VERIFIED",
-   "detail": "Live: 21 events on the event bus this session, 21 mapped to subsystems."
+   "detail": "Live: 42 events on the event bus this session, 42 mapped to subsystems."
   },
   {
    "name": "a saved view survives a reload",
@@ -287,7 +287,7 @@
    "detail": "{\"aspect\":\"v3\",\"layout\":\"temporal-river\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
   },
   {
-   "name": "iPhone V2: no control or stage of the map is covered (22 checked)",
+   "name": "iPhone V2: no control or stage of the map is covered (23 checked)",
    "status": "VERIFIED",
    "detail": ""
   },
@@ -319,17 +319,19 @@
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
  ]
 }

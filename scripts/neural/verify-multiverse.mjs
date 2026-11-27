@@ -116,9 +116,13 @@ try {
   // WP12: the ten V2 architecture views render in WebGL (measured from the GPU and the pixels).
   await page.click('[data-aspect="v2"]');
   const VIEWS3D = ["anatomical-core", "neural-sphere", "exploded-layers", "neural-universe", "connectome-tractography", "glass-brain", "multiscale", "circuit-board", "temporal-activation", "subsystem-constellation"];
+  // Triangle floors follow the geometry: spheres/tubes run to thousands; the
+  // circuit board's chips are boxes (12 triangles each) on a 2-triangle board.
   for (const v of VIEWS3D) {
+    const before = await page.evaluate(() => Number(document.querySelector("[data-arch-view]")?.dataset.glFrames ?? 0));
     await page.selectOption('select[aria-label="Architecture render"]', v);
-    await page.waitForFunction((id) => { const el = document.querySelector("[data-arch-view]"); return el?.dataset.archView === id && Number(el.dataset.glFrames ?? 0) > 10; }, v, { timeout: 30000 }).catch(() => {});
+    // Fresh frames of THIS view: the renderer's counters are read only after 30 new frames.
+    await page.waitForFunction(([id, b]) => { const el = document.querySelector("[data-arch-view]"); return el?.dataset.archView === id && Number(el.dataset.glFrames ?? 0) > b + 30; }, [v, before], { timeout: 60000 }).catch(() => {});
     const r = await page.evaluate(() => {
       const el = document.querySelector("[data-arch-view]");
       const c = el?.querySelector("canvas");
@@ -135,7 +139,7 @@ try {
       }
       return { view: el?.dataset.archView, nodes: Number(el?.dataset.archNodes), edges: Number(el?.dataset.archEdges), bars: Number(el?.dataset.archBars), particles: Number(el?.dataset.archParticles), calls: Number(el?.dataset.glCalls), triangles: Number(el?.dataset.glTriangles), colours, live: el?.querySelector("[data-live-summary]")?.textContent };
     });
-    check(`V2 3D · ${v} renders in WebGL`, r.view === v && r.nodes > 60 && r.calls > 10 && r.triangles > 1000 && r.colours > 20, JSON.stringify(r));
+    check(`V2 3D · ${v} renders in WebGL`, r.view === v && r.nodes > 60 && r.calls > 10 && r.triangles >= (v === "circuit-board" ? 12 * 60 : 1000) && r.colours > 20, JSON.stringify(r));
     if (["anatomical-core", "connectome-tractography", "exploded-layers", "multiscale", "circuit-board", "temporal-activation"].includes(v)) {
       n += 1;
       await page.screenshot({ path: `${OUT}/${String(n).padStart(2, "0")}-v2-3d-${v}.png` });

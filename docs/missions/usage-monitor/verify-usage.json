@@ -1,5 +1,5 @@
 {
- "at": "2026-11-27T19:53:18.878Z",
+ "at": "2026-11-27T20:13:19.541Z",
  "results": [
   {
    "id": "19.10-1",
@@ -17,13 +17,13 @@
    "id": "19.10-2",
    "name": "agent task registered as a child of the chat",
    "status": "VERIFIED",
-   "detail": "{\"type\":\"agent-task\",\"status\":\"completed\",\"calls\":1,\"in\":0,\"out\":1,\"parent\":\"17aabc41-209c-4bce-b0c6-0c61a2bad7a6\",\"tokensReported\":1,\"providers\":{\"OpenRouter\":1}}"
+   "detail": "{\"type\":\"agent-task\",\"status\":\"completed\",\"calls\":1,\"in\":0,\"out\":1,\"parent\":\"3f31eb80-3b3e-46d0-ace3-105ea71807fc\",\"tokensReported\":1,\"providers\":{\"OpenRouter\":1}}"
   },
   {
    "id": "WP13",
    "name": "direct conversation: real model-backed turns, registered as agent-direct",
    "status": "VERIFIED",
-   "detail": "{\"record\":{\"type\":\"agent-direct\",\"status\":\"idle\",\"calls\":3,\"in\":2,\"out\":2,\"parent\":\"17aabc41-209c-4bce-b0c6-0c61a2bad7a6\",\"tokensReported\":2,\"providers\":{\"OpenRouter\":1,\"Groq\":2}},\"turns\":[{\"who\":\"Researcher\",\"state\":\"complete\",\"provider\":\"Groq\",\"model\":\"openai/gpt-oss-120b\",\"text\":\"Engineering Agent, right — so to keep background research from starving development, set a hard time budget per sprint—e.g., 10 % of compute\"},{\"who\":\"Engineering Agent\",\"state\":\"complete\",\"provider\":\"Groq\",\"model\":\"openai/gpt-oss-120b\",\"text\":\"Researcher, right — so I can enforce a hard 10 % budget by limiting the number of Task‑Engine cycles allocated to research tickets. Since th\"}]}"
+   "detail": "{\"record\":{\"type\":\"agent-direct\",\"status\":\"idle\",\"calls\":3,\"in\":2,\"out\":2,\"parent\":\"3f31eb80-3b3e-46d0-ace3-105ea71807fc\",\"tokensReported\":2,\"providers\":{\"OpenRouter\":1,\"Groq\":2}},\"turns\":[{\"who\":\"Researcher\",\"state\":\"complete\",\"provider\":\"Groq\",\"model\":\"openai/gpt-oss-120b\",\"text\":\"right — so Engineering Agent, we need a clear research budget that coexists with dev work. I propose a fixed time slice—say 20 % of sprint c\"},{\"who\":\"Engineering Agent\",\"state\":\"complete\",\"provider\":\"Groq\",\"model\":\"openai/gpt-oss-120b\",\"text\":\"Researcher, a 20 % slice is doable but only if we first resolve the current engineering bottleneck: the runtime is disabled, so any research\"}]}"
   },
   {
    "id": "WP13",
@@ -41,7 +41,7 @@
    "id": "19.10-3",
    "name": "the chain from the user's chat reaches its agent task and dialogue",
    "status": "VERIFIED",
-   "detail": "[\"user-chat:17aabc41-209c-4bce-b0c6-0c61a2bad7a6\",\"agent-task:agent-task:103e95dc-fecc-4ca6-9d67-afc101c683b2\",\"agent-direct:dialogue:direct:mwzedhcksg45\"]"
+   "detail": "[\"user-chat:3f31eb80-3b3e-46d0-ace3-105ea71807fc\",\"agent-task:agent-task:4c97dabd-1223-4056-9495-446babf1cecd\",\"agent-direct:dialogue:direct:mwzf3dd8w9mp\"]"
   },
   {
    "id": "WP13",
@@ -53,13 +53,13 @@
    "id": "19.10-4",
    "name": "usage recorded at minute, hour and day resolution",
    "status": "VERIFIED",
-   "detail": "{\"minutes\":2,\"hours\":1,\"days\":1,\"callsLastHour\":16,\"range\":{\"metric\":\"calls\",\"availability\":\"measured\",\"lowest\":8,\"lowestAt\":\"2026-11-27T19:51\",\"highest\":8,\"highestAt\":\"2026-11-27T19:51\",\"average\":8,\"current\":8,\"peak\":8,\"capacity\":null,\"remaining\":null,\"pctUsed\":null,\"trend\":\"unknown\"},\"manual\":{\"lo\":8,\"hi\":8,\"avg\":8,\"cur\":8},\"tokensAvailability\":\"measured\",\"gauges\":[\"activeConversations\",\"inFlightCalls\",\"jsHeapMB\",\"jsHeapLimitMB\",\"eventLoopLagMs\"],\"unavailable\":[\"CPU utilisation\",\"GPU utilisation\",\"JS heap on Safari/Firefox/iOS\",\"Provider remaining quota / rate-limit headroom\",\"Tokens for some providers\",\"Cost\",\"Per-request bandwidth to providers\"],\"perAgent\":4,\"perModel\":[{\"model\":\"OpenRouter:nvidia/nemotron-3-ultra-550b-a55b:free\",\"calls\":7},{\"model\":\"Groq:openai/gpt-oss-120b\",\"calls\":4},{\"model\":\"wikidata:?\",\"calls\":1},{\"model\":\"wikipedia:?\",\"calls\":1}]}"
+   "detail": "{\"minutes\":2,\"hours\":1,\"days\":1,\"callsLastHour\":16,\"range\":{\"metric\":\"calls\",\"availability\":\"measured\",\"lowest\":7,\"lowestAt\":\"2026-11-27T20:11\",\"highest\":9,\"highestAt\":\"2026-11-27T20:12\",\"average\":8,\"current\":9,\"peak\":9,\"capacity\":null,\"remaining\":null,\"pctUsed\":null,\"trend\":\"unknown\"},\"manual\":{\"lo\":7,\"hi\":9,\"avg\":8,\"cur\":9},\"tokensAvailability\":\"measured\",\"gauges\":[\"activeConversations\",\"inFlightCalls\",\"jsHeapMB\",\"jsHeapLimitMB\",\"eventLoopLagMs\"],\"unavailable\":[\"CPU utilisation\",\"GPU utilisation\",\"JS heap on Safari/Firefox/iOS\",\"Provider remaining quota / rate-limit headroom\",\"Tokens for some providers\",\"Cost\",\"Per-request bandwidth to providers\"],\"perAgent\":4,\"perModel\":[{\"model\":\"OpenRouter:nvidia/nemotron-3-ultra-550b-a55b:free\",\"calls\":7},{\"model\":\"Groq:openai/gpt-oss-120b\",\"calls\":4},{\"model\":\"wikipedia:?\",\"calls\":1},{\"model\":\"wikidata:?\",\"calls\":1}]}"
   },
   {
    "id": "19.10-5",
    "name": "lowest/highest/average/current computed correctly",
    "status": "VERIFIED",
-   "detail": "{\"range\":{\"metric\":\"calls\",\"availability\":\"measured\",\"lowest\":8,\"lowestAt\":\"2026-11-27T19:51\",\"highest\":8,\"highestAt\":\"2026-11-27T19:51\",\"average\":8,\"current\":8,\"peak\":8,\"capacity\":null,\"remaining\":null,\"pctUsed\":null,\"trend\":\"unknown\"},\"manual\":{\"lo\":8,\"hi\":8,\"avg\":8,\"cur\":8}}"
+   "detail": "{\"range\":{\"metric\":\"calls\",\"availability\":\"measured\",\"lowest\":7,\"lowestAt\":\"2026-11-27T20:11\",\"highest\":9,\"highestAt\":\"2026-11-27T20:12\",\"average\":8,\"current\":9,\"peak\":9,\"capacity\":null,\"remaining\":null,\"pctUsed\":null,\"trend\":\"unknown\"},\"manual\":{\"lo\":7,\"hi\":9,\"avg\":8,\"cur\":9}}"
   },
   {
    "id": "19.10-6",
@@ -71,7 +71,7 @@
    "id": "19.10-7",
    "name": "per-agent and per-model reporting have data",
    "status": "VERIFIED",
-   "detail": "{\"perAgent\":4,\"perModel\":[{\"model\":\"OpenRouter:nvidia/nemotron-3-ultra-550b-a55b:free\",\"calls\":7},{\"model\":\"Groq:openai/gpt-oss-120b\",\"calls\":4},{\"model\":\"wikidata:?\",\"calls\":1},{\"model\":\"wikipedia:?\",\"calls\":1}]}"
+   "detail": "{\"perAgent\":4,\"perModel\":[{\"model\":\"OpenRouter:nvidia/nemotron-3-ultra-550b-a55b:free\",\"calls\":7},{\"model\":\"Groq:openai/gpt-oss-120b\",\"calls\":4},{\"model\":\"wikipedia:?\",\"calls\":1},{\"model\":\"wikidata:?\",\"calls\":1}]}"
   },
   {
    "id": "19.10-9",
@@ -83,7 +83,7 @@
    "id": "19.10-9",
    "name": "a natural-language usage question is answered from the registry",
    "status": "VERIFIED",
-   "detail": "1. Designer · private self-dialogue: A one-line definition of 'unproductive conversation' for usa [self-dialogue] — 3 calls, 19345 reported tokens, 0 tool calls, idle\n2. Researcher ↔ Engineering Agent: How should LÉLU cap background research without starving dev [agent-direct] — 3 calls, 13899 repor"
+   "detail": "1. Designer · private self-dialogue: A one-line definition of 'unproductive conversation' for usa [self-dialogue] — 3 calls, 19373 reported tokens, 0 tool calls, idle\n2. Researcher ↔ Engineering Agent: How should LÉLU cap background research without starving dev [agent-direct] — 3 calls, 13415 repor"
   },
   {
    "id": "19.10-8",
@@ -101,7 +101,7 @@
    "id": "19.10-10",
    "name": "throttling refuses the next call within the gap at the gate, and says why",
    "status": "VERIFIED",
-   "detail": "{\"first\":{\"state\":\"complete\",\"provider\":\"OpenRouter\"},\"second\":{\"state\":\"failed\",\"error\":\"Refused by your resource limits (throttled): Throttled: this conversation may make a model call every 120 s; the next one is allowed in 110 s.\"}}"
+   "detail": "{\"first\":{\"state\":\"complete\",\"provider\":\"OpenRouter\"},\"second\":{\"state\":\"failed\",\"error\":\"Refused by your resource limits (throttled): Throttled: this conversation may make a model call every 120 s; the next one is allowed in 113 s.\"}}"
   },
   {
    "id": "19.10-10",
@@ -117,7 +117,13 @@
   },
   {
    "id": "19.10-8",
-   "name": "emergency stop refuses a real chat turn at the gate, recorded with the reason",
+   "name": "emergency stop refuses a model call at the gate before any provider is called",
+   "status": "VERIFIED",
+   "detail": "{\"refused\":true,\"providerCalled\":false,\"error\":\"resource limit (emergency-stop): Emergency stop is on (verification). No model calls are sent until it is released.\"}"
+  },
+  {
+   "id": "19.10-8",
+   "name": "emergency stop refuses a real chat turn, recorded with the reason",
    "status": "VERIFIED",
    "detail": "{\"provider\":\"budget\",\"text\":\"I didn't send that to a model: Emergency stop is on (verification). No model calls are sent until it is released.\",\"record\":\"refused by resource limits (emergency-stop): Emergency stop is on (verification). No model calls are sent until it is released.\"}"
   },
@@ -125,13 +131,13 @@
    "id": "19.10-8",
    "name": "every change is in the audit log with before → after",
    "status": "VERIFIED",
-   "detail": "[\"user: workload dialogue:direct:mwzedhcksg45 running→paused\",\"user: workload dialogue:direct:mwzedhcksg45 paused→running\",\"user: workload dialogue:direct:mwzedhcksg45 running→terminated\",\"user: emergency stop off→on\",\"user: emergency stop on→off\",\"user: maxCallMs none→5000\",\"user: maxCallMs 5000→none\",\"user: maxTasksPerAgent 2→none\"]"
+   "detail": "[\"user: workload dialogue:direct:mwzf3dd8w9mp running→paused\",\"user: workload dialogue:direct:mwzf3dd8w9mp paused→running\",\"user: workload dialogue:direct:mwzf3dd8w9mp running→terminated\",\"user: emergency stop off→on\",\"user: emergency stop on→off\",\"user: maxCallMs none→5000\",\"user: maxCallMs 5000→none\",\"user: maxTasksPerAgent 2→none\"]"
   },
   {
    "id": "19.10-13",
    "name": "monitoring overhead measured and small",
    "status": "VERIFIED",
-   "detail": "{\"perUsageMs\":0.001,\"sampleMsMedian\":305.3,\"rangesMs\":0.3}"
+   "detail": "{\"perUsageMs\":0.001,\"sampleMsMedian\":6.2,\"rangesMs\":0.2}"
   },
   {
    "id": "19.10-9",
@@ -155,7 +161,7 @@
    "id": "19.10-11",
    "name": "usage records export as CSV and JSON",
    "status": "VERIFIED",
-   "detail": "{\"csvRows\":10,\"jsonBytes\":28220}"
+   "detail": "{\"csvRows\":10,\"jsonBytes\":28152}"
   },
   {
    "id": "WP13",
@@ -185,41 +191,41 @@
  "evidence": {
   "conversations": {
    "chat": {
-    "id": "17aabc41-209c-4bce-b0c6-0c61a2bad7a6",
+    "id": "3f31eb80-3b3e-46d0-ace3-105ea71807fc",
     "provider": "OpenRouter",
     "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "text": "A conversation registry indexes and manages conversation histories across sessions so context, decisions, and threads re"
+    "text": "A conversation registry records every conversation so the owner can see, measure, and control them — and so agents have "
    },
    "voice": {
-    "id": "voice-1795809100808",
+    "id": "voice-1795810306237",
     "provider": "OpenRouter"
    },
    "agentTask": {
     "ok": true,
-    "taskId": "103e95dc-fecc-4ca6-9d67-afc101c683b2",
+    "taskId": "4c97dabd-1223-4056-9495-446babf1cecd",
     "provider": "OpenRouter"
    },
    "direct": {
-    "id": "dialogue:direct:mwzedhcksg45",
+    "id": "dialogue:direct:mwzf3dd8w9mp",
     "turns": [
      {
       "who": "Researcher",
       "state": "complete",
       "provider": "Groq",
       "model": "openai/gpt-oss-120b",
-      "text": "Engineering Agent, right — so to keep background research from starving development, set a hard time budget per sprint—e.g., 10 % of compute"
+      "text": "right — so Engineering Agent, we need a clear research budget that coexists with dev work. I propose a fixed time slice—say 20 % of sprint c"
      },
      {
       "who": "Engineering Agent",
       "state": "complete",
       "provider": "Groq",
       "model": "openai/gpt-oss-120b",
-      "text": "Researcher, right — so I can enforce a hard 10 % budget by limiting the number of Task‑Engine cycles allocated to research tickets. Since th"
+      "text": "Researcher, a 20 % slice is doable but only if we first resolve the current engineering bottleneck: the runtime is disabled, so any research"
      }
     ]
    },
    "group": {
-    "id": "dialogue:group:mwzedws2ykvj",
+    "id": "dialogue:group:mwzf3ro8f3je",
     "turns": [
      {
       "who": "Designer",
@@ -239,7 +245,7 @@
     ]
    },
    "self": {
-    "id": "dialogue:self:mwzee1biobfw",
+    "id": "dialogue:self:mwzf3vj4fm1j",
     "turns": [
      {
       "role": "propose",
@@ -259,7 +265,7 @@
     ]
    },
    "records": {
-    "17aabc41-209c-4bce-b0c6-0c61a2bad7a6": {
+    "3f31eb80-3b3e-46d0-ace3-105ea71807fc": {
      "type": "user-chat",
      "status": "idle",
      "calls": 1,
@@ -271,7 +277,7 @@
       "OpenRouter": 1
      }
     },
-    "voice-1795809100808": {
+    "voice-1795810306237": {
      "type": "voice",
      "status": "idle",
      "calls": 1,
@@ -283,32 +289,32 @@
       "OpenRouter": 1
      }
     },
-    "agent-task:103e95dc-fecc-4ca6-9d67-afc101c683b2": {
+    "agent-task:4c97dabd-1223-4056-9495-446babf1cecd": {
      "type": "agent-task",
      "status": "completed",
      "calls": 1,
      "in": 0,
      "out": 1,
-     "parent": "17aabc41-209c-4bce-b0c6-0c61a2bad7a6",
+     "parent": "3f31eb80-3b3e-46d0-ace3-105ea71807fc",
      "tokensReported": 1,
      "providers": {
       "OpenRouter": 1
      }
     },
-    "dialogue:direct:mwzedhcksg45": {
+    "dialogue:direct:mwzf3dd8w9mp": {
      "type": "agent-direct",
      "status": "idle",
      "calls": 3,
      "in": 2,
      "out": 2,
-     "parent": "17aabc41-209c-4bce-b0c6-0c61a2bad7a6",
+     "parent": "3f31eb80-3b3e-46d0-ace3-105ea71807fc",
      "tokensReported": 2,
      "providers": {
       "OpenRouter": 1,
       "Groq": 2
      }
     },
-    "dialogue:group:mwzedws2ykvj": {
+    "dialogue:group:mwzf3ro8f3je": {
      "type": "agent-group",
      "status": "failed",
      "calls": 3,
@@ -320,7 +326,7 @@
       "Groq": 3
      }
     },
-    "dialogue:self:mwzee1biobfw": {
+    "dialogue:self:mwzf3vj4fm1j": {
      "type": "self-dialogue",
      "status": "idle",
      "calls": 3,
@@ -334,17 +340,17 @@
     }
    },
    "chain": [
-    "user-chat:17aabc41-209c-4bce-b0c6-0c61a2bad7a6",
-    "agent-task:agent-task:103e95dc-fecc-4ca6-9d67-afc101c683b2",
-    "agent-direct:dialogue:direct:mwzedhcksg45"
+    "user-chat:3f31eb80-3b3e-46d0-ace3-105ea71807fc",
+    "agent-task:agent-task:4c97dabd-1223-4056-9495-446babf1cecd",
+    "agent-direct:dialogue:direct:mwzf3dd8w9mp"
    ],
    "types": [
     "self-dialogue",
     "agent-group",
     "agent-direct",
     "agent-task",
-    "voice",
     "background",
+    "voice",
     "user-chat",
     "unattributed"
    ],
@@ -369,23 +375,23 @@
    "range": {
     "metric": "calls",
     "availability": "measured",
-    "lowest": 8,
-    "lowestAt": "2026-11-27T19:51",
-    "highest": 8,
-    "highestAt": "2026-11-27T19:51",
+    "lowest": 7,
+    "lowestAt": "2026-11-27T20:11",
+    "highest": 9,
+    "highestAt": "2026-11-27T20:12",
     "average": 8,
-    "current": 8,
-    "peak": 8,
+    "current": 9,
+    "peak": 9,
     "capacity": null,
     "remaining": null,
     "pctUsed": null,
     "trend": "unknown"
    },
    "manual": {
-    "lo": 8,
-    "hi": 8,
+    "lo": 7,
+    "hi": 9,
     "avg": 8,
-    "cur": 8
+    "cur": 9
    },
    "tokensAvailability": "measured",
    "gauges": [
@@ -415,11 +421,11 @@
      "calls": 4
     },
     {
-     "model": "wikidata:?",
+     "model": "wikipedia:?",
      "calls": 1
     },
     {
-     "model": "wikipedia:?",
+     "model": "wikidata:?",
      "calls": 1
     }
    ]
@@ -429,7 +435,7 @@
     "tool": "✓ Tasks per agent at once: now 2",
     "now": 2
    },
-   "nlReport": "1. Designer · private self-dialogue: A one-line definition of 'unproductive conversation' for usa [self-dialogue] — 3 calls, 19345 reported tokens, 0 tool calls, idle\n2. Researcher ↔ Engineering Agent: How should LÉLU cap background research without starving dev [agent-direct] — 3 calls, 13899 repor",
+   "nlReport": "1. Designer · private self-dialogue: A one-line definition of 'unproductive conversation' for usa [self-dialogue] — 3 calls, 19373 reported tokens, 0 tool calls, idle\n2. Researcher ↔ Engineering Agent: How should LÉLU cap background research without starving dev [agent-direct] — 3 calls, 13415 repor",
    "pausePlan": {
     "consequential": true,
     "explanation": [
@@ -447,11 +453,16 @@
     },
     "second": {
      "state": "failed",
-     "error": "Refused by your resource limits (throttled): Throttled: this conversation may make a model call every 120 s; the next one is allowed in 110 s."
+     "error": "Refused by your resource limits (throttled): Throttled: this conversation may make a model call every 120 s; the next one is allowed in 113 s."
     }
    },
    "pausedStep": "This conversation is paused. Resume it first.",
    "terminatedStep": "This conversation was terminated.",
+   "gate": {
+    "refused": true,
+    "providerCalled": false,
+    "error": "resource limit (emergency-stop): Emergency stop is on (verification). No model calls are sent until it is released."
+   },
    "stopRecord": "refused by resource limits (emergency-stop): Emergency stop is on (verification). No model calls are sent until it is released.",
    "emergency": {
     "provider": "budget",
@@ -459,9 +470,9 @@
    },
    "maxCallMs": 5000,
    "changes": [
-    "user: workload dialogue:direct:mwzedhcksg45 running→paused",
-    "user: workload dialogue:direct:mwzedhcksg45 paused→running",
-    "user: workload dialogue:direct:mwzedhcksg45 running→terminated",
+    "user: workload dialogue:direct:mwzf3dd8w9mp running→paused",
+    "user: workload dialogue:direct:mwzf3dd8w9mp paused→running",
+    "user: workload dialogue:direct:mwzf3dd8w9mp running→terminated",
     "user: emergency stop off→on",
     "user: emergency stop on→off",
     "user: maxCallMs none→5000",
@@ -471,8 +482,8 @@
   },
   "overhead": {
    "perUsageMs": 0.001,
-   "sampleMsMedian": 305.3,
-   "rangesMs": 0.3
+   "sampleMsMedian": 6.2,
+   "rangesMs": 0.2
   },
   "restart": {
    "records": [
@@ -492,8 +503,7 @@
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 429 ()",
-  "console: Failed to load resource: the server responded with a status of 429 ()",
+  "console: Failed to load resource: the server responded with a status of 404 ()",
   "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
@@ -501,10 +511,11 @@
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
  ]
 }

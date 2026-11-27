@@ -18,8 +18,10 @@ const results = [];
 const errors = [];
 const evidence = {};
 const check = (id, name, ok, detail = "") => {
-  results.push({ id, name, status: ok ? "VERIFIED" : "FAILED", detail: typeof detail === "string" ? detail : JSON.stringify(detail) });
-  console.log(`${ok ? "✓" : "✗"} [${id}] ${name}${detail ? ` — ${String(typeof detail === "string" ? detail : JSON.stringify(detail)).slice(0, 220)}` : ""}`);
+  // ok === null: could not be exercised in this environment (reported, never counted as passed).
+  const status = ok === null ? "UNVERIFIED" : ok ? "VERIFIED" : "FAILED";
+  results.push({ id, name, status, detail: typeof detail === "string" ? detail : JSON.stringify(detail) });
+  console.log(`${ok === null ? "?" : ok ? "✓" : "✗"} [${id}] ${name}${detail ? ` — ${String(typeof detail === "string" ? detail : JSON.stringify(detail)).slice(0, 220)}` : ""}`);
 };
 let shot = 0;
 const snap = async (page, name) => {
@@ -160,6 +162,12 @@ try {
     out.terminatedStep = await D.step(dialogueId).then(() => "ran").catch((e) => e.message);
     // Emergency stop: a real chat turn is refused at the gate.
     P.emergencyStop(true, "verification");
+    // At the gate itself: a real gatedGenerate is refused before any provider is called.
+    const { gatedGenerate } = await import("/src/core/observability/UsageBudgetGate.ts");
+    let providerCalled = false;
+    out.gate = await gatedGenerate({ name: "verification-provider", generate: async () => { providerCalled = true; return { model: "x" }; } }, { conversationId: `verify-gate-${Date.now()}`, prompt: "x", messages: [] })
+      .then(() => ({ refused: false, providerCalled }))
+      .catch((e) => ({ refused: true, providerCalled, error: String(e.message).slice(0, 160) }));
     const stopId = `verify-stop-${Date.now()}`;
     const stopped = await ai.chat("In two sentences, why do leaves change colour in autumn?", undefined, undefined, { conversationId: stopId });
     out.stopRecord = (await import("/src/core/observability/ConversationRegistry.ts")).default.getInstance().get(stopId)?.errors.at(-1)?.message ?? null;
@@ -181,7 +189,13 @@ try {
   check("19.10-10", "throttling refuses the next call within the gap at the gate, and says why", c.throttle.second.state === "failed" && /Throttled/.test(c.throttle.second.error), c.throttle);
   check("19.10-10", "a paused conversation runs no turn", /paused/i.test(c.pausedStep), c.pausedStep);
   check("19.10-10", "a terminated conversation runs no turn", /terminated/i.test(c.terminatedStep), c.terminatedStep);
-  check("19.10-8", "emergency stop refuses a real chat turn at the gate, recorded with the reason", /Emergency stop/i.test(c.emergency.text) && /emergency-stop/.test(c.stopRecord ?? ""), { ...c.emergency, record: c.stopRecord });
+  check("19.10-8", "emergency stop refuses a model call at the gate before any provider is called", c.gate.refused && !c.gate.providerCalled && /emergency/i.test(c.gate.error ?? ""), c.gate);
+  check(
+    "19.10-8",
+    "emergency stop refuses a real chat turn, recorded with the reason",
+    c.emergency.provider === "offline" && !/Emergency stop/i.test(c.emergency.text) ? null : /Emergency stop/i.test(c.emergency.text) && /emergency-stop/.test(c.stopRecord ?? ""),
+    { ...c.emergency, record: c.stopRecord, note: c.emergency.provider === "offline" ? "every provider was offline at that moment, so the turn never reached the gate" : undefined },
+  );
   check("19.10-8", "every change is in the audit log with before → after", c.changes.length >= 5, c.changes);
 
   /* ---------- 13: overhead ---------- */
@@ -296,5 +310,6 @@ try {
 check("errors", "no page errors from the new modules", !errors.some((e) => /Usage|Registry|ResourcePolicy|AgentDialogue|AgentWorkspace|Monitor/.test(e)), errors.filter((e) => /Usage|Registry|Resource|Dialogue|Workspace|Monitor/.test(e)).join(" | "));
 await writeFile(RESULTS, `${JSON.stringify({ at: new Date().toISOString(), results, evidence, otherPageErrors: errors.slice(0, 20) }, null, 1)}\n`);
 const failed = results.filter((r) => r.status === "FAILED").length;
-console.log(`\n${results.length - failed}/${results.length} verified`);
+const unverified = results.filter((r) => r.status === "UNVERIFIED").length;
+console.log(`\n${results.length - failed - unverified}/${results.length} verified${unverified ? `, ${unverified} unverified (environment)` : ""}`);
 process.exit(failed ? 1 : 0);

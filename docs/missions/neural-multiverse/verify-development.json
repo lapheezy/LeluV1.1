@@ -1,5 +1,5 @@
 {
- "at": "2026-11-27T20:00:52.973Z",
+ "at": "2026-11-27T20:09:27.740Z",
  "results": [
   {
    "id": "WP14",
@@ -17,7 +17,7 @@
    "id": "WP14",
    "name": "findings came from real data and became proposals (at most 3)",
    "status": "VERIFIED",
-   "detail": "{\"stages\":[\"observe:done\",\"diagnose:done\",\"research:done\",\"compare:done\",\"propose:done\",\"sandbox:waiting\",\"validate:waiting\",\"govern:waiting\",\"deliver:waiting\",\"learn:done\"],\"findings\":19,\"proposed\":[\"8bec2eed-f708-40f6-a13b-68e2d0f81f8f\",\"2b2555ff-7698-4022-8635-fd7ef5ad3c07\",\"ee565d7f-19a2-4183-b006-36788344b5ab\"],\"acks\":[[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"]]}"
+   "detail": "{\"stages\":[\"observe:done\",\"diagnose:done\",\"research:done\",\"compare:done\",\"propose:done\",\"sandbox:waiting\",\"validate:waiting\",\"govern:waiting\",\"deliver:waiting\",\"learn:done\"],\"findings\":19,\"proposed\":[\"98acc096-631f-45c0-aacd-140ed4c76659\",\"7e499a05-959d-41b4-a98a-ed7483829654\",\"c65604fb-f4bb-4580-9c1d-2fd54e5017fe\"],\"acks\":[[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"]]}"
   },
   {
    "id": "WP15",
@@ -41,7 +41,7 @@
    "id": "WP14",
    "name": "asked in chat, she names the aspect/view on screen (real model turn)",
    "status": "VERIFIED",
-   "detail": "{\"provider\":\"Groq\",\"model\":\"openai/gpt-oss-120b\",\"text\":\"You’re viewing the architecture aspect (V2) in the 3D “connectome‑tractography” view.\"}"
+   "detail": "{\"provider\":\"OpenRouter\",\"model\":\"nvidia/nemotron-3-ultra-550b-a55b:free\",\"text\":\"You're looking at aspect V2 (your cognitive architecture) in the 3D \\\"connectome-tractography\\\" view.\"}"
   },
   {
    "id": "errors",
@@ -66,9 +66,9 @@
    ],
    "findings": 19,
    "proposed": [
-    "8bec2eed-f708-40f6-a13b-68e2d0f81f8f",
-    "2b2555ff-7698-4022-8635-fd7ef5ad3c07",
-    "ee565d7f-19a2-4183-b006-36788344b5ab"
+    "98acc096-631f-45c0-aacd-140ed4c76659",
+    "7e499a05-959d-41b4-a98a-ed7483829654",
+    "c65604fb-f4bb-4580-9c1d-2fd54e5017fe"
    ],
    "acks": [
     [
@@ -86,7 +86,7 @@
    ]
   },
   "research": {
-   "at": 1795809645777,
+   "at": 1795810157659,
    "query": "force directed graph webgl",
    "candidates": [
     {
@@ -157,9 +157,9 @@
    "errors": []
   },
   "chat": {
-   "provider": "Groq",
-   "model": "openai/gpt-oss-120b",
-   "text": "You’re viewing the architecture aspect (V2) in the 3D “connectome‑tractography” view."
+   "provider": "OpenRouter",
+   "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+   "text": "You're looking at aspect V2 (your cognitive architecture) in the 3D \"connectome-tractography\" view."
   }
  },
  "otherPageErrors": [

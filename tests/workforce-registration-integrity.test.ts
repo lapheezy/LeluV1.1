@@ -32,6 +32,8 @@ import { registerInterfaceCompositionTools } from "../src/core/interface/Interfa
 import { registerNeuralMapTools } from "../src/core/neural/NeuralMapTools";
 import { registerCoutureTools } from "../src/core/couture/CoutureTools";
 import { registerContinuityTools } from "../src/core/cognition/ContinuityTools";
+import { registerUsageTools } from "../src/core/observability/UsageTools";
+import { registerStewardTools } from "../src/core/selfdev/NeuralMapSteward";
 
 // registerSelfTools starts a 10-minute refresh timer; stop it so the run can exit.
 after(() => SelfChangeAwareness.getInstance().stop());
@@ -53,6 +55,8 @@ const REGISTRARS: Array<[string, () => void]> = [
   ["cosmos", registerCosmosTools],
   ["interfaceComposition", registerInterfaceCompositionTools],
   ["neuralMap", registerNeuralMapTools],
+  ["usage", registerUsageTools],
+  ["steward", registerStewardTools],
   ["continuity", () => void registerContinuityTools()],
   ["couture", registerCoutureTools],
 ];

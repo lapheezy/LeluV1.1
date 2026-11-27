@@ -1,0 +1,25 @@
+{
+ "id": "usage-and-conversations",
+ "title": "Prove every conversation is registered and that the owner's resource limits really hold",
+ "for": "LÉLU",
+ "why": "Usage, conversations and limits are only real if a run shows them. This replays real model-backed chats, a voice-surface turn, agent tasks and direct, group and self conversations, then checks the registry, the minute, hour and day usage, the ranges, the natural-language and UI controls, pause, throttle, terminate and emergency stop at the gate, persistence across a reload, export and overhead, on desktop and iPhone. It needs the dev server on 5173 (or LELU_BASE) and a free provider key (Groq, OpenRouter or Cerebras). It spends only free-tier calls.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-27-neural-multiverse-completion.md",
+ "steps": [
+  {
+   "id": "verify",
+   "title": "Run the WP13/WP19 acceptance",
+   "kind": "tsx",
+   "script": "scripts/usage/verify-usage.mjs",
+   "args": [],
+   "why": "Writes docs/missions/usage-monitor/verify-usage.json and shots/. A check that could not run because every provider was offline is reported UNVERIFIED, never passed."
+  },
+  {
+   "id": "look",
+   "title": "Look at the monitor and an agent's workspace",
+   "kind": "note",
+   "why": "Check that the transcripts are real model text, that refused calls say why, and that nothing in the monitor claims a number its source did not report."
+  }
+ ]
+}
