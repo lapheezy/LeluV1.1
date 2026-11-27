@@ -251,8 +251,13 @@ measured at the first delta and only once, and no delta yields `null` rather tha
 
 ## 12. Branch and commits
 
-- Branch: `mission/44-7-claim-integrity`, created from `9251a80`
+- Branch: `mission/44-7-claim-integrity`, created from `9251a80` and pushed before any change
 - `ef06352` — claim grounding for every operational family; turn metrics; baseline evidence
 - `aea64c9` — retry reuses the unanswered question; `provider-rate-limited` failure kind
-- Final commits (report, evidence, suite log) are recorded in §12 of the pushed branch history
-- Nothing merged into canonical, production or another integration branch; nothing deployed
+- `184e844` — the cleared `processing` flag is written back; this report, the browser evidence and
+  the full-suite log (2,408 / 2,400 / 0 / 8)
+- Remote verified: `git ls-remote origin mission/44-7-claim-integrity` returns the same commit as
+  local `HEAD` at each push
+- Working tree clean apart from the deliberate untracked `pw-probe.mjs`
+- Nothing merged into canonical (`freebuff/08af6cc9ef212913e6b7209b` = `543da7c`), production or
+  another integration branch; nothing deployed
