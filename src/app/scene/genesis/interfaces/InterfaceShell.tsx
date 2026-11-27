@@ -15,7 +15,7 @@
  * ==========================================================
  */
 
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useSyncExternalStore } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGenesis } from "../GenesisCore";
 import { attachInterfaceLauncher, launchFromQuery, type LaunchRequest } from "../../../../core/interface/interfaceLaunch";
@@ -28,6 +28,8 @@ const InterfaceJourney = lazy(() => import("./InterfaceJourney"));
 /* M17.2: the embedded inspector and the standalone Neural Map, fetched only
    when one is first opened. */
 const NeuralHost = lazy(() => import("../neural/NeuralHost"));
+const UsageMonitor = lazy(() => import("../usage/UsageMonitor"));
+import { UsageView } from "../usage/usageView";
 
 export default function InterfaceShell() {
   const genesis = useGenesis();
@@ -80,6 +82,7 @@ export default function InterfaceShell() {
 
   const neural = useNeuralView();
   const neuralWanted = neural.inspecting !== null || neural.standalone.open;
+  const usage = useSyncExternalStore(UsageView.subscribe, UsageView.get);
   return (
     <>
       {open ? (
@@ -90,6 +93,11 @@ export default function InterfaceShell() {
       {neuralWanted ? (
         <Suspense fallback={null}>
           <NeuralHost />
+        </Suspense>
+      ) : null}
+      {usage.open ? (
+        <Suspense fallback={null}>
+          <UsageMonitor />
         </Suspense>
       ) : null}
     </>

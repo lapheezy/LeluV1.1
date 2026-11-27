@@ -226,25 +226,31 @@ export default class AIRouter {
       new Promise((resolve) => setTimeout(resolve, 8000)),
     ]);
 
+    // An agent-to-agent conversation turn (WP13) is talk, not a command:
+    // the deterministic surface, presence, time and direct-tool stages read
+    // keywords ("build", "rotate", "dance") and would answer it without a
+    // model. Such a turn skips them and goes to the model chain.
+    const talk = context.request.conversationOnly === true;
+
     // 0.0 The Spatial bar: "open the spatial menu" / "hide the spatial bar".
     // First, so no creative or 3D stage reads "spatial" as a scene request.
-    const spatialNav = this.surfaces.spatialNav(context);
+    const spatialNav = talk ? { handled: false as const, response: undefined } : this.surfaces.spatialNav(context);
     if (spatialNav.handled && spatialNav.response) return spatialNav.response;
 
     // 0.01 Her presence in plain words: "become a hologram", "walk to the
     // studio", "dance". Deterministic, model-free, and verified by her renderer.
-    const presence = await this.traced(context, "avatar-presence", () => this.avatar.executeDirect(context));
+    const presence = talk ? { handled: false as const, response: undefined } : await this.traced(context, "avatar-presence", () => this.avatar.executeDirect(context));
     if (presence.handled && presence.response) return presence.response;
 
     // 0. TIME — deterministic local capability, no external API needed
-    const timeResult = await this.traced(context, "time", () => this.time.execute(context));
+    const timeResult = talk ? { handled: false as const, response: undefined } : await this.traced(context, "time", () => this.time.execute(context));
     if (timeResult.handled && timeResult.response) return timeResult.response;
 
     // 0.2 DIRECT EXECUTION — creative and data tools need no model. An
     // explicit command ("/scene forest") always runs here; a natural-language
     // creative/data request runs here only when no model provider can take
     // the turn, so the work still happens (and nothing is billed).
-    const directPlan = this.direct.plan(context);
+    const directPlan = talk ? null : this.direct.plan(context);
     // A construction is deterministic: the same parameters always yield the
     // same artifact. So it runs here even when a model is reachable, rather
     // than depending on the model choosing the right tool. "Build a cabin"
@@ -280,6 +286,16 @@ export default class AIRouter {
     // read. This route is narrow: it requires mission/workstream vocabulary
     // AND a resume/read verb, and it stands aside for a genuine studio or
     // capability question.
+    // WP13: an agent conversation turn goes straight to the model chain. The
+    // stages below (mission resume, identity, intelligence, surfaces,
+    // repository acquisition, spatial, engineering…) all claim turns by
+    // keyword, and a turn of talk must be answered by a model, not by them.
+    if (talk) {
+      const spoken = await this.traced(context, "provider", () => this.providers.execute(context));
+      if (spoken.handled && spoken.response) return this.attachThinking(context, spoken.response);
+      return this.attachThinking(context, this.responses.offline(context.started));
+    }
+
     const resumePrompt = context.request.prompt ?? "";
     if (isMissionResume(resumePrompt) && !/\b(?:studios?|capabilit(?:y|ies)|openhands|opencode)\b/i.test(resumePrompt)) {
       const continuity = await this.traced(context, "provider", () => this.providers.execute(context));

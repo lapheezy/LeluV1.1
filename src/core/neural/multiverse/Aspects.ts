@@ -136,7 +136,28 @@ export interface ExecutiveLike {
   systems: string[];
 }
 
-export function v3Graph(executives: ExecutiveLike[], agents: LeluAgent[]): MvGraph {
+/** WP13: what the society knows beyond the agents themselves. */
+export interface SocietyExtras {
+  /** Real dialogues (from the ConversationRegistry / AgentStore): who talked, how many turns. */
+  dialogues?: Array<{ id: string; kind: "direct" | "group" | "self"; participants: string[]; turns: number; topic: string }>;
+  /** Agents the owner paused (ResourcePolicy). */
+  paused?: Set<string>;
+}
+
+/** An agent's state from its own records: never assumed. */
+export function agentState(a: LeluAgent, paused = false): "active" | "queued" | "paused" | "offline" | "failed" | "idle" | "archived" {
+  if (a.status === "archived") return "archived";
+  if (paused || a.status === "paused" || !a.enabled) return "paused";
+  if (a.tasks.some((t) => t.status === "running")) return "active";
+  if (a.tasks.some((t) => t.status === "queued")) return "queued";
+  const last = [...a.tasks].sort((x, y) => (y.completedAt ?? y.createdAt) - (x.completedAt ?? x.createdAt))[0];
+  if (last?.status === "failed") return "failed";
+  const exec = last?.executionId ? a.executions.find((e) => e.id === last.executionId) : undefined;
+  if (exec?.offline) return "offline";
+  return "idle";
+}
+
+export function v3Graph(executives: ExecutiveLike[], agents: LeluAgent[], extras: SocietyExtras = {}): MvGraph {
   const nodes: MvNode[] = executives.map((x) => ({
     id: `executive:${x.id}`,
     label: x.name,
@@ -175,6 +196,9 @@ export function v3Graph(executives: ExecutiveLike[], agents: LeluAgent[]): MvGra
         // Reliability only when there is a record to measure it from.
         ...(done + failed > 0 ? { reliability: `${Math.round((done / (done + failed)) * 100)}% of ${done + failed}` } : {}),
         owner: `${own.executive} (${own.basis})`,
+        state: agentState(a, extras.paused?.has(a.id)),
+        conversations: (extras.dialogues ?? []).filter((d) => d.participants.includes(a.id)).length,
+        ...(a.goals?.length ? { goals: a.goals.join(" · ") } : {}),
       },
     });
     edges.push({ id: `agent:${a.id}|reports-to|executive:${own.executive}`, from: `agent:${a.id}`, to: `executive:${own.executive}`, kind: "reports-to", evidence: own.basis === "default" ? "inferred" : "declared" });
@@ -186,13 +210,26 @@ export function v3Graph(executives: ExecutiveLike[], agents: LeluAgent[]): MvGra
       if (from) edges.push({ id: `${from}|delegated|agent:${a.id}`, from, to: `agent:${a.id}`, kind: "delegated", evidence: "measured", weight: count });
     }
   }
+  // Conversations: one edge per pair that really talked, weighted by turns.
+  const pairs = new Map<string, number>();
+  for (const d of extras.dialogues ?? []) {
+    if (d.kind === "self" || d.turns === 0) continue;
+    const ps = d.participants.filter((p) => agentIds.has(p)).sort();
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) pairs.set(`${ps[i]}|${ps[j]}`, (pairs.get(`${ps[i]}|${ps[j]}`) ?? 0) + d.turns);
+  }
+  for (const [k, turns] of pairs) {
+    const [x, y] = k.split("|");
+    edges.push({ id: `agent:${x}|conversed|agent:${y}`, from: `agent:${x}`, to: `agent:${y}`, kind: "conversed", evidence: "measured", weight: turns });
+  }
+  const dialogues = extras.dialogues ?? [];
   return {
     aspect: "v3",
     nodes,
     edges,
     gaps: [
       ...(agents.length === 0 ? ["No persistent agents are in the Agent Store on this device yet."] : []),
-      "Agent-to-agent conversations and private self-dialogue have no record in the Agent Store yet, so none is drawn.",
+      ...(dialogues.length === 0 ? ["No agent conversation or self-dialogue has been held yet, so none is drawn."] : []),
+      "Private self-dialogue is counted on the agent, not drawn as an edge.",
     ],
   };
 }

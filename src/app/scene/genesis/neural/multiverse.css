@@ -100,3 +100,20 @@
 .a3-label { font: 11px/1.2 Inter, system-ui, sans-serif; color: #e2e8f0; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 3px #000; }
 .a3-label.a3-on { color: #fde68a; font-weight: 600; }
 .a3-tick { font: 10px Inter, system-ui, sans-serif; color: #94a3b8; white-space: nowrap; pointer-events: none; }
+.aw { margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(148,163,184,.2); }
+.aw h3 { margin: 0; font-size: 17px; }
+.aw h4 { margin: 10px 0 4px; font-size: 12px; color: #c4b5fd; }
+.aw-state { font-weight: 600; }
+.aw-active { color: #0aac23; } .aw-queued { color: #338ced; } .aw-paused { color: #fbb315; } .aw-offline, .aw-failed { color: #f18a59; } .aw-idle { color: #94a3b8; }
+.aw-controls, .aw-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
+.aw button, .aw input { font: inherit; color: inherit; background: rgba(30,41,59,.7); border: 1px solid rgba(148,163,184,.25); border-radius: 6px; padding: 3px 7px; }
+.aw button[data-on="true"] { background: rgba(167,139,250,.3); }
+.aw-danger { border-color: #dc3c3d !important; }
+.aw dl { display: grid; gap: 2px; margin: 4px 0; } .aw dl div { display: grid; grid-template-columns: 90px 1fr; gap: 6px; } .aw dt { color: #94a3b8; } .aw dd { margin: 0; }
+.aw-desc { color: #cbd5e1; margin: 4px 0; }
+.aw-tools, .aw-partners { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; font-size: 12px; }
+.aw-goals { margin: 0; padding-left: 16px; }
+.aw-history { padding-left: 16px; font-size: 12px; } .aw-history li { margin: 3px 0; } .aw-err { color: #f18a59; }
+.aw-convos fieldset { border: 1px solid rgba(148,163,184,.2); border-radius: 8px; padding: 6px 8px; display: flex; flex-direction: column; gap: 6px; }
+.aw-convos article { margin: 6px 0; } .aw-convos header button { width: 100%; text-align: left; }
+.aw .um-transcript { padding-left: 16px; font-size: 12px; } .aw .um-transcript p { margin: 2px 0; white-space: pre-wrap; }

@@ -12,6 +12,7 @@
  * so every device shows the same numbers; signed out, from this
  * browser. Budgets are checked before every call (UsageBudgetGate).
  */
+import { UsageView } from "./usage/usageView";
 import { useEffect, useMemo, useState } from "react";
 import UsageLedger, {
   ALL_SOURCES,
@@ -169,7 +170,12 @@ export default function UsageSection() {
   return (
     <div data-testid="usage-section" style={{ margin: "12px 0 4px" }}>
       <div style={{ ...heading, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <span>Usage &amp; budgets</span>
+        <span>
+          Usage &amp; budgets{" "}
+          <button type="button" data-open-usage-monitor onClick={() => UsageView.open()} style={{ marginLeft: 6, fontSize: 11 }}>
+            Open the full monitor
+          </button>
+        </span>
         <span role="tablist" style={{ display: "flex", gap: 4, opacity: 1 }}>
           {PERIODS.map((p) => (
             <button

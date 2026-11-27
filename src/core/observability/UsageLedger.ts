@@ -52,6 +52,82 @@ export interface UsageEvent {
   costKind: CostKind;
   results?: number;
   error?: string;
+  /** The conversation (ConversationRegistry id) the call was made for, when known. */
+  conversationId?: string;
+  /** The agent that made the call, when an agent did. */
+  agentId?: string;
+}
+
+/**
+ * One minute or one hour of usage (WP19). Counters are summed from settled
+ * calls; gauges (active conversations, in-flight calls, JS heap, event-loop
+ * lag) are sampled and kept as min/max/sum/n/last. A gauge the runtime does
+ * not expose is simply absent, never recorded as 0.
+ */
+export interface UsageBucket {
+  calls: number;
+  ok: number;
+  failed: number;
+  rateLimited: number;
+  tokenReportedCalls: number;
+  inputTokens: number;
+  outputTokens: number;
+  cachedInputTokens: number;
+  reasoningTokens: number;
+  latencyMs: number;
+  minLatencyMs: number | null;
+  maxLatencyMs: number | null;
+  /** Calls per agent id in this bucket. */
+  agents: Record<string, number>;
+  /** Calls per conversation id in this bucket (top 40 kept). */
+  conversations: Record<string, number>;
+  /** Calls per provider:model. */
+  models: Record<string, number>;
+  gauges: Record<string, { min: number; max: number; sum: number; n: number; last: number }>;
+}
+
+export const emptyBucket = (): UsageBucket => ({
+  calls: 0, ok: 0, failed: 0, rateLimited: 0, tokenReportedCalls: 0, inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningTokens: 0,
+  latencyMs: 0, minLatencyMs: null, maxLatencyMs: null, agents: {}, conversations: {}, models: {}, gauges: {},
+});
+
+const minuteKey = (t: number) => new Date(t).toISOString().slice(0, 16); // 2026-11-27T19:05
+const hourKey = (t: number) => new Date(t).toISOString().slice(0, 13); // 2026-11-27T19
+const ROLLUP_KEY = "lelu.usage.rollups.v1";
+const KEEP_MINUTES_MS = 48 * 3_600_000;
+const KEEP_HOURS_MS = 120 * 86_400_000;
+
+function addToBucket(b: UsageBucket, e: UsageEvent): void {
+  b.calls += 1;
+  if (e.ok) b.ok += 1; else b.failed += 1;
+  if (e.rateLimited) b.rateLimited += 1;
+  if (e.inputTokens !== null || e.outputTokens !== null) b.tokenReportedCalls += 1;
+  b.inputTokens += e.inputTokens ?? 0;
+  b.outputTokens += e.outputTokens ?? 0;
+  b.cachedInputTokens += e.cachedInputTokens ?? 0;
+  b.reasoningTokens += e.reasoningTokens ?? 0;
+  if (typeof e.latencyMs === "number") {
+    b.latencyMs += e.latencyMs;
+    b.minLatencyMs = b.minLatencyMs === null ? e.latencyMs : Math.min(b.minLatencyMs, e.latencyMs);
+    b.maxLatencyMs = b.maxLatencyMs === null ? e.latencyMs : Math.max(b.maxLatencyMs, e.latencyMs);
+  }
+  if (e.agentId) b.agents[e.agentId] = (b.agents[e.agentId] ?? 0) + 1;
+  if (e.conversationId) {
+    b.conversations[e.conversationId] = (b.conversations[e.conversationId] ?? 0) + 1;
+    const keys = Object.keys(b.conversations);
+    if (keys.length > 40) delete b.conversations[keys.sort((x, y) => b.conversations[x] - b.conversations[y])[0]];
+  }
+  const m = `${e.source}:${e.model ?? "?"}`;
+  b.models[m] = (b.models[m] ?? 0) + 1;
+}
+
+function addGauge(b: UsageBucket, name: string, value: number): void {
+  const g = (b.gauges[name] ??= { min: value, max: value, sum: 0, n: 0, last: value });
+  g.min = Math.min(g.min, value);
+  g.max = Math.max(g.max, value);
+  g.sum += value;
+  g.n += 1;
+  g.last = value;
 }
 
 export interface UsageTotals {
@@ -244,6 +320,10 @@ export default class UsageLedger {
   private readonly sessionStart: number;
   private listeners = new Set<() => void>();
   private currentUser: string | null = null;
+  private minutes: Record<string, UsageBucket> = {};
+  private hours: Record<string, UsageBucket> = {};
+  private rollupDirty = false;
+  private rollupTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly now: () => number = () => Date.now(),
@@ -277,11 +357,37 @@ export default class UsageLedger {
     const byPurpose = (this.purposeDaily[dayKey(full.at)] ??= {});
     add((byPurpose[`${full.kind}:${purposeOf(full.operation)}`] ??= emptyTotals()), full);
     if (full.kind === "ai" && isBackgroundPurpose(full.operation)) this.lastBackgroundCallAt = full.at;
+    addToBucket((this.minutes[minuteKey(full.at)] ??= emptyBucket()), full);
+    addToBucket((this.hours[hourKey(full.at)] ??= emptyBucket()), full);
+    this.rollupDirty = true;
     this.save();
     for (const listener of this.listeners) {
       try { listener(); } catch { /* a listener never breaks accounting */ }
     }
     return full;
+  }
+
+  /**
+   * Sample resource gauges into the current minute and hour (WP19). Only
+   * values the runtime actually measured are passed; absent means unavailable.
+   */
+  sampleGauges(gauges: Record<string, number | null | undefined>): void {
+    const t = this.now();
+    const m = (this.minutes[minuteKey(t)] ??= emptyBucket());
+    const h = (this.hours[hourKey(t)] ??= emptyBucket());
+    for (const [name, value] of Object.entries(gauges)) {
+      if (typeof value !== "number" || !Number.isFinite(value)) continue;
+      addGauge(m, name, value);
+      addGauge(h, name, value);
+    }
+    this.rollupDirty = true;
+    this.scheduleRollupSave();
+  }
+
+  /** Minute buckets (last 48 h) or hour buckets (last 120 days), keyed by ISO prefix, oldest first. */
+  rollups(resolution: "minute" | "hour"): Array<{ key: string; bucket: UsageBucket }> {
+    const src = resolution === "minute" ? this.minutes : this.hours;
+    return Object.keys(src).sort().map((key) => ({ key, bucket: src[key] }));
   }
 
   subscribe(listener: () => void): () => void {
@@ -485,8 +591,39 @@ export default class UsageLedger {
 
   /* ---------- persistence ---------- */
 
+  private scheduleRollupSave(): void {
+    if (this.rollupTimer || !this.storage) return;
+    // Gauges arrive often; their write is coalesced (bounded overhead).
+    this.rollupTimer = setTimeout(() => {
+      this.rollupTimer = null;
+      this.saveRollups();
+    }, 5000);
+  }
+
+  private saveRollups(): void {
+    if (!this.storage || !this.rollupDirty) return;
+    const now = this.now();
+    const minCut = minuteKey(now - KEEP_MINUTES_MS);
+    const hourCut = hourKey(now - KEEP_HOURS_MS);
+    for (const k of Object.keys(this.minutes)) if (k < minCut) delete this.minutes[k];
+    for (const k of Object.keys(this.hours)) if (k < hourCut) delete this.hours[k];
+    try {
+      this.storage.setItem(ROLLUP_KEY, JSON.stringify({ minutes: this.minutes, hours: this.hours }));
+      this.rollupDirty = false;
+    } catch {
+      /* storage full: rollups continue in memory */
+    }
+  }
+
   private load(): void {
     if (!this.storage) return;
+    try {
+      const rolled = JSON.parse(this.storage.getItem(ROLLUP_KEY) ?? "null") as { minutes?: Record<string, UsageBucket>; hours?: Record<string, UsageBucket> } | null;
+      if (rolled?.minutes && typeof rolled.minutes === "object") this.minutes = rolled.minutes;
+      if (rolled?.hours && typeof rolled.hours === "object") this.hours = rolled.hours;
+    } catch {
+      /* corrupt rollups start empty */
+    }
     try {
       const raw = this.storage.getItem(STORAGE_KEY);
       if (!raw) return;
@@ -521,5 +658,6 @@ export default class UsageLedger {
     } catch {
       /* storage full or blocked: accounting continues in memory */
     }
+    this.saveRollups();
   }
 }

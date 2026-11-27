@@ -391,6 +391,19 @@ export default class CognitiveLoop {
         suggestions.push(evaluation.observations[0]!);
       }
 
+      /* ---------------- USAGE OBSERVATION (WP19) ---------------- */
+      // On this loop's existing heartbeat: sample the measured gauges into
+      // the ledger's minute/hour rollups and surface any usage alert. No
+      // model call, no timer of its own; the sample's own cost is measured.
+      try {
+        const { recordSample, alerts } = await import("../observability/UsageAnalytics");
+        await withDeadline(recordSample(), null);
+        const top = alerts().find((a) => a.severity !== "info");
+        if (top) suggestions.push(`Usage: ${top.title} — ${top.detail} ${top.recommendation}`);
+      } catch {
+        /* observation never breaks the cycle */
+      }
+
       /* ---------------- DAILY DEVELOPMENT ---------------- */
       // The daily boundary: each COMPLETED day is reflected exactly once
       // (DailyRecord → DailyReflection → PersonalityGuard → LeluIdentity).

@@ -16,7 +16,9 @@ import AgentEventBus from "../agent/AgentEvents";
 import AgentStore from "./AgentStore";
 import ProjectStore from "../projects/ProjectStore";
 import type { AIResponse } from "../../providers/AIProvider";
-import type { DelegatorId, AgentTaskScope } from "./AgentTypes";
+import type { DelegatorId, AgentTaskScope, AgentDialogueRef } from "./AgentTypes";
+import ConversationRegistry from "../observability/ConversationRegistry";
+import ResourcePolicy, { ResourceRefusal } from "../observability/ResourcePolicy";
 import { executiveOf } from "./ExecutiveOwnership";
 
 import { AgentDepthGuard, BUDGET_LIMITS } from "../memory/CognitiveBudget";
@@ -59,6 +61,8 @@ export interface AgentRunOptions {
    * the legacy shared window reachable.
    */
   scope?: AgentTaskScope;
+  /** WP13: this run is one turn of an agent conversation. */
+  dialogue?: AgentDialogueRef;
 }
 
 export default class AgentRunner {
@@ -123,6 +127,16 @@ export default class AgentRunner {
       };
     }
 
+    // The owner's resource policy (WP19.5): concurrent agent tasks, per-agent limits, pause.
+    try {
+      const running = this.store.list().flatMap((a) => a.tasks.filter((t) => t.status === "running").map(() => a.id));
+      ResourcePolicy.getInstance().checkAgentTask(agent.id, { total: running.length, forAgent: running.filter((id) => id === agent.id).length });
+    } catch (error) {
+      AgentDepthGuard.exit(chainId);
+      if (error instanceof ResourceRefusal) return { ok: false, error: `Not started — ${error.message}`, taskId: String(Date.now()) };
+      throw error;
+    }
+
     const resolvedProject = projectId ?? agent.projectId ?? undefined;
     // Project CONTENTS are authorized against the run's scope: another user's
     // project, or a conversation-local project from a different chat, yields
@@ -147,7 +161,25 @@ export default class AgentRunner {
       executive: options.executive ?? executiveOf(agent),
       ...(options.routeReason ? { routeReason: options.routeReason } : {}),
       ...(options.scope ? { scope: options.scope } : {}),
+      ...(options.dialogue ? { dialogue: options.dialogue } : {}),
     });
+    // WP19: every agent run is registered. A dialogue turn belongs to its
+    // dialogue's record; any other run gets its own, under the conversation
+    // (or delegating agent) it came from.
+    const registry = ConversationRegistry.getInstance();
+    const registryId = options.dialogue ? options.dialogue.id : `agent-task:${taskRecord.id}`;
+    if (options.dialogue) registry.message(registryId, "in");
+    else
+      registry.open({
+        id: registryId,
+        type: "agent-task",
+        initiator: options.delegatedBy === "user" ? "user" : options.delegatedBy && this.store.get(options.delegatedBy) ? "agent" : "lelu",
+        purpose: options.routeReason ?? "delegated task",
+        title: `${agent.name}: ${task.slice(0, 80)}`,
+        parentId: options.scope?.conversationId ?? null,
+        participants: [`agent:${agent.id}`],
+      });
+    registry.linkTask(registryId, taskRecord.id);
     if (options.resumedFrom) {
       // Link the original to its continuation; its own status and error are
       // history and stay exactly as they were.
@@ -169,7 +201,13 @@ export default class AgentRunner {
     });
 
     try {
-      const response = await this.ai.delegate(agent, task, projectContext, options.scope);
+      const sentAt = Date.now();
+      const response = await this.ai.delegate(agent, task, projectContext, options.scope, registryId, Boolean(options.dialogue));
+      // Refused by the owner's resource policy (throttle, pause, caps, emergency
+      // stop): the providers were never asked. That is a refusal with a
+      // reason, not an "offline" answer — recorded as a failed task.
+      const refusal = ResourcePolicy.getInstance().refusalSince(sentAt, [registryId, `agent:${agent.id}`]);
+      if (refusal && ["offline", "error", "budget"].includes(response.provider)) throw new Error(`Refused by your resource limits (${refusal.rule}): ${refusal.message}`);
       const execution = this.store.recordExecution(agentId, {
         taskId: taskRecord.id,
         prompt: task,
@@ -184,6 +222,8 @@ export default class AgentRunner {
         completedAt: Date.now(),
         executionId: execution.id,
       });
+      registry.message(registryId, "out");
+      registry.settle(registryId, { ok: response.provider !== "offline", error: response.provider === "offline" ? "no provider answered (offline)" : undefined, end: !options.dialogue });
       // The agent's result RETURNS to the runtime here, rather than
       // stopping at the caller — the orchestrator decides what happens
       // next from the same event stream everything else uses.
@@ -207,7 +247,9 @@ export default class AgentRunner {
       // LÉLU speaks first only because an agent actually finished (§12). The
       // taskId is the evidence; announce() will not deliver without a real
       // summary, and checks the user's proactive setting before it does.
-      announce({
+      // A dialogue turn is not a finished task for the person: no announcement
+      // per turn (it covered the monitor and flooded notifications).
+      if (!options.dialogue) announce({
         kind: "agent-finished",
         agentName: agent.name,
         task,
@@ -223,6 +265,7 @@ export default class AgentRunner {
         completedAt: Date.now(),
         error: message,
       });
+      registry.settle(registryId, { ok: false, error: message, end: !options.dialogue });
       // A failure is an event too — never a silent death.
       events.emit({
         type: "agent_failed",

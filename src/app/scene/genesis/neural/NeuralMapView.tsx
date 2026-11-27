@@ -33,6 +33,7 @@ import { neuralGeometry, neuralLinkPath } from "./neuralLanguage";
 import { useCosmosLanguage } from "../cosmosLanguage/useCosmosLanguage";
 import type { CompositionSpec } from "../../../../core/interface/CosmosLanguages";
 import MultiverseView from "./MultiverseView";
+import { UsageView } from "../usage/usageView";
 import "./multiverse.css";
 import { ASPECTS, type AspectId } from "../../../../core/neural/multiverse/MultiverseTypes";
 import { DEFAULT_SETTINGS, type ViewSettings } from "../../../../core/neural/multiverse/SavedViews";
@@ -292,6 +293,9 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
           </button>
           <button type="button" onClick={() => NeuralView.focus(COSMOS_CORE_NID)}>
             Cosmos core
+          </button>
+          <button type="button" data-open-usage onClick={() => UsageView.open()} title="Every conversation, what it used, and the limits on it">
+            Usage
           </button>
           {embedded ? null : (
             <button type="button" data-close-neural-map onClick={() => NeuralView.closeStandalone()} aria-label="Close the Neural Map and return">

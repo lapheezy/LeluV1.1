@@ -30,6 +30,8 @@
  * ==========================================================
  */
 
+import ResourcePolicy, { ResourceRefusal } from "./ResourcePolicy";
+import ConversationRegistry from "./ConversationRegistry";
 import UsageLedger, {
   ALL_SOURCES,
   BACKGROUND_BUDGET_SOURCE,
@@ -120,6 +122,9 @@ export interface Reservation {
   /** The purpose label; background reservations count against the background cap. */
   operation?: string;
   reservedAt?: number;
+  /** WP19: who the call is for, so its usage is attributed and limits apply. */
+  conversationId?: string;
+  agentId?: string;
 }
 
 type Settlement = Omit<UsageEvent, "id" | "userId" | "at" | "kind" | "source" | "inputTokens" | "outputTokens" | "cachedInputTokens" | "reasoningTokens" | "costUsd" | "costKind"> & { usage?: unknown };
@@ -141,7 +146,13 @@ export default class UsageBudgetGate {
   /** Settlements the account side has not acknowledged (UsageSync retries them by id). */
   private readonly unsettled = new Set<string>();
 
-  constructor(private readonly ledger: UsageLedger = UsageLedger.getInstance()) {}
+  constructor(private readonly ledger: UsageLedger = UsageLedger.getInstance()) {
+    // After a restart the hourly limits continue from what the ledger recorded this hour.
+    ResourcePolicy.getInstance().seedHour = (hour) => {
+      const b = this.ledger.rollups("hour").find((r) => r.key === hour)?.bucket;
+      return b ? { calls: b.calls, tokens: b.inputTokens + b.outputTokens, byConversation: b.conversations, byAgent: b.agents } : null;
+    };
+  }
 
   /** Wire the account side (SupabaseUsageRemote) — or null to stay device-only. */
   setRemote(factory: () => UsageRemote | null): void {
@@ -284,8 +295,19 @@ export default class UsageBudgetGate {
     }
   }
 
-  async reserve(kind: UsageKind, source: string, options: { reserveTokens?: number; operation?: string; continuation?: boolean } = {}): Promise<Reservation> {
+  async reserve(kind: UsageKind, source: string, options: { reserveTokens?: number; operation?: string; continuation?: boolean; conversationId?: string; agentId?: string } = {}): Promise<Reservation> {
     const tokens = Math.max(0, Math.floor(options.reserveTokens ?? 0));
+    // The owner's resource policy first (WP19.5): emergency stop, paused,
+    // terminated or throttled workloads, concurrency and hourly caps.
+    if (kind === "ai") {
+      try {
+        ResourcePolicy.getInstance().checkCall({ conversationId: options.conversationId, agentId: options.agentId, inFlight: [...this.inFlight.values()].filter((r) => r.kind === "ai") });
+      } catch (error) {
+        // Surfaced like any budget refusal: the call is not sent, the person is told why.
+        if (error instanceof ResourceRefusal) throw new BudgetExhaustedError(kind, source, `resource limit (${error.rule}): ${error.message}`, "device");
+        throw error;
+      }
+    }
     // Background work is checked against its own allowance FIRST, before any
     // provider or account budget: it must never take what conversation needs.
     if (kind === "ai" && isBackgroundPurpose(options.operation)) this.checkBackground(options.operation, Boolean(options.continuation));
@@ -309,9 +331,12 @@ export default class UsageBudgetGate {
     const reservation: Reservation = {
       id: newId(), kind, source, tokens, accountChecked: false, userId: this.ledger.getUser(),
       ...(options.operation ? { operation: options.operation } : {}), reservedAt: this.now(),
+      ...(options.conversationId ? { conversationId: options.conversationId } : {}),
+      ...(options.agentId ? { agentId: options.agentId } : {}),
       warnings: [own.warning, all.warning].filter((w): w is string => Boolean(w)),
     };
     this.inFlight.set(reservation.id, reservation);
+    if (kind === "ai") ResourcePolicy.getInstance().noteCall({ conversationId: options.conversationId, agentId: options.agentId });
 
     const remote = this.remoteFactory();
     if (remote) {
@@ -351,8 +376,21 @@ export default class UsageBudgetGate {
 
   /** The call happened: record what the provider reported and free the reservation. */
   async settle(reservation: Reservation, outcome: Settlement): Promise<UsageEvent> {
-    const event = this.ledger.record({ ...outcome, id: reservation.id, kind: reservation.kind, source: reservation.source, userId: reservation.userId });
+    const event = this.ledger.record({
+      ...outcome,
+      id: reservation.id,
+      kind: reservation.kind,
+      source: reservation.source,
+      userId: reservation.userId,
+      ...(reservation.conversationId ? { conversationId: reservation.conversationId } : {}),
+      ...(reservation.agentId ? { agentId: reservation.agentId } : {}),
+    });
     this.inFlight.delete(reservation.id);
+    // Every settled call reaches the conversation registry: none is invisible.
+    if (event.kind === "ai") {
+      ConversationRegistry.getInstance().recordUsage(event);
+      ResourcePolicy.getInstance().noteTokens((event.inputTokens ?? 0) + (event.outputTokens ?? 0));
+    }
     // A provider saying its quota is spent FOR THE DAY — on any call, chat
     // included — stops background model use until the next UTC day, so what
     // remains on the other providers is kept for conversation.
@@ -421,11 +459,19 @@ export async function gatedGenerate<R extends { model?: string; metadata?: { usa
   const declared = Number((request as { maxTokens?: unknown })?.maxTokens);
   // Reserve the output ceiling the request itself declares, when it declares
   // one; otherwise nothing is guessed — the token cap applies to reported use.
+  const conversationId =
+    typeof request?.usageConversationId === "string" ? (request.usageConversationId as string) : typeof request?.conversationId === "string" ? (request.conversationId as string) : undefined;
+  const agentId = typeof request?.agentId === "string" ? (request.agentId as string) : undefined;
   const reservation = await gate.reserve("ai", provider.name, {
     reserveTokens: Number.isFinite(declared) && declared > 0 ? declared : 0,
     operation,
     continuation: options.continuation,
+    ...(conversationId ? { conversationId } : {}),
+    ...(agentId ? { agentId } : {}),
   });
+  // Tool and browser events of this request carry its timestamp as their task
+  // id: bind it, so that work is attributed to the same conversation.
+  if (conversationId && request?.timestamp !== undefined) ConversationRegistry.getInstance().bindTask(String(request.timestamp), conversationId);
   // Stopped before sending: nothing reaches the provider, so the
   // reservation is given back rather than counted.
   const signal = (request as { signal?: AbortSignal })?.signal;
@@ -435,8 +481,15 @@ export async function gatedGenerate<R extends { model?: string; metadata?: { usa
   }
   const started = Date.now();
   let response: R;
+  // The owner's longest-call limit (WP19.5): the call is abandoned and settled as failed.
+  const maxMs = ResourcePolicy.getInstance().get().maxCallMs;
   try {
-    response = await provider.generate(request);
+    response = maxMs
+      ? await Promise.race([
+          provider.generate(request),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`exceeded the ${Math.round(maxMs / 1000)} s limit on one model call (resource policy)`)), maxMs)),
+        ])
+      : await provider.generate(request);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     {

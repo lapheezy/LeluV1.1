@@ -84,6 +84,26 @@ export interface AgentTask {
   executive?: string;
   /** Why SHAMAN (or the caller) chose this agent, in words. */
   routeReason?: string;
+  /**
+   * WP13: this task is one turn of an agent conversation. The dialogue's
+   * history IS these tasks and their executions, read back across agents
+   * (AgentDialogue); no second conversation store exists.
+   */
+  dialogue?: AgentDialogueRef;
+}
+
+export type AgentDialogueKind = "direct" | "group" | "self";
+
+export interface AgentDialogueRef {
+  id: string;
+  kind: AgentDialogueKind;
+  /** 0-based position of this turn in the dialogue. */
+  turn: number;
+  /** Agent ids taking part (one for self-dialogue). */
+  participants: string[];
+  topic: string;
+  /** Self-dialogue: which voice this turn speaks in. */
+  role?: "propose" | "critique" | "revise";
 }
 
 export interface AgentExecution {
@@ -119,6 +139,8 @@ export interface LeluAgent {
   personality: string;
   /** High-level capabilities, e.g. ["concept design", "rendering"]. */
   capabilities: string[];
+  /** WP13: the agent's own goals, set by the owner or the agent's executive. */
+  goals?: string[];
   /** Granted tools (the creative tool layer). */
   tools: AgentTool[];
   /** Memory access permission. */

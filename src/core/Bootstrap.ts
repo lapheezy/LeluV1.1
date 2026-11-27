@@ -51,6 +51,10 @@ import { registerCosmosTools } from "./cosmos/CosmosTools";
 import { registerInterfaceCompositionTools } from "./interface/InterfaceCompositionTools";
 import { registerNeuralMapTools } from "./neural/NeuralMapTools";
 import { connectNeuralMap } from "./neural/connectNeuralMap";
+import ConversationRegistry from "./observability/ConversationRegistry";
+import { registerUsageTools } from "./observability/UsageTools";
+import AgentEventBus from "./agent/AgentEvents";
+let registryWired = false;
 import { registerContinuityTools } from "./cognition/ContinuityTools";
 import ContinuityEngine from "./sync/ContinuityEngine";
 import SupabaseContinuityTransport from "./sync/SupabaseContinuityTransport";
@@ -274,6 +278,8 @@ export default class Bootstrap {
       // The Neural Map (M17.2): one index over the Cosmos authorities, kept
       // live by their own change notifications, readable as tools.
       registerNeuralMapTools();
+      // WP19/WP13: usage reports, resource control in plain words, agent conversations.
+      registerUsageTools();
       connectNeuralMap();
       // Mission continuity: the evidence-labelled self-model and the durable
       // workstream ledger, reachable through the same dispatcher as every
@@ -294,6 +300,12 @@ export default class Bootstrap {
       // Event-driven awareness. Subscribes once to the existing AgentEventBus;
       // no timer, no polling, no second bus. Idempotent across re-bootstrap.
       CognitivePulseStore.getInstance().start();
+      // WP19: tool and browser work reaches the conversation registry from
+      // the same bus (one subscription; the registry stores counts, not content).
+      if (!registryWired) {
+        registryWired = true;
+        AgentEventBus.getInstance().subscribe((e) => ConversationRegistry.getInstance().recordBusEvent(e as { type: string; taskId?: string; tool?: string }));
+      }
       // Observed provider health: ask the one broker endpoint the app already
       // trusts, and keep its timestamps. Non-blocking — a cold start must not
       // wait on a network probe, and the self-model tool refreshes explicitly.

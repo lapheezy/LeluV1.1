@@ -191,6 +191,11 @@ export default class PersistentRuntime {
         if (execution.createdAt <= checkpoint) {
           continue;
         }
+        // A turn of an agent conversation is not a finished task: its
+        // transcript lives in the conversation, not in a notification each.
+        if (agent.tasks.find((t) => t.id === execution.taskId)?.dialogue) {
+          continue;
+        }
         const conversationId = this.conversationForProject(agent.projectId ?? undefined);
         const record = provider.notify({
           title: `${agent.name} finished`,

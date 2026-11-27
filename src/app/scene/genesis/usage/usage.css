@@ -1,0 +1,82 @@
+.um { position: fixed; inset: 0; z-index: 66; display: flex; flex-direction: column; background: #0f1222; color: #e2e8f0; font: 13px/1.45 Inter, system-ui, sans-serif; text-align: left; }
+.um button, .um input, .um select { font: inherit; color: inherit; background: #1a1f36; border: 1px solid #2b3352; border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+.um input:not([type="checkbox"]):not([type="range"]) { cursor: text; }
+.um button[data-on="true"] { background: #2370cd; border-color: #338ced; color: #fff; }
+.um-danger { background: #5a1a1b !important; border-color: #dc3c3d !important; }
+.um-top { display: flex; align-items: center; gap: 8px; padding: 10px 14px 10px 32px; border-bottom: 1px solid #232a45; flex-wrap: wrap; }
+.um-top strong { font-size: 15px; margin-right: 8px; }
+.um-tabs { display: flex; gap: 4px; margin-right: auto; }
+.um-stop-badge { color: #fff; background: #dc3c3d; border-radius: 6px; padding: 3px 8px; font-weight: 700; }
+.um-cmd { display: flex; gap: 6px; padding: 8px 14px 0 32px; }
+.um-cmd input { flex: 1; min-width: 0; }
+.um-plan, .um-result { margin: 6px 14px 0 32px; padding: 8px 10px; border-radius: 8px; background: #172038; border: 1px solid #2b3352; white-space: pre-wrap; font: inherit; }
+.um-plan[data-consequential="true"] { border-color: #fbb315; }
+.um-plan ul { margin: 4px 0; padding-left: 18px; }
+.um-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr minmax(300px, 420px); }
+.um-main { overflow: auto; padding: 12px 14px 24px 32px; display: flex; flex-direction: column; gap: 12px; }
+.um-side { overflow: auto; padding: 12px; border-left: 1px solid #232a45; }
+.um-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.um-tile { background: #161b30; border: 1px solid #232a45; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; }
+.um-tile span { color: #94a3b8; font-size: 11px; }
+.um-tile b { font-size: 24px; font-variant-numeric: tabular-nums; }
+.um-tile small { color: #94a3b8; }
+.um-range-bar, .um-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.um-chart { position: relative; margin: 0; background: #161b30; border: 1px solid #232a45; border-radius: 10px; padding: 8px 10px; }
+.um-chart figcaption { color: #cbd5e1; font-weight: 600; margin-bottom: 4px; }
+.um-chart svg { width: 100%; height: auto; display: block; }
+.um-grid { stroke: #232a45; }
+.um-axis { fill: #94a3b8; font-size: 10px; }
+.um-na { fill: #64748b; color: #64748b; font-size: 9px; }
+.um-cross { stroke: #cbd5e1; stroke-dasharray: 3 3; }
+.um-tip { position: absolute; right: 10px; top: 6px; background: #0b0e1c; border: 1px solid #2b3352; border-radius: 6px; padding: 3px 8px; font-size: 12px; }
+.um-empty { color: #94a3b8; margin: 4px 0; }
+.um-rank-row { display: grid; grid-template-columns: minmax(120px, 34%) 1fr 48px; gap: 8px; align-items: center; margin: 3px 0; }
+.um-rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.um-rank-bar { background: #1c2033; border-radius: 4px; height: 12px; overflow: hidden; }
+.um-rank-bar i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.um-rank-val { text-align: right; font-variant-numeric: tabular-nums; }
+.um-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.um-heat-row { display: grid; grid-template-columns: 42px repeat(24, 1fr); gap: 2px; margin: 2px 0; align-items: center; }
+.um-heat-row i { height: 14px; border-radius: 3px; display: block; }
+.um-heat-row span { color: #94a3b8; font-size: 11px; }
+.um-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.um-table caption { text-align: left; font-weight: 600; color: #cbd5e1; padding: 4px 0; }
+.um-table th { text-align: left; color: #94a3b8; font-weight: 500; border-bottom: 1px solid #232a45; padding: 4px 6px; }
+.um-table td { border-bottom: 1px solid #1b2038; padding: 4px 6px; font-variant-numeric: tabular-nums; }
+.um-table tr[data-conv] { cursor: pointer; }
+.um-table tr[data-on="true"] td { background: #1b2647; }
+.um-table input { width: 70px; }
+.um-alerts article { border-left: 3px solid #94a3b8; padding: 4px 8px; margin: 6px 0; background: #161b30; border-radius: 0 6px 6px 0; }
+.um-alerts article[data-severity="warning"] { border-color: #fbb315; }
+.um-alerts article[data-severity="critical"] { border-color: #dc3c3d; }
+.um-alerts p { margin: 2px 0 0; color: #cbd5e1; }
+.um-detail h3 { margin: 0; font-size: 15px; }
+.um-meta { color: #94a3b8; margin: 2px 0 8px; }
+.um-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.um-facts { display: grid; gap: 3px; margin: 0; }
+.um-facts div { display: grid; grid-template-columns: 120px 1fr; gap: 6px; }
+.um-facts dt { color: #94a3b8; }
+.um-facts dd { margin: 0; word-break: break-word; }
+.um-transcript { padding-left: 18px; }
+.um-transcript li { margin: 6px 0; }
+.um-transcript li[data-turn-state="failed"], .um-transcript li[data-turn-state="offline"] { color: #f18a59; }
+.um-transcript p { margin: 2px 0; white-space: pre-wrap; }
+.um-chain { list-style: none; padding: 0; }
+.um-chain button { width: 100%; text-align: left; margin: 2px 0; }
+.um-chain li[data-on="true"] button { border-color: #338ced; }
+.um-controls { display: flex; flex-direction: column; gap: 8px; }
+.um-emergency { display: flex; gap: 10px; align-items: center; }
+.um-limit { display: grid; grid-template-columns: minmax(180px, 30%) auto minmax(120px, 1fr) 100px minmax(140px, auto); gap: 8px; align-items: center; background: #161b30; border: 1px solid #232a45; border-radius: 8px; padding: 6px 8px; }
+.um-limit small { color: #94a3b8; }
+.um-log { font-size: 12px; color: #cbd5e1; }
+.um-unavailable li { margin: 3px 0; color: #cbd5e1; }
+@media (max-width: 860px) {
+  .um-body { grid-template-columns: 1fr; grid-template-rows: auto auto; overflow: auto; }
+  .um-main { overflow: visible; padding-left: 14px; }
+  .um-side { border-left: 0; border-top: 1px solid #232a45; }
+  .um-two { grid-template-columns: 1fr; }
+  .um-limit { grid-template-columns: 1fr auto; }
+  .um-top, .um-cmd, .um-plan, .um-result { padding-left: 14px; margin-left: 14px; }
+  .um-top { margin-left: 0; }
+  .um-table { display: block; overflow-x: auto; }
+}

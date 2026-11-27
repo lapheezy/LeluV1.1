@@ -51,6 +51,8 @@ import { buildCognitiveContext, formatCognitiveContext } from "./cognition/Cogni
 import CognitiveTrace from "./cognition/CognitiveTrace";
 import TurnBridge from "./conversation/TurnBridge";
 import type { Surface } from "./conversation/types";
+import ConversationRegistry from "./observability/ConversationRegistry";
+import ResourcePolicy from "./observability/ResourcePolicy";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
 import { mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "./perf/LatencyProbe";
@@ -530,7 +532,49 @@ export default class AIService {
     markPerf("PROVIDER_READY");
   }
 
+  /**
+   * One conversational turn, registered in the ConversationRegistry (WP19):
+   * the chat (by the id MultiChatStore already uses) or voice session is
+   * opened, its message counts and outcome recorded. Content is never stored
+   * there. The turn itself is chatTurn, unchanged.
+   */
   public async chat(
+    prompt: string,
+    media?: MediaAttachment[],
+    context?: string,
+    options?: Parameters<AIService["chatTurn"]>[3],
+  ): Promise<AIResponse> {
+    const registry = ConversationRegistry.getInstance();
+    const id = options?.conversationId ?? "chat:unscoped";
+    const voice = options?.surface === "voice" || Boolean(options?.transcript);
+    registry.open({
+      id,
+      type: voice ? "voice" : "user-chat",
+      initiator: "user",
+      purpose: voice ? "spoken conversation" : "conversation",
+      title: voice ? `Voice · ${id}` : MultiChatStore.getInstance().get(id)?.title ?? id,
+      participants: voice ? ["service:voice"] : [],
+    });
+    if (prompt.trim()) registry.message(id, "in");
+    const sentAt = Date.now();
+    try {
+      const response = await this.chatTurn(prompt, media, context, options);
+      // A turn the owner's resource policy refused is recorded as refused, with why.
+      const refusal = ResourcePolicy.getInstance().refusalSince(sentAt, [id]);
+      if (refusal && (["offline", "error", "budget"].includes(response.provider) || response.metadata?.success === false)) {
+        registry.settle(id, { ok: false, error: `refused by resource limits (${refusal.rule}): ${refusal.message}` });
+        return { ...response, text: `I didn't send that to a model: ${refusal.message}`, metadata: { ...(response.metadata ?? {}), success: false, refusedBy: refusal.rule } as AIResponse["metadata"] };
+      }
+      if (response.text) registry.message(id, "out");
+      registry.settle(id, { ok: response.metadata?.success !== false, error: response.metadata?.success === false ? response.text : undefined });
+      return response;
+    } catch (error) {
+      registry.settle(id, { ok: false, error: error instanceof Error ? error.message : String(error) });
+      throw error;
+    }
+  }
+
+  private async chatTurn(
     prompt: string,
     media?: MediaAttachment[],
     context?: string,
@@ -1344,6 +1388,10 @@ export default class AIService {
     projectContext?: string,
     /** The turn this agent runs inside (M22.1). */
     scope?: AgentTaskScope,
+    /** The ConversationRegistry record this run's usage belongs to (WP19). */
+    usageConversationId?: string,
+    /** WP13: a dialogue turn — answered by a model, never by a keyword stage. */
+    conversationOnly = false,
   ): Promise<AIResponse> {
     const message = task.trim();
     const events = AgentEventBus.getInstance();
@@ -1378,6 +1426,10 @@ export default class AIService {
       prompt: message,
       timestamp: Number(taskId),
       ...(scope?.conversationId ? { conversationId: scope.conversationId } : {}),
+      // WP19: usage of this run is attributed to the agent and its registry record.
+      agentId: agent.id,
+      ...(usageConversationId ? { usageConversationId } : {}),
+      ...(conversationOnly ? { conversationOnly: true, forceIntent: "chat" as const } : {}),
       ...(() => {
         const parts: string[] = [];
         if (projectContext?.trim()) parts.push(projectContext.trim());

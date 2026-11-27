@@ -23,6 +23,10 @@ import AgentStore from "../../../../core/agents/AgentStore";
 import { EXECUTIVES } from "../../../../core/executive/ExecutiveBoard";
 import type { LeluAgent } from "../../../../core/agents/AgentTypes";
 import { NeuralView } from "./neuralView";
+import AgentDialogue from "../../../../core/agents/AgentDialogue";
+import ResourcePolicy from "../../../../core/observability/ResourcePolicy";
+import ConversationRegistry from "../../../../core/observability/ConversationRegistry";
+import AgentWorkspace from "./AgentWorkspace";
 import { useNeuralVersion } from "./useNeural";
 import { ARCH_VIEWS, type ArchViewId } from "../../../../core/neural/multiverse/Architecture3D";
 // WebGL only loads when a 3D view is chosen.
@@ -37,13 +41,27 @@ const THEMES: Record<ViewSettings["theme"], { bg: string; ink: string; guide: st
 
 function useAgents(): LeluAgent[] {
   const [agents, setAgents] = useState<LeluAgent[]>(() => AgentStore.getInstance().list());
-  useEffect(() => AgentStore.getInstance().subscribe((list) => setAgents(list)), []);
+  useEffect(() => {
+    const offs = [
+      AgentStore.getInstance().subscribe((list) => setAgents(list)),
+      // Dialogues and pauses change V3 without changing the agent list.
+      ConversationRegistry.getInstance().subscribe(() => setAgents((a) => [...a])),
+      ResourcePolicy.getInstance().subscribe(() => setAgents((a) => [...a])),
+    ];
+    return () => offs.forEach((o) => o());
+  }, []);
   return agents;
 }
 
 function aspectGraph(aspect: AspectId, agents: LeluAgent[]): MvGraph {
   if (aspect === "v2") return v2Graph();
-  if (aspect === "v3") return v3Graph(EXECUTIVES, agents);
+  if (aspect === "v3") {
+    const policy = ResourcePolicy.getInstance().get();
+    const dialogues = AgentDialogue.getInstance()
+      .list()
+      .map((d) => ({ id: d.id, kind: d.kind, participants: d.participants, turns: d.turns, topic: d.topic }));
+    return v3Graph(EXECUTIVES, agents, { dialogues, paused: new Set(Object.entries(policy.agents).filter(([, c]) => c.paused).map(([id]) => id)) });
+  }
   return v1Graph(neuralMap());
 }
 
@@ -333,6 +351,7 @@ export default function MultiverseView({ settings, onChange }: { settings: ViewS
         </p>
       </main>
       <section className="mv-side">
+        {selected && selected.kind === "agent" ? <AgentWorkspace agentId={selected.source.id} /> : null}
         {selected ? <NodeDetail node={selected} graph={graph} onSelect={(id) => onChange({ focus: id })} /> : <p className="mv-hint">Select a node to inspect it, its evidence and its relations.</p>}
       </section>
     </div>

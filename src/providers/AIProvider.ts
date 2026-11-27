@@ -304,6 +304,20 @@ export interface AIRequest {
     string;
 
   /**
+   * The agent making this request, when an agent is (WP19 attribution and
+   * per-agent limits). Never sent to a provider.
+   */
+  agentId?:
+    string;
+
+  /**
+   * The ConversationRegistry record usage is attributed to when it differs
+   * from `conversationId` (an agent run inside a chat). Never sent to a provider.
+   */
+  usageConversationId?:
+    string;
+
+  /**
    * What the user said DURING this turn (drained steering), oldest first.
    * Part of the user's words for this turn — consent checks read it.
    * Never sent to a provider.
@@ -407,6 +421,13 @@ export interface AIRequest {
    */
   forceIntent?:
     AIIntent;
+
+  /**
+   * WP13: an agent conversation turn. The router skips its deterministic
+   * keyword stages (direct tools, time, presence) so a model answers.
+   */
+  conversationOnly?:
+    boolean;
 
 
 
