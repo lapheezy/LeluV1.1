@@ -41,6 +41,7 @@ import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/Proacti
 import AgentEventBus from "../agent/AgentEvents";
 import SelfStudyEngine from "./SelfStudyEngine";
 import CuriosityEngine from "../curiosity/CuriosityEngine";
+import CognitiveEvaluation from "../conversation/CognitiveEvaluation";
 import { runDueReflections } from "../identity/DailyReflection";
 import MultiChatStore from "../multichat/MultiChatStore";
 import { hasActiveWorkstream } from "../proactive/Workstream";
@@ -369,6 +370,25 @@ export default class CognitiveLoop {
       const curiosity = await withDeadline(CuriosityEngine.getInstance().tick(), null);
       if (curiosity?.pursued) {
         suggestions.push(`Curiosity: “${curiosity.pursued.question}” → ${curiosity.pursued.status}.`);
+      }
+
+      /* -------- CONVERSATIONAL COGNITIVE EVALUATION (WP18.1) -------- */
+      // The scheduled reflection half of continuous cognition. It runs on
+      // this loop's existing heartbeat rather than a timer of its own, is
+      // bounded by its own gap/ceiling budget, makes no model calls, and
+      // stands down while the user is mid-turn. Its report is observable
+      // (latest()/history()) and its first observation is surfaced as a
+      // suggestion only when it is about something real.
+      const evaluation = await withDeadline(
+        Promise.resolve(
+          CognitiveEvaluation.getInstance().tick("scheduled", {
+            userTurnActive: ai.isUserTurnActive(),
+          }),
+        ),
+        null,
+      );
+      if (evaluation && !evaluation.skipped && evaluation.observations.length > 0) {
+        suggestions.push(evaluation.observations[0]!);
       }
 
       /* ---------------- DAILY DEVELOPMENT ---------------- */

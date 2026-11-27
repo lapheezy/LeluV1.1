@@ -1,0 +1,157 @@
+{
+  "generatedAt": "2026-11-27T06:39:25.877Z",
+  "interaction": {
+    "thread": "wp18-demo-thread",
+    "turns": [
+      {
+        "surface": "chat",
+        "request": "Add a new memory engine with a plugin system for project memory. It must persist across a reload.",
+        "mode": "conversational",
+        "scopeBeforePlan": "HOLD",
+        "scopeNotePresent": true,
+        "observation": [],
+        "injectedContext": "[How Heru prefers to collaborate] No consistent preference recorded yet. Follow this turn's wording, and do not infer a style from a single message.\n\n[Self-check before you answer] (counter-evidence) “new memory engine: memory already exists in this environment — a second one is a parallel system” cuts against “Handle the request as stated: Add a new memory engine with a plugin system for…”. Which is right? (assumption) I am treating “this needs new machinery” as settled, but nothing recorded verifies it. What would show it is wrong? Address anything that changes the answer; do not narrate the check.\n\n[Scope judgement — say so only if it changes the answer] The scope is broadly right; one element may be redundant."
+      },
+      {
+        "surface": "chat",
+        "reply": "I can do that. Project memory currently lives in the browser store, so persistence is a real change.\n\nMigrate the audit log table to the new schema finished — the migration exposed two rows with null actor ids.",
+        "scopeAfterPlan": "SIMPLIFY",
+        "preserved": [
+          "It must persist across a reload."
+        ],
+        "appendedContinuation": "Migrate the audit log table to the new schema finished — the migration exposed two rows with null actor ids."
+      },
+      {
+        "surface": "voice",
+        "request": "Use the smaller version, then keep going from where we were.",
+        "mode": "conversational",
+        "continuityCarried": "[Thread continuity — continue this thread, do not restart it] Topic: “Use the smaller version, then keep going from where we were.”. It was last active in chat 1s ago; this turn arrived in voice. Last recorded decision: “I can do that. Project memory currently lives in the browser store, so persistence is a real change.”. Still open: “Migrate the audit log table to the new schema finished — the migration exposed two rows with null actor ids.”. Do not ask the user to repeat what is already here.",
+        "scopeNoteCarried": true
+      },
+      {
+        "surface": "chat",
+        "request": "No — that's not what I meant. Keep the plugin registry, drop the second cache layer.",
+        "mode": "reflective",
+        "collaborationEvidence": [
+          "No — that's not what I meant. Keep the plugin registry, drop the second cache layer."
+        ],
+        "contradictionOffered": false
+      },
+      {
+        "surface": "voice",
+        "request": "Rotate it ninety degrees so the label faces the camera.",
+        "questioning": "ask",
+        "question": "Which item does “it” refer to?",
+        "whyAsked": [
+          "any question costs the user a turn",
+          "tolerance for being asked is 0.70",
+          "“what “it” refers to” is 85% likely to change the next action"
+        ]
+      }
+    ],
+    "neuralMap": {
+      "v2Nodes": 17,
+      "v2Edges": 17,
+      "v2Kinds": {
+        "self-questioning": 4,
+        "scope-adjustment": 1,
+        "post-action-continuation": 1,
+        "learning": 1,
+        "clarification": 1
+      },
+      "v3Internal": 7,
+      "v3UserVisible": 1,
+      "distinctionMaintained": true
+    }
+  },
+  "demonstrations": {
+    "selfChallenge": {
+      "considered": 7,
+      "conclusionHeld": false,
+      "challenges": [
+        {
+          "kind": "counter-evidence",
+          "question": "“94% of the time is spent in the renderer, not the scheduler” cuts against “The scheduler bottleneck is confirmed and the replacement is ready.”. Which is right?",
+          "severity": 0.85
+        },
+        {
+          "kind": "assumption",
+          "question": "I am treating “the current scheduler is the bottleneck” as settled, but nothing recorded verifies it. What would show it is wrong?",
+          "severity": 0.62
+        }
+      ]
+    },
+    "scope": {
+      "recommendation": "SIMPLIFY",
+      "headline": "Simplify: 6 moving part(s) can go without losing a stated requirement.",
+      "incidental": [
+        {
+          "what": "Build a new memory engine",
+          "reason": "not traceable to any stated requirement"
+        },
+        {
+          "what": "Build a plugin registry for memory backends",
+          "reason": "not traceable to any stated requirement"
+        },
+        {
+          "what": "Add a scheduler for background compaction",
+          "reason": "not traceable to any stated requirement"
+        },
+        {
+          "what": "Add a second cache layer",
+          "reason": "not traceable to any stated requirement"
+        },
+        {
+          "what": "Add an event bus for memory updates",
+          "reason": "not traceable to any stated requirement"
+        },
+        {
+          "what": "new memory engine",
+          "reason": "memory already exists in this environment — a second one is a parallel system"
+        }
+      ],
+      "preserved": [
+        "Memory must persist across a reload"
+      ]
+    },
+    "dependency": {
+      "detected": [
+        {
+          "what": "the billing service exposes usage totals",
+          "resolved": false
+        },
+        {
+          "what": "the billing service",
+          "resolved": false
+        }
+      ],
+      "recommendation": "EXPAND",
+      "reasons": [
+        {
+          "code": "unresolved-dependency",
+          "detail": "the billing service exposes usage totals; the billing service — this cannot move until it is settled",
+          "delta": 0.4
+        }
+      ]
+    },
+    "continuation": {
+      "worthRaising": true,
+      "line": "Still unresolved: the two null actor ids. The next step is backfill the actor ids from the session log.",
+      "evidence": [
+        {
+          "source": "objective:conclusion",
+          "detail": "the two null actor ids"
+        },
+        {
+          "source": "project:checkpoint",
+          "detail": "backfill the actor ids from the session log"
+        }
+      ]
+    },
+    "contradiction": {
+      "contradiction": true,
+      "earlier": "Let's use SQLite for the store, it keeps deployment simple.",
+      "basis": "an earlier position is being reversed"
+    }
+  }
+}

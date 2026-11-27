@@ -49,6 +49,8 @@ import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoa
 import HealthIntelligence from "./caretaker/HealthIntelligence";
 import { buildCognitiveContext, formatCognitiveContext } from "./cognition/CognitiveContext";
 import CognitiveTrace from "./cognition/CognitiveTrace";
+import TurnBridge from "./conversation/TurnBridge";
+import type { Surface } from "./conversation/types";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
 import { mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "./perf/LatencyProbe";
@@ -535,6 +537,8 @@ export default class AIService {
     options?: {
       forceIntent?: AIIntent;
       conversationId?: string;
+      /** Which surface the turn arrived on, for cross-surface continuity. */
+      surface?: Surface;
       /**
        * How a spoken turn became text, when it did. Passed by the voice
        * engine; preserved on the memory so a later reader can tell a
@@ -833,6 +837,33 @@ export default class AIService {
       }
       conversation.record("user", message);
 
+      // WP18: the conversational bridge reads this turn before anything
+      // generates a reply — how the user prefers to collaborate, what
+      // the thread already contains if it moved surfaces, the
+      // self-challenges to her intended direction, and whether a
+      // clarification is actually worth asking. It is deterministic and
+      // calls no model; a failure here must never block the turn.
+      let turnPreparation: ReturnType<TurnBridge["prepareTurn"]> | null = null;
+      try {
+        turnPreparation = TurnBridge.getInstance().prepareTurn({
+          message,
+          ...(options?.conversationId ? { conversationId: options.conversationId } : {}),
+          ...(options?.surface ? { surface: options.surface } : {}),
+        });
+        trace.record("SELF_CONTEXT", "conversational evaluation assembled", {
+          mode: turnPreparation.mode,
+          asking: turnPreparation.questioning?.action ?? "none",
+          challenges: turnPreparation.challenges.length,
+          initiatives: turnPreparation.initiatives.length,
+          scope: turnPreparation.scope?.recommendation ?? "none",
+        });
+      } catch (error) {
+        console.warn("[AIService] Conversational preparation failed (contained)", error);
+      }
+      const contextual = [effectiveContext, turnPreparation?.context]
+        .filter((part): part is string => Boolean(part && part.trim()))
+        .join("\n\n");
+
       // TWO controllers, by design, combined at the request: one per
       // conversation (convControllers — what cancelTurn/Stop aborts) and one
       // per turn (activeTurn — the tool loop's own stop). AbortSignal.any is
@@ -848,7 +879,7 @@ export default class AIService {
         // tools here. Internal structured-output calls (reason()) leave
         // this unset and keep their pre-tool behaviour.
         allowTools: true,
-        ...(effectiveContext ? { context: effectiveContext } : {}),
+        ...(contextual ? { context: contextual } : {}),
         ...(media && media.length > 0 ? { media } : {}),
         ...(options?.forceIntent ? { forceIntent: options.forceIntent } : {}),
         timestamp: Number(taskId),
@@ -916,12 +947,52 @@ export default class AIService {
       this.emitAction("learn", "Response generated", "complete");
       agentEvents.emit({ type: "task_completed", taskId, label: message });
 
+      // WP18: a reply is the end of an action, not the end of a
+      // conversation. This measures the plan that was actually produced
+      // and returns at most one evidence-backed sentence about what
+      // follows. When there is nothing specific to say it returns null
+      // and the reply is unchanged — at most one continuation every few
+      // turns, never a generic offer of help.
+      let replyText = response.text;
+      const responseIsReal =
+        response.provider !== "offline" && response.metadata?.success !== false;
+      try {
+        const bridge = TurnBridge.getInstance();
+        const decision = turnPreparation?.questioning;
+        if (
+          decision?.action === "ask" &&
+          decision.question &&
+          response.text.includes("?") &&
+          (response.text.includes(decision.question.slice(0, 24)) || response.text.trimEnd().endsWith("?"))
+        ) {
+          // Only counted as asked when the reply really contains it.
+          bridge.noteQuestionAsked(decision, message, options?.conversationId);
+        }
+        // An offline notice or a failed turn is not a completed action:
+        // appending "what follows from it" to an error would be a false
+        // claim about work that did not happen.
+        const completion = responseIsReal
+          ? bridge.completeTurn({
+              message,
+              reply: response.text,
+              ...(options?.conversationId ? { conversationId: options.conversationId } : {}),
+              ...(options?.surface ? { surface: options.surface } : {}),
+              ...(plan ? { plan } : {}),
+            })
+          : null;
+        if (completion?.continuation) {
+          replyText = `${response.text}\n\n${completion.continuation}`;
+        }
+      } catch (error) {
+        console.warn("[AIService] Conversational completion failed (contained)", error);
+      }
+
       // RESPONSE-FIRST: emit the message to the UI immediately so the user
       // sees the reply before any memory/cognition work blocks the thread.
       this.emitMessage({
         id: streamId,
         role: "assistant",
-        text: response.text,
+        text: replyText,
         timestamp: Date.now(),
         provider: response.provider,
         confidence: response.metadata?.confidence as number | undefined,
@@ -936,7 +1007,7 @@ export default class AIService {
 
       // LÉLU's own turn joins the conversation synchronously so the NEXT
       // turn's context includes it — this must happen before return.
-      conversation.record("assistant", response.text);
+      conversation.record("assistant", replyText);
 
       // Memory consolidation, profile sync, and cognition update all run
       // AFTER the response has been delivered. They do not block the
@@ -953,7 +1024,7 @@ export default class AIService {
           // Memory consolidation ALWAYS runs — online or offline.
           await this.memory.learn(
             message,
-            response.text,
+            replyText,
             taskId,
             options?.conversationId,
             {

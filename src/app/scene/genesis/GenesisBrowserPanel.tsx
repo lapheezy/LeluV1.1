@@ -585,7 +585,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
         timestamp: Date.now(),
         source: "local",
       });
-      const response = await ai.chat(request, undefined, undefined, { conversationId });
+      const response = await ai.chat(request, undefined, undefined, { conversationId, surface: "browser" });
       const reply = response.text.trim();
       // The reply was already emitted (and stored) under its own id; writing
       // a second copy under a new id showed it twice.

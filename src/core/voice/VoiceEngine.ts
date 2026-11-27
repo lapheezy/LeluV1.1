@@ -2960,6 +2960,9 @@ class VoiceEngine {
       const chatOptions = {
         ...(conversationId ? { conversationId } : {}),
         ...(transcript ? { transcript } : {}),
+        // Lets the conversational bridge carry the working thread across
+        // surfaces instead of restarting it when continued in chat.
+        surface: "voice" as const,
       };
       let response: Awaited<ReturnType<typeof ai.chat>>;
       try {
@@ -2967,7 +2970,7 @@ class VoiceEngine {
           text,
           seen.length > 0 ? seen : undefined,
           note,
-          Object.keys(chatOptions).length > 0 ? chatOptions : undefined,
+          chatOptions,
         );
       } finally {
         // The stream is this turn's; it ends when the turn does.

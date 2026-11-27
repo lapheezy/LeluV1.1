@@ -1,0 +1,132 @@
+{
+  "generatedAt": "2026-11-27T06:39:25.877Z",
+  "kind": "measured-deterministic",
+  "modelCalls": 0,
+  "adaptation": {
+    "rounds": [
+      {
+        "round": 1,
+        "asked": 4,
+        "unnecessaryAsks": 2,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 2,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 3,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 4,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 5,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 6,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 7,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 8,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 9,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 10,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 11,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      },
+      {
+        "round": 12,
+        "asked": 2,
+        "unnecessaryAsks": 0,
+        "necessaryAsks": 2,
+        "missedNecessary": 0
+      }
+    ],
+    "baselineWindow": {
+      "round": 0,
+      "asked": 8,
+      "unnecessaryAsks": 2,
+      "necessaryAsks": 6,
+      "missedNecessary": 0
+    },
+    "adaptedWindow": {
+      "round": 0,
+      "asked": 6,
+      "unnecessaryAsks": 0,
+      "necessaryAsks": 6,
+      "missedNecessary": 0
+    },
+    "improvement": {
+      "unnecessaryAsks": 2,
+      "necessaryAsksRetained": 0,
+      "missedNecessary": 0,
+      "totalAsks": 2
+    },
+    "ledgerEffectiveness": {
+      "asked": 26,
+      "answered": 24,
+      "ignored": 2,
+      "repeated": 0,
+      "answerRate": 0.9230769230769231,
+      "ignoreRate": 0.07692307692307693,
+      "adjustment": 0.15,
+      "samples": 26
+    }
+  },
+  "decisionLatency": {
+    "meanMs": 0.0082,
+    "p95Ms": 0.0122,
+    "totalMs": 16.46
+  },
+  "verdict": {
+    "unnecessaryQuestionsReduced": true,
+    "necessaryQuestionsRetained": true
+  }
+}
