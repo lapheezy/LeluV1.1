@@ -298,3 +298,22 @@
   .ts::before, .lq::before, .rd-sky i, .rd-ripple, .rd-drop .rd-shape, .ts-trails path { animation: none !important; }
   .rd-drop { transition: none; }
 }
+
+/* ---------------------------------------------------- WP20 refinements */
+/* The workspace bar belongs to the window layout; the immersive Thread has its own controls. */
+html:has(.lst-root[data-stage="thread"][data-immersive="true"]) [data-lelu-workspace-bar] { display: none !important; }
+/* A video carries its own title (YouTube's player): keep only the grip and actions over it. */
+.to[data-kind="youtube"] .to-kind, .to[data-kind="youtube"] .to-title { display: none; }
+.to[data-kind="youtube"] .to-head { justify-content: space-between; top: auto; bottom: 40px; }
+.to[data-kind="youtube"] .to-actions { margin-left: auto; }
+/* Map content starts below the floating header, so labels never sit under it. */
+.to[data-kind="neural-map"] .tm-body { margin-top: 44px; }
+.to[data-kind="neural-map"] .tm-bar { bottom: 8px; }
+/* Narrow panes: the title gives way first. */
+@container (max-width: 300px) { .to-title { display: none; } }
+.to { container-type: size; }
+
+/* Short panes: the map's controls appear on hover / focus only. */
+@container (max-height: 260px) { .tm-bar { opacity: 0; transition: opacity .2s; } }
+.to:hover .tm-bar, .to:focus-within .tm-bar { opacity: 1; }
+.tm-label { stroke-width: calc(var(--ls) * .35); }

@@ -103,13 +103,24 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
   }, [placed]);
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  // Labels and nodes keep an on-screen size whatever the map's scale or the pane's size.
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [px, setPx] = useState(400);
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const ro = new ResizeObserver(([e]) => setPx(Math.max(120, Math.min(e.contentRect.width, e.contentRect.height))));
+    ro.observe(svgRef.current);
+    return () => ro.disconnect();
+  }, []);
+  const unit = fit.s / view.k / px; // viewBox units per screen pixel
   const focus = selected ?? null;
   const near = new Set(focus ? graph.edges.flatMap((e) => (e.from === focus ? [e.to] : e.to === focus ? [e.from] : [])) : []);
   return (
     <svg
+      ref={svgRef}
       className="tm-svg"
       viewBox={`${fit.x - view.x} ${fit.y - view.y} ${fit.s / view.k} ${fit.s / view.k}`}
-      style={{ ["--ls" as string]: `${Math.max(12, fit.s / 34)}px` }}
+      style={{ ["--ls" as string]: `${unit * 12}px` }}
       onWheel={(e) => setView((v) => ({ ...v, k: Math.min(6, Math.max(0.5, v.k * (e.deltaY < 0 ? 1.15 : 0.87))) }))}
       onPointerDown={(e) => {
         if ((e.target as Element).closest("[data-tm-node]")) return;
@@ -128,14 +139,14 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
         const b = placed.positions[e.to];
         if (!a || !b) return null;
         const lit = focus && (e.from === focus || e.to === focus);
-        return <line key={e.id} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={lit ? "#fde68a" : "#94a3b8"} strokeOpacity={lit ? 0.9 : 0.3} strokeWidth={fit.s / (lit ? 300 : 600)} />;
+        return <line key={e.id} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={lit ? "#fde68a" : "#94a3b8"} strokeOpacity={lit ? 0.9 : 0.3} strokeWidth={unit * (lit ? 2 : 1)} />;
       })}
       {graph.nodes.map((n) => {
         const p = placed.positions[n.id];
         if (!p) return null;
         const hl = highlight.has(n.id);
         const on = n.id === focus;
-        const r = (fit.s / 160) * (1 + Math.min(1.5, Math.log2(1 + (n.weight ?? 0)) / 6));
+        const r = unit * (4 + Math.min(6, Math.log2(1 + (n.weight ?? 0)) * 0.7));
         return (
           <g key={n.id} data-tm-node={n.id} data-highlighted={hl ? "true" : "false"} onClick={() => onSelect(on ? null : n.id)} style={{ cursor: "pointer" }}>
             {hl ? <circle cx={p.x} cy={p.y} r={r * 1.9} fill="none" stroke="#fbbf24" strokeWidth={r / 3} className="tm-pulse" /> : null}

@@ -226,12 +226,13 @@ export function layoutThread(base: BaseLayout, width: number, height: number, id
         objects[order[0]] = { x: left, y: 70, w: areaW, h: Math.min(areaW * 0.62, height - 170) };
         return { base, chat, avatar, activity: null, objects, tabs: [], height, compact };
       }
-      const mainW = areaW * 0.62;
-      const mainH = Math.min(mainW * 0.66, height - 190);
+      const mainW = areaW * 0.6;
+      const side = order.slice(1, 3);
+      // Side maps stay readable (≥ 200 px tall); the centrepiece grows to match them.
+      const mainH = Math.max(Math.min(mainW * 0.72, height - 190), side.length * 200 + (side.length - 1) * 16);
       objects[order[0]] = { x: left, y: 70, w: mainW, h: mainH };
       const sideX = left + mainW + 18;
       const sideW = areaW - mainW - 18;
-      const side = order.slice(1, 3);
       const sideH = (mainH - (side.length - 1) * 16) / side.length;
       side.forEach((id, i) => (objects[id] = { x: sideX, y: 70 + i * (sideH + 16), w: sideW, h: sideH }));
       // Further objects in a row beneath the centrepiece.
