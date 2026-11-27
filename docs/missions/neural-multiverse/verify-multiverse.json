@@ -1,0 +1,247 @@
+{
+ "at": "2026-11-27T17:59:38.769Z",
+ "results": [
+  {
+   "name": "Neural Map opens with the aspect selector",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "V1 opens on its canonical neighbourhood view",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "v1 · core-orbit draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"core-orbit\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · galactic-spiral draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"galactic-spiral\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · nested-universes draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"nested-universes\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · force-directed draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"force-directed\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · dimensional-layers draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"dimensional-layers\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · radial-constellation draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"radial-constellation\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · infinite-canvas draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"infinite-canvas\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · temporal-river draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"temporal-river\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · matrix-grid draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"matrix-grid\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · topographic-field draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"topographic-field\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · chord-ring draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"chord-ring\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v1 · holographic-spatial draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v1\",\"layout\":\"holographic-spatial\",\"nodes\":95,\"edges\":49,\"drawn\":95}"
+  },
+  {
+   "name": "v2 · core-orbit draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"core-orbit\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · galactic-spiral draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"galactic-spiral\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · nested-universes draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"nested-universes\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · force-directed draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"force-directed\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · dimensional-layers draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"dimensional-layers\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · radial-constellation draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"radial-constellation\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · infinite-canvas draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"infinite-canvas\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · temporal-river draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"temporal-river\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · matrix-grid draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"matrix-grid\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · topographic-field draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"topographic-field\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · chord-ring draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"chord-ring\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v2 · holographic-spatial draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"holographic-spatial\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "v3 · core-orbit draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"core-orbit\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · galactic-spiral draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"galactic-spiral\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · nested-universes draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"nested-universes\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · force-directed draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"force-directed\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · dimensional-layers draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"dimensional-layers\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · radial-constellation draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"radial-constellation\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · infinite-canvas draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"infinite-canvas\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · temporal-river draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"temporal-river\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · matrix-grid draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"matrix-grid\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · topographic-field draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"topographic-field\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · chord-ring draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"chord-ring\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "v3 · holographic-spatial draws every node it derived",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"holographic-spatial\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "V2 states that live activity is not measured",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "V3 states that agent conversations are not recorded yet",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "a saved view survives a reload",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "restoring it brings back its aspect and layout",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v3\",\"layout\":\"temporal-river\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
+  },
+  {
+   "name": "iPhone: V2 radial constellation draws",
+   "status": "VERIFIED",
+   "detail": "{\"aspect\":\"v2\",\"layout\":\"radial-constellation\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "no page errors from the multiverse",
+   "status": "VERIFIED",
+   "detail": ""
+  }
+ ],
+ "otherPageErrors": [
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+ ]
+}

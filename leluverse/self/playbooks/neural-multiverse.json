@@ -1,0 +1,14 @@
+{
+ "id": "neural-multiverse",
+ "title": "Refresh and verify my Neural Map's three aspects in all twelve shared layouts",
+ "for": "LÉLU",
+ "why": "V2 (my architecture) is generated from my own source, so it must be regenerated when a src/core directory is added or removed. The whole multiverse (V1 knowledge, V2 architecture, V3 society) must still draw every node it derives in every layout, and saved views must survive a reload. It needs Playwright's Chromium and the dev server on 5173 (or LELU_BASE); it spends nothing.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-27-neural-map-multiverse.md",
+ "steps": [
+  {"id": "architecture", "title": "Regenerate V2's evidence from the source", "kind": "tsx", "script": "scripts/neural/build-cognitive-architecture.ts", "args": [], "why": "Writes src/core/neural/multiverse/cognitiveArchitecture.generated.json: subsystems with measured size, and real import edges. A new directory lands in 'unclassified' until FUNCTION_OF in the script files it."},
+  {"id": "verify", "title": "Every aspect in every layout, saved views, iPhone", "kind": "tsx", "script": "scripts/neural/verify-multiverse.mjs", "args": [], "why": "Writes docs/missions/neural-multiverse/shots/*.png and verify-multiverse.json."},
+  {"id": "look", "title": "Look at the screenshots", "kind": "note", "why": "The verifier proves every node is drawn; only eyes prove a layout reads as itself. Check that labels do not pile up and that the 'Not shown' panel is still honest about what each aspect cannot show."}
+ ]
+}

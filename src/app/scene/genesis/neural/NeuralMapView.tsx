@@ -14,9 +14,10 @@
  *           (follow any node; back walks the trail)
  *   right   the entity itself (EntityPanel, shared with the inspector)
  *
- * Deferred (not in this WP): other visual styles of the map — 3D, force
- * layouts, whole-graph overviews. This view is deliberately local:
- * the neighbourhood of one entity at a time.
+ * Multiverse: the header's V1 · V2 · V3 selector switches the aspect
+ * (canonical index · cognitive architecture · agent society). V1's
+ * default stays this local neighbourhood view; every aspect can also be
+ * drawn whole in any of the twelve shared layouts (MultiverseView).
  * ==========================================================
  */
 
@@ -31,6 +32,10 @@ import "../cosmosLanguage/neuralLanguage.css";
 import { neuralGeometry, neuralLinkPath } from "./neuralLanguage";
 import { useCosmosLanguage } from "../cosmosLanguage/useCosmosLanguage";
 import type { CompositionSpec } from "../../../../core/interface/CosmosLanguages";
+import MultiverseView from "./MultiverseView";
+import "./multiverse.css";
+import { ASPECTS, type AspectId } from "../../../../core/neural/multiverse/MultiverseTypes";
+import { DEFAULT_SETTINGS, type ViewSettings } from "../../../../core/neural/multiverse/SavedViews";
 
 const TYPE_COLOR: Record<NeuralEntity["type"], string> = {
   "cosmos-core": "#7dd3fc",
@@ -239,6 +244,10 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
   const cosmos = useCosmosLanguage();
   const [text, setText] = useState("");
   const [type, setType] = useState<NeuralEntity["type"] | "">("");
+  // Presentation only (see SavedViews): which aspect and layout are shown.
+  const [mv, setMv] = useState<ViewSettings>(DEFAULT_SETTINGS);
+  const patchMv = (p: Partial<ViewSettings>) => setMv((s) => ({ ...s, ...p }));
+  const neighbourhood = mv.aspect === "v1" && mv.layout === "neighbourhood";
   const map = neuralMap();
   const focus = view.standalone.focus ?? COSMOS_CORE_NID;
   // The index is mutable and cheap to read; useNeuralVersion() re-renders on
@@ -258,6 +267,25 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
           {stats.entities} entities · {stats.relations} relations · {Object.keys(stats.byAuthority).length} authorities
           {last ? ` · last update ${last.authority} ${last.ms} ms` : ""}
         </small>
+        <nav className="mv-aspects" aria-label="Neural Map aspect" data-mv-aspects>
+          {(Object.keys(ASPECTS) as AspectId[]).map((a) => (
+            <button
+              key={a}
+              type="button"
+              data-aspect={a}
+              data-on={mv.aspect === a ? "true" : "false"}
+              title={`${ASPECTS[a].title} — ${ASPECTS[a].blurb}`}
+              onClick={() => patchMv({ aspect: a, focus: null, hiddenGroups: [], query: "", layout: a === "v1" ? mv.layout : mv.layout === "neighbourhood" ? "core-orbit" : mv.layout })}
+            >
+              <b>{ASPECTS[a].label}</b> <span>{ASPECTS[a].title}</span>
+            </button>
+          ))}
+          {mv.aspect === "v1" ? (
+            <button type="button" className="mv-mode" data-mv-mode={neighbourhood ? "neighbourhood" : "whole"} onClick={() => patchMv({ layout: neighbourhood ? "core-orbit" : "neighbourhood" })}>
+              {neighbourhood ? "Whole map" : "Neighbourhood"}
+            </button>
+          ) : null}
+        </nav>
         <span className="nm-top-actions">
           <button type="button" disabled={view.standalone.history.length === 0} onClick={() => NeuralView.back()} aria-label="Back to the previous entity">
             ← Back
@@ -272,7 +300,8 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
           )}
         </span>
       </header>
-      <div className="nm-body">
+      {neighbourhood ? null : <MultiverseView settings={mv} onChange={patchMv} />}
+      <div className="nm-body" hidden={!neighbourhood}>
         <aside className="nm-find">
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Find anything in the map" aria-label="Find in the Neural Map" />
           <select value={type} onChange={(e) => setType(e.target.value as NeuralEntity["type"] | "")} aria-label="Filter by type">

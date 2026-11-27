@@ -1,0 +1,2557 @@
+{
+ "generatedBy": "scripts/neural/build-cognitive-architecture.ts",
+ "evidence": {
+  "nodes": "directory exists in src/core; file and line counts measured from the source",
+  "edges": "static relative imports between subsystems, counted (inferred wiring, not runtime calls)",
+  "function": "editorial classification of each directory (FUNCTION_OF in the generator)",
+  "activity": "not measured here: no runtime telemetry is read by this generator"
+ },
+ "nodes": [
+  {
+   "id": "acquisition",
+   "path": "src/core/acquisition",
+   "function": "tools",
+   "files": 26,
+   "lines": 7420
+  },
+  {
+   "id": "agent",
+   "path": "src/core/agent",
+   "function": "development",
+   "files": 1,
+   "lines": 367
+  },
+  {
+   "id": "agentic",
+   "path": "src/core/agentic",
+   "function": "tools",
+   "files": 9,
+   "lines": 2256
+  },
+  {
+   "id": "agents",
+   "path": "src/core/agents",
+   "function": "development",
+   "files": 6,
+   "lines": 1839
+  },
+  {
+   "id": "apiEcosystem",
+   "path": "src/core/apiEcosystem",
+   "function": "tools",
+   "files": 2,
+   "lines": 516
+  },
+  {
+   "id": "asre",
+   "path": "src/core/asre",
+   "function": "embodiment",
+   "files": 64,
+   "lines": 17833
+  },
+  {
+   "id": "atelier",
+   "path": "src/core/atelier",
+   "function": "embodiment",
+   "files": 7,
+   "lines": 1790
+  },
+  {
+   "id": "avatar",
+   "path": "src/core/avatar",
+   "function": "embodiment",
+   "files": 18,
+   "lines": 4225
+  },
+  {
+   "id": "browser",
+   "path": "src/core/browser",
+   "function": "perception",
+   "files": 2,
+   "lines": 606
+  },
+  {
+   "id": "build",
+   "path": "src/core/build",
+   "function": "development",
+   "files": 1,
+   "lines": 28
+  },
+  {
+   "id": "capabilities",
+   "path": "src/core/capabilities",
+   "function": "tools",
+   "files": 1,
+   "lines": 257
+  },
+  {
+   "id": "caretaker",
+   "path": "src/core/caretaker",
+   "function": "runtime",
+   "files": 1,
+   "lines": 272
+  },
+  {
+   "id": "cognition",
+   "path": "src/core/cognition",
+   "function": "cognition",
+   "files": 46,
+   "lines": 17830
+  },
+  {
+   "id": "config",
+   "path": "src/core/config",
+   "function": "runtime",
+   "files": 3,
+   "lines": 562
+  },
+  {
+   "id": "conversation",
+   "path": "src/core/conversation",
+   "function": "conversation",
+   "files": 13,
+   "lines": 5119
+  },
+  {
+   "id": "core-root",
+   "path": "src/core/*.ts",
+   "function": "provider-routing",
+   "files": 17,
+   "lines": 7771
+  },
+  {
+   "id": "cosmos",
+   "path": "src/core/cosmos",
+   "function": "embodiment",
+   "files": 19,
+   "lines": 6277
+  },
+  {
+   "id": "couture",
+   "path": "src/core/couture",
+   "function": "embodiment",
+   "files": 17,
+   "lines": 7930
+  },
+  {
+   "id": "creative",
+   "path": "src/core/creative",
+   "function": "embodiment",
+   "files": 32,
+   "lines": 10642
+  },
+  {
+   "id": "curiosity",
+   "path": "src/core/curiosity",
+   "function": "cognition",
+   "files": 4,
+   "lines": 3845
+  },
+  {
+   "id": "data",
+   "path": "src/core/data",
+   "function": "memory",
+   "files": 1,
+   "lines": 565
+  },
+  {
+   "id": "earth",
+   "path": "src/core/earth",
+   "function": "embodiment",
+   "files": 4,
+   "lines": 2276
+  },
+  {
+   "id": "engineering",
+   "path": "src/core/engineering",
+   "function": "development",
+   "files": 10,
+   "lines": 3721
+  },
+  {
+   "id": "env",
+   "path": "src/core/env",
+   "function": "runtime",
+   "files": 3,
+   "lines": 216
+  },
+  {
+   "id": "executive",
+   "path": "src/core/executive",
+   "function": "planning",
+   "files": 3,
+   "lines": 1387
+  },
+  {
+   "id": "forge",
+   "path": "src/core/forge",
+   "function": "development",
+   "files": 6,
+   "lines": 1830
+  },
+  {
+   "id": "geometry",
+   "path": "src/core/geometry",
+   "function": "embodiment",
+   "files": 10,
+   "lines": 1525
+  },
+  {
+   "id": "identity",
+   "path": "src/core/identity",
+   "function": "cognition",
+   "files": 17,
+   "lines": 4952
+  },
+  {
+   "id": "integration",
+   "path": "src/core/integration",
+   "function": "tools",
+   "files": 2,
+   "lines": 849
+  },
+  {
+   "id": "interface",
+   "path": "src/core/interface",
+   "function": "embodiment",
+   "files": 16,
+   "lines": 5902
+  },
+  {
+   "id": "media",
+   "path": "src/core/media",
+   "function": "perception",
+   "files": 1,
+   "lines": 184
+  },
+  {
+   "id": "memory",
+   "path": "src/core/memory",
+   "function": "memory",
+   "files": 14,
+   "lines": 4944
+  },
+  {
+   "id": "model",
+   "path": "src/core/model",
+   "function": "cognition",
+   "files": 6,
+   "lines": 2007
+  },
+  {
+   "id": "multichat",
+   "path": "src/core/multichat",
+   "function": "conversation",
+   "files": 6,
+   "lines": 1911
+  },
+  {
+   "id": "native",
+   "path": "src/core/native",
+   "function": "tools",
+   "files": 24,
+   "lines": 1914
+  },
+  {
+   "id": "neural",
+   "path": "src/core/neural",
+   "function": "memory",
+   "files": 9,
+   "lines": 2060
+  },
+  {
+   "id": "notifications",
+   "path": "src/core/notifications",
+   "function": "conversation",
+   "files": 2,
+   "lines": 453
+  },
+  {
+   "id": "observability",
+   "path": "src/core/observability",
+   "function": "evaluation",
+   "files": 5,
+   "lines": 1905
+  },
+  {
+   "id": "operational-intelligence",
+   "path": "src/core/operational-intelligence",
+   "function": "reflection",
+   "files": 9,
+   "lines": 1934
+  },
+  {
+   "id": "orchestrator",
+   "path": "src/core/orchestrator",
+   "function": "planning",
+   "files": 4,
+   "lines": 2079
+  },
+  {
+   "id": "perception",
+   "path": "src/core/perception",
+   "function": "perception",
+   "files": 3,
+   "lines": 862
+  },
+  {
+   "id": "perf",
+   "path": "src/core/perf",
+   "function": "evaluation",
+   "files": 2,
+   "lines": 236
+  },
+  {
+   "id": "persistence",
+   "path": "src/core/persistence",
+   "function": "memory",
+   "files": 4,
+   "lines": 1934
+  },
+  {
+   "id": "planning",
+   "path": "src/core/planning",
+   "function": "planning",
+   "files": 1,
+   "lines": 303
+  },
+  {
+   "id": "proactive",
+   "path": "src/core/proactive",
+   "function": "reflection",
+   "files": 6,
+   "lines": 2466
+  },
+  {
+   "id": "projects",
+   "path": "src/core/projects",
+   "function": "runtime",
+   "files": 9,
+   "lines": 3105
+  },
+  {
+   "id": "reasoning",
+   "path": "src/core/reasoning",
+   "function": "cognition",
+   "files": 1,
+   "lines": 125
+  },
+  {
+   "id": "router",
+   "path": "src/core/router",
+   "function": "provider-routing",
+   "files": 36,
+   "lines": 10591
+  },
+  {
+   "id": "runtime",
+   "path": "src/core/runtime",
+   "function": "runtime",
+   "files": 12,
+   "lines": 3159
+  },
+  {
+   "id": "security",
+   "path": "src/core/security",
+   "function": "evaluation",
+   "files": 4,
+   "lines": 878
+  },
+  {
+   "id": "selfdev",
+   "path": "src/core/selfdev",
+   "function": "development",
+   "files": 19,
+   "lines": 6236
+  },
+  {
+   "id": "sentinel",
+   "path": "src/core/sentinel",
+   "function": "evaluation",
+   "files": 1,
+   "lines": 223
+  },
+  {
+   "id": "skills",
+   "path": "src/core/skills",
+   "function": "tools",
+   "files": 1,
+   "lines": 134
+  },
+  {
+   "id": "spatial",
+   "path": "src/core/spatial",
+   "function": "embodiment",
+   "files": 19,
+   "lines": 5300
+  },
+  {
+   "id": "spend",
+   "path": "src/core/spend",
+   "function": "feedback",
+   "files": 1,
+   "lines": 56
+  },
+  {
+   "id": "storage",
+   "path": "src/core/storage",
+   "function": "memory",
+   "files": 1,
+   "lines": 208
+  },
+  {
+   "id": "studio",
+   "path": "src/core/studio",
+   "function": "embodiment",
+   "files": 30,
+   "lines": 6816
+  },
+  {
+   "id": "sync",
+   "path": "src/core/sync",
+   "function": "memory",
+   "files": 7,
+   "lines": 2402
+  },
+  {
+   "id": "tasks",
+   "path": "src/core/tasks",
+   "function": "planning",
+   "files": 2,
+   "lines": 665
+  },
+  {
+   "id": "tools",
+   "path": "src/core/tools",
+   "function": "tools",
+   "files": 8,
+   "lines": 5701
+  },
+  {
+   "id": "ui",
+   "path": "src/core/ui",
+   "function": "embodiment",
+   "files": 3,
+   "lines": 682
+  },
+  {
+   "id": "user",
+   "path": "src/core/user",
+   "function": "feedback",
+   "files": 3,
+   "lines": 1458
+  },
+  {
+   "id": "visual",
+   "path": "src/core/visual",
+   "function": "perception",
+   "files": 2,
+   "lines": 445
+  },
+  {
+   "id": "voice",
+   "path": "src/core/voice",
+   "function": "perception",
+   "files": 20,
+   "lines": 8862
+  },
+  {
+   "id": "workflows",
+   "path": "src/core/workflows",
+   "function": "planning",
+   "files": 5,
+   "lines": 2059
+  },
+  {
+   "id": "workspace",
+   "path": "src/core/workspace",
+   "function": "runtime",
+   "files": 8,
+   "lines": 2789
+  },
+  {
+   "id": "world",
+   "path": "src/core/world",
+   "function": "embodiment",
+   "files": 6,
+   "lines": 1724
+  }
+ ],
+ "edges": [
+  {
+   "from": "acquisition",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "acquisition",
+   "to": "agents",
+   "imports": 2
+  },
+  {
+   "from": "acquisition",
+   "to": "capabilities",
+   "imports": 3
+  },
+  {
+   "from": "acquisition",
+   "to": "cognition",
+   "imports": 1
+  },
+  {
+   "from": "acquisition",
+   "to": "engineering",
+   "imports": 2
+  },
+  {
+   "from": "acquisition",
+   "to": "persistence",
+   "imports": 2
+  },
+  {
+   "from": "acquisition",
+   "to": "selfdev",
+   "imports": 6
+  },
+  {
+   "from": "acquisition",
+   "to": "storage",
+   "imports": 6
+  },
+  {
+   "from": "acquisition",
+   "to": "tools",
+   "imports": 13
+  },
+  {
+   "from": "agent",
+   "to": "tools",
+   "imports": 1
+  },
+  {
+   "from": "agentic",
+   "to": "agent",
+   "imports": 3
+  },
+  {
+   "from": "agentic",
+   "to": "agents",
+   "imports": 5
+  },
+  {
+   "from": "agentic",
+   "to": "cognition",
+   "imports": 4
+  },
+  {
+   "from": "agentic",
+   "to": "core-root",
+   "imports": 5
+  },
+  {
+   "from": "agentic",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "agentic",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "agentic",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "agentic",
+   "to": "storage",
+   "imports": 4
+  },
+  {
+   "from": "agentic",
+   "to": "tasks",
+   "imports": 5
+  },
+  {
+   "from": "agentic",
+   "to": "tools",
+   "imports": 8
+  },
+  {
+   "from": "agents",
+   "to": "agent",
+   "imports": 3
+  },
+  {
+   "from": "agents",
+   "to": "core-root",
+   "imports": 1
+  },
+  {
+   "from": "agents",
+   "to": "executive",
+   "imports": 3
+  },
+  {
+   "from": "agents",
+   "to": "memory",
+   "imports": 2
+  },
+  {
+   "from": "agents",
+   "to": "proactive",
+   "imports": 1
+  },
+  {
+   "from": "agents",
+   "to": "projects",
+   "imports": 1
+  },
+  {
+   "from": "agents",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "asre",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "asre",
+   "to": "geometry",
+   "imports": 4
+  },
+  {
+   "from": "asre",
+   "to": "tools",
+   "imports": 4
+  },
+  {
+   "from": "atelier",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "atelier",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "atelier",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "atelier",
+   "to": "studio",
+   "imports": 4
+  },
+  {
+   "from": "atelier",
+   "to": "tools",
+   "imports": 2
+  },
+  {
+   "from": "avatar",
+   "to": "agent",
+   "imports": 2
+  },
+  {
+   "from": "avatar",
+   "to": "core-root",
+   "imports": 1
+  },
+  {
+   "from": "avatar",
+   "to": "forge",
+   "imports": 4
+  },
+  {
+   "from": "avatar",
+   "to": "security",
+   "imports": 1
+  },
+  {
+   "from": "avatar",
+   "to": "storage",
+   "imports": 3
+  },
+  {
+   "from": "avatar",
+   "to": "voice",
+   "imports": 1
+  },
+  {
+   "from": "browser",
+   "to": "persistence",
+   "imports": 1
+  },
+  {
+   "from": "caretaker",
+   "to": "security",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "agent",
+   "imports": 9
+  },
+  {
+   "from": "cognition",
+   "to": "agents",
+   "imports": 9
+  },
+  {
+   "from": "cognition",
+   "to": "avatar",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "capabilities",
+   "imports": 4
+  },
+  {
+   "from": "cognition",
+   "to": "config",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "conversation",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "core-root",
+   "imports": 5
+  },
+  {
+   "from": "cognition",
+   "to": "curiosity",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "earth",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "engineering",
+   "imports": 2
+  },
+  {
+   "from": "cognition",
+   "to": "executive",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "identity",
+   "imports": 4
+  },
+  {
+   "from": "cognition",
+   "to": "memory",
+   "imports": 8
+  },
+  {
+   "from": "cognition",
+   "to": "model",
+   "imports": 2
+  },
+  {
+   "from": "cognition",
+   "to": "multichat",
+   "imports": 3
+  },
+  {
+   "from": "cognition",
+   "to": "observability",
+   "imports": 4
+  },
+  {
+   "from": "cognition",
+   "to": "operational-intelligence",
+   "imports": 3
+  },
+  {
+   "from": "cognition",
+   "to": "persistence",
+   "imports": 2
+  },
+  {
+   "from": "cognition",
+   "to": "planning",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "proactive",
+   "imports": 6
+  },
+  {
+   "from": "cognition",
+   "to": "projects",
+   "imports": 10
+  },
+  {
+   "from": "cognition",
+   "to": "reasoning",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "runtime",
+   "imports": 5
+  },
+  {
+   "from": "cognition",
+   "to": "security",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "selfdev",
+   "imports": 16
+  },
+  {
+   "from": "cognition",
+   "to": "sentinel",
+   "imports": 2
+  },
+  {
+   "from": "cognition",
+   "to": "skills",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "storage",
+   "imports": 13
+  },
+  {
+   "from": "cognition",
+   "to": "studio",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "sync",
+   "imports": 4
+  },
+  {
+   "from": "cognition",
+   "to": "tasks",
+   "imports": 1
+  },
+  {
+   "from": "cognition",
+   "to": "tools",
+   "imports": 8
+  },
+  {
+   "from": "cognition",
+   "to": "workflows",
+   "imports": 2
+  },
+  {
+   "from": "cognition",
+   "to": "workspace",
+   "imports": 3
+  },
+  {
+   "from": "config",
+   "to": "core-root",
+   "imports": 4
+  },
+  {
+   "from": "config",
+   "to": "model",
+   "imports": 1
+  },
+  {
+   "from": "conversation",
+   "to": "cognition",
+   "imports": 5
+  },
+  {
+   "from": "conversation",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "conversation",
+   "to": "proactive",
+   "imports": 2
+  },
+  {
+   "from": "conversation",
+   "to": "projects",
+   "imports": 2
+  },
+  {
+   "from": "conversation",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "conversation",
+   "to": "storage",
+   "imports": 6
+  },
+  {
+   "from": "core-root",
+   "to": "acquisition",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "agent",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "agentic",
+   "imports": 4
+  },
+  {
+   "from": "core-root",
+   "to": "agents",
+   "imports": 5
+  },
+  {
+   "from": "core-root",
+   "to": "asre",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "atelier",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "avatar",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "capabilities",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "caretaker",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "cognition",
+   "imports": 13
+  },
+  {
+   "from": "core-root",
+   "to": "conversation",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "cosmos",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "couture",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "creative",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "curiosity",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "earth",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "engineering",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "executive",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "forge",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "identity",
+   "imports": 3
+  },
+  {
+   "from": "core-root",
+   "to": "interface",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "memory",
+   "imports": 12
+  },
+  {
+   "from": "core-root",
+   "to": "model",
+   "imports": 5
+  },
+  {
+   "from": "core-root",
+   "to": "multichat",
+   "imports": 4
+  },
+  {
+   "from": "core-root",
+   "to": "neural",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "observability",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "orchestrator",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "perf",
+   "imports": 3
+  },
+  {
+   "from": "core-root",
+   "to": "persistence",
+   "imports": 3
+  },
+  {
+   "from": "core-root",
+   "to": "planning",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "proactive",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "projects",
+   "imports": 3
+  },
+  {
+   "from": "core-root",
+   "to": "reasoning",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "router",
+   "imports": 34
+  },
+  {
+   "from": "core-root",
+   "to": "runtime",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "security",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "studio",
+   "imports": 3
+  },
+  {
+   "from": "core-root",
+   "to": "sync",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "tasks",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "tools",
+   "imports": 5
+  },
+  {
+   "from": "core-root",
+   "to": "ui",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "user",
+   "imports": 2
+  },
+  {
+   "from": "core-root",
+   "to": "workflows",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
+   "to": "world",
+   "imports": 1
+  },
+  {
+   "from": "cosmos",
+   "to": "couture",
+   "imports": 3
+  },
+  {
+   "from": "cosmos",
+   "to": "creative",
+   "imports": 4
+  },
+  {
+   "from": "cosmos",
+   "to": "memory",
+   "imports": 1
+  },
+  {
+   "from": "cosmos",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "cosmos",
+   "to": "projects",
+   "imports": 2
+  },
+  {
+   "from": "cosmos",
+   "to": "storage",
+   "imports": 5
+  },
+  {
+   "from": "cosmos",
+   "to": "studio",
+   "imports": 1
+  },
+  {
+   "from": "cosmos",
+   "to": "sync",
+   "imports": 2
+  },
+  {
+   "from": "cosmos",
+   "to": "tasks",
+   "imports": 1
+  },
+  {
+   "from": "cosmos",
+   "to": "tools",
+   "imports": 5
+  },
+  {
+   "from": "cosmos",
+   "to": "workspace",
+   "imports": 5
+  },
+  {
+   "from": "couture",
+   "to": "cosmos",
+   "imports": 1
+  },
+  {
+   "from": "couture",
+   "to": "creative",
+   "imports": 1
+  },
+  {
+   "from": "couture",
+   "to": "tools",
+   "imports": 3
+  },
+  {
+   "from": "creative",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "avatar",
+   "imports": 2
+  },
+  {
+   "from": "creative",
+   "to": "browser",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "cosmos",
+   "imports": 2
+  },
+  {
+   "from": "creative",
+   "to": "couture",
+   "imports": 3
+  },
+  {
+   "from": "creative",
+   "to": "data",
+   "imports": 2
+  },
+  {
+   "from": "creative",
+   "to": "engineering",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "identity",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "storage",
+   "imports": 3
+  },
+  {
+   "from": "creative",
+   "to": "studio",
+   "imports": 4
+  },
+  {
+   "from": "creative",
+   "to": "tools",
+   "imports": 2
+  },
+  {
+   "from": "creative",
+   "to": "voice",
+   "imports": 1
+  },
+  {
+   "from": "curiosity",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "curiosity",
+   "to": "cognition",
+   "imports": 3
+  },
+  {
+   "from": "curiosity",
+   "to": "core-root",
+   "imports": 2
+  },
+  {
+   "from": "curiosity",
+   "to": "identity",
+   "imports": 2
+  },
+  {
+   "from": "curiosity",
+   "to": "proactive",
+   "imports": 1
+  },
+  {
+   "from": "curiosity",
+   "to": "selfdev",
+   "imports": 3
+  },
+  {
+   "from": "curiosity",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "curiosity",
+   "to": "tools",
+   "imports": 4
+  },
+  {
+   "from": "earth",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "earth",
+   "to": "env",
+   "imports": 1
+  },
+  {
+   "from": "earth",
+   "to": "tools",
+   "imports": 1
+  },
+  {
+   "from": "engineering",
+   "to": "agent",
+   "imports": 3
+  },
+  {
+   "from": "engineering",
+   "to": "capabilities",
+   "imports": 1
+  },
+  {
+   "from": "engineering",
+   "to": "cognition",
+   "imports": 2
+  },
+  {
+   "from": "engineering",
+   "to": "core-root",
+   "imports": 1
+  },
+  {
+   "from": "engineering",
+   "to": "integration",
+   "imports": 2
+  },
+  {
+   "from": "engineering",
+   "to": "model",
+   "imports": 1
+  },
+  {
+   "from": "engineering",
+   "to": "persistence",
+   "imports": 3
+  },
+  {
+   "from": "engineering",
+   "to": "selfdev",
+   "imports": 2
+  },
+  {
+   "from": "engineering",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "engineering",
+   "to": "tools",
+   "imports": 1
+  },
+  {
+   "from": "executive",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "executive",
+   "to": "agents",
+   "imports": 1
+  },
+  {
+   "from": "executive",
+   "to": "avatar",
+   "imports": 2
+  },
+  {
+   "from": "executive",
+   "to": "cognition",
+   "imports": 4
+  },
+  {
+   "from": "executive",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "executive",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "executive",
+   "to": "selfdev",
+   "imports": 2
+  },
+  {
+   "from": "executive",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "forge",
+   "to": "tools",
+   "imports": 2
+  },
+  {
+   "from": "identity",
+   "to": "memory",
+   "imports": 1
+  },
+  {
+   "from": "identity",
+   "to": "security",
+   "imports": 2
+  },
+  {
+   "from": "identity",
+   "to": "storage",
+   "imports": 3
+  },
+  {
+   "from": "integration",
+   "to": "observability",
+   "imports": 1
+  },
+  {
+   "from": "integration",
+   "to": "security",
+   "imports": 2
+  },
+  {
+   "from": "interface",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "interface",
+   "to": "cognition",
+   "imports": 1
+  },
+  {
+   "from": "interface",
+   "to": "storage",
+   "imports": 3
+  },
+  {
+   "from": "interface",
+   "to": "tools",
+   "imports": 4
+  },
+  {
+   "from": "memory",
+   "to": "browser",
+   "imports": 2
+  },
+  {
+   "from": "memory",
+   "to": "core-root",
+   "imports": 1
+  },
+  {
+   "from": "memory",
+   "to": "identity",
+   "imports": 2
+  },
+  {
+   "from": "memory",
+   "to": "observability",
+   "imports": 1
+  },
+  {
+   "from": "memory",
+   "to": "persistence",
+   "imports": 1
+  },
+  {
+   "from": "memory",
+   "to": "proactive",
+   "imports": 1
+  },
+  {
+   "from": "memory",
+   "to": "projects",
+   "imports": 1
+  },
+  {
+   "from": "memory",
+   "to": "storage",
+   "imports": 4
+  },
+  {
+   "from": "model",
+   "to": "cognition",
+   "imports": 1
+  },
+  {
+   "from": "model",
+   "to": "core-root",
+   "imports": 6
+  },
+  {
+   "from": "model",
+   "to": "observability",
+   "imports": 1
+  },
+  {
+   "from": "model",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "model",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "model",
+   "to": "storage",
+   "imports": 2
+  },
+  {
+   "from": "multichat",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "multichat",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "multichat",
+   "to": "sync",
+   "imports": 1
+  },
+  {
+   "from": "native",
+   "to": "env",
+   "imports": 2
+  },
+  {
+   "from": "native",
+   "to": "media",
+   "imports": 1
+  },
+  {
+   "from": "native",
+   "to": "voice",
+   "imports": 5
+  },
+  {
+   "from": "neural",
+   "to": "agents",
+   "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "cosmos",
+   "imports": 6
+  },
+  {
+   "from": "neural",
+   "to": "engineering",
+   "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "interface",
+   "imports": 4
+  },
+  {
+   "from": "neural",
+   "to": "multichat",
+   "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "projects",
+   "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "spatial",
+   "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "studio",
+   "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "tools",
+   "imports": 5
+  },
+  {
+   "from": "notifications",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "notifications",
+   "to": "env",
+   "imports": 1
+  },
+  {
+   "from": "notifications",
+   "to": "multichat",
+   "imports": 2
+  },
+  {
+   "from": "notifications",
+   "to": "proactive",
+   "imports": 1
+  },
+  {
+   "from": "notifications",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "observability",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "operational-intelligence",
+   "to": "planning",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "acquisition",
+   "imports": 5
+  },
+  {
+   "from": "orchestrator",
+   "to": "agent",
+   "imports": 2
+  },
+  {
+   "from": "orchestrator",
+   "to": "agentic",
+   "imports": 2
+  },
+  {
+   "from": "orchestrator",
+   "to": "core-root",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "engineering",
+   "imports": 2
+  },
+  {
+   "from": "orchestrator",
+   "to": "interface",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "projects",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "studio",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "tasks",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "tools",
+   "imports": 4
+  },
+  {
+   "from": "orchestrator",
+   "to": "visual",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "workspace",
+   "imports": 3
+  },
+  {
+   "from": "persistence",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "agents",
+   "imports": 2
+  },
+  {
+   "from": "persistence",
+   "to": "cognition",
+   "imports": 2
+  },
+  {
+   "from": "persistence",
+   "to": "config",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "curiosity",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "env",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "identity",
+   "imports": 2
+  },
+  {
+   "from": "persistence",
+   "to": "memory",
+   "imports": 2
+  },
+  {
+   "from": "persistence",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "proactive",
+   "imports": 2
+  },
+  {
+   "from": "persistence",
+   "to": "projects",
+   "imports": 3
+  },
+  {
+   "from": "persistence",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "persistence",
+   "to": "sync",
+   "imports": 3
+  },
+  {
+   "from": "persistence",
+   "to": "user",
+   "imports": 2
+  },
+  {
+   "from": "proactive",
+   "to": "agents",
+   "imports": 1
+  },
+  {
+   "from": "proactive",
+   "to": "cognition",
+   "imports": 3
+  },
+  {
+   "from": "proactive",
+   "to": "multichat",
+   "imports": 2
+  },
+  {
+   "from": "proactive",
+   "to": "notifications",
+   "imports": 2
+  },
+  {
+   "from": "proactive",
+   "to": "projects",
+   "imports": 2
+  },
+  {
+   "from": "proactive",
+   "to": "storage",
+   "imports": 3
+  },
+  {
+   "from": "projects",
+   "to": "agent",
+   "imports": 4
+  },
+  {
+   "from": "projects",
+   "to": "avatar",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "capabilities",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "cognition",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "core-root",
+   "imports": 4
+  },
+  {
+   "from": "projects",
+   "to": "engineering",
+   "imports": 2
+  },
+  {
+   "from": "projects",
+   "to": "executive",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "memory",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "operational-intelligence",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "runtime",
+   "imports": 2
+  },
+  {
+   "from": "projects",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "projects",
+   "to": "storage",
+   "imports": 2
+  },
+  {
+   "from": "projects",
+   "to": "sync",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "acquisition",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "agent",
+   "imports": 14
+  },
+  {
+   "from": "router",
+   "to": "avatar",
+   "imports": 6
+  },
+  {
+   "from": "router",
+   "to": "browser",
+   "imports": 3
+  },
+  {
+   "from": "router",
+   "to": "cognition",
+   "imports": 3
+  },
+  {
+   "from": "router",
+   "to": "core-root",
+   "imports": 5
+  },
+  {
+   "from": "router",
+   "to": "cosmos",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "couture",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "creative",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "earth",
+   "imports": 3
+  },
+  {
+   "from": "router",
+   "to": "executive",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "identity",
+   "imports": 4
+  },
+  {
+   "from": "router",
+   "to": "interface",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "memory",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "model",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "native",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "observability",
+   "imports": 3
+  },
+  {
+   "from": "router",
+   "to": "operational-intelligence",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "planning",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "projects",
+   "imports": 4
+  },
+  {
+   "from": "router",
+   "to": "reasoning",
+   "imports": 2
+  },
+  {
+   "from": "router",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "selfdev",
+   "imports": 3
+  },
+  {
+   "from": "router",
+   "to": "spatial",
+   "imports": 4
+  },
+  {
+   "from": "router",
+   "to": "tools",
+   "imports": 4
+  },
+  {
+   "from": "router",
+   "to": "visual",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "voice",
+   "imports": 1
+  },
+  {
+   "from": "router",
+   "to": "workspace",
+   "imports": 5
+  },
+  {
+   "from": "runtime",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "agents",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "capabilities",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "cognition",
+   "imports": 8
+  },
+  {
+   "from": "runtime",
+   "to": "core-root",
+   "imports": 2
+  },
+  {
+   "from": "runtime",
+   "to": "model",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "orchestrator",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "proactive",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "projects",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "storage",
+   "imports": 3
+  },
+  {
+   "from": "runtime",
+   "to": "tasks",
+   "imports": 2
+  },
+  {
+   "from": "runtime",
+   "to": "tools",
+   "imports": 1
+  },
+  {
+   "from": "runtime",
+   "to": "ui",
+   "imports": 1
+  },
+  {
+   "from": "security",
+   "to": "integration",
+   "imports": 1
+  },
+  {
+   "from": "security",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "agents",
+   "imports": 3
+  },
+  {
+   "from": "selfdev",
+   "to": "avatar",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "cognition",
+   "imports": 19
+  },
+  {
+   "from": "selfdev",
+   "to": "core-root",
+   "imports": 5
+  },
+  {
+   "from": "selfdev",
+   "to": "creative",
+   "imports": 4
+  },
+  {
+   "from": "selfdev",
+   "to": "engineering",
+   "imports": 13
+  },
+  {
+   "from": "selfdev",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "notifications",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "projects",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "reasoning",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "sentinel",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "storage",
+   "imports": 9
+  },
+  {
+   "from": "sentinel",
+   "to": "capabilities",
+   "imports": 1
+  },
+  {
+   "from": "skills",
+   "to": "operational-intelligence",
+   "imports": 1
+  },
+  {
+   "from": "spatial",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "spatial",
+   "to": "capabilities",
+   "imports": 1
+  },
+  {
+   "from": "spatial",
+   "to": "cosmos",
+   "imports": 1
+  },
+  {
+   "from": "spend",
+   "to": "persistence",
+   "imports": 1
+  },
+  {
+   "from": "studio",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "studio",
+   "to": "agents",
+   "imports": 2
+  },
+  {
+   "from": "studio",
+   "to": "creative",
+   "imports": 3
+  },
+  {
+   "from": "studio",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "studio",
+   "to": "router",
+   "imports": 1
+  },
+  {
+   "from": "studio",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "studio",
+   "to": "storage",
+   "imports": 2
+  },
+  {
+   "from": "studio",
+   "to": "tools",
+   "imports": 3
+  },
+  {
+   "from": "sync",
+   "to": "cognition",
+   "imports": 4
+  },
+  {
+   "from": "sync",
+   "to": "cosmos",
+   "imports": 4
+  },
+  {
+   "from": "sync",
+   "to": "multichat",
+   "imports": 2
+  },
+  {
+   "from": "sync",
+   "to": "persistence",
+   "imports": 1
+  },
+  {
+   "from": "sync",
+   "to": "projects",
+   "imports": 2
+  },
+  {
+   "from": "sync",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "tasks",
+   "to": "runtime",
+   "imports": 2
+  },
+  {
+   "from": "tasks",
+   "to": "storage",
+   "imports": 2
+  },
+  {
+   "from": "tools",
+   "to": "acquisition",
+   "imports": 5
+  },
+  {
+   "from": "tools",
+   "to": "agent",
+   "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "agentic",
+   "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "agents",
+   "imports": 5
+  },
+  {
+   "from": "tools",
+   "to": "asre",
+   "imports": 2
+  },
+  {
+   "from": "tools",
+   "to": "atelier",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "avatar",
+   "imports": 4
+  },
+  {
+   "from": "tools",
+   "to": "browser",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "cognition",
+   "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "config",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "core-root",
+   "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "cosmos",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "creative",
+   "imports": 2
+  },
+  {
+   "from": "tools",
+   "to": "engineering",
+   "imports": 29
+  },
+  {
+   "from": "tools",
+   "to": "forge",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "interface",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "memory",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "multichat",
+   "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "notifications",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "orchestrator",
+   "imports": 2
+  },
+  {
+   "from": "tools",
+   "to": "projects",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "router",
+   "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "selfdev",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "tools",
+   "to": "studio",
+   "imports": 2
+  },
+  {
+   "from": "tools",
+   "to": "workflows",
+   "imports": 6
+  },
+  {
+   "from": "tools",
+   "to": "workspace",
+   "imports": 6
+  },
+  {
+   "from": "tools",
+   "to": "world",
+   "imports": 1
+  },
+  {
+   "from": "ui",
+   "to": "runtime",
+   "imports": 1
+  },
+  {
+   "from": "user",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "visual",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "voice",
+   "to": "acquisition",
+   "imports": 1
+  },
+  {
+   "from": "voice",
+   "to": "core-root",
+   "imports": 4
+  },
+  {
+   "from": "voice",
+   "to": "identity",
+   "imports": 1
+  },
+  {
+   "from": "voice",
+   "to": "model",
+   "imports": 2
+  },
+  {
+   "from": "voice",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "voice",
+   "to": "observability",
+   "imports": 3
+  },
+  {
+   "from": "voice",
+   "to": "perception",
+   "imports": 1
+  },
+  {
+   "from": "voice",
+   "to": "persistence",
+   "imports": 1
+  },
+  {
+   "from": "voice",
+   "to": "spend",
+   "imports": 1
+  },
+  {
+   "from": "workflows",
+   "to": "agent",
+   "imports": 1
+  },
+  {
+   "from": "workflows",
+   "to": "agents",
+   "imports": 1
+  },
+  {
+   "from": "workflows",
+   "to": "cognition",
+   "imports": 1
+  },
+  {
+   "from": "workflows",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "workflows",
+   "to": "tools",
+   "imports": 4
+  },
+  {
+   "from": "workspace",
+   "to": "agent",
+   "imports": 2
+  },
+  {
+   "from": "workspace",
+   "to": "agentic",
+   "imports": 2
+  },
+  {
+   "from": "workspace",
+   "to": "cosmos",
+   "imports": 3
+  },
+  {
+   "from": "workspace",
+   "to": "storage",
+   "imports": 1
+  },
+  {
+   "from": "workspace",
+   "to": "tasks",
+   "imports": 1
+  },
+  {
+   "from": "world",
+   "to": "forge",
+   "imports": 2
+  },
+  {
+   "from": "world",
+   "to": "tools",
+   "imports": 2
+  }
+ ]
+}
