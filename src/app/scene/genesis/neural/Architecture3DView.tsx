@@ -61,13 +61,14 @@ function curvePoints(kind: string, a: Vec3, b: Vec3, via: Vec3[] = []): THREE.Ve
   return [A, B];
 }
 
-function Scene({ graph, view, selected, onSelect, live, colour }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; live: ReturnType<typeof liveActivity>; colour: Map<string, string> }) {
+function Scene({ graph, view, selected, onSelect, live, colour, highlight }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; live: ReturnType<typeof liveActivity>; colour: Map<string, string>; highlight?: Set<string> }) {
   const lay = useMemo(() => archLayout(view, graph, SCALE), [view, graph]);
   const nodeById = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n])), [graph]);
   const maxLive = Math.max(1, ...Object.values(live.bySubsystem));
 
   // All wiring as one LineSegments (cheap), except tractography: real tubes.
-  const imports = useMemo(() => graph.edges.filter((e) => e.kind === "imports" && lay.positions[e.from] && lay.positions[e.to]), [graph, lay]);
+  // V2 draws its import wiring; other aspects draw every relation they have.
+  const imports = useMemo(() => graph.edges.filter((e) => (graph.aspect !== "v2" || e.kind === "imports") && lay.positions[e.from] && lay.positions[e.to]), [graph, lay]);
   const lines = useMemo(() => {
     if (lay.wiring === "none" || lay.wiring === "tract") return null;
     const pos: number[] = [];
@@ -169,7 +170,8 @@ function Scene({ graph, view, selected, onSelect, live, colour }: { graph: MvGra
       {graph.nodes.map((n) => {
         const p = lay.positions[n.id];
         if (!p) return null;
-        const hub = n.kind === "function";
+        const hub = n.kind === "function" || n.kind === "executive";
+        const lit = highlight?.has(n.id) ?? false;
         const liveCount = live.bySubsystem[n.id] ?? 0;
         const r = hub ? 0.32 : 0.1 + Math.log10(1 + (n.weight ?? 0)) * 0.07;
         const on = selected === n.id;
@@ -188,13 +190,13 @@ function Scene({ graph, view, selected, onSelect, live, colour }: { graph: MvGra
               <meshStandardMaterial
                 color={colour.get(n.group) ?? "#94a3b8"}
                 wireframe={hub}
-                emissive={liveCount ? "#fde68a" : on ? "#ffffff" : "#000000"}
-                emissiveIntensity={liveCount ? 0.3 + (liveCount / maxLive) * 1.2 : on ? 0.5 : 0}
+                emissive={lit ? "#fbbf24" : liveCount ? "#fde68a" : on ? "#ffffff" : "#000000"}
+                emissiveIntensity={lit ? 1.6 : liveCount ? 0.3 + (liveCount / maxLive) * 1.2 : on ? 0.5 : 0}
                 transparent
                 opacity={selected && !on ? 0.45 : 1}
               />
             </mesh>
-            {hub || on ? (
+            {hub || on || lit ? (
               <Html center distanceFactor={22} className={`a3-label${on ? " a3-on" : ""}`} position={[0, r + 0.35, 0]}>
                 {n.label}
                 {liveCount ? ` · ${liveCount} live` : ""}
@@ -207,7 +209,7 @@ function Scene({ graph, view, selected, onSelect, live, colour }: { graph: MvGra
   );
 }
 
-export default function Architecture3DView({ graph, view, selected, onSelect, colour, motion }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; colour: Map<string, string>; motion: boolean }) {
+export default function Architecture3DView({ graph, view, selected, onSelect, colour, motion, highlight, compact = false }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; colour: Map<string, string>; motion: boolean; highlight?: Set<string>; compact?: boolean }) {
   const wrap = useRef<HTMLDivElement | null>(null);
   const live = useLive();
   const lay = useMemo(() => archLayout(view, graph, SCALE), [view, graph]);
@@ -228,11 +230,11 @@ export default function Architecture3DView({ graph, view, selected, onSelect, co
     >
       <Canvas camera={{ position: view === "circuit-board" ? [0, SCALE * 2.1, SCALE * 1.2] : view === "temporal-activation" ? [0, SCALE * 1.2, SCALE * 2.2] : [SCALE * 1.4, SCALE * 0.8, SCALE * 1.9], fov: 45 }} dpr={[1, 2]} frameloop={motion ? "always" : "demand"} onPointerMissed={() => onSelect(null)} gl={{ antialias: true, preserveDrawingBuffer: true }}>
         <color attach="background" args={["#05060f"]} />
-        <Scene graph={graph} view={view} selected={selected} onSelect={onSelect} live={live} colour={colour} />
+        <Scene graph={graph} view={view} selected={selected} onSelect={onSelect} live={live} colour={colour} highlight={highlight} />
         <OrbitControls makeDefault enableDamping autoRotate={motion && !selected} autoRotateSpeed={0.4} />
         <RenderProbe target={wrap} />
       </Canvas>
-      <p className="a3-caption">
+      <p className="a3-caption" hidden={compact}>
         {lay.caption}{" "}
         <span data-live-summary>
           {live.total

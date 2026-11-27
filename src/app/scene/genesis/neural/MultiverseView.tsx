@@ -14,16 +14,13 @@
  */
 
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { neuralMap } from "../../../../core/neural/NeuralMap";
-import { v1Graph, v2Graph, v3Graph } from "../../../../core/neural/multiverse/Aspects";
 import { LAYOUTS, layout as runLayout, type LayoutResult } from "../../../../core/neural/multiverse/Layouts";
 import type { AspectId, MvGraph, MvNode } from "../../../../core/neural/multiverse/MultiverseTypes";
 import { savedViews, type ViewSettings } from "../../../../core/neural/multiverse/SavedViews";
 import AgentStore from "../../../../core/agents/AgentStore";
-import { EXECUTIVES } from "../../../../core/executive/ExecutiveBoard";
 import type { LeluAgent } from "../../../../core/agents/AgentTypes";
 import { NeuralView } from "./neuralView";
-import AgentDialogue from "../../../../core/agents/AgentDialogue";
+import { liveAspectGraph } from "../../../../core/neural/multiverse/liveAspects";
 import ResourcePolicy from "../../../../core/observability/ResourcePolicy";
 import ConversationRegistry from "../../../../core/observability/ConversationRegistry";
 import AgentWorkspace from "./AgentWorkspace";
@@ -55,17 +52,7 @@ function useAgents(): LeluAgent[] {
   return agents;
 }
 
-function aspectGraph(aspect: AspectId, agents: LeluAgent[]): MvGraph {
-  if (aspect === "v2") return v2Graph();
-  if (aspect === "v3") {
-    const policy = ResourcePolicy.getInstance().get();
-    const dialogues = AgentDialogue.getInstance()
-      .list()
-      .map((d) => ({ id: d.id, kind: d.kind, participants: d.participants, turns: d.turns, topic: d.topic }));
-    return v3Graph(EXECUTIVES, agents, { dialogues, paused: new Set(Object.entries(policy.agents).filter(([, c]) => c.paused).map(([id]) => id)) });
-  }
-  return v1Graph(neuralMap());
-}
+const aspectGraph = (aspect: AspectId, agents: LeluAgent[]): MvGraph => liveAspectGraph(aspect, agents);
 
 function edgePath(kind: LayoutResult["edges"], a: { x: number; y: number }, b: { x: number; y: number }, c: number): string {
   if (kind === "chord") return `M${a.x},${a.y} Q${c},${c} ${b.x},${b.y}`;

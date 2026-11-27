@@ -30,7 +30,11 @@ export type ArchViewId =
   | "multiscale"
   | "circuit-board"
   | "temporal-activation"
-  | "subsystem-constellation";
+  | "subsystem-constellation"
+  /** Any aspect (V1, V2, V3): one sphere per group around a galactic ring. */
+  | "galaxy-3d"
+  /** Any aspect: a 3D force layout of every node and edge. */
+  | "force-3d";
 
 export type Vec3 = [number, number, number];
 
@@ -66,6 +70,12 @@ export const ARCH_VIEWS: Array<{ id: ArchViewId; label: string; blurb: string }>
   { id: "circuit-board", label: "Cognitive Circuit Board", blurb: "Subsystems as chips sized by code, imports as right-angle traces." },
   { id: "temporal-activation", label: "Temporal Activation", blurb: "Days along the axis; bar height = commits that changed the subsystem that day." },
   { id: "subsystem-constellation", label: "Subsystem Constellation", blurb: "A 3D force layout of subsystems alone, pulled together by their imports." },
+];
+
+/** 3D views that work on ANY aspect's graph (V1 knowledge, V2 architecture, V3 society). */
+export const GENERIC_3D_VIEWS: Array<{ id: ArchViewId; label: string; blurb: string }> = [
+  { id: "galaxy-3d", label: "Galaxy 3D", blurb: "Each group a sphere of nodes, the groups on a galactic ring; relations as arcs." },
+  { id: "force-3d", label: "Force 3D", blurb: "Every node and relation in a 3D force layout: connected things pull together." },
 ];
 
 /** Pipeline order for stacked/ordered views (perception in, development/runtime out). */
@@ -262,6 +272,56 @@ export function archLayout(view: ArchViewId, g: MvGraph, scale = 10): ArchLayout
       });
       const ticks = days ? [0, Math.floor((days - 1) / 2), days - 1].map((d) => ({ at: [-span / 2 + d * dx, 0, S * 1.1] as Vec3, label: dayLabel(from, d) })) : [];
       return { view, positions, wiring: "none", shells: [{ kind: "axis", from: [-span / 2, 0, S * 1.1], to: [span / 2, 0, S * 1.1], ticks }], bars, caption: "Measured change activity from git (commits per day), not runtime processing." };
+    }
+    case "galaxy-3d": {
+      const by = new Map<string, MvNode[]>();
+      for (const n of g.nodes) by.set(n.group, [...(by.get(n.group) ?? []), n]);
+      const groupsList = [...by.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+      groupsList.forEach(([, list], gi) => {
+        const a = (gi / Math.max(1, groupsList.length)) * TAU;
+        const c: Vec3 = [Math.cos(a) * S * 0.85, Math.sin(gi * 1.3) * S * 0.15, Math.sin(a) * S * 0.85];
+        list.forEach((n, i) => (positions[n.id] = fib(i, list.length, S * 0.12 + Math.sqrt(list.length) * S * 0.05, c)));
+      });
+      return { view, positions, wiring: "arc", shells: [], caption: "Groups as spheres on a ring; positions are presentation, relations are the authority's." };
+    }
+    case "force-3d": {
+      const nodes = g.nodes;
+      const idx = new Map(nodes.map((n, i) => [n.id, i]));
+      const p: Vec3[] = nodes.map((n) => [(hash01(n.id) - 0.5) * S * 2, (hash01(`${n.id}y`) - 0.5) * S * 2, (hash01(`${n.id}z`) - 0.5) * S * 2]);
+      const links = g.edges.map((e) => [idx.get(e.from), idx.get(e.to)] as const).filter((l): l is readonly [number, number] => l[0] !== undefined && l[1] !== undefined);
+      const k = S * 0.45;
+      let temp = S * 0.3;
+      const iters = nodes.length > 300 ? 60 : 120;
+      for (let it = 0; it < iters; it++) {
+        const d = p.map(() => [0, 0, 0]);
+        for (let i = 0; i < p.length; i++)
+          for (let j = i + 1; j < p.length; j++) {
+            const v = [p[i][0] - p[j][0], p[i][1] - p[j][1], p[i][2] - p[j][2]];
+            const dist = Math.max(0.01, Math.hypot(v[0], v[1], v[2]));
+            const f = (k * k) / dist;
+            for (let a = 0; a < 3; a++) {
+              d[i][a] += (v[a] / dist) * f;
+              d[j][a] -= (v[a] / dist) * f;
+            }
+          }
+        for (const [a, b] of links) {
+          const v = [p[a][0] - p[b][0], p[a][1] - p[b][1], p[a][2] - p[b][2]];
+          const dist = Math.max(0.01, Math.hypot(v[0], v[1], v[2]));
+          const f = (dist * dist) / k;
+          for (let c = 0; c < 3; c++) {
+            d[a][c] -= (v[c] / dist) * f;
+            d[b][c] += (v[c] / dist) * f;
+          }
+        }
+        for (let i = 0; i < p.length; i++) {
+          const m = Math.max(0.01, Math.hypot(d[i][0], d[i][1], d[i][2]));
+          for (let c = 0; c < 3; c++) p[i][c] += (d[i][c] / m) * Math.min(m, temp) - p[i][c] * 0.01;
+        }
+        temp *= 0.96;
+      }
+      const ext = Math.max(0.01, ...p.flat().map(Math.abs));
+      nodes.forEach((n, i) => (positions[n.id] = [(p[i][0] / ext) * S, (p[i][1] / ext) * S, (p[i][2] / ext) * S]));
+      return { view, positions, wiring: "straight", shells: [], caption: "A 3D force layout of every node and relation in this aspect." };
     }
     case "subsystem-constellation": {
       const nodes = subsystems(g);
