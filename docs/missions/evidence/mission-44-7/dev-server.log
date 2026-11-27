@@ -1,0 +1,24 @@
+[runtime-key-bridge] publishing provider keys from unprefixed names: SUPABASE_URL → __LELU_SUPABASE_URL__, SUPABASE_PUBLISHABLE_KEY → __LELU_SUPABASE_PUBLISHABLE_KEY__
+[build] LÉLU ef06352 on mission/44-7-claim-integrity (development) at 2026-11-27T22:04:47.082Z
+
+  VITE v8.3.8  ready in 863 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: http://10.90.0.6:3001/  eth0
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+[model broker] openrouter: slot 1 429; trying slot 2 — Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day: https://openrouter.ai/settings/credits?utm_source=api&utm_campaign=free_daily_limit
+Killed
+[runtime-key-bridge] publishing provider keys from unprefixed names: SUPABASE_URL → __LELU_SUPABASE_URL__, SUPABASE_PUBLISHABLE_KEY → __LELU_SUPABASE_PUBLISHABLE_KEY__
+[build] LÉLU aea64c9 on mission/44-7-claim-integrity (development) at 2026-11-27T22:25:10.265Z
+
+  VITE v8.3.8  ready in 883 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: http://10.90.0.6:3001/  eth0

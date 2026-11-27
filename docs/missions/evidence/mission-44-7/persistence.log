@@ -1,0 +1,33 @@
+== Mission 44.7 WP05 process-termination acceptance 2026-11-27T22:25:06Z ==
+-- state before --
+total 208
+drwxr-xr-x 2 fb08af6cc9ef212913e6b7209b freebuff   4096 Nov 27 12:10 .
+drwxr-xr-x 6 fb08af6cc9ef212913e6b7209b freebuff   4096 Nov 26 13:04 ..
+-rw-r--r-- 1 fb08af6cc9ef212913e6b7209b freebuff 127184 Nov 27 12:10 discoveries.json
+-rw-r--r-- 1 fb08af6cc9ef212913e6b7209b freebuff  24870 Nov 26 06:42 experiments.json
+-rw-r--r-- 1 fb08af6cc9ef212913e6b7209b freebuff  14858 Nov 27 12:10 journal.jsonl
+-rw-r--r-- 1 fb08af6cc9ef212913e6b7209b freebuff    468 Nov 26 04:53 preview-exp-engineer-ops.log
+-rw-r--r-- 1 fb08af6cc9ef212913e6b7209b freebuff   1012 Nov 26 06:42 preview-exp-experiment-selector.log
+3d31303a745220d53f14ab846efc634c08c71ed333cd3f65f6721c4e988dc656  .lelu-lab/state/discoveries.json
+fe3e55b3135e3fb53eadfc645e428aa0fbb0784e03584c9f3a3b9c9de99cef57  .lelu-lab/state/experiments.json
+aff9ddfac78be830226885266d68982bc6a897df84ad86fe863c10c1386dcac2  .lelu-lab/state/scheduler.json
+6fa6e28127ede5a4bff336b59b66918615ab70bef9ee032f5d9a21510fa83595  .lelu-lab/state/sync.json
+-- lab status before --
+http:200 bytes:131107
+keys: ok,token,startedAt,root,scheduler,repository,github,sync
+-- SIGKILL pid 6481 --
+0
+-- restart --
+after http:200 bytes:131107
+-- state after --
+3d31303a745220d53f14ab846efc634c08c71ed333cd3f65f6721c4e988dc656  .lelu-lab/state/discoveries.json
+fe3e55b3135e3fb53eadfc645e428aa0fbb0784e03584c9f3a3b9c9de99cef57  .lelu-lab/state/experiments.json
+aff9ddfac78be830226885266d68982bc6a897df84ad86fe863c10c1386dcac2  .lelu-lab/state/scheduler.json
+6fa6e28127ede5a4bff336b59b66918615ab70bef9ee032f5d9a21510fa83595  .lelu-lab/state/sync.json
+-- identical payload? --
+lab/status differs (report it)
+differing top-level keys: token, startedAt, github
+startedAt before/after: 1795817087087 1795818310270
+token changed: true
+scheduler identical: true
+repository identical: true

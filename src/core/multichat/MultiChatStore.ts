@@ -183,9 +183,21 @@ export default class MultiChatStore {
     // never goes out — the measured discrepancy between "the server finished
     // this turn" and "the client still says Processing". The flag is
     // re-asserted by the turn that is actually running.
-    this.cache = stored.conversations.map((conversation) =>
-      conversation.processing ? { ...conversation, processing: false } : conversation,
-    );
+    let repaired = false;
+    this.cache = stored.conversations.map((conversation) => {
+      if (!conversation.processing) return conversation;
+      repaired = true;
+      return { ...conversation, processing: false };
+    });
+    // The correction has to LAND, not only live in memory. Measured in
+    // Mission 44.7: after a reload during generation the page correctly showed
+    // the interrupted-turn notice while storage still said `processing: true`
+    // ten seconds later — so anything else reading the workspace (a second tab,
+    // a restored session) would show a turn in flight that does not exist.
+    if (repaired) {
+      this.dirty = true;
+      this.scheduleWrite();
+    }
     return this.cache;
   }
 

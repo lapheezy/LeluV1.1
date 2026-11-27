@@ -79,6 +79,22 @@ test("a conversation persisted mid-turn is not read back as Processing", () => {
   assert.equal(loaded?.messages[1].text, "The branch is mission/44-5.");
 });
 
+/**
+ * Mission 44.7, measured in a browser: after a reload during generation the
+ * page showed the interrupted-turn notice while storage still said
+ * `processing: true` ten seconds later. The in-memory correction was right and
+ * never written, so anything else reading the workspace saw a live turn.
+ */
+test("the cleared flag is written back, so no other surface keeps reading a live turn", async () => {
+  const stored = () => JSON.parse(data[WORKSPACE_KEY]) as { conversations: Array<{ id: string; processing: boolean }> };
+  // The first test loaded a workspace whose only conversation was mid-turn;
+  // the write is coalesced (250 ms), so give it that long to land.
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const reloaded = stored().conversations.find((conversation) => conversation.id === "conv-mid-turn");
+  assert.ok(reloaded, "the loaded conversation was dropped from the workspace");
+  assert.equal(reloaded?.processing, false, "storage still says a turn is running after the reload");
+});
+
 test("a running turn is visible as work in progress, and cleared when it ends", () => {
   const store = MultiChatStore.getInstance();
   const created = store.create("A live turn");

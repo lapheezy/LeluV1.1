@@ -133,8 +133,11 @@ test("when every provider fails, the answer says so instead of inventing one", a
   const text = String(result.response?.text ?? "");
   assert.ok(text.length > 0, "an exhausted chain returned nothing at all");
   // The one thing that must never happen: content presented as a model's
-  // answer when no model answered.
-  assert.match(text, /offline|unreachable|unconfigured|can't generate|cannot generate/i);
+  // answer when no model answered. The stub fails with 529 "overloaded",
+  // which Mission 44.7 reports as capacity rather than as an outage — so the
+  // notice may say either, but it must be a notice with a remedy.
+  assert.match(text, /offline|unreachable|unconfigured|can't generate|cannot generate|rate-limited|out of capacity/i);
+  assert.match(text, /ask (?:me )?again/i, "the notice offers what to do next");
   assert.notEqual(result.response?.provider, "Only", "a failed provider was credited with the answer");
 });
 
