@@ -1681,7 +1681,13 @@ class VoiceEngine {
       const { captureCapabilityDecision } = await import("../acquisition/CapabilityLedgerClient");
       const decision = await captureCapabilityDecision(text, "spoken").catch(() => null);
       const note = [consent?.note, decision?.note].filter(Boolean).join("\n\n") || undefined;
-      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, note, conversationId ? { conversationId } : undefined);
+      // `surface: "voice"` lets the conversational bridge carry the
+      // working thread across surfaces instead of restarting it when the
+      // same conversation is continued in chat.
+      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, note, {
+        ...(conversationId ? { conversationId } : {}),
+        surface: "voice",
+      });
 
       if (this._turn?.id === turnId) {
         // A failure notice is not her answer: it is shown in the
