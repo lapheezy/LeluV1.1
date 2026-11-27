@@ -92,6 +92,15 @@ export default function ThreadMap({ object, compact }: { object: ThreadObject; c
 function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { graph: ReturnType<typeof liveAspectGraph>; layoutId: LayoutId; colour: Map<string, string>; highlight: Set<string>; selected: string | null; onSelect: (id: string | null) => void }) {
   const id = LAYOUTS.some((l) => l.id === layoutId) ? layoutId : "force-directed";
   const placed = useMemo(() => runLayout(id, graph, 1000), [id, graph]);
+  // Fit the view to the nodes actually placed (layouts may use only part of the box).
+  const fit = useMemo(() => {
+    const ps = Object.values(placed.positions);
+    if (!ps.length) return { x: 0, y: 0, s: 1000 };
+    const xs = ps.map((p) => p.x);
+    const ys = ps.map((p) => p.y);
+    const minX = Math.min(...xs) - 40, maxX = Math.max(...xs) + 40, minY = Math.min(...ys) - 50, maxY = Math.max(...ys) + 30;
+    return { x: minX, y: minY, s: Math.max(maxX - minX, maxY - minY, 120) };
+  }, [placed]);
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
   const focus = selected ?? null;
@@ -99,7 +108,8 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
   return (
     <svg
       className="tm-svg"
-      viewBox={`${-view.x} ${-view.y} ${1000 / view.k} ${1000 / view.k}`}
+      viewBox={`${fit.x - view.x} ${fit.y - view.y} ${fit.s / view.k} ${fit.s / view.k}`}
+      style={{ ["--ls" as string]: `${Math.max(12, fit.s / 34)}px` }}
       onWheel={(e) => setView((v) => ({ ...v, k: Math.min(6, Math.max(0.5, v.k * (e.deltaY < 0 ? 1.15 : 0.87))) }))}
       onPointerDown={(e) => {
         if ((e.target as Element).closest("[data-tm-node]")) return;
@@ -108,7 +118,7 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
       }}
       onPointerMove={(e) => {
         const d = drag.current;
-        if (d) setView((v) => ({ ...v, x: d.vx + (e.clientX - d.x) * (2 / v.k), y: d.vy + (e.clientY - d.y) * (2 / v.k) }));
+        if (d) setView((v) => ({ ...v, x: d.vx + (e.clientX - d.x) * (fit.s / 400 / v.k), y: d.vy + (e.clientY - d.y) * (fit.s / 400 / v.k) }));
       }}
       onPointerUp={() => (drag.current = null)}
       data-pan-zoom={`${Math.round(view.x)},${Math.round(view.y)},${view.k.toFixed(2)}`}
@@ -118,17 +128,17 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
         const b = placed.positions[e.to];
         if (!a || !b) return null;
         const lit = focus && (e.from === focus || e.to === focus);
-        return <line key={e.id} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={lit ? "#fde68a" : "#64748b"} strokeOpacity={lit ? 0.9 : 0.25} strokeWidth={lit ? 2 : 1} />;
+        return <line key={e.id} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={lit ? "#fde68a" : "#94a3b8"} strokeOpacity={lit ? 0.9 : 0.3} strokeWidth={fit.s / (lit ? 300 : 600)} />;
       })}
       {graph.nodes.map((n) => {
         const p = placed.positions[n.id];
         if (!p) return null;
         const hl = highlight.has(n.id);
         const on = n.id === focus;
-        const r = 5 + Math.min(10, Math.log2(1 + (n.weight ?? 0)));
+        const r = (fit.s / 160) * (1 + Math.min(1.5, Math.log2(1 + (n.weight ?? 0)) / 6));
         return (
           <g key={n.id} data-tm-node={n.id} data-highlighted={hl ? "true" : "false"} onClick={() => onSelect(on ? null : n.id)} style={{ cursor: "pointer" }}>
-            {hl ? <circle cx={p.x} cy={p.y} r={r + 9} fill="none" stroke="#fbbf24" strokeWidth={3} className="tm-pulse" /> : null}
+            {hl ? <circle cx={p.x} cy={p.y} r={r * 1.9} fill="none" stroke="#fbbf24" strokeWidth={r / 3} className="tm-pulse" /> : null}
             <circle cx={p.x} cy={p.y} r={r} fill={colour.get(n.group)} fillOpacity={focus && !on && !near.has(n.id) && !hl ? 0.3 : 0.95} stroke={on ? "#fff" : "none"} strokeWidth={2} />
             {hl || on || n.kind === "function" || n.kind === "executive" ? (
               <text x={p.x} y={p.y - r - 5} textAnchor="middle" className="tm-label">

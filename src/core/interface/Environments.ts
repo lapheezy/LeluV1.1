@@ -29,6 +29,7 @@ export interface EnvironmentDef {
 
 export const ENVIRONMENTS: EnvironmentDef[] = [
   { id: "conversation", label: "Chat", glyph: "◍", purpose: "The conversation itself.", hosts: [], layout: "auto", runs: ["provider"], family: "talk" },
+  { id: "thread", label: "Thread", glyph: "💧", purpose: "The conversation with its live objects (Neural Maps, videos, pages, research, images, 3D) in a liquid layout: raindrop, workspace, ribbon, live or split.", hosts: ["graph", "media"], layout: "fullscreen", runs: ["provider", "local"], family: "talk" },
   { id: "research", label: "Research", glyph: "⌕", purpose: "Find: public sources, papers, data and your own conversation history, with citations; turn findings into boards and documents.", hosts: ["document", "graph"], layout: "auto", runs: ["public-data", "local"], family: "find" },
   { id: "board", label: "Board", glyph: "⌘", purpose: "Research board / knowledge map built from the conversation and its sources; editable.", hosts: ["graph"], layout: "auto", runs: ["local"], family: "find" },
   { id: "document", label: "Document", glyph: "▤", purpose: "Long-form reading and a real document (DOCX/PDF/MD/HTML) from the conversation.", hosts: ["document"], layout: "focus", runs: ["local"], family: "make" },

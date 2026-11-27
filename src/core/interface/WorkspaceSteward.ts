@@ -343,10 +343,12 @@ export function planWorkspace(input: StewardInput): StewardPlan {
 
 export type StageMode =
   | "conversation" | "cinematic" | "board" | "gallery" | "present" | "spatial"
-  | "research" | "document" | "diagram" | "data" | "code" | "film" | "voice" | "studio";
+  | "research" | "document" | "diagram" | "data" | "code" | "film" | "voice" | "studio"
+  /** Mission 44.9: the conversation with its live objects, in a layout variant. */
+  | "thread";
 export const STAGE_MODES: StageMode[] = [
   "conversation", "cinematic", "board", "gallery", "present", "spatial",
-  "research", "document", "diagram", "data", "code", "film", "voice", "studio",
+  "research", "document", "diagram", "data", "code", "film", "voice", "studio", "thread",
 ];
 
 export type TransformTarget = "document" | "deck" | "diagram" | "chart" | "workbook" | "film";

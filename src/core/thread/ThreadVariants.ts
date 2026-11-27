@@ -212,7 +212,9 @@ export function layoutThread(base: BaseLayout, width: number, height: number, id
       return { base, chat, avatar, activity: null, objects, tabs: [], height: Math.max(height, top + rows * (size * 1.08 + 70) + 120), compact };
     }
     case "workspace": {
-      const chat = { x: width * 0.74, y: 64, w: width * 0.25, h: height - 150 };
+      // A readable conversation column: at least 300 px.
+      const chatW = Math.max(300, width * 0.25);
+      const chat = { x: width - chatW - pad / 2, y: 64, w: chatW, h: height - 150 };
       const avatar = { x: pad, y: 8, w: Math.min(250, width * 0.17), h: Math.min(330, height * 0.42) };
       // Objects start right of her spot: she never stands on content.
       const left = avatar.x + avatar.w + pad;
@@ -242,7 +244,7 @@ export function layoutThread(base: BaseLayout, width: number, height: number, id
       return { base, chat, avatar, activity: null, objects, tabs: [], height: Math.max(height, y + 120), compact };
     }
     case "live": {
-      const side = Math.min(320, width * 0.2);
+      const side = Math.max(240, Math.min(320, width * 0.2));
       const avatar = { x: pad, y: 8, w: side, h: Math.min(220, height * 0.3) };
       const chat = { x: pad, y: avatar.y + avatar.h + 10, w: side, h: height - avatar.h - 140 };
       const activity = { x: width - side - pad, y: 64, w: side, h: height - 160 };

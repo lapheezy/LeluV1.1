@@ -69,6 +69,7 @@ import "../stage/stage.css";
 const BoardStage = lazy(() => import("../stage/BoardStage"));
 // The making/finding environments and their Studio wiring: one lazy chunk.
 const EnvironmentStage = lazy(() => import("../stage/EnvironmentStages"));
+const ThreadStage = lazy(() => import("../thread/ThreadStage"));
 const ScenesPanel = lazy(() => import("../stage/EnvironmentStages").then((m) => ({ default: m.ScenesPanel })));
 const VisualsPanel = lazy(() => import("../stage/EnvironmentStages").then((m) => ({ default: m.VisualsPanel })));
 const DeckExport = lazy(() => import("../stage/EnvironmentStages").then((m) => ({ default: m.DeckExport })));
@@ -332,6 +333,13 @@ export default function UniverseChatWindow({
   switch (stage) {
     case "cinematic":
       body = <CinematicStage model={model} processing={conversation.processing} />;
+      break;
+    case "thread":
+      body = (
+        <Suspense fallback={<StageLoading label="thread" />}>
+          <ThreadStage conversationId={conversation.id} messages={conversation.messages} processing={conversation.processing} transcript={thread} />
+        </Suspense>
+      );
       break;
     case "gallery":
       body = (

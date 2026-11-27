@@ -74,6 +74,8 @@ export interface ThreadObject {
   /** image / model3d: which message and which attachment. */
   ref?: { messageId: string; index: number; src?: string; name?: string; format?: string };
   spatialId?: string;
+  /** youtube: the last position the player reported, so a reload can offer to resume there. */
+  lastTime?: number;
   group: string | null;
   style: LiquidStyle;
   /** Transform per layout variant id. */
@@ -104,6 +106,7 @@ export function setThreadStorage(s: Storage | null): void {
   storage = s;
   objects = null;
   variants = null;
+  feed = null;
 }
 
 function load(): ThreadObject[] {
@@ -290,4 +293,37 @@ export function adopt(o: ThreadObject): ThreadObject {
   load().push({ ...o, createdAt: Date.now() });
   commit();
   return getObject(o.id)!;
+}
+
+/* ---------------------------------------------------------- raindrop feed position */
+
+const FEED_KEY = "lelu.thread.feed.v1";
+let feed: Record<string, number> | null = null;
+function loadFeed(): Record<string, number> {
+  if (feed) return feed;
+  try {
+    feed = JSON.parse(storage?.getItem(FEED_KEY) ?? "{}") ?? {};
+  } catch {
+    feed = {};
+  }
+  return feed!;
+}
+/**
+ * Where the person is in a conversation's raindrop feed: the index of the
+ * newest drop above the puddle, or null to follow the latest (new drops fall
+ * in and push the oldest down into the puddle).
+ */
+export function feedPosition(conversationId: string): number | null {
+  const v = loadFeed()[conversationId];
+  return typeof v === "number" ? v : null;
+}
+export function setFeedPosition(conversationId: string, index: number | null): void {
+  const f = loadFeed();
+  if (index === null) delete f[conversationId];
+  else f[conversationId] = index;
+  try {
+    storage?.setItem(FEED_KEY, JSON.stringify(f));
+  } catch {
+    /* memory only */
+  }
 }

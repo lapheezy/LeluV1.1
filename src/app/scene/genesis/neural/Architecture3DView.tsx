@@ -61,7 +61,7 @@ function curvePoints(kind: string, a: Vec3, b: Vec3, via: Vec3[] = []): THREE.Ve
   return [A, B];
 }
 
-function Scene({ graph, view, selected, onSelect, live, colour, highlight }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; live: ReturnType<typeof liveActivity>; colour: Map<string, string>; highlight?: Set<string> }) {
+function Scene({ graph, view, selected, onSelect, live, colour, highlight, compactLabels = false }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; live: ReturnType<typeof liveActivity>; colour: Map<string, string>; highlight?: Set<string>; compactLabels?: boolean }) {
   const lay = useMemo(() => archLayout(view, graph, SCALE), [view, graph]);
   const nodeById = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n])), [graph]);
   const maxLive = Math.max(1, ...Object.values(live.bySubsystem));
@@ -196,7 +196,7 @@ function Scene({ graph, view, selected, onSelect, live, colour, highlight }: { g
                 opacity={selected && !on ? 0.45 : 1}
               />
             </mesh>
-            {hub || on || lit ? (
+            {(compactLabels ? on || lit : hub || on || lit) ? (
               <Html center distanceFactor={22} className={`a3-label${on ? " a3-on" : ""}`} position={[0, r + 0.35, 0]}>
                 {n.label}
                 {liveCount ? ` · ${liveCount} live` : ""}
@@ -230,7 +230,7 @@ export default function Architecture3DView({ graph, view, selected, onSelect, co
     >
       <Canvas camera={{ position: view === "circuit-board" ? [0, SCALE * 2.1, SCALE * 1.2] : view === "temporal-activation" ? [0, SCALE * 1.2, SCALE * 2.2] : [SCALE * 1.4, SCALE * 0.8, SCALE * 1.9], fov: 45 }} dpr={[1, 2]} frameloop={motion ? "always" : "demand"} onPointerMissed={() => onSelect(null)} gl={{ antialias: true, preserveDrawingBuffer: true }}>
         <color attach="background" args={["#05060f"]} />
-        <Scene graph={graph} view={view} selected={selected} onSelect={onSelect} live={live} colour={colour} highlight={highlight} />
+        <Scene graph={graph} view={view} selected={selected} onSelect={onSelect} live={live} colour={colour} highlight={highlight} compactLabels={compact} />
         <OrbitControls makeDefault enableDamping autoRotate={motion && !selected} autoRotateSpeed={0.4} />
         <RenderProbe target={wrap} />
       </Canvas>

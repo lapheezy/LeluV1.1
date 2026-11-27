@@ -19,7 +19,7 @@ export default function YouTubeObject({ object }: { object: ThreadObject }) {
   const video = object.video!;
   const frame = useRef<HTMLIFrameElement | null>(null);
   const [state, setState] = useState<{ playerState: string; time: number; duration: number }>({ playerState: "loading", time: 0, duration: 0 });
-  const resumeAt = useRef(Math.floor(Number((object as ThreadObject & { lastTime?: number }).lastTime ?? 0)));
+  const resumeAt = useRef(Math.floor(object.lastTime ?? 0));
   const saved = useRef(0);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function YouTubeObject({ object }: { object: ThreadObject }) {
         // Keep the position (at most every 5 s) so a reload can offer to resume there.
         if (typeof info.currentTime === "number" && Math.abs(info.currentTime - saved.current) > 5) {
           saved.current = info.currentTime;
-          update(object.id, { lastTime: Math.floor(info.currentTime) } as Partial<ThreadObject>);
+          update(object.id, { lastTime: Math.floor(info.currentTime) });
         }
       }
     };

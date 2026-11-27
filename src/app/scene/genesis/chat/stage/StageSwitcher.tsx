@@ -7,7 +7,7 @@ import { LayoutGroup, motion } from "framer-motion";
 import type { StageMode } from "../../../../../core/interface/WorkspaceSteward";
 import { ENVIRONMENTS } from "../../../../../core/interface/Environments";
 
-const ORDER: StageMode[] = ["conversation", "research", "board", "document", "diagram", "data", "code", "gallery", "spatial", "film", "voice", "present", "cinematic", "studio"];
+const ORDER: StageMode[] = ["conversation", "thread", "research", "board", "document", "diagram", "data", "code", "gallery", "spatial", "film", "voice", "present", "cinematic", "studio"];
 
 export default function StageSwitcher({ stage, onChange, counts }: { stage: StageMode; onChange: (s: StageMode) => void; counts: { media: number; sections: number; works?: number } }) {
   const envs = ORDER.map((id) => ENVIRONMENTS.find((e) => e.id === id)!).filter(Boolean);
