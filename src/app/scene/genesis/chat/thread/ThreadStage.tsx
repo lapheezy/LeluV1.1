@@ -26,6 +26,7 @@ import {
   remove,
   resetLayout,
   setThreadConversationResolver,
+  summon,
   setTransform,
   setVariant,
   subscribeThread,
@@ -127,7 +128,7 @@ const KIND_LABEL: Record<ThreadObject["kind"], string> = { "neural-map": "Neural
 
 /* ---------------------------------------------------------- one liquid object */
 
-function LiquidShell({ o, rect, variantId, compact, shape, hue }: { o: ThreadObject; rect: Rect; variantId: string; compact: boolean; shape: LiquidStyle["shape"]; hue: number }) {
+function LiquidShell({ o, rect, variantId, compact, shape, hue, ribbon = false, focusPane = false }: { o: ThreadObject; rect: Rect; variantId: string; compact: boolean; shape: LiquidStyle["shape"]; hue: number; ribbon?: boolean; focusPane?: boolean }) {
   const el = useRef<HTMLDivElement | null>(null);
   const t = o.transforms[variantId];
   const box = placed(rect, t);
@@ -171,8 +172,9 @@ function LiquidShell({ o, rect, variantId, compact, shape, hue }: { o: ThreadObj
   return (
     <div
       ref={el}
-      className="to"
+      className="to lq"
       data-thread-object={o.id}
+      data-focus-pane={focusPane ? "true" : "false"}
       data-kind={o.kind}
       data-shape={shape}
       data-group={o.group ?? ""}
@@ -192,6 +194,13 @@ function LiquidShell({ o, rect, variantId, compact, shape, hue }: { o: ThreadObj
       onPointerUp={end}
       onPointerCancel={end}
     >
+      {ribbon ? <span className="to-ribbon-wrap" aria-hidden /> : null}
+      {focusPane && o.kind === "web" ? (
+        <div className="tx-addr">
+          <span>🔒</span>
+          <b>{o.web?.url}</b>
+        </div>
+      ) : null}
       <header className="to-head">
         <span className="to-grip" onPointerDown={begin("move")} title="Drag to move" aria-label="Move">
           ⠿
@@ -227,7 +236,7 @@ function ShapePanel({ o, variantId, onClose }: { o: ThreadObject; variantId: str
   const t = o.transforms[variantId];
   const set = (p: Partial<LiquidStyle>) => (adopt(o), update(o.id, { style: { ...style, ...p } }));
   return (
-    <div className="to-panel" data-shape-panel onPointerDown={(e) => e.stopPropagation()}>
+    <div className="to-panel lq" data-shape-panel onPointerDown={(e) => e.stopPropagation()}>
       <header>
         <b>Shape it</b>
         <button type="button" onClick={onClose} aria-label="Close panel">
@@ -271,11 +280,11 @@ function LivePanel({ messages, processing }: { messages: ThreadMessage[]; proces
   const last = [...messages].reverse().find((m) => m.role === "assistant" && m.activity);
   const steps = last?.activity?.steps.slice(-8) ?? [];
   return (
-    <aside className="tl" data-live-panel>
+    <aside className="tl lq" data-live-panel>
       <header>
         <b>LÉLU Live</b> <span className={processing ? "tl-on" : "tl-off"}>{processing ? "● Running" : "○ Idle"}</span>
       </header>
-      {steps.length === 0 ? <p className="tm-hint">No steps recorded for her last reply.</p> : null}
+      {steps.length === 0 ? <p className="tl-empty">Her steps appear here while she works: searches, pages, tools, agents. Nothing is running now.</p> : null}
       <ol>
         {steps.map((s) => (
           <li key={s.id} data-step-status={s.status}>
@@ -286,6 +295,98 @@ function LivePanel({ messages, processing }: { messages: ThreadMessage[]; proces
       </ol>
       {last?.activity?.sources.length ? <small>{last.activity.sources.length} sources</small> : null}
     </aside>
+  );
+}
+
+/* ---------------------------------------------------------- header */
+
+/** Status chips from the conversation's real state only. */
+function statusOf(messages: ThreadMessage[], processing: boolean, objects: ThreadObject[]) {
+  const last = [...messages].reverse().find((m) => m.role === "assistant" && m.activity);
+  const running = (k: string[]) => Boolean(processing && last?.activity?.steps.some((s) => s.status === "running" && k.includes(s.kind)));
+  return [
+    { id: "live", label: "Live", on: processing },
+    { id: "research", label: "Researching", on: running(["search", "reference"]) },
+    { id: "browse", label: "Browsing", on: running(["browse"]) || objects.some((o) => o.kind === "web") },
+    { id: "create", label: "Creating", on: Boolean(processing && last?.activity?.artifacts?.length) },
+    { id: "3d", label: "3D", on: objects.some((o) => o.kind === "model3d" || o.map?.dim === "3d") },
+  ];
+}
+
+function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive, showTabs, onTabs }: { conversationId: string; variantId: string; chips: ReturnType<typeof statusOf>; immersive: boolean; onImmersive: () => void; showTabs: boolean; onTabs: () => void }) {
+  return (
+    <header className="tx-head" data-thread-header>
+      <div className="tx-mark">
+        <span className="tx-orbit" aria-hidden />
+        <span className="tx-word">
+          <b>LÉLU</b>
+          <small>Chat Universe</small>
+        </span>
+      </div>
+      <div className="tx-chips" aria-label="What she is doing">
+        {chips.map((c) => (
+          <span key={c.id} className="tx-chip" data-on={c.on ? "true" : "false"} data-chip={c.id}>
+            {c.on ? <i /> : null}
+            {c.label}
+          </span>
+        ))}
+      </div>
+      <div className="tx-tools">
+        <div className="tx-variants" role="tablist" aria-label="Thread variant">
+          {variants().map((v) => (
+            <button key={v.id} type="button" role="tab" data-on={v.id === variantId ? "true" : "false"} data-variant-tab={v.id} onClick={() => setVariant(conversationId, v.id)} title={v.description}>
+              {v.label}
+            </button>
+          ))}
+        </div>
+        <select value={variantId} onChange={(e) => setVariant(conversationId, e.target.value)} aria-label="Thread variant" data-variant-picker style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}>
+          {variants().map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+        <button type="button" onClick={() => resetLayout(conversationId, variantId)} title="Return every object to its automatic place">
+          ⟲
+        </button>
+        <button type="button" onClick={onTabs} data-on={showTabs ? "true" : "false"} title="Show the environment tabs">
+          ☰
+        </button>
+        <button type="button" onClick={onImmersive} title={immersive ? "Back to the window" : "Fill the screen"} data-immersive-toggle>
+          {immersive ? "⤡" : "⤢"}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+/** Animated light trails between related objects (same group, or a map beside the media it explains). */
+function Trails({ objects, rects }: { objects: ThreadObject[]; rects: Record<string, Rect> }) {
+  const shown = objects.filter((o) => rects[o.id]);
+  const pairs: Array<[ThreadObject, ThreadObject]> = [];
+  for (let i = 0; i < shown.length; i++)
+    for (let j = i + 1; j < shown.length; j++) {
+      const a = shown[i], b = shown[j];
+      if ((a.group && a.group === b.group) || (a.kind === "neural-map" && b.kind !== "neural-map") || (b.kind === "neural-map" && a.kind !== "neural-map") || (a.kind === "neural-map" && b.kind === "neural-map" && j === i + 1)) pairs.push([a, b]);
+    }
+  const c = (r: Rect) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+  return (
+    <svg className="ts-trails" aria-hidden>
+      <defs>
+        <linearGradient id="ts-trail" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="hsl(274 95% 75%)" />
+          <stop offset=".5" stopColor="hsl(38 98% 64%)" />
+          <stop offset="1" stopColor="hsl(212 95% 70%)" />
+        </linearGradient>
+      </defs>
+      {pairs.slice(0, 8).map(([a, b]) => {
+        const p = c(rects[a.id]);
+        const q = c(rects[b.id]);
+        const mx = (p.x + q.x) / 2 + (q.y - p.y) * 0.18;
+        const my = (p.y + q.y) / 2 - (q.x - p.x) * 0.18;
+        return <path key={`${a.id}-${b.id}`} d={`M${p.x},${p.y} Q${mx},${my} ${q.x},${q.y}`} stroke="url(#ts-trail)" />;
+      })}
+    </svg>
   );
 }
 
@@ -304,25 +405,34 @@ export default function ThreadStage({ conversationId, messages, processing, tran
   const objects = threadContents(conversationId, messages).filter((o) => o.kind !== "spatial");
   const [focus, setFocus] = useState<string | null>(null);
   const compact = size.w < 700;
+  const [immersive, setImmersive] = useState(() => (typeof localStorage === "undefined" ? true : localStorage.getItem("lelu.thread.immersive") !== "false"));
+  const [showTabs, setShowTabs] = useState(false);
+  // The window around the stage takes the whole screen in immersive mode (thread.css).
+  useEffect(() => {
+    const root = ref.current?.closest(".lst-root") as HTMLElement | null;
+    if (!root) return;
+    root.dataset.immersive = immersive ? "true" : "false";
+    root.dataset.showTabs = showTabs ? "true" : "false";
+    return () => {
+      delete root.dataset.immersive;
+      delete root.dataset.showTabs;
+    };
+  }, [immersive, showTabs, ref]);
+  const toggleImmersive = () => {
+    setImmersive((v) => {
+      try {
+        localStorage.setItem("lelu.thread.immersive", String(!v));
+      } catch {
+        /* fine */
+      }
+      return !v;
+    });
+  };
+  const chips = statusOf(messages, processing, threadContents(conversationId, messages));
+  const header = <ThreadHeader conversationId={conversationId} variantId={variantFor(conversationId)} chips={chips} immersive={immersive} onImmersive={toggleImmersive} showTabs={showTabs} onTabs={() => setShowTabs((v) => !v)} />;
   const chatH = compact ? Math.min(300, size.h * 0.42) : 260;
   const lay = useMemo(() => layoutThread(spec.base, size.w, size.h, objects.map((o) => o.id), focus, chatH), [spec.base, size.w, size.h, objects.map((o) => o.id).join(","), focus, chatH]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const picker = (
-    <div className="ts-bar">
-      <select value={variantId} onChange={(e) => setVariant(conversationId, e.target.value)} aria-label="Thread variant" data-variant-picker>
-        {variants().map((v) => (
-          <option key={v.id} value={v.id}>
-            {v.label}
-            {v.origin.by === "lelu" ? " · by LÉLU" : ""}
-          </option>
-        ))}
-      </select>
-      <span className="ts-count">{objects.length} objects</span>
-      <button type="button" onClick={() => resetLayout(conversationId, variantId)} title="Return every object to its automatic place">
-        Reset layout
-      </button>
-    </div>
-  );
 
   if (spec.base === "raindrop") {
     const entries: FeedEntry[] = [
@@ -333,12 +443,12 @@ export default function ThreadStage({ conversationId, messages, processing, tran
     const lastLelu = [...messages].reverse().find((m) => m.role === "assistant");
     return (
       <div ref={ref} className="ts" data-thread-stage={conversationId} data-variant={variantId} data-base="raindrop" data-compact={compact ? "true" : "false"} style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent }}>
-        {picker}
+        {header}
         <div className="ts-avatar ts-avatar-orb" data-lelu-preview-host data-avatar-spot style={{ left: lay.avatar!.x, top: lay.avatar!.y + 40, width: lay.avatar!.w, height: lay.avatar!.h }} />
         <div className="ts-head">
-          {lastUser ? <p className="ts-you">{lastUser.text}</p> : null}
+          {lastUser ? <p className="ts-you lq"><span>{lastUser.text}</span></p> : null}
           {lastLelu ? (
-            <p className="ts-lelu">
+            <p className="ts-lelu lq">
               <b>✦ LÉLU</b> {processing ? <span className="tl-on">● working</span> : null} {lastLelu.text.slice(0, 280)}
             </p>
           ) : null}
@@ -360,10 +470,18 @@ export default function ThreadStage({ conversationId, messages, processing, tran
       data-compact={compact ? "true" : "false"}
       style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent, ["--glow" as string]: spec.style.glow }}
     >
-      {picker}
+      {header}
       <div className="ts-canvas" style={{ height: lay.height }}>
+        {spec.base === "workspace" || spec.base === "live" ? <Trails objects={objects} rects={Object.fromEntries(objects.filter((o) => lay.objects[o.id]).map((o) => [o.id, placed(lay.objects[o.id], o.transforms[variantId])]))} /> : null}
+        {spec.base === "ribbon" ? (
+          <div className="ts-spine" style={{ top: lay.chat.y, height: Math.max(80, lay.height - lay.chat.y - 60) }}>
+            {objects.map((o, i) => (
+              <i key={o.id} style={{ top: `${((i + 1) / (objects.length + 1)) * 100}%` }} />
+            ))}
+          </div>
+        ) : null}
         {lay.avatar ? <div className={`ts-avatar${lay.avatar.w < 100 ? " ts-avatar-orb" : ""}`} data-lelu-preview-host data-avatar-spot style={{ left: lay.avatar.x, top: lay.avatar.y, width: lay.avatar.w, height: lay.avatar.h }} /> : null}
-        <section className="ts-chat" data-thread-chat style={{ left: lay.chat.x, top: lay.chat.y, width: lay.chat.w, height: lay.chat.h }}>
+        <section className="ts-chat lq" data-thread-chat style={{ left: lay.chat.x, top: lay.chat.y, width: lay.chat.w, height: lay.chat.h }}>
           {transcript}
         </section>
         {lay.activity ? (
@@ -374,8 +492,18 @@ export default function ThreadStage({ conversationId, messages, processing, tran
         {objects
           .filter((o) => lay.objects[o.id])
           .map((o) => (
-            <LiquidShell key={o.id} o={o} rect={lay.objects[o.id]} variantId={variantId} compact={compact} shape={o.style.shape !== DEFAULT_STYLE.shape ? o.style.shape : spec.style.shape} hue={spec.style.hue} />
+            <LiquidShell key={o.id} o={o} rect={lay.objects[o.id]} variantId={variantId} compact={compact} shape={o.style.shape !== DEFAULT_STYLE.shape ? o.style.shape : spec.style.shape} hue={spec.style.hue} ribbon={spec.base === "ribbon"} focusPane={spec.base === "split"} />
           ))}
+        {spec.base === "live" && !compact ? (
+          <nav className="tx-dock lq" style={{ top: lay.height - 96 }} aria-label="Bring into the thread">
+            {(["v1", "v2", "v3"] as const).map((a) => (
+              <button key={a} type="button" data-dock={a} onClick={() => summon({ conversationId, kind: "neural-map", by: "user", title: a === "v1" ? "V1 · Knowledge" : a === "v2" ? "V2 · Cognitive architecture" : "V3 · Agent society", map: { aspect: a, view: a === "v2" ? "connectome-tractography" : "force-directed", dim: a === "v2" ? "3d" : "2d", highlight: [], selected: null } })}>
+                <b>{a === "v1" ? "◉" : a === "v2" ? "✺" : "⟡"}</b>
+                {a.toUpperCase()}
+              </button>
+            ))}
+          </nav>
+        ) : null}
         {tabs.length ? (
           <nav className="ts-tabs" style={{ left: lay.objects[Object.keys(lay.objects)[0]]?.x ?? 0, top: 52 }}>
             {tabs.map((o) => (

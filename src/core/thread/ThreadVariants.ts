@@ -212,25 +212,37 @@ export function layoutThread(base: BaseLayout, width: number, height: number, id
       return { base, chat, avatar, activity: null, objects, tabs: [], height: Math.max(height, top + rows * (size * 1.08 + 70) + 120), compact };
     }
     case "workspace": {
-      // A readable conversation column: at least 300 px.
+      // Reference B: her presence left, the conversation right, and between
+      // them one large centrepiece (the focused or first object) with the
+      // others composed around it at smaller sizes — size by importance.
       const chatW = Math.max(300, width * 0.25);
       const chat = { x: width - chatW - pad - 12, y: 64, w: chatW, h: height - 150 };
       const avatar = { x: pad, y: 8, w: Math.min(250, width * 0.17), h: Math.min(330, height * 0.42) };
-      // Objects start right of her spot: she never stands on content.
       const left = avatar.x + avatar.w + pad;
       const right = chat.x - pad;
       const areaW = right - left;
-      const cols = ids.length <= 1 ? 1 : ids.length <= 4 ? 2 : 3;
-      const cw = (areaW - (cols - 1) * 20) / cols;
-      const rows = Math.max(1, Math.ceil(ids.length / cols));
-      const ch = Math.max(170, Math.min(cw * 0.75, (height - 150) / Math.min(rows, 2) - 22));
-      ids.forEach((id, i) => {
-        const r = Math.floor(i / cols);
-        const c = i % cols;
-        // Organic offset: panes stagger like the reference's liquid frames.
-        objects[id] = { x: left + c * (cw + 20), y: 70 + r * (ch + 22) + (c % 2) * 26, w: cw, h: ch };
-      });
-      return { base, chat, avatar, activity: null, objects, tabs: [], height: Math.max(height, 70 + Math.ceil(ids.length / cols) * (ch + 22) + 120), compact };
+      const order = focus && ids.includes(focus) ? [focus, ...ids.filter((i) => i !== focus)] : ids;
+      if (order.length === 1) {
+        objects[order[0]] = { x: left, y: 70, w: areaW, h: Math.min(areaW * 0.62, height - 170) };
+        return { base, chat, avatar, activity: null, objects, tabs: [], height, compact };
+      }
+      const mainW = areaW * 0.62;
+      const mainH = Math.min(mainW * 0.66, height - 190);
+      objects[order[0]] = { x: left, y: 70, w: mainW, h: mainH };
+      const sideX = left + mainW + 18;
+      const sideW = areaW - mainW - 18;
+      const side = order.slice(1, 3);
+      const sideH = (mainH - (side.length - 1) * 16) / side.length;
+      side.forEach((id, i) => (objects[id] = { x: sideX, y: 70 + i * (sideH + 16), w: sideW, h: sideH }));
+      // Further objects in a row beneath the centrepiece.
+      const rest = order.slice(3);
+      const rowY = 70 + mainH + 22;
+      const cols = Math.max(1, Math.min(3, rest.length));
+      const cw = (areaW - (cols - 1) * 18) / cols;
+      const ch = Math.max(170, Math.min(cw * 0.6, 260));
+      rest.forEach((id, i) => (objects[id] = { x: left + (i % cols) * (cw + 18), y: rowY + Math.floor(i / cols) * (ch + 18), w: cw, h: ch }));
+      const bottom = rest.length ? rowY + Math.ceil(rest.length / cols) * (ch + 18) : 70 + mainH;
+      return { base, chat, avatar, activity: null, objects, tabs: [], height: Math.max(height, bottom + 110), compact };
     }
     case "ribbon": {
       const chat = { x: width * 0.08, y: 88, w: width * 0.78, h: Math.min(chatHeight, height * 0.3) };
