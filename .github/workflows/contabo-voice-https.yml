@@ -38,7 +38,7 @@ on:
         description: "What to run on the VPS"
         type: choice
         default: recon
-        options: [recon, accept, apply, rollback, https-check, https-stage, https-issue, https-enable, https-rollback, https-rollback-all]
+        options: [external, recon, accept, apply, rollback, https-check, https-stage, https-issue, https-enable, https-rollback, https-rollback-all]
   push:
     # integration: real deploy requests. claude/**: only the protection probe.
     branches: [integration/lelu-four-workforce-consolidation, 'claude/**']
@@ -79,7 +79,7 @@ jobs:
           if [ "${{ github.event_name }}" = workflow_dispatch ]; then a="${{ inputs.action }}"
           else a=$(jq -r '.action // "recon"' deploy/contabo/voice-https-request.json); fi
           case "$a" in
-            recon|apply|accept|rollback|https-check|https-stage|https-issue|https-enable|https-rollback|https-rollback-all) ;;
+            external|recon|apply|accept|rollback|https-check|https-stage|https-issue|https-enable|https-rollback|https-rollback-all) ;;
             *) echo "::error::unknown action"; exit 1;;
           esac
           echo "action=$a" >> "$GITHUB_OUTPUT"
@@ -94,7 +94,26 @@ jobs:
           ssh-keyscan -T 10 -t ed25519 "$host" 2>/dev/null > /tmp/scanned || true
           [ -s /tmp/scanned ] && ssh-keygen -lf /tmp/scanned | awk '{print "INFO  server presents", $NF, $2}' || echo "INFO  no ed25519 host key could be scanned"
 
+      - name: External view from a GitHub runner (reads no secret, no SSH)
+        # The VPS checking its own public IP is still the VPS. This is a
+        # neutral network: system trust store, no pinning, no override.
+        env:
+          LELU_VPS: ${{ vars.LELU_VPS || 'lelu-deploy@157.173.116.95' }}
+        run: |
+          host=${LELU_VPS#*@}
+          curl -s -m 15 -o /dev/null -w "INFO  http://$host/healthz %{http_code} in %{time_total}s\n" "http://$host/healthz"
+          r=$(curl -s -m 15 -o /tmp/hz -w '%{http_code} %{ssl_verify_result} %{time_appconnect} %{time_total}' "https://$host/healthz" 2>&1) || true
+          read -r code verify tls total <<<"$r"
+          if [ "$code" = 200 ] && [ "$verify" = 0 ]; then echo "PASS  https://$host/healthz 200, trusted by the runner's system store (TLS ${tls}s, total ${total}s): $(head -c 120 /tmp/hz)"
+          else echo "INFO  https://$host/healthz not trusted/served from outside (code=${code:-000} verify=${verify:-n/a})"; fi
+          echo | timeout 15 openssl s_client -connect "$host:443" -servername "$host" -verify_return_error 2>/dev/null \
+            | grep -E '^(Verify return code|Protocol|    Protocol)' | sed 's/^ */INFO  tls /' || true
+          echo | timeout 15 openssl s_client -connect "$host:443" 2>/dev/null | openssl x509 -noout -issuer -enddate -ext subjectAltName 2>/dev/null \
+            | tr '\n' ' ' | sed 's/^/INFO  certificate /'; echo
+          curl -s -m 15 -o /dev/null -D - "https://$host/auth/login" 2>/dev/null | grep -iE '^(strict-transport-security|location):' | sed 's/^/INFO  header /' || true
+
       - name: SSH identity (deploy key, pinned host key)
+        if: steps.act.outputs.action != 'external'
         env:
           SSH_KEY: ${{ secrets.LELU_VPS_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.LELU_VPS_KNOWN_HOSTS }}
@@ -115,6 +134,7 @@ jobs:
           ssh-keygen -lf ~/.ssh/known_hosts | awk '{print "pinned host key:", $2, $NF}'
 
       - name: Run on the VPS (one action word; the VPS keeps DETAIL lines to itself)
+        if: steps.act.outputs.action != 'external'
         env:
           LELU_VPS: ${{ vars.LELU_VPS || 'lelu-deploy@157.173.116.95' }}
           ACTION: ${{ steps.act.outputs.action }}
