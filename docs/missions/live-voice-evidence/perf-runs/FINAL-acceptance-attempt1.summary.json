@@ -1,0 +1,242 @@
+{
+ "label": "FINAL-acceptance",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): FINAL.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "Tell me about the Moon in three sentences.",
+   "reply": "The Moon is Earth’s only natural satellite. It formed about 4.5 billion years ago, likely from debris after a Mars‑sized body collided with our planet, and is roughly one‑quarter the size of Earth. Its gravity drives ocean tides, stabilizes our axial tilt, and its monthly phases have guided human calendars for millennia.",
+   "spokenEnd": 21.28,
+   "vadEnd": 22.25,
+   "transcript": 22.63,
+   "userMsg": 22.72,
+   "firstText": 27.86,
+   "firstAudio": 38.47,
+   "speechEndToTranscriptS": 1.35,
+   "transcriptToFirstTextS": 5.23,
+   "transcriptToFirstAudioS": 15.84,
+   "speechEndToFirstAudioS": 17.19,
+   "firstAudioToCompletedS": 3.09,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 2.72,
+   "pcmStops": 17,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The Moon is Earth's only natural satellite.",
+    "It formed about four point five billion years ago, likely from debris after a Mars‑sized body collided with our planet, and is roughly one‑quarter the size of Earth."
+   ]
+  },
+  {
+   "heard": "Wait, stop.",
+   "reply": "Okay, stopping now.",
+   "spokenEnd": 24.51,
+   "vadEnd": 25.22,
+   "transcript": 25.55,
+   "userMsg": 40.59,
+   "firstText": 42.56,
+   "firstAudio": null,
+   "speechEndToTranscriptS": 1.04,
+   "transcriptToFirstTextS": 17.01,
+   "transcriptToFirstAudioS": null,
+   "speechEndToFirstAudioS": null,
+   "firstAudioToCompletedS": null,
+   "textBeforeAudio": null,
+   "pcmSecondsScheduled": 0,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Okay, stopping now."
+   ]
+  },
+  {
+   "heard": "What about the planet Mars instead? One sentence.",
+   "reply": "Mars is a cold, desert‑like world with a thin carbon‑dioxide atmosphere, home to the solar system’s tallest volcano, Olympus Mons, and its deepest canyon, Valles Marineris.",
+   "spokenEnd": 42.69,
+   "vadEnd": 43.3,
+   "transcript": 43.78,
+   "userMsg": 44.01,
+   "firstText": 45.84,
+   "firstAudio": 50.39,
+   "speechEndToTranscriptS": 1.09,
+   "transcriptToFirstTextS": 2.06,
+   "transcriptToFirstAudioS": 6.61,
+   "speechEndToFirstAudioS": 7.7,
+   "firstAudioToCompletedS": 3.33,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 1.92,
+   "pcmStops": 0,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Mars is a cold,",
+    "desert‑like world with a thin carbon‑dioxide atmosphere, home to the solar system's tallest volcano, Olympus Mons, and its deepest canyon, Valles Marineris."
+   ]
+  },
+  {
+   "heard": "Hold on. Which planet is the largest?",
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "spokenEnd": 60.39,
+   "vadEnd": 61.06,
+   "transcript": 61.09,
+   "userMsg": 60.06,
+   "firstText": 62.34,
+   "firstAudio": 80.32,
+   "speechEndToTranscriptS": 0.7,
+   "transcriptToFirstTextS": 1.25,
+   "transcriptToFirstAudioS": 19.23,
+   "speechEndToFirstAudioS": 19.93,
+   "firstAudioToCompletedS": 4.64,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 4.64,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+   ]
+  },
+  {
+   "heard": "Thanks. Which of those two planets is closer to the Sun? One sentence.",
+   "reply": "Mars orbits nearer the Sun than Jupiter.",
+   "spokenEnd": 129.71,
+   "vadEnd": 130.26,
+   "transcript": 130.58,
+   "userMsg": 101.73,
+   "firstText": 103.38,
+   "firstAudio": 111.89,
+   "speechEndToTranscriptS": 0.87,
+   "transcriptToFirstTextS": -27.2,
+   "transcriptToFirstAudioS": -18.69,
+   "speechEndToFirstAudioS": -17.82,
+   "firstAudioToCompletedS": 3.14,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 3.04,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Mars orbits nearer the Sun than Jupiter."
+   ]
+  },
+  {
+   "heard": "What day comes after Monday? One short sentence.",
+   "reply": "Right now it's 11:53:52 PM UTC on Thursday, November 26, 2026 (2026-11-26 23:53:52 UTC).",
+   "spokenEnd": null,
+   "vadEnd": 22.25,
+   "transcript": 22.63,
+   "userMsg": 128.75,
+   "firstText": 131.79,
+   "firstAudio": 168.82,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 109.16,
+   "transcriptToFirstAudioS": 146.19,
+   "speechEndToFirstAudioS": null,
+   "firstAudioToCompletedS": 15.58,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 13.28,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Right now it's eleven:fifty-three:fifty-two PM UTC on Thursday, November twenty-six two thousand twenty-six two thousand twenty-six-11-26 twenty-three:fifty-three:fifty-two UTC."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 6,
+  "herMessages": 6,
+  "bargeIns": 3,
+  "holds": 2,
+  "holdsResumed": 0,
+  "lastHold": {
+   "reason": "interrupted",
+   "heldMs": 3094,
+   "at": 1795737160638
+  },
+  "lastInterruption": {
+   "at": 1795737160638,
+   "heldWithinMs": -3093,
+   "stoppedAfterOnsetMs": 1
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 5,
+   "recorded": 5,
+   "unexplained": 0,
+   "spoken": 4,
+   "silent": 1,
+   "noticeSpoken": 1,
+   "byOutcome": {
+    "spoke": 4,
+    "cancelled": 1
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   "cancelled",
+   "spoke",
+   "spoke",
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 110,
+  "voxcpm2CpuPctPeak": 200,
+  "voxcpm2RssMiBPeak": 7156,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 64,
+  "chromiumCpuPctAvg": 186,
+  "chromiumRssMiBPeak": 2106
+ }
+}

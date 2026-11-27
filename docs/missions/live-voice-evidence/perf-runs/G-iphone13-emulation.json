@@ -1,0 +1,2954 @@
+{
+ "label": "G-iphone13-emulation",
+ "base": "http://127.0.0.1:4173/",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): G2.wav",
+ "viewport": "iPhone 13 emulation (Chromium), not a physical phone",
+ "webgl": "enabled (software rendering, no GPU in this container)",
+ "microphoneTaps": 1,
+ "scenario": {
+  "spec": "sil:20,g1-head,sil:1.6,g1-tail,sil:13.7,g2,sil:60",
+  "totalSeconds": 101.7,
+  "timeline": [
+   {
+    "item": "sil:20",
+    "at": 0,
+    "seconds": 20
+   },
+   {
+    "item": "g1-head",
+    "at": 20,
+    "seconds": 0.93
+   },
+   {
+    "item": "sil:1.6",
+    "at": 20.93,
+    "seconds": 1.6
+   },
+   {
+    "item": "g1-tail",
+    "at": 22.53,
+    "seconds": 1.63
+   },
+   {
+    "item": "sil:13.7",
+    "at": 24.16,
+    "seconds": 13.7
+   },
+   {
+    "item": "g2",
+    "at": 37.86,
+    "seconds": 3.84
+   },
+   {
+    "item": "sil:60",
+    "at": 41.7,
+    "seconds": 60
+   }
+  ]
+ },
+ "messages": [
+  {
+   "role": "user",
+   "text": "Tell me about the Moon in three sentences.",
+   "firstSeen": 22.2,
+   "lastGrew": 25.66
+  },
+  {
+   "role": "assistant",
+   "text": "The Moon is Earth’s only natural satellite. It orbits our planet every 27.3 days, producing the familiar phases as sunlight reflects off its surface. Its gravity drives the tides and helps stabilize Earth’s axial tilt.",
+   "firstSeen": 27.3,
+   "lastGrew": 27.52
+  },
+  {
+   "role": "user",
+   "text": "Wait. What is the moon made of? One sentence.",
+   "firstSeen": 41.29,
+   "lastGrew": 42.93
+  },
+  {
+   "role": "assistant",
+   "text": "The Moon is composed mainly of silicate rock—basaltic and anorthositic material forming an iron‑poor mantle with a small metallic core.",
+   "firstSeen": 44.84,
+   "lastGrew": 45.1
+  },
+  {
+   "role": "user",
+   "text": "Thanks! Bye for now.",
+   "firstSeen": 85.27,
+   "lastGrew": null
+  },
+  {
+   "role": "assistant",
+   "text": "Take care, see you later.",
+   "firstSeen": 86.33,
+   "lastGrew": null
+  }
+ ],
+ "voice": {
+  "phase": "idle",
+  "active": false,
+  "diagnostics": {
+   "sttSupported": true,
+   "ttsSupported": true,
+   "micAvailable": true,
+   "groqKeyAvailable": true,
+   "secureContext": true,
+   "micPermission": "granted",
+   "recognitionSupported": true,
+   "ttsAvailable": true,
+   "micStreamActive": false,
+   "recognitionActive": false,
+   "transcriptReceived": false,
+   "responseReceived": false,
+   "ttsRequested": true,
+   "audioGenerated": true,
+   "audioPlaying": false,
+   "ttsStage": "ended",
+   "streaming": false,
+   "staleStreamsDropped": 0,
+   "firstTextLatencyMs": 2432,
+   "firstAudioLatencyMs": 13241,
+   "ttsQueueDepth": 0,
+   "firstAudibleLatencyMs": 13264,
+   "audioContextState": "running",
+   "speakerDevices": 3,
+   "warmSynthesis": {
+    "ms": 1305,
+    "characters": null,
+    "at": 1795738136946,
+    "streaming": "buffered",
+    "modelLoads": null,
+    "synthesisMs": null,
+    "profile": null,
+    "coldStart": false
+   },
+   "bargeIns": 1,
+   "earsReady": false,
+   "userSpeaking": false,
+   "lastOnsetAt": 1795738090295,
+   "speechHeld": false,
+   "holds": 1,
+   "holdsResumed": 0,
+   "lastHold": {
+    "reason": "interrupted",
+    "heldMs": 2999,
+    "at": 1795738090520
+   },
+   "lastInterruption": {
+    "at": 1795738090520,
+    "heldWithinMs": -2774,
+    "stoppedAfterOnsetMs": 225
+   },
+   "transcriptionsInFlight": 0,
+   "nonSpeechTurns": 0,
+   "speechToTranscriptMs": 318,
+   "pendingTurn": null,
+   "lastTurnCommit": {
+    "reason": "finished",
+    "shape": "statement",
+    "segments": 2,
+    "waitedMs": 900,
+    "at": 1795738092248
+   },
+   "fullDuplex": true,
+   "speechOutcome": {
+    "started": 2,
+    "recorded": 2,
+    "unexplained": 0,
+    "spoken": 2,
+    "silent": 0,
+    "noticeSpoken": 0,
+    "byOutcome": {
+     "spoke": 2
+    },
+    "last": "spoke"
+   },
+   "micStreamsOpen": 0,
+   "micStreamsAcquired": 1,
+   "micStreamsReleased": 1,
+   "micInterrupted": false,
+   "captureRecoveries": 0,
+   "captureLosses": 0,
+   "pageVisible": true,
+   "lifecycleListeners": 4
+  },
+  "turns": [
+   {
+    "index": 1,
+    "turnId": "78f99731-8574-4ca9-b1d1-90f4c977946d",
+    "text": "Tell me about the Moon in three sentences.",
+    "at": 1795738074933,
+    "outcome": "spoke"
+   },
+   {
+    "index": 2,
+    "turnId": "7b49ea0e-013a-4b99-b931-cf3fdf63653a",
+    "text": "Wait. What is the moon made of? One sentence.",
+    "at": 1795738092250,
+    "outcome": "spoke"
+   }
+  ],
+  "turnLatency": {
+   "turnId": "7b49ea0e-013a-4b99-b931-cf3fdf63653a",
+   "transcriptAt": 1795738091666,
+   "firstTextAt": 1795738094098,
+   "firstAudioAt": 1795738104907,
+   "firstAudibleAt": 1795738104930
+  }
+ },
+ "media": [],
+ "pcm": [
+  {
+   "t": -12.35,
+   "event": "scheduled",
+   "dueAt": -12.35,
+   "duration": 0,
+   "ctx": "running"
+  },
+  {
+   "t": -12.29,
+   "event": "ended",
+   "duration": 0
+  },
+  {
+   "t": 0.05,
+   "event": "scheduled",
+   "dueAt": 0.05,
+   "duration": 0,
+   "ctx": "running"
+  },
+  {
+   "t": 0.06,
+   "event": "ended",
+   "duration": 0
+  },
+  {
+   "t": 0.07,
+   "event": "scheduled",
+   "dueAt": 0.07,
+   "duration": 0,
+   "ctx": "running"
+  },
+  {
+   "t": 0.07,
+   "event": "ended",
+   "duration": 0
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 37.88,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.2,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.52,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.84,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 38.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 39.16,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 39.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 39.48,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 39.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 39.8,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 39.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 40.12,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 37.85,
+   "event": "scheduled",
+   "dueAt": 40.27,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 38.09,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 38.14,
+   "event": "suspend"
+  },
+  {
+   "t": 38.47,
+   "event": "scheduled",
+   "dueAt": 40.81,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 39.1,
+   "event": "scheduled",
+   "dueAt": 41.6,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 39.71,
+   "event": "scheduled",
+   "dueAt": 42.37,
+   "duration": 0.16,
+   "ctx": "suspended"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "stopped"
+  },
+  {
+   "t": 41.14,
+   "event": "resume"
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 41.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 55.55,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 55.71,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 55.87,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.03,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.19,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.35,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.51,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.67,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.83,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 56.99,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 57.15,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 57.31,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 57.47,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 57.63,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 57.79,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.53,
+   "event": "scheduled",
+   "dueAt": 57.95,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 55.71,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 55.89,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.02,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.15,
+   "event": "scheduled",
+   "dueAt": 58.1,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 56.18,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.34,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.5,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.66,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.82,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 56.99,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 57.15,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 57.3,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 57.46,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 57.62,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 57.78,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 57.94,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 58.1,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 58.27,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 80.49,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 80.65,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 80.81,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 80.97,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 81.13,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 81.29,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 81.45,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 81.61,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 81.77,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 81.93,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 82.09,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 82.25,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 82.41,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 82.57,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 82.73,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 82.89,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 83.05,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 83.21,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 83.37,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 83.53,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 83.69,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 83.85,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.01,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.17,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.33,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.49,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.65,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.81,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 84.97,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 85.13,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 85.29,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.47,
+   "event": "scheduled",
+   "dueAt": 85.45,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 80.65,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 80.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 80.98,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.13,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.28,
+   "event": "scheduled",
+   "dueAt": 85.61,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 81.29,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.45,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.61,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.77,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.93,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 81.97,
+   "event": "scheduled",
+   "dueAt": 85.78,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 82.09,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 82.25,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 82.41,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 82.57,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 82.65,
+   "event": "scheduled",
+   "dueAt": 85.93,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 82.73,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 82.89,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 83.05,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 83.21,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 83.38,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 83.42,
+   "event": "scheduled",
+   "dueAt": 86.09,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 83.53,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 83.69,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 83.85,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.01,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.17,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.19,
+   "event": "scheduled",
+   "dueAt": 86.25,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 84.33,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.49,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.65,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.81,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 84.92,
+   "event": "scheduled",
+   "dueAt": 86.41,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 84.97,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.13,
+   "event": "stopped"
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 85.16,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 93.38,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 93.54,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 93.7,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 93.86,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 94.02,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 94.18,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 94.34,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 94.5,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 94.66,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.36,
+   "event": "scheduled",
+   "dueAt": 94.82,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 93.54,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.7,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.86,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 93.98,
+   "event": "scheduled",
+   "dueAt": 94.98,
+   "duration": 0.16,
+   "ctx": "running"
+  },
+  {
+   "t": 94.02,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.18,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.34,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.5,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.66,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.82,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 94.98,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 95.14,
+   "event": "ended",
+   "duration": 0.16
+  },
+  {
+   "t": 120.89,
+   "event": "scheduled",
+   "dueAt": 120.89,
+   "duration": 0,
+   "ctx": "running"
+  },
+  {
+   "t": 120.91,
+   "event": "ended",
+   "duration": 0
+  }
+ ],
+ "tracks": [
+  {
+   "at": 0.07,
+   "kind": "audio",
+   "readyState": "ended"
+  }
+ ],
+ "resources": [
+  {
+   "t": 2,
+   "voxcpm2RssMiB": 7196,
+   "serverRssMiB": 60,
+   "chromiumRssMiB": 1753
+  },
+  {
+   "t": 4,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 66,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1760,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 6,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1574,
+   "chromiumCpu": 102
+  },
+  {
+   "t": 8,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1580,
+   "chromiumCpu": 94
+  },
+  {
+   "t": 10,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1583,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 12,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1586,
+   "chromiumCpu": 94
+  },
+  {
+   "t": 14,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1593,
+   "chromiumCpu": 102
+  },
+  {
+   "t": 16,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1593,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 18,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1602,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 20,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1605,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 22,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1707,
+   "chromiumCpu": 97
+  },
+  {
+   "t": 24,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1712,
+   "chromiumCpu": 19
+  },
+  {
+   "t": 26,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1729,
+   "chromiumCpu": 46
+  },
+  {
+   "t": 28,
+   "voxcpm2RssMiB": 7196,
+   "voxcpm2Cpu": 81,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1646,
+   "chromiumCpu": 115
+  },
+  {
+   "t": 30,
+   "voxcpm2RssMiB": 7244,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1645,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 32,
+   "voxcpm2RssMiB": 7266,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1643,
+   "chromiumCpu": 53
+  },
+  {
+   "t": 34,
+   "voxcpm2RssMiB": 7244,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1631,
+   "chromiumCpu": 21
+  },
+  {
+   "t": 36,
+   "voxcpm2RssMiB": 7244,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1629,
+   "chromiumCpu": 22
+  },
+  {
+   "t": 38.1,
+   "voxcpm2RssMiB": 7250,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1698,
+   "chromiumCpu": 45
+  },
+  {
+   "t": 40,
+   "voxcpm2RssMiB": 7250,
+   "voxcpm2Cpu": 195,
+   "serverRssMiB": 62,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1889,
+   "chromiumCpu": 125
+  },
+  {
+   "t": 42,
+   "voxcpm2RssMiB": 7165,
+   "voxcpm2Cpu": 134,
+   "serverRssMiB": 62,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1877,
+   "chromiumCpu": 88
+  },
+  {
+   "t": 44,
+   "voxcpm2RssMiB": 7165,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1841,
+   "chromiumCpu": 80
+  },
+  {
+   "t": 46,
+   "voxcpm2RssMiB": 7183,
+   "voxcpm2Cpu": 127,
+   "serverRssMiB": 63,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1630,
+   "chromiumCpu": 116
+  },
+  {
+   "t": 48,
+   "voxcpm2RssMiB": 7240,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 63,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1550,
+   "chromiumCpu": 100
+  },
+  {
+   "t": 50,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 198,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1538,
+   "chromiumCpu": 24
+  },
+  {
+   "t": 52,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1530,
+   "chromiumCpu": 25
+  },
+  {
+   "t": 54,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1541,
+   "chromiumCpu": 38
+  },
+  {
+   "t": 56,
+   "voxcpm2RssMiB": 7236,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1738,
+   "chromiumCpu": 115
+  },
+  {
+   "t": 58,
+   "voxcpm2RssMiB": 7209,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1754,
+   "chromiumCpu": 72
+  },
+  {
+   "t": 60,
+   "voxcpm2RssMiB": 7229,
+   "voxcpm2Cpu": 166,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1754,
+   "chromiumCpu": 24
+  },
+  {
+   "t": 62,
+   "voxcpm2RssMiB": 7229,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1562,
+   "chromiumCpu": 38
+  },
+  {
+   "t": 64,
+   "voxcpm2RssMiB": 7233,
+   "voxcpm2Cpu": 168,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1563,
+   "chromiumCpu": 95
+  },
+  {
+   "t": 66,
+   "voxcpm2RssMiB": 7223,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1559,
+   "chromiumCpu": 60
+  },
+  {
+   "t": 68,
+   "voxcpm2RssMiB": 7252,
+   "voxcpm2Cpu": 162,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1560,
+   "chromiumCpu": 21
+  },
+  {
+   "t": 70,
+   "voxcpm2RssMiB": 7234,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1557,
+   "chromiumCpu": 39
+  },
+  {
+   "t": 72,
+   "voxcpm2RssMiB": 7224,
+   "voxcpm2Cpu": 167,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1558,
+   "chromiumCpu": 117
+  },
+  {
+   "t": 74,
+   "voxcpm2RssMiB": 7230,
+   "voxcpm2Cpu": 169,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1559,
+   "chromiumCpu": 64
+  },
+  {
+   "t": 76,
+   "voxcpm2RssMiB": 7229,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 61,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1559,
+   "chromiumCpu": 23
+  },
+  {
+   "t": 78,
+   "voxcpm2RssMiB": 7229,
+   "voxcpm2Cpu": 167,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1561,
+   "chromiumCpu": 36
+  },
+  {
+   "t": 80,
+   "voxcpm2RssMiB": 7227,
+   "voxcpm2Cpu": 163,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1560,
+   "chromiumCpu": 104
+  },
+  {
+   "t": 82,
+   "voxcpm2RssMiB": 7249,
+   "voxcpm2Cpu": 164,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1702,
+   "chromiumCpu": 95
+  },
+  {
+   "t": 84,
+   "voxcpm2RssMiB": 7249,
+   "voxcpm2Cpu": 165,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1702,
+   "chromiumCpu": 22
+  },
+  {
+   "t": 86,
+   "voxcpm2RssMiB": 7226,
+   "voxcpm2Cpu": 133,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1661,
+   "chromiumCpu": 78
+  },
+  {
+   "t": 88,
+   "voxcpm2RssMiB": 7209,
+   "voxcpm2Cpu": 174,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1575,
+   "chromiumCpu": 117
+  },
+  {
+   "t": 90,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 197,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1575,
+   "chromiumCpu": 86
+  },
+  {
+   "t": 92,
+   "voxcpm2RssMiB": 7238,
+   "voxcpm2Cpu": 199,
+   "serverRssMiB": 61,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1568,
+   "chromiumCpu": 25
+  },
+  {
+   "t": 94,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 193,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1571,
+   "chromiumCpu": 29
+  },
+  {
+   "t": 96,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1566,
+   "chromiumCpu": 62
+  },
+  {
+   "t": 98,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1561,
+   "chromiumCpu": 95
+  },
+  {
+   "t": 100,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1564,
+   "chromiumCpu": 98
+  },
+  {
+   "t": 102,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1572,
+   "chromiumCpu": 104
+  },
+  {
+   "t": 104,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1573,
+   "chromiumCpu": 98
+  },
+  {
+   "t": 106,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1573,
+   "chromiumCpu": 101
+  },
+  {
+   "t": 108,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1568,
+   "chromiumCpu": 98
+  },
+  {
+   "t": 110,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1574,
+   "chromiumCpu": 112
+  },
+  {
+   "t": 112,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1570,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 114,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1572,
+   "chromiumCpu": 104
+  },
+  {
+   "t": 116.1,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 59,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1570,
+   "chromiumCpu": 105
+  },
+  {
+   "t": 118,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1568,
+   "chromiumCpu": 104
+  },
+  {
+   "t": 120,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 1,
+   "chromiumRssMiB": 1571,
+   "chromiumCpu": 99
+  },
+  {
+   "t": 122,
+   "voxcpm2RssMiB": 7237,
+   "voxcpm2Cpu": 0,
+   "serverRssMiB": 60,
+   "serverCpu": 0,
+   "chromiumRssMiB": 1762,
+   "chromiumCpu": 115
+  }
+ ],
+ "screenshots": [
+  "G-iphone13-emulation-01-loaded.jpg",
+  "G-iphone13-emulation-02-hearing.jpg",
+  "G-iphone13-emulation-03-speaking-1.jpg",
+  "G-iphone13-emulation-04-held-for-barge-in.jpg",
+  "G-iphone13-emulation-03-speaking-2.jpg",
+  "G-iphone13-emulation-03-speaking-3.jpg",
+  "G-iphone13-emulation-05-before-end.jpg",
+  "G-iphone13-emulation-06-ended.jpg"
+ ],
+ "timeline": [
+  {
+   "t": 1.89,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.11,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 214,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 2.12,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.12,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.16,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.16,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+   "t": 2.66,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 2.72,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 2.76,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 41,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 5.01,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 5.05,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 7.05,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1989,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 14.45,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-01-loaded.jpg"
+  },
+  {
+   "t": 0.06,
+   "kind": "mic-tapped",
+   "note": "the only tap on the microphone this session"
+  },
+  {
+   "t": 0.06,
+   "kind": "scenario",
+   "spec": "sil:20,g1-head,sil:1.6,g1-tail,sil:13.7,g2,sil:60",
+   "totalSeconds": 101.7,
+   "timeline": [
+    {
+     "item": "sil:20",
+     "at": 0,
+     "seconds": 20
+    },
+    {
+     "item": "g1-head",
+     "at": 20,
+     "seconds": 0.93
+    },
+    {
+     "item": "sil:1.6",
+     "at": 20.93,
+     "seconds": 1.6
+    },
+    {
+     "item": "g1-tail",
+     "at": 22.53,
+     "seconds": 1.63
+    },
+    {
+     "item": "sil:13.7",
+     "at": 24.16,
+     "seconds": 13.7
+    },
+    {
+     "item": "g2",
+     "at": 37.86,
+     "seconds": 3.84
+    },
+    {
+     "item": "sil:60",
+     "at": 41.7,
+     "seconds": 60
+    }
+   ]
+  },
+  {
+   "t": 0.07,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.08,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": null,
+   "label": null,
+   "error": null
+  },
+  {
+   "t": 0.09,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 9,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.1,
+   "kind": "request",
+   "url": "/api/voice/status"
+  },
+  {
+   "t": 0.12,
+   "kind": "response",
+   "url": "/api/voice/status",
+   "status": 200,
+   "ms": 25,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   }
+  },
+  {
+   "t": 0.15,
+   "kind": "console",
+   "level": "warning",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 0.15,
+   "kind": "console",
+   "level": "info",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 0.29,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 10.21,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10059,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 20.25,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10038,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 20.66,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 21.18,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-02-hearing.jpg"
+  },
+  {
+   "t": 21.77,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1515,\"voicedMs\":600,\"spoke\":true,\"ms\":1518,\"peak\":0.4407,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 21.77,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 21.79,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 22.05,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 281,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 22.2,
+   "kind": "message",
+   "index": 0,
+   "role": "user-interim",
+   "text": "Tell me about the...…"
+  },
+  {
+   "t": 22.81,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 24.65,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2873,\"voicedMs\":900,\"spoke\":true,\"ms\":2876,\"peak\":0.1831,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 24.65,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 24.85,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "idle",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 24.97,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 321,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 25.63,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 27.22,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The Moon is Earth's only natural satellite."
+  },
+  {
+   "t": 27.3,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 27.3,
+   "kind": "message",
+   "index": 1,
+   "role": "assistant",
+   "text": "The Moon is Earth’s only natural satellite."
+  },
+  {
+   "t": 27.5,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1872,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 28.37,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "It orbits our planet every twenty-seven point three days, producing the familiar phases as sunlight reflects off its surface."
+  },
+  {
+   "t": 34.7,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10037,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 37.63,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 38,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 38.66,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-03-speaking-1.jpg"
+  },
+  {
+   "t": 38.87,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 39.42,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-04-held-for-barge-in.jpg"
+  },
+  {
+   "t": 39.73,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 12498,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "3.99"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-01.wav"
+  },
+  {
+   "t": 40.75,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6060,\"voicedMs\":950,\"spoke\":true,\"ms\":6059,\"peak\":0.2133,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 40.76,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 40.88,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": false,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 40.91,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Its gravity drives the tides and helps stabilize Earth's axial tilt."
+  },
+  {
+   "t": 41.09,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": false,
+   "held": true,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 41.14,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 378,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 41.15,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 12778,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 41.15,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 231,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 41.29,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": true,
+   "status": "hearing",
+   "label": "Hearing you…",
+   "error": null
+  },
+  {
+   "t": 41.29,
+   "kind": "message",
+   "index": 2,
+   "role": "user-interim",
+   "text": "Wait. What is the moon made of?…"
+  },
+  {
+   "t": 41.97,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":1202,\"voicedMs\":350,\"spoke\":true,\"ms\":1212,\"peak\":0.228,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":731}"
+  },
+  {
+   "t": 41.97,
+   "kind": "request",
+   "url": "/api/model/groq/audio/transcriptions"
+  },
+  {
+   "t": 42.11,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "transcribing",
+   "label": "Transcribing",
+   "error": null
+  },
+  {
+   "t": 42.29,
+   "kind": "response",
+   "url": "/api/model/groq/audio/transcriptions",
+   "status": 200,
+   "ms": 314,
+   "headers": {
+    "content-type": "application/json"
+   }
+  },
+  {
+   "t": 43.47,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 404 ()"
+  },
+  {
+   "t": 43.58,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 44.76,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "The Moon is composed mainly of silicate rock,"
+  },
+  {
+   "t": 44.84,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 44.84,
+   "kind": "message",
+   "index": 3,
+   "role": "assistant",
+   "text": "The Moon is composed mainly of silicate rock—basaltic and anorthositic material forming an iron‑poor mantle with a small"
+  },
+  {
+   "t": 44.87,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1290,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 45.95,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "basaltic and anorthositic material forming an iron‑poor mantle with a small metallic core."
+  },
+  {
+   "t": 52.03,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10042,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 53.66,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 53.67,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 53.68,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 55.57,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 56.16,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 11396,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.11"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-02.wav"
+  },
+  {
+   "t": 56.28,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-03-speaking-2.jpg"
+  },
+  {
+   "t": 58.34,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 61.69,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 62.05,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10039,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 72.08,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10032,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 77.77,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 80.67,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 81.35,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-03-speaking-3.jpg"
+  },
+  {
+   "t": 82.12,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10036,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 85.16,
+   "kind": "request-failed",
+   "url": "/api/voice/tts",
+   "ms": 39214,
+   "error": "net::ERR_ABORTED"
+  },
+  {
+   "t": 85.17,
+   "kind": "typed",
+   "text": "Thanks! Bye for now.",
+   "sessionActive": true
+  },
+  {
+   "t": 85.26,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 85.27,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "thinking",
+   "label": "Thinking",
+   "error": null
+  },
+  {
+   "t": 85.27,
+   "kind": "message",
+   "index": 4,
+   "role": "user",
+   "text": "Thanks! Bye for now."
+  },
+  {
+   "t": 86.27,
+   "kind": "request",
+   "url": "/api/voice/tts",
+   "text": "Take care, see you later."
+  },
+  {
+   "t": 86.31,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 200,
+   "ms": 1044,
+   "headers": {
+    "content-type": "text/event-stream"
+   }
+  },
+  {
+   "t": 86.33,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "requested",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "generating",
+   "label": "Generating her voice…",
+   "error": null
+  },
+  {
+   "t": 86.33,
+   "kind": "message",
+   "index": 5,
+   "role": "assistant",
+   "text": "Take care, see you later."
+  },
+  {
+   "t": 92.16,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10040,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 93.54,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "ttsStage": "playing",
+   "audioPlaying": true,
+   "held": false,
+   "userSpeaking": false,
+   "status": "speaking",
+   "label": "Speaking",
+   "error": null
+  },
+  {
+   "t": 93.99,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 7720,
+   "headers": {
+    "x-lelu-voice-provider": "worker:lelu-reference",
+    "x-lelu-streaming": "buffered",
+    "x-lelu-sample-rate": "48000",
+    "x-lelu-worker": "local",
+    "content-type": "audio/L16;rate=48000;channels=1",
+    "x-lelu-engine": "voxcpm2",
+    "x-lelu-worker-rtf": "4.19"
+   },
+   "saved": "audio/G-iphone13-emulation-tts-03.wav"
+  },
+  {
+   "t": 95.18,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "ttsStage": "ended",
+   "audioPlaying": false,
+   "held": false,
+   "userSpeaking": false,
+   "status": "listening",
+   "label": "Listening",
+   "error": null
+  },
+  {
+   "t": 102.2,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10040,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 112.24,
+   "kind": "console",
+   "level": "debug",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"voicedMs\":0,\"spoke\":false,\"ms\":10040,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":10031}"
+  },
+  {
+   "t": 117.85,
+   "kind": "console",
+   "level": "error",
+   "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  },
+  {
+   "t": 120.81,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-05-before-end.jpg"
+  },
+  {
+   "t": 120.92,
+   "kind": "session-ended-by-tap"
+  },
+  {
+   "t": 122.29,
+   "kind": "screenshot",
+   "file": "G-iphone13-emulation-06-ended.jpg"
+  }
+ ]
+}

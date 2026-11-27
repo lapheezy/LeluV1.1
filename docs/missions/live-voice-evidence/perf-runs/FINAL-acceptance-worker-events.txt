@@ -1,0 +1,18 @@
+{"event": "state", "state": "STARTING", "error": null, "peakGiB": 0.02, "rssGiB": 0.02}
+{"event": "listening", "host": "127.0.0.1", "port": 8788, "model": "openbmb/VoxCPM2", "device": "auto", "authRequired": false}
+{"event": "state", "state": "LOADING", "error": null, "peakGiB": 0.26, "rssGiB": 0.26}
+{"event": "state", "state": "INITIALIZING", "error": null, "peakGiB": 11.1, "rssGiB": 6.6}
+{"event": "reference_cached", "encodeMs": 5594}
+{"event": "state", "state": "READY", "error": null, "peakGiB": 11.1, "rssGiB": 6.62}
+{"event": "warm", "model": "openbmb/VoxCPM2", "device": "auto", "loadSeconds": 15.5, "sampleRate": 48000}
+{"event": "stream_cancelled", "chars": 165}
+{"event": "stream_cancelled", "chars": 19}
+{"event": "stream_cancelled", "chars": 156}
+{"event": "cancelled_before_start", "chars": 111}
+{"event": "stream_cancelled", "chars": 118}
+{"event": "stream_cancelled", "chars": 129}
+{"event": "cancelled_before_start", "chars": 68}
+{"event": "stream_cancelled", "chars": 125}
+{"event": "stream_cancelled", "chars": 90}
+{"event": "signal", "signal": 15}
+{"event": "state", "state": "STOPPED", "error": null, "peakGiB": 11.1, "rssGiB": 7.07}

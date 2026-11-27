@@ -1,0 +1,222 @@
+{
+ "label": "WP03-natural-turns",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): T.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "What day comes after Monday? One short sentence.",
+   "via": "voice",
+   "reply": "Right now it's 11:32:32 PM UTC on Thursday, November 26, 2026 (2026-11-26 23:32:32 UTC).",
+   "spokenEnd": 22.17,
+   "vadEnd": 22.87,
+   "transcript": 23.2,
+   "userMsg": 23.43,
+   "firstText": 26.6,
+   "firstAudio": 67.85,
+   "speechEndToTranscriptS": 1.03,
+   "transcriptToFirstTextS": 3.4,
+   "transcriptToFirstAudioS": 44.65,
+   "speechEndToFirstAudioS": 45.68,
+   "firstAudioToCompletedS": 12.26,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 10.56,
+   "pcmStops": 66,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Right now it's eleven:thirty-two:thirty-two PM UTC on Thursday, November twenty-six two thousand twenty-six two thousand twenty-six-11-26 twenty-three:thirty-two:thirty-two UTC."
+   ]
+  },
+  {
+   "heard": "Tell me about the ocean in three or four sentences.",
+   "via": "voice",
+   "reply": "The ocean covers most of Earth. It regulates climate by storing and moving heat, while hosting countless species from tiny plankton to massive whales. Its endless waters also shape coastlines, drive weather, and support human economies through fishing, transport, and recreation.",
+   "spokenEnd": 71.3,
+   "vadEnd": 72,
+   "transcript": 72.46,
+   "userMsg": 72.69,
+   "firstText": 78.8,
+   "firstAudio": 87.43,
+   "speechEndToTranscriptS": 1.16,
+   "transcriptToFirstTextS": 6.34,
+   "transcriptToFirstAudioS": 14.97,
+   "speechEndToFirstAudioS": 16.13,
+   "firstAudioToCompletedS": 41.8,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 8.96,
+   "pcmStops": 40,
+   "sentencesRequested": 3,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The ocean covers most of Earth.",
+    "It regulates climate by storing and moving heat, while hosting countless species from tiny plankton to massive whales.",
+    "Its endless waters also shape coastlines, drive weather, and support human economies through fishing, transport, and recreation."
+   ]
+  },
+  {
+   "heard": "Hi Lélu. What is the capital of France? Please answer in one short sentence.",
+   "via": "voice",
+   "reply": "Paris.",
+   "spokenEnd": 123.64,
+   "vadEnd": 124.34,
+   "transcript": 124.61,
+   "userMsg": 124.82,
+   "firstText": 130.84,
+   "firstAudio": 135.28,
+   "speechEndToTranscriptS": 0.97,
+   "transcriptToFirstTextS": 6.23,
+   "transcriptToFirstAudioS": 10.67,
+   "speechEndToFirstAudioS": 11.64,
+   "firstAudioToCompletedS": 0.96,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 0.96,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Paris."
+   ]
+  },
+  {
+   "heard": "Tell me about the Moon in three sentences.",
+   "via": "voice",
+   "reply": "The Moon is Earth’s only natural satellite, orbiting about 384,400 km away. Its surface is scarred with craters, basaltic plains, and a fine regolith, and it has no atmosphere, leading to extreme temperature swings. It drives the tides, helps stabilize Earth’s axial tilt, and was visited by astronauts during the Apollo missions.",
+   "spokenEnd": 173.37,
+   "vadEnd": 174.07,
+   "transcript": 174.82,
+   "userMsg": 175.01,
+   "firstText": 180.9,
+   "firstAudio": 192.43,
+   "speechEndToTranscriptS": 1.45,
+   "transcriptToFirstTextS": 6.08,
+   "transcriptToFirstAudioS": 17.61,
+   "speechEndToFirstAudioS": 19.06,
+   "firstAudioToCompletedS": 23.62,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 6.52,
+   "pcmStops": 0,
+   "sentencesRequested": 4,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The Moon is Earth's only natural satellite,",
+    "orbiting about three hundred eighty-four thousand four hundred km away.",
+    "Its surface is scarred with craters, basaltic plains, and a fine regolith, and it has no atmosphere, leading to extreme temperature swings.",
+    "It drives the tides, helps stabilize Earth's axial tilt, and was visited by astronauts during the Apollo missions."
+   ]
+  },
+  {
+   "heard": "What is 2 plus 2? One short sentence.",
+   "via": "voice",
+   "reply": "Its surface is scarred with craters, basaltic plains, and a fine regolith, and it has no atmosphere, leading to extreme temperature swings. It drives the tides, helps stabilize Earth’s axial tilt, and was visited by astronauts during the Apollo missions. 2 + 2 = 4.",
+   "spokenEnd": 224.54,
+   "vadEnd": 225.24,
+   "transcript": 225.76,
+   "userMsg": 226,
+   "firstText": 229.54,
+   "firstAudio": 239.86,
+   "speechEndToTranscriptS": 1.22,
+   "transcriptToFirstTextS": 3.78,
+   "transcriptToFirstAudioS": 14.1,
+   "speechEndToFirstAudioS": 15.32,
+   "firstAudioToCompletedS": 88.35,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 19.04,
+   "pcmStops": 0,
+   "sentencesRequested": 4,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Its surface is scarred with craters,",
+    "basaltic plains, and a fine regolith, and it has no atmosphere, leading to extreme temperature swings.",
+    "It drives the tides, helps stabilize Earth's axial tilt, and was visited by astronauts during the Apollo missions.",
+    "two + two = four."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 5,
+  "herMessages": 5,
+  "bargeIns": 3,
+  "holds": 3,
+  "holdsResumed": 0,
+  "lastHold": {
+   "reason": "interrupted",
+   "heldMs": 3150,
+   "at": 1795736152450
+  },
+  "lastInterruption": {
+   "at": 1795736152450,
+   "heldWithinMs": 0,
+   "stoppedAfterOnsetMs": 3150
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 5,
+   "recorded": 5,
+   "unexplained": 0,
+   "spoken": 5,
+   "silent": 0,
+   "noticeSpoken": 0,
+   "byOutcome": {
+    "spoke": 5
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   "spoke",
+   "spoke",
+   "spoke",
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 130,
+  "voxcpm2CpuPctPeak": 200,
+  "voxcpm2RssMiBPeak": 7502,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 68,
+  "chromiumCpuPctAvg": 185,
+  "chromiumRssMiBPeak": 1977
+ }
+}

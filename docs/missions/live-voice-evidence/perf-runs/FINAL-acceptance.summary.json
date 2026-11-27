@@ -1,0 +1,218 @@
+{
+ "label": "FINAL-acceptance",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): FINAL.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "Tell me about the Moon in three sentences.",
+   "via": "voice",
+   "reply": "The Moon is Earth’s lone natural satellite. It formed about 4.5 billion years ago, likely from debris after a Mars‑sized body slammed into our planet. Its gravity pulls on the oceans, creating tides, and its near‑side always faces us because it’s tidally locked.",
+   "spokenEnd": 21.76,
+   "vadEnd": 22.46,
+   "transcript": 22.78,
+   "userMsg": 22.99,
+   "firstText": 27.92,
+   "firstAudio": 37.64,
+   "speechEndToTranscriptS": 1.02,
+   "transcriptToFirstTextS": 5.14,
+   "transcriptToFirstAudioS": 14.86,
+   "speechEndToFirstAudioS": 15.88,
+   "firstAudioToCompletedS": 2.4,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 2.4,
+   "pcmStops": 15,
+   "sentencesRequested": 3,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The Moon is Earth's lone natural satellite.",
+    "It formed about four point five billion years ago, likely from debris after a Mars‑sized body slammed into our planet.",
+    "Its gravity pulls on the oceans, creating tides, and its near‑side always faces us because it's tidally locked."
+   ]
+  },
+  {
+   "heard": "Wait, stop. What about the planet Mars instead? One sentence.",
+   "via": "voice",
+   "reply": "Mars is a cold, rocky planet about half Earth’s size, with a thin carbon‑dioxide atmosphere and the solar system’s tallest volcano, Olympus Mons.",
+   "spokenEnd": 42.63,
+   "vadEnd": 43.33,
+   "transcript": 44.09,
+   "userMsg": 44.4,
+   "firstText": 45.9,
+   "firstAudio": 50.15,
+   "speechEndToTranscriptS": 1.46,
+   "transcriptToFirstTextS": 1.81,
+   "transcriptToFirstAudioS": 6.06,
+   "speechEndToFirstAudioS": 7.52,
+   "firstAudioToCompletedS": 1.44,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 1.44,
+   "pcmStops": 0,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Mars is a cold,",
+    "rocky planet about half Earth's size, with a thin carbon‑dioxide atmosphere and the solar system's tallest volcano, Olympus Mons."
+   ]
+  },
+  {
+   "heard": "Hold on. Which planet is the largest? Short sentence.",
+   "via": "voice",
+   "reply": "Jupiter is the largest planet in our Solar System.",
+   "spokenEnd": 58.99,
+   "vadEnd": 59.69,
+   "transcript": 60.34,
+   "userMsg": 60.46,
+   "firstText": 64.12,
+   "firstAudio": 75.44,
+   "speechEndToTranscriptS": 1.35,
+   "transcriptToFirstTextS": 3.78,
+   "transcriptToFirstAudioS": 15.1,
+   "speechEndToFirstAudioS": 16.45,
+   "firstAudioToCompletedS": 3.36,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 3.36,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Jupiter is the largest planet in our Solar System."
+   ]
+  },
+  {
+   "heard": "Thanks. Which of those two planets is closer to the Sun? One sentence.",
+   "via": "typed",
+   "reply": "Mars is the planet that orbits closer to the Sun.",
+   "spokenEnd": null,
+   "vadEnd": null,
+   "transcript": 101.55,
+   "userMsg": 101.49,
+   "firstText": 102.94,
+   "firstAudio": 113.78,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 1.39,
+   "transcriptToFirstAudioS": 12.23,
+   "speechEndToFirstAudioS": null,
+   "firstAudioToCompletedS": 6.86,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 4.48,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Mars is the planet that orbits closer to the Sun."
+   ]
+  },
+  {
+   "heard": "What day comes after Monday? One short sentence.",
+   "via": "voice",
+   "reply": "Right now it's 12:01:10 AM UTC on Friday, November 27, 2026 (2026-11-27 00:01:10 UTC).",
+   "spokenEnd": 127.62,
+   "vadEnd": 128.32,
+   "transcript": 128.72,
+   "userMsg": 129.12,
+   "firstText": 132.15,
+   "firstAudio": 165.44,
+   "speechEndToTranscriptS": 1.1,
+   "transcriptToFirstTextS": 3.43,
+   "transcriptToFirstAudioS": 36.72,
+   "speechEndToFirstAudioS": 37.82,
+   "firstAudioToCompletedS": 16.32,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 12.48,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Right now it's twelve:zero one:ten AM UTC on Friday, November twenty-seven two thousand twenty-six two thousand twenty-six-11-27 zero zero:zero one:ten UTC."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 5,
+  "herMessages": 5,
+  "bargeIns": 2,
+  "holds": 2,
+  "holdsResumed": 0,
+  "lastHold": {
+   "reason": "interrupted",
+   "heldMs": 3310,
+   "at": 1795737599511
+  },
+  "lastInterruption": {
+   "at": 1795737599511,
+   "heldWithinMs": -2859,
+   "stoppedAfterOnsetMs": 451
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 4,
+   "recorded": 4,
+   "unexplained": 0,
+   "spoken": 4,
+   "silent": 0,
+   "noticeSpoken": 0,
+   "byOutcome": {
+    "spoke": 4
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   "spoke",
+   "spoke",
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 108,
+  "voxcpm2CpuPctPeak": 200,
+  "voxcpm2RssMiBPeak": 7352,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 63,
+  "chromiumCpuPctAvg": 185,
+  "chromiumRssMiBPeak": 1876
+ }
+}

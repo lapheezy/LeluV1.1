@@ -1,0 +1,222 @@
+{
+ "label": "WP04-interrupt-during-audio",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): W4.wav",
+ "viewport": "desktop 1440x900",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "Tell me about the moon in three sentences.",
+   "via": "voice",
+   "reply": "Earth's lone satellite. It orbits our planet every 27.3 days, showing phases as sunlight reflects off its surface. Its gravity shapes tides and stabilizes Earth's tilt, helping life thrive.",
+   "spokenEnd": 23.1,
+   "vadEnd": 23.8,
+   "transcript": 24.9,
+   "userMsg": 25.02,
+   "firstText": 26.62,
+   "firstAudio": 36.03,
+   "speechEndToTranscriptS": 1.8,
+   "transcriptToFirstTextS": 1.72,
+   "transcriptToFirstAudioS": 11.13,
+   "speechEndToFirstAudioS": 12.93,
+   "firstAudioToCompletedS": 3.69,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 2.08,
+   "pcmStops": 13,
+   "sentencesRequested": 3,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Earth's lone satellite.",
+    "It orbits our planet every twenty-seven point three days, showing phases as sunlight reflects off its surface.",
+    "Its gravity shapes tides and stabilizes Earth's tilt, helping life thrive."
+   ]
+  },
+  {
+   "heard": "Wait, stop. What about the planet Mars instead? One sentence.",
+   "via": "voice",
+   "reply": "Mars is a cold, rocky planet with a thin carbon‑dioxide atmosphere, towering volcanoes, and ancient river‑carved valleys.",
+   "spokenEnd": 40.97,
+   "vadEnd": 41.67,
+   "transcript": 42.54,
+   "userMsg": 43.31,
+   "firstText": 44.14,
+   "firstAudio": 50.59,
+   "speechEndToTranscriptS": 1.57,
+   "transcriptToFirstTextS": 1.6,
+   "transcriptToFirstAudioS": 8.05,
+   "speechEndToFirstAudioS": 9.62,
+   "firstAudioToCompletedS": 1.61,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 1.6,
+   "pcmStops": 0,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Mars is a cold,",
+    "rocky planet with a thin carbon‑dioxide atmosphere, towering volcanoes, and ancient river‑carved valleys."
+   ]
+  },
+  {
+   "heard": "Hold on, which planet is the largest?",
+   "via": "voice",
+   "reply": "Jupiter is the largest planet in our solar system, a gas giant about 11 times Earth's diameter and over twice the mass of all the other planets combined.",
+   "spokenEnd": 57.43,
+   "vadEnd": 58.13,
+   "transcript": 58.41,
+   "userMsg": 58.78,
+   "firstText": 60,
+   "firstAudio": 75.76,
+   "speechEndToTranscriptS": 0.98,
+   "transcriptToFirstTextS": 1.59,
+   "transcriptToFirstAudioS": 17.35,
+   "speechEndToFirstAudioS": 18.33,
+   "firstAudioToCompletedS": 4.29,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 3.2,
+   "pcmStops": 20,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Jupiter is the largest planet in our solar system,",
+    "a gas giant about eleven times Earth's diameter and over twice the mass of all the other planets combined."
+   ]
+  },
+  {
+   "heard": "Wait. What is the moon made of?",
+   "via": "voice",
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "spokenEnd": 75.62,
+   "vadEnd": 76.32,
+   "transcript": 77.71,
+   "userMsg": 78.03,
+   "firstText": 80.89,
+   "firstAudio": 107.3,
+   "speechEndToTranscriptS": 2.09,
+   "transcriptToFirstTextS": 3.18,
+   "transcriptToFirstAudioS": 29.59,
+   "speechEndToFirstAudioS": 31.68,
+   "firstAudioToCompletedS": 5.12,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 5.12,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "I can't get an answer from my model providers right now. Give me a minute and ask me again."
+   ]
+  },
+  {
+   "heard": "Thanks. Can you summarise what we covered, in one sentence?",
+   "via": "typed",
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "spokenEnd": null,
+   "vadEnd": null,
+   "transcript": 126.93,
+   "userMsg": 126.84,
+   "firstText": 127.6,
+   "firstAudio": 159.87,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 0.67,
+   "transcriptToFirstAudioS": 32.94,
+   "speechEndToFirstAudioS": null,
+   "firstAudioToCompletedS": 7.04,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 6.88,
+   "pcmStops": 0,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "I'm in offline mode right now, all AI providers are unreachable or unconfigured, so I can't generate new answers.",
+    "My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 5,
+  "herMessages": 5,
+  "bargeIns": 3,
+  "holds": 3,
+  "holdsResumed": 0,
+  "lastHold": {
+   "reason": "interrupted",
+   "heldMs": 4684,
+   "at": 1795734644844
+  },
+  "lastInterruption": {
+   "at": 1795734644844,
+   "heldWithinMs": 0,
+   "stoppedAfterOnsetMs": 4684
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 4,
+   "recorded": 4,
+   "unexplained": 0,
+   "spoken": 4,
+   "silent": 0,
+   "noticeSpoken": 1,
+   "byOutcome": {
+    "spoke": 4
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   "spoke",
+   "spoke",
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 133,
+  "voxcpm2CpuPctPeak": 200,
+  "voxcpm2RssMiBPeak": 7337,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 70,
+  "chromiumCpuPctAvg": 186,
+  "chromiumRssMiBPeak": 1979
+ }
+}

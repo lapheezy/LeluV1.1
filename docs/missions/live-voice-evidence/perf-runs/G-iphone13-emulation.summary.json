@@ -1,0 +1,154 @@
+{
+ "label": "G-iphone13-emulation",
+ "input": "injected audio file, synthetic test speaker (not a physical microphone): G2.wav",
+ "viewport": "iPhone 13 emulation (Chromium), not a physical phone",
+ "microphoneTaps": 1,
+ "turns": [
+  {
+   "heard": "Tell me about the Moon in three sentences.",
+   "via": "voice",
+   "reply": "The Moon is Earth’s only natural satellite. It orbits our planet every 27.3 days, producing the familiar phases as sunlight reflects off its surface. Its gravity drives the tides and helps stabilize Earth’s axial tilt.",
+   "spokenEnd": 21.07,
+   "vadEnd": 21.77,
+   "transcript": 22.05,
+   "userMsg": 22.2,
+   "firstText": 27.3,
+   "firstAudio": 37.88,
+   "speechEndToTranscriptS": 0.98,
+   "transcriptToFirstTextS": 5.25,
+   "transcriptToFirstAudioS": 15.83,
+   "speechEndToFirstAudioS": 16.81,
+   "firstAudioToCompletedS": 4.65,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 3.04,
+   "pcmStops": 19,
+   "sentencesRequested": 3,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The Moon is Earth's only natural satellite.",
+    "It orbits our planet every twenty-seven point three days, producing the familiar phases as sunlight reflects off its surface.",
+    "Its gravity drives the tides and helps stabilize Earth's axial tilt."
+   ]
+  },
+  {
+   "heard": "Wait. What is the moon made of? One sentence.",
+   "via": "voice",
+   "reply": "The Moon is composed mainly of silicate rock—basaltic and anorthositic material forming an iron‑poor mantle with a small metallic core.",
+   "spokenEnd": 40.05,
+   "vadEnd": 40.75,
+   "transcript": 41.14,
+   "userMsg": 41.29,
+   "firstText": 44.84,
+   "firstAudio": 55.55,
+   "speechEndToTranscriptS": 1.09,
+   "transcriptToFirstTextS": 3.7,
+   "transcriptToFirstAudioS": 14.41,
+   "speechEndToFirstAudioS": 15.5,
+   "firstAudioToCompletedS": 31.02,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 8.8,
+   "pcmStops": 38,
+   "sentencesRequested": 2,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2",
+    "failed:net::ERR_ABORTED"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "The Moon is composed mainly of silicate rock,",
+    "basaltic and anorthositic material forming an iron‑poor mantle with a small metallic core."
+   ]
+  },
+  {
+   "heard": "Thanks! Bye for now.",
+   "via": "typed",
+   "reply": "Take care, see you later.",
+   "spokenEnd": null,
+   "vadEnd": null,
+   "transcript": 85.17,
+   "userMsg": 85.27,
+   "firstText": 86.33,
+   "firstAudio": 93.38,
+   "speechEndToTranscriptS": null,
+   "transcriptToFirstTextS": 1.16,
+   "transcriptToFirstAudioS": 8.21,
+   "speechEndToFirstAudioS": null,
+   "firstAudioToCompletedS": 1.76,
+   "textBeforeAudio": true,
+   "pcmSecondsScheduled": 1.76,
+   "pcmStops": 0,
+   "sentencesRequested": 1,
+   "sentencesPlayedThrough": 0,
+   "ttsEngines": [
+    "voxcpm2"
+   ],
+   "ttsVoice": [
+    "worker:lelu-reference"
+   ],
+   "ttsSynthesisMs": [],
+   "spokenText": [
+    "Take care, see you later."
+   ]
+  }
+ ],
+ "session": {
+  "userMessages": 3,
+  "herMessages": 3,
+  "bargeIns": 1,
+  "holds": 1,
+  "holdsResumed": 0,
+  "lastHold": {
+   "reason": "interrupted",
+   "heldMs": 2999,
+   "at": 1795738090520
+  },
+  "lastInterruption": {
+   "at": 1795738090520,
+   "heldWithinMs": -2774,
+   "stoppedAfterOnsetMs": 225
+  },
+  "staleStreamsDropped": 0,
+  "speechOutcome": {
+   "started": 2,
+   "recorded": 2,
+   "unexplained": 0,
+   "spoken": 2,
+   "silent": 0,
+   "noticeSpoken": 0,
+   "byOutcome": {
+    "spoke": 2
+   },
+   "last": "spoke"
+  },
+  "captureRecoveries": 0,
+  "captureLosses": 0,
+  "tracksAfterEnd": [
+   "ended"
+  ],
+  "turnOutcomes": [
+   "spoke",
+   "spoke"
+  ]
+ },
+ "resources": {
+  "voxcpm2CpuPctAvg": 95,
+  "voxcpm2CpuPctPeak": 199,
+  "voxcpm2RssMiBPeak": 7266,
+  "serverCpuPctAvg": 0,
+  "serverRssMiBPeak": 66,
+  "chromiumCpuPctAvg": 78,
+  "chromiumRssMiBPeak": 1889
+ }
+}

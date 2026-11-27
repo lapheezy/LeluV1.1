@@ -30,6 +30,8 @@ import {
   speechWorkerRtf,
   stopSpeaking,
   ttsQueueDepth,
+  resumeOutputAudio,
+  unlockOutputAudio,
 } from "./elevenLabsTts";
 import { toSpokenText } from "./spokenText";
 import { joinSegments, SEGMENT_END_SILENCE_MS, turnGraceMs, turnShape } from "./turnTaking";
@@ -1547,6 +1549,8 @@ class VoiceEngine {
   private onVisibilityChange(): void {
     const visible = !VoiceEngine.pageHidden();
     this.patchDiagnostics({ pageVisible: visible });
+    // iOS can leave her output interrupted after the page was hidden.
+    if (visible) resumeOutputAudio();
     if (!visible || !this._state.active || this.livekit) return;
     const live = this.mediaStream ? VoiceEngine.audioTracks(this.mediaStream).some((track) => track.readyState === "live") : false;
     if (!live) {
@@ -1591,6 +1595,9 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   unlockAudio(): void {
+    // Her streamed voice plays through the shared output context: unlocked in
+    // the tap on every tap (iOS forgets it after interruptions).
+    unlockOutputAudio();
     if (this.audioUnlocked) {
       return;
     }
@@ -2166,11 +2173,16 @@ class VoiceEngine {
       this.pendingTurn.text = joinSegments(this.pendingTurn.text, text);
       this.pendingTurn.segments += 1;
       this.pendingTurn.lastSegmentEnd = segmentEndedAt;
-      this.pendingTurn.continuing = false;
+      this.pendingTurn.continuing = this.soundInSegment;
       if (provenance) this.pendingTurn.provenance = provenance;
     } else {
-      this.pendingTurn = { text, provenance, lastSegmentEnd: segmentEndedAt, continuing: false, segments: 1 };
+      // The person may already be speaking again in the next segment: its
+      // sound arrived before this transcript did (found live: "Wait, stop." —
+      // 0.5 s — "What about Mars?" was handed over mid-sentence).
+      this.pendingTurn = { text, provenance, lastSegmentEnd: segmentEndedAt, continuing: this.soundInSegment, segments: 1 };
     }
+    // Waiting on sound that is not yet speech: bounded, as above.
+    if (this.pendingTurn.continuing && !this.speechInSegment) this.expireUnconfirmedSound();
     // The words so far, as the person's line in progress in the thread.
     this.emitInterim(this.pendingTurn.text);
     this.scheduleTurnCommit();
@@ -2217,6 +2229,8 @@ class VoiceEngine {
   }
 
   private discardPendingTurn(): void {
+    if (this.soundTimer) clearTimeout(this.soundTimer);
+    this.soundTimer = null;
     if (this.pendingTimer) clearTimeout(this.pendingTimer);
     this.pendingTimer = null;
     this.pendingTurn = null;
@@ -2240,6 +2254,8 @@ class VoiceEngine {
   private onSpeechOnset(): void {
     const at = Date.now();
     this.patchDiagnostics({ userSpeaking: true, lastOnsetAt: at });
+    this.soundInSegment = true;
+    this.speechInSegment = true;
     // Speaking again before the turn was handed over: it is the same turn.
     if (this.pendingTurn) {
       this.pendingTurn.continuing = true;
@@ -2276,6 +2292,11 @@ class VoiceEngine {
     void capture.ctx.close().catch(() => {});
   }
 
+  /** Sound has been heard in the segment being recorded now. */
+  private soundInSegment = false;
+  /** Voiced speech has been confirmed in the segment being recorded now. */
+  private speechInSegment = false;
+
   /** Noise floor carried from one segment to the next (vadWorklet.ts). */
   private vadFloor: number | null = null;
 
@@ -2285,13 +2306,32 @@ class VoiceEngine {
    * Her voice is not held for this; only confirmed voiced speech does that.
    */
   private onSoundActivity(): void {
+    this.soundInSegment = true;
     if (!this.pendingTurn) return;
     this.pendingTurn.continuing = true;
     if (this.pendingTimer) {
       clearTimeout(this.pendingTimer);
       this.pendingTimer = null;
     }
+    this.expireUnconfirmedSound();
   }
+
+  /**
+   * Sound that is not confirmed as voiced speech soon (a click, a cough) does
+   * not keep the turn open: its segment could otherwise run 10 s before it
+   * ends with "nothing said".
+   */
+  private expireUnconfirmedSound(): void {
+    if (this.soundTimer) clearTimeout(this.soundTimer);
+    this.soundTimer = setTimeout(() => {
+      this.soundTimer = null;
+      if (!this.speechInSegment) this.releasePendingTurn();
+    }, VoiceEngine.SOUND_CONFIRM_MS);
+  }
+
+  private soundTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Longest unconfirmed sound may keep a finished-sounding turn waiting. */
+  private static readonly SOUND_CONFIRM_MS = 700;
 
   /** Longest a hold may last before she resumes on her own. */
   private static readonly HOLD_MAX_MS = 30_000;
@@ -2357,6 +2397,9 @@ class VoiceEngine {
    */
   private async recordUtterance(onOnset?: () => void): Promise<Blob | null> {
     if (!this.mediaStream) return null;
+    // A new segment: nothing heard in it yet.
+    this.soundInSegment = false;
+    this.speechInSegment = false;
     const Ctx =
       typeof AudioContext !== "undefined"
         ? AudioContext

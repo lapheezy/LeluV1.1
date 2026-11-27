@@ -393,3 +393,36 @@ test("a bracketed aside is said as an aside, and a piece never starts with a bra
   assert.match(toSpokenText("≈1,063 feet"), /^about /);
   assert.equal(toSpokenText("Paris is the capital of France."), "Paris is the capital of France.");
 });
+
+/* ------------------------------ iOS unlock ------------------------------ */
+
+test("a tap unlocks the shared output her streamed voice plays through (iOS)", () => {
+  const calls: string[] = [];
+  class FakeCtx {
+    state = "suspended";
+    sampleRate = 48000;
+    destination = {};
+    resume() {
+      calls.push("resume");
+      this.state = "running";
+      return Promise.resolve();
+    }
+    createBuffer() {
+      calls.push("buffer");
+      return {};
+    }
+    createBufferSource() {
+      return { buffer: null, connect: () => calls.push("connect"), start: () => calls.push("start") };
+    }
+  }
+  const saved = g.AudioContext;
+  g.AudioContext = FakeCtx;
+  try {
+    tts.unlockOutputAudio();
+    assert.ok(calls.includes("resume"), "the shared context is resumed inside the tap");
+    assert.ok(calls.includes("start"), "and a silent sample is played, which WebKit requires");
+    assert.equal(tts.audioContextState(), "running");
+  } finally {
+    g.AudioContext = saved;
+  }
+});

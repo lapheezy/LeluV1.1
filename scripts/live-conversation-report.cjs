@@ -5,8 +5,8 @@
  *   node scripts/live-conversation-report.cjs <run.json> [...]
  *
  * Per turn, from the run's own records (nothing estimated):
- *   spoken      when the test speaker's words ended in the capture file
- *               (scenario timeline + the moment the page opened the device)
+ *   spoken      when the person's last word ended: the detector closed the
+ *               turn's last segment 0.7 s later (SEGMENT_END_SILENCE_MS)
  *   vadEnd      the page's voice detector closed the utterance
  *   transcript  the transcriber answered (/api/model/groq/audio/transcriptions)
  *   userMsg     the transcript appeared in the thread
@@ -26,7 +26,10 @@ function analyse(file) {
   const trackAt = run.tracks.find((t) => t.kind === "audio")?.at ?? null;
   const items = (run.scenario?.timeline ?? []).filter((i) => !/^(sil|noise|clicks):/.test(i.item));
   const vadEnds = tl.filter((e) => e.kind === "console" && /"spoke":true/.test(e.text ?? "")).map((e) => e.t);
+  const sttReq = tl.filter((e) => e.kind === "request" && /audio\/transcriptions/.test(e.url)).map((e) => e.t);
   const sttDone = tl.filter((e) => e.kind === "response" && /audio\/transcriptions/.test(e.url)).map((e) => e.t);
+  const typed = tl.filter((e) => e.kind === "typed").map((e) => e.t);
+  const itemEnds = items.map((i) => (trackAt === null ? null : +(trackAt + i.at + i.seconds).toFixed(2))).filter((x) => x !== null);
   const userMsgs = run.messages.filter((m) => m.role === "user");
   const herMsgs = run.messages.filter((m) => m.role === "assistant");
   const ttsReq = tl.filter((e) => e.kind === "request" && /\/api\/voice\/tts/.test(e.url));
@@ -40,9 +43,14 @@ function analyse(file) {
   const turns = userMsgs.map((u, i) => {
     const next = userMsgs[i + 1]?.firstSeen ?? Infinity;
     const reply = herMsgs.find((m) => m.firstSeen >= u.firstSeen && m.firstSeen < next) ?? null;
-    const spokenEnd = items[i] && trackAt !== null ? +(trackAt + items[i].at + items[i].seconds).toFixed(2) : null;
-    const vadEnd = vadEnds.find((t) => spokenEnd === null || t >= spokenEnd - 0.5) ?? null;
-    const transcript = sttDone.find((t) => vadEnd === null || t >= vadEnd) ?? null;
+    // Several spoken segments can make one turn (turnTaking.ts), and a turn can
+    // be typed: pair by time, not by position in the scenario.
+    const typedAt = typed.find((t) => Math.abs(t - u.firstSeen) < 1) ?? null;
+    // The page's own measure: the detector closed the turn's last segment
+    // SEGMENT_END_SILENCE (0.7 s) after the last word.
+    const vadEnd = typedAt === null ? vadEnds.filter((t) => t <= u.firstSeen).at(-1) ?? null : null;
+    const transcript = typedAt ?? (vadEnd === null ? null : sttDone.find((t) => t >= vadEnd) ?? null);
+    const spokenEnd = vadEnd === null ? null : +(vadEnd - 0.7).toFixed(2);
     const window = (t) => t >= u.firstSeen && t < next;
     const requests = ttsReq.filter((r) => window(r.t));
     const responses = ttsRes.filter((r) => window(r.t));
@@ -57,6 +65,7 @@ function analyse(file) {
     const stopsHere = pcmStopped.filter((p) => window(p.t)).length;
     return {
       heard: u.text,
+      via: typedAt !== null ? "typed" : "voice",
       reply: reply?.text ?? null,
       spokenEnd,
       vadEnd,

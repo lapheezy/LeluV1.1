@@ -103,6 +103,9 @@ test("the capture path hands segments to the turn rule, and speech resuming keep
   assert.doesNotMatch(chain, /this\.handleUserSpeech\(/, "nothing goes to her before the turn rule says it is finished");
   const onset = source.slice(source.indexOf("private onSpeechOnset"), source.indexOf("private onSpeechOnset") + 800);
   assert.match(onset, /pendingTurn\.continuing = true/, "voiced speech during the wait keeps the same turn");
+  // Sound in the next segment can arrive before the previous transcript does.
+  assert.match(source, /continuing: this\.soundInSegment/, "a turn created while the person is already speaking again waits for them");
+  assert.match(source, /this\.pendingTurn\.continuing = this\.soundInSegment/);
   const vad = readFileSync(new URL("../src/core/voice/vadWorklet.ts", import.meta.url), "utf8");
   assert.match(vad, /this\.silence >= \$\{SEGMENT_END_SILENCE_MS\}/, "the audio thread closes segments at the shared constant");
   assert.match(source, /threshold: this\.vadFloor, onActivity: \(\) => this\.onSoundActivity\(\)/, "each segment starts from the last floor, and sound pauses the handover");

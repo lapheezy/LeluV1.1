@@ -1,0 +1,53 @@
+  25.51  state: transcribing
+  27.69  TTS request The Moon is Earth's lone natural satellite.
+  27.70  state: transcribing
+  27.92  assistant message: The Moon is Earth’s lone natural satellite. It formed about 4.5 billion years ago, likely 
+  27.92  state: generating
+  28.85  TTS request It formed about four point five billion years ago, likely fr
+  37.62  HER AUDIO scheduled: 2.40 s, sounding 37.64..40.04
+  37.72  TTS response 200
+  37.73  state: speaking
+  38.84  TTS request Its gravity pulls on the oceans, creating tides, and its nea
+  38.84  output context SUSPEND (her audio paused)
+  38.96  state: hearing [held]
+  43.34  state: hearing [held]
+  44.06  output context RESUME
+  44.06  scheduled audio STOPPED (barge-in confirmed)
+  44.09  TTS request-failed net::ERR_ABORTED
+  44.09  TTS request-failed net::ERR_ABORTED
+  44.40  state: speaking
+  44.40  user-interim message: Wait, stop. What about the planet Mars instead? One sentence.…
+  44.63  state: transcribing
+  45.40  TTS request Mars is a cold,
+  45.40  state: transcribing
+  45.90  assistant message: Mars is a cold, rocky planet about half Earth’s size, with a thin carbon‑dioxide atmospher
+  45.90  state: generating
+  46.39  TTS request rocky planet about half Earth's size, with a thin carbon‑dio
+  50.13  HER AUDIO scheduled: 1.12 s, sounding 50.15..51.27
+  50.13  state: generating
+  50.34  state: speaking
+  50.73  HER AUDIO scheduled: 0.16 s, sounding 51.27..51.43
+  51.34  HER AUDIO scheduled: 0.16 s, sounding 51.43..51.59
+  51.35  TTS response 200
+  51.67  state: speaking
+  51.89  state: thinking
+  57.03  output context SUSPEND (her audio paused)
+  57.17  state: hearing [held]
+  59.78  state: hearing [held]
+  60.01  state: hearing [held]
+  60.34  TTS request-failed net::ERR_ABORTED
+  60.34  output context RESUME
+  60.46  state: hearing
+  60.46  user-interim message: Hold on. Which planet is the largest?…
+  61.48  state: hearing
+  61.69  state: transcribing
+  63.87  TTS request Jupiter is the largest planet in our Solar System.
+  63.91  state: transcribing
+  64.12  assistant message: Jupiter is the largest planet in our Solar System.
+  64.12  state: generating
+ 101.49  state: thinking
+ 101.49  user message: Thanks. Which of those two planets is closer to the Sun? One sentence.
+ 101.55  TYPED: Thanks. Which of those two planets is closer to the Sun? One sentence.
+ 102.81  TTS request Mars is the planet that orbits closer to the Sun.
+ 102.94  assistant message: Mars is the planet that orbits closer to the Sun.
+ 102.94  state: generating

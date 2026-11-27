@@ -260,7 +260,12 @@ class Config:
         self.reference_seconds = float(_env("VOXCPM_REFERENCE_SECONDS", "12"))
         self.cache_dir = Path(_env("VOXCPM_CACHE_DIR", str(ROOT / ".voxcpm")))
         self.cfg_value = float(_env("VOXCPM_CFG_VALUE", "2.0"))
-        self.timesteps = int(_env("VOXCPM_TIMESTEPS", "10"))
+        # 8 diffusion steps (VoxCPM's own default is 10): measured on 36 clips
+        # of her voice, 8 matched 10 in speaker similarity to her held-out
+        # recording, Whisper word accuracy, spectral flatness and >6 kHz energy,
+        # and saved ~11 % of generation; 6 added high-frequency energy on a long
+        # sentence and is not used (docs/missions/live-voice-evidence/perf/timesteps).
+        self.timesteps = int(_env("VOXCPM_TIMESTEPS", "8"))
         self.max_chars = int(_env("VOXCPM_MAX_CHARS", "900"))
         self.max_queue = int(_env("VOXCPM_MAX_QUEUE", "4"))
         self.cache_entries = int(_env("VOXCPM_CACHE_ENTRIES", "48"))

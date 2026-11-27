@@ -437,8 +437,42 @@ function audioContext(): AudioContext | null {
       : (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;
   if (!sharedContext) sharedContext = new Ctor();
-  if (sharedContext.state === "suspended") void sharedContext.resume().catch(() => {});
+  // iOS reports "interrupted" (a call, Siri, the screen locked) as well as "suspended".
+  const state = sharedContext.state as string;
+  if ((state === "suspended" || state === "interrupted") && !held) void sharedContext.resume().catch(() => {});
   return sharedContext;
+}
+
+/**
+ * Unlock her streamed voice on iOS. Call synchronously inside the person's tap.
+ *
+ * Safari only lets an AudioContext play if it was created or resumed during a
+ * user gesture. Streamed replies play through this shared context, which used
+ * to be created lazily at her first reply — outside any gesture — so on an
+ * iPhone it would have stayed suspended and she would have been silent. The
+ * tap now creates/resumes it and plays one silent sample, which is what
+ * WebKit requires. Cheap, so it runs on every tap.
+ */
+/** Try to bring her output back after the page returns (may need a tap on iOS). */
+export function resumeOutputAudio(): void {
+  const ctx = sharedContext;
+  if (!ctx || held) return;
+  const state = ctx.state as string;
+  if (state === "suspended" || state === "interrupted") void ctx.resume().catch(() => {});
+}
+
+export function unlockOutputAudio(): void {
+  const ctx = audioContext();
+  if (!ctx) return;
+  try {
+    const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+  } catch {
+    // an unlock that cannot play is retried on the next tap
+  }
 }
 
 /**
@@ -591,15 +625,25 @@ async function playPcm(
         continue;
       }
       pending.push(buffer);
-      if (ready(false)) for (const held of pending.splice(0)) schedule(held);
+      if (ready(false)) for (const buffered of pending.splice(0)) schedule(buffered);
     }
     if (stopped || feed.failed) {
       if (!stopped) handle.stop();
       return false;
     }
     // The stream ended before the start rule fired: play what there is.
-    if (!started && pending.length > 0 && ready(true)) for (const held of pending.splice(0)) schedule(held);
+    if (!started && pending.length > 0 && ready(true)) for (const buffered of pending.splice(0)) schedule(buffered);
     if (!started) return false;
+    // An output the browser will not run (iOS after an interruption, resumed
+    // outside a tap) plays nothing: say so instead of reporting she spoke.
+    const blockedSince = Date.now();
+    while (!stopped && !held && (ctx.state as string) !== "running") {
+      if (Date.now() - blockedSince > 1500) {
+        handle.stop();
+        return false;
+      }
+      await new Promise<void>((resolve) => setTimeout(resolve, 100));
+    }
     // Audio time, not wall time: a hold suspends the context, and the
     // segment must not be reported finished while it is paused.
     while (!stopped && ctx.currentTime < endAt) {

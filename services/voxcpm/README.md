@@ -61,12 +61,15 @@ curl -s -X POST localhost:8788/v1/audio/speech \
 | `VOXCPM_REFERENCE_AUDIO` | the repo clip | cloning source |
 | `VOXCPM_REFERENCE_SECONDS` | `12` | seconds of it used as conditioning |
 | `VOXCPM_CFG_VALUE` | `2.0` | guidance scale |
-| `VOXCPM_TIMESTEPS` | `10` | diffusion steps (lower = faster) |
+| `VOXCPM_TIMESTEPS` | `8` | diffusion steps (lower = faster; 8 measured equal to 10 for her voice, 6 was not, see docs/missions/live-voice-evidence/perf/timesteps) |
 | `VOXCPM_MAX_CHARS` | `900` | one segment |
 | `VOXCPM_MAX_QUEUE` | `4` | waiting requests before 503 |
 | `VOXCPM_CACHE_ENTRIES` | `48` | identical-text LRU |
 | `VOXCPM_TOKEN` | empty | bearer token; **required for any public tunnel** |
 | `VOXCPM_WARMUP` | `1` | load weights at start |
+| `VOXCPM_COMPILE` | `estimator` | compile the diffusion estimator for this CPU before READY (`off` to disable; falls back by itself) |
+| `VOXCPM_REUSE_REFERENCE` | `1` | encode the reference once, not per sentence |
+| `VOXCPM_CANCEL_MID_SENTENCE` | `1` | stop generating a sentence whose client has gone |
 
 App side: `VOXCPM_WORKERS` (JSON array of `{id, kind, url, token}`),
 `VOXCPM_BASE_URL` + `VOXCPM_TOKEN` for one worker, `VOICE_PROVIDER`

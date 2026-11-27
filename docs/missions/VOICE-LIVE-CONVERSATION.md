@@ -17,6 +17,174 @@ Date 2026-11-26 · branch `claude/lelu-live-voice-conversation-bepg8m` · base `
 > **What was not tested:** a physical microphone, speaker or iPhone. The input is a synthetic test speaker played into
 > Chromium's capture device, and playback is proven by the browser's media events, not by an ear.
 
+# Part 2 — Performance and natural conversation (2026-11-27)
+
+Commits on top of `c793c804`: `11500dfc` (checkpoint) and the commit that adds this section; local only, **not pushed,
+merged or deployed**. The four earlier commits (`1410a14a`, `30eb458e`, `972b509a`, `c793c804`) are unchanged. A verified
+checkpoint was made first: branch `backup/live-conversation-c793c804`, `git bundle`
+`/home/user/lelu-backups/live-conversation-c793c804.bundle` (verified), and an archive of the earlier evidence.
+
+> **Verdict.** All seven final-acceptance steps were done in **one session in the real built app**
+> (`perf-runs/FINAL-acceptance`):
+>
+> 1. one tap;
+> 2. a question spoken with a 1.6 s thinking pause stays **one turn**;
+> 3. the transcript appears in Chat Universe;
+> 4. the written reply appears and VoxCPM2 speaks it;
+> 5. a spoken "Wait, stop. What about the planet Mars instead?" **interrupts her 1.2 s into her audio**: output paused
+>    at the onset, all her audio stopped and the obsolete generations cancelled once the transcript confirmed it;
+> 6. the new question is answered in writing and by VoxCPM2;
+> 7. a typed follow-up that needs the spoken context is answered, and speaking again continues the same session.
+>
+> **Latency.** Her voice now starts 22–30 % sooner for the same sentence, with no measured change in how she sounds.
+>
+> | Configuration | Speech end → she is heard | Before |
+> |---|---|---|
+> | Browser test, VoxCPM2 on 2 cores | **13.2–18** s for ordinary first sentences; **7.5 s** when the reply opens with a short clause | 15.1–18.7 s |
+> | Full 4-core machine (deployment-like, replay) | **7.4–10.9 s** | 8.8–13.1 s with the old code on the same 4 cores |
+>
+> That is still not a natural conversational pace. VoxCPM2 on this CPU is bound by memory bandwidth (§P2.2).
+>
+> **Not done here:** no physical iPhone or microphone was available. All input is a synthetic test speaker; G is Chromium
+> *emulation*. iOS-specific defects were found by reading the code and fixed, but they are unverified on a device
+> (§P2.6).
+
+## P2.1 What changed
+
+| Area | Change | Evidence |
+|---|---|---|
+| Worker: compile | Diffusion estimator compiled with Inductor's CPU backend (`VOXCPM_COMPILE`, default on, automatic fallback, reported in `/health`) | estimator 31 → 24 ms/call; RTF 3.1 → 2.7 (4 cores) |
+| Worker: diffusion steps | Default **10 → 8** (`VOXCPM_TIMESTEPS`); 6 rejected | §P2.3 |
+| Relay + page: buffered streaming | Page sends `buffered: true`; relay streams PCM from a slow worker (`X-Lelu-Streaming: buffered`, `X-Lelu-Worker-Rtf`); page drains every stream at once (`PcmFeed`) and starts playback when the rest cannot overtake it (`pcmStartReady`) | bench: clause 4.3 → 2.7 s, sentence 8.9 → 5.9 s to first sound |
+| Prompt | Spoken turns ask for a short opening sentence | — |
+| Turn-taking (`turnTaking.ts`) | 0.7 s silence closes a *segment*; the turn is handed over when it sounds finished (question 1.5 s, statement 1.6 s after the last word) or after 2.7 s if unfinished ("…the", "because", "um", trailing comma); continuing speech joins the turn | §P2.4 |
+| Capture | One capture AudioContext per session (was one per segment: up to ~1 s deaf between segments); each segment starts from the previous noise floor (no blind 300 ms); any sound pauses the handover for ≤ 0.7 s unless it becomes speech | §P2.4 |
+| Interruption context | The note now tells her to answer the new question (she had continued the interrupted answer) | live run, §P2.5 |
+| iOS | Shared output context unlocked inside the tap (`unlockOutputAudio`); `interrupted` state handled; output resumed on return to the page; output that will not run is reported as a voice failure | §P2.6 |
+
+## P2.2 Where the time goes, and the hard limit
+
+Profiled with `services/voxcpm/bench_step.py` (same model, weights, reference):
+- **The checkpoint:** 2.29 B parameters, bfloat16 (4.58 GB).
+- **Per step:** one generation step makes 0.164 s of audio and reads about 8 GB of weights. The diffusion estimator runs 10 times per step and is 55 % of the time.
+- **The limit:** this is **memory-bandwidth bound**, so on 4 cores RTF ≈ 2.6 (8 steps ≈ 2.3) is the floor for this model.
+- **What doesn't help:** float32 would double the reads. Compiling the transformer steps recompiled every step (RTF 11.8), so it isn't used.
+
+Per-stage, final acceptance run (browser; VoxCPM2 on 2 cores; `perf-runs/FINAL-acceptance.summary.json`):
+
+| Stage | Measured |
+|---|---|
+| Speech end → transcript (Groq Whisper 0.3–1.1 s per request) | 1.0–1.5 s |
+| Transcript → written reply visible | 1.4–3.8 s (5.1 s when waiting out a thinking pause) |
+| Transcript → first audio | 6.1 s (short first clause) – 15.1 s |
+| First audio → reply finished (audio) | 1.4–16 s, depending on length |
+| Interruption: onset → her audio paused | same tick (output suspended 0.23–1.2 s into her audio in the runs) |
+| Interruption: obsolete generation stopped | next generation step after the abort (`stream_cancelled`) |
+| VoxCPM2 / server / Chromium | RSS peak 7.35 GiB / 63 MiB / 1.9 GiB; CPU 200 % of 2 cores / ~0 / 185 % of 2 cores |
+
+## P2.3 Diffusion steps: why 8, not 6
+
+36 clips (4 sentences × 3 takes × 10/8/6 steps), worker on 4 cores (`perf/timesteps/`):
+
+| Steps | RTF | Speaker similarity to her held-out recording* | Word accuracy | > 6 kHz energy |
+|---|---|---|---|---|
+| 10 | 2.56 | 0.857 ± 0.047 | 0.969 | 1.39 % |
+| **8** | 2.27 | 0.867 ± 0.040 | 0.969 | 1.33 % |
+| 6 | 1.98 | 0.865 ± 0.053 | 0.969 | **1.87 %** (2.83 % vs 1.19 % on the long sentence) |
+
+\*`microsoft/wavlm-base-plus-sv` (public weights, nothing installed); her own recording scores 0.963 against itself.
+
+8 steps matches 10 on every measure. 6 adds high-frequency energy (likely residual noise) and is not used. `VOXCPM_TIMESTEPS=10`
+restores the old value. **No person has listened** to the A/B clips, which are kept for that.
+
+## P2.4 Natural turn detection (WP03)
+
+One session with pauses inside thoughts, normal / slow (0.85×) / fast (1.2×) speech (`perf-runs/WP03-natural-turns`):
+
+| Spoken | Before | After |
+|---|---|---|
+| "What day comes after Monday? [1.23 s] One short sentence." | 2 turns | **1** |
+| "Tell me about the [1.6 s] ocean in three or four sentences." | 1 ("the The") | **1**, joined cleanly |
+| "Hi Lélu. What is the capital of France? [1.0 s] Please answer in one short sentence." | 2 | **1** |
+| "Tell me about the [2.2 s] moon in three sentences." (0.85×) | 1 | **1** |
+| "What is two plus two? One short sentence." (1.2×) | 1 | **1** |
+| "Wait, stop. [0.5 s] What about the planet Mars instead?" (spoken over her) | 2 (final run, attempt 1) | **1** |
+
+The intermediate runs are kept (`-BEFORE-floor-carryover`, `-BEFORE-shared-capture`, `FINAL-acceptance-attempt1`).
+Accents: **only one synthetic voice was available**, so accents are untested. Speech rate was varied with tempo.
+
+## P2.5 True live interruption (WP04): timestamps
+
+From `perf-runs/FINAL-acceptance-interruption-timeline.txt` (seconds after the single microphone tap):
+
+```
+37.64-40.04  her answer sounding ("The Moon is Earth's lone natural satellite.")
+38.84        person starts speaking -> output context SUSPENDED (1.2 s into her audio)
+44.06        turn understood: "Wait, stop. What about the planet Mars instead? One sentence."
+             -> all scheduled audio STOPPED, 2 TTS requests aborted; worker: stream_cancelled
+44.06        output resumed with nothing scheduled (no stale audio)
+45.90        her written answer about Mars
+50.15        her VoxCPM2 audio for it
+101.5        typed: "Which of those two planets is closer to the Sun?" -> "Mars is the planet that orbits closer to the Sun."
+```
+
+The earlier attempt (`perf-runs/WP04-interrupt-during-audio`) shows the same thing: suspend at 37.21 s while her audio
+played, 13 buffers stopped. Both are **synthetic spoken input into Chromium's capture device**, not a person.
+
+## P2.6 Physical-device readiness (WP06)
+
+**No iPhone, microphone or speaker is available to this container, and nothing is deployed.** Production HTTPS is still
+undeployed (finalization report, Mission 1), and the microphone needs a secure context. So **no physical-device
+test was run.** What was checked in code and fixed:
+
+| iOS requirement | Status |
+|---|---|
+| Audio may only start from a context unlocked in a tap | **Fixed:** the shared output context (used by streamed replies) is now unlocked in the microphone tap; before, it was created lazily and would have stayed silent on iPhone |
+| `interrupted` context after a call, Siri or lock | Handled as resumable; resumed when the page returns; output that will not run within 1.5 s is reported as a voice failure, not "spoke" |
+| One AudioContext per page (Safari limits them) | Capture now uses one per session instead of one per segment |
+| Permission denied / no device / lost track / backgrounded page | Existing handling (Part 1, Test F), unchanged |
+| MediaRecorder format | `audio/mp4` is in the fallback list; Groq accepts it |
+| Bluetooth / wired headsets | **Untested** |
+
+Steps for the owner (physical test): deploy over HTTPS (`deploy/contabo/*`). On an iPhone: open Chat → a conversation →
+tap the microphone once → speak with pauses → let her answer → speak over her → type → lock and unlock the screen →
+speak again. Also confirm she sounds like herself.
+
+## P2.7 External limits found (owner actions)
+
+- **Groq free tier:** `openai/gpt-oss-120b` allows **8,000 tokens per minute and 200,000 per day per key**, and a voice
+  turn sends about 7,000 tokens of context. That is about one turn per minute per key. Several test turns today got the
+  honest "offline mode" notice when the limit was reached.
+- **Keys:** `GROQ_API_KEY_4` is rejected ("Invalid API Key"). **The Cerebras key is rejected (401 "Wrong API Key")**, so
+  there is no working fallback. Neither was changed; that needs the owner.
+- **Her routing:** "What day comes after Monday?" is answered by her date tool with today's date. That is intent
+  routing, which this mission does not change.
+
+## P2.8 Tests (Part 2)
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit -p tsconfig.app.json` / `-p tsconfig.node.json` | exit 0 / exit 0 |
+| `npm run build` | exit 0 |
+| Voice suites (`tests/voice-*`, `personality-voice*`) | **230 pass, 0 fail**, 1 skipped |
+| New / extended | `voice-natural-turns.test.ts` (6: shapes, waits, joining, carried floor hears resumed speech in < 300 ms, wiring); `voice-live-conversation.test.ts` (15: + interruption wording, iOS output unlock); `voice-finalization.test.ts` (+ buffered relay, start rule) |
+| Worker | `test_step_cancel.py`, `test_fair_turn.py` pass |
+| Full `npm test` | **3407 tests: 3373 pass, 5 fail, 29 skipped** (531 s). Baseline was 3364 pass / 5 fail: +9 new passing tests, and **the same five failures by name** (credential workflow, two foundry, outfit-switching, supabase-config), all shown in Part 1 to fail identically on the untouched base |
+| Real-browser acceptance | `perf-runs/FINAL-acceptance` (all seven steps), `WP03-natural-turns`, `WP04-interrupt-during-audio`, `A-continuous`, `G-iphone13-emulation` (emulation) |
+
+## P2.9 Files (Part 2)
+
+`services/voxcpm/server.py` (compile, steps default, cancel), `services/voxcpm/README.md`, new
+`services/voxcpm/{bench_step.py,score_similarity.py}`, `plugins/{voxApi,voiceApi}.ts` (buffered streaming),
+`src/core/voice/{elevenLabsTts,VoiceEngine,vadWorklet}.ts`, new `src/core/voice/turnTaking.ts`, tests
+`tests/voice-natural-turns.test.ts` (new), `tests/{voice-live-conversation,voice-finalization}.test.ts`, tooling
+`scripts/{verify-live-conversation,live-conversation-mic,live-conversation-report,voice-latency-replay}.cjs`, evidence
+`docs/missions/live-voice-evidence/{perf,perf-runs,mic}/`.
+
+---
+
+# Part 1 — Live conversation (2026-11-26)
+
 ## 1. WP01: what existed, what was missing
 
 The voice-finalization commits `1410a14a` and `30eb458e` were on `claude/lelu-voice-finalization-go9hrm`, which is this

@@ -1,0 +1,48 @@
+{
+ "source": "docs/missions/live-voice-evidence/perf-runs/A-continuous.json",
+ "mode": "buffered",
+ "base": "http://127.0.0.1:4173",
+ "at": "2026-11-27T00:10:46.460Z",
+ "note": "replay: page timings from the real run, voice from the worker as configured now",
+ "rows": [
+  {
+   "heard": "Hi Lélu. What is the capital of France? Please answer in one short sentence.",
+   "firstPiece": "Paris is the capital of France.",
+   "pageSpeechEndToTtsRequestMs": 3490,
+   "mode": "buffered",
+   "streaming": "buffered",
+   "firstChunkMs": 856,
+   "startMs": 4748,
+   "doneMs": 5963,
+   "audioSeconds": 2.08,
+   "engine": "voxcpm2",
+   "projectedSpeechEndToFirstAudioS": 8.24
+  },
+  {
+   "heard": "And what is the most famous tower there?",
+   "firstPiece": "The Eiffel Tower is the most famous tower in France,",
+   "pageSpeechEndToTtsRequestMs": 3720,
+   "mode": "buffered",
+   "streaming": "buffered",
+   "firstChunkMs": 799,
+   "startMs": 7157,
+   "doneMs": 9738,
+   "audioSeconds": 3.52,
+   "engine": "voxcpm2",
+   "projectedSpeechEndToFirstAudioS": 10.88
+  },
+  {
+   "heard": "Roughly how tall is it?",
+   "firstPiece": "About three hundred metres tall.",
+   "pageSpeechEndToTtsRequestMs": 2580,
+   "mode": "buffered",
+   "streaming": "buffered",
+   "firstChunkMs": 940,
+   "startMs": 4862,
+   "doneMs": 6609,
+   "audioSeconds": 2.24,
+   "engine": "voxcpm2",
+   "projectedSpeechEndToFirstAudioS": 7.44
+  }
+ ]
+}
