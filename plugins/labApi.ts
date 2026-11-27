@@ -122,16 +122,42 @@ function allowedOrigins(): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Is this request from our own page?
+ *
+ * MEASURED (Mission 44.4, live): behind the hosted preview proxy the server
+ * receives `Host: 127.0.0.1:3001` while the page's origin is the public
+ * preview host. A GET omits `Origin` and passed; every POST carried it and
+ * was refused with 403 "Cross-origin laboratory requests are not permitted".
+ * The result was a model whose reads worked and whose actions all failed:
+ * `lab.history` (windowed read) and `lab.experiment` were refused while the
+ * laboratory was demonstrably working.
+ *
+ * The rules are the broker's (`crossOrigin` in plugins/modelApi.ts) — same
+ * reason, same order: the browser's own `Sec-Fetch-Site` account cannot be
+ * forged by a page, then the operator allowlist, then host equality INCLUDING
+ * `X-Forwarded-Host`, because a reverse proxy terminates TLS and forwards with
+ * its own Host. A cross-site page still fails all three and is refused.
+ */
 function sameOrigin(req: ConnectLikeReq): boolean {
   const origin = header(req, "origin");
-  if (!origin) return true; // a same-origin fetch usually omits Origin on GET
-  const host = header(req, "host");
+  if (!origin) return true; // a same-origin GET/HEAD usually omits Origin
+
+  // 1. The browser's own statement about the request's site.
+  if (header(req, "sec-fetch-site").trim().toLowerCase() === "same-origin") return true;
+
+  // 2. The deployment's declared origin.
+  const normalize = (value: string): string => value.trim().replace(/\/$/, "");
+  if (allowedOrigins().includes(normalize(origin))) return true;
+
+  // 3. Host equality, with the proxy's forwarded host included.
+  const forwarded = header(req, "x-forwarded-host").split(",")[0]?.trim() ?? "";
+  const hosts = new Set([header(req, "host"), forwarded].filter(Boolean));
   try {
-    if (new URL(origin).host === host) return true;
+    return hosts.has(new URL(origin).host);
   } catch {
     return false;
   }
-  return allowedOrigins().includes(origin.replace(/\/$/, ""));
 }
 
 /* ------------------------------------------------------------------ */

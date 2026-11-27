@@ -25,6 +25,12 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 
 .lcu {
   position: fixed; inset: 0; height: 100dvh; z-index: 480;
+  /* MEASURED (Mission 44.4, 844×390): the grid rendered 583px tall inside a
+     390px viewport, so the footer — universal composer, send, dock, "minimize
+     the open windows" — sat below the screen and could not be reached at all.
+     The dialog must never be taller than the screen it owns: main is the
+     scroll container (minmax(0,1fr)) and the footer keeps its own row. */
+  max-height: 100dvh; overflow: hidden;
   /* The interface root is pointer-events:none so the scene stays clickable;
      the Universe owns the screen while it is open, so it takes them back. */
   pointer-events: auto;
@@ -108,6 +114,10 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 /* ---------- main ---------- */
 .lcu-main { grid-area: main; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
 .lcu-head { position: relative; display: flex; align-items: center; gap: 10px; min-height: 70px; }
+/* The header holds the only way out (Close), New chat and the layout tools.
+   On a short screen `.lcu-main` scrolls, so the header must stay put rather
+   than scroll away with the cards. */
+.lcu-head { position: sticky; top: 0; z-index: 3; }
 .lcu-menu { position: relative; z-index: 2; }
 .lcu-hero {
   /* LÉLU's portrait behind the title, fading into the Cosmos. */

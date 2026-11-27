@@ -621,14 +621,29 @@ export function createModelApi(readEnv: EnvReader) {
    */
   const evidence = new Map<
     string,
-    { state: string; httpStatus?: number; contentType?: string; at: number; note?: string }
+    {
+      state: string;
+      httpStatus?: number;
+      contentType?: string;
+      at: number;
+      note?: string;
+      /**
+       * Did the provider ANSWER? Not the same question as "do we hold a key",
+       * and not the same as "did a model complete". A 404 for a model means
+       * reachable; a refused socket means not. Absent when never contacted.
+       */
+      reachable?: boolean;
+    }
   >();
   // A refusal is an observation with a shelf life, not a property of the
   // provider. MEASURED (2026-11-11): one probe's 429 left groq labelled
   // CAPACITY_LIMITED for the rest of the session while later turns completed
   // through it, so the status page showed a limit that had long expired.
   // Transient evidence expires; verified evidence (a real 2xx) does not.
-  const TRANSIENT_STATES = new Set(["CAPACITY_LIMITED", "UNREACHABLE"]);
+  // MODEL_UNAVAILABLE is transient too: a provider that refuses one model can
+  // serve another, and a free tier's catalogue changes. It expires back to
+  // CONFIGURED so a stale refusal cannot label a working provider for a day.
+  const TRANSIENT_STATES = new Set(["CAPACITY_LIMITED", "UNREACHABLE", "MODEL_UNAVAILABLE"]);
   const TRANSIENT_STATE_TTL_MS = 120_000;
 
   const credentialFor = (provider: BrokeredProvider): string => {
@@ -703,7 +718,7 @@ export function createModelApi(readEnv: EnvReader) {
     // route that leaked the key would defeat the point of the broker.
     if (url === "/status" || url.startsWith("/status?")) {
       const status: Record<string, boolean> = {};
-      const states: Record<string, { state: string; at?: number; httpStatus?: number; note?: string }> = {};
+      const states: Record<string, { state: string; at?: number; httpStatus?: number; note?: string; reachable?: boolean }> = {};
       for (const [id, provider] of Object.entries(BROKERED)) {
         // Configured AND not known-rejected. A provider holding a revoked key
         // is not available, and saying otherwise sends every turn through it.
@@ -730,6 +745,10 @@ export function createModelApi(readEnv: EnvReader) {
         states[id] = {
           state,
           ...(seen ? { at: seen.at, httpStatus: seen.httpStatus, ...(seen.note ? { note: seen.note } : {}) } : {}),
+          // `reachable` is only present once the provider has been CONTACTED.
+          // Omitted means "never tried", which is the truth before a first
+          // request and the reason CONFIGURED alone never claims a capability.
+          ...(seen && typeof seen.reachable === "boolean" ? { reachable: seen.reachable } : {}),
         };
       }
       sendJson(res, {
@@ -916,6 +935,7 @@ export function createModelApi(readEnv: EnvReader) {
             state: "CREDENTIAL_ROTATED",
             httpStatus: upstream.status,
             at: Date.now(),
+            reachable: true,
             note: `slot ${slot} refused; tried the next configured credential`,
           });
           upstream = await sendUpstream(keys[slot] as string);
@@ -966,6 +986,7 @@ export function createModelApi(readEnv: EnvReader) {
           state: "AUTHENTICATION_FAILED",
           httpStatus: upstream.status,
           at: Date.now(),
+          reachable: true,
           note: "provider rejected the credential",
         });
       } else if (upstream.status === 429) {
@@ -973,13 +994,36 @@ export function createModelApi(readEnv: EnvReader) {
           state: "CAPACITY_LIMITED",
           httpStatus: 429,
           at: Date.now(),
+          reachable: true,
           note: "rate limit / quota refusal",
+        });
+      } else if (upstream.status === 404) {
+        /*
+         * MEASURED (Mission 44.3, OpenRouter free tier): the key was fine, the
+         * provider answered in milliseconds, and it refused the MODEL with
+         * `404 — this model is unavailable for free`. The status page still
+         * said CONFIGURED, which conflates three different facts: we hold a
+         * credential, the provider is reachable, and a model completed.
+         *
+         * A 404 here is a real answer, so the provider is reachable; the model
+         * is what is unavailable. Recording it separately is what tells an
+         * operator whether to replace a key or a model.
+         */
+        const refusal = await upstream.clone().text().catch(() => "");
+        evidence.set(providerId, {
+          state: "MODEL_UNAVAILABLE",
+          httpStatus: 404,
+          at: Date.now(),
+          reachable: true,
+          note: describeUpstreamError(refusal, upstream.status) || "provider refused this model (404)",
         });
       } else if (upstream.status >= 500) {
         evidence.set(providerId, {
           state: "UNREACHABLE",
           httpStatus: upstream.status,
           at: Date.now(),
+          reachable: true,
+          note: "provider answered with a server error",
         });
       } else if (upstream.ok) {
         unauthorized.delete(providerId);
@@ -987,6 +1031,7 @@ export function createModelApi(readEnv: EnvReader) {
           state: "COMPLETION_VERIFIED",
           httpStatus: upstream.status,
           at: Date.now(),
+          reachable: true,
         });
       }
 
@@ -1050,6 +1095,7 @@ export function createModelApi(readEnv: EnvReader) {
           httpStatus: upstream.status,
           contentType,
           at: Date.now(),
+          reachable: true,
           note: "2xx body was not JSON, so not a completion",
         });
         sendJson(
@@ -1076,6 +1122,7 @@ export function createModelApi(readEnv: EnvReader) {
           httpStatus: upstream.status,
           contentType,
           at: Date.now(),
+          reachable: true,
         });
       }
 
@@ -1129,6 +1176,17 @@ export function createModelApi(readEnv: EnvReader) {
         }
         return;
       }
+      // No HTTP response arrived at all: the transport failed (DNS, refused
+      // socket, timeout). This IS the provider being unreachable, and it used
+      // to leave the recorded state at CONFIGURED — the same label a provider
+      // that has never been tried carries. `reachable: false` is the honest
+      // distinction, and it expires like every other observation.
+      evidence.set(providerId, {
+        state: "UNREACHABLE",
+        at: Date.now(),
+        reachable: false,
+        note: `no HTTP response: ${error instanceof Error ? error.message : String(error)}`.slice(0, 300),
+      });
       sendJson(
         res,
         {

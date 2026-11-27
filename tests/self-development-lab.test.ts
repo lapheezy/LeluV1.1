@@ -178,3 +178,49 @@ describe("the runtime mounts the laboratory", () => {
     assert.match(read("server.ts"), /createLabApi\(\{ root: process\.cwd\(\) \}\)\.attach\(middlewares\)/);
   });
 });
+
+/*
+ * MISSION 44.4 — the origin policy behind a reverse proxy.
+ *
+ * MEASURED live: the preview proxy forwards with `Host: 127.0.0.1:3001` while
+ * the page's origin is the public preview host. A GET omits Origin and passed;
+ * every POST carried it and was refused 403, so a model turn's reads worked and
+ * `lab.history` / `lab.experiment` did not. The check now follows the broker's
+ * three documented rules; what must NOT change is that a genuinely cross-site
+ * page is still refused.
+ */
+describe("the laboratory's origin policy", () => {
+  function callStatus(headers: Record<string, string>): Promise<{ status: number; body: string }> {
+    const api = createLabApi({ root: ROOT });
+    let handler: ((req: unknown, res: unknown, next: () => void) => void) | null = null;
+    api.attach({ use: (_path: string, fn: never) => { handler = fn as never; } });
+    assert.ok(handler, "the laboratory did not register a handler");
+    return new Promise((resolve) => {
+      const captured = { status: 200, body: "" };
+      const res = {
+        set statusCode(value: number) { captured.status = value; },
+        get statusCode() { return captured.status; },
+        setHeader: () => undefined,
+        end: (body?: string) => { captured.body = body ?? ""; resolve(captured); },
+      };
+      const req = { method: "GET", url: "/api/lab/status", headers, socket: { remoteAddress: "127.0.0.1" }, on: () => undefined };
+      (handler as unknown as (r: unknown, s: unknown, n: () => void) => void)(req, res, () => resolve({ status: 0, body: "passed through" }));
+    });
+  }
+
+  it("serves the page's own origin when the proxy rewrote Host", async () => {
+    const res = await callStatus({ origin: "https://preview.example", host: "127.0.0.1:3001", "x-forwarded-host": "preview.example" });
+    assert.equal(res.status, 200, "the page that is actually open must be able to use the laboratory");
+  });
+
+  it("accepts the browser's own same-origin account", async () => {
+    const res = await callStatus({ origin: "https://preview.example", host: "127.0.0.1:3001", "sec-fetch-site": "same-origin" });
+    assert.equal(res.status, 200);
+  });
+
+  it("still refuses a genuinely cross-site page", async () => {
+    const res = await callStatus({ origin: "https://evil.example", host: "127.0.0.1:3001" });
+    assert.equal(res.status, 403);
+    assert.match(res.body, /Cross-origin laboratory requests are not permitted/);
+  });
+});
