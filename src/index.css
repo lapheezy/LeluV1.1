@@ -1105,6 +1105,20 @@ html {
     left: 96px;
   }
 }
+/*
+ * On a phone the navigation owns the bottom edge: the phase HUD was sitting
+ * exactly on the Library and Windows circles (§WP14 — “navigation competes
+ * with the dashboard”). It is scene chrome, so it lifts above the bar instead
+ * of competing with the controls for the same pixels.
+ */
+@media (max-width: 719px) {
+  .lelu-phase-hud {
+    left: 8px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+    transform: scale(0.92);
+    transform-origin: left bottom;
+  }
+}
 
 /* While the composer has focus, its own decorative cloud/star loops
    hold still — nothing should repaint around the caret while typing. */

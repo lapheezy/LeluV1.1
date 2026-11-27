@@ -63,7 +63,6 @@ test("the hidden send engine still exists, so the fix is in the visible surface"
 test("every radial menu comes from the one shared implementation", () => {
   const sources = [
     "src/app/scene/genesis/home/SpatialNav.tsx",
-    "src/app/scene/genesis/interaction/EnvironmentRadial.tsx",
     "src/app/scene/genesis/chat/universe/ChatUniverse.tsx",
     "src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx",
     "src/core/voice/VoiceMicButton.tsx",

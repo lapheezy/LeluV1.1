@@ -141,22 +141,7 @@ button.lch-glass { text-align: left; padding: 0; }
 .lch-progress i[data-running="true"] { width: 36% !important; animation: lch-indeterminate 1.6s ease-in-out infinite; }
 @keyframes lch-indeterminate { from { transform: translateX(-110%); } to { transform: translateX(310%); } }
 
-/* ---------------- primary apps ---------------- */
-.lch-apps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 6px; }
-.lch-app {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-  min-height: 66px; padding: 6px 2px; border-radius: 16px;
-  border: 1px solid rgba(255, 210, 255, 0.12); background: rgba(255, 255, 255, 0.04);
-  font-size: 10.5px; letter-spacing: -0.01em; color: var(--ink-2); transition: transform 160ms ease, background 160ms ease;
-}
-.lch-app span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.lch-app:active { transform: scale(0.96); }
-.lch-app[data-primary="true"] {
-  color: var(--ink);
-  background: linear-gradient(160deg, rgba(240, 171, 252, 0.55), rgba(147, 51, 234, 0.55));
-  border-color: rgba(255, 220, 255, 0.5);
-  box-shadow: 0 0 18px rgba(232, 121, 249, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
+/* The primary-apps row is gone — navigation is the circular dial. */
 
 /* ---------------- sections ---------------- */
 .lch-section-head { display: flex; align-items: center; gap: 8px; font-size: 15.5px; font-weight: 500; padding: 12px 14px 8px; width: 100%; background: none; border: 0; text-align: left; }
@@ -261,10 +246,9 @@ button.lch-glass { text-align: left; padding: 0; }
     gap: 14px;
     padding-top: calc(env(safe-area-inset-top, 0px) + 70px);
   }
-  .lch-header, .lch-hero, .lch-apps { grid-column: 1 / -1; }
+  .lch-header, .lch-hero { grid-column: 1 / -1; }
   .lch-hero { min-height: 230px; grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr); }
   .lch-hero-lelu { min-height: 300px; margin-top: -90px; }
-  .lch-apps { max-width: 760px; justify-self: center; width: 100%; }
   .lch-workspaces { grid-column: 1; grid-row: span 2; }
   .lch-pair { grid-column: 2; }
   .lch-activity { grid-column: 2; }

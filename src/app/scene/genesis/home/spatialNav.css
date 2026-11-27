@@ -3,25 +3,58 @@
 .lsn {
   position: fixed;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   transform: translateX(-50%);
   width: min(600px, calc(100vw - 18px));
-  height: 74px;
+  height: 78px;
   z-index: 260; /* above windows and the chat window, below tabs, composer, notifications */
   pointer-events: none;
   transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease;
 }
-.lsn[data-hidden="true"] { transform: translate(-50%, 130%); opacity: 0; }
-/* A hidden rail is gone, not just invisible. */
-.lsn[data-hidden="true"] .lsn-bar,
-.lsn[data-hidden="true"] .lsn-orb-holder { pointer-events: none; }
-.lsn[data-hidden="true"] { visibility: hidden; transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease, visibility 0s linear 320ms; }
-.lsn:not([data-hidden="true"]) { visibility: visible; transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease, visibility 0s; }
+/*
+ * DIAL-ONLY — inside the immersive Cosmos, or beside a window that owns a
+ * phone screen. The utility row steps aside; THE DIAL does not. It stays a
+ * collapsed circular launcher at the bottom right, clear of the safe area,
+ * so navigation is never unreachable from inside a world or an open panel.
+ */
+.lsn[data-dial-only="true"] {
+  left: auto;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  width: auto;
+  height: auto;
+  transform: none;
+}
+.lsn[data-dial-only="true"] .lsn-bar { display: none; }
+.lsn[data-dial-only="true"] .lsn-orb-holder {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  transform: none;
+  display: block;
+}
+.lsn[data-dial-only="true"] .lsn-orb-control { width: 60px !important; height: 60px !important; }
+.lsn[data-dial-only="true"] .lsn-orb-control .lelu-circular-control-icon,
+.lsn[data-dial-only="true"] .lsn-orb-core { width: 46px; height: 46px; }
 
 body:has([data-lelu-signin-gate]) .lsn,
 body:has([data-lelu-signin-gate]) [data-spatial-nav] {
   display: none !important;
 }
+
+/*
+ * While the dial's ring is open, the workspace circles step aside.
+ *
+ * They were painted under the ring — “Search”, “Windows” and “Scene” sat
+ * between its options, so two sets of controls competed for the same pixels
+ * and a miss aimed at an option could land on a utility instead. The ring is
+ * the navigation while it is open; the utilities come back when it closes.
+ */
+/* The spatial bar's own fade is the only thing CSS decides here; whether the
+   circles are present at all is decided once, in SpatialNav, from the
+   interaction state that opened the ring. */
+.lsn-bar { transition: opacity 140ms ease; }
 
 /* One navigation at a time: the workspace owns the circular Spatial Bar,
    the immersive Cosmos owns the in-scene navigator. */
@@ -39,7 +72,8 @@ body:not([data-lelu-immersive="true"]) [data-spatial-nav] {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  /* Library · Windows · DIAL · Search · Scene · Settings */
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   align-items: center;
   padding: 0 2px;
 }

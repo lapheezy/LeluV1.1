@@ -301,12 +301,20 @@ function Portal({
           />
         </mesh>
       </group>
-      {showLabel ? (
+      {showLabel && (hovered || selected || travellingHere) ? (
         /*
          * The portal's readable identity, in the world next to the thing it
-         * names. It is the SAME selection path as the mesh (one handler, one
-         * travel call), which is what makes the field keyboard-reachable
-         * without a second widget: Tab to a chip, Enter to travel.
+         * names — shown for the portal you are aiming at, not for all eleven
+         * at once.
+         *
+         * Every mouth used to wear its name permanently, distance-scaled. On a
+         * phone that produced a wall of enormous chips (Conversation, Browser,
+         * Genesis Studios, Projects, Files, Agent universes…) laid over the
+         * world: a second destination list competing with the navigation, wide
+         * enough to fall off both edges of a 390 px screen. The world is the
+         * world; the names come to you as you aim. Every destination is still
+         * named in the dial and in the navigator's portal panel, which is the
+         * keyboard-reachable list.
          */
         <Html position={[0, spec.radius + 0.3, 0]} center distanceFactor={16} zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
           <button

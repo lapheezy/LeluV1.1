@@ -203,8 +203,8 @@ test("every environment's actions come from the shared circular control", () => 
   }
 });
 
-test("the persistent environment radial still names every environment", () => {
-  const radial = readFileSync("src/app/scene/genesis/interaction/EnvironmentRadial.tsx", "utf8");
+test("one registry names every environment, once each", () => {
+  const registry = readFileSync("src/app/scene/genesis/interaction/destinations.ts", "utf8");
   for (const label of [
     "LÉLU CORE",
     "Cosmos",
@@ -219,8 +219,37 @@ test("the persistent environment radial still names every environment", () => {
     "Executive Board",
     "Executive Galaxies",
   ]) {
-    assert.ok(radial.includes(label), `the environment radial no longer offers ${label}`);
+    assert.ok(registry.includes(label), `the destination registry no longer offers ${label}`);
   }
+
+  // One entry per panel: “Files” was the Workspace panel under a second name.
+  const projectEntries = registry.match(/"projects"/g) ?? [];
+  assert.equal(projectEntries.length, 1, "the Workspace panel is registered more than once");
+  const workspaceLabels = registry.match(/"Workspace"/g) ?? [];
+  assert.equal(workspaceLabels.length, 1, "Workspace is offered under more than one name");
+  assert.doesNotMatch(registry, /"Files"/, "Files must not be a second destination for the Workspace panel");
+});
+
+test("the interface has exactly one navigation: the bottom dial", () => {
+  const shell = readFileSync("src/app/scene/genesis/GenesisInterface.tsx", "utf8");
+  const nav = readFileSync("src/app/scene/genesis/home/SpatialNav.tsx", "utf8");
+  const home = readFileSync("src/app/scene/genesis/home/CosmosHome.tsx", "utf8");
+  const catalog = readFileSync("src/app/scene/genesis/home/homeCatalog.ts", "utf8");
+
+  // The second floating radial is gone, and nothing mounts it again.
+  assert.doesNotMatch(shell, /EnvironmentRadial/, "a second navigation launcher is still mounted");
+  assert.doesNotMatch(shell, /environment-radial-hidden|environmentRadialHidden/, "the shell still owns a second launcher's visibility");
+
+  // The old horizontal destination bar is gone, with its catalog row.
+  assert.doesNotMatch(home, /lch-apps/, "the dashboard still renders a horizontal app bar");
+  assert.doesNotMatch(home, /PRIMARY/, "the dashboard still renders the old primary row");
+  assert.doesNotMatch(catalog, /export const PRIMARY/, "the primary destination row still exists in the catalog");
+
+  // The dial is the one thing that offers destinations, and it reads the one
+  // registry instead of keeping its own copy of the list.
+  assert.match(nav, /from "\.\.\/interaction\/destinations"/, "the dial does not read the destination registry");
+  assert.match(nav, /const dialMenu: RadialMenuDefinition/, "the bottom dial has no radial menu");
+  assert.doesNotMatch(nav, /const environments: RadialMenuItemSpec\[\]/, "the dial keeps a hand-written destination list");
 });
 
 /* ------------------------------- gesture ------------------------------- */

@@ -18,7 +18,7 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Activity, Aperture, AppWindow, AudioLines, BarChart3, Bell, BookOpen, Box, Brain, Circle,
   ChevronLeft, ChevronRight, Code2, Compass, Crown, FilePlus2, FileText, Film, Fingerprint, Flower2, Folder,
@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { useLeluActivity, ACTIVITY_ACCENT, type LeluActivity } from "../avatar/leluActivity";
-import { APPS, GROUPS, PRIMARY, appFor, type AppGroup } from "./homeCatalog";
+import { APPS, GROUPS, appFor, type AppGroup } from "./homeCatalog";
 import HomeStore from "./homeStore";
 import { useCloud, useExecutive, useHomeStore, useNotifications, useProjects, useWeather } from "./useHomeLive";
 import { describeWeather } from "./homeWeather";
@@ -110,7 +110,7 @@ const NOTE_ICON: Record<string, string> = {
   info: "FileText",
 };
 
-export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLibrary: (group?: AppGroup) => void; onOpenWindows: () => void }) {
+export default function CosmosHome({ onOpenLibrary }: { onOpenLibrary: (group?: AppGroup) => void }) {
   const genesis = useGenesis();
   const activity = useLeluActivity();
   const accent = ACTIVITY_ACCENT[activity];
@@ -149,8 +149,6 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
     .filter(Boolean)
     .join(" · ");
   const voiceLive = activity === "SPEAKING" || activity === "LISTENING" || Boolean(working);
-
-  const primary = useMemo(() => PRIMARY.map((id) => (id === "workspaces" ? { id, label: "Workspaces", icon: "Layers" } : { id, label: appFor(id)!.label, icon: appFor(id)!.icon })), []);
 
   return (
     <>
@@ -239,22 +237,17 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
         </button>
       </section>
 
-      <nav className="lch-glass lch-apps" aria-label="Apps">
-        {primary.map((app) => (
-          <button
-            key={app.id}
-            type="button"
-            className="lch-app"
-            data-primary={app.id === "chat" ? "true" : "false"}
-            data-open={app.id !== "workspaces" && genesis.state.activePanel === app.id ? "true" : "false"}
-            onClick={(e) => (app.id === "workspaces" ? onOpenWindows() : open(app.id as GenesisPanel, e.currentTarget))}
-          >
-            <HomeIcon name={app.icon} size={24} />
-            <span>{app.label}</span>
-          </button>
-        ))}
-      </nav>
-
+      {/*
+        * NO HORIZONTAL NAVIGATION HERE.
+        *
+        * This was a six-column row of destinations — Chat · Browser · Studio ·
+        * Workspaces · Agents · Files — drawn above the workspaces. It was a
+        * second primary navigation, sitting under the circular dial that also
+        * listed them, and “Files” was the Workspace panel under another name.
+        * The row is gone; every destination now comes from
+        * interaction/destinations.ts and is offered by the one dial at the
+        * bottom of the interface. The dashboard is content, not navigation.
+        */}
       <section className="lch-glass lch-workspaces" aria-label="Active workspaces">
         <div className="lch-section-head">
           <HomeIcon name="Layers" size={18} />
@@ -324,7 +317,7 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
             ) : null}
           </>
         ) : (
-          <p className="lch-empty">Nothing open yet. Start in Chat, Browser or Studio — what you leave open comes back here.</p>
+          <p className="lch-empty">Nothing open yet. Pick a place from the dial — what you leave open comes back here.</p>
         )}
       </section>
 

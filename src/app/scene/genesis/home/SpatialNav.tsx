@@ -2,21 +2,25 @@
  * ==========================================================
  * LÉLU — SPATIAL BAR
  *
- * The one navigation of the app, rebuilt around circular controls.
+ * The one navigation of the app.
  *
- * Every primary control is a shared CircularControl:
+ * The centre control is THE DIAL: it sits at the bottom centre of the
+ * interface, and a touch or a hold opens the whole destination ring
+ * upward — LÉLU CORE, the Cosmos, the Genesis Scene, the Chat Universe,
+ * the Browser, and the two categories (Work, Intelligence) whose own
+ * rings carry the studios and the board. Nested rings have a caption
+ * with the parent's name and a back control; selecting travels and
+ * closes the ring.
  *
- *   tap                 the control's own destination
- *   press and hold      its contextual radial menu expands, and stays
- *                       open after release — nothing has to keep pressure
- *   tap an option       the action runs, the ring closes
- *   tap outside         the ring dismisses
+ * The controls around it are the workspace utilities (Library, Windows,
+ * Search, Scene, Settings) — each one a shared CircularControl with its
+ * own ring. They are actions on the workspace, not a second destination
+ * list: every place the interface can go comes from
+ * `interaction/destinations.ts` and is offered only by the dial.
  *
- * The menus carry what used to be lists of buttons: spatial navigation,
- * window management, scene manipulation, object creation, workspace
- * organisation, environment controls and navigation between LÉLU's
- * environments. The controls themselves stay six quiet circles around
- * the Core instead of a long bar of rectangular buttons.
+ * There is no horizontal destination bar anywhere in the interface. The
+ * dashboard's old Chat · Browser · Studio · Workspace · Agents · Files
+ * row is gone; those destinations live here, once each.
  * ==========================================================
  */
 
@@ -28,9 +32,11 @@ import { goHome, restoreLayout } from "./homeActions";
 import { useHomeStore } from "./useHomeLive";
 import { LibrarySheet, WindowsSheet, WorldsSheet } from "./HomeSheets";
 import { GROUPS } from "./homeCatalog";
-import { CircularControl, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../core/interaction";
+import { useSyncExternalStore } from "react";
+import { CircularControl, interactionState, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../core/interaction";
 import { setUniverseOpen } from "../chat/universe/universeOpen";
 import { useVoice } from "../../../../core/voice/useVoice";
+import { DIAL, type Destination, type DestinationGroup } from "../interaction/destinations";
 import "./spatialNav.css";
 
 export type HomeSheet = { kind: "library"; group?: import("./homeCatalog").AppGroup } | { kind: "windows" } | { kind: "worlds" } | null;
@@ -42,15 +48,21 @@ export function openCommandPalette(): void {
 export default function SpatialNav({
   sheet,
   setSheet,
+  dialOnly = false,
   onHoldVoice,
-  hidden,
   selfExploration,
   onToggleSelfExploration,
 }: {
   sheet: HomeSheet;
   setSheet: (sheet: HomeSheet) => void;
+  /**
+   * An immersive scene, or a window that owns a phone screen, leaves no
+   * room for the utility row. The dial stays — collapsed, bottom right,
+   * clear of the safe area — so navigation is never unreachable.
+   */
+  dialOnly?: boolean;
+  /** The dial's voice action — the one VoiceEngine, never a second pipeline. */
   onHoldVoice: () => void;
-  hidden: boolean;
   selfExploration: boolean;
   onToggleSelfExploration: () => void;
 }) {
@@ -58,6 +70,14 @@ export default function SpatialNav({
   const { state } = genesis;
   const home = useHomeStore();
   const voice = useVoice();
+  /*
+   * The dial's ring is the navigation while it is open. The workspace circles
+   * are told to step aside by the SAME interaction state that opened the ring
+   * — not by a guess about what is on screen — so two sets of controls never
+   * compete for the same pixels.
+   */
+  const interaction = useSyncExternalStore(interactionState.subscribe, interactionState.getSnapshot, interactionState.getSnapshot);
+  const ringOpen = interaction?.kind === "radial" && interaction.id === "environment-radial";
   const atHome = state.activePanel === "none" && state.activeScene !== "genesisv2";
   const openWindows = Object.entries(state.modules).filter(([id, m]) => id !== "chat" && m.presentation !== "closed").length;
 
@@ -68,9 +88,9 @@ export default function SpatialNav({
     window.dispatchEvent(new CustomEvent("lelu-open-universe"));
   };
 
-  const openPanel = (id: string) => {
+  const openPanel = (id: GenesisPanel) => {
     setSheet(null);
-    genesis.openPanel(id as GenesisPanel);
+    genesis.openPanel(id);
   };
 
   const enterCosmos = (immersive: boolean) => {
@@ -81,17 +101,85 @@ export default function SpatialNav({
 
   const icon = (name: string, size = 21) => <HomeIcon name={name} size={size} />;
 
-  const homeMenu: RadialMenuDefinition = {
-    id: "spatial-home",
-    label: "Home",
+  /* ---------------------------------------------------------------
+   * The dial — built from the ONE destination registry.
+   * ------------------------------------------------------------- */
+
+  const travel = (destination: Destination) => {
+    setSheet(null);
+    switch (destination.target.kind) {
+      case "home":
+        goHome(genesis);
+        HomeStore.setImmersive(false);
+        break;
+      case "immersive":
+        enterCosmos(true);
+        break;
+      case "chat":
+        openChat();
+        break;
+      case "panel":
+        HomeStore.setImmersive(false);
+        openPanel(destination.target.panel);
+        break;
+    }
+  };
+
+  const active = (destination: Destination): boolean => {
+    switch (destination.target.kind) {
+      case "home":
+        return atHome && !home.immersive && !sheet;
+      case "immersive":
+        return home.immersive;
+      case "chat":
+        return state.activePanel === "chat";
+      case "panel":
+        return state.activePanel === destination.target.panel;
+    }
+  };
+
+  const destinationItem = (destination: Destination): RadialMenuItemSpec => ({
+    id: destination.id,
+    label: destination.label,
+    icon: icon(destination.icon),
+    active: active(destination),
+    onSelect: () => travel(destination),
+  });
+
+  const groupItem = (group: DestinationGroup): RadialMenuItemSpec => ({
+    id: group.id,
+    label: group.label,
+    icon: icon(group.icon),
+    /* A category is drawn as a branch, never as a place: the caption in the
+       nested ring names the parent, so the relationship is explicit. */
+    children: group.items.map(destinationItem),
+  });
+
+  const dialMenu: RadialMenuDefinition = {
+    id: "environment-radial",
+    label: "Environments",
     items: [
-      { id: "home", label: "Home", icon: icon("Home"), active: atHome && !home.immersive, onSelect: () => { setSheet(null); if (atHome) HomeStore.setImmersive(false); else goHome(genesis); } },
-      { id: "cosmos", label: "Cosmos", icon: icon("Orbit"), active: home.immersive, onSelect: () => enterCosmos(true) },
-      { id: "chat", label: "Chat Universe", icon: icon("MessagesSquare"), onSelect: openChat },
-      { id: "library", label: "App Library", icon: icon("LayoutGrid"), onSelect: () => setSheet({ kind: "library" }) },
-      { id: "windows", label: "Windows", icon: icon("AppWindow"), onSelect: () => setSheet({ kind: "windows" }) },
+      ...DIAL.map((entry) => (entry.kind === "group" ? groupItem(entry) : destinationItem(entry))),
+      {
+        id: "voice",
+        label: voice.state.active ? "Stop talking" : "Talk to LÉLU",
+        icon: icon(voice.state.active ? "MicOff" : "Mic"),
+        active: voice.state.active,
+        tone: voice.state.active ? "accent" : "default",
+        onSelect: onHoldVoice,
+      },
+      {
+        id: "immersion",
+        label: home.immersive ? "Back to the workspace" : "Look at the Cosmos",
+        icon: icon("Orbit"),
+        onSelect: () => HomeStore.setImmersive(!home.immersive),
+      },
     ],
   };
+
+  /* ---------------------------------------------------------------
+   * Workspace utilities — actions on the workspace, not destinations.
+   * ------------------------------------------------------------- */
 
   const libraryMenu: RadialMenuDefinition = {
     id: "spatial-library",
@@ -132,7 +220,7 @@ export default function SpatialNav({
 
   const worldsMenu: RadialMenuDefinition = {
     id: "spatial-worlds",
-    label: "Worlds",
+    label: "Scene",
     items: [
       { id: "cosmos", label: "Cosmos", icon: icon("Orbit"), active: state.activeScene !== "genesisv2" && state.activePanel === "none", onSelect: () => enterCosmos(false) },
       { id: "world", label: "Her world", icon: icon("Layers"), active: state.activeScene === "genesisv2", onSelect: () => openPanel("genesisv2") },
@@ -162,67 +250,11 @@ export default function SpatialNav({
     ],
   };
 
-  const orbMenu: RadialMenuDefinition = {
-    id: "spatial-core",
-    label: "LÉLU",
-    items: [
-      {
-        id: "voice",
-        label: voice.state.active ? "Stop talking" : "Talk to LÉLU",
-        icon: icon(voice.state.active ? "MicOff" : "Mic"),
-        active: voice.state.active,
-        tone: voice.state.active ? "accent" : "default",
-        onSelect: onHoldVoice,
-      },
-      { id: "immersion", label: home.immersive ? "Back to the workspace" : "Look at the Cosmos", icon: icon("Orbit"), onSelect: () => HomeStore.setImmersive(!home.immersive) },
-      { id: "chat", label: "Chat Universe", icon: icon("MessagesSquare"), onSelect: openChat },
-      {
-        id: "environments",
-        label: "Environments",
-        icon: icon("Layers3"),
-        children: [
-          { id: "core", label: "LÉLU CORE", icon: icon("Sparkles"), onSelect: () => { goHome(genesis); HomeStore.setImmersive(false); } },
-          { id: "cosmos-env", label: "Cosmos", icon: icon("Orbit"), onSelect: () => enterCosmos(true) },
-          { id: "genesis", label: "Genesis Scene", icon: icon("Layers"), onSelect: () => openPanel("genesisv2") },
-          { id: "ui", label: "UI Universe", icon: icon("Box"), onSelect: () => openPanel("visualstudio") },
-          { id: "agents", label: "Agent Universe", icon: icon("Workflow"), onSelect: () => openPanel("agents") },
-          { id: "executive", label: "Executive Board", icon: icon("Crown"), onSelect: () => openPanel("executive") },
-          { id: "workspace", label: "Workspace", icon: icon("Folder"), onSelect: () => openPanel("projects") },
-          { id: "voice-studio", label: "Voice Studio", icon: icon("AudioLines"), onSelect: () => openPanel("voice-studio") },
-          { id: "eng-studio", label: "Engineering Studio", icon: icon("Code2"), onSelect: () => openPanel("eng-studio") },
-        ],
-      },
-      {
-        id: "create",
-        label: "Create",
-        icon: icon("Plus"),
-        children: [
-          { id: "document", label: "Document", icon: icon("FileText"), onSelect: () => openPanel("creation") },
-          { id: "sketch", label: "Sketch", icon: icon("PenLine"), onSelect: () => openPanel("sketch") },
-          { id: "render", label: "Render", icon: icon("Aperture"), onSelect: () => openPanel("render") },
-          { id: "video", label: "Video", icon: icon("Film"), onSelect: () => openPanel("video") },
-          { id: "studio", label: "Creation Studio", icon: icon("Box"), onSelect: () => openPanel("visualstudio") },
-        ],
-      },
-      {
-        id: "spatial-nav",
-        label: "Spatial navigation",
-        icon: icon("Compass"),
-        children: [
-          { id: "worlds", label: "Worlds", icon: icon("Globe2"), onSelect: () => setSheet({ kind: "worlds" }) },
-          { id: "earth-nav", label: "Earth", icon: icon("Globe"), onSelect: () => openPanel("earth") },
-          { id: "browser", label: "Browser", icon: icon("Compass"), onSelect: () => openPanel("browser") },
-          { id: "history", label: "History", icon: icon("History"), onSelect: () => openPanel("history") },
-        ],
-      },
-    ],
-  };
-
   const item = (
     key: string,
     label: string,
     iconName: string,
-    active: boolean,
+    isActive: boolean,
     menu: RadialMenuDefinition,
     onPress: () => void,
     badge?: number,
@@ -233,7 +265,7 @@ export default function SpatialNav({
       label={label}
       caption={label}
       icon={icon(iconName)}
-      active={active}
+      active={isActive}
       badge={badge}
       menu={menu}
       onPress={onPress}
@@ -244,17 +276,22 @@ export default function SpatialNav({
     <>
       <nav
         className="lsn"
-        data-hidden={hidden ? "true" : "false"}
+        data-dial-only={dialOnly ? "true" : "false"}
+        data-ring-open={ringOpen ? "true" : "false"}
         data-browser="lelu-spatial-bar"
         aria-label="Spatial navigation"
-        aria-hidden={hidden}
+        aria-hidden={dialOnly ? undefined : false}
       >
-        <div className="lsn-bar" role="toolbar" aria-label="Spatial controls">
-          {item("home", "Home", "Home", atHome && !home.immersive && !sheet, homeMenu, () => {
-            setSheet(null);
-            if (atHome) HomeStore.setImmersive(false);
-            else goHome(genesis);
-          })}
+        <div
+          className="lsn-bar"
+          role="toolbar"
+          aria-label="Workspace controls"
+          /* The ring is the navigation while it is open: the workspace circles
+             are removed from hit-testing and from the accessibility tree, not
+             left sitting between its options. */
+          aria-hidden={ringOpen || undefined}
+          style={{ visibility: ringOpen ? "hidden" : "visible", opacity: ringOpen ? 0 : 1 }}
+        >
           {item("library", "Library", "LayoutGrid", sheet?.kind === "library", libraryMenu, () => setSheet(sheet?.kind === "library" ? null : { kind: "library" }))}
           {item("windows", "Windows", "AppWindow", sheet?.kind === "windows", windowsMenu, () => setSheet(sheet?.kind === "windows" ? null : { kind: "windows" }), openWindows || undefined)}
           <span className="lsn-orb-slot" aria-hidden />
@@ -262,7 +299,7 @@ export default function SpatialNav({
             setSheet(null);
             openCommandPalette();
           })}
-          {item("worlds", "Worlds", "Layers", sheet?.kind === "worlds" || state.activeScene === "genesisv2", worldsMenu, () => setSheet(sheet?.kind === "worlds" ? null : { kind: "worlds" }))}
+          {item("worlds", "Scene", "Layers", sheet?.kind === "worlds" || state.activeScene === "genesisv2", worldsMenu, () => setSheet(sheet?.kind === "worlds" ? null : { kind: "worlds" }))}
           {item("settings", "Settings", "Settings", state.activePanel === "settings", settingsMenu, () => {
             setSheet(null);
             openPanel("settings");
@@ -270,22 +307,19 @@ export default function SpatialNav({
         </div>
 
         <div className="lsn-orb-slot lsn-orb-holder">
+          {/*
+            THE DIAL. One persistent circular control at the bottom centre of
+            the interface: a touch or a hold opens the destination ring
+            upward, and every place the interface can go is in it.
+          */}
           <CircularControl
-            label={home.immersive ? "Back to the workspace (hold for LÉLU actions)" : "Look at the Cosmos (hold for LÉLU actions)"}
+            label="Environments — touch for every place in LÉLU"
             icon={<span className="lsn-orb-core" />}
             size={78}
-            menu={orbMenu}
+            menu={dialMenu}
             active={home.immersive || voice.state.active}
             className="lsn-orb-control"
             testId="lsn-orb"
-            onPress={() => {
-              if (!atHome) {
-                goHome(genesis);
-                HomeStore.setImmersive(true);
-                return;
-              }
-              HomeStore.setImmersive(!home.immersive);
-            }}
           />
         </div>
       </nav>

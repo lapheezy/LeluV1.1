@@ -69,9 +69,28 @@ export default function RadialMenu({
   );
 
   useEffect(() => {
-    // A different menu starts at its root, never inside the previous trail.
-    setNested(null);
-  }, [menu.id]);
+    /*
+     * A ring always opens at its ROOT.
+     *
+     * This used to reset only when a *different* menu opened, so closing the
+     * dial while inside “Work” and touching it again dropped you straight back
+     * into Work with no indication of where you were — the hierarchy looked
+     * broken because the parent step had been skipped. Reopening is a new
+     * navigation, and every navigation starts at the top.
+     */
+    if (open) {
+      setNested(null);
+      /*
+       * Re-read the screen when the ring opens.
+       *
+       * The viewport was only sampled on mount and on resize WHILE the ring
+       * was open, so a ring opened after the window changed size was placed
+       * for the old one: at 320×740 the bottom options landed 34 px below the
+       * fold and could not be reached. Opening is a fresh measurement.
+       */
+      setViewport(currentViewport());
+    }
+  }, [menu.id, open]);
 
   useEffect(() => {
     if (!open) return;

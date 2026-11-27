@@ -135,15 +135,20 @@ test("the interface leaves out Cosmos chrome while chat owns the screen", () => 
   assert.match(ui, /\{surface\.chatOwnsScreen \|\| showHome \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
   assert.match(
     ui,
-    /const navHidden =[\s\S]{0,500}?surface\.chatOwnsScreen[\s\S]{0,200}?surface\.workspaceOwnsScreen/,
+    /const navUnmounted = surface\.chatOwnsScreen;/,
     "the navigation is not told that the chat owns the screen",
   );
   assert.match(
     ui,
-    /state\.activePanel !== "none"[\s\S]{0,160}?window\.innerWidth < 720/,
-    "an open application window must also hide the phone navigation",
+    /const dialOnly =[\s\S]{0,400}?surface\.workspaceOwnsScreen/,
+    "a window that owns the phone screen must collapse the navigation to its dial",
   );
-  assert.match(ui, /hidden=\{navHidden\}/, "the spatial navigation ignores navHidden");
+  assert.match(
+    ui,
+    /state\.activePanel !== "none"[\s\S]{0,160}?window\.innerWidth < 720/,
+    "an open application window must also collapse the phone navigation",
+  );
+  assert.match(ui, /dialOnly=\{dialOnly\}/, "the spatial navigation ignores the dial-only state");
 });
 
 /* ------------------------------ the chat ------------------------------ */
@@ -347,7 +352,11 @@ test("the surface reads the Universe's open state from one shared store", () => 
 test("Home and the spatial nav leave the tree (not hidden) while a conversation owns the phone", () => {
   const ui = readFileSync("src/app/scene/genesis/GenesisInterface.tsx", "utf8");
   assert.match(ui, /const showHome = [^;]*!surface\.chatOwnsScreen && !surface\.workspaceOwnsScreen;/);
-  assert.match(ui, /navHidden && \(surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\) \? null : \(\s*<SpatialNav/);
+  assert.match(
+    ui,
+    /\{state\.minimized \|\| navUnmounted \? null : \(\s*<SpatialNav/,
+    "a conversation that owns the phone screen still mounts the navigation under it",
+  );
 });
 
 test("on a phone a conversation window is the full visual viewport; one composer; apps above the chat panel", () => {
