@@ -86,6 +86,7 @@ import { useWorkspace } from "./useWorkspace";
 import SelectedArtifactChip from "./SelectedArtifactChip";
 import { layer } from "../../../core/ui/Layers";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
+import { interruptedTurnText } from "../../../core/multichat/interruptedTurn";
 import { bindMessage, bindTask, claimTurn, ownerForTask, releaseTurn } from "../../../core/multichat/TurnOwnership";
 import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../core/multichat/TurnActivity";
 import { recordTurnActivity } from "./chat/activityRecorder";
@@ -311,6 +312,23 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   /** Which question the draft above was typed for. */
   const activeQuestionIdRef = useRef<string | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
+  /**
+   * A TURN THAT CANNOT STILL BE RUNNING.
+   *
+   * Measured on a phone (Mission 44.6): a turn was streaming, the page was
+   * reloaded mid-generation, and the question stayed in the conversation with
+   * no reply, no error and no way forward — the work died with the tab and the
+   * client said nothing at all. `bootAt` is this page's own start, so a user
+   * message stored BEFORE it has no turn behind it in this page: no send() is
+   * running for it, and none ever will be. The notice offers the same "Try
+   * again" a failed turn does, so the turn is recoverable without retyping.
+   */
+  const [bootAt] = useState(() => Date.now());
+  const interruptedTurn = useMemo(() => {
+    // A visible failure already explains it; two notices would be one too many.
+    if (exchange?.error) return null;
+    return interruptedTurnText(state.messages ?? [], bootAt, isSending);
+  }, [state.messages, isSending, exchange, bootAt]);
   /** Which conversation the visible exchange was built from. */
   const replayedForRef = useRef<string | null>(null);
   const artifactImagesRef = useRef<string[]>([]);
@@ -2007,6 +2025,18 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             speaking={voiceEcho}
             onRetry={retry}
           />
+          {interruptedTurn ? (
+            <div className="lelu-cc-failure" role="status" data-lelu-interrupted>
+              <strong>That turn stopped before it answered</strong>
+              <p>
+                The page was closed or reloaded while LÉLU was working, so no reply was saved. Nothing is still
+                running.
+              </p>
+              <button type="button" className="lelu-cc-chip lelu-cc-chip--primary" onClick={() => retry(interruptedTurn)}>
+                Try again
+              </button>
+            </div>
+          ) : null}
           {awayFromLatest ? (
             <button type="button" className="lelu-cc-jump" onClick={() => scrollToLatest(true)} aria-label="Jump to the latest message">
               <ArrowDown size={15} aria-hidden />

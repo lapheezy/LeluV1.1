@@ -29,6 +29,13 @@ interface ClaimRule {
   label: string;
   /** An affirmative claim of this tool's result. */
   claim: RegExp;
+  /**
+   * The claim asserts FRESHNESS ("the result just returned"), not just a
+   * result. A trailing "not verified" note is not enough for one of these:
+   * the user asked what the state IS, so the reply must not present an old
+   * answer as a new check. See freshnessCorrection().
+   */
+  fresh?: boolean;
 }
 
 const RULES: ClaimRule[] = [
@@ -68,9 +75,38 @@ const RULES: ClaimRule[] = [
     claim: /\bapplied (?:it |the (?:change|fix|edit) )?to the (?:real|main) (?:project|codebase)\b/i,
   },
   {
+    // First person, or an object that is a change: a quoted commit SUBJECT or
+    // date ("'Record the checkpoint' (committed 2026-11-26T13:39Z)") is an
+    // existing git fact, not a claim that this turn made one — measured on a
+    // phone in Mission 44.6, where it produced a note that was wrong in the
+    // other direction.
     tools: ["project_commit", "github_commits"],
     label: "the commit",
-    claim: /\b(committed|created (?:a |the )?commit)\b/i,
+    claim:
+      /\b(?:(?:i|we) (?:have )?(?:just )?committed\b|created (?:a |the )?commit\b|committed (?:the|this|it|that|these|my|your) (?:change|fix|edit|work|file|files|diff|code)\b)/i,
+  },
+  {
+    // Measured live on a phone (Mission 44.6): asked "which branch were we
+    // just talking about, and what is the HEAD commit on it?", the reply
+    // opened "From the laboratory repository tool result just returned: the
+    // current branch is mission/44-4-recovery-acceptance and the HEAD commit
+    // is adaa97a" — two turns stale, from a turn that called no lab tool at
+    // all, and true of no branch in this workspace. The lab family had no
+    // rule here, so nothing compared the claim with what ran.
+    tools: [
+      "lab_repository",
+      "lab_status",
+      "lab_tree",
+      "lab_journal",
+      "lab_history",
+      "lab_experiment",
+      "lab_cycle",
+      "lab_execute",
+    ],
+    label: "a laboratory result you say you just received",
+    fresh: true,
+    claim:
+      /\b(?:tool result (?:i )?just (?:returned|received|got)|just returned (?:from|by) (?:the )?(?:laboratory|lab)\b|from the laboratory (?:repository |status |journal |history |tree )?tool result|just (?:checked|queried|read) (?:the )?(?:repository|lab|journal))\b/i,
   },
 ];
 
@@ -81,6 +117,8 @@ export interface UngroundedClaim {
   label: string;
   tools: string[];
   line: string;
+  /** The claim asserts the result is fresh — see ClaimRule.fresh. */
+  fresh?: boolean;
 }
 
 /**
@@ -100,10 +138,37 @@ export function ungroundedClaims(reply: string, executed: ReadonlyArray<{ tool: 
     for (const rule of RULES) {
       if (found.has(rule.label)) continue;
       if (rule.tools.some((tool) => ran.has(tool))) continue;
-      if (rule.claim.test(line)) found.set(rule.label, { label: rule.label, tools: rule.tools, line: line.slice(0, 200) });
+      if (rule.claim.test(line)) {
+        found.set(rule.label, {
+          label: rule.label,
+          tools: rule.tools,
+          line: line.slice(0, 200),
+          ...(rule.fresh ? { fresh: true } : {}),
+        });
+      }
     }
   }
   return [...found.values()];
+}
+
+/**
+ * What a reply must say BEFORE itself when it claims a fresh result that no
+ * tool in this turn produced.
+ *
+ * The trailing grounding note is a footnote; for a freshness claim the wrong
+ * part is the answer, and a reader who stops at the first sentence has already
+ * been misled. So the correction leads, names the tools that did not run, and
+ * says what the text below actually is (recall, not a check).
+ */
+export function freshnessCorrection(claims: readonly UngroundedClaim[]): string {
+  const fresh = claims.filter((claim) => claim.fresh);
+  if (fresh.length === 0) return "";
+  const tools = [...new Set(fresh.flatMap((claim) => claim.tools))].slice(0, 4).join(", ");
+  return (
+    `⚠️ Nothing was checked in this turn — no laboratory tool ran (${tools} did not run), so the ` +
+    "statement below is recalled from earlier in this conversation, not the current state. " +
+    "Ask again and I'll look it up.\n\n"
+  );
 }
 
 /** The note a reply carries when it claims results no tool produced. */

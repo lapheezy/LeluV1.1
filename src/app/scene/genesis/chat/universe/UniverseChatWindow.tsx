@@ -37,6 +37,17 @@ interface PendingAttachment {
   dataUrl?: string;
 }
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
+import { interruptedTurnText } from "../../../../../core/multichat/interruptedTurn";
+
+/**
+ * When this page's JavaScript started.
+ *
+ * A stored user message older than this was written by a page that is no
+ * longer here, so no turn can be running for it: a reload (or a tab closed
+ * mid-generation) leaves exactly that shape, and before this it left the
+ * question sitting in the thread with no reply, no error and no way forward.
+ */
+const PAGE_BOOT = Date.now();
 
 /** The turn running in this chat, from the same record the chat panel shows. */
 function useLiveActivity(conversationId: string) {
@@ -112,6 +123,16 @@ export default function UniverseChatWindow({
     setDraft("");
     setAttached([]);
   };
+
+  /**
+   * The last message has no reply and no turn behind it.
+   *
+   * Measured on a 390x844 page (Mission 44.6): a turn was mid-generation when
+   * the page was reloaded; afterwards the question was still in the thread and
+   * nothing else was — no reply, no failure, no control. It is recoverable
+   * with the same send path everything else uses, so it says so and offers it.
+   */
+  const unanswered = interruptedTurnText(conversation.messages, PAGE_BOOT, conversation.processing);
 
   const action = (label: string, run: () => void, pressed?: boolean) => (
     <button
@@ -202,6 +223,22 @@ export default function UniverseChatWindow({
               </div>
             </div>
           ))}
+          {unanswered ? (
+            <div className="lelu-cc-failure" data-lelu-interrupted role="status">
+              <strong>That turn stopped before it answered</strong>
+              <p>The page was closed or reloaded while LÉLU was working, so no reply was saved. Nothing is still running.</p>
+              <button
+                type="button"
+                className="lelu-cc-chip lelu-cc-chip--primary"
+                onClick={() => {
+                  if (conversation.id !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(conversation.id);
+                  window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text: unanswered, conversationId: conversation.id } }));
+                }}
+              >
+                Try again
+              </button>
+            </div>
+          ) : null}
           {conversation.processing ? (
             <div className="lcu-typing" data-lelu-universe-typing role="status" aria-live="polite">
               <span /><span /><span />

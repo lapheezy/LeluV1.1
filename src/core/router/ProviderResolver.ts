@@ -12,7 +12,7 @@
 import { continuationContext } from "./continuationContext";
 import { resolveFirst } from "../resolveEnv";
 import { classifyChainFailure } from "../voice/turnFailure";
-import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
+import { contradictedCaptureClaims, contradictionNote, freshnessCorrection, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIRequest, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
@@ -242,6 +242,18 @@ export default class ProviderResolver {
     const toolsReallyRun: Array<ToolRunRecord> = [];
     /** Why each provider in the chain failed — so the final notice can say timeout vs network vs unavailable. */
     const chainErrors: string[] = [];
+    /**
+     * Text a provider had already streamed before its connection broke.
+     *
+     * A streamed answer is shown as it arrives, so a break in the middle is
+     * not "nothing happened": the user has read those words. Falling through
+     * to the next provider is right (it may finish the answer), but if the
+     * whole chain fails, the offline notice REPLACED that visible text with
+     * "all providers are unreachable" — the answer the user was reading was
+     * lost. The longest partial is kept and used as the last resort instead.
+     */
+    let bestPartial = "";
+    let bestPartialProvider = "";
 
     // The last point before any provider sees the context: whatever her
     // cognition put in it that quotes ANOTHER chat is labelled with that
@@ -462,6 +474,13 @@ export default class ProviderResolver {
           };
         }
         const message = error instanceof Error ? error.message : String(error);
+        // Keep what was already on the user's screen, in case the whole chain
+        // fails and there would otherwise be nothing to show for the turn.
+        const streamed = (error as { partialText?: unknown } | null)?.partialText;
+        if (typeof streamed === "string" && streamed.trim().length > bestPartial.trim().length) {
+          bestPartial = streamed;
+          bestPartialProvider = provider.name;
+        }
         // Did this attempt already do real work before it failed?
         //
         // Falling through now would hand the next provider the SAME messages
@@ -554,7 +573,26 @@ export default class ProviderResolver {
 
     return {
       handled: true,
-      response: this.withRealTools(this.offline(context, false, chainErrors), toolsReallyRun),
+      response: this.withRealTools(
+        bestPartial
+          ? {
+              text:
+                `${bestPartial.trim()}\n\n` +
+                `⚠️ The connection to ${bestPartialProvider} broke while this answer was arriving, so it stops where ` +
+                "the stream stopped. The other providers could not continue it. Nothing that already ran was repeated.",
+              provider: bestPartialProvider,
+              model: "stream-cut",
+              processingTime: Date.now() - context.started,
+              metadata: {
+                success: false,
+                partial: true,
+                streamInterrupted: true,
+                reason: "all-ai-providers-failed",
+              },
+            }
+          : this.offline(context, false, chainErrors),
+        toolsReallyRun,
+      ),
     };
   }
 
@@ -1120,6 +1158,8 @@ export default class ProviderResolver {
     if (ungrounded.length > 0) {
       context.logger.info("ProviderResolver", "Reply claims tool results with no tool behind them", {
         claims: ungrounded.map((claim) => claim.label),
+        freshness: ungrounded.filter((claim) => claim.fresh).length,
+        toolsExecuted: executed.map((entry) => entry.tool),
       });
     }
     // ...and the numbers she reports must be the ones measured.
@@ -1133,7 +1173,10 @@ export default class ProviderResolver {
     const deficiencies = assessTurn(context.request.prompt ?? "", qualityCalls);
     return {
       ...response,
-      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
+      // A claim of a FRESH result is corrected before the reply, not after it:
+      // the reader who stops at the first line must not be left believing an
+      // old answer was a new check (Mission 44.6, measured on a phone).
+      text: `${freshnessCorrection(ungrounded)}${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
         ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),

@@ -1,0 +1,24 @@
+# Mission 44.6 verification — 2026-11-27T15:32:16Z
+
+## npx tsc -b --force
+exit 0
+
+## npm run build
+exit 0
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/core/perf/StartupTelemetry.ts is dynamically imported by src/core/selfdev/ArchitectureMap.ts but also statically imported by src/app/scene/genesis/GenesisChat.tsx, src/core/AIService.ts, src/core/Bootstrap.ts, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/core/perf/LatencyProbe.ts is dynamically imported by src/core/selfdev/ArchitectureMap.ts but also statically imported by src/app/scene/genesis/GenesisChat.tsx, src/core/AIService.ts, dynamic import will not move module into another chunk.
+
+✓ built in 5.60s
+
+## full suite
+exit 0
+ℹ tests 2372
+ℹ suites 34
+ℹ pass 2364
+ℹ fail 0
+ℹ skipped 8
+ℹ duration_ms 236902.346499
+
+DONE

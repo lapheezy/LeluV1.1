@@ -12,7 +12,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { groundingNote, ungroundedClaims } from "../src/core/tools/ClaimGrounding";
+import { freshnessCorrection, groundingNote, ungroundedClaims } from "../src/core/tools/ClaimGrounding";
 
 const transcript = readFileSync("docs/evidence/self-improve/2026-10-29T22-34-45/transcript.txt", "utf8");
 const replies = transcript.split("── ASSISTANT ──").slice(1).map((part) => part.split("── USER ──")[0]);
@@ -95,4 +95,52 @@ test("numbers that were not measured are contradicted: run 15's '0 problems' aga
     { target: "app", conditions: "phone, panel avatar", problems: 10 },
     { target: "preview", conditions: "phone, panel avatar", problems: 10 },
   ]), []);
+});
+
+/**
+ * Mission 44.6, measured on a 390x844 iPhone-sized page: asked "Which branch
+ * were we just talking about, and what is the HEAD commit on it?", the reply
+ * opened by saying the laboratory repository tool result had JUST returned —
+ * and reported mission/44-4-recovery-acceptance at adaa97a, which is a branch
+ * state from two turns earlier and true of no branch in this workspace. The
+ * turn called no laboratory tool at all.
+ */
+const staleLabReply =
+  "From the laboratory repository tool result just returned: the current branch is " +
+  "**mission/44-4-recovery-acceptance** and the HEAD commit is **adaa97a** — " +
+  "“Record the Mission 44.3 checkpoint and final commit in its report” (committed 2026-11-26T13:39:31+00:00).";
+
+test("a laboratory result claimed as just returned, with no lab tool in the turn, is corrected FIRST", () => {
+  const claims = ungroundedClaims(staleLabReply, [{ tool: "universal_knowledge", ok: true }]);
+  const fresh = claims.filter((claim) => claim.fresh);
+  assert.equal(fresh.length, 1, `one fresh lab claim — got ${JSON.stringify(claims.map((c) => c.label))}`);
+  assert.match(fresh[0].label, /laboratory result/);
+  const correction = freshnessCorrection(claims);
+  assert.match(correction, /^⚠️ Nothing was checked in this turn/);
+  assert.match(correction, /lab_repository/);
+  assert.match(correction, /recalled from earlier in this conversation, not the current state/);
+});
+
+test("the same sentence is fine when the lab tool really ran this turn", () => {
+  const backed = ungroundedClaims(staleLabReply, [{ tool: "lab_repository", ok: true }]);
+  assert.deepEqual(backed.filter((claim) => claim.fresh), [], "a real lab run backs the freshness claim");
+  assert.equal(freshnessCorrection(backed), "");
+  // A FAILED lab run does not back a "just returned" claim either.
+  const failed = ungroundedClaims(staleLabReply, [{ tool: "lab_repository", ok: false }]);
+  assert.equal(failed.filter((claim) => claim.fresh).length, 1);
+  // ...and quoting an existing commit's subject or date is not a claim that
+  // this turn made a commit.
+  assert.deepEqual(failed.map((claim) => claim.label), ["a laboratory result you say you just received"]);
+});
+
+test("history is allowed to be history: an earlier result named as earlier is not a fresh claim", () => {
+  const honest = [
+    "Earlier in this conversation the repository read mission/44-4-recovery-acceptance — I have not checked since.",
+    "I haven't checked the branch in this turn; I can call lab_repository now.",
+    "I will call lab_repository to see the current branch.",
+  ];
+  for (const reply of honest) {
+    assert.deepEqual(ungroundedClaims(reply, []), [], `not a claim: ${reply}`);
+    assert.equal(freshnessCorrection(ungroundedClaims(reply, [])), "");
+  }
 });

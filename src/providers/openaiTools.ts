@@ -397,7 +397,16 @@ export async function readOpenAIStream(
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") throw error;
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`${provider} stream interrupted: ${message}`);
+    const interrupted = new Error(`${provider} stream interrupted: ${message}`);
+    // What was already streamed is output the user has read, not a plan. It
+    // rides on the error so the resolver can answer with it when no provider
+    // can finish the job (Mission 44.6: the offline notice used to replace a
+    // half-answer that was already on screen). Tool calls are deliberately
+    // NOT carried over: a half-assembled call must never be executed.
+    if (text.trim()) {
+      (interrupted as Error & { partialText?: string }).partialText = text;
+    }
+    throw interrupted;
   }
 
   const toolCalls: ToolCall[] = [...calls.entries()]
