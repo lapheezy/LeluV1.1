@@ -219,7 +219,21 @@ captured from the conversation store and a page-level fetch recorder:
 ## 9. Branch, commit, working tree
 
 - Branch: `mission/44-5-conversational-reliability`, created from `77ead33`
+- Delivery commit: **`e68287f`** — "Keep a turn's work when its provider stops, and never leave a
+  turn hanging" (17 files, +2716 / −71), on top of `77ead33`
 - Mission 44.4 branch `mission/44-4-recovery-acceptance` untouched at `77ead33`; canonical
   `freebuff/08af6cc9ef212913e6b7209b` untouched at `543da7c`; the 8 `lelu-lab/exp-*`
   worktrees untouched
-- Not merged, not deployed, not published
+- Working tree clean apart from the deliberate untracked `pw-probe.mjs`
+- Nothing merged into production, nothing deployed or published
+
+### WP05 checklist
+
+| Requirement | Result |
+|---|---|
+| Preserve all Mission 44.4 evidence | untouched — `docs/missions/evidence/mission-44-4/` and its report are unmodified (verified in the diff from `77ead33`) |
+| Audit the complete diff from `77ead33` | 10 source/test files + 7 new evidence/test files, +2716 / −71 — every file listed in §3 |
+| Check the remote branch and working tree | working tree clean but for `pw-probe.mjs`; feature branch pushed, canonical and 44.4 branches not force-updated |
+| Dedicated Mission 44.5 branch | `mission/44-5-conversational-reliability` |
+| Do not overwrite or reset the canonical branch | canonical stays at `543da7c` |
+| Do not merge without authorization | not merged |
