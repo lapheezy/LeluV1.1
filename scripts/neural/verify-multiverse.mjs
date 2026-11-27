@@ -45,6 +45,30 @@ const attrs = (page) =>
     return el ? { aspect: el.dataset.mvAspect, layout: el.dataset.mvLayout, nodes: Number(el.dataset.mvNodes), edges: Number(el.dataset.mvEdges), drawn: el.querySelectorAll("[data-mv-node]").length } : null;
   });
 
+/**
+ * WP11 regression: every control of the map, and the stage, is the topmost
+ * element under its own centre (nothing, her companion included, covers it).
+ */
+async function unobstructed(page, label) {
+  await page.waitForTimeout(2500); // her body loads asynchronously; give it time to (wrongly) appear
+  const report = await page.evaluate(() => {
+    const root = document.querySelector("[data-neural-map-view]");
+    const targets = [
+      ...document.querySelectorAll("[data-neural-map-view] header button, [data-neural-map-view] select, [data-neural-map-view] input, .mv-stage, .nm-centre"),
+    ].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.top < innerHeight && r.left < innerWidth && r.bottom > 0; });
+    const blocked = [];
+    for (const el of targets) {
+      const r = el.getBoundingClientRect();
+      const x = Math.min(innerWidth - 1, r.left + r.width / 2), y = Math.min(innerHeight - 1, r.top + Math.min(r.height / 2, 40));
+      const top = document.elementFromPoint(x, y);
+      if (!top || !root?.contains(top)) blocked.push(`${el.tagName.toLowerCase()}${el.getAttribute("aria-label") ? `[${el.getAttribute("aria-label")}]` : ""}${el.textContent?.trim().slice(0, 20) ? ` "${el.textContent.trim().slice(0, 20)}"` : ""} ← ${top?.closest("[data-testid]")?.getAttribute("data-testid") ?? top?.tagName}`);
+    }
+    return { checked: targets.length, blocked, presence: document.querySelector("[data-testid='lelu-companion']")?.getAttribute("data-presence") ?? "absent" };
+  });
+  check(`${label}: no control or stage of the map is covered (${report.checked} checked)`, report.checked > 3 && report.blocked.length === 0, report.blocked.join(" | "));
+  check(`${label}: her companion has stepped away from the map`, report.presence === "away" || report.presence === "absent", report.presence);
+}
+
 const browser = await launch();
 const LAYOUT_IDS = ["core-orbit", "galactic-spiral", "nested-universes", "force-directed", "dimensional-layers", "radial-constellation", "infinite-canvas", "temporal-river", "matrix-grid", "topographic-field", "chord-ring", "holographic-spatial"];
 const SHOTS = { v1: ["core-orbit", "force-directed"], v2: ["nested-universes", "chord-ring", "holographic-spatial", "dimensional-layers"], v3: ["core-orbit", "radial-constellation"] };
@@ -55,6 +79,7 @@ try {
   await enter(page);
   check("Neural Map opens with the aspect selector", (await page.locator("[data-mv-aspects] [data-aspect]").count()) === 3);
   check("V1 opens on its canonical neighbourhood view", (await page.locator("[data-neural-graph]").count()) === 1);
+  await unobstructed(page, "desktop V1");
   await page.screenshot({ path: `${OUT}/01-v1-neighbourhood.png` });
 
   let n = 1;
@@ -83,6 +108,7 @@ try {
   // V2: subsystems are real; V3: the gaps it cannot show are stated.
   await page.click('[data-aspect="v2"]');
   await page.selectOption('select[aria-label="Shared layout"]', "nested-universes");
+  await unobstructed(page, "desktop V2");
   check("V2 states that live activity is not measured", /telemetry/i.test((await page.locator("[data-mv-gaps]").textContent()) ?? ""));
   await page.click('[data-aspect="v3"]');
   check("V3 states that agent conversations are not recorded yet", /self-dialogue/i.test((await page.locator("[data-mv-gaps]").textContent()) ?? ""));
@@ -111,9 +137,15 @@ try {
   await p2.click('[data-aspect="v2"]');
   await p2.selectOption('select[aria-label="Shared layout"]', "radial-constellation");
   await p2.waitForTimeout(300);
+  await unobstructed(p2, "iPhone V2");
   const a = await attrs(p2);
   check("iPhone: V2 radial constellation draws", !!a && a.drawn === a.nodes && a.nodes > 0, JSON.stringify(a));
   await p2.screenshot({ path: `${OUT}/${String(n + 1).padStart(2, "0")}-iphone-v2-radial.png` });
+  // She comes back when the map closes: her normal placement is untouched elsewhere.
+  await p2.click("[data-close-neural-map]");
+  await p2.waitForTimeout(1500);
+  const back = await p2.evaluate(() => document.querySelector("[data-testid='lelu-companion']")?.getAttribute("data-presence") ?? "absent");
+  check("iPhone: after the map closes she is back in her normal place", back !== "away", back);
   await phone.close();
 } finally {
   await browser.close();

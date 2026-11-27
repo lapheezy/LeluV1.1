@@ -210,6 +210,8 @@ function Presence({ companion }: { companion: CompanionState }) {
   // A modal sheet (App Library, Windows, Worlds) is open over the interface.
   const sheetOpen = usePresent(".lsh-backdrop");
   const universeOpen = useUniverseOpen();
+  // A surface that owns the whole screen (the standalone Neural Map): she steps out.
+  const covered = usePresent("[data-lelu-covers-screen]");
   const homeShown = usePresent("[data-lelu-home]");
   const character = useLeluCharacter();
   const renderProfile = useRenderProfile();
@@ -310,7 +312,7 @@ function Presence({ companion }: { companion: CompanionState }) {
   const [live, setLive] = useState<Box | null>(null);
   const gesture = useRef<{ x: number; y: number; start: Box; moved: boolean } | null>(null);
 
-  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan: crowded ? { ...plan, hidden: true } : plan, space, compact, preview: inWorld ? null : previewSpot });
+  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan: crowded ? { ...plan, hidden: true } : plan, space, compact, preview: inWorld ? null : previewSpot, covered });
   const box = live ?? target;
   /*
    * Her canvas keeps its size when her place merely shrinks (Home portrait →
@@ -508,8 +510,8 @@ function Presence({ companion }: { companion: CompanionState }) {
     // Behind an open modal sheet she stays in view (dimmed with the rest of
     // the interface) but under it: the sheet's own controls take touches.
     zIndex: place === "preview" ? layer("panelActive") + 1 : live ? layer("panelActive") : sheetOpen ? 1 : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
-    visibility: inWorld ? "hidden" : "visible",
-    opacity: inWorld ? 0 : place === "planned" ? plan.opacity : 1,
+    visibility: inWorld || place === "away" ? "hidden" : "visible",
+    opacity: inWorld || place === "away" ? 0 : place === "planned" ? plan.opacity : 1,
     pointerEvents: "none",
     userSelect: "none",
     // No frame, no title bar: only her, with a soft light of what she is doing.
@@ -554,7 +556,7 @@ function Presence({ companion }: { companion: CompanionState }) {
         style={{
           position: "absolute",
           inset: 0,
-          pointerEvents: inWorld || sheetOpen || place === "preview" ? "none" : "auto",
+          pointerEvents: inWorld || sheetOpen || place === "preview" || place === "away" ? "none" : "auto",
           touchAction: "none",
           cursor: live ? "grabbing" : "grab",
           outline: "none",
@@ -568,7 +570,7 @@ function Presence({ companion }: { companion: CompanionState }) {
             the scene), or in the measured low-power rest above. Beside a
             phone sheet she used to be paused on a captured still on EVERY
             device — frozen on every screen but Home. */}
-        <LeluCharacter framing={framing} form={form} fps={fps} testId="lelu-companion-character" paused={inWorld || lowPowerRest} />
+        <LeluCharacter framing={framing} form={form} fps={fps} testId="lelu-companion-character" paused={inWorld || lowPowerRest || place === "away"} />
       {saved ? (
         <button
           type="button"

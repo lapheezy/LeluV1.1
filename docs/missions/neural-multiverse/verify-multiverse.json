@@ -1,5 +1,5 @@
 {
- "at": "2026-11-27T17:59:38.769Z",
+ "at": "2026-11-27T19:01:35.491Z",
  "results": [
   {
    "name": "Neural Map opens with the aspect selector",
@@ -10,6 +10,16 @@
    "name": "V1 opens on its canonical neighbourhood view",
    "status": "VERIFIED",
    "detail": ""
+  },
+  {
+   "name": "desktop V1: no control or stage of the map is covered (10 checked)",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "desktop V1: her companion has stepped away from the map",
+   "status": "VERIFIED",
+   "detail": "away"
   },
   {
    "name": "v1 · core-orbit draws every node it derived",
@@ -192,6 +202,16 @@
    "detail": "{\"aspect\":\"v3\",\"layout\":\"holographic-spatial\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
   },
   {
+   "name": "desktop V2: no control or stage of the map is covered (26 checked)",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "desktop V2: her companion has stepped away from the map",
+   "status": "VERIFIED",
+   "detail": "away"
+  },
+  {
    "name": "V2 states that live activity is not measured",
    "status": "VERIFIED",
    "detail": ""
@@ -212,9 +232,24 @@
    "detail": "{\"aspect\":\"v3\",\"layout\":\"temporal-river\",\"nodes\":17,\"edges\":11,\"drawn\":17}"
   },
   {
+   "name": "iPhone V2: no control or stage of the map is covered (24 checked)",
+   "status": "VERIFIED",
+   "detail": ""
+  },
+  {
+   "name": "iPhone V2: her companion has stepped away from the map",
+   "status": "VERIFIED",
+   "detail": "away"
+  },
+  {
    "name": "iPhone: V2 radial constellation draws",
    "status": "VERIFIED",
    "detail": "{\"aspect\":\"v2\",\"layout\":\"radial-constellation\",\"nodes\":80,\"edges\":482,\"drawn\":80}"
+  },
+  {
+   "name": "iPhone: after the map closes she is back in her normal place",
+   "status": "VERIFIED",
+   "detail": "hero"
   },
   {
    "name": "no page errors from the multiverse",
@@ -229,19 +264,17 @@
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
  ]
 }

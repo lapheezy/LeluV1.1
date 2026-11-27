@@ -38,6 +38,25 @@ test("placement order: world, your spot, the hero spot, the planner, an edge", (
   assert.equal(choosePlace({ inWorld: false, placed: null, onHome: false, hero: null, plan: plan(true), space: space(), compact: false }).place, "edge");
 });
 
+test("a full-screen surface (the standalone Neural Map) sends her away, over every other rule", () => {
+  const hero = box(500, 40, 400, 330);
+  for (const input of [
+    { inWorld: false, placed: box(50, 50), onHome: true, hero, plan: plan(false) },
+    { inWorld: false, placed: null, onHome: true, hero, plan: plan(false) },
+    { inWorld: false, placed: null, onHome: false, hero: null, plan: plan(true) },
+  ]) {
+    assert.equal(choosePlace({ ...input, space: space(), compact: false, covered: true }).place, "away");
+    // Without the surface, the same input keeps its normal place.
+    assert.notEqual(choosePlace({ ...input, space: space(), compact: false, covered: false }).place, "away");
+  }
+  // The marker is on the standalone map only, not on the map embedded in a composition region.
+  const view = readFileSync("src/app/scene/genesis/neural/NeuralMapView.tsx", "utf8");
+  assert.match(view, /data-lelu-covers-screen=\{embedded \? undefined : ""\}/);
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.match(companion, /usePresent\("\[data-lelu-covers-screen\]"\)/);
+  assert.match(companion, /place === "away" \? "none"/, "away takes no touches");
+});
+
 test("where you put her is kept until it would cover the composer or a control", () => {
   const composer = box(0, 800, 1440, 100);
   const s = space({ composer });

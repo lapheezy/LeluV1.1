@@ -260,7 +260,7 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
 
   const style: CSSProperties | undefined = embedded ? { position: "absolute", inset: 0 } : undefined;
   return (
-    <div className="nm-standalone" data-neural-map-view data-embedded={embedded ? "true" : "false"} data-layer={view.standalone.layer ?? "base"} data-from={view.standalone.from ?? ""} data-cl-neural={cosmos.composition.id} style={style} role="region" aria-label="Neural Map">
+    <div className="nm-standalone" data-neural-map-view data-embedded={embedded ? "true" : "false"} data-lelu-covers-screen={embedded ? undefined : ""} data-layer={view.standalone.layer ?? "base"} data-from={view.standalone.from ?? ""} data-cl-neural={cosmos.composition.id} style={style} role="region" aria-label="Neural Map">
       <header className="nm-top">
         <strong data-cl-map-title>{mapTitle(cosmos.composition.id, entityLabel)}</strong>
         <small data-neural-stats>

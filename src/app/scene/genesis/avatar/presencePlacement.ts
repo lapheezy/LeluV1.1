@@ -12,7 +12,12 @@ const EDGE = 12;
 type Box = Rect;
 
 /** Where she is, and why — the attribute tests and evidence read. */
-export type PresencePlace = "hero" | "planned" | "placed" | "edge" | "world" | "preview";
+/**
+ * "away": a surface that owns the whole screen (marked
+ * `data-lelu-covers-screen`, e.g. the standalone Neural Map) is open. No spot
+ * on it is free, so she steps out until it closes instead of covering it.
+ */
+export type PresencePlace = "hero" | "planned" | "placed" | "edge" | "world" | "preview" | "away";
 
 
 /**
@@ -115,8 +120,13 @@ export function choosePlace(input: {
   compact: boolean;
   /** The Avatar panel's preview spot, when it is on screen. */
   preview?: Rect | null;
+  /** A full-screen surface (data-lelu-covers-screen) is open over everything. */
+  covered?: boolean;
 }): { place: PresencePlace; target: Box } {
-  const { inWorld, placed, onHome, hero, plan, space, compact, preview } = input;
+  const { inWorld, placed, onHome, hero, plan, space, compact, preview, covered } = input;
+  // Before every other rule: on a full-screen surface any spot, the user's own
+  // drop and the Home hero included, would sit on its stage or its controls.
+  if (covered) return { place: "away", target: edgeRest(space, compact) };
   if (inWorld) return { place: "world", target: placed ?? edgeRest(space, compact) };
   if (preview && preview.width > 40 && preview.height > 60) return { place: "preview", target: preview };
   if (placed && !blocksSomething(placed, space)) return { place: "placed", target: placed };
