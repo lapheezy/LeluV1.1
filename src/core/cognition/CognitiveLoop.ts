@@ -404,6 +404,17 @@ export default class CognitiveLoop {
         /* observation never breaks the cycle */
       }
 
+      /* ---------------- NEURAL MAP DEVELOPMENT (WP17) ---------------- */
+      // Observe → Diagnose → … → Learn on this heartbeat, at most every 6 h,
+      // no model call, at most 3 proposals; they wait for the owner.
+      try {
+        const { default: NeuralMapSteward } = await import("../selfdev/NeuralMapSteward");
+        const report = await withDeadline(NeuralMapSteward.getInstance().cycle("heartbeat"), null);
+        if (report?.proposed.length) suggestions.push(`Neural Map development: proposed ${report.proposed.length} improvement(s) for your review.`);
+      } catch {
+        /* a development cycle never breaks cognition */
+      }
+
       /* ---------------- DAILY DEVELOPMENT ---------------- */
       // The daily boundary: each COMPLETED day is reflected exactly once
       // (DailyRecord → DailyReflection → PersonalityGuard → LeluIdentity).

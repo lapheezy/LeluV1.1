@@ -1,0 +1,173 @@
+{
+ "at": "2026-11-27T20:00:52.973Z",
+ "results": [
+  {
+   "id": "WP14",
+   "name": "the current aspect and 3D view reach her self-state",
+   "status": "VERIFIED",
+   "detail": "{\"text\":\"Neural Map open: aspect V2 (your cognitive architecture), 3D view \\\"connectome-tractography\\\".\",\"inSelfState\":true}"
+  },
+  {
+   "id": "WP17",
+   "name": "the cycle ran Observe → … → Learn, every stage reported",
+   "status": "VERIFIED",
+   "detail": "[\"observe:done\",\"diagnose:done\",\"research:done\",\"compare:done\",\"propose:done\",\"sandbox:waiting\",\"validate:waiting\",\"govern:waiting\",\"deliver:waiting\",\"learn:done\"]"
+  },
+  {
+   "id": "WP14",
+   "name": "findings came from real data and became proposals (at most 3)",
+   "status": "VERIFIED",
+   "detail": "{\"stages\":[\"observe:done\",\"diagnose:done\",\"research:done\",\"compare:done\",\"propose:done\",\"sandbox:waiting\",\"validate:waiting\",\"govern:waiting\",\"deliver:waiting\",\"learn:done\"],\"findings\":19,\"proposed\":[\"8bec2eed-f708-40f6-a13b-68e2d0f81f8f\",\"2b2555ff-7698-4022-8635-fd7ef5ad3c07\",\"ee565d7f-19a2-4183-b006-36788344b5ab\"],\"acks\":[[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"]]}"
+  },
+  {
+   "id": "WP15",
+   "name": "each proposal was acknowledged by the Architect executive",
+   "status": "VERIFIED",
+   "detail": "[[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"],[\"Architect Executive\",\"M.S. Ma'at Sentinel\"]]"
+  },
+  {
+   "id": "WP15",
+   "name": "owner decisions change the proposal's status in the ImprovementQueue",
+   "status": "VERIFIED",
+   "detail": "{\"approved\":\"Approved\",\"changes\":\"Analyzing\",\"rejected\":\"Rejected\"}"
+  },
+  {
+   "id": "WP15",
+   "name": "repository research ran through RepoExecutive and its outcome is shown as returned",
+   "status": "VERIFIED",
+   "detail": "{\"candidates\":[{\"name\":\"vasturiano/3d-force-graph\",\"url\":\"https://github.com/vasturiano/3d-force-graph\",\"stars\":6598,\"license\":\"MIT\",\"updatedAt\":\"2026-11-27T11:14:54Z\",\"archived\":false},{\"name\":\"vasturiano/react-force-graph\",\"url\":\"https://github.com/vasturiano/react-force-graph\",\"stars\":3378,\"license\":\"MIT\",\"updatedAt\":\"2026-11-27T13:52:45Z\",\"archived\":false},{\"name\":\"vasturiano/three-forcegraph\",\"url\":\"https://github.com/vasturiano/three-forcegraph\",\"stars\":302,\"license\":\"MIT\",\"updatedAt\":\"2026-09-30T02:32:07Z\",\"archived\":false},{\"name\":\"vasturiano/3d-force-graph-vr\",\"url\":\"https://github.com/vasturiano/3d-force-graph-vr\",\"stars\":252,\"license\":\"MIT\",\"updatedAt\":\"2026-08-22T20:51:40Z\",\"archived\":false},{\"name\":\"jaredmcqueen/analytics\",\"url\":\"https://github.com/jaredmcqueen/analytics\",\"stars\":211,\"license\":\"GPL-3.0\",\"updatedAt\":\"2021-06-29T15:34:12Z\",\"archived\":false}],\"errors\":[]}"
+  },
+  {
+   "id": "WP14",
+   "name": "asked in chat, she names the aspect/view on screen (real model turn)",
+   "status": "VERIFIED",
+   "detail": "{\"provider\":\"Groq\",\"model\":\"openai/gpt-oss-120b\",\"text\":\"You’re viewing the architecture aspect (V2) in the 3D “connectome‑tractography” view.\"}"
+  },
+  {
+   "id": "errors",
+   "name": "no page errors from the new modules",
+   "status": "VERIFIED",
+   "detail": "console: Failed to load resource: net::ERR_CONNECTION_REFUSED | console: Failed to load resource: net::ERR_CONNECTION_REFUSED | console: Failed to load resource: net::ERR_CONNECTION_REFUSED | console: Failed to load resource: net::ERR_CONNECTION_REFUSED | console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  }
+ ],
+ "evidence": {
+  "cycle": {
+   "stages": [
+    "observe:done",
+    "diagnose:done",
+    "research:done",
+    "compare:done",
+    "propose:done",
+    "sandbox:waiting",
+    "validate:waiting",
+    "govern:waiting",
+    "deliver:waiting",
+    "learn:done"
+   ],
+   "findings": 19,
+   "proposed": [
+    "8bec2eed-f708-40f6-a13b-68e2d0f81f8f",
+    "2b2555ff-7698-4022-8635-fd7ef5ad3c07",
+    "ee565d7f-19a2-4183-b006-36788344b5ab"
+   ],
+   "acks": [
+    [
+     "Architect Executive",
+     "M.S. Ma'at Sentinel"
+    ],
+    [
+     "Architect Executive",
+     "M.S. Ma'at Sentinel"
+    ],
+    [
+     "Architect Executive",
+     "M.S. Ma'at Sentinel"
+    ]
+   ]
+  },
+  "research": {
+   "at": 1795809645777,
+   "query": "force directed graph webgl",
+   "candidates": [
+    {
+     "name": "vasturiano/3d-force-graph",
+     "url": "https://github.com/vasturiano/3d-force-graph",
+     "stars": 6598,
+     "license": "MIT",
+     "updatedAt": "2026-11-27T11:14:54Z",
+     "archived": false
+    },
+    {
+     "name": "vasturiano/react-force-graph",
+     "url": "https://github.com/vasturiano/react-force-graph",
+     "stars": 3378,
+     "license": "MIT",
+     "updatedAt": "2026-11-27T13:52:45Z",
+     "archived": false
+    },
+    {
+     "name": "vasturiano/three-forcegraph",
+     "url": "https://github.com/vasturiano/three-forcegraph",
+     "stars": 302,
+     "license": "MIT",
+     "updatedAt": "2026-09-30T02:32:07Z",
+     "archived": false
+    },
+    {
+     "name": "vasturiano/3d-force-graph-vr",
+     "url": "https://github.com/vasturiano/3d-force-graph-vr",
+     "stars": 252,
+     "license": "MIT",
+     "updatedAt": "2026-08-22T20:51:40Z",
+     "archived": false
+    },
+    {
+     "name": "jaredmcqueen/analytics",
+     "url": "https://github.com/jaredmcqueen/analytics",
+     "stars": 211,
+     "license": "GPL-3.0",
+     "updatedAt": "2021-06-29T15:34:12Z",
+     "archived": false
+    },
+    {
+     "name": "vasturiano/3d-force-graph-ar",
+     "url": "https://github.com/vasturiano/3d-force-graph-ar",
+     "stars": 115,
+     "license": "MIT",
+     "updatedAt": "2025-07-03T00:34:55Z",
+     "archived": false
+    },
+    {
+     "name": "jin5354/d3-force-graph",
+     "url": "https://github.com/jin5354/d3-force-graph",
+     "stars": 84,
+     "license": "",
+     "updatedAt": "2019-05-09T10:55:20Z",
+     "archived": false
+    },
+    {
+     "name": "vasturiano/r3f-forcegraph",
+     "url": "https://github.com/vasturiano/r3f-forcegraph",
+     "stars": 50,
+     "license": "MIT",
+     "updatedAt": "2025-07-03T00:30:16Z",
+     "archived": false
+    }
+   ],
+   "errors": []
+  },
+  "chat": {
+   "provider": "Groq",
+   "model": "openai/gpt-oss-120b",
+   "text": "You’re viewing the architecture aspect (V2) in the 3D “connectome‑tractography” view."
+  }
+ },
+ "otherPageErrors": [
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+ ]
+}

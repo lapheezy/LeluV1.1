@@ -27,6 +27,8 @@ import AgentDialogue from "../../../../core/agents/AgentDialogue";
 import ResourcePolicy from "../../../../core/observability/ResourcePolicy";
 import ConversationRegistry from "../../../../core/observability/ConversationRegistry";
 import AgentWorkspace from "./AgentWorkspace";
+import DevelopmentPanel from "./DevelopmentPanel";
+import { publishMapView } from "../../../../core/selfdev/NeuralMapSteward";
 import { useNeuralVersion } from "./useNeural";
 import { ARCH_VIEWS, type ArchViewId } from "../../../../core/neural/multiverse/Architecture3D";
 // WebGL only loads when a 3D view is chosen.
@@ -136,6 +138,11 @@ export default function MultiverseView({ settings, onChange }: { settings: ViewS
   const placed = useMemo(() => runLayout(layoutId, graph, 1000), [layoutId, graph]);
   const colour = useMemo(() => new Map(graph.allGroups.map((g, i) => [g, PALETTE[i % PALETTE.length]])), [graph.allGroups]);
   const selected = graph.nodes.find((n) => n.id === settings.focus) ?? null;
+  // What the person sees, for her own awareness (WP14). Presentation only.
+  useEffect(() => {
+    publishMapView({ aspect: settings.aspect, layout: layoutId, view3d: settings.aspect === "v2" ? settings.view3d : null, open: true, selection: selected ? { id: selected.id, label: selected.label, kind: selected.kind, facts: selected.facts } : null });
+    return () => publishMapView({ aspect: settings.aspect, layout: layoutId, view3d: null, open: false, selection: null });
+  }, [settings.aspect, layoutId, settings.view3d, selected]);
   const theme = THEMES[settings.theme];
   const canvasW = layoutId === "infinite-canvas" ? Math.max(1000, 40 + graph.allGroups.length * 180) : 1000;
   const canvasH = layoutId === "infinite-canvas" ? Math.max(1000, 120 + Math.max(0, ...placed.guides.map((g) => (g.kind === "box" ? g.h : 0)))) : 1000;
@@ -352,7 +359,7 @@ export default function MultiverseView({ settings, onChange }: { settings: ViewS
       </main>
       <section className="mv-side">
         {selected && selected.kind === "agent" ? <AgentWorkspace agentId={selected.source.id} /> : null}
-        {selected ? <NodeDetail node={selected} graph={graph} onSelect={(id) => onChange({ focus: id })} /> : <p className="mv-hint">Select a node to inspect it, its evidence and its relations.</p>}
+        {selected ? <NodeDetail node={selected} graph={graph} onSelect={(id) => onChange({ focus: id })} /> : settings.aspect === "v2" ? <DevelopmentPanel onSelect={(id) => onChange({ focus: id })} /> : <p className="mv-hint">Select a node to inspect it, its evidence and its relations.</p>}
       </section>
     </div>
   );

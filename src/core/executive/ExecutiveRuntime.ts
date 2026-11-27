@@ -26,6 +26,7 @@ import AvatarCommandBus, { type AvatarCommandKind } from "../avatar/AvatarComman
 import UIStateStore from "../cognition/UIStateStore";
 import SelfModel from "../cognition/SelfModel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
+import { mapAwarenessText } from "../selfdev/NeuralMapSteward";
 import KvStore from "../storage/KvStore";
 import { ownerForTask } from "../multichat/TurnOwnership";
 import { backgroundInterval, type BackgroundTimer } from "../runtime/BackgroundTimer";
@@ -745,6 +746,13 @@ class ExecutiveRuntimeImpl {
       }
     } catch {
       // best-effort; queue may not be initialized yet
+    }
+    // What the person is looking at in the Neural Map, and her last development cycle (WP14).
+    try {
+      const map = mapAwarenessText();
+      if (map) lines.push(map);
+    } catch {
+      // best-effort
     }
     lines.push(
       "RULES: Report only VERIFIED actions as done. If telemetry contradicts what you intended, say so plainly.",

@@ -53,6 +53,7 @@ import { registerNeuralMapTools } from "./neural/NeuralMapTools";
 import { connectNeuralMap } from "./neural/connectNeuralMap";
 import ConversationRegistry from "./observability/ConversationRegistry";
 import { registerUsageTools } from "./observability/UsageTools";
+import { registerStewardTools } from "./selfdev/NeuralMapSteward";
 import AgentEventBus from "./agent/AgentEvents";
 let registryWired = false;
 import { registerContinuityTools } from "./cognition/ContinuityTools";
@@ -280,6 +281,8 @@ export default class Bootstrap {
       registerNeuralMapTools();
       // WP19/WP13: usage reports, resource control in plain words, agent conversations.
       registerUsageTools();
+      // WP14/15/17: the map's view, diagnosis, research and development cycle.
+      registerStewardTools();
       connectNeuralMap();
       // Mission continuity: the evidence-labelled self-model and the durable
       // workstream ledger, reachable through the same dispatcher as every

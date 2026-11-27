@@ -217,3 +217,15 @@ test("live activity is counted from real events, by a table that names only real
   assert.deepEqual(live.unmapped, { mystery: 1 }, "an unknown type is reported, not dropped");
   assert.deepEqual(liveActivity([]).bySubsystem, {}, "no events, no activity");
 });
+
+/* ---------------------------------------------------------- WP14/17: diagnosis from real data */
+
+import { diagnose } from "../src/core/selfdev/NeuralMapSteward";
+
+test("the steward's diagnosis comes only from the real architecture, society and registry", () => {
+  const f = diagnose({ executives: [], agents: [], conversations: [], gaps: [{ capabilityId: "video", name: "Video generation", status: "planned", reason: "no actual video generation yet" }] });
+  assert.ok(f.some((x) => x.id === "gap:video" && /Video generation \(planned\)/.test(x.title)));
+  const subsystems = new Set(v2Graph().nodes.filter((n) => n.kind === "subsystem").map((n) => n.id));
+  for (const x of f.filter((x) => x.kind === "weak-dependency" || x.kind === "unchanged")) assert.ok(subsystems.has(x.subject), `${x.subject} is a real subsystem`);
+  assert.ok(f.every((x) => x.evidence.length > 0 && x.severity >= 1 && x.severity <= 5));
+});
