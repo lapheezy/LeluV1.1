@@ -187,6 +187,19 @@ test("a third repetition counts as a further attempt, not a new record", () => {
   assert.equal(instructions.list().length, 1);
 });
 
+test("the repeated correction supplies the line the reply must lead with", () => {
+  const instructions = fresh();
+  instructions.record("Always run the full test suite before claiming a pass.", { conversationId: "c-1" }, 1_000);
+  assert.equal(instructions.recurrenceFor("Always run the full test suite before claiming a pass."), "", "nothing to say before it repeats");
+
+  instructions.record("I told you before: always run the full test suite before claiming a pass.", { conversationId: "c-1" }, 120_000);
+  const note = instructions.recurrenceFor("I told you before: always run the full test suite before claiming a pass.");
+  assert.match(note, /You have said this 2 times/);
+  assert.match(note, /not the answer/);
+  assert.match(note, /verification/, "the owning system is named");
+  assert.equal(instructions.recurrenceFor("hello"), "", "an unrelated message gets nothing");
+});
+
 test("an investigation can be closed only by recording what was found", () => {
   const instructions = fresh();
   instructions.record("Always run the tests.", { conversationId: "c-1" }, 1_000);

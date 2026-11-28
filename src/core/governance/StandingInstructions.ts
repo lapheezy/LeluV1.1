@@ -397,6 +397,29 @@ export default class StandingInstructions {
     };
   }
 
+  /**
+   * The investigation note for a prompt that repeats a recorded correction.
+   *
+   * Measured in the browser (Mission 44.8 acceptance): with only the context
+   * block saying an investigation existed, the model replied "Acknowledged.
+   * The instruction stands and I'm following it" — an acknowledgement of a
+   * correction it had already been given. A hint the model may ignore is not
+   * a fix, so the reply path puts this line FIRST, before anything the model
+   * wrote. The acknowledgement can follow it; it cannot replace it.
+   */
+  public recurrenceFor(prompt: string): string {
+    const candidates = this.all().filter(
+      (record) =>
+        record.status !== "retracted" &&
+        record.timesSeen > 1 &&
+        record.investigation !== undefined &&
+        (record.key === instructionKey(prompt) || sameInstruction(record.text, prompt)),
+    );
+    if (candidates.length === 0) return "";
+    const latest = candidates.sort((a, b) => b.lastSeenAt - a.lastSeenAt)[0];
+    return this.recurrenceNote(latest);
+  }
+
   /** The sentence that replaces \"noted, again\". */
   private recurrenceNote(record: StandingInstruction): string {
     const investigation = record.investigation;

@@ -22,6 +22,7 @@ import {
   type EarlierToolRun,
 } from "../tools/ClaimGrounding";
 import { memoryProvenanceNote, readMemory } from "../memory/MemoryProvenance";
+import StandingInstructions from "../governance/StandingInstructions";
 import {
   formatTurnMetrics,
   newTurnMeasurement,
@@ -1233,6 +1234,13 @@ export default class ProviderResolver {
         ? readMemory(context.recalledMemories!)
         : null;
     const memoryNote = memoryReading ? memoryProvenanceNote(memoryReading, { limit: 2 }) : "";
+    // A repeated correction must not be answered with another acknowledgement.
+    // Measured in the browser: the context block said an investigation was
+    // open, and the reply still opened "Acknowledged. The instruction stands".
+    // So the investigation leads the reply, and the model's text follows it.
+    const recurrence = context.request.prompt
+      ? StandingInstructions.getInstance().recurrenceFor(context.request.prompt)
+      : "";
     // Quality checkpoint: what is still below the bar is said, not hidden.
     const deficiencies = assessTurn(context.request.prompt ?? "", qualityCalls);
     return {
@@ -1240,13 +1248,14 @@ export default class ProviderResolver {
       // A claim of a FRESH result is corrected before the reply, not after it:
       // the reader who stops at the first line must not be left believing an
       // old answer was a new check (Mission 44.6, measured on a phone).
-      text: `${freshnessCorrection(ungrounded, { earlierRuns })}${response.text ?? ""}${groundingNote(ungrounded)}${memoryNote ? `\n\n${memoryNote}` : ""}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
+      text: `${freshnessCorrection(ungrounded, { earlierRuns })}${recurrence ? `${recurrence}\n\n` : ""}${response.text ?? ""}${groundingNote(ungrounded)}${memoryNote ? `\n\n${memoryNote}` : ""}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
         ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
         ...(ungrounded.length ? { claimEvidence: evidence } : {}),
         ...(memoryReading ? { memoryProvenance: memoryReading.counts } : {}),
+        ...(recurrence ? { recurringInstruction: true } : {}),
         ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
         ...(executed.length
