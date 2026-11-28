@@ -42,6 +42,7 @@ import type { ChatActivity } from "../../../../../core/multichat/TurnActivity";
 import RaindropFeed, { type FeedEntry } from "./RaindropFeed";
 import ThreadMap, { FreeformMaps } from "./ThreadMap";
 import YouTubeObject from "./YouTubeObject";
+import DiagnosticsObject from "./DiagnosticsObject";
 import NekoLive, { useNekoAvailability } from "../../neko/NekoLive";
 import "./thread.css";
 
@@ -101,6 +102,8 @@ export function ObjectBody({ o, compact }: { o: ThreadObject; compact: boolean }
       return <ThreadMap object={o} compact={compact} />;
     case "youtube":
       return <YouTubeObject object={o} />;
+    case "diagnostics":
+      return <DiagnosticsObject object={o} />;
     case "image":
       return <img className="to-img" src={o.ref?.src} alt={o.title} />;
     case "model3d":
@@ -141,7 +144,7 @@ function openInBrowser(url: string) {
   window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } }));
 }
 
-const KIND_LABEL: Record<ThreadObject["kind"], string> = { "neural-map": "Neural Map", youtube: "Video", web: "Web", research: "Research", image: "Image", model3d: "3D model", spatial: "Spatial" };
+const KIND_LABEL: Record<ThreadObject["kind"], string> = { "neural-map": "Neural Map", youtube: "Video", web: "Web", research: "Research", image: "Image", model3d: "3D model", spatial: "Spatial", diagnostics: "Diagnostics" };
 
 /* ---------------------------------------------------------- one liquid object */
 

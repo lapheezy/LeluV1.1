@@ -143,7 +143,7 @@ function environment(): DiagnosticRun["environment"] {
 
 let runSeq = 0;
 /** Run a suite (or several, for "full"). Checks stream into the stored run as they finish. */
-export async function runDiagnostics(suiteId: string, conversationId: string | null, opts: { rerunOf?: string } = {}): Promise<DiagnosticRun> {
+export async function runDiagnostics(suiteId: string, conversationId: string | null, opts: { rerunOf?: string; ready?: (run: DiagnosticRun) => Promise<void> } = {}): Promise<DiagnosticRun> {
   const chosen = suiteId === "full" ? suites().filter((s) => s.id !== "full") : [SUITES.get(suiteId)].filter(Boolean) as Suite[];
   const run: DiagnosticRun = {
     id: `diag-${Date.now().toString(36)}${(runSeq++).toString(36)}`,
@@ -159,6 +159,9 @@ export async function runDiagnostics(suiteId: string, conversationId: string | n
   };
   load().push(run);
   save();
+  // Let the caller put the Diagnostics surface on screen and let the layout settle BEFORE any check
+  // measures it: a surface arriving mid-run moved the objects under the "move" check (measured).
+  if (opts.ready) await opts.ready(run);
   const ctx: CheckContext = {
     conversationId,
     push: (c) => {

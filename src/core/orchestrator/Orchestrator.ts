@@ -213,7 +213,7 @@ export default class Orchestrator {
       // planner turned "make my outfit … for sewing" into notes and reference
       // lookups and never drafted a pattern. The chat pipeline runs it directly.
       const direct = compileDirect(request);
-      const deterministic = Boolean(direct && direct.steps.length > 0 && direct.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || /^creative\.(build|modify)$/.test(step.tool)));
+      const deterministic = Boolean(direct && direct.steps.length > 0 && direct.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || /^creative\.(build|modify)$/.test(step.tool) || step.tool === "diagnostics.run"));
       const needsMultiStep =
         !deterministic && !isMissionResume(request) && !CONVERSATION_REFERENCE.test(request) && this.isMultiStepRequest(request);
       if (needsMultiStep) {

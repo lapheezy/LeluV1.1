@@ -39,3 +39,21 @@ test("a run is stored per conversation, and outside a page the Freestyle suite i
   assert.ok(f.checks.every((x) => x.status !== "PASS" || x.category === "f-device"), "no Freestyle check passes without a page");
   assert.ok(f.checks.some((x) => x.status === "BLOCKED"));
 });
+
+test("chat phrases compile to a direct diagnostics run", async () => {
+  const { compileDirect } = await import("../src/core/creative/kit/DirectCompiler");
+  const cases: Array<[string, string]> = [
+    ["Validate Freestyle, including chat", "freestyle-chat"],
+    ["Test every borderless output", "freestyle-chat"],
+    ["Run a full Cosmos diagnostic", "full"],
+    ["Check chat, Neural Map, and browser integration", "integration"],
+    ["Find the broken interactions", "full"],
+  ];
+  for (const [text, suite] of cases) {
+    const plan = compileDirect(text);
+    assert.ok(plan, `no plan for "${text}"`);
+    assert.equal(plan!.steps[0].tool, "diagnostics.run", text);
+    assert.equal(plan!.steps[0].args.suite, suite, text);
+  }
+  assert.equal(compileDirect("Make me a mood board")?.steps[0]?.tool === "diagnostics.run", false);
+});

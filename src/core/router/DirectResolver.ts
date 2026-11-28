@@ -248,6 +248,7 @@ export default class DirectResolver {
     // so the preface can say truthfully whether it happened. (M17.1: a
     // refused "/open a toaster" used to begin "Opened a toaster. Done…".)
     const interfaces = plan.steps.every((step) => step.tool.startsWith("interface."));
+    const isDiagnostics = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "diagnostics.run");
     const preface = interfaces
       ? okCount === ran.length
         ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`
@@ -264,6 +265,8 @@ export default class DirectResolver {
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
+        : isDiagnostics
+          ? `I ran my diagnostics on this conversation, directly with my own checks (no model involved). The Diagnostics panel beside the chat has every check, its evidence and a rerun.`
         : reason === "creative"
           ? `Done on the creation itself, not described: ${plan.summary}.`
         : `Done directly with my own tools (no model involved): ${plan.summary}.`;
@@ -275,6 +278,9 @@ export default class DirectResolver {
         "",
         skippedCount > 0
           ? `${okCount} of ${attempted.length} attempted steps succeeded; ${skippedCount} not attempted because an earlier step on the same object failed.`
+          : isDiagnostics && okCount === ran.length
+            ? // A run that completed is not a run that passed: its own counts above say what passed.
+              "The diagnostics ran to the end; the counts above are what they measured, and only checks marked PASS passed."
           : okCount === ran.length
             ? "Everything above ran and was verified."
             : `${okCount} of ${ran.length} steps succeeded; the failures are shown with their reasons.`,

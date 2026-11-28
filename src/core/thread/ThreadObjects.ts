@@ -20,7 +20,7 @@
 
 import { summonsFor } from "../asre/SpatialSummon";
 
-export type ThreadObjectKind = "neural-map" | "youtube" | "web" | "research" | "image" | "model3d" | "spatial";
+export type ThreadObjectKind = "neural-map" | "youtube" | "web" | "research" | "image" | "model3d" | "spatial" | "diagnostics";
 
 export interface NeuralMapRef {
   aspect: "v1" | "v2" | "v3";
@@ -74,6 +74,8 @@ export interface ThreadObject {
   /** image / model3d: which message and which attachment. */
   ref?: { messageId: string; index: number; src?: string; name?: string; format?: string };
   spatialId?: string;
+  /** diagnostics: the run this surface shows (the run itself lives in the diagnostics store). */
+  diagnostics?: { runId: string; suite: string };
   /** youtube: the last position the player reported, so a reload can offer to resume there. */
   lastTime?: number;
   group: string | null;
@@ -188,6 +190,9 @@ function sameContent(a: Pick<ThreadObject, "kind" | "map" | "video" | "web" | "r
       return a.ref?.messageId === b.ref?.messageId && a.ref?.index === b.ref?.index;
     case "spatial":
       return a.spatialId === b.spatialId;
+    case "diagnostics":
+      // One Diagnostics surface per conversation: a new run is shown in the same surface (its history lists the earlier ones).
+      return true;
     default:
       return false;
   }
