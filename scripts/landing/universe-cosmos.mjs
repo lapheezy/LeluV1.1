@@ -7,7 +7,9 @@ const p = await (await b.newContext(PHONE ? { viewport: { width: 390, height: 84
 await p.goto("http://127.0.0.1:5173/", { waitUntil: "domcontentloaded" });
 for (let i = 0; i < 80; i++) { if (await p.locator("[data-lelu-signin-gate]").count()) await p.evaluate(() => { const b = [...document.querySelectorAll("[data-lelu-signin-gate] button")]; (b.find((e) => /continue/i.test(e.textContent || "")) ?? b.at(-1))?.click(); }); if (await p.locator("[data-core-chat]").count()) break; await p.waitForTimeout(500); }
 await p.evaluate(async () => { const MC = (await import("/src/core/multichat/MultiChatStore.ts")).default.getInstance(); for (let i = 0; i < 14; i++) { const c = MC.create(`Session ${i + 1}`); MC.addMessage(c.id, { id: c.id + "m", role: "user", text: `Line from session ${i + 1}: patterns, tasks and notes.`, timestamp: Date.now() - i * 60000, source: "local" }); } });
-await p.evaluate(() => window.dispatchEvent(new CustomEvent("lelu-open-universe")));
+await p.locator(".ccx-plus").click();
+await p.waitForTimeout(400);
+await p.locator('[data-open="universe"]').click();
 await p.waitForTimeout(3500);
 await p.screenshot({ path: `${OUT}/universe-cosmos-0${PHONE ? "-phone" : ""}.png` });
 console.log("dom", JSON.stringify(await p.evaluate(() => ({ lcu: !!document.querySelector(".lcu"), grid: !!document.querySelector(".lcu-grid"), cards: document.querySelectorAll(".lcu-card").length, mainLike: [...(document.querySelector(".lcu")?.children ?? [])].map((e) => e.className).slice(0, 8) }))));
