@@ -1114,6 +1114,7 @@ function ExperienceLanding() {
   const mode = useSyncExternalStore(subscribeExperience, currentExperience, currentExperience);
   useEffect(() => {
     HomeStoreForExperience.setImmersive(mode !== "og");
+    document.documentElement.dataset.leluExperience = mode;
   }, [mode]);
   // In OG, the way back is always one tap away.
   return mode === "og" ? (

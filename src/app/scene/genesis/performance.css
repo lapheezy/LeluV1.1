@@ -13,3 +13,15 @@ html[data-lelu-weight="light"] *::after {
 /* OG experience: the way back to Unified Cosmos Chat, always on screen (WP21.4). */
 .og-back { position: fixed; bottom: calc(96px + env(safe-area-inset-bottom)); left: 14px; /* clear of every header (it covered the Chat Universe title: measured) */ z-index: 600; pointer-events: auto; font: 600 12px Inter, system-ui, sans-serif; color: #fff; background: rgba(124, 58, 237, .85); border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
 @media (pointer: coarse) { .og-back { min-height: 44px; } }
+
+/* Unified Cosmos Chat (not OG): app windows such as Notifications float in the Cosmos borderless and
+   see-through, and the old window-layout bar (Auto / Tile / Split / Focus / Stack / Full) steps aside: the
+   dial and the workspace formats arrange things now. OG keeps the original boxed windows and the bar. */
+html:not([data-lelu-experience="og"]) [data-lelu-module-window] .genesis-window-frame {
+  border-color: transparent !important; box-shadow: none !important;
+  background: rgba(10, 4, 30, 0.42) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+html:not([data-lelu-experience="og"]) [data-lelu-module-window] .genesis-window-frame * { border-color: transparent; }
+html:not([data-lelu-experience="og"]) .lws-modes { display: none !important; }
+html:not([data-lelu-experience="og"]) [data-lelu-module-window],
+html:not([data-lelu-experience="og"]) [data-lelu-module-window] > * { border-color: transparent !important; outline: none !important; box-shadow: none !important; }
