@@ -34,7 +34,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import * as Icons from "lucide-react";
 import { CHAT_WINDOW_Z, chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
 import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
-import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
+import { type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
+import { prepareAttachments } from "./attachments";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import RadialMenu, { type RadialItem } from "../../../../ui/radial/RadialMenu";
@@ -85,7 +86,6 @@ interface UniverseFile {
 }
 
 /** The upload cap for a 3D model: past this the bytes are kept on disk only. */
-const MODEL_UPLOAD_LIMIT = 24 * 1024 * 1024;
 
 function useArchived() {
   const store = MultiChatStore.getInstance();
@@ -307,47 +307,9 @@ export default function ChatUniverse() {
   };
   const onAttach = async (files: FileList | null) => {
     if (!files?.length) return;
-    const nextMedia: ProcessedMedia[] = [];
-    const nextFiles: UniverseFile[] = [];
-    for (const file of [...files].slice(0, 4)) {
-      try {
-        if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
-          nextMedia.push(file.type.startsWith("video/") ? await processVideoFile(file) : await processImageFile(file));
-          continue;
-        }
-        let preview = "";
-        const textLike =
-          file.size < 512 * 1024 &&
-          (/^text\/|json|javascript|typescript|xml|yaml|markdown|html|css|svg/.test(file.type) ||
-            /\.(txt|md|json|js|ts|tsx|jsx|py|css|html|xml|yml|yaml|csv|log|env|gitignore)$/i.test(file.name));
-        if (textLike) preview = (await file.text()).slice(0, 800);
-        // GLB/GLTF/STL/OBJ: carry the uploaded bytes themselves, so the reply
-        // can open the user's file in three.js without any re-encoding.
-        let dataUrl: string | undefined;
-        if (/\.(glb|gltf|stl|obj)$/i.test(file.name)) {
-          if (file.size > MODEL_UPLOAD_LIMIT) {
-            setAttachNotice(`${file.name} is larger than ${Math.round(MODEL_UPLOAD_LIMIT / 1024 / 1024)} MB — it was attached by name only, so it cannot be previewed.`);
-          } else {
-            dataUrl = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(String(reader.result));
-              reader.onerror = () => reject(reader.error ?? new Error("the file could not be read"));
-              reader.readAsDataURL(file);
-            });
-          }
-        }
-        nextFiles.push({
-          id: crypto.randomUUID(),
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          preview,
-          ...(dataUrl ? { dataUrl } : {}),
-        });
-      } catch (error) {
-        setAttachNotice(`Could not attach ${file.name}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
+    // One shared path for every composer (attachments.ts): the core chat box attaches the same way.
+    const { media: nextMedia, files: nextFiles, notices } = await prepareAttachments(files);
+    if (notices.length) setAttachNotice(notices.join(" "));
     if (nextMedia.length) setAttached((current) => [...current, ...nextMedia].slice(0, 4));
     if (nextFiles.length) setAttachedFiles((current) => [...current, ...nextFiles].slice(0, 4));
   };

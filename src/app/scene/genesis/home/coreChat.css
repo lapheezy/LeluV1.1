@@ -1,0 +1,60 @@
+/* The chat box that rises from LÉLU's core (CoreChat.tsx). It sits just under the core at the centre of
+   the Cosmos, grows up out of it, and leaves the scene visible around it. */
+.ccx {
+  position: fixed; left: 50%; top: calc(50% + 58px); transform: translateX(-50%);
+  width: min(600px, calc(100vw - 24px)); z-index: 515; /* above her figure, below the dial ring (520) */ pointer-events: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  font: 14px Inter, system-ui, sans-serif; color: #f5f3ff;
+  animation: ccx-rise .7s cubic-bezier(.2, .9, .25, 1.05) both;
+  transform-origin: 50% -58px;
+}
+@keyframes ccx-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(-58px) scale(.08); filter: blur(6px); }
+  60% { opacity: 1; filter: blur(0); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .ccx { animation: none; } }
+/* A thread of light from the core down to the box. */
+.ccx-stem { position: absolute; left: 50%; top: -46px; width: 2px; height: 40px; margin-left: -1px; border-radius: 2px;
+  background: linear-gradient(to bottom, rgba(244, 196, 255, 0), rgba(244, 196, 255, .85)); box-shadow: 0 0 12px rgba(217, 70, 239, .8); }
+.ccx-last { max-height: 28vh; overflow: auto; padding: 10px 14px; border-radius: 18px;
+  background: rgba(14, 6, 34, .55); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow: 0 0 0 1px rgba(236, 200, 255, .18), 0 12px 40px rgba(0, 0, 0, .35); }
+.ccx-last p { margin: 0 0 6px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ccx-you { text-align: right; opacity: .8; }
+.ccx-her { color: #fdf4ff; }
+.ccx-link { font: inherit; font-size: 12px; color: #e9d5ff; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+.ccx-typing { display: flex; gap: 4px; } .ccx-typing span { width: 7px; height: 7px; border-radius: 50%; background: #f0abfc; animation: ccx-dot 1s infinite; }
+.ccx-typing span:nth-child(2) { animation-delay: .15s; } .ccx-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes ccx-dot { 50% { opacity: .25; transform: translateY(-2px); } }
+.ccx-bar { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 999px;
+  background: rgba(20, 8, 44, .62); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 0 0 1px rgba(236, 200, 255, .28), 0 0 30px rgba(192, 132, 252, .35); }
+.ccx-bar textarea { flex: 1; min-width: 0; resize: none; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; padding: 8px 6px; max-height: 120px; }
+.ccx-bar textarea::placeholder { color: rgba(245, 235, 255, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ccx-plus, .ccx-send { flex: 0 0 auto; height: 40px; border: 0; border-radius: 999px; color: #fff; cursor: pointer; font: inherit; font-weight: 600; }
+.ccx-plus { width: 40px; font-size: 22px; line-height: 1; background: rgba(255, 255, 255, .1); }
+.ccx-plus[data-on="true"] { background: linear-gradient(160deg, #f0abfc, #a855f7); transform: rotate(45deg); }
+.ccx-send { padding: 0 16px; background: linear-gradient(160deg, #f0abfc, #a855f7); box-shadow: 0 0 16px rgba(217, 70, 239, .55); }
+.ccx-send:disabled { opacity: .45; box-shadow: none; cursor: default; }
+.ccx-controls { order: 3; max-height: 46vh; overflow: auto; padding: 12px 14px; border-radius: 20px;
+  background: rgba(14, 6, 34, .82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 0 0 1px rgba(236, 200, 255, .22), 0 18px 50px rgba(0, 0, 0, .45); }
+.ccx-controls h4 { margin: 4px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #d8b4fe; font-weight: 700; }
+.ccx-controls section + section { margin-top: 10px; }
+.ccx-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.ccx-grid button { font: inherit; font-size: 12.5px; color: #fff; background: rgba(255, 255, 255, .08); border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+.ccx-grid button:hover, .ccx-grid button[data-on="true"] { background: rgba(192, 132, 252, .45); }
+.ccx-hint { margin: 10px 0 0; font-size: 12px; opacity: .7; }
+.ccx-chips { display: flex; flex-wrap: wrap; gap: 6px; } .ccx-chip { font-size: 12px; background: rgba(255,255,255,.12); border-radius: 999px; padding: 3px 4px 3px 10px; }
+.ccx-chip button { font: inherit; color: #fff; background: none; border: 0; cursor: pointer; padding: 0 6px; }
+.ccx-notice { margin: 0; font-size: 12px; color: #fde68a; }
+@media (pointer: coarse) {
+  .ccx-plus, .ccx-send { height: 44px; min-width: 44px; }
+  .ccx-grid button { min-height: 44px; }
+}
+@media (max-width: 520px) { .ccx { top: auto; bottom: calc(124px + env(safe-area-inset-bottom)); } /* clear of the dial (measured overlap at 96 px) */ .ccx-stem { display: none; } .ccx-controls { order: -1; max-height: 52vh; } .ccx-last { order: -2; } }
+
+/* While the core chat box is the first screen, a COLLAPSED creative-objects bar steps aside (measured on a
+   390 px phone: the collapsed bar covered the chat box). Controls → "Creative objects" opens it. */
+body:has([data-core-chat]) [data-lelu-creative-dock][data-open="false"] { display: none !important; }

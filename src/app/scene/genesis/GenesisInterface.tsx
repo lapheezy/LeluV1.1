@@ -177,6 +177,7 @@ import VisualInterface from "./VisualInterface";
 import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
+import CoreChat from "./home/CoreChat";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
 import CosmosObjectsDock from "./cosmos/CosmosObjectsDock";
 const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
@@ -809,8 +810,9 @@ export default function GenesisInterface() {
   // they are open the dial lives in their header slot there too (measured: on a 1440 px desktop the dial
   // could not be reached inside a conversation, so there was no way back to the primary Cosmos).
   const navSlotMode = universeOpen || typeof window !== "undefined" && window.innerWidth < 720 && (surface.chatOwnsScreen || surface.workspaceOwnsScreen);
+  // In the Cosmos the dial stays at the bottom centre, under the core chat box (owner: "the dial menu at
+  // the bottom"); the old utility row is gone, so the bar is the dial alone.
   const dialOnly =
-    homeStore.immersive ||
     surface.workspaceOwnsScreen ||
     (universeOpen && narrowScreen) ||
     (state.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720);
@@ -906,6 +908,8 @@ export default function GenesisInterface() {
           animation: "lelu-environment-enter 0.38s ease",
         }}
       >
+          {/* The first screen: the primary Cosmos with one chat box rising from her core. */}
+          {homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CoreChat /> : null}
           {showHome ? (
             <CosmosHome
               onOpenLibrary={(group) => setHomeSheet({ kind: "library", group })}

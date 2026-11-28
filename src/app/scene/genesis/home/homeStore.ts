@@ -193,7 +193,9 @@ class HomeStoreImpl {
     const saved = typeof window !== "undefined" ? KvStore.getInstance().get<Partial<HomeState>>(KEY) : null;
     this.state = {
       layout: saved?.layout ?? null,
-      immersive: false,
+      // The app opens INTO the Cosmos (owner, 2026-11-28): the primary scene with the chat box rising from
+      // her core. The dashboard is one step away (dial → Home / Back to the workspace).
+      immersive: true,
       cosmosMode: loadCosmosMode(),
       universe: {
         open: Array.isArray(saved?.universe?.open) ? saved!.universe!.open.filter((id) => typeof id === "string") : [],

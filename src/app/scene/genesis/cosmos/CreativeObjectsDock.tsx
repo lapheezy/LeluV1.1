@@ -66,7 +66,14 @@ export default function CreativeObjectsDock() {
   const [tool, setTool] = useState<CreativeTool>(() => getCreativeTool());
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
-  const [open, setOpen] = useState(true);
+  // Collapsed until asked for (owner: the first screen is the Cosmos and the core chat box, nothing else).
+  // Expanded from its ✦ pill, or from the core chat box's Controls tab ("lelu-creative-dock-open").
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener("lelu-creative-dock-open", show);
+    return () => window.removeEventListener("lelu-creative-dock-open", show);
+  }, []);
   const home = useHomeStore();
 
   useEffect(() => {
@@ -194,6 +201,7 @@ export default function CreativeObjectsDock() {
   return (
     <div
       data-lelu-creative-dock="ready"
+      data-open={open ? "true" : "false"}
       style={{
         position: "fixed",
         right: 12,
