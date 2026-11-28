@@ -29,6 +29,7 @@ import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/Worksp
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
 import AgentEventBus from "../agent/AgentEvents";
 import TaskExecutor from "../agentic/TaskExecutor";
+import { compileDirect } from "../creative/kit/DirectCompiler";
 import { createTask, planTask } from "../agentic/TaskPlanner";
 import ProjectStore from "../projects/ProjectStore";
 import GitHubIntegration from "../engineering/GitHubIntegration";
@@ -207,8 +208,14 @@ export default class Orchestrator {
       // direct path: that path carries the conversation's own turns, and the
       // answer is in them. Planning it as fresh steps is how "review what we
       // discussed" became "acquire a repository" / "which dataset?".
+      // A request that compiles to a deterministic job (a sewing tech pack, a
+      // drawing, a construction) is not planned as steps: measured live, the
+      // planner turned "make my outfit … for sewing" into notes and reference
+      // lookups and never drafted a pattern. The chat pipeline runs it directly.
+      const direct = compileDirect(request);
+      const deterministic = Boolean(direct && direct.steps.length > 0 && direct.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || /^creative\.(build|modify)$/.test(step.tool)));
       const needsMultiStep =
-        !isMissionResume(request) && !CONVERSATION_REFERENCE.test(request) && this.isMultiStepRequest(request);
+        !deterministic && !isMissionResume(request) && !CONVERSATION_REFERENCE.test(request) && this.isMultiStepRequest(request);
       if (needsMultiStep) {
         const planned = await this.planAndExecute(request, context, taskId);
         if (planned) {

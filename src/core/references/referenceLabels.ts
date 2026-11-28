@@ -129,6 +129,6 @@ export const USER_LABELS: Record<string, ReferenceLabel> = {
   "U-05": L("Hooded figure with a blue blade under twin suns in a hazy desert", "artwork", ["franchise", "character", "environment"], ["planned:binary-desert", "layer:sky"], { franchise: "Star Wars" }),
   "U-06": L("Two-tone splash silhouette of a small sage with a green blade", "artwork", ["franchise", "character", "visual-style"], ["planned:two-tone-silhouette-style"], { franchise: "Star Wars" }),
   "U-07": L("White silhouette of a boy with a tall afro beside a serif title", "key-art", ["franchise", "character", "visual-style"], ["character-style:cel-shaded-american-anime"], { franchise: "The Boondocks" }),
-  "U-09": L("Full-body outfit: oversized patchwork bomber in mauve/olive/black with copper chains and rose appliqués, crossover bralette, wide stacked-hem cargo trousers with chain hardware, copper sneakers", "artwork", ["clothing", "character", "visual-style"], ["planned:lelu-outfit-techpack"]),
+  "U-09": L("Full-body outfit: oversized patchwork bomber in mauve/olive/black with copper chains and rose appliqués, crossover bralette, wide stacked-hem cargo trousers with chain hardware, copper sneakers", "artwork", ["clothing", "character", "visual-style"], ["feature:couture-techpack"]),
   "U-08": L("Two brothers looking down into frame against cloudy sky, cel-shaded", "still", ["franchise", "character", "animation", "clothing"], ["character-style:cel-shaded-american-anime", "planned:toon-suburb"], { franchise: "The Boondocks" }),
 };

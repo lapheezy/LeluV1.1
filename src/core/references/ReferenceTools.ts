@@ -23,6 +23,9 @@ import { knownTargets } from "./knownTargets";
 
 const OBJECT = (properties: Record<string, unknown>, required: string[]) => ({ type: "object", properties, required });
 const str = (a: Record<string, unknown>, k: string) => (typeof a[k] === "string" ? (a[k] as string) : "");
+/** The first of several argument names a model may use for the same thing. */
+const pick = (a: Record<string, unknown>, ...keys: string[]) => keys.map((k) => str(a, k)).find(Boolean) ?? "";
+const CODE = /^(owner:|atlas:)?(U|I{1,3})-\d{2}$/i;
 
 let source: () => Promise<Registry | null> = async () => {
   if (typeof fetch === "undefined" || typeof window === "undefined") return null;
@@ -57,7 +60,12 @@ export const REFERENCE_EXECUTORS: Array<{ id: string; parameters: Record<string,
       const reg = await source();
       if (!reg) return NONE;
       const cat = str(args, "category");
-      const found = searchReferences(reg, { text: str(args, "text") || undefined, category: (CATEGORIES as readonly string[]).includes(cat) ? (cat as Category) : undefined, franchise: str(args, "franchise") || undefined, informs: str(args, "informs") || undefined });
+      const text = pick(args, "text", "query", "q", "search", "code", "id", "reference", "ref");
+      if (CODE.test(text)) {
+        const e = referenceById(reg, text.replace(/^(owner|atlas):/i, "").toUpperCase());
+        return e ? { ok: true, content: `1 reference:\n${line(e)}${e.status !== "usable" ? ` (${e.status})` : ""}`, data: [e] } : { ok: false, content: `No reference ${text} in the library.` };
+      }
+      const found = searchReferences(reg, { text: text || undefined, category: (CATEGORIES as readonly string[]).includes(cat) ? (cat as Category) : undefined, franchise: str(args, "franchise") || undefined, informs: str(args, "informs") || undefined });
       const lim = Math.max(1, Math.min(40, Number(args.limit) || 12));
       return { ok: true, content: found.length ? `${found.length} reference(s):\n${found.slice(0, lim).map(line).join("\n")}` : "No usable reference matches. (Unresolved entries are listed by references.unresolved.)", data: found.slice(0, lim) };
     },
@@ -68,7 +76,7 @@ export const REFERENCE_EXECUTORS: Array<{ id: string; parameters: Record<string,
     run: async (args) => {
       const reg = await source();
       if (!reg) return NONE;
-      const t = str(args, "target");
+      const t = pick(args, "target", "for", "object");
       const refs = referencesFor(reg, t);
       const state = targetState(t, knownTargets());
       return { ok: true, content: `${t} is ${state === "implemented" ? "built" : state === "planned" ? "planned, not built yet" : "not a known target"}. ${refs.length} reference(s) inform it${refs.length ? `:\n${refs.map(line).join("\n")}` : "."}`, data: { state, refs } };
@@ -92,8 +100,9 @@ export const REFERENCE_EXECUTORS: Array<{ id: string; parameters: Record<string,
     run: async (args) => {
       const reg = await source();
       if (!reg) return NONE;
-      const e = referenceById(reg, str(args, "ref"));
-      if (!e) return { ok: false, content: `No reference ${str(args, "ref")} in the library.` };
+      const want = pick(args, "ref", "reference", "id", "code").replace(/^(owner|atlas):/i, "").toUpperCase();
+      const e = want ? referenceById(reg, want) : undefined;
+      if (!e) return { ok: false, content: want ? `No reference ${want} in the library.` : "Name the reference to use (ref, e.g. U-09)." };
       if (e.status !== "usable") return { ok: false, content: `${e.code} is ${e.status} (${e.shows}); it is not used as a visual reference.` };
       if (typeof document === "undefined") return { ok: false, content: "Building from an image needs the browser (it reads the image's colours); not available here." };
       if (str(args, "as") === "workspace") {
@@ -117,12 +126,12 @@ export const REFERENCE_EXECUTORS: Array<{ id: string; parameters: Record<string,
     run: async (args) => {
       if (typeof document === "undefined") return { ok: false, content: "Building a workspace from an image needs the browser; not available here." };
       const { makeWorkspace } = await import("../../app/scene/worlds/workspaceImages");
-      const reference = str(args, "reference"), url = str(args, "url");
+      const reference = pick(args, "reference", "ref", "id", "code"), url = pick(args, "url", "src", "image");
       if (!reference && !url) return { ok: false, content: "Give a reference or an image url." };
       try {
         if (reference) {
           const reg = await source();
-          const e = reg && referenceById(reg, reference);
+          const e = reg && referenceById(reg, reference.replace(/^(owner|atlas):/i, "").toUpperCase());
           if (!e) return NONE;
           const w = await makeWorkspace({ origin: "reference", title: str(args, "title") || `${e.code} ${e.shows}`, ref: e.id, provenance: e.code });
           return { ok: true, content: `Made "${w.name}" the full-screen 2D workspace.`, data: { world: w.id } };

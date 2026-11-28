@@ -13,6 +13,7 @@
  *   /chart earthquakes           /research <topic>
  *   /data <connector> k=v …      /sketch <subject>
  *   /collection <theme>          /capabilities   /tools [filter]
+ *   /techpack [garments] [size] [U-09]   (sewing: patterns, cutting, fabric, materials, sewing order)
  *   /export <artifact> <format>
  *
  * Natural language is recognised for the same families
@@ -210,7 +211,9 @@ export function compileDirect(prompt: string, options: { referentId?: string | n
   });
   if (creativeObjects && coutureOwns(creativeObjects, options.referentId ?? getCreativeSelection()?.objectId ?? null)) return creativeObjects;
   const nl = (cmd: string, rest: string): DirectPlan | null => { const plan = compileCommand(cmd, rest); return plan ? { ...plan, explicit: false } : null; };
-  const verb = /\b(make|create|build|generate|construct|render|draw|design|produce|compose|assemble|give me|show me|i want|i'd like)\b/i;
+  const verb = /\b(make|create|build|generate|construct|render|draw|sketch|design|produce|compose|assemble|give me|show me|i want|i'd like|i need)\b/i;
+  // Sewing (before construction: "cargo trousers" is not a mechanical build): a garment or outfit "for sewing" / a tech pack runs the couture tech pack (patterns, cutting, fabric, materials, sewing order).
+  if (has(/\b(sew|sewing|tech ?pack|ready to sew|pattern pieces?|cutting layout|yardage)\b/i, t) && has(/\b(outfit|garments?|trousers|pants|cargo|jacket|bomber|bralette|bra|top)\b/i, t)) return nl("techpack", t);
   // Exporting what she built in her world (Job 3/4: world.export, world.gltf).
   const worldFile = /\b(stl|obj|glb|gltf)\b/i.exec(t);
   if (worldFile && has(/\b(export|download|save|give me|turn)\b/i, t) && has(/\b(world|room|environment|objects?)\b/i, t)) return nl("world", worldFile[1]);
@@ -666,6 +669,20 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       return { explicit, summary: `editable Excalidraw sketch of “${subject}”`, steps: [
         { tool: "studio.create", label: "sketch", args: { kind: "drawing", title: `Sketch — ${titleCase(subject)}`, scene: { elements: sketchElements(subject) } } },
       ] };
+    }
+    case "techpack": {
+      const garments = [
+        ...(/\b(bomber|jacket)\b/i.test(rest) ? ["oversized-bomber"] : []),
+        ...(/\b(bralette|bra|crop ?top|top)\b/i.test(rest) ? ["crossover-bralette"] : []),
+        ...(/\b(trousers|pants|cargo)\b/i.test(rest) ? ["wide-cargo-trousers"] : []),
+      ];
+      const size = (/\bsize\s*(XXS|XS|S|M|L|XL|XXL|3XL)(?![\p{L}\d])/iu.exec(rest)?.[1] ?? /(?<![\p{L}\d])(XXS|XS|XL|XXL|3XL)(?![\p{L}\d])/u.exec(rest)?.[1] ?? "M").toUpperCase();
+      const reference = /\b(U-\d{2}|I{1,3}-\d{2})\b/i.exec(rest)?.[1]?.toUpperCase();
+      return {
+        explicit,
+        summary: `sewing tech pack (${garments.length ? garments.join(", ") : "the LÉLU outfit"}, size ${size}${reference ? `, from reference ${reference}` : ""})`,
+        steps: [{ tool: "couture.design", label: "tech pack", args: { action: "tech-pack", size, ...(garments.length ? { garments } : {}), ...(reference ? { reference: `owner:${reference}` } : {}), name: "LÉLU outfit" } }],
+      };
     }
     case "collection": {
       const theme = rest || "nocturne", palette = pickPalette(rest);

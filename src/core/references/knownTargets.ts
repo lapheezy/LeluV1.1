@@ -9,6 +9,6 @@ export function knownTargets(): KnownTargets {
     families: allFamilies().map((f) => f.id),
     layerKinds: Object.values(LAYER_KINDS).flat() as string[],
     places: PLACES.flatMap((p) => [p.id, ...p.eras.map((e) => `${p.id}:${e.id}`)]),
-    features: ["neural-map-connectome", "thread-workspace"],
+    features: ["neural-map-connectome", "thread-workspace", "couture-techpack"],
   };
 }

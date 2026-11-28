@@ -28,7 +28,9 @@ import CreativeObjectBridge from "../cosmos/CreativeObjectBridge";
 import CreativeObjects, { type CreativeObject } from "./objects";
 import { garmentAssembly, patternAssembly } from "./components";
 import { buildGarment } from "./garment";
-import { draftPattern, BASE_SIZE, type GarmentStyle, type SizeLabel } from "./pattern";
+import { draftPattern, BASE_SIZE, normalizeMeasurements, type BodyMeasurements, type GarmentStyle, type SizeLabel } from "./pattern";
+import { GARMENTS, gradeMeasurements, wideCargoTrousers, type GarmentId } from "./fashionBlocks";
+import { cuttingLayoutSvg, patternSheetSvg, techPack, techPackMarkdown } from "./sewing";
 import { buildProduct, PRODUCT_TEMPLATES } from "./product";
 import { objectWorldBox, SPATIAL_RELATIONS, positionedRelativeTo, type SpatialRelation } from "./layout";
 import { getCreativeSelection, hasCreativeFocusListener, requestCreativeFocus, selectCreativeObject } from "./selection";
@@ -172,11 +174,15 @@ export const COUTURE_TOOLS: ToolDefinition[] = [
   definition(
     "couture.design",
     "Design with the Creative Engine",
-    "Draft a pattern from body measurements, build a simulated garment, look up and compare textiles, build a parametric product or piece of jewellery, and inspect the resulting editable object. Everything runs locally: no generation API.",
+    "Fashion design to sewing. action=tech-pack makes a whole outfit ready to sew in one call: true-scale patterns for each garment (wide-cargo-trousers, oversized-bomber, crossover-bralette), cutting layouts, fabric metres, bill of materials and the sewing order, delivered as a document in the chat (PDF/Word). Also: draft a single pattern from body measurements, build a simulated garment, compare textiles, build a parametric product or jewellery, inspect an object. Everything runs locally: no generation API.",
     {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["materials", "material", "compare", "draft-pattern", "build-garment", "product", "products", "inspect"] },
+        action: { type: "string", enum: ["materials", "material", "compare", "draft-pattern", "build-garment", "product", "products", "inspect", "tech-pack"], description: "tech-pack: patterns (true scale), cutting layouts, fabric quantities, bill of materials and sewing order for a whole outfit, as a document in the chat." },
+        garments: { type: "array", items: { type: "string", enum: Object.keys(GARMENTS) }, description: "tech-pack garments; default: the LÉLU outfit (wide-cargo-trousers, oversized-bomber, crossover-bralette)." },
+        measurements: { type: "object", description: "Body measurements in mm (bust, underbust, waist, hip, height, neck, shoulder, armLength, wrist, backLength, hipDepth…). Missing ones use the base set and are reported." },
+        size: { type: "string", description: "Size label XXS–3XL, default M." },
+        reference: { type: "string", description: "The reference the outfit follows, e.g. owner:U-09." },
         material: { type: "string", description: "A material id, e.g. velvet-silk, silk-organza, copper." },
         materials: { type: "array", items: { type: "string" }, description: "Material ids to compare." },
         template: { type: "string", enum: PRODUCT_TEMPLATES.map((t) => t.id), description: "Product/jewellery template." },
@@ -265,7 +271,7 @@ function resolveOrFail(reference: string): { ok: true; id: string; name: string 
 const designExecutor: ToolExecutor = {
   id: "couture.design",
   parameters: COUTURE_TOOLS[0].inputSchema as Record<string, unknown>,
-  run: async (args): Promise<ToolExecutionResult> => {
+  run: async (args, context): Promise<ToolExecutionResult> => {
     const action = str(args, "action");
 
     if (action === "materials") {
@@ -296,16 +302,84 @@ const designExecutor: ToolExecutor = {
       };
     }
 
+    if (action === "tech-pack") {
+      const size = str(args, "size") || BASE_SIZE;
+      const given = (args.measurements && typeof args.measurements === "object" ? args.measurements : {}) as Partial<BodyMeasurements>;
+      const norm = normalizeMeasurements(given);
+      const m = gradeMeasurements(norm.measurements, size);
+      const ids = (Array.isArray(args.garments) && args.garments.length ? args.garments : Object.keys(GARMENTS)).map(String).filter((g): g is GarmentId => g in GARMENTS);
+      if (!ids.length) return { ok: false, content: `No garment I can draft. Garments: ${Object.keys(GARMENTS).join(", ")}.` };
+      const patterns = ids.map((g) => GARMENTS[g](m, { size }));
+      const reference = str(args, "reference") || undefined;
+      const tp = techPack(patterns, { title: str(args, "name") || "LÉLU outfit", reference });
+      const sheets = patterns.map((p) => ({ garment: p.garment, ...patternSheetSvg(p) }));
+      const layouts = tp.layouts.map((l) => ({ fabric: l.fabric, svg: cuttingLayoutSvg(l) }));
+      const toImage = async (svg: string, scale: number) => {
+        try {
+          if (typeof document !== "undefined") {
+            const { svgToPng } = await import("../creative/kit/VisualArtifacts");
+            const png = await svgToPng(svg, scale);
+            let bin = "";
+            png.forEach((b) => (bin += String.fromCharCode(b)));
+            return `data:image/png;base64,${btoa(bin)}`;
+          }
+        } catch {
+          /* fall back to SVG */
+        }
+        return `data:image/svg+xml;base64,${typeof btoa !== "undefined" ? btoa(unescape(encodeURIComponent(svg))) : Buffer.from(svg).toString("base64")}`;
+      };
+      const unmeasured = Object.keys(norm.measurements).filter((k) => !(k in given));
+      const blocks: Array<Record<string, unknown>> = [
+        { type: "paragraph", text: `Size ${size}. ${reference ? `Follows reference ${reference}. ` : ""}${patterns.length} garments, ${patterns.reduce((n, p) => n + p.pieces.length, 0)} pattern pieces, ${tp.checks.ok}/${tp.checks.total} checks pass.${unmeasured.length ? ` Measurements not given were taken from the base set (${unmeasured.join(", ")}); measure and re-run before cutting.` : ""}` },
+        { type: "heading", level: 2, text: "Body measurements (mm)" },
+        { type: "table", columns: ["measurement", "mm", "source"], rows: Object.entries(m).map(([k, v]) => [k, Math.round(Number(v) * 100) / 100, k in given ? "given" : "base set"]) },
+      ];
+      for (const p of patterns) {
+        const sheet = sheets.find((s2) => s2.garment === p.garment)!;
+        blocks.push({ type: "heading", level: 2, text: p.title });
+        blocks.push({ type: "paragraph", text: `Derived, measure to confirm: ${Object.entries(p.derived).map(([k, v]) => `${k} ${v} mm`).join(", ")}. True-scale sheet: ${sheet.widthMm} × ${sheet.heightMm} mm (print at 100 %, check the 100 mm square).` });
+        blocks.push({ type: "image", dataUrl: await toImage(sheet.svg, 0.5), caption: `${p.name}: pattern pieces (cut line, stitch line, grain, notches)` });
+        blocks.push({ type: "table", columns: ["piece", "cut", "fabric", "seam allowance", "area per cut (m²)"], rows: p.pieces.map((pc) => [pc.label, `${pc.cut}${pc.onFold ? " on fold" : ""}`, pc.fabric, `${pc.seamAllowance} mm`, (pc.areaMm2 / 1e6).toFixed(3)]) });
+        blocks.push({ type: "heading", level: 3, text: "Sewing order" });
+        blocks.push({ type: "bullets", ordered: true, items: tp.sewing[p.garment] });
+        blocks.push({ type: "bullets", items: p.details });
+      }
+      blocks.push({ type: "heading", level: 2, text: "Cutting layouts and fabric" });
+      for (const l of layouts) blocks.push({ type: "image", dataUrl: await toImage(l.svg, 1), caption: `${l.fabric} cutting layout` });
+      blocks.push({ type: "heading", level: 2, text: "Bill of materials" });
+      blocks.push({ type: "table", columns: ["item", "quantity", "for", "note"], rows: tp.bom.map((b) => [b.item, b.quantity, b.for, b.note ?? ""]) });
+      if (tp.checks.failed.length) blocks.push({ type: "bullets", items: tp.checks.failed.map((f) => `FAILED ${f}`) });
+      const { STUDIO_EXECUTORS } = await import("../studio/StudioTools");
+      const create = STUDIO_EXECUTORS.find((e) => e.id === "studio.create")!;
+      const doc = await create.run({ kind: "document", title: `${tp.title} — tech pack (size ${size})`, subtitle: "Patterns, cutting, fabric, materials and sewing order", blocks, export: ["pdf", "docx"] }, context);
+      return {
+        ok: doc.ok && tp.checks.failed.length === 0,
+        content: `Tech pack for ${tp.title}, size ${size}: ${patterns.map((p) => `${p.name} (${p.pieces.length} pieces)`).join(", ")}. Fabric: ${tp.layouts.map((l) => `${l.fabric} ${((l.lengthMm * 1.1) / 1000).toFixed(2)} m`).join(", ")}. Checks ${tp.checks.ok}/${tp.checks.total}.${unmeasured.length ? ` Base-set measurements used for: ${unmeasured.join(", ")}.` : ""}\n${doc.content}`,
+        data: { techPack: { size, garments: ids, layouts: tp.layouts.map((l) => ({ fabric: l.fabric, metres: +(l.lengthMm / 1000).toFixed(2), widthMm: l.widthMm })), bom: tp.bom, checks: tp.checks }, files: [...sheets.map((s2) => ({ name: `${s2.garment}-pattern-true-scale.svg`, mime: "image/svg+xml", content: s2.svg })), ...layouts.map((l) => ({ name: `cutting-${l.fabric}.svg`, mime: "image/svg+xml", content: l.svg })), { name: "tech-pack.md", mime: "text/markdown", content: techPackMarkdown(tp) }], document: doc.data },
+      };
+    }
+
     if (action === "draft-pattern") {
       const style = (args.style && typeof args.style === "object" ? args.style : {}) as Partial<GarmentStyle>;
-      const pattern = draftPattern(style, {}, (str(args, "size") || BASE_SIZE) as SizeLabel);
+      const given = (args.measurements && typeof args.measurements === "object" ? args.measurements : {}) as Partial<BodyMeasurements>;
+      if (style.category === "trousers") {
+        // The bodice engine cannot draft trousers (it returned bodice pieces); the trouser block can.
+        const m = gradeMeasurements(normalizeMeasurements(given).measurements, str(args, "size") || BASE_SIZE);
+        const t = wideCargoTrousers(m, { size: str(args, "size") || BASE_SIZE });
+        return {
+          ok: true,
+          content: `Drafted ${t.title}: ${t.pieces.length} pieces (${t.pieces.map((p) => `${p.label} ×${p.cut}`).join(", ")}), ${t.checks.filter((c) => c.ok).length}/${t.checks.length} checks. Derived: ${Object.entries(t.derived).map(([k, v]) => `${k} ${v} mm`).join(", ")}. Use action tech-pack for the true-scale pattern, cutting layout and sewing order.`,
+          data: { pieces: t.pieces.map((p) => p.id), checks: t.checks, derived: t.derived },
+        };
+      }
+      const pattern = draftPattern(style, given, (str(args, "size") || BASE_SIZE) as SizeLabel);
       const assembly = patternAssembly(pattern);
       const object = store().create({
         kind: "pattern",
         name: str(args, "name") || `${style.category ?? "dress"} pattern`,
         parts: assembly.parts,
         components: assembly.components,
-        data: { ...assembly.data, draft: { style, measurements: {}, size: pattern.size } },
+        data: { ...assembly.data, draft: { style, measurements: given, size: pattern.size } },
         source: { tool: "couture.design" },
         checks: assembly.checks,
       });

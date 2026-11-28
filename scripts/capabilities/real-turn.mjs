@@ -35,6 +35,12 @@ for (const [k, m] of msg.split(" || ").entries()) {
   console.log(`--- reply ${k + 1}: ${txt.replace(/\n+/g, " ⏎ ")}`);
   await p.screenshot({ path: `${OUT}/turn-${name}-${k + 1}.png` });
 }
+// Optionally scroll whatever the conversation is showing (a document, code, thread) and capture it.
+for (let i = 1; i <= (Number(process.env.SCROLL_SHOTS) || 0); i++) {
+  await p.evaluate((i) => { const els = [...document.querySelectorAll("[data-lelu-universe-window] *")].filter((e) => e.scrollHeight > e.clientHeight + 40 && getComputedStyle(e).overflowY !== "visible"); const el = els.sort((a, b) => b.scrollHeight - a.scrollHeight)[0]; if (el) el.scrollTop = i * el.clientHeight * 0.9; }, i);
+  await p.waitForTimeout(900);
+  await p.screenshot({ path: `${OUT}/turn-${name}-scroll-${i}.png` });
+}
 await p.waitForTimeout(2000);
 await p.screenshot({ path: `${OUT}/turn-${name}.png` });
 const final = await p.evaluate(() => { const m = [...document.querySelectorAll('[data-lelu-universe-window] .lcu-msg[data-role="assistant"]')]; return { replies: m.length, text: m.at(-1)?.innerText.slice(0, 1200) ?? "", images: document.querySelectorAll('[data-lelu-universe-window] .lcu-msg img, [data-lelu-universe-window] .lcu-msg canvas, [data-lelu-universe-window] .lcu-msg svg').length }; });

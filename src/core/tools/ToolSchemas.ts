@@ -67,6 +67,9 @@ export function toolSchemasForModel(): ToolSchema[] {
 const ENVIRONMENT_REQUEST =
   /\b(?:environment|workspaces?|surfaces?|layout|artifact|diagram|table|chart|panel|window|cosmos)\b/i;
 
+/** Fashion work: "cutting layout", "pattern table"… are sewing terms here, not a request to arrange the workspace. */
+const FASHION_REQUEST = /\b(?:sew|sewing|seams?|tech ?pack|garments?|outfits?|trousers|pants|jacket|bomber|bralette|dress|skirt|tailor|couture|fabric|cutting layout|yardage|pattern pieces?)\b/i;
+
 export const ENVIRONMENT_TOOL_PREFIX = "environment_";
 
 /**
@@ -81,7 +84,7 @@ export function scopeToolSchemas(
   prompt = "",
   intent?: string,
 ): ToolSchema[] {
-  const environmentTurn = Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt);
+  const environmentTurn = (Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt)) && !FASHION_REQUEST.test(prompt);
   if (!environmentTurn) return schemas;
   // "Build a 3D environment", "make a diagram", "chart the earthquakes" are
   // environment-shaped words, but the work itself is a creative-kit or data
@@ -253,6 +256,8 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(draw|drawing|drawn|sketch\w*|doodle|illustrat\w*|paint\w*|cartoon|storyboard)\b/i, ["studio_create", "studio_preview", "artifact_create"]],
   // Job 2 creative kit + public data. Each family raises the tool that
   // executes the request directly (no image/video API involved).
+  // Fashion: sewing patterns, garments and tech packs are the couture engine's (a "pattern" here is not generative art).
+  [/\b(sew|sewing|seams?|tech ?pack|garments?|outfits?|trousers|pants|cargo|jacket|bomber|bralette|bra|dress|skirt|gown|tailor|couture|fabric|textiles?|cutting layout|yardage|pattern pieces?)\b/i, ["couture_design", "couture_objects", "references_search", "references_for"]],
   [/\b(generative|procedural|abstract art|pattern|artwork|wallpaper|texture|moodboard|mood board|p5|creative coding)\b/i, ["creative_art", "creative_export"]],
   [/\b(diagram|flowchart|flow chart|architecture|sequence diagram|mind ?map|mermaid|timeline|org chart|gantt|er diagram|class diagram)\b/i, ["creative_diagram", "creative_export"]],
   [/\b(visuali[sz]\w*|chart|graph|plot|dashboard|data viz|infographic)\b/i, ["creative_chart", "data_query", "creative_export"]],
@@ -335,7 +340,7 @@ export function selectToolSchemas(
   }
 
   // An environment turn keeps its existing, narrower contract.
-  const environmentTurn = Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt);
+  const environmentTurn = (Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt)) && !FASHION_REQUEST.test(prompt);
   if (environmentTurn) {
     const scoped = scopeToolSchemas(schemas, prompt, intent);
     if (scoped.length > 0) return scoped;

@@ -267,8 +267,18 @@ export default class AIRouter {
     const creativeOperation = Boolean(
       directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => step.tool === "couture.objects"),
     );
-    if (directPlan && (directPlan.explicit || construction || creativeOperation || !(await this.direct.providersAvailable(context)))) {
-      const reason = directPlan.explicit ? "command" : construction ? "construction" : creativeOperation ? "creative" : "no-provider";
+    /*
+     * A sewing tech pack is deterministic in the same way (the same garments,
+     * size and measurements always draft the same patterns), and a sketch must
+     * produce a drawing: measured live, the model answered "Here's the croquis"
+     * with no tool used, and on another turn planned notes instead of the tech
+     * pack. Both run here, so the work exists before anything says it does.
+     */
+    const madeDirectly = Boolean(
+      directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing")),
+    );
+    if (directPlan && (directPlan.explicit || construction || creativeOperation || madeDirectly || !(await this.direct.providersAvailable(context)))) {
+      const reason = directPlan.explicit ? "command" : construction ? "construction" : creativeOperation || madeDirectly ? "creative" : "no-provider";
       const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, reason));
       if (done.handled && done.response) return done.response;
     }
