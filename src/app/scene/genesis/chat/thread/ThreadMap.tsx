@@ -11,13 +11,16 @@
  * released (the canvas unmounts); its state stays on the object.
  */
 
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { liveAspectGraph } from "../../../../../core/neural/multiverse/liveAspects";
 import { LAYOUTS, layout as runLayout, type LayoutId } from "../../../../../core/neural/multiverse/Layouts";
 import { ARCH_VIEWS, GENERIC_3D_VIEWS, type ArchViewId } from "../../../../../core/neural/multiverse/Architecture3D";
 import { ASPECTS, type AspectId, type MvNode } from "../../../../../core/neural/multiverse/MultiverseTypes";
 import AgentStore from "../../../../../core/agents/AgentStore";
 import { update, type ThreadObject } from "../../../../../core/thread/ThreadObjects";
+
+/** True inside the Freestyle variant: maps draw with no backdrop of their own. */
+export const FreeformMaps = createContext(false);
 
 const Architecture3DView = lazy(() => import("../../neural/Architecture3DView"));
 const PALETTE = ["#7dd3fc", "#a78bfa", "#f472b6", "#fbbf24", "#34d399", "#fb923c", "#60a5fa", "#e879f9", "#a3e635", "#f87171", "#2dd4bf", "#c084fc", "#facc15", "#94a3b8"];
@@ -51,6 +54,7 @@ export default function ThreadMap({ object, compact }: { object: ThreadObject; c
   const [ref, visible] = useVisible<HTMLDivElement>();
   const set = (patch: Partial<typeof map>) => update(object.id, { map: { ...map, ...patch } });
   const views = viewsFor(map.aspect, map.dim);
+  const freeform = useContext(FreeformMaps);
 
   return (
     <div className="tm" ref={ref} data-thread-map={map.aspect} data-map-dim={map.dim} data-map-view={map.view} data-map-nodes={graph.nodes.length} data-map-highlight={map.highlight.length} data-map-selected={map.selected ?? ""}>
@@ -75,7 +79,7 @@ export default function ThreadMap({ object, compact }: { object: ThreadObject; c
         {map.dim === "3d" ? (
           visible && !object.style.collapsed ? (
             <Suspense fallback={<p className="tm-hint">Loading 3D…</p>}>
-              <Architecture3DView graph={graph} view={map.view as ArchViewId} selected={map.selected} onSelect={(id) => set({ selected: id })} colour={colour} motion={!map.selected} highlight={highlight} compact />
+              <Architecture3DView key={freeform ? "free" : "framed"} graph={graph} view={map.view as ArchViewId} selected={map.selected} onSelect={(id) => set({ selected: id })} colour={colour} motion={!map.selected} highlight={highlight} compact transparent={freeform} />
             </Suspense>
           ) : (
             <p className="tm-hint" data-webgl-released>3D paused while out of view (its WebGL context is released).</p>

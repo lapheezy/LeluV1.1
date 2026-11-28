@@ -8,6 +8,7 @@ import { placeWorld } from "../../../core/worlds/Places";
 import type { WorldConfig } from "../../../core/worlds/WorldSchema";
 import { layersOf } from "../../../core/worlds/WorldSchema";
 import { useActiveWorld, type Compare } from "./WorldEditor";
+import "./world.css";
 
 const WorldStage = lazy(() => import("./WorldStage"));
 const WorldEditor = lazy(() => import("./WorldEditor"));

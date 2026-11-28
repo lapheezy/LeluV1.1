@@ -209,7 +209,7 @@ function Scene({ graph, view, selected, onSelect, live, colour, highlight, compa
   );
 }
 
-export default function Architecture3DView({ graph, view, selected, onSelect, colour, motion, highlight, compact = false }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; colour: Map<string, string>; motion: boolean; highlight?: Set<string>; compact?: boolean }) {
+export default function Architecture3DView({ graph, view, selected, onSelect, colour, motion, highlight, compact = false, transparent = false }: { graph: MvGraph; view: ArchViewId; selected: string | null; onSelect: (id: string | null) => void; colour: Map<string, string>; motion: boolean; highlight?: Set<string>; compact?: boolean; /** No backdrop: the map floats over whatever is behind it (Freestyle). */ transparent?: boolean }) {
   const wrap = useRef<HTMLDivElement | null>(null);
   // In a thread (compact) the map draws on demand and turns only while pointed at:
   // measured, a continuously rendering canvas there cost about a third of the frame rate.
@@ -235,8 +235,8 @@ export default function Architecture3DView({ graph, view, selected, onSelect, co
       data-arch-particles={lay.particles?.length ?? 0}
       data-live-total={live.total}
     >
-      <Canvas camera={{ position: view === "circuit-board" ? [0, SCALE * 2.1, SCALE * 1.2] : view === "temporal-activation" ? [0, SCALE * 1.2, SCALE * 2.2] : [SCALE * 1.4, SCALE * 0.8, SCALE * 1.9], fov: 45 }} dpr={compact ? [1, 1.5] : [1, 2]} frameloop={animate ? "always" : "demand"} onPointerMissed={() => onSelect(null)} gl={{ antialias: true, preserveDrawingBuffer: true }}>
-        <color attach="background" args={["#05060f"]} />
+      <Canvas camera={{ position: view === "circuit-board" ? [0, SCALE * 2.1, SCALE * 1.2] : view === "temporal-activation" ? [0, SCALE * 1.2, SCALE * 2.2] : [SCALE * 1.4, SCALE * 0.8, SCALE * 1.9], fov: 45 }} dpr={compact ? [1, 1.5] : [1, 2]} frameloop={animate ? "always" : "demand"} onPointerMissed={() => onSelect(null)} gl={{ antialias: true, preserveDrawingBuffer: true, alpha: transparent }}>
+        {transparent ? null : <color attach="background" args={["#05060f"]} />}
         <Scene graph={graph} view={view} selected={selected} onSelect={onSelect} live={live} colour={colour} highlight={highlight} compactLabels={compact} />
         <OrbitControls makeDefault enableDamping={animate} autoRotate={animate && !selected} autoRotateSpeed={0.4} />
         <RenderProbe target={wrap} />

@@ -377,3 +377,75 @@ html:has(.lst-root[data-stage="thread"][data-immersive="true"]) :is(.lcu, .lsn, 
 .tx-sr { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .tx-variants button { font: inherit; font-size: 12.5px; border: 0; border-radius: 999px; cursor: pointer; }
 @media (max-width: 1280px) { .ts:not([data-compact="true"]) .tx-chip:not([data-on="true"]) { display: none; } }
+
+/* ---------------------------------------------------------------- Freestyle
+   No windows, no borders, no bubbles: the work itself floats in the space.
+   Each piece keeps its rectangle (maps and media stay "in a box") but has no
+   frame, background, glow or chrome; its edges dissolve into the space, and
+   its controls appear only while a hand is on it. */
+.ts[data-base="freestyle"] .lq,
+.ts[data-base="freestyle"] .ts-chat {
+  background: none !important; box-shadow: none !important; border: 0 !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+.ts[data-base="freestyle"] .lq::before, .ts[data-base="freestyle"] .lq::after { display: none !important; }
+.ts[data-base="freestyle"] .to { --r: 6px; animation: fs-drift 14s ease-in-out infinite; }
+.ts[data-base="freestyle"] .to:nth-of-type(3n) { animation-duration: 17s; animation-delay: -5s; }
+.ts[data-base="freestyle"] .to:nth-of-type(3n+1) { animation-duration: 12s; animation-delay: -9s; }
+.ts[data-base="freestyle"] .to[data-manual="true"], .ts[data-base="freestyle"] .to:hover { animation-play-state: paused; }
+@keyframes fs-drift { 0%, 100% { translate: 0 0; } 33% { translate: 3px -6px; } 66% { translate: -4px 4px; } }
+/* Edges dissolve instead of ending at a line. */
+.ts[data-base="freestyle"] .to-body {
+  -webkit-mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent), linear-gradient(transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-composite: source-in; mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent), linear-gradient(transparent, #000 6%, #000 94%, transparent);
+  mask-composite: intersect; border-radius: 0;
+}
+.ts[data-base="freestyle"] .to[data-kind="youtube"] .to-body, .ts[data-base="freestyle"] .to[data-kind="image"] .to-body { -webkit-mask: none; mask: none; border-radius: 10px; }
+/* Chrome only under the hand: the title becomes a quiet caption above the work. */
+.ts[data-base="freestyle"] .to-head { top: -24px; left: 0; right: 0; }
+.ts[data-base="freestyle"] .to-kind, .ts[data-base="freestyle"] .to-grip { background: none !important; box-shadow: none !important; padding: 0 4px; }
+.ts[data-base="freestyle"] .to-kind { color: hsl(var(--gold) 90% 70%); opacity: .8; }
+.ts[data-base="freestyle"] .to-title { font-weight: 500; opacity: .75; text-shadow: 0 1px 10px #000c; }
+.ts[data-base="freestyle"] .to-grip { opacity: 0; transition: opacity .2s; }
+.ts[data-base="freestyle"] .to:hover .to-grip, .ts[data-base="freestyle"] .to:focus-within .to-grip { opacity: 1; }
+.ts[data-base="freestyle"] .tm-bar { opacity: 0; transition: opacity .25s; background: #0006 !important; box-shadow: none !important; }
+.ts[data-base="freestyle"] .to:hover .tm-bar, .ts[data-base="freestyle"] .to:focus-within .tm-bar { opacity: 1; }
+.ts[data-base="freestyle"] .to-web, .ts[data-base="freestyle"] .to-research { padding: 4px 6px; }
+.ts[data-base="freestyle"] .to-research li { background: none; padding: 4px 0; border-bottom: 1px solid #ffffff0f; border-radius: 0; }
+/* The conversation as plain flowing text: no bubbles, her lines marked by a soft gold rule. */
+.ts[data-base="freestyle"] .ts-chat { padding: 0 6px; -webkit-mask: linear-gradient(transparent, #000 5%, #000 92%, transparent); mask: linear-gradient(transparent, #000 5%, #000 92%, transparent); }
+.ts[data-base="freestyle"] .ts-chat .lcu-bubble { background: none !important; box-shadow: none !important; border: 0 !important; padding: 4px 0 !important; border-radius: 0 !important; }
+.ts[data-base="freestyle"] .ts-chat .lcu-msg { margin: 10px 0; }
+.ts[data-base="freestyle"] .ts-chat .lcu-msg[data-role="user"] .lcu-bubble, .ts[data-base="freestyle"] .ts-chat .lcu-msg.is-user .lcu-bubble { color: #e9d5ff; font-weight: 500; text-align: right; }
+.ts[data-base="freestyle"] .ts-chat .lcu-msg-orb { box-shadow: none; }
+.ts[data-base="freestyle"] .ts-avatar { box-shadow: none !important; background: none !important; border: 0 !important; }
+.ts[data-base="freestyle"] .ts-avatar::before, .ts[data-base="freestyle"] .ts-avatar::after { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .ts[data-base="freestyle"] .to { animation: none; } }
+/* Six variants: tabs stay on one line; the chips give way first. */
+.tx-variants button { white-space: nowrap; }
+.ts:not([data-compact="true"]) .tx-variants button { padding: 5px 9px !important; font-size: 12px; }
+.ts:not([data-compact="true"]) .tx-chips { flex-wrap: nowrap; overflow: hidden; min-width: 0; }
+@media (max-width: 1500px) { .ts:not([data-compact="true"]) .tx-chip:not([data-on="true"]) { display: none; } }
+.ts[data-base="freestyle"] .tm-body, .ts[data-base="freestyle"] .tm, .ts[data-base="freestyle"] .a3 { background: none !important; }
+.ts[data-compact="true"][data-base="freestyle"] .to-head { top: 2px; }
+.ts[data-compact="true"][data-base="freestyle"] .to-body { padding-top: 30px; }
+.ts[data-compact="true"][data-base="freestyle"] .to { margin-top: 18px; }
+
+/* Freestyle scrolling: the work and the conversation scroll separately. */
+.ts[data-base="freestyle"] { display: flex; flex-direction: column; overflow: hidden; }
+.fs-stage { position: relative; flex: 1; min-height: 0; }
+.fs-scroll { position: absolute; inset: 0; overflow: hidden auto; overscroll-behavior: contain; scroll-behavior: smooth;
+  scrollbar-width: thin; scrollbar-color: hsl(var(--gold) 90% 62% / .8) transparent; }
+.fs-scroll::-webkit-scrollbar { width: 8px; }
+.fs-scroll::-webkit-scrollbar-thumb { border-radius: 8px; background: linear-gradient(hsl(var(--violet) 90% 65%), hsl(var(--gold) 90% 60%)); box-shadow: 0 0 10px hsl(var(--violet) 95% 60%); }
+.fs-scroll::-webkit-scrollbar-track { background: transparent; }
+.fs-chat { position: absolute; bottom: 92px; z-index: 5; }
+.ts[data-base="freestyle"] .ts-chat, .ts[data-base="freestyle"] .to-body, .ts[data-base="freestyle"] .to-web, .ts[data-base="freestyle"] .to-research {
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: hsl(var(--violet) 90% 70% / .7) transparent;
+}
+.ts[data-base="freestyle"] .ts-chat::-webkit-scrollbar, .ts[data-base="freestyle"] .to-web::-webkit-scrollbar, .ts[data-base="freestyle"] .to-research::-webkit-scrollbar { width: 6px; }
+.ts[data-base="freestyle"] .ts-chat::-webkit-scrollbar-thumb, .ts[data-base="freestyle"] .to-web::-webkit-scrollbar-thumb, .ts[data-base="freestyle"] .to-research::-webkit-scrollbar-thumb { border-radius: 6px; background: hsl(var(--violet) 90% 70% / .7); }
+/* Maps and video keep their own gestures (pan, zoom, orbit) and never scroll the space. */
+.ts[data-base="freestyle"] .to[data-kind="neural-map"] .to-body, .ts[data-base="freestyle"] .to[data-kind="youtube"] .to-body { overflow: hidden; }
+/* With a world on, the space still scrolls (it takes the wheel; the world keeps drifting by itself). */
+.tw-host[data-world-on="true"] > .ts[data-base="freestyle"] { pointer-events: auto; }

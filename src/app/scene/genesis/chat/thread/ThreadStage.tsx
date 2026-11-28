@@ -40,7 +40,7 @@ import {
 import { layoutThread, placed, subscribeVariants, variantById, variants, type Rect } from "../../../../../core/thread/ThreadVariants";
 import type { ChatActivity } from "../../../../../core/multichat/TurnActivity";
 import RaindropFeed, { type FeedEntry } from "./RaindropFeed";
-import ThreadMap from "./ThreadMap";
+import ThreadMap, { FreeformMaps } from "./ThreadMap";
 import YouTubeObject from "./YouTubeObject";
 import "./thread.css";
 
@@ -505,6 +505,42 @@ export default function ThreadStage({ conversationId, messages, processing, tran
     );
   }
 
+  if (spec.base === "freestyle") {
+    // Two separate scrolls: the work flows in its own scrolling space; the
+    // conversation (and her presence) stay put, the conversation scrolling on
+    // its own. Panels that hold more (a web page, research, a browser) scroll
+    // inside themselves without moving either.
+    return withWorld(
+      <div ref={ref} className="ts" data-fx={fxMode} data-fx-ms={measuredFx?.medianMs ?? ""} data-thread-stage={conversationId} data-variant={variantId} data-base="freestyle" data-compact={compact ? "true" : "false"} style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent }}>
+        {header}
+        <FreeformMaps.Provider value>
+          <div className="fs-stage">
+            <div className="fs-scroll" data-freestyle-scroll>
+              <div className="ts-canvas" style={{ height: compact ? lay.height : Math.max(lay.height - 40, 0) }}>
+                {compact ? (
+                  <section className="ts-chat lq" data-thread-chat style={{ left: lay.chat.x, top: lay.chat.y, width: lay.chat.w, height: lay.chat.h }}>
+                    {transcript}
+                  </section>
+                ) : null}
+                {objects
+                  .filter((o) => lay.objects[o.id])
+                  .map((o) => (
+                    <LiquidShell key={o.id} o={o} rect={lay.objects[o.id]} variantId={variantId} compact={compact} shape={o.style.shape !== DEFAULT_STYLE.shape ? o.style.shape : spec.style.shape} hue={spec.style.hue} ribbon={false} focusPane={false} />
+                  ))}
+              </div>
+            </div>
+            {lay.avatar ? <div className="ts-avatar" data-lelu-preview-host data-avatar-spot style={{ left: lay.avatar.x, top: lay.avatar.y, width: lay.avatar.w, height: lay.avatar.h }} /> : null}
+            {compact ? null : (
+              <section className="ts-chat lq fs-chat" data-thread-chat style={{ left: lay.chat.x, top: 8, width: lay.chat.w }}>
+                {transcript}
+              </section>
+            )}
+          </div>
+        </FreeformMaps.Provider>
+      </div>,
+    );
+  }
+
   const tabs = lay.tabs.map((id) => objects.find((o) => o.id === id)!).filter(Boolean);
   return withWorld(
     <div
@@ -520,6 +556,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
       style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent, ["--glow" as string]: spec.style.glow }}
     >
       {header}
+      <FreeformMaps.Provider value={false}>
       <div className="ts-canvas" style={{ height: lay.height }}>
         {spec.base === "workspace" || spec.base === "live" ? <Trails objects={objects} rects={Object.fromEntries(objects.filter((o) => lay.objects[o.id]).map((o) => [o.id, placed(lay.objects[o.id], o.transforms[variantId])]))} /> : null}
         {spec.base === "ribbon" ? (
@@ -563,6 +600,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
           </nav>
         ) : null}
       </div>
+      </FreeformMaps.Provider>
     </div>,
   );
 }

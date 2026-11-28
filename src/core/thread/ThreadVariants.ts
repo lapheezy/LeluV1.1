@@ -26,7 +26,7 @@
 
 import type { LiquidStyle } from "./ThreadObjects";
 
-export type BaseLayout = "raindrop" | "workspace" | "ribbon" | "live" | "split";
+export type BaseLayout = "raindrop" | "workspace" | "ribbon" | "live" | "split" | "freestyle";
 
 export interface VariantSpec {
   id: string;
@@ -51,6 +51,7 @@ export const BUILT_IN_VARIANTS: VariantSpec[] = [
   { id: "ribbon", label: "Ribbon thread", base: "ribbon", description: "Each object a full-width liquid ribbon in the thread, a spine of progress on the right.", style: { shape: "ribbon", hue: 285, accent: 210, backdrop: "rain", glow: 0.9 }, origin: { by: "built-in", at: 0, note: "Owner reference C" } },
   { id: "live", label: "Live workspace", base: "live", description: "Her live steps left, a central 2×2 of objects, live activity right, a tool dock below.", style: { shape: "pane", hue: 262, accent: 40, backdrop: "orbit", glow: 0.75 }, origin: { by: "built-in", at: 0, note: "Owner reference D" } },
   { id: "split", label: "Chat + browser", base: "split", description: "The conversation beside one focused object; the others wait as tabs.", style: { shape: "capsule", hue: 255, accent: 200, backdrop: "plain", glow: 0.55 }, origin: { by: "built-in", at: 0, note: "Owner reference E" } },
+  { id: "freestyle", label: "Freestyle", base: "freestyle", description: "No windows, no borders: her work, maps and results flow freely through the space, sized by importance.", style: { shape: "pane", hue: 272, accent: 38, backdrop: "plain", glow: 0 }, origin: { by: "built-in", at: 0, note: "Owner request, 2026-11-28: everything free-forming and flowing" } },
 ];
 
 const KEY = "lelu.thread.variants.v1";
@@ -75,7 +76,7 @@ function loadCustom(): VariantSpec[] {
   }
   return custom;
 }
-const BASES: BaseLayout[] = ["raindrop", "workspace", "ribbon", "live", "split"];
+const BASES: BaseLayout[] = ["raindrop", "workspace", "ribbon", "live", "split", "freestyle"];
 const SHAPES: LiquidStyle["shape"][] = ["droplet", "ribbon", "pane", "capsule", "orb"];
 
 export function variants(): VariantSpec[] {
@@ -271,6 +272,44 @@ export function layoutThread(base: BaseLayout, width: number, height: number, id
         objects[id] = { x: left + (i % cols) * (cw + 18), y: 70 + Math.floor(i / cols) * (ch + 18), w: cw, h: ch };
       });
       return { base, chat, avatar, activity, objects, tabs: [], height: Math.max(height, 70 + rows * (ch + 18) + 110), compact };
+    }
+    case "freestyle": {
+      // No frames: a small presence top-left, the conversation as a free column of
+      // text on the right, and the work flowing between them in staggered columns:
+      // the first (or focused) piece widest, the rest drifting at uneven heights.
+      const avatar = { x: pad, y: 56, w: Math.min(170, width * 0.12), h: Math.min(240, height * 0.32) };
+      const chatW = Math.max(280, width * 0.24);
+      const chat = { x: width - chatW - pad, y: 64, w: chatW, h: height - 150 };
+      const left = avatar.x + avatar.w + pad * 2;
+      const areaW = chat.x - pad * 2 - left;
+      const order = focus && ids.includes(focus) ? [focus, ...ids.filter((i) => i !== focus)] : ids;
+      const cols = areaW >= 900 ? 3 : 2;
+      const weights = [1.18, 0.86, 1.02].slice(0, cols);
+      const gap = 30;
+      const total = weights.reduce((a, b) => a + b, 0);
+      const colW = weights.map((w) => ((areaW - gap * (cols - 1)) * w) / total);
+      const colX = colW.map((_, i) => left + colW.slice(0, i).reduce((a, b) => a + b, 0) + gap * i);
+      const colY = colW.map((_, i) => 64 + [0, 46, 18][i]);
+      const ratios = [0.62, 0.78, 0.56, 0.7, 0.66];
+      const drift = [0, 14, -10, 8, -14, 6];
+      order.forEach((id, i) => {
+        if (i === 0 && order.length > 2) {
+          // The lead piece spans the first two columns.
+          const w = colW[0] + colW[1] + gap;
+          const h = Math.max(240, Math.min(w * 0.5, height * 0.46));
+          const y = Math.max(colY[0], colY[1]);
+          objects[id] = { x: colX[0], y, w, h };
+          colY[0] = colY[1] = y + h + gap + 12;
+          return;
+        }
+        const c = colY.indexOf(Math.min(...colY));
+        const inset = Math.abs(drift[i % drift.length]);
+        const w = colW[c] - inset;
+        const h = Math.max(170, w * ratios[i % ratios.length]);
+        objects[id] = { x: colX[c] + (drift[i % drift.length] > 0 ? inset : 0), y: colY[c], w, h };
+        colY[c] += h + gap + (i % 3) * 14;
+      });
+      return { base, chat, avatar, activity: null, objects, tabs: [], height: Math.max(height, Math.max(...colY) + 90), compact };
     }
     case "split": {
       const avatar = { x: width * 0.47 - 40, y: 4, w: 80, h: 80 };
