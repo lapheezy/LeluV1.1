@@ -1,0 +1,45 @@
+/* LÉLU worlds (WP21): stage, 2D overlay, editor. */
+.ws { position: absolute; inset: 0; overflow: hidden; background: linear-gradient(180deg, var(--w-sky0), var(--w-sky1) 60%, var(--w-sky2)); }
+.ws-canvas { position: absolute !important; inset: 0; }
+.ws-flat { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 110%, var(--w-sky2), var(--w-sky1) 55%, var(--w-sky0)); }
+.w2 { position: absolute; inset: 0; pointer-events: none; }
+.w2-layer { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 50%; }
+.w2-canvas { width: 100%; height: 100%; display: block; }
+.w2[data-paused="true"] * { animation-play-state: paused !important; }
+.w2-spin { animation: w2-spin 60s linear infinite; }
+.w2-spin-rev { animation: w2-spin 80s linear infinite reverse; }
+.w2-spin-slow { animation: w2-spin 240s linear infinite; }
+.w2-twinkle { animation: w2-twinkle 4s ease-in-out infinite; }
+.w2-wiggle { animation: w2-wiggle 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes w2-spin { to { transform: rotate(360deg); } }
+@keyframes w2-twinkle { 50% { opacity: .35; } }
+@keyframes w2-wiggle { 50% { translate: 0 -4px; } }
+@media (prefers-reduced-motion: reduce) { .w2 * { animation: none !important; } }
+.ws-place { position: absolute; left: 14px; bottom: 14px; z-index: 2; padding: 8px 12px; border-radius: 12px; color: #fff; background: rgb(0 0 0 / .45); backdrop-filter: blur(8px); display: grid; gap: 2px; font-size: 12px; max-width: min(420px, 70vw); }
+.ws-place small { opacity: .8; }
+
+/* ---------------- Editor ---------------- */
+.we { position: absolute; z-index: 30; top: 64px; right: 12px; bottom: 76px; width: min(360px, calc(100% - 24px)); display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 20px; color: #f5f0ff; font-size: 12.5px;
+  background: linear-gradient(160deg, rgb(24 10 48 / .88), rgb(10 6 24 / .9)); backdrop-filter: blur(18px) saturate(1.3); box-shadow: 0 0 0 1px rgb(192 132 252 / .45), 0 20px 60px rgb(0 0 0 / .5), 0 0 40px rgb(168 85 247 / .25); overflow: hidden; }
+.we h3 { margin: 0; font-size: 14px; letter-spacing: .04em; display: flex; justify-content: space-between; align-items: center; }
+.we h3 button { background: none; border: 0; color: inherit; font-size: 16px; cursor: pointer; }
+.we-scroll { overflow-y: auto; display: grid; gap: 12px; padding-right: 4px; scrollbar-width: thin; }
+.we section { display: grid; gap: 6px; }
+.we section > b { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: #d8b4fe; }
+.we-fams { display: flex; flex-wrap: wrap; gap: 5px; }
+.we-fams button, .we-row button, .we-tools button, .we select, .we input[type="text"] { font: inherit; font-size: 11.5px; color: #fff; border: 0; border-radius: 999px; padding: 5px 10px; cursor: pointer; background: rgb(255 255 255 / .08); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .14); }
+.we-fams button[data-on="true"] { background: linear-gradient(135deg, #a855f7, #6366f1); box-shadow: 0 0 14px rgb(168 85 247 / .6); }
+.we-fams button[data-in="true"]:not([data-on="true"]) { box-shadow: inset 0 0 0 1px #f5c46b, 0 0 10px rgb(245 196 107 / .35); }
+.we-layer { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; padding: 6px 8px; border-radius: 12px; background: rgb(255 255 255 / .04); }
+.we-layer[data-enabled="false"] { opacity: .5; }
+.we-layer label { display: contents; }
+.we-layer small { grid-column: 2 / 4; opacity: .65; font-size: 10.5px; }
+.we-layer input[type="range"] { grid-column: 2 / 4; width: 100%; accent-color: #c084fc; height: 14px; }
+.we-layer .we-x { background: none; border: 0; color: #fca5a5; cursor: pointer; font-size: 13px; }
+.we-row { display: grid; grid-template-columns: 90px 1fr; gap: 6px; align-items: center; }
+.we-row input[type="range"] { accent-color: #c084fc; }
+.we-row input[type="color"] { width: 100%; height: 22px; border: 0; background: none; padding: 0; }
+.we-tools { display: flex; flex-wrap: wrap; gap: 5px; }
+.we-hint { opacity: .7; font-size: 11px; line-height: 1.4; }
+.we-place { display: grid; gap: 6px; }
+.we-place ol { margin: 0; padding-left: 16px; display: grid; gap: 2px; font-size: 11px; opacity: .85; }
