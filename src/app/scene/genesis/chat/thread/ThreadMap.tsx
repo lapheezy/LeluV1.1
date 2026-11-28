@@ -111,10 +111,26 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [px, setPx] = useState(400);
   useEffect(() => {
-    if (!svgRef.current) return;
-    const ro = new ResizeObserver(([e]) => setPx(Math.max(120, Math.min(e.contentRect.width, e.contentRect.height))));
-    ro.observe(svgRef.current);
-    return () => ro.disconnect();
+    const svg = svgRef.current;
+    const host = svg?.parentElement;
+    if (!svg || !host) return;
+    // Watch the HTML container and read the svg's real CSS box: a ResizeObserver on an <svg> reports its
+    // drawing's geometry, not its box on the page, so labels were sized for the wrong pane (measured:
+    // 214×88 px pane, labels sized for ~335 px; giant labels in a large pane).
+    const measure = () => {
+      const next = Math.max(60, Math.min(svg.clientWidth, svg.clientHeight) || 400);
+      setPx((cur) => (Math.abs(cur - next) > 1 ? next : cur));
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(host);
+    // And a cheap check (two reads, every 400 ms): a pane that grows by an ancestor's layout change was not
+    // always reported (measured: grew 214×88 → 751×422, labels stayed sized for the small pane).
+    const tick = window.setInterval(measure, 400);
+    measure();
+    return () => {
+      ro.disconnect();
+      window.clearInterval(tick);
+    };
   }, []);
   const unit = fit.s / view.k / px; // viewBox units per screen pixel
   const focus = selected ?? null;
@@ -156,7 +172,7 @@ function Map2D({ graph, layoutId, colour, highlight, selected, onSelect }: { gra
             {hl ? <circle cx={p.x} cy={p.y} r={r * 1.9} fill="none" stroke="#fbbf24" strokeWidth={r / 3} className="tm-pulse" /> : null}
             <circle cx={p.x} cy={p.y} r={r} fill={colour.get(n.group)} fillOpacity={focus && !on && !near.has(n.id) && !hl ? 0.3 : 0.95} stroke={on ? "#fff" : "none"} strokeWidth={2} />
             {hl || on || n.kind === "function" || n.kind === "executive" ? (
-              <text x={p.x} y={p.y - r - 5} textAnchor="middle" className="tm-label">
+              <text x={p.x} y={p.y - r - 5} textAnchor="middle" className="tm-label" style={{ fontSize: unit * 12, strokeWidth: unit * 4 }}>
                 {n.label.slice(0, 26)}
               </text>
             ) : null}

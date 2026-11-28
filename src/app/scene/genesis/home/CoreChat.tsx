@@ -16,13 +16,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { chatWindowId, useGenesis } from "../GenesisCore";
+import { useGenesis } from "../GenesisCore";
+import { openChatWorkspace, showNeuralMap } from "./chatWorkspace";
 import { UNIVERSE_SEND_EVENT } from "../chat/universe/ChatUniverse";
 import { setUniverseOpen } from "../chat/universe/universeOpen";
 import { prepareAttachments, type ChatFile } from "../chat/universe/attachments";
 import VoiceMicButton from "../../../../core/voice/VoiceMicButton";
-import WorkspaceStewardStore from "../../../../core/interface/WorkspaceStewardStore";
-import { setVariant, summon, variantFor } from "../../../../core/thread/ThreadObjects";
+import { setVariant, variantFor } from "../../../../core/thread/ThreadObjects";
 import { variants } from "../../../../core/thread/ThreadVariants";
 import type { ProcessedMedia } from "../../../../core/media/mediaProcessor";
 import "./coreChat.css";
@@ -76,21 +76,14 @@ export default function CoreChat() {
     setFiles([]);
   };
 
-  /** The chat workspace: this conversation's Thread, inside the Cosmos (the Chat Universe floats over it). */
+  /** The chat workspace and the Neural Map, inside the Cosmos (shared with the dial: chatWorkspace.ts). */
   const openWorkspace = (stage: "thread" | "conversation" = "thread") => {
-    if (!id) return;
     setControls(false);
-    setUniverseOpen(true);
-    const moduleId = chatWindowId(id);
-    genesis.openModule(moduleId);
-    genesis.setModulePresentation(moduleId, "inline");
-    genesis.raiseModule(moduleId);
-    WorkspaceStewardStore.setStage(id, stage);
+    openChatWorkspace(genesis, stage);
   };
   const showMap = (aspect: "v1" | "v2" | "v3") => {
-    if (!id) return;
-    summon({ conversationId: id, kind: "neural-map", by: "user", title: aspect === "v1" ? "V1 · Knowledge" : aspect === "v2" ? "V2 · Cognitive architecture" : "V3 · Agent society", map: { aspect, view: aspect === "v2" ? "force-directed" : aspect === "v3" ? "core-orbit" : "force-directed", dim: "2d", highlight: [], selected: null } });
-    openWorkspace();
+    setControls(false);
+    showNeuralMap(genesis, aspect);
   };
   const current = id ? variantFor(id) : "workspace";
 

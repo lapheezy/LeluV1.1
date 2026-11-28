@@ -409,8 +409,8 @@
    "path": "src/core/*.ts",
    "function": "provider-routing",
    "files": 17,
-   "lines": 7875,
-   "commits": 27,
+   "lines": 7877,
+   "commits": 29,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -427,7 +427,7 @@
     0,
     1,
     3,
-    4
+    6
    ]
   },
   {
@@ -487,8 +487,8 @@
    "path": "src/core/creative",
    "function": "embodiment",
    "files": 32,
-   "lines": 10711,
-   "commits": 12,
+   "lines": 10717,
+   "commits": 14,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -505,7 +505,7 @@
     0,
     0,
     0,
-    3
+    5
    ]
   },
   {
@@ -800,7 +800,7 @@
    "function": "unclassified",
    "files": 9,
    "lines": 1305,
-   "commits": 4,
+   "commits": 5,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -817,7 +817,7 @@
     0,
     0,
     1,
-    1
+    2
    ]
   },
   {
@@ -982,7 +982,7 @@
    "function": "memory",
    "files": 13,
    "lines": 2716,
-   "commits": 7,
+   "commits": 8,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -999,7 +999,7 @@
     0,
     0,
     4,
-    3
+    4
    ]
   },
   {
@@ -1086,7 +1086,7 @@
    "function": "planning",
    "files": 4,
    "lines": 2086,
-   "commits": 4,
+   "commits": 6,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -1103,7 +1103,7 @@
     0,
     0,
     0,
-    2
+    4
    ]
   },
   {
@@ -1156,6 +1156,32 @@
     0,
     0,
     0
+   ]
+  },
+  {
+   "id": "performance",
+   "path": "src/core/performance",
+   "function": "unclassified",
+   "files": 2,
+   "lines": 116,
+   "commits": 1,
+   "lastChanged": "2026-11-28",
+   "daily": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
    ]
   },
   {
@@ -1319,8 +1345,8 @@
    "path": "src/core/router",
    "function": "provider-routing",
    "files": 36,
-   "lines": 10600,
-   "commits": 13,
+   "lines": 10605,
+   "commits": 15,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -1337,7 +1363,7 @@
     0,
     1,
     0,
-    1
+    3
    ]
   },
   {
@@ -1657,8 +1683,8 @@
    "path": "src/core/tools",
    "function": "tools",
    "files": 8,
-   "lines": 5709,
-   "commits": 10,
+   "lines": 5710,
+   "commits": 12,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -1675,7 +1701,7 @@
     0,
     0,
     0,
-    4
+    6
    ]
   },
   {
@@ -2491,6 +2517,11 @@
   },
   {
    "from": "core-root",
+   "to": "performance",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
    "to": "persistence",
    "imports": 3
   },
@@ -3235,6 +3266,11 @@
    "imports": 3
   },
   {
+   "from": "performance",
+   "to": "tools",
+   "imports": 2
+  },
+  {
    "from": "persistence",
    "to": "agent",
    "imports": 1
@@ -3958,6 +3994,11 @@
    "from": "tools",
    "to": "orchestrator",
    "imports": 2
+  },
+  {
+   "from": "tools",
+   "to": "performance",
+   "imports": 1
   },
   {
    "from": "tools",

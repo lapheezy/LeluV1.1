@@ -25,6 +25,7 @@
  */
 
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
+import { MAP_TITLES, openChatWorkspace, showNeuralMap } from "./chatWorkspace";
 import VisualEngine from "../../../../core/visual/VisualEngine";
 import { HomeIcon } from "./CosmosHome";
 import { goHome, restoreLayout } from "./homeActions";
@@ -275,6 +276,15 @@ export default function SpatialNav({
     ...dialMenu,
     items: [
       ...dialMenu.items,
+      // Owner: from the dial, open the chat workspace or break the Neural Map down, inside the Cosmos.
+      { id: "chat-workspace", label: "Chat workspace", icon: icon("MessagesSquare"), ring: "inner", onSelect: () => { setSheet(null); openChatWorkspace(genesis); } },
+      {
+        id: "neural-map",
+        label: "Neural Map",
+        icon: icon("Brain"),
+        ring: "inner",
+        children: (["v1", "v2", "v3"] as const).map((a) => ({ id: `map-${a}`, label: MAP_TITLES[a], icon: icon(a === "v1" ? "BookOpen" : a === "v2" ? "Brain" : "Workflow"), onSelect: () => { setSheet(null); showNeuralMap(genesis, a); } })),
+      },
       utility(libraryMenu, "LayoutGrid"),
       { ...utility(windowsMenu, "AppWindow"), label: openWindows ? `Windows (${openWindows})` : "Windows" },
       utility(searchMenu, "Search"),

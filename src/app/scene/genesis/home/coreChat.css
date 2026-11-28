@@ -58,3 +58,6 @@
 /* While the core chat box is the first screen, a COLLAPSED creative-objects bar steps aside (measured on a
    390 px phone: the collapsed bar covered the chat box). Controls → "Creative objects" opens it. */
 body:has([data-core-chat]) [data-lelu-creative-dock][data-open="false"] { display: none !important; }
+/* While the dial's ring is open it is the navigation: the chat box steps back so the options read cleanly
+   (measured on a 390 px phone: the inner arc lay over the composer). */
+body:has(.lelu-radial-items) .ccx { opacity: .12; pointer-events: none; transition: opacity .15s; }
