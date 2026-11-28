@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: One unified Cosmos Chat, and every original still one tap away (OG mode)
 by: Claude (Claude Code)
-commits: pending
+commits: 4accd7ec
 playbooks:
 ---
 
