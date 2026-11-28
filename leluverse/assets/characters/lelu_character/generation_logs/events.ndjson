@@ -259,3 +259,5 @@
 {"at":"2026-11-20T01:54:35.475Z","type":"dressed","look":"hooded","wear":[]}
 {"at":"2026-11-20T02:02:51.741Z","type":"look_changed","look":"home_laidback3"}
 {"at":"2026-11-20T02:02:51.741Z","type":"dressed","look":"home_laidback3","wear":[]}
+{"at":"2026-11-28T12:05:02.950Z","type":"look_changed","look":"camo_repaired"}
+{"at":"2026-11-28T12:05:02.951Z","type":"dressed","look":"camo_repaired","wear":[]}
