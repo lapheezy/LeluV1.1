@@ -409,7 +409,7 @@
    "path": "src/core/*.ts",
    "function": "provider-routing",
    "files": 17,
-   "lines": 7877,
+   "lines": 7879,
    "commits": 29,
    "lastChanged": "2026-11-28",
    "daily": [
@@ -487,7 +487,7 @@
    "path": "src/core/creative",
    "function": "embodiment",
    "files": 32,
-   "lines": 10717,
+   "lines": 10728,
    "commits": 14,
    "lastChanged": "2026-11-28",
    "daily": [
@@ -981,8 +981,8 @@
    "path": "src/core/neural",
    "function": "memory",
    "files": 13,
-   "lines": 2716,
-   "commits": 8,
+   "lines": 2719,
+   "commits": 9,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -999,7 +999,7 @@
     0,
     0,
     4,
-    4
+    5
    ]
   },
   {
@@ -1683,7 +1683,7 @@
    "path": "src/core/tools",
    "function": "tools",
    "files": 8,
-   "lines": 5710,
+   "lines": 5711,
    "commits": 12,
    "lastChanged": "2026-11-28",
    "daily": [
@@ -1916,8 +1916,8 @@
    "id": "worlds",
    "path": "src/core/worlds",
    "function": "unclassified",
-   "files": 5,
-   "lines": 1025,
+   "files": 7,
+   "lines": 1111,
    "commits": 4,
    "lastChanged": "2026-11-28",
    "daily": [
@@ -2611,6 +2611,11 @@
    "imports": 1
   },
   {
+   "from": "core-root",
+   "to": "worlds",
+   "imports": 1
+  },
+  {
    "from": "cosmos",
    "to": "couture",
    "imports": 3
@@ -2753,6 +2758,11 @@
   {
    "from": "creative",
    "to": "voice",
+   "imports": 1
+  },
+  {
+   "from": "creative",
+   "to": "worlds",
    "imports": 1
   },
   {
@@ -4046,6 +4056,11 @@
    "imports": 1
   },
   {
+   "from": "tools",
+   "to": "worlds",
+   "imports": 1
+  },
+  {
    "from": "ui",
    "to": "runtime",
    "imports": 1
@@ -4167,6 +4182,11 @@
   },
   {
    "from": "world",
+   "to": "tools",
+   "imports": 2
+  },
+  {
+   "from": "worlds",
    "to": "tools",
    "imports": 2
   }

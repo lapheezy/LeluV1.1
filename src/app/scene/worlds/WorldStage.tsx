@@ -41,7 +41,7 @@ function FrameMeter({ onMeasured }: { onMeasured: (msPerFrame: number) => void }
   return null;
 }
 
-export default function WorldStage({ world, paused = false, interactive = true, className }: { world: WorldConfig; paused?: boolean; interactive?: boolean; className?: string }) {
+export default function WorldStage({ world, paused = false, still = false, interactive = true, className }: { world: WorldConfig; paused?: boolean; /** Lightweight: draw the world once and hold it (no animation loop). */ still?: boolean; interactive?: boolean; className?: string }) {
   const root = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const [hidden, setHidden] = useState(typeof document !== "undefined" && document.hidden);
@@ -101,7 +101,7 @@ export default function WorldStage({ world, paused = false, interactive = true, 
         <Canvas
           className="ws-canvas"
           dpr={TIER_DPR[tier]}
-          frameloop={stopped ? "never" : motion === 0 ? "demand" : "always"}
+          frameloop={stopped ? "never" : still || motion === 0 ? "demand" : "always"}
           camera={{ position: [0, world.camera.height, world.camera.distance], fov: 55, near: 0.5, far: 1200 }}
           gl={{ antialias: tier !== "low", powerPreference: "high-performance" }}
         >
@@ -114,7 +114,7 @@ export default function WorldStage({ world, paused = false, interactive = true, 
       ) : (
         <div className="ws-flat" />
       )}
-      {show2d ? <World2D world={world} paused={stopped || motion === 0} /> : null}
+      {show2d ? <World2D world={world} paused={stopped || still || motion === 0} /> : null}
       {world.place ? (
         <div className="ws-place" data-world-place={world.place.location}>
           <b>

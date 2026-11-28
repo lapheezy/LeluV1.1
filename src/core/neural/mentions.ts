@@ -38,6 +38,9 @@ export function resolveMentions(text: string, aspects: AspectId[] = ["v1", "v2",
       continue; // an authority that cannot answer here contributes nothing (not a guess)
     }
     for (const n of nodes) {
+      // A conversation (or message) is not a part of her: V1 holds the current chat as a node titled with
+      // the message itself, so "go back to the primary cosmos" matched its own conversation (measured).
+      if (/^(conversation|message|chat)s?$/i.test(n.kind)) continue;
       const label = norm(n.label).trim();
       if (label.length < 4 || GENERIC.has(label)) continue;
       if (new RegExp(`(?<![\\p{L}\\d])${escape(label)}(?![\\p{L}\\d])`, "u").test(t)) {

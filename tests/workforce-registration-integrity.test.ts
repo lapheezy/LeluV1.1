@@ -38,6 +38,7 @@ import { registerReferenceTools } from "../src/core/references/ReferenceTools";
 import { registerDiagnosticsTools } from "../src/core/diagnostics/DiagnosticsTools";
 import { registerNeuralTools } from "../src/core/neural/NeuralTools";
 import { registerPerformanceTools } from "../src/core/performance/PerformanceTools";
+import { registerThemeTools } from "../src/core/worlds/ThemeTools";
 
 // registerSelfTools starts a 10-minute refresh timer; stop it so the run can exit.
 after(() => SelfChangeAwareness.getInstance().stop());
@@ -67,6 +68,7 @@ const REGISTRARS: Array<[string, () => void]> = [
   ["diagnostics", registerDiagnosticsTools],
   ["neural", registerNeuralTools],
   ["performance", registerPerformanceTools],
+  ["theme", registerThemeTools],
 ];
 
 test("re-registrations never lower a tool's risk level or swap one registrar's tool for another's", () => {

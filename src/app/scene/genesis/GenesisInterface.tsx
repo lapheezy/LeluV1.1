@@ -179,6 +179,7 @@ import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import CoreChat from "./home/CoreChat";
 import PerformanceModeBridge from "./PerformanceModeBridge";
+import CosmosTheme from "../worlds/CosmosTheme";
 import "./performance.css";
 import "./home/coreControls";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
@@ -912,6 +913,8 @@ export default function GenesisInterface() {
         }}
       >
           <PerformanceModeBridge />
+          {/* The Cosmos's theme (the world engine's active world), behind the landing; none = primary Cosmos. */}
+          {!sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CosmosTheme /> : null}
           {/* The first screen: the primary Cosmos with one chat box rising from her core. */}
           {homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CoreChat /> : null}
           {showHome ? (

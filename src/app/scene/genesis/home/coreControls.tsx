@@ -3,6 +3,8 @@
  */
 import { useSyncExternalStore } from "react";
 import { registerControlsSection } from "./CoreChat";
+import { currentTheme, setTheme, themes } from "../../../../core/worlds/cosmosTheme";
+import { subscribeWorlds, activeWorld } from "../../../../core/worlds/WorldStore";
 import { describePerformance, getPerformance, setPerformanceMode, subscribePerformance, type PerformanceModeId } from "../../../../core/performance/PerformanceMode";
 
 function PerformanceSection() {
@@ -23,3 +25,22 @@ function PerformanceSection() {
 }
 
 registerControlsSection({ id: "performance", title: "Weight", render: () => <PerformanceSection /> });
+
+function ThemeSection() {
+  useSyncExternalStore(subscribeWorlds, activeWorld, activeWorld);
+  const now = currentTheme();
+  return (
+    <>
+      <div className="ccx-grid" role="radiogroup" aria-label="Theme">
+        {themes().map((t) => (
+          <button key={t.id} type="button" role="radio" aria-checked={now === t.id} data-theme={t.id} data-on={now === t.id ? "true" : "false"} onClick={() => setTheme(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <p className="ccx-hint">The Cosmos and every chat variant take the theme. Primary Cosmos is always one tap away.</p>
+    </>
+  );
+}
+
+registerControlsSection({ id: "theme", title: "Theme", render: () => <ThemeSection /> });

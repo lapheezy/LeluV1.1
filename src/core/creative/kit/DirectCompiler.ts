@@ -24,6 +24,7 @@
  * ==========================================================
  */
 
+import { themeIn, PRIMARY as PRIMARY_THEME } from "../../worlds/cosmosTheme";
 import { compileCreativeObjectPlan } from "../../couture/intents";
 import { getCreativeSelection } from "../../couture/selection";
 import CreativeObjects from "../../couture/objects";
@@ -254,6 +255,12 @@ export function compileDirect(prompt: string, options: { referentId?: string | n
   // borderless output", "check chat, Neural Map and browser integration", "find the broken interactions" run
   // her real diagnostics directly, so a run exists before anything is said about it.
   if (has(/\b(diagnos(?:e|tic|tics)|self-?test|validate|run (?:the )?(?:\w+ )?tests?|test (?:all|every)|find (?:the )?broken|health ?check|check\b.{0,60}\b(?:integration|interactions?|persistence|borderless))\b/i, t) && has(/\b(diagnos|freestyle|borderless|chat|neural map|browser|integration|cosmos|persistence|interactions?|tests?|outputs?)\b/i, t)) return nl("diagnostics", t);
+  // Theme of the Cosmos and the chats (owner): "switch the cosmos to the volcano theme", "back to the primary
+  // cosmos". Not "create a volcano world" (the world engine's own request).
+  {
+    const theme = themeIn(t);
+    if (theme && (theme === PRIMARY_THEME ? /\b(back|return|go|switch|primary|original)\b/i.test(t) : /\b(switch|change|turn|set|go|put|use|make)\b.{0,50}\b(theme|cosmos|chats?|background|look|skin|variants?)\b|\btheme\b/i.test(t)) && !/\b(create|build|new|compose|combine)\b.{0,20}\bworld\b/i.test(t)) return nl("theme", t);
+  }
   // Lightweight / full weight (owner): "switch to lightweight mode", "go full weight", "let LÉLU decide".
   if (has(/\b(light ?weight|lite|low[- ]power|battery saver|full[- ]?weight|full (?:power|quality|graphics)|performance mode|auto(?:matic)? (?:mode|quality|performance))\b/i, t) && has(/\b(mode|switch|go|use|set|turn|make|run|be|put|graphics|quality|performance|weight)\b/i, t)) return nl("weight", t);
   // Neural Map (v3 §5): "show me the neural map", "show your memory on the map" put her map beside the chat.
@@ -715,6 +722,10 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       return { explicit, summary: `editable Excalidraw sketch of “${subject}”`, steps: [
         { tool: "studio.create", label: "sketch", args: { kind: "drawing", title: `Sketch — ${titleCase(subject)}`, scene: { elements: sketchElements(subject) } } },
       ] };
+    }
+    case "theme": {
+      const theme = themeIn(rest) ?? PRIMARY_THEME;
+      return { explicit, summary: `theme: ${theme}`, steps: [{ tool: "theme.set", label: "theme", args: { theme } }] };
     }
     case "weight": {
       const mode = /\b(full[- ]?weight|full (?:power|quality|graphics))\b/i.test(rest) ? "full" : /\b(light ?weight|lite|low[- ]power|battery saver)\b/i.test(rest) ? "light" : /\bauto/i.test(rest) ? "auto" : undefined;
