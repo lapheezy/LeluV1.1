@@ -36,3 +36,30 @@ Remember: Neko is ONE browser. Every live view shows the same Chromium, and the 
 
 What went wrong: the capture script first looked for `data-thread-object`, which Raindrop drops don't carry.
 It now finds objects by their title.
+
+## Second pass: room, one tab, no restore bubble
+
+- **Room.** A live page squeezed into a raindrop, a workspace card or a ~200 px Ribbon row was
+  unreadable. When the object is narrower than 560 px or shorter than 460 px, the live view now opens
+  large (950×710) beside the chat, and "Into the object" puts it back. Chat + browser has room, so it stays
+  inside the object and offers "Bigger". All six formats were checked:
+
+  | Variant | Page | View |
+  |---|---|---|
+  | Freestyle | Google | large |
+  | Liquid workspace | ChatGPT | large |
+  | Chat + browser | YouTube | in the object |
+  | Raindrop | Google | large |
+  | Ribbon thread | ChatGPT | large |
+  | Live workspace | Google | large |
+
+- **One tab.** Neko kept piling up tabs (7, measured): "close the previous tab" was remembered only in the
+  dev server, and that memory reset on restart. Navigation now closes every other page tab.
+  - *What went wrong first:* two navigations at once (React's dev mode runs effects twice) each closed the
+    other's new tab, leaving an empty New Tab. Navigations now queue, one at a time.
+- **"Restore pages?" bubble.** After a crash restart it covered pages. `--hide-crash-restore-bubble` is now
+  in the Dockerfile and applied by `run.sh --refresh-proxy`.
+- **The chat page card was dead code.** `GenesisChatSurface` is not rendered anywhere, so its Neko button
+  is never seen. In normal chat, a page opens the Browser window, which has Neko.
+- **Sites that challenge this server:** ChatGPT's Cloudflare check ("Verify you are human") came up once,
+  and YouTube shows Google's robot check. Both come from this server's network address, not from Neko.

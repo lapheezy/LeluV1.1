@@ -36,15 +36,24 @@ function readBody(req: ConnectLikeReq): Promise<string> {
  * machine only: NEKO_CDP_URL, default http://127.0.0.1:9222). This is how LÉLU's
  * Browser drives the live Neko session: the address she or the owner types opens there.
  */
-let lastTab: string | null = null;
-async function nekoNavigate(cdp: string, target: string): Promise<{ ok: boolean; detail: string }> {
+// Navigations run one at a time. Two at once (React dev mode runs effects twice) each closed the other's
+// new tab, leaving an empty New Tab: measured.
+let navQueue: Promise<unknown> = Promise.resolve();
+function nekoNavigate(cdp: string, target: string): Promise<{ ok: boolean; detail: string }> {
+  const run = navQueue.then(() => nekoNavigateNow(cdp, target));
+  navQueue = run.catch(() => undefined);
+  return run;
+}
+async function nekoNavigateNow(cdp: string, target: string): Promise<{ ok: boolean; detail: string }> {
   // A new tab per address, brought to the front; the previous tab LÉLU opened is closed.
   // (Page.navigate from Chromium's own new-tab page does not answer, measured.)
   const created = (await (await fetch(`${cdp}/json/new?${target}`, { method: "PUT", signal: AbortSignal.timeout(5000) })).json()) as { id?: string };
   if (!created?.id) return { ok: false, detail: "Neko's browser did not open the page" };
   await fetch(`${cdp}/json/activate/${created.id}`, { signal: AbortSignal.timeout(4000) }).catch(() => undefined);
-  if (lastTab && lastTab !== created.id) await fetch(`${cdp}/json/close/${lastTab}`, { signal: AbortSignal.timeout(4000) }).catch(() => undefined);
-  lastTab = created.id;
+  // Close every other page tab, not only the one remembered here: that memory is lost when the dev
+  // server restarts, and tabs piled up (7 open, measured). One page at a time in her one shared browser.
+  const tabs = (await (await fetch(`${cdp}/json/list`, { signal: AbortSignal.timeout(4000) })).json().catch(() => [])) as { id: string; type: string }[];
+  await Promise.all(tabs.filter((t) => t.type === "page" && t.id !== created.id).map((t) => fetch(`${cdp}/json/close/${t.id}`, { signal: AbortSignal.timeout(4000) }).catch(() => undefined)));
   return { ok: true, detail: "opened in Neko" };
 }
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;

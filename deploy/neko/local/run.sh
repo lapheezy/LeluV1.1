@@ -13,6 +13,8 @@ if [ "${1:-}" = "--refresh-proxy" ]; then
   docker info >/dev/null 2>&1 || { (setsid nohup dockerd >/tmp/dockerd.log 2>&1 &); for i in $(seq 1 30); do docker info >/dev/null 2>&1 && break; sleep 1; done; }
   docker start lelu-neko >/dev/null; for i in $(seq 1 40); do docker exec lelu-neko true 2>/dev/null && break; sleep 1; done
   docker exec -u root lelu-neko sed -i "s#--proxy-server=[^ ]*#--proxy-server=${P}#" /etc/neko/supervisord/chromium.conf
+  # A machine restart kills Chromium uncleanly; don't let its "Restore pages?" bubble cover every page.
+  docker exec -u root lelu-neko sh -c 'grep -q hide-crash-restore-bubble /etc/neko/supervisord/chromium.conf || sed -i "s#--remote-debugging-address#--hide-crash-restore-bubble\\n  --remote-debugging-address#" /etc/neko/supervisord/chromium.conf' 
   docker exec -u root lelu-neko supervisorctl -c /etc/neko/supervisord.conf reread >/dev/null; docker exec -u root lelu-neko supervisorctl -c /etc/neko/supervisord.conf update chromium >/dev/null  # restart alone keeps the old flags
   echo "Neko Chromium now uses the current proxy"; exit 0
 fi

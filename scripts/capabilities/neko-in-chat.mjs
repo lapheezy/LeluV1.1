@@ -38,7 +38,7 @@ for (let i = 0; i < 20 && !(await p.locator("[data-thread-stage]").count()); i++
 await p.waitForSelector("[data-thread-stage]");
 const results = [];
 // [variant, which object (0 Google, 1 ChatGPT, 2 YouTube)]
-for (const [variant, idx] of (process.env.ONLY ? [[process.env.ONLY, Number(process.env.IDX ?? 0)]] : [["freestyle", 0], ["workspace", 1], ["split", 2], ["raindrop", 0]])) {
+for (const [variant, idx] of (process.env.ONLY ? [[process.env.ONLY, Number(process.env.IDX ?? 0)]] : [["freestyle", 0], ["workspace", 1], ["split", 2], ["raindrop", 0], ["ribbon", 1], ["live", 0]])) {
   await click(`[data-variant-tab="${variant}"]`);
   await p.waitForTimeout(2500);
   // Close any live view left open, then open this one.
@@ -53,7 +53,7 @@ for (const [variant, idx] of (process.env.ONLY ? [[process.env.ONLY, Number(proc
     return !!btn;
   }, idx);
   await p.waitForTimeout(15000);
-  const r = await p.evaluate(() => { const n = document.querySelector(".neko-live"); n?.scrollIntoView({ block: "center" }); return n ? { surface: n.dataset.nekoSurface, nav: n.dataset.nekoNav, live: n.dataset.nekoLive } : null; });
+  const r = await p.evaluate(() => { const n = document.querySelector(".neko-live"); if (n && !n.classList.contains("neko-live-large")) n.scrollIntoView({ block: "center" }); return n ? { surface: n.dataset.nekoSurface, nav: n.dataset.nekoNav, live: n.dataset.nekoLive, size: n.dataset.nekoSize, box: (({ width, height }) => [Math.round(width), Math.round(height)])(n.getBoundingClientRect()) } : null; });
   await p.waitForTimeout(800);
   results.push({ variant, pressed, ...r });
   await p.screenshot({ path: `${OUT}/neko-in-chat-${variant}.png` });
