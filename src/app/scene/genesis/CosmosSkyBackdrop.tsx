@@ -246,6 +246,7 @@ export default function CosmosSkyBackdrop() {
     <div
       ref={skyRef}
       aria-hidden
+      data-cosmos-sky
       style={{
         position: "absolute",
         inset: 0,

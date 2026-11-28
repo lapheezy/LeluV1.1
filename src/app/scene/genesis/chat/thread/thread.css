@@ -317,3 +317,63 @@ html:has(.lst-root[data-stage="thread"][data-immersive="true"]) [data-lelu-works
 @container (max-height: 260px) { .tm-bar { opacity: 0; transition: opacity .2s; } }
 .to:hover .tm-bar, .to:focus-within .tm-bar { opacity: 1; }
 .tm-label { stroke-width: calc(var(--ls) * .35); }
+
+/* ---------------------------------------------------- WP20 performance */
+/* The flowing edge animates only where attention is: the object being touched, and the header mark. */
+.lq::before { animation-play-state: paused; }
+.lq:hover::before, .lq:focus-within::before, .to[data-manual="true"]:hover::before { animation-play-state: running; }
+/* Opaque content (maps, video, images) gains nothing from blurring what is behind it. */
+.to[data-kind="neural-map"], .to[data-kind="youtube"], .to[data-kind="image"], .to[data-kind="model3d"] { backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* Light mode: chosen automatically when frames are measured slow, or by the person. */
+.ts[data-fx="light"] .lq, .ts[data-fx="light"] .rd-liquid, .ts[data-fx="light"] .ts-chat { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.ts[data-fx="light"]::before, .ts[data-fx="light"] .lq::before, .ts[data-fx="light"] .rd-sky i, .ts[data-fx="light"] .ts-trails path, .ts[data-fx="light"] .rd-drop[data-place="hanging"] .rd-shape { animation: none !important; }
+.ts[data-fx="light"] .lq { background: linear-gradient(160deg, hsl(274 50% 17% / .94), hsl(250 55% 9% / .96)); }
+.ts[data-fx="light"] .rd-liquid { background: radial-gradient(40% 26% at 34% 46%, #ffffff30, transparent 70%), linear-gradient(170deg, hsl(274 60% 24% / .95), hsl(260 60% 10% / .97)); }
+
+/* Layers fully covered by the immersive Thread stop painting and animating
+   (measured: their hidden spin/shimmer/blur halved the frame rate). Her
+   companion is not among them. They return the moment the Thread closes. */
+html:has(.lst-root[data-stage="thread"][data-immersive="true"]) :is(.lcu, .lsn, [data-lelu-home], [data-cosmos-sky]) {
+  visibility: hidden !important; content-visibility: hidden; animation-play-state: paused !important;
+}
+html:has(.lst-root[data-stage="thread"][data-immersive="true"]) :is(.lcu, .lsn, [data-lelu-home], [data-cosmos-sky]) * { animation-play-state: paused !important; }
+
+/* ---------------------------------------------------- phones (WP20) */
+/* Header: mark + buttons on one line, then one swipeable row of live chips and variants. */
+.ts[data-compact="true"] .tx-head { grid-template-columns: 1fr auto; grid-template-areas: "mark buttons" "row row"; padding: 6px 10px 4px; gap: 6px 8px; }
+.ts[data-compact="true"] .tx-mark { grid-area: mark; gap: 8px; }
+.ts[data-compact="true"] .tx-orbit { width: 28px; height: 28px; }
+.ts[data-compact="true"] .tx-orbit::after { inset: -5px -9px; }
+.ts[data-compact="true"] .tx-word b { font-size: 17px; }
+.ts[data-compact="true"] .tx-word small { font-size: 8px; letter-spacing: .24em; }
+.ts[data-compact="true"] .tx-buttons { grid-area: buttons; }
+.ts[data-compact="true"] .tx-buttons [data-reset], .ts[data-compact="true"] .tx-buttons [data-tabs] { display: none; }
+.ts[data-compact="true"] .tx-row { grid-area: row; overflow-x: auto; scrollbar-width: none; justify-content: flex-start;
+  -webkit-mask: linear-gradient(90deg, #000 86%, transparent); mask: linear-gradient(90deg, #000 86%, transparent); }
+.ts[data-compact="true"] .tx-row::-webkit-scrollbar { display: none; }
+.ts[data-compact="true"] .tx-chips { flex-wrap: nowrap; flex: none; }
+.ts[data-compact="true"] .tx-chip:not([data-on="true"]) { display: none; }
+.ts[data-compact="true"] .tx-variants { flex: none; }
+.ts[data-compact="true"] .tx-variants button { white-space: nowrap; padding: 4px 9px !important; font-size: 11.5px; }
+
+/* Raindrop on a phone: the exchange stays short so the drops have the room. */
+.ts[data-compact="true"][data-base="raindrop"] .ts-avatar { left: auto !important; right: 12px !important; top: 92px !important; width: 58px !important; height: 58px !important; }
+.ts[data-compact="true"] .ts-head { padding: 2px 78px 0 12px; gap: 6px; align-items: stretch; }
+.ts[data-compact="true"] .ts-you, .ts[data-compact="true"] .ts-lelu { max-width: 100%; padding: 8px 12px; font-size: 12.5px; }
+.ts[data-compact="true"] .ts-you span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ts[data-compact="true"] .ts-lelu { max-height: 70px; }
+.ts[data-compact="true"] .rd { min-height: 300px; }
+.ts[data-compact="true"] .rd-stage { inset: 0 42px 0 0; }
+.ts[data-compact="true"] .rd-scroll { right: 6px; width: 28px; }
+.ts[data-compact="true"] .rd-drop { --size: min(42cqw, 46cqh); }
+.ts[data-compact="true"] .rd-strand { height: calc(30px + var(--sag) * 30px + 300px); }
+.ts[data-compact="true"] .rd-drop[data-place="hanging"] { transform: translateY(calc(28px + var(--sag) * 24px)); }
+
+/* Desktop header row: chips centred, variants to their right. */
+.tx-row { display: flex; align-items: center; justify-content: center; gap: 14px; min-width: 0; }
+.tx-buttons { display: flex; gap: 6px; align-items: center; }
+.tx-buttons button { font: inherit; font-size: 12.5px; color: #fff; border: 0; border-radius: 999px; padding: 6px 11px; cursor: pointer;
+  background: hsl(274 60% 18% / .85); box-shadow: 0 0 0 1px hsl(274 90% 72% / .55), 0 0 14px hsl(274 95% 60% / .35); }
+.tx-sr { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.tx-variants button { font: inherit; font-size: 12.5px; border: 0; border-radius: 999px; cursor: pointer; }
+@media (max-width: 1280px) { .ts:not([data-compact="true"]) .tx-chip:not([data-on="true"]) { display: none; } }

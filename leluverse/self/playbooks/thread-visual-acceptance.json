@@ -1,0 +1,19 @@
+{
+ "id": "thread-visual-acceptance",
+ "title": "Verify my conversation thread: falling and rising drops, five variants, liquid objects, maps, video, phones",
+ "for": "LÉLU",
+ "why": "The thread is where people see me work. Every change to RaindropFeed, ThreadStage, ThreadVariants or thread.css must keep these true: the drop lifecycle follows the real feed, variant switches lose nothing, measured drag/resize/rotate, nothing overflowing at 320–430 px, and frame time no worse than the grid. It needs Playwright's Chromium and the dev server on 5173 (or LELU_BASE). It spends nothing. A YouTube refusal from the player is recorded as BLOCKED, never as passed.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-28-thread-phones-and-honest-acceptance.md",
+ "steps": [
+  {
+   "id": "verify",
+   "title": "Drops, variants, manipulation, maps, YouTube, phones, frame timing",
+   "kind": "tsx",
+   "script": "scripts/thread/verify-thread-visual.mjs",
+   "args": [],
+   "why": "Writes docs/missions/wp20/verify-thread-visual.json and renders to docs/missions/wp20/accept/."
+  }
+ ]
+}

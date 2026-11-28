@@ -30,16 +30,20 @@ type Place = "above" | "hanging" | "sunk";
 
 const TEAR = "M50 0C50 0 44 18 26 40C12 57 4 68 4 80A46 40 0 0 0 96 80C96 68 88 57 74 40C56 18 50 0 50 0Z";
 
-function Drop({ entry, place, slot, slots, focused, fresh, onFocus }: { entry: FeedEntry; place: Place; slot: number; slots: number; focused: boolean; fresh: boolean; onFocus: () => void }) {
+function Drop({ entry, place, slot, slots, focused, fresh, onFocus, from = "above" }: { entry: FeedEntry; place: Place; slot: number; slots: number; focused: boolean; from?: Place; fresh: boolean; onFocus: () => void }) {
   // A drop is first drawn above, then moved to its place, so arriving drops visibly fall.
   const [mounted, setMounted] = useState(false);
+  // Where it came from is fixed when it first appears (the feed's window moves on later renders).
+  const [origin] = useState<Place>(from);
   useLayoutEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
   }, []);
-  const where: Place = mounted ? place : "above";
+  // Before its first frame a drop is where it comes from: above for new ones,
+  // the puddle for earlier ones brought back by scrolling.
+  const where: Place = mounted ? place : origin;
   // How it reached its current place: fell from above, or rose back out of the puddle.
-  const prev = useRef<Place>("above");
+  const prev = useRef<Place>(origin);
   const [arrival, setArrival] = useState<"fell" | "rose" | "">("");
   useEffect(() => {
     if (where === "hanging" && prev.current !== "hanging") setArrival(prev.current === "sunk" ? "rose" : "fell");
@@ -125,6 +129,12 @@ export default function RaindropFeed({ conversationId, entries, compact }: { con
   };
   const touch = useRef<number | null>(null);
   const shown = useMemo(() => entries.map((e, i) => ({ e, i })).filter(({ i }) => i >= start - 3 && i < end + 2), [entries, start, end]);
+  // Where the window was on the previous render: a drop that enters below it comes up from the puddle.
+  const lastStart = useRef(start);
+  const enteringFrom = (i: number): Place => (i < lastStart.current ? "sunk" : "above");
+  useEffect(() => {
+    lastStart.current = start;
+  }, [start]);
 
   return (
     <div
@@ -161,6 +171,7 @@ export default function RaindropFeed({ conversationId, entries, compact }: { con
             slots={Math.min(slots, Math.max(1, end - start))}
             focused={focus === e.id}
             fresh={fresh.has(e.id)}
+            from={enteringFrom(i)}
             onFocus={() => setFocus(focus === e.id ? null : e.id)}
           />
         ))}

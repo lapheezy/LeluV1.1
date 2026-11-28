@@ -1,0 +1,321 @@
+{
+ "at": "2026-11-28T00:26:22.993Z",
+ "results": [
+  {
+   "id": "WP09",
+   "name": "initial Thread renders immersive with header, chips and variant tabs",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  },
+  {
+   "id": "WP03",
+   "name": "a new message falls in as a gold-lit drop and the oldest hanging drop sinks",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"before\":{\"total\":9,\"start\":6,\"end\":9},\"after\":{\"total\":10,\"start\":7,\"end\":10}}"
+  },
+  {
+   "id": "WP03",
+   "name": "scrolling back lifts earlier drops out of the puddle (they arrive by rising)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "[\"rose\",\"rose\",\"rose\"]"
+  },
+  {
+   "id": "WP05",
+   "name": "all five variants render (objects positioned in four, drops in Raindrop)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"workspace\":{\"objects\":5,\"frames\":{\"frames\":14,\"fps\":7,\"medianMs\":166.6,\"p95Ms\":233.3,\"worstMs\":233.3},\"webglCanvases\":1},\"ribbon\":{\"objects\":5,\"frames\":{\"frames\":16,\"fps\":8,\"medianMs\":116.7,\"p95Ms\":200,\"worstMs\":200},\"webglCanvases\":1},\"live\":{\"objects\":5,\"frames\":{\"frames\":13,\"fps\":7,\"medianMs\":150,\"p95Ms\":283.4,\"worstMs\":283.4},\"webglCanvases\":1},\"split\":{\"objects\":1,\"frames\":{\"frames\":19,\"fps\":10,\"medianMs\":116.6,\"p95Ms\":216.7,\"worstMs\":216.7},\"webglCanvases\":0},\"raindrop\":{\"objects\":0,\"frames\":{\"frames\":19,\"fps\":10,\"medianMs\":116.7,\"p95Ms\":200,\"worstMs\":200},\"webglCanvases\":0}}"
+  },
+  {
+   "id": "WP04",
+   "name": "drag moves the object by the measured amount",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"m0\":{\"x\":665,\"y\":508,\"w\":367,\"h\":220,\"rot\":0,\"within\":true},\"m1\":{\"x\":725,\"y\":468,\"w\":367,\"h\":220,\"rot\":0,\"within\":true}}"
+  },
+  {
+   "id": "WP04",
+   "name": "resize grows it by the measured amount",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"m1\":{\"x\":725,\"y\":468,\"w\":367,\"h\":220,\"rot\":0,\"within\":true},\"m2\":{\"x\":725,\"y\":468,\"w\":427,\"h\":260,\"rot\":0,\"within\":true}}"
+  },
+  {
+   "id": "WP04",
+   "name": "rotate turns it (measured angle)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"rot\":35}"
+  },
+  {
+   "id": "WP06",
+   "name": "a V3 node can be selected and its details open in the thread",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "executive:lelu"
+  },
+  {
+   "id": "WP06",
+   "name": "V1, V2 (3D) and V3 render from the live aspects",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  },
+  {
+   "id": "WP09",
+   "name": "YouTube plays in the thread beside the maps (player state and advancing time read from the player)",
+   "status": "BLOCKED",
+   "evidence": "browser-rendered",
+   "detail": "YouTube's player in this container says: \"Video unavailable This content isn’t available.\" (state unstarted). Same for every video tried, so it is the environment, not the thread. Needs a check on a normal network."
+  },
+  {
+   "id": "WP05",
+   "name": "switching through all variants loses no position, size, rotation, group or map state",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"objects\":5}"
+  },
+  {
+   "id": "WP06/WP10",
+   "name": "after a reload the thread reopens with every object, transform, group and map state",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"restoredObjects\":5,\"m4\":{\"x\":674,\"y\":468,\"w\":427,\"h\":260,\"rot\":35,\"within\":true}}"
+  },
+  {
+   "id": "WP06",
+   "name": "the video does not keep playing across a reload; it offers to resume where the player last reported",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"lastTime\":null}"
+  },
+  {
+   "id": "WP09",
+   "name": "320×740: objects and drops stay inside the screen in raindrop, ribbon and workspace",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"objects\":2,\"headerFits\":true,\"docScrollW\":320},\"ribbon\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":320},\"workspace\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":320}}"
+  },
+  {
+   "id": "WP09",
+   "name": "375×812: objects and drops stay inside the screen in raindrop, ribbon and workspace",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"objects\":2,\"headerFits\":true,\"docScrollW\":375},\"ribbon\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":375},\"workspace\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":375}}"
+  },
+  {
+   "id": "WP09",
+   "name": "390×844: objects and drops stay inside the screen in raindrop, ribbon and workspace",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"objects\":2,\"headerFits\":true,\"docScrollW\":390},\"ribbon\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":390},\"workspace\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":390}}"
+  },
+  {
+   "id": "WP09",
+   "name": "430×932: objects and drops stay inside the screen in raindrop, ribbon and workspace",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"objects\":2,\"headerFits\":true,\"docScrollW\":430},\"ribbon\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":430},\"workspace\":{\"overflowX\":0,\"objects\":5,\"headerFits\":true,\"docScrollW\":430}}"
+  },
+  {
+   "id": "WP10",
+   "name": "no page errors from the Thread",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  },
+  {
+   "id": "WP09",
+   "name": "physical iPhone",
+   "status": "NOT RUN",
+   "evidence": "physical-device",
+   "detail": "No physical device is reachable from this container; phone results are Chromium emulation."
+  }
+ ],
+ "measures": {
+  "threadLoadMs": 2854,
+  "scrubResponseMs": 405,
+  "variants": {
+   "workspace": {
+    "objects": 5,
+    "frames": {
+     "frames": 14,
+     "fps": 7,
+     "medianMs": 166.6,
+     "p95Ms": 233.3,
+     "worstMs": 233.3
+    },
+    "webglCanvases": 1
+   },
+   "ribbon": {
+    "objects": 5,
+    "frames": {
+     "frames": 16,
+     "fps": 8,
+     "medianMs": 116.7,
+     "p95Ms": 200,
+     "worstMs": 200
+    },
+    "webglCanvases": 1
+   },
+   "live": {
+    "objects": 5,
+    "frames": {
+     "frames": 13,
+     "fps": 7,
+     "medianMs": 150,
+     "p95Ms": 283.4,
+     "worstMs": 283.4
+    },
+    "webglCanvases": 1
+   },
+   "split": {
+    "objects": 1,
+    "frames": {
+     "frames": 19,
+     "fps": 10,
+     "medianMs": 116.6,
+     "p95Ms": 216.7,
+     "worstMs": 216.7
+    },
+    "webglCanvases": 0
+   },
+   "raindrop": {
+    "objects": 0,
+    "frames": {
+     "frames": 19,
+     "fps": 10,
+     "medianMs": 116.7,
+     "p95Ms": 200,
+     "worstMs": 200
+    },
+    "webglCanvases": 0
+   }
+  },
+  "dragApplyMs": 3109,
+  "framesWithVideoAndMaps": {
+   "frames": 19,
+   "fps": 6,
+   "medianMs": 166.7,
+   "p95Ms": 299.9,
+   "worstMs": 299.9
+  },
+  "reloadRestoreMs": 7612,
+  "memory": {
+   "usedMB": 253,
+   "limitMB": 4192
+  },
+  "webgl": {
+   "archCanvases": 0,
+   "allCanvases": 3,
+   "released": 0
+  },
+  "mobile": {
+   "320x740": {
+    "raindrop": {
+     "overflowX": 0,
+     "objects": 2,
+     "headerFits": true,
+     "docScrollW": 320
+    },
+    "ribbon": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 320
+    },
+    "workspace": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 320
+    }
+   },
+   "375x812": {
+    "raindrop": {
+     "overflowX": 0,
+     "objects": 2,
+     "headerFits": true,
+     "docScrollW": 375
+    },
+    "ribbon": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 375
+    },
+    "workspace": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 375
+    }
+   },
+   "390x844": {
+    "raindrop": {
+     "overflowX": 0,
+     "objects": 2,
+     "headerFits": true,
+     "docScrollW": 390
+    },
+    "ribbon": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 390
+    },
+    "workspace": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 390
+    }
+   },
+   "430x932": {
+    "raindrop": {
+     "overflowX": 0,
+     "objects": 2,
+     "headerFits": true,
+     "docScrollW": 430
+    },
+    "ribbon": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 430
+    },
+    "workspace": {
+     "overflowX": 0,
+     "objects": 5,
+     "headerFits": true,
+     "docScrollW": 430
+    }
+   }
+  }
+ },
+ "otherPageErrors": [
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+ ]
+}

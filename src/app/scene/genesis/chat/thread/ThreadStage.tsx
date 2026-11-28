@@ -185,7 +185,8 @@ function LiquidShell({ o, rect, variantId, compact, shape, hue, ribbon = false, 
         width: b.w,
         height: collapsed ? 46 : b.h,
         transform: r ? `rotate(${r}deg)` : undefined,
-        zIndex: 2 + (t?.z ?? 0) + (live ? 50 : 0),
+        // Above the conversation (4) once placed by hand or while held, so a moved object is never lost under it.
+        zIndex: (t?.manual || live ? 6 : 2) + (t?.z ?? 0) + (live ? 50 : 0),
         ["--hue" as string]: style.hue ?? hue,
         ["--alpha" as string]: 1 - style.transparency,
         ["--grad" as string]: style.gradient,
@@ -313,7 +314,7 @@ function statusOf(messages: ThreadMessage[], processing: boolean, objects: Threa
   ];
 }
 
-function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive, showTabs, onTabs }: { conversationId: string; variantId: string; chips: ReturnType<typeof statusOf>; immersive: boolean; onImmersive: () => void; showTabs: boolean; onTabs: () => void }) {
+function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive, showTabs, onTabs, fx, fxMode, fxMs, onFx }: { conversationId: string; variantId: string; chips: ReturnType<typeof statusOf>; immersive: boolean; onImmersive: () => void; showTabs: boolean; onTabs: () => void; fx: string; fxMode: string; fxMs: number | null; onFx: () => void }) {
   return (
     <header className="tx-head" data-thread-header>
       <div className="tx-mark">
@@ -323,15 +324,15 @@ function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive
           <small>Chat Universe</small>
         </span>
       </div>
-      <div className="tx-chips" aria-label="What she is doing">
-        {chips.map((c) => (
-          <span key={c.id} className="tx-chip" data-on={c.on ? "true" : "false"} data-chip={c.id}>
-            {c.on ? <i /> : null}
-            {c.label}
-          </span>
-        ))}
-      </div>
-      <div className="tx-tools">
+      <div className="tx-row">
+        <div className="tx-chips" aria-label="What she is doing">
+          {chips.map((c) => (
+            <span key={c.id} className="tx-chip" data-on={c.on ? "true" : "false"} data-chip={c.id}>
+              {c.on ? <i /> : null}
+              {c.label}
+            </span>
+          ))}
+        </div>
         <div className="tx-variants" role="tablist" aria-label="Thread variant">
           {variants().map((v) => (
             <button key={v.id} type="button" role="tab" data-on={v.id === variantId ? "true" : "false"} data-variant-tab={v.id} onClick={() => setVariant(conversationId, v.id)} title={v.description}>
@@ -339,17 +340,22 @@ function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive
             </button>
           ))}
         </div>
-        <select value={variantId} onChange={(e) => setVariant(conversationId, e.target.value)} aria-label="Thread variant" data-variant-picker style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}>
+      </div>
+      <div className="tx-buttons">
+        <select value={variantId} onChange={(e) => setVariant(conversationId, e.target.value)} aria-label="Thread variant" data-variant-picker className="tx-sr">
           {variants().map((v) => (
             <option key={v.id} value={v.id}>
               {v.label}
             </option>
           ))}
         </select>
-        <button type="button" onClick={() => resetLayout(conversationId, variantId)} title="Return every object to its automatic place">
+        <button type="button" data-reset onClick={() => resetLayout(conversationId, variantId)} title="Return every object to its automatic place">
           ⟲
         </button>
-        <button type="button" onClick={onTabs} data-on={showTabs ? "true" : "false"} title="Show the environment tabs">
+        <button type="button" onClick={onFx} data-fx-toggle title={`Effects: ${fx}${fx === "auto" && fxMs !== null ? ` (measured ${fxMs} ms/frame → ${fxMode})` : ""}. Click to change.`}>
+          {fx === "auto" ? "✦A" : fx === "full" ? "✦" : "✧"}
+        </button>
+        <button type="button" data-tabs onClick={onTabs} data-on={showTabs ? "true" : "false"} title="Show the environment tabs">
           ☰
         </button>
         <button type="button" onClick={onImmersive} title={immersive ? "Back to the window" : "Fill the screen"} data-immersive-toggle>
@@ -428,8 +434,39 @@ export default function ThreadStage({ conversationId, messages, processing, tran
       return !v;
     });
   };
+  // Visual quality: measured, not assumed. Two seconds after opening, the stage
+  // times its own frames; above 40 ms per frame it switches to light effects.
+  const [fx, setFx] = useState<"full" | "light" | "auto">(() => ((typeof localStorage !== "undefined" && (localStorage.getItem("lelu.thread.fx") as "full" | "light" | null)) || "auto"));
+  const [measuredFx, setMeasuredFx] = useState<{ medianMs: number; mode: "full" | "light" } | null>(null);
+  useEffect(() => {
+    if (fx !== "auto") return;
+    let raf = 0;
+    const t: number[] = [];
+    const start = performance.now() + 2000;
+    const step = (now: number) => {
+      if (now >= start) t.push(now);
+      if (now - start < 2000) raf = requestAnimationFrame(step);
+      else {
+        const d = t.slice(1).map((x, i) => x - t[i]).sort((a, b) => a - b);
+        const median = d.length ? d[d.length >> 1] : 0;
+        setMeasuredFx({ medianMs: Math.round(median), mode: median > 40 ? "light" : "full" });
+      }
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [fx]);
+  const fxMode = fx === "auto" ? measuredFx?.mode ?? "full" : fx;
+  const cycleFx = () => {
+    const next = fx === "auto" ? "full" : fx === "full" ? "light" : "auto";
+    setFx(next);
+    try {
+      localStorage.setItem("lelu.thread.fx", next);
+    } catch {
+      /* fine */
+    }
+  };
   const chips = statusOf(messages, processing, threadContents(conversationId, messages));
-  const header = <ThreadHeader conversationId={conversationId} variantId={variantFor(conversationId)} chips={chips} immersive={immersive} onImmersive={toggleImmersive} showTabs={showTabs} onTabs={() => setShowTabs((v) => !v)} />;
+  const header = <ThreadHeader conversationId={conversationId} variantId={variantFor(conversationId)} chips={chips} immersive={immersive} onImmersive={toggleImmersive} showTabs={showTabs} onTabs={() => setShowTabs((v) => !v)} fx={fx} fxMode={fxMode} fxMs={measuredFx?.medianMs ?? null} onFx={cycleFx} />;
   const chatH = compact ? Math.min(300, size.h * 0.42) : 260;
   const lay = useMemo(() => layoutThread(spec.base, size.w, size.h, objects.map((o) => o.id), focus, chatH), [spec.base, size.w, size.h, objects.map((o) => o.id).join(","), focus, chatH]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -442,7 +479,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
     const lastLelu = [...messages].reverse().find((m) => m.role === "assistant");
     return (
-      <div ref={ref} className="ts" data-thread-stage={conversationId} data-variant={variantId} data-base="raindrop" data-compact={compact ? "true" : "false"} style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent }}>
+      <div ref={ref} className="ts" data-fx={fxMode} data-fx-ms={measuredFx?.medianMs ?? ""} data-thread-stage={conversationId} data-variant={variantId} data-base="raindrop" data-compact={compact ? "true" : "false"} style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent }}>
         {header}
         <div className="ts-avatar ts-avatar-orb" data-lelu-preview-host data-avatar-spot style={{ left: lay.avatar!.x, top: lay.avatar!.y + 40, width: lay.avatar!.w, height: lay.avatar!.h }} />
         <div className="ts-head">
@@ -463,6 +500,8 @@ export default function ThreadStage({ conversationId, messages, processing, tran
     <div
       ref={ref}
       className="ts"
+      data-fx={fxMode}
+      data-fx-ms={measuredFx?.medianMs ?? ""}
       data-thread-stage={conversationId}
       data-variant={variantId}
       data-base={spec.base}
