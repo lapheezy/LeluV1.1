@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-28T03:46:28.021Z",
+ "results": [
+  {
+   "id": "R1",
+   "name": "the dev server serves the local registry and the original images",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"status\":200,\"entries\":86,\"unresolved\":109,\"totals\":{\"atlasLinks\":167,\"atlasDownloaded\":78,\"atlasUsable\":59,\"ownerUploads\":8,\"entries\":86,\"unresolved\":109},\"imgType\":\"image/png\",\"imgBytes\":3234151}"
+  },
+  {
+   "id": "R2",
+   "name": "the world editor discovers the references that inform the active world's family (volcano)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"usable\":\"67\",\"unresolved\":\"109\",\"results\":[\"atlas:I-35\",\"atlas:I-37\",\"atlas:I-39\",\"owner:U-04\"]}"
+  },
+  {
+   "id": "R3",
+   "name": "searching 'boondocks' finds the owner's Boondocks references and nothing else",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "[\"owner:U-07\",\"owner:U-08\"]"
+  },
+  {
+   "id": "R4",
+   "name": "a reference plate decodes the owner's original image (full resolution, cropped by its record) and changes the rendered scene",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"natural\":[1170,2532],\"src\":\"/reference/user/U-04.png\",\"shown\":true,\"pixelsChanged\":0.2305}"
+  },
+  {
+   "id": "R5",
+   "name": "taking the palette from a reference (U-05, twin suns) recolours the world",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"before\":[\"#070304\",\"#2a0805\",\"#6b1a07\"],\"after\":[\"#75796d\",\"#7b7664\",\"#171617\"],\"accent\":\"#ebe3bc\",\"pixelsChanged\":0.2594}"
+  },
+  {
+   "id": "R6",
+   "name": "an unresolved reference (II-01, blocked) renders as 'not available', with no stand-in image",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"state\":\"missing\",\"text\":\"Reference atlas:II-01 is not available on this machine.\",\"img\":false}"
+  },
+  {
+   "id": "R7",
+   "name": "LÉLU's reference tools search, report planned targets, and place a plate in the active world",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"search\":true,\"forTarget\":true,\"apply\":true,\"applyText\":\"Added U-01 (Blockbuster storefront at night in the rain, neon and palms, a car parked out front) to \\\"Volcanic core\\\" as a reference plate.\",\"appliedLoaded\":1}"
+  },
+  {
+   "id": "R8",
+   "name": "reference plates are saved with the world (by reference id, not by copying the image)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "[\"owner:U-04\",\"atlas:II-01\",\"owner:U-01\"]"
+  },
+  {
+   "id": "R9",
+   "name": "the production build contains no reference image and no registry",
+   "status": "VERIFIED",
+   "evidence": "build-output",
+   "detail": "{\"distFiles\":2319,\"leaked\":[]}"
+  },
+  {
+   "id": "R10",
+   "name": "no page errors from the reference integration",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  }
+ ]
+}

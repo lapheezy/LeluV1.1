@@ -30,7 +30,7 @@ export const LAYER_KINDS = {
   foundation: ["sky", "stars", "ocean", "terrain", "seabed", "city", "lava-field"],
   atmosphere: ["rain", "snow", "ash", "embers", "bubbles", "leaves", "fireflies", "fog", "lightning", "aurora", "clouds", "storm-spiral"],
   objects3d: ["volcano", "planet", "zodiac-ring", "coral", "jellyfish", "trees", "crystal", "neural-sphere", "pyramid", "tornado", "wave-packet", "traffic", "prism"],
-  graphics2d: ["zodiac-wheel", "constellations", "contours", "isobars", "frieze", "halftone", "comic-burst", "doodle", "circuit", "hud-rings", "flower-of-life", "kaleidoscope", "glyph-rain"],
+  graphics2d: ["zodiac-wheel", "constellations", "contours", "isobars", "frieze", "halftone", "comic-burst", "doodle", "circuit", "hud-rings", "flower-of-life", "kaleidoscope", "glyph-rain", "reference-plate"],
   spatialUI: ["panel-frame"],
   motion: ["motion"],
 } as const satisfies Record<LayerSlot, readonly string[]>;

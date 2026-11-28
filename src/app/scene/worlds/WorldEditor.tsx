@@ -9,7 +9,9 @@
  * ==========================================================
  */
 
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { ReferenceEntry } from "../../../core/references/ReferenceRegistry";
+import { findReferences, loadReferences, paletteFromReference } from "./referenceLibrary";
 import { allFamilies } from "../../../core/worlds/ThemeFamilies";
 import { PLACES, placeWorld } from "../../../core/worlds/Places";
 import { SLOTS, type LayerSlot, type Quality, type RenderMode, type WorldConfig, type WorldLayer } from "../../../core/worlds/WorldSchema";
@@ -57,6 +59,71 @@ function LayerRow({ world, l }: { world: WorldConfig; l: WorldLayer }) {
         </>
       ) : null}
     </div>
+  );
+}
+
+function References({ world }: { world: WorldConfig | null }) {
+  const [q, setQ] = useState("");
+  const [refs, setRefs] = useState<ReferenceEntry[] | null>(null);
+  const [total, setTotal] = useState<{ usable: number; unresolved: number } | null>(null);
+  const [note, setNote] = useState("");
+  const fams = world?.families.join(",") ?? "";
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const reg = await loadReferences();
+      if (!live) return;
+      if (!reg) return setRefs([]);
+      setTotal({ usable: reg.entries.filter((e) => e.status === "usable").length, unresolved: reg.unresolved.length });
+      const list = q.trim() ? await findReferences({ text: q }) : fams ? (await Promise.all(fams.split(",").map((f) => findReferences({ informs: `family:${f}` })))).flat() : await findReferences({ origin: "owner" });
+      if (live) setRefs([...new Map(list.map((e) => [e.id, e])).values()].slice(0, 12));
+    })();
+    return () => {
+      live = false;
+    };
+  }, [q, fams]);
+  if (refs && !refs.length && !total) return <p className="we-hint" data-ref-library="absent">No local reference library on this machine (reference/ is kept out of builds and Git).</p>;
+  return (
+    <section data-ref-library={total ? "loaded" : "loading"} data-ref-usable={total?.usable ?? ""} data-ref-unresolved={total?.unresolved ?? ""}>
+      <b>References</b>
+      <input type="text" placeholder="Search references: lava, blockbuster, boondocks…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search references" data-ref-search />
+      <div className="we-refs">
+        {(refs ?? []).map((e) => (
+          <div key={e.id} className="we-ref" data-ref-result={e.id} title={`${e.code}: ${e.shows}${e.franchise ? ` (${e.franchise})` : ""}\n${e.source}`}>
+            <img src={e.url} alt={e.shows} loading="lazy" />
+            <span>{e.code}</span>
+            {world ? (
+              <div>
+                <button type="button" data-ref-plate-add={e.id} onClick={() => applyEdit(world.id, { op: "add", layer: { id: `ref-${e.code}`, slot: "graphics2d", kind: "reference-plate", label: `Reference ${e.code}`, params: { ref: e.id, x: 40, y: 46, w: 24 } } })}>
+                  Plate
+                </button>
+                <button
+                  type="button"
+                  data-ref-palette={e.id}
+                  onClick={async () => {
+                    try {
+                      const p = await paletteFromReference(e);
+                      applyEdit(world.id, { op: "world", changes: { palette: p } });
+                      setNote(`Palette taken from ${e.code}`);
+                    } catch (err) {
+                      setNote(String((err as Error).message));
+                    }
+                  }}
+                >
+                  Palette
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+      {total ? (
+        <p className="we-hint">
+          {total.usable} usable references, {total.unresolved} unresolved (kept on record, never substituted). Local only.
+        </p>
+      ) : null}
+      {note ? <p className="we-hint" role="status" data-ref-note>{note}</p> : null}
+    </section>
   );
 }
 
@@ -121,6 +188,8 @@ export default function WorldEditor({ onClose, compare, setCompare }: { onClose:
             </div>
           ) : null}
         </section>
+
+        <References world={world} />
 
         <section className="we-place">
           <b>Time &amp; Place</b>

@@ -1,0 +1,14 @@
+{
+ "id": "reference-library",
+ "title": "Rebuild and verify my reference library: registry, relations, plates and palettes",
+ "for": "LÉLU",
+ "why": "The owner's references live only in the Git-ignored reference/ folder (atlas downloads and their own uploads). After adding or labelling references, or changing a family, layer or place they inform, rebuild the registry and prove it still works in the app. Unit tests run without the images; the browser check needs them locally and the dev server on 5173. It spends nothing.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-28-reference-library.md",
+ "steps": [
+  { "id": "registry", "title": "Rebuild reference/registry.json from the indexes and the committed labels", "kind": "tsx", "script": "scripts/references/build-registry.ts", "args": [], "why": "Reports usable, unresolved and planned counts and any missing file." },
+  { "id": "label", "title": "Label anything new before using it", "kind": "note", "why": "Look at each new image and add what it shows, its categories and what it informs to src/core/references/referenceLabels.ts. A logo or a wrong image informs nothing. A target that does not exist yet is planned:<id>, never a stand-in." },
+  { "id": "verify", "title": "Discovery, search, plate, palette, missing, tools, persistence, build exclusion", "kind": "tsx", "script": "scripts/references/verify-references.mjs", "args": [], "why": "Writes docs/missions/references/verify-references.json; screenshots go to reference/_acceptance/ because they show the owner's images." }
+ ]
+}

@@ -65,3 +65,15 @@
 }
 .tw-host[data-world-ink="true"] .lq { color: #1b1712; box-shadow: 0 0 0 2.5px var(--w-edge), 5px 6px 0 var(--w-edge); backdrop-filter: none; }
 .tw-host[data-world-ink="true"] .lq * { color: inherit; }
+
+/* A reference plate: the owner's image, cropped, as a lit print in the world. */
+.w2-plate { position: absolute; margin: 0; transform: translate(-50%, -50%); overflow: hidden; border-radius: 14px; pointer-events: auto;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .18), 0 24px 60px rgb(0 0 0 / .55), 0 0 40px color-mix(in srgb, var(--w-glow, #a855f7) 40%, transparent); }
+.w2-plate img { position: absolute; max-width: none; height: auto; user-select: none; }
+.w2-plate figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 10px; font: 11px/1.3 Inter, system-ui, sans-serif; color: #fff; background: linear-gradient(transparent, rgb(0 0 0 / .7)); }
+.w2-plate-missing { padding: 14px; color: #fde68a; font: 12px Inter, system-ui, sans-serif; background: rgb(0 0 0 / .55); }
+.we-refs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.we-ref { display: grid; gap: 3px; font-size: 10.5px; }
+.we-ref img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
+.we-ref div { display: flex; gap: 3px; }
+.we-ref button { flex: 1; padding: 2px 4px !important; font-size: 10px !important; }

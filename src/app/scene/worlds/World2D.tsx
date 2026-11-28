@@ -9,7 +9,9 @@
  * ==========================================================
  */
 
-import { memo, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { getReference } from "./referenceLibrary";
+import type { ReferenceEntry } from "../../../core/references/ReferenceRegistry";
 import { contours } from "d3-contour";
 import { geoPath } from "d3-geo";
 import { layersOf, type WorldConfig, type WorldLayer } from "../../../core/worlds/WorldSchema";
@@ -437,6 +439,51 @@ function GlyphRain({ l, paused }: { l: WorldLayer; paused: boolean }) {
   return <canvas ref={ref} className="w2-canvas" />;
 }
 
+/**
+ * A reference plate: one of the owner's own reference images, drawn as-is
+ * (its recorded crop only) inside the world. Local only: when the image is not
+ * on this machine (a production build, another computer) it says so instead
+ * of substituting anything.
+ */
+function ReferencePlate({ l }: { l: WorldLayer }) {
+  const id = str(l, "ref", "");
+  const [entry, setEntry] = useState<ReferenceEntry | null | undefined>(undefined);
+  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    getReference(id).then((e) => live && setEntry(e ?? null));
+    return () => {
+      live = false;
+    };
+  }, [id]);
+  const x = num(l, "x", 50), y = num(l, "y", 46), w = num(l, "w", 34);
+  if (entry === undefined) return null;
+  if (entry === null || failed)
+    return (
+      <div className="w2-plate w2-plate-missing" style={{ left: `${x}%`, top: `${y}%`, width: `${w}%` }} data-ref-plate={id} data-ref-state="missing">
+        Reference {id} is not available on this machine.
+      </div>
+    );
+  const [cx, cy, cx2, cy2] = entry.crop ?? (nat ? [0, 0, nat.w, nat.h] : [0, 0, 1, 1]);
+  const cw = cx2 - cx, ch = cy2 - cy;
+  return (
+    <figure className="w2-plate" style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, aspectRatio: `${cw} / ${ch}` }} data-ref-plate={entry.id} data-ref-state={nat ? "loaded" : "loading"} title={`${entry.code}: ${entry.shows}`}>
+      <img
+        src={entry.url}
+        alt={entry.shows}
+        draggable={false}
+        onLoad={(e) => setNat({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+        onError={() => setFailed(true)}
+        style={nat ? { width: `${(nat.w / cw) * 100}%`, left: `${(-cx / cw) * 100}%`, top: `${(-cy / ch) * 100}%` } : { opacity: 0 }}
+      />
+      <figcaption>
+        {entry.code} · {entry.shows}
+      </figcaption>
+    </figure>
+  );
+}
+
 const PACKS: Record<string, (p: { l: WorldLayer }) => React.ReactElement> = {
   "zodiac-wheel": ZodiacWheel,
   constellations: Constellations,
@@ -457,6 +504,12 @@ function World2DImpl({ world, paused }: { world: WorldConfig; paused: boolean })
   return (
     <div className="w2" data-world-2d={layers.map((l) => l.kind).join(" ")} data-paused={paused ? "true" : "false"}>
       {layers.map((l) => {
+        if (l.kind === "reference-plate")
+          return (
+            <div key={l.id} className="w2-layer" style={{ opacity: l.opacity }} data-layer={l.id}>
+              <ReferencePlate l={l} />
+            </div>
+          );
         if (l.kind === "glyph-rain")
           return (
             <div key={l.id} className="w2-layer" style={{ opacity: l.opacity }} data-layer={l.id}>

@@ -36,6 +36,7 @@ import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
+import { registerReferenceTools } from "./references/ReferenceTools";
 import { registerSelfTools } from "./cognition/SelfTools";
 import { registerAsreTools } from "./asre/AsreTools";
 import { registerFoundryTools } from "./asre/foundry/FoundryTools";
@@ -231,6 +232,7 @@ export default class Bootstrap {
       registerEarthTools();
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
+      registerReferenceTools();
       // Her self-knowledge: every change made to her (git, any coder), the journal
       // written for her, and playbooks she can run herself.
       registerSelfTools();
