@@ -101,12 +101,50 @@ const LELU_ARCHITECTURE = `flowchart LR
   spend["Spend policy: zero paid use without consent"] -.-> broker`;
 
 function sketchElements(subject: string): Array<Record<string, unknown>> {
-  const fashion = /\b(dress|gown|fashion|garment|outfit|couture|look|collection|jacket|coat|skirt)\b/i.test(subject);
+  const fashion = /\b(dress|gown|fashion|garment|outfit|couture|look|collection|jacket|coat|skirt|bomber|trousers|pants|bralette)\b/i.test(subject);
   const els: Array<Record<string, unknown>> = [
     { type: "rectangle", x: 0, y: 0, width: 760, height: 520, strokeColor: "#1e1e1e", backgroundColor: "transparent", roughness: 1 },
     { type: "text", x: 24, y: 18, text: titleCase(subject), fontSize: 28, strokeColor: "#1e1e1e" },
   ];
-  if (fashion) {
+  // A croquis of the garments actually named: front view and back view of one figure.
+  const named = {
+    jacket: /\b(bomber|jacket|coat|hoodie|puffer)\b/i.test(subject),
+    top: /\b(bralette|bra|crop ?top|top|corset)\b/i.test(subject),
+    trousers: /\b(trousers|pants|cargo|jeans|joggers)\b/i.test(subject),
+    skirt: /\b(skirt)\b/i.test(subject),
+    dress: /\b(dress|gown)\b/i.test(subject),
+  };
+  if (named.jacket || named.top || named.trousers || named.skirt) {
+    const ink = "#1e1e1e", fillA = "#b98cff", fillB = "#d4a94e", fillC = "#f4acb7";
+    ["front", "back"].forEach((view, k) => {
+      const cx = 220 + k * 320;
+      els.push({ type: "ellipse", x: cx - 16, y: 60, width: 32, height: 40, strokeColor: ink }, { type: "line", x: cx, y: 100, points: [[0, 0], [0, 18]], strokeColor: ink });
+      if (named.top) els.push({ type: "line", x: cx, y: 140, points: [[-34, 0], [34, 0], [26, 34], [-26, 34], [-34, 0]], strokeColor: ink, backgroundColor: fillC, fillStyle: "hachure" });
+      if (named.jacket)
+        els.push(
+          // boxy oversized body, dropped shoulders, balloon sleeves, rib hem and cuffs
+          { type: "line", x: cx, y: 118, points: [[-70, 6], [70, 6], [78, 150], [-78, 150], [-70, 6]], strokeColor: ink, backgroundColor: fillA, fillStyle: "cross-hatch", opacity: view === "front" ? 70 : 100 },
+          { type: "line", x: cx - 70, y: 124, points: [[0, 0], [-46, 40], [-62, 140], [-30, 150], [-12, 60]], strokeColor: ink, backgroundColor: fillA, fillStyle: "hachure" },
+          { type: "line", x: cx + 70, y: 124, points: [[0, 0], [46, 40], [62, 140], [30, 150], [12, 60]], strokeColor: ink, backgroundColor: fillA, fillStyle: "hachure" },
+          { type: "rectangle", x: cx - 78, y: 268, width: 156, height: 14, strokeColor: ink, backgroundColor: "#333333", fillStyle: "solid" },
+          ...(view === "front" ? [{ type: "line", x: cx, y: 124, points: [[0, 0], [0, 144]], strokeColor: ink, strokeStyle: "dashed" }] : []),
+        );
+      if (named.trousers)
+        els.push(
+          // wide legs with a stacked hem and cargo pockets
+          { type: "line", x: cx, y: 282, points: [[-56, 0], [56, 0], [80, 200], [10, 200], [0, 40], [-10, 200], [-80, 200], [-56, 0]], strokeColor: ink, backgroundColor: fillB, fillStyle: "cross-hatch" },
+          ...[-1, 1].flatMap((side) => [
+            { type: "rectangle", x: cx + side * 58 - 14, y: 380, width: 28, height: 34, strokeColor: ink },
+            { type: "line", x: cx + side * 45, y: 470, points: [[-30, 0], [30, 0]], strokeColor: ink, strokeStyle: "dotted" },
+            { type: "line", x: cx + side * 45, y: 478, points: [[-32, 0], [32, 0]], strokeColor: ink, strokeStyle: "dotted" },
+          ]),
+        );
+      else if (named.skirt) els.push({ type: "line", x: cx, y: 282, points: [[-50, 0], [50, 0], [90, 160], [-90, 160], [-50, 0]], strokeColor: ink, backgroundColor: fillB, fillStyle: "hachure" });
+      els.push({ type: "text", x: cx - 40, y: 492, text: view === "front" ? "Front" : "Back", fontSize: 16, strokeColor: ink });
+    });
+    if (named.trousers) els.push({ type: "arrow", x: 640, y: 440, points: [[0, 0], [-70, 30]], strokeColor: "#c4302b" }, { type: "text", x: 600, y: 410, text: "stacked hem", fontSize: 14, strokeColor: "#c4302b" });
+    if (named.jacket) els.push({ type: "arrow", x: 640, y: 150, points: [[0, 0], [-60, 20]], strokeColor: "#c4302b" }, { type: "text", x: 600, y: 120, text: "dropped shoulder", fontSize: 14, strokeColor: "#c4302b" });
+  } else if (fashion) {
     for (let k = 0; k < 3; k += 1) {
       const x = 90 + k * 230, flare = [70, 110, 50][k];
       els.push(
