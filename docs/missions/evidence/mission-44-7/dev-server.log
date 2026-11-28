@@ -22,3 +22,4 @@ Killed
 
   ➜  Local:   http://localhost:3001/
   ➜  Network: http://10.90.0.6:3001/  eth0
+[model broker] groq: slot 1 429; trying slot 2 — Rate limit reached for model `openai/gpt-oss-120b` in organization `…` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6335, Requested 1680. Please try again in 112.4999
