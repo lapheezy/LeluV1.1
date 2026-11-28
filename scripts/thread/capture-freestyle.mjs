@@ -33,7 +33,11 @@ async function open(p, title) {
   await p.waitForSelector(`button[aria-label="Open ${title}"]`, { state: "attached" });
   await click(p, `button[aria-label="Open ${title}"]`);
   await p.waitForTimeout(900);
-  await p.evaluate(() => document.querySelector('[data-lelu-universe-window] [data-lelu-stage="thread"]')?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  for (let i = 0; i < 20 && !(await p.locator("[data-thread-stage]").count()); i++) {
+    // The stage switcher may not be ready on the first try: keep asking until the thread is there.
+    await p.evaluate(() => document.querySelector('[data-lelu-universe-window] [data-lelu-stage="thread"]')?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await p.waitForTimeout(1500);
+  }
   await p.waitForSelector("[data-thread-stage]");
   await click(p, '[data-variant-tab="freestyle"]');
   await p.waitForTimeout(5000);

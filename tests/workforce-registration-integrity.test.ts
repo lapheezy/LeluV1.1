@@ -34,6 +34,7 @@ import { registerCoutureTools } from "../src/core/couture/CoutureTools";
 import { registerContinuityTools } from "../src/core/cognition/ContinuityTools";
 import { registerUsageTools } from "../src/core/observability/UsageTools";
 import { registerStewardTools } from "../src/core/selfdev/NeuralMapSteward";
+import { registerReferenceTools } from "../src/core/references/ReferenceTools";
 
 // registerSelfTools starts a 10-minute refresh timer; stop it so the run can exit.
 after(() => SelfChangeAwareness.getInstance().stop());
@@ -59,6 +60,7 @@ const REGISTRARS: Array<[string, () => void]> = [
   ["steward", registerStewardTools],
   ["continuity", () => void registerContinuityTools()],
   ["couture", registerCoutureTools],
+  ["references", registerReferenceTools],
 ];
 
 test("re-registrations never lower a tool's risk level or swap one registrar's tool for another's", () => {
