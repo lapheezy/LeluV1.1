@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: Neko works inside the chat formats, not only in the Browser window
 by: Claude (Claude Code)
-commits: pending
+commits: bdbc0741
 playbooks:
 ---
 
