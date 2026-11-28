@@ -111,6 +111,16 @@ const frames = (page, ms = 3000) =>
 const store = (page, fn, arg) => page.evaluate(async ([src, arg]) => { const S = await import("/src/core/worlds/WorldStore.ts"); return new Function("S", "arg", `return (${src})(S, arg)`)(S, arg); }, [fn.toString(), arg]);
 
 const browser = await launch();
+// These screenshots are committed to a public repository. The owner's reference
+// images (editor thumbnails, plates) are copyrighted personal material, so they are
+// hidden in every page this run captures.
+const PRIVATE_CSS = ".we-refs img, .we-ref img, .w2-plate img { visibility: hidden !important; } .we-refs::before { content: 'reference thumbnails hidden in committed screenshots'; font-size: 10px; opacity: .6; }";
+const openContext = browser.newContext.bind(browser);
+browser.newContext = async (opts) => {
+  const c = await openContext(opts);
+  await c.addInitScript((css) => document.addEventListener("DOMContentLoaded", () => { const s = document.createElement("style"); s.textContent = css; document.head.appendChild(s); }), PRIVATE_CSS);
+  return c;
+};
 try {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
