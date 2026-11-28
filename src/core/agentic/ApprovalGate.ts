@@ -32,6 +32,7 @@
 import AgentEventBus from "../agent/AgentEvents";
 import KvStore from "../storage/KvStore";
 import ToolRegistry from "../tools/ToolRegistry";
+import MemoryObservability from "../memory/MemoryObservability";
 
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
@@ -216,6 +217,17 @@ export default class ApprovalGate {
     request.status = decision === "approved" ? "approved" : "rejected";
     request.decidedAt = Date.now();
     this.persist();
+    // Governance events are part of the operational record (44.8 WP06): an
+    // approval or a refusal is a real operation and is counted as one.
+    try {
+      MemoryObservability.getInstance().record({
+        kind: request.status === "approved" ? "approval" : "rejection",
+        count: 1,
+        detail: request.tool,
+      });
+    } catch {
+      /* a metric must never block a decision */
+    }
     for (const listener of this.listeners) {
       try {
         listener(request);

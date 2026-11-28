@@ -21,6 +21,7 @@ import {
   ungroundedClaims,
   type EarlierToolRun,
 } from "../tools/ClaimGrounding";
+import { memoryProvenanceNote, readMemory } from "../memory/MemoryProvenance";
 import {
   formatTurnMetrics,
   newTurnMeasurement,
@@ -1220,6 +1221,18 @@ export default class ProviderResolver {
         claims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`),
       });
     }
+    // A claim that comes from MEMORY has evidence too — but it is memory, not
+    // a measurement (Mission 44.8, WP02). When the reply itself attributes
+    // something to memory, the records recalled for this turn are read for
+    // provenance: when each was recorded, where it came from, and whether it
+    // is contradicted. That note is what stops "I remember…" from sounding
+    // like "I have just checked…".
+    const memoryClaims = ungrounded.filter((claim) => claim.family === "memory");
+    const memoryReading =
+      memoryClaims.length > 0 && (context.recalledMemories?.length ?? 0) > 0
+        ? readMemory(context.recalledMemories!)
+        : null;
+    const memoryNote = memoryReading ? memoryProvenanceNote(memoryReading, { limit: 2 }) : "";
     // Quality checkpoint: what is still below the bar is said, not hidden.
     const deficiencies = assessTurn(context.request.prompt ?? "", qualityCalls);
     return {
@@ -1227,12 +1240,13 @@ export default class ProviderResolver {
       // A claim of a FRESH result is corrected before the reply, not after it:
       // the reader who stops at the first line must not be left believing an
       // old answer was a new check (Mission 44.6, measured on a phone).
-      text: `${freshnessCorrection(ungrounded, { earlierRuns })}${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
+      text: `${freshnessCorrection(ungrounded, { earlierRuns })}${response.text ?? ""}${groundingNote(ungrounded)}${memoryNote ? `\n\n${memoryNote}` : ""}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
         ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
         ...(ungrounded.length ? { claimEvidence: evidence } : {}),
+        ...(memoryReading ? { memoryProvenance: memoryReading.counts } : {}),
         ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
         ...(executed.length

@@ -1313,16 +1313,32 @@ ${updated ? describeArtifact(updated, 1500) : ""}`,
       if (!query) {
         return { ok: false, content: "memory.recall requires a non-empty query." };
       }
+      const started = Date.now();
       const { default: AIService } = await import("../AIService");
       const records = await AIService.getInstance().recall(query);
+      const { default: MemoryObservability } = await import("../memory/MemoryObservability");
+      MemoryObservability.getInstance().record({
+        kind: "retrieval",
+        latencyMs: Date.now() - started,
+        items: records.length,
+        relevant: records.length,
+        detail: "memory.recall",
+      });
       if (records.length === 0) {
         return { ok: false, content: `No stored memory matches "${query}".` };
       }
-      const lines = records.slice(0, 8).map(
-        (record, index) =>
-          `${index + 1}. [confidence ${record.confidence.toFixed(2)}] ${record.prompt} → ${record.response}`,
-      );
-      return { ok: true, content: lines.join("\n"), data: { count: records.length } };
+      // A tool that returns bare content teaches the model that memory is
+      // timeless (44.8 WP02). Each record is returned with its date, its
+      // source and any conflict, so a recalled fact cannot be reported as a
+      // current one.
+      const { readMemory, memoryToolLines } = await import("../memory/MemoryProvenance");
+      const reading = readMemory(records);
+      const lines = memoryToolLines(reading, { limit: 8 });
+      return {
+        ok: true,
+        content: lines.join("\n"),
+        data: { count: records.length, conflicts: reading.conflicts.length, statuses: reading.counts },
+      };
     },
   },
 

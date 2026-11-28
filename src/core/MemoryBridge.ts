@@ -29,6 +29,10 @@ import { LocalMemoryProvider, OgArchiveProvider, SupabaseMemoryProvider } from "
 import PersonalityMemoryProvider from "./identity/PersonalityMemoryProvider";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import CognitiveTrace from "./cognition/CognitiveTrace";
+import MemoryObservability from "./memory/MemoryObservability";
+import { memoryProvenanceNote, readMemory } from "./memory/MemoryProvenance";
+import StandingInstructions from "./governance/StandingInstructions";
+import WorkContinuity from "./continuity/WorkContinuity";
 
 export default class MemoryBridge {
   constructor(
@@ -65,6 +69,8 @@ export default class MemoryBridge {
   public async enrich(request: AIRequest): Promise<{ request: AIRequest; memories: ResponsePattern[] }> {
     const trace = CognitiveTrace.getInstance();
 
+    const recallStarted = Date.now();
+    const conversationId = request.conversationId;
     // Instrumented inside Brain.recall() itself, so the trace counts
     // every real recall regardless of caller.
     const memories = await this.brain.recall(request.prompt);
@@ -98,12 +104,70 @@ export default class MemoryBridge {
       },
     });
 
-    const context = this.buildContext(
+    const baseContext = this.buildContext(
       synthesized,
       reflection,
       conversation,
       cognition,
     );
+
+    /* ==================================================================
+     * MISSION 44.8 — what the turn knows, where it came from, what the user
+     * has asked for before, and what work is already in flight.
+     *
+     * Each section is read from the system that owns it. Nothing here keeps
+     * a second copy of another module's state, and every read is bounded.
+     * ================================================================== */
+    const additions: string[] = [];
+    const observability = MemoryObservability.getInstance();
+    const chat = conversationId ? MultiChatStore.getInstance().get(conversationId) : null;
+    const projectId = chat?.projectId ?? undefined;
+    const scope = {
+      ...(conversationId ? { conversationId } : {}),
+      ...(projectId ? { projectId } : {}),
+    };
+
+    observability.record({
+      kind: "retrieval",
+      latencyMs: Date.now() - recallStarted,
+      items: memories.length,
+      relevant: synthesized.used.length,
+      ...scope,
+    });
+
+    if (memories.length > 0) {
+      const reading = readMemory(memories);
+      if (reading.counts.conflicting > 0) {
+        observability.record({ kind: "conflict", count: reading.counts.conflicting, ...scope });
+      }
+      const notCurrent = reading.counts.stale + reading.counts.historical + reading.counts.incomplete;
+      if (notCurrent > 0) {
+        observability.record({ kind: "stale", count: notCurrent, ...scope });
+      }
+      // Only records that are NOT plainly current are worth putting in front
+      // of the model: they are the ones it must not restate as a fresh fact.
+      const provenance = memoryProvenanceNote(reading, { limit: 2 });
+      if (provenance) additions.push(`## Memory provenance\n${provenance}`);
+    }
+
+    // Standing instructions: recorded (never authorized), and phrased so the
+    // model cannot mistake a remembered preference for permission.
+    const instruction = StandingInstructions.getInstance().record(request.prompt, scope);
+    if (instruction?.note) additions.push(`## Repeated instruction\n${instruction.note}`);
+    const standing = StandingInstructions.getInstance().contextBlock(scope);
+    if (standing) additions.push(standing);
+
+    // Work already in flight for this project — the same ledger a different
+    // conversation can resume, read here without counting a resumption.
+    const plan = projectId ? WorkContinuity.getInstance().currentPlan(projectId) : null;
+    if (plan) {
+      additions.push(plan.context);
+      if (plan.record.conversationId !== conversationId) {
+        observability.record({ kind: "cross-conversation", count: 1, ...scope, projectId: projectId! });
+      }
+    }
+
+    const context = [baseContext, ...additions].filter((part) => part.trim().length > 0).join("\n\n");
 
     if (context.trim().length === 0) {
       trace.record("CONTEXT_INJECTION", "nothing relevant to inject — request left unchanged", {
@@ -453,6 +517,12 @@ Rules:
 
     if (learned) {
       void SupabasePersistence.getInstance().persistMemories([learned]);
+      // Measured, not assumed: only a write that produced a record counts.
+      MemoryObservability.getInstance().record({
+        kind: "memory-write",
+        count: 1,
+        detail: learned.category,
+      });
     }
 
     AgentEventBus.getInstance().emit({
