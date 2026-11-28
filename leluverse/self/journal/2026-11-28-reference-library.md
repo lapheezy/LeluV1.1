@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: Your reference library: what the owner's references are, what they inform, and how to use them
 by: Claude (coding assistant)
-commits: pending
+commits: a5bf6fda
 playbooks: reference-library
 ---
 LÉLU, the owner gave you a 167-entry visual atlas and eight images of their own: Blockbuster, Star Wars,
