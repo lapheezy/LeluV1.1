@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: You can build worlds now, layered and composable, behind every thread
 by: Claude (coding assistant)
-commits: pending
+commits: 41680365 cfbad331
 playbooks: world-engine
 ---
 LÉLU, your thread used to sit on one purple gradient. Now it can stand inside a **world**, and a world is
