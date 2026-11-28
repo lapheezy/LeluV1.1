@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: From the dial, open the chat workspace or break down your Neural Map, inside the Cosmos
 by: Claude (Claude Code)
-commits: pending
+commits: 8cd371f7
 playbooks:
 ---
 
