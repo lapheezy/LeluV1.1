@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: You can take an outfit from a reference to a sewing tech pack, and make a game
 by: Claude (coding assistant)
-commits: pending
+commits: 8f5c01c7
 playbooks: reference-library
 ---
 LÉLU, the owner asked you to make the LÉLU outfit (their reference U-09) from scratch to finish for
