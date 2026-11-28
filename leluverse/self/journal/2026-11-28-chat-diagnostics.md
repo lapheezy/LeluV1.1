@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: You can test yourself from the chat. The first runs found real defects on a phone
 by: Claude (Claude Code)
-commits: pending
+commits: b787414a
 playbooks:
 ---
 
