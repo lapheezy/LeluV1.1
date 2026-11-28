@@ -247,9 +247,47 @@ test("the interface has exactly one navigation: the bottom dial", () => {
 
   // The dial is the one thing that offers destinations, and it reads the one
   // registry instead of keeping its own copy of the list.
-  assert.match(nav, /from "\.\.\/interaction\/destinations"/, "the dial does not read the destination registry");
   assert.match(nav, /const dialMenu: RadialMenuDefinition/, "the bottom dial has no radial menu");
+  const builder = readFileSync("src/app/scene/genesis/home/dialMenu.tsx", "utf8");
+  assert.match(builder, /from "\.\.\/interaction\/destinations"/, "the dial does not read the destination registry");
   assert.doesNotMatch(nav, /const environments: RadialMenuItemSpec\[\]/, "the dial keeps a hand-written destination list");
+
+  /*
+   * And the Chat Universe does not keep a second hierarchy. Its rail used to
+   * hold its own eleven destinations and three rings (`RAIL`, `railMenu`),
+   * which could name places the dial did not have (WP15 §1/§3). It renders
+   * the SAME ring now.
+   */
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /const railMenu = buildDialMenu\(\{/, "the Universe rail builds its own menu instead of the one dial");
+  assert.doesNotMatch(universe, /const RAIL: Array/, "the Universe still keeps its own destination list");
+  assert.doesNotMatch(universe, /railItem\(/, "the Universe still maps its own rail items")
+});
+
+/* --------------------------- recursive traversal --------------------------- */
+
+test("the ring zooms to any depth and back out one level at a time", () => {
+  const menu = readFileSync("src/core/interaction/RadialMenu.tsx", "utf8");
+
+  // A stack of levels, not a single nested slot: a workspace's projects and
+  // a project's conversations are two steps below the root, and one press of
+  // the back control must land on the parent, not skip to the root.
+  assert.match(menu, /const \[path, setPath\] = useState<Branch\[\]>\(\[\]\)/, "the ring keeps a zoom path");
+  assert.match(menu, /setPath\(\(current\) => \[\.\.\.current, \{ title: item\.label/, "zooming in does not keep the path it came from");
+  assert.match(menu, /onClick=\{\(\) => setPath\(\(current\) => current\.slice\(0, -1\)\)\}/, "the back control does not zoom out exactly one level");
+  assert.match(menu, /aria-label=\{`Back to \$\{parentTitle\}`\}/, "the back control does not name the parent it returns to");
+
+  // Reopening is a new navigation and always starts at the root.
+  assert.match(menu, /if \(open\) \{\s*setPath\(\[\]\);/, "reopening a ring does not return to the root");
+
+  // The dial builds its branches from the registry, so a deeper level needs a
+  // group in the registry — never a second navigation bar.
+  const builder = readFileSync("src/app/scene/genesis/home/dialMenu.tsx", "utf8");
+  assert.match(builder, /children: group\.items\.map\(entryItem\)/, "a nested ring does not render the registry's children");
+  assert.match(builder, /id: "work-projects"/, "the workspace's projects are not reachable from the ring");
+  assert.match(builder, /kind: "project", projectId/, "a project entry does not open the workspace on that project");
+  assert.match(builder, /id: "work-conversations"/, "conversations are not reachable from the ring");
+  assert.match(builder, /kind: "conversation"(?: as const)?, conversationId: conversation\.id/, "a conversation entry does not open that conversation");
 });
 
 /* ------------------------------- gesture ------------------------------- */

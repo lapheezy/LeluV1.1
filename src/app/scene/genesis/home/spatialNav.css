@@ -122,6 +122,21 @@ body:not([data-lelu-immersive="true"]) [data-spatial-nav] {
 }
 
 .lsn-orb-slot { display: block; }
+
+/*
+ * THE CONVERSATION'S RESERVED SLOT.
+ *
+ * A phone conversation owns the bottom edge (composer, microphone, keyboard),
+ * so the one dial moves into the 44 px slot its header keeps free. Same
+ * component, same registry, a different place on screen — never an overlay on
+ * top of an interaction control.
+ */
+.lsn-slot { display: inline-flex; align-items: center; justify-content: center; }
+/* 44 px — the interface's touch target — inside the 48 px title bar a phone
+   conversation reserves for it (GenesisModuleHost PHONE_CHROME_HEIGHT). */
+.lsn-orb-control--slot { width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; }
+.lsn-orb-control--slot .lelu-circular-control-icon { width: 34px; height: 34px; }
+.lsn-orb-control--slot .lsn-orb-core { width: 32px; height: 32px; }
 .lsn-orb-holder {
   position: absolute;
   left: 50%;

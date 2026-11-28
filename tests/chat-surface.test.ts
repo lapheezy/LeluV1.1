@@ -133,10 +133,21 @@ test("the interface leaves out Cosmos chrome while chat owns the screen", () => 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(ui, /surface\.chatOwnsScreen \|\| showHome \? null : <VisualInterface \/>/);
   assert.match(ui, /\{surface\.chatOwnsScreen \|\| showHome \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
+  /*
+   * A conversation that owns the phone screen keeps the dial — in the
+   * reserved slot its header holds — instead of losing navigation or painting
+   * it over the composer (WP15 §3).
+   */
   assert.match(
     ui,
-    /const navUnmounted = surface\.chatOwnsScreen;/,
-    "the navigation is not told that the chat owns the screen",
+    /const navSlotMode = [^;]*surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\);/,
+    "a phone surface that owns the screen must not take the dial with it",
+  );
+  assert.match(ui, /slotMode=\{navSlotMode\}/, "the dial is not mounted into the conversation's reserved slot");
+  assert.match(
+    readFileSync("src/app/scene/genesis/GenesisChat.tsx", "utf8"),
+    /\{isFullMobile \? <span className="lelu-cc-nav-slot" data-lelu-nav-slot \/> : null\}/,
+    "the phone conversation does not reserve the navigation slot in its header",
   );
   assert.match(
     ui,
@@ -354,8 +365,8 @@ test("Home and the spatial nav leave the tree (not hidden) while a conversation 
   assert.match(ui, /const showHome = [^;]*!surface\.chatOwnsScreen && !surface\.workspaceOwnsScreen;/);
   assert.match(
     ui,
-    /\{state\.minimized \|\| navUnmounted \? null : \(\s*<SpatialNav/,
-    "a conversation that owns the phone screen still mounts the navigation under it",
+    /\{state\.minimized \? null : \(\s*<SpatialNav/,
+    "the navigation is mounted in every screen state except a minimised interface",
   );
 });
 

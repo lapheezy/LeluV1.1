@@ -1119,6 +1119,23 @@ html {
     transform-origin: left bottom;
   }
 }
+/*
+ * The atmosphere readout is SCENE chrome, and a phone has room for exactly
+ * one thing at the bottom of the world.
+ *
+ * Lifted above the navigation it landed on the dashboard's activity card
+ * (WP15: measured overlap at 390×844), and the card is the thing a person
+ * reads: it names what she is doing right now, while the HUD repeats the
+ * phase number. So on a phone the HUD appears where the scene IS the screen
+ * — the immersive Cosmos — and steps out of the workspace's way. Nothing is
+ * lost: the dashboard's Weather card and the activity pill carry the same
+ * live state above the fold.
+ */
+@media (max-width: 719px) {
+  body:not([data-lelu-immersive="true"]) .lelu-phase-hud {
+    display: none;
+  }
+}
 
 /* While the composer has focus, its own decorative cloud/star loops
    hold still — nothing should repaint around the caret while typing. */

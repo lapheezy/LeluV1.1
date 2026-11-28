@@ -17,12 +17,15 @@
  * spatial bar renders THIS, and nothing else offers a second opinion
  * about where the interface can go.
  *
- * Rules:
- *   - one entry per destination; a destination never appears twice;
+ * Rules (enforced by tests/destination-registry.test.ts):
+ *   - one entry per destination; a destination never appears twice, by
+ *     id, by label, or by the place it actually opens;
  *   - a group is only a group (`kind: "group"`) and is drawn as a
  *     labelled branch of the ring, never as a destination;
- *   - every entry names the real GenesisPanel it opens, or the one
- *     navigation action it performs.
+ *   - every entry names a panel the interface really renders, or the one
+ *     navigation action it performs;
+ *   - groups nest, so a space's own contents (a workspace's projects, a
+ *     conversation) can be reached without a new navigation system.
  * ==========================================================
  */
 
@@ -31,12 +34,19 @@ import type { GenesisPanel } from "../GenesisCore";
 export type DestinationTarget =
   /** LÉLU's own workspace (the dashboard) — the scene stays behind it. */
   | { kind: "home" }
-  /** The immersive Cosmos. */
+  /** The immersive Cosmos. Opt-in: only a destination or a preference enters it. */
   | { kind: "immersive" }
   /** The Chat Universe. */
   | { kind: "chat" }
   /** A real panel, opened exactly as the palette opens it. */
-  | { kind: "panel"; panel: GenesisPanel };
+  | { kind: "panel"; panel: GenesisPanel }
+  /**
+   * One conversation, in its own window (`chat:<id>` module), and one project
+   * in the workspace. The ids are runtime data, so these targets are built by
+   * the dial from the stores that own them, never declared here.
+   */
+  | { kind: "conversation"; conversationId: string }
+  | { kind: "project"; projectId: string };
 
 export interface Destination {
   kind: "destination";
@@ -49,6 +59,11 @@ export interface Destination {
   target: DestinationTarget;
 }
 
+/**
+ * A category. It is drawn as a branch, never as a place, and it may hold
+ * other groups — that is how a space grows its own contents (Work →
+ * Workspace → that workspace's projects) without a second navigation bar.
+ */
 export interface DestinationGroup {
   id: string;
   label: string;
@@ -56,7 +71,7 @@ export interface DestinationGroup {
   hint: string;
   icon: string;
   kind: "group";
-  items: Destination[];
+  items: DialEntry[];
 }
 
 export type DialEntry = Destination | DestinationGroup;
@@ -111,7 +126,15 @@ export const WORK: DestinationGroup = {
   ],
 };
 
-/** Intelligence is a category too: who is thinking, and what she remembers. */
+/**
+ * Intelligence is a category too: who is thinking, and what she remembers.
+ *
+ * `galaxies` used to be a second ”Cosmos” — the same `immersive` target under
+ * another name, which is the exact duplication this registry exists to end.
+ * The executive galaxies ARE the Cosmos' own structure, and the Cosmos map
+ * panel is the surface that shows them, so the entry opens that panel: one
+ * destination, one place, no opt-in entry into the 3D world.
+ */
 export const INTELLIGENCE: DestinationGroup = {
   id: "intelligence",
   label: "Intelligence",
@@ -121,9 +144,7 @@ export const INTELLIGENCE: DestinationGroup = {
   items: [
     panel("agents", "Agent Universe", "Her agents at work", "Workflow", "agents"),
     panel("executive", "Executive Board", "What she has decided, and why", "Crown", "executive"),
-    /* The galaxies are the Cosmos' own structure, so this leans on the one
-       Cosmos destination instead of being a second dashboard. */
-    space("galaxies", "Executive Galaxies", "The board's own worlds, in the Cosmos", "Orbit", { kind: "immersive" }),
+    panel("galaxies", "Executive Galaxies", "The board's own worlds, on the Cosmos map", "Orbit", "cosmos"),
     panel("reasoning", "Reasoning", "Her current line of thought", "Lightbulb", "reasoning"),
     panel("memory", "Memory", "What she keeps", "Layers", "memory"),
   ],
@@ -132,9 +153,11 @@ export const INTELLIGENCE: DestinationGroup = {
 /** The dial's root ring, in the order a person moves through it. */
 export const DIAL: DialEntry[] = [...SPACES, WORK, INTELLIGENCE];
 
-/** Every destination the dial can reach, groups flattened. */
-export function allDestinations(): Destination[] {
-  return DIAL.flatMap((entry) => (entry.kind === "group" ? entry.items : [entry]));
+const isGroup = (entry: DialEntry): entry is DestinationGroup => entry.kind === "group";
+
+/** Every destination the dial can reach, at any depth. */
+export function allDestinations(entries: DialEntry[] = DIAL): Destination[] {
+  return entries.flatMap((entry) => (isGroup(entry) ? allDestinations(entry.items) : [entry]));
 }
 
 /** One destination by id, across every level. */
@@ -144,6 +167,34 @@ export function destinationById(id: string): Destination | null {
 
 /** The group a destination lives in, if it is nested. */
 export function groupOf(id: string): DestinationGroup | null {
-  const group = DIAL.find((entry): entry is DestinationGroup => entry.kind === "group" && entry.items.some((item) => item.id === id));
-  return group ?? null;
+  const search = (entries: DialEntry[]): DestinationGroup | null => {
+    for (const entry of entries) {
+      if (!isGroup(entry)) continue;
+      if (entry.items.some((item) => item.id === id)) return entry;
+      const deeper = search(entry.items);
+      if (deeper) return deeper;
+    }
+    return null;
+  };
+  return search(DIAL);
+}
+
+/**
+ * Where a destination sits, root first — the breadcrumb the ring shows and
+ * the spatial context that survives zooming back out.
+ */
+export function destinationPath(id: string): DialEntry[] {
+  const walk = (entries: DialEntry[], trail: DialEntry[]): DialEntry[] | null => {
+    for (const entry of entries) {
+      const next = [...trail, entry];
+      if (!isGroup(entry)) {
+        if (entry.id === id) return next;
+        continue;
+      }
+      const deeper = walk(entry.items, next);
+      if (deeper) return deeper;
+    }
+    return null;
+  };
+  return walk(DIAL, []) ?? [];
 }

@@ -93,6 +93,7 @@ import { DPR_START, mobile }
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
 
+import { useHomeStore } from "./home/useHomeLive";
 import { IS_DEV }
   from "../../../core/env/buildEnv";
 
@@ -231,8 +232,23 @@ function useNarrowScreen(maxWidth = 720): boolean {
 function CosmosPhaseHUD() {
   const [phase, setPhase] = useState(() => sampleCosmosAtmosphere(0));
   const shownRef = useRef(phase);
+  /*
+   * The readout is SCENE chrome, and a phone has room for one thing at the
+   * bottom of the world.
+   *
+   * Lifted above the navigation it landed on the dashboard's activity card
+   * (measured at 390×844: the card's lower text and the HUD occupied the same
+   * rows), and the card is what a person reads — it names what she is doing,
+   * while this repeats the atmosphere number. So on a phone it is drawn where
+   * the scene IS the screen, the immersive Cosmos, and it stops sampling (and
+   * repainting) while the workspace is in front.
+   */
+  const narrow = useNarrowScreen(719);
+  const immersive = useHomeStore().immersive;
+  const shown = !narrow || immersive;
 
   useEffect(() => {
+    if (!shown) return;
     let raf = 0;
     let sampledAt = 0;
     const tick = () => {
@@ -260,7 +276,7 @@ function CosmosPhaseHUD() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [shown]);
 
   const phaseLabel = phase.phase
     .replace(/-/g, " ")
@@ -280,13 +296,14 @@ function CosmosPhaseHUD() {
   return (
     <div
       className="lelu-phase-hud"
+      data-shown={shown ? "true" : "false"}
       style={{
         position: "fixed",
         /* Bottom-left (see .lelu-phase-hud): top-left belongs to the dock
            rail and the Genesis chip, which this readout used to cover. */
         zIndex: 2,
         pointerEvents: "none",
-        display: "flex",
+        display: shown ? "flex" : "none",
         flexDirection: "column",
         gap: 4,
         fontFamily: "monospace",

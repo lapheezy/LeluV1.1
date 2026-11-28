@@ -776,12 +776,12 @@ export default function GenesisInterface() {
    * and the one circular launcher stays at the bottom right, clear of the
    * safe area, in every one of those states.
    *
-   * The one exception is a conversation that owns the phone screen: its own
-   * composer, microphone and close control sit exactly where the dial would
-   * be, so the dial is not painted over them. Closing the conversation
-   * brings it straight back.
+   * A conversation that owns the phone screen keeps the dial too — but in
+   * the reserved slot its own header holds (`data-lelu-nav-slot`), at the top
+   * of the screen, not over the composer, the microphone, the send control or
+   * the keyboard. Same component, same registry, one navigation.
    */
-  const navUnmounted = surface.chatOwnsScreen;
+  const navSlotMode = typeof window !== "undefined" && window.innerWidth < 720 && (surface.chatOwnsScreen || surface.workspaceOwnsScreen);
   const dialOnly =
     homeStore.immersive ||
     surface.workspaceOwnsScreen ||
@@ -1007,11 +1007,12 @@ export default function GenesisInterface() {
       {/* THE NAVIGATION: one dial at the bottom centre, collapsed to itself
           wherever another surface owns the room. Never a second menu, never
           a horizontal row of destinations. */}
-      {state.minimized || navUnmounted ? null : (
+      {state.minimized ? null : (
         <SpatialNav
           sheet={homeSheet}
           setSheet={setHomeSheet}
           dialOnly={dialOnly}
+          slotMode={navSlotMode}
           onHoldVoice={handleCoreHoldVoice}
           selfExploration={state.selfExplorationEnabled}
           onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}

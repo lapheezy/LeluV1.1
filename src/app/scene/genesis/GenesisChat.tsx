@@ -1743,6 +1743,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             <span className="lelu-cc-status" aria-live="polite">{statusText}</span>
           </div>
           <div className="lelu-cc-controls" role="toolbar" aria-label="Chat controls">
+            {/*
+              The reserved navigation slot. On a phone the conversation owns
+              the bottom edge, so the one dial is mounted HERE, in space the
+              header already keeps, instead of over the composer.
+            */}
+            {isFullMobile ? <span className="lelu-cc-nav-slot" data-lelu-nav-slot /> : null}
             {isMobileViewport ? (
               <button
                 type="button"

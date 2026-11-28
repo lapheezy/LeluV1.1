@@ -27,16 +27,16 @@
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import VisualEngine from "../../../../core/visual/VisualEngine";
 import { HomeIcon } from "./CosmosHome";
-import HomeStore from "./homeStore";
 import { goHome, restoreLayout } from "./homeActions";
 import { useHomeStore } from "./useHomeLive";
 import { LibrarySheet, WindowsSheet, WorldsSheet } from "./HomeSheets";
 import { GROUPS } from "./homeCatalog";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { CircularControl, interactionState, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../core/interaction";
-import { setUniverseOpen } from "../chat/universe/universeOpen";
+import { buildDialMenu, enterCosmos, openDestination, openUniverse } from "./dialMenu";
 import { useVoice } from "../../../../core/voice/useVoice";
-import { DIAL, type Destination, type DestinationGroup } from "../interaction/destinations";
+
 import "./spatialNav.css";
 
 export type HomeSheet = { kind: "library"; group?: import("./homeCatalog").AppGroup } | { kind: "windows" } | { kind: "worlds" } | null;
@@ -49,12 +49,21 @@ export default function SpatialNav({
   sheet,
   setSheet,
   dialOnly = false,
+  slotMode = false,
   onHoldVoice,
   selfExploration,
   onToggleSelfExploration,
 }: {
   sheet: HomeSheet;
   setSheet: (sheet: HomeSheet) => void;
+  /**
+   * A conversation owns the phone screen. Its composer, microphone, send
+   * control and keyboard occupy the bottom edge, so the dial is NOT drawn
+   * there: it moves into the reserved slot the chat header keeps for it
+   * (`data-lelu-nav-slot`), at the top of the screen, outside every control
+   * the conversation needs.
+   */
+  slotMode?: boolean;
   /**
    * An immersive scene, or a window that owns a phone screen, leaves no
    * room for the utility row. The dial stays — collapsed, bottom right,
@@ -77,105 +86,111 @@ export default function SpatialNav({
    * compete for the same pixels.
    */
   const interaction = useSyncExternalStore(interactionState.subscribe, interactionState.getSnapshot, interactionState.getSnapshot);
+  /*
+   * THE RESERVED SLOT the conversation keeps for the dial.
+   *
+   * When a conversation owns a phone screen, the bottom edge belongs to the
+   * composer, the microphone and the keyboard. The chat header reserves a
+   * 44 px slot for the one dial instead, so navigation stays one touch away
+   * without being painted over an interaction control.
+   */
+  const [slotElement, setSlotElement] = useState<HTMLElement | null>(null);
+  /*
+   * A slot is only a slot while it is on screen.
+   *
+   * The chat header stays mounted while another surface owns the phone (the
+   * Universe, a window), and a dial portalled into a hidden header would be
+   * navigation that exists in the DOM and nowhere a finger can reach it. The
+   * slot is watched, and the dial falls back to its collapsed corner when the
+   * slot has no size.
+   */
+  const [slotHasRoom, setSlotHasRoom] = useState(false);
+  useEffect(() => {
+    if (!slotMode) {
+      setSlotElement(null);
+      setSlotHasRoom(false);
+      return;
+    }
+    /* More than one surface can hold a slot; the TOP one is the screen. */
+    const topSlot = () => {
+      const slots = Array.from(document.querySelectorAll<HTMLElement>("[data-lelu-nav-slot]"))
+        .filter((element) => element.getBoundingClientRect().width > 0);
+      if (slots.length === 0) return null;
+      const depth = (element: HTMLElement) => {
+        const owner = element.closest("[data-lelu-module-window]") ?? element;
+        const value = Number.parseInt(getComputedStyle(owner).zIndex, 10);
+        return Number.isFinite(value) ? value : 0;
+      };
+      return slots.reduce((best, candidate) => (depth(candidate) >= depth(best) ? candidate : best));
+    };
+    /*
+     * Windows open, close and change order while the conversation stays on
+     * screen, so the slot is re-read — never bound once. A dial that is
+     * already open keeps its anchor: the ring is not closed by the field
+     * changing underneath it.
+     */
+    const tick = () => {
+      if (document.querySelector('[data-lelu-radial-menu="environment-radial"]')) return;
+      const element = topSlot();
+      if (!element) return;
+      setSlotHasRoom(element.getBoundingClientRect().width > 0);
+      setSlotElement((current) => (current === element ? current : element));
+    };
+    tick();
+    const timer = window.setInterval(tick, 400);
+    return () => window.clearInterval(timer);
+  }, [slotMode]);
+  /*
+   * One dial, always — and never two.
+   *
+   * Some chat-owned screens already carry the dial's own trigger in their
+   * header (the Chat Universe's navigation control opens THIS ring). In that
+   * case the bar stays out of the way instead of floating a second copy of
+   * the same control over the composer.
+   */
+  const [dialAlreadyOnScreen, setDialAlreadyOnScreen] = useState(false);
+  useEffect(() => {
+    if (!slotMode) {
+      setDialAlreadyOnScreen(false);
+      return;
+    }
+    const check = () => {
+      const anchors = Array.from(document.querySelectorAll('[data-lelu-menu-anchor="environment-radial"]'))
+        .filter((element) => !element.closest(".lsn"));
+      setDialAlreadyOnScreen(anchors.some((element) => element.getBoundingClientRect().width > 0));
+    };
+    check();
+    const timer = window.setInterval(check, 400);
+    return () => window.clearInterval(timer);
+  }, [slotMode]);
+
   const ringOpen = interaction?.kind === "radial" && interaction.id === "environment-radial";
-  const atHome = state.activePanel === "none" && state.activeScene !== "genesisv2";
   const openWindows = Object.entries(state.modules).filter(([id, m]) => id !== "chat" && m.presentation !== "closed").length;
 
-  const openChat = () => {
-    HomeStore.setImmersive(false);
-    setSheet(null);
-    setUniverseOpen(true);
-    window.dispatchEvent(new CustomEvent("lelu-open-universe"));
-  };
+  const openChat = () => openUniverse(genesis, () => setSheet(null));
 
-  const openPanel = (id: GenesisPanel) => {
-    setSheet(null);
-    genesis.openPanel(id);
-  };
+  const openPanel = (id: GenesisPanel) => openDestination(genesis, id, () => setSheet(null));
 
-  const enterCosmos = (immersive: boolean) => {
-    setSheet(null);
-    goHome(genesis);
-    HomeStore.setImmersive(immersive);
-  };
+  const enterCosmosScene = (immersive: boolean) => enterCosmos(genesis, immersive, () => setSheet(null));
 
   const icon = (name: string, size = 21) => <HomeIcon name={name} size={size} />;
 
   /* ---------------------------------------------------------------
-   * The dial — built from the ONE destination registry.
+   * The dial — ONE ring, built once, from the ONE destination registry.
+   *
+   * The bar, a phone conversation's reserved slot and the Chat Universe's
+   * rail all call the same builder, so no surface can offer a destination
+   * the others do not have, or open one differently.
    * ------------------------------------------------------------- */
 
-  const travel = (destination: Destination) => {
-    setSheet(null);
-    switch (destination.target.kind) {
-      case "home":
-        goHome(genesis);
-        HomeStore.setImmersive(false);
-        break;
-      case "immersive":
-        enterCosmos(true);
-        break;
-      case "chat":
-        openChat();
-        break;
-      case "panel":
-        HomeStore.setImmersive(false);
-        openPanel(destination.target.panel);
-        break;
-    }
-  };
-
-  const active = (destination: Destination): boolean => {
-    switch (destination.target.kind) {
-      case "home":
-        return atHome && !home.immersive && !sheet;
-      case "immersive":
-        return home.immersive;
-      case "chat":
-        return state.activePanel === "chat";
-      case "panel":
-        return state.activePanel === destination.target.panel;
-    }
-  };
-
-  const destinationItem = (destination: Destination): RadialMenuItemSpec => ({
-    id: destination.id,
-    label: destination.label,
-    icon: icon(destination.icon),
-    active: active(destination),
-    onSelect: () => travel(destination),
+  const dialMenu: RadialMenuDefinition = buildDialMenu({
+    genesis,
+    home,
+    voice,
+    onHoldVoice,
+    clearSheet: () => setSheet(null),
+    sheetOpen: Boolean(sheet),
   });
-
-  const groupItem = (group: DestinationGroup): RadialMenuItemSpec => ({
-    id: group.id,
-    label: group.label,
-    icon: icon(group.icon),
-    /* A category is drawn as a branch, never as a place: the caption in the
-       nested ring names the parent, so the relationship is explicit. */
-    children: group.items.map(destinationItem),
-  });
-
-  const dialMenu: RadialMenuDefinition = {
-    id: "environment-radial",
-    label: "Environments",
-    items: [
-      ...DIAL.map((entry) => (entry.kind === "group" ? groupItem(entry) : destinationItem(entry))),
-      {
-        id: "voice",
-        label: voice.state.active ? "Stop talking" : "Talk to LÉLU",
-        icon: icon(voice.state.active ? "MicOff" : "Mic"),
-        active: voice.state.active,
-        tone: voice.state.active ? "accent" : "default",
-        onSelect: onHoldVoice,
-      },
-      {
-        id: "immersion",
-        label: home.immersive ? "Back to the workspace" : "Look at the Cosmos",
-        icon: icon("Orbit"),
-        onSelect: () => HomeStore.setImmersive(!home.immersive),
-      },
-    ],
-  };
 
   /* ---------------------------------------------------------------
    * Workspace utilities — actions on the workspace, not destinations.
@@ -222,7 +237,7 @@ export default function SpatialNav({
     id: "spatial-worlds",
     label: "Scene",
     items: [
-      { id: "cosmos", label: "Cosmos", icon: icon("Orbit"), active: state.activeScene !== "genesisv2" && state.activePanel === "none", onSelect: () => enterCosmos(false) },
+      { id: "cosmos", label: "Cosmos", icon: icon("Orbit"), active: state.activeScene !== "genesisv2" && state.activePanel === "none", onSelect: () => enterCosmosScene(false) },
       { id: "world", label: "Her world", icon: icon("Layers"), active: state.activeScene === "genesisv2", onSelect: () => openPanel("genesisv2") },
       { id: "earth", label: "Earth", icon: icon("Globe2"), active: state.activePanel === "earth", onSelect: () => openPanel("earth") },
       {
@@ -271,6 +286,55 @@ export default function SpatialNav({
       onPress={onPress}
     />
   );
+
+  /*
+   * The conversation's screen: the dial lives in the chat's reserved slot, and
+   * nothing else of the spatial bar is drawn. The ring itself is portalled by
+   * RadialMenu, so it opens over the conversation without being clipped by
+   * the header.
+   */
+  if (slotMode) {
+    /*
+     * No slot on screen yet (or a surface that owns the phone screen without
+     * a chat header, such as the Universe) — the dial still exists: it is
+     * drawn collapsed, bottom-right, exactly as it is anywhere else. The
+     * navigation is never absent, and it is never painted over a control
+     * that needs the same pixels.
+     */
+    if (!slotElement || !slotHasRoom) {
+      if (dialAlreadyOnScreen) return null;
+      return (
+        <nav className="lsn" data-dial-only="true" data-browser="lelu-spatial-bar" aria-label="Spatial navigation">
+          <div className="lsn-orb-slot lsn-orb-holder">
+            <CircularControl
+              label="Environments — every place in LÉLU"
+              icon={<span className="lsn-orb-core" />}
+              size={60}
+              menu={dialMenu}
+              active={home.immersive || voice.state.active}
+              className="lsn-orb-control"
+              testId="lsn-orb"
+            />
+          </div>
+        </nav>
+      );
+    }
+    return createPortal(
+      <span className="lsn-slot" data-dial-slot="chat">
+        <CircularControl
+          label="Environments — every place in LÉLU"
+          icon={<span className="lsn-orb-core" />}
+          /* 36 px inside a 40 px title bar: the dial fits the slot exactly. */
+          size={36}
+          menu={dialMenu}
+          active={home.immersive || voice.state.active}
+          className="lsn-orb-control lsn-orb-control--slot"
+          testId="lsn-orb"
+        />
+      </span>,
+      slotElement,
+    );
+  }
 
   return (
     <>

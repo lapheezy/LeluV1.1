@@ -55,7 +55,15 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
   const sketches = useMemo(() => SketchStore.getInstance(), []);
 
   const [projects, setProjects] = useState<LeluProject[]>(() => store.list());
-  const [projectId, setProjectId] = useState<string | null>(() => store.list()[0]?.id ?? null);
+  /*
+   * Which project the workspace is on.
+   *
+   * Navigation can ask for one by name (“open this project” from the dial),
+   * and the request lives in the store rather than in a prop this panel has
+   * no way to receive: the panel adopts it here and keeps it while the store
+   * still holds that project.
+   */
+  const [projectId, setProjectId] = useState<string | null>(() => store.focusedProject()?.id ?? store.list()[0]?.id ?? null);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
@@ -68,7 +76,12 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
   useEffect(() => {
     return store.subscribe((next) => {
       setProjects(next);
-      setProjectId((current) => (current && next.some((project) => project.id === current) ? current : (next[0]?.id ?? null)));
+      setProjectId((current) => {
+        /* An explicit navigation request outranks the selection on screen. */
+        const focused = store.focusedProject()?.id;
+        if (focused) return focused;
+        return current && next.some((project) => project.id === current) ? current : (next[0]?.id ?? null);
+      });
     });
   }, [store]);
 

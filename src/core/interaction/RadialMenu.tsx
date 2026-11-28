@@ -10,9 +10,11 @@
  *   tap an option                      → it executes, then the ring closes
  *   tap outside / Escape               → dismiss
  *
- * It supports nested rings: an option with `children` opens a second
- * ring in place, with a back control. Options can be reached with the
- * keyboard (Tab, Arrow keys, Home/End, Enter).
+ * It supports nested rings to ANY depth: an option with `children` opens
+ * the next ring in place, with a back control that zooms out exactly one
+ * level and returns the root at the top of the path. A ring always opens
+ * at its root, so a navigation never starts halfway down. Options can be
+ * reached with the keyboard (Tab, Arrow keys, Home/End, Enter).
  * ==========================================================
  */
 
@@ -47,8 +49,15 @@ export default function RadialMenu({
   open: boolean;
 }) {
   const [viewport, setViewport] = useState<InteractionSize>(() => currentViewport());
-  const [nested, setNested] = useState<Branch | null>(null);
-  const branch: Branch = nested ?? { title: menu.label, items: menu.items };
+  /*
+   * The zoom path. A stack, not a single slot: a workspace holds projects,
+   * a project holds conversations, and each level must be one step back
+   * without losing the level below it.
+   */
+  const [path, setPath] = useState<Branch[]>([]);
+  const nested = path.length > 0;
+  const branch: Branch = nested ? path[path.length - 1] : { title: menu.label, items: menu.items };
+  const parentTitle = path.length > 1 ? path[path.length - 2].title : menu.label;
   const layerRef = useRef<HTMLDivElement>(null);
 
   const optionSize = menu.optionSize ?? INTERACTION_TOKENS.size.option;
@@ -79,7 +88,7 @@ export default function RadialMenu({
      * navigation, and every navigation starts at the top.
      */
     if (open) {
-      setNested(null);
+      setPath([]);
       /*
        * Re-read the screen when the ring opens.
        *
@@ -150,13 +159,14 @@ export default function RadialMenu({
     if (!open) return;
     const first = layerRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
     first?.focus({ preventScroll: true });
-  }, [open, nested]);
+  }, [open, path.length]);
 
   if (!open || typeof document === "undefined") return null;
 
   const choose = (item: RadialMenuItemSpec) => {
     if (item.children?.length) {
-      setNested({ title: item.label, items: item.children });
+      /* Zoom in — one level, keeping the path that got us here. */
+      setPath((current) => [...current, { title: item.label, items: item.children ?? [] }]);
       return;
     }
     item.onSelect?.();
@@ -201,10 +211,10 @@ export default function RadialMenu({
           <button
             type="button"
             className="lelu-radial-back"
-            aria-label={`Back to ${menu.label}`}
-            onClick={() => setNested(null)}
+            aria-label={`Back to ${parentTitle}`}
+            onClick={() => setPath((current) => current.slice(0, -1))}
           >
-            ‹ {menu.label}
+            ‹ {parentTitle}
           </button>
         ) : null}
         <strong>{branch.title}</strong>

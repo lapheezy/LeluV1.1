@@ -38,10 +38,11 @@ import { processImageFile, processVideoFile, type ProcessedMedia } from "../../.
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import VoiceMicButton from "../../../../../core/voice/VoiceMicButton";
-import { CircularControl, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../../core/interaction";
+import { CircularControl } from "../../../../../core/interaction";
+import { buildDialMenu } from "../../home/dialMenu";
+import { useVoice } from "../../../../../core/voice/useVoice";
 import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
-import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
 import { useHomeStore } from "../../home/useHomeLive";
 import { getSceneRenderBudget } from "../../SceneRenderBudget";
@@ -114,24 +115,12 @@ function presenceOf(processing: boolean, activityStatus: string | null): { label
   return { label: "Here with you", state: "idle" };
 }
 
-const RAIL: Array<{ id: string; label: string; icon: string }> = [
-  { id: "home", label: "Home", icon: "Home" },
-  { id: "chat", label: "Chat ∞", icon: "MessagesSquare" },
-  { id: "browser", label: "Browser", icon: "Globe" },
-  { id: "workspaces", label: "Apps", icon: "LayoutGrid" },
-  { id: "visualstudio", label: "Studio", icon: "Box" },
-  { id: "render", label: "Render", icon: "Play" },
-  { id: "projects", label: "Files", icon: "Folder" },
-  { id: "agents", label: "Agents", icon: "Network" },
-  { id: "memory", label: "Memory", icon: "Layers" },
-  { id: "history", label: "Diary", icon: "BookOpen" },
-  { id: "settings", label: "Settings", icon: "Settings" },
-];
 
 export default function ChatUniverse() {
   const genesis = useGenesis();
   const { conversations, activeConversationId, modules } = genesis.state;
   const home = useHomeStore();
+  const voice = useVoice();
   const mode = home.cosmosMode;
   const archived = useArchived();
   // Shared, so the surface resolver knows when the Universe owns a phone screen.
@@ -378,13 +367,6 @@ export default function ChatUniverse() {
     reader.onload = () => typeof reader.result === "string" && setImage(focused.id, reader.result);
     reader.readAsDataURL(file);
   };
-  const railGo = (id: string) => {
-    setRailOpen(false);
-    if (id === "chat") return;
-    setOpen(false);
-    if (id === "home") goHome(genesis);
-    else genesis.openPanel(id as never);
-  };
   const spin = (dir: 1 | -1) => {
     if (recent.length === 0) return;
     const i = Math.max(0, recent.findIndex((p) => p.id === (focusedId ?? activeConversationId)));
@@ -393,44 +375,24 @@ export default function ChatUniverse() {
     carouselRef.current?.querySelector(`[data-id="${next.id}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   };
   const toggleMode = () => HomeStore.setCosmosMode(mode === "floating" ? "workspace" : "floating");
-
   const target = focused ?? byId.get(activeConversationId) ?? null;
 
   /*
-   * The rail was a vertical list of eleven rectangular buttons. It is now
-   * one circular control and three nested rings — same destinations, same
-   * railGo path, no long list. Open windows stay listed below because they
-   * are a live set, not navigation.
+   * THE ONE DIAL, in the Universe too.
+   *
+   * The rail used to keep its own eleven destinations and three rings of its
+   * own (`RAIL`, `railMenu`) — a second hierarchy that could name places the
+   * dial did not have. It now opens the dial built by home/dialMenu from the
+   * one registry, so the Universe, the bar and a phone conversation all offer
+   * exactly the same places, opened exactly the same way.
    */
-  const railItem = (id: string): RadialMenuItemSpec => {
-    const entry = RAIL.find((item) => item.id === id);
-    return {
-      id,
-      label: entry?.label ?? id,
-      icon: <Ico name={entry?.icon ?? "Circle"} size={19} />,
-      onSelect: () => railGo(id),
-    };
-  };
-  const railMenu: RadialMenuDefinition = {
-    id: "chat-universe-navigation",
-    label: "LÉLU navigation",
-    items: [
-      {
-        id: "chat",
-        label: "Chat ∞",
-        icon: <Ico name="MessagesSquare" size={19} />,
-        active: true,
-        onSelect: () => {
-          setRailOpen(false);
-          inputRef.current?.focus({ preventScroll: true });
-        },
-      },
-      { id: "explore", label: "Explore", icon: <Ico name="Compass" size={19} />, children: [railItem("browser"), railItem("projects"), railItem("workspaces")] },
-      { id: "create", label: "Create", icon: <Ico name="PenLine" size={19} />, children: [railItem("visualstudio"), railItem("render")] },
-      { id: "mind", label: "Mind", icon: <Ico name="Brain" size={19} />, children: [railItem("agents"), railItem("memory"), railItem("history")] },
-      { id: "system", label: "System", icon: <Ico name="Settings" size={19} />, children: [railItem("home"), railItem("settings")] },
-    ],
-  };
+  const railMenu = buildDialMenu({
+    genesis,
+    home,
+    voice,
+    onHoldVoice: () => voice.toggle(),
+    clearSheet: () => setRailOpen(false),
+  });
 
   const card = (p: ChatPreview) => {
     const c = byId.get(p.id);
@@ -464,7 +426,7 @@ export default function ChatUniverse() {
         </div>
         <div className="lcu-rail-nav">
           <CircularControl
-            label="LÉLU navigation — hold for environments"
+            label="Environments — touch for every place in LÉLU"
             icon={<Ico name="Compass" size={21} />}
             menu={railMenu}
             size={46}
