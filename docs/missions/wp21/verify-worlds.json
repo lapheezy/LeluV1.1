@@ -1,5 +1,5 @@
 {
- "at": "2026-11-28T02:29:28.679Z",
+ "at": "2026-11-28T04:26:40.433Z",
  "results": [
   {
    "id": "WP06",
@@ -13,7 +13,7 @@
    "name": "turning a 2D layer off and a 3D layer off each changes the rendered scene (pixel difference)",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"zodiacWheelOff\":0.0196,\"planetOff\":0.0115}"
+   "detail": "{\"zodiacWheelOff\":0.0227,\"planetOff\":0.0116}"
   },
   {
    "id": "WP02",
@@ -69,7 +69,7 @@
    "name": "quality tiers apply and automatic quality chooses a tier from measured frames",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"low\":\"low 4fps\",\"medium\":\"medium 4fps\",\"high\":\"high 4fps\",\"auto\":\"medium 4fps\"}"
+   "detail": "{\"low\":\"low 3fps\",\"medium\":\"medium 4fps\",\"high\":\"high 4fps\",\"auto\":\"medium 3fps\"}"
   },
   {
    "id": "WP06",
@@ -90,7 +90,7 @@
    "name": "320×740: the thread inside a world stays inside the screen (raindrop, workspace)",
    "status": "VERIFIED",
    "evidence": "emulated-mobile",
-   "detail": "{\"raindrop\":{\"overflowX\":0,\"tier\":\"medium\",\"world\":\"true\"},\"workspace\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"}}"
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"},\"workspace\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"}}"
   },
   {
    "id": "WP08",
@@ -131,48 +131,48 @@
  "measures": {
   "framesNoWorld": {
    "fps": 6,
-   "medianMs": 216.6,
-   "p95Ms": 350
+   "medianMs": 166.7,
+   "p95Ms": 366.6
   },
   "combos": {
    "underwater+celestial": {
     "families": "underwater celestial",
     "frames": {
      "fps": 3,
-     "medianMs": 533.3,
-     "p95Ms": 566.6
+     "medianMs": 466.7,
+     "p95Ms": 533.3
     }
    },
    "volcano+holo-hud": {
     "families": "volcano holo-hud",
     "frames": {
-     "fps": 4,
-     "medianMs": 299.9,
-     "p95Ms": 500.1
+     "fps": 3,
+     "medianMs": 416.6,
+     "p95Ms": 483.3
     }
    },
    "autumn+doodle": {
     "families": "autumn doodle",
     "frames": {
      "fps": 5,
-     "medianMs": 216.7,
-     "p95Ms": 433.4
+     "medianMs": 283.3,
+     "p95Ms": 416.7
     }
    },
    "urban-neon+quantum": {
     "families": "urban-neon quantum",
     "frames": {
      "fps": 5,
-     "medianMs": 250,
-     "p95Ms": 366.6
+     "medianMs": 266.6,
+     "p95Ms": 449.9
     }
    },
    "kemet+sacred-geometry": {
     "families": "kemet sacred-geometry",
     "frames": {
-     "fps": 4,
-     "medianMs": 300,
-     "p95Ms": 433.3
+     "fps": 3,
+     "medianMs": 416.6,
+     "p95Ms": 483.4
     }
    }
   },
@@ -180,33 +180,33 @@
    "raindrop": {
     "world": "true",
     "frames": {
-     "fps": 5,
-     "medianMs": 250,
-     "p95Ms": 350
+     "fps": 4,
+     "medianMs": 316.6,
+     "p95Ms": 683.2
     }
    },
    "ribbon": {
     "world": "true",
     "frames": {
      "fps": 5,
-     "medianMs": 250.1,
+     "medianMs": 283.3,
      "p95Ms": 300
     }
    },
    "live": {
     "world": "true",
     "frames": {
-     "fps": 5,
-     "medianMs": 266.7,
-     "p95Ms": 300
+     "fps": 4,
+     "medianMs": 366.6,
+     "p95Ms": 449.9
     }
    },
    "workspace": {
     "world": "true",
     "frames": {
-     "fps": 4,
-     "medianMs": 349.9,
-     "p95Ms": 450.1
+     "fps": 3,
+     "medianMs": 399.9,
+     "p95Ms": 483.3
     }
    }
   },
@@ -214,40 +214,40 @@
    "low": {
     "tier": "low",
     "frames": {
-     "fps": 4,
-     "medianMs": 316.7,
-     "p95Ms": 383.3
+     "fps": 3,
+     "medianMs": 383.3,
+     "p95Ms": 483.3
     }
    },
    "medium": {
     "tier": "medium",
     "frames": {
      "fps": 4,
-     "medianMs": 300,
-     "p95Ms": 483.3
+     "medianMs": 266.6,
+     "p95Ms": 366.6
     }
    },
    "high": {
     "tier": "high",
     "frames": {
      "fps": 4,
-     "medianMs": 283.4,
-     "p95Ms": 400
+     "medianMs": 366.6,
+     "p95Ms": 533.3
     }
    },
    "auto": {
     "tier": "medium",
     "frames": {
-     "fps": 4,
-     "medianMs": 283.3,
-     "p95Ms": 466.6
+     "fps": 3,
+     "medianMs": 333.3,
+     "p95Ms": 433.3
     }
    }
   },
   "framesWithWorldAuto": {
-   "fps": 4,
-   "medianMs": 283.3,
-   "p95Ms": 466.6
+   "fps": 3,
+   "medianMs": 333.3,
+   "p95Ms": 433.3
   }
  },
  "otherPageErrors": [

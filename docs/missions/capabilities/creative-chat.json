@@ -1,0 +1,45 @@
+{
+ "at": "2026-11-28T04:24:41.214Z",
+ "results": [
+  {
+   "name": "creative.art",
+   "ok": true,
+   "content": "Created generative visual “Copper rose flow” [art_7356add51c16] — flowfield artwork · seed 11 · 1200×800 · lelu.\nSaved in the Creation Studio.\nFiles it can be written as: svg, png, json (creative.export)."
+  },
+  {
+   "name": "creative.scene3d",
+   "ok": true,
+   "content": "Created scene3d visual “Runway for the LÉLU look” [art_cea4e7a0af97] — 3D scene (runway) · 5 object groups · 3 lights · 0 animated.\nSaved in the Creation Studio.\nFiles it can be written as: glb, gltf, json (creative.export)."
+  },
+  {
+   "name": "studio.create",
+   "ok": true,
+   "content": "Created [art_eab0f464eca8] drawing “Croquis: oversized bomber” (revision 1) and shown as a card in the chat.\nChange it with studio_revise (artifact: \"art_eab0f464eca8\"). The user can download each verified file from the card."
+  },
+  {
+   "name": "creative.diagram",
+   "ok": true,
+   "content": "Created diagram visual “Outfit build” [art_34cebe7050dc] — flowchart diagram · 5 lines.\nSaved in the Creation Studio.\nFiles it can be written as: mmd, svg, png (creative.export)."
+  },
+  {
+   "name": "browser.capture",
+   "ok": false,
+   "content": "Nothing was captured: The engineering runtime is disabled on this deployment: LELU_ENGINEER_TOKEN is not set. Set it on the server (and VITE_LELU_ENGINEER_TOKEN in the client build) to enable it. It is left unset on purpose on a public host — it reads source and runs commands."
+  },
+  {
+   "name": "browser.capture",
+   "ok": false,
+   "content": "Nothing was captured: The engineering runtime is disabled on this deployment: LELU_ENGINEER_TOKEN is not set. Set it on the server (and VITE_LELU_ENGINEER_TOKEN in the client build) to enable it. It is left unset on purpose on a public host — it reads source and runs commands."
+  }
+ ],
+ "errors": [
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+ ]
+}
