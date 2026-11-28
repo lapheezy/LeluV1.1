@@ -234,6 +234,17 @@ function dependenciesOf(task: Task, index: number): string[] {
 
 /* --------------------------------- executor --------------------------------- */
 
+/** A request to make something (not to look something up). */
+const MAKE_REQUEST = /\b(make|create|build|draw|sketch|design|generate|render|compose|produce|draft|write me|turn (?:it|this|that|them) into)\b/i;
+/** Lookups and reads: a completed run of one of these leaves nothing made. Anything else counts as producing. */
+const LOOKUP_TOOL = /(^|\.)(search|for|list|read|get|recall|discover|status|unresolved|inspect|find|query|lookup|describe|explain|check|probe|health)$|^(web|memory|knowledge|capability|research\.search|browser\.(read|search|extract))\b/;
+const LOOKUP_ACTION = new Set(["list", "read", "get", "search", "status", "inspect", "materials", "material", "compare", "products", "find", "describe"]);
+export function producesSomething(tool: string, args: Record<string, unknown> = {}): boolean {
+  if (LOOKUP_TOOL.test(tool)) return false;
+  if (typeof args.action === "string" && LOOKUP_ACTION.has(args.action)) return false;
+  return true;
+}
+
 export default class TaskExecutor {
   private static instance: TaskExecutor | null = null;
   private deps: ExecutorDeps;
@@ -351,7 +362,7 @@ export default class TaskExecutor {
     return recovered;
   }
 
-  /** Plain-language account of what really happened, step by step. */
+  /** Plain-language account of what really happened, step by step (exported for tests). */
   public report(task: Task): string {
     const lines = task.steps.map((step, index) => {
       const what =
@@ -365,8 +376,14 @@ export default class TaskExecutor {
       const detail = step.status === "completed" ? step.result : step.error;
       return `${index + 1}. [${step.status}] ${step.title} (${what})${detail ? ` — ${detail}` : ""}`;
     });
+    const asksToMake = MAKE_REQUEST.test(task.goal);
+    const made = task.steps.some((step) => step.status === "completed" && step.action?.kind === "tool" && producesSomething(step.action.tool, (step.action as { args?: Record<string, unknown> }).args));
     const headline =
-      task.status === "completed"
+      task.status === "completed" && asksToMake && !made
+        ? // Measured live: an outfit request ran two reference lookups and was reported
+          // "Completed and verified" with nothing drafted. A completed lookup is not a made thing.
+          `Not done: nothing was made for “${task.goal}”. Only lookups or reasoning ran, so there is nothing to show yet.`
+        : task.status === "completed"
         ? `Completed and verified: ${task.goal}`
         : task.status === "waiting"
           ? `Waiting for your approval: ${task.goal}`
