@@ -9,3 +9,7 @@ html[data-lelu-weight="light"] *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001s !important;
 }
+
+/* OG experience: the way back to Unified Cosmos Chat, always on screen (WP21.4). */
+.og-back { position: fixed; bottom: calc(96px + env(safe-area-inset-bottom)); left: 14px; /* clear of every header (it covered the Chat Universe title: measured) */ z-index: 600; pointer-events: auto; font: 600 12px Inter, system-ui, sans-serif; color: #fff; background: rgba(124, 58, 237, .85); border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+@media (pointer: coarse) { .og-back { min-height: 44px; } }

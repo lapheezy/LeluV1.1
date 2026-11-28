@@ -14,7 +14,8 @@
  * ==========================================================
  */
 
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { experience, subscribeExperience } from "../../../../core/experience/ExperienceMode";
 import {
   Activity, AppWindow, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Check, ChevronDown, ChevronRight, ChevronUp,
   Circle, CircleAlert, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudOff, CloudRain, CloudSnow, CloudSun, Code2,
@@ -220,13 +221,34 @@ function NowModule({ preview }: HomeModuleProps) {
 }
 
 /*
- * The "apps" module was a horizontal row of destinations (Chat · Browser · Studio · Workspaces · Agents ·
- * Projects). Freebuff's one-dial navigation (47e9e2cd) removed that row from the dashboard: every
- * destination comes from interaction/destinations.ts and is offered once, by the dial. A composition
- * that still lists this module draws nothing here instead of a second navigation.
+ * The "apps" module: the original horizontal row of destinations. In the unified frontend the one dial
+ * offers every destination (Freebuff 47e9e2cd), so the row draws nothing there. In the OG experience
+ * (WP21.4) it is the original row, exactly as it was.
  */
-function AppsModule(_props: HomeModuleProps) {
-  return null;
+const OG_APPS_ROW = ["chat", "browser", "visualstudio", "workspaces", "agents", "projects"] as const;
+function AppsModule({ preview, onOpenWindows }: HomeModuleProps) {
+  const genesis = useGenesis();
+  const open = useOpen(preview);
+  const og = useSyncExternalStore(subscribeExperience, experience, experience) === "og";
+  if (!og) return null;
+  const row = OG_APPS_ROW.map((id) => (id === "workspaces" ? { id, label: "Workspaces", icon: "Layers" } : { id, label: appFor(id)?.label ?? id, icon: appFor(id)?.icon ?? "AppWindow" }));
+  return (
+    <nav className="lch-glass lch-apps" aria-label="Apps" data-og-apps-row>
+      {row.map((app) => (
+        <button
+          key={app.id}
+          type="button"
+          className="lch-app"
+          data-primary={app.id === "chat" ? "true" : "false"}
+          data-open={app.id !== "workspaces" && genesis.state.activePanel === app.id ? "true" : "false"}
+          onClick={(e) => (preview ? undefined : app.id === "workspaces" ? onOpenWindows?.() : open(app.id as GenesisPanel, e.currentTarget))}
+        >
+          <HomeIcon name={app.icon} size={24} />
+          <span>{app.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
 }
 
 function WorkspacesModule({ preview }: HomeModuleProps) {

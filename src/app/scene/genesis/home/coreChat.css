@@ -37,7 +37,7 @@
 .ccx-plus[data-on="true"] { background: linear-gradient(160deg, #f0abfc, #a855f7); transform: rotate(45deg); }
 .ccx-send { padding: 0 16px; background: linear-gradient(160deg, #f0abfc, #a855f7); box-shadow: 0 0 16px rgba(217, 70, 239, .55); }
 .ccx-send:disabled { opacity: .45; box-shadow: none; cursor: default; }
-.ccx-controls { order: 3; max-height: 46vh; overflow: auto; padding: 12px 14px; border-radius: 20px;
+.ccx-controls { order: 3; max-height: calc(50vh - 150px); /* fits under the box, scrolls inside (it ran off a 900 px screen) */ overflow: auto; overscroll-behavior: contain; padding: 12px 14px; border-radius: 20px;
   background: rgba(14, 6, 34, .82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 0 1px rgba(236, 200, 255, .22), 0 18px 50px rgba(0, 0, 0, .45); }
 .ccx-controls h4 { margin: 4px 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #d8b4fe; font-weight: 700; }

@@ -33,7 +33,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
 import { CHAT_WINDOW_Z, chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
-import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
+import { setUniverseOpen, useUniverseOpen, subscribeUniverseOpen, universeOriginalBackdrop } from "./universeOpen";
+import { experience, subscribeExperience } from "../../../../../core/experience/ExperienceMode";
 import { type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import { prepareAttachments } from "./attachments";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
@@ -124,7 +125,10 @@ export default function ChatUniverse() {
   const { conversations, activeConversationId, modules } = genesis.state;
   const home = useHomeStore();
   const voice = useVoice();
-  const mode = home.cosmosMode;
+  // The OG experience (or "open the original") shows the hub on its own backdrop; the saved choice is untouched.
+  const og = useSyncExternalStore(subscribeExperience, experience, experience) === "og";
+  useSyncExternalStore(subscribeUniverseOpen, universeOriginalBackdrop, universeOriginalBackdrop);
+  const mode = og || universeOriginalBackdrop() ? "workspace" : home.cosmosMode;
   const archived = useArchived();
   // Shared, so the surface resolver knows when the Universe owns a phone screen.
   const open = useUniverseOpen();

@@ -20,6 +20,7 @@ export function isUniverseOpen(): boolean {
 export function setUniverseOpen(next: boolean): void {
   if (next === open) return;
   open = next;
+  if (!next) originalBackdrop = false;
   for (const listener of listeners) listener();
 }
 
@@ -34,3 +35,17 @@ export function useUniverseOpen(): boolean {
   return useSyncExternalStore(subscribeUniverseOpen, isUniverseOpen, () => false);
 }
 
+
+/**
+ * Open the hub ONCE on its original backdrop (WP21.4 OG access) without changing the saved Cosmos mode;
+ * cleared when the hub closes.
+ */
+let originalBackdrop = false;
+export function setUniverseOriginalBackdrop(on: boolean): void {
+  if (originalBackdrop === on) return;
+  originalBackdrop = on;
+  for (const listener of listeners) listener();
+}
+export function universeOriginalBackdrop(): boolean {
+  return originalBackdrop;
+}

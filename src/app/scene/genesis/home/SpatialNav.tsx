@@ -26,6 +26,8 @@
 
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { MAP_TITLES, openChatWorkspace, showNeuralMap } from "./chatWorkspace";
+import { experience, setExperience, subscribeExperience, ORIGINAL_SCREENS } from "../../../../core/experience/ExperienceMode";
+import { openOriginal } from "./originals";
 import VisualEngine from "../../../../core/visual/VisualEngine";
 import { HomeIcon } from "./CosmosHome";
 import { goHome, restoreLayout } from "./homeActions";
@@ -272,6 +274,20 @@ export default function SpatialNav({
    * ring (the same RadialMenu zoom path the destinations use).
    */
   const utility = (menu: RadialMenuDefinition, iconName: string): RadialMenuItemSpec => ({ id: `util-${menu.id}`, label: menu.label, icon: icon(iconName), ring: "inner", children: menu.items });
+  const og = useSyncExternalStore(subscribeExperience, experience, experience) === "og";
+  const ogItem = (key: string, label: string, iconName: string, isActive: boolean, menu: RadialMenuDefinition, onPress: () => void, badge?: number) => (
+    <CircularControl key={key} className="lsn-item" label={label} caption={label} icon={icon(iconName)} active={isActive} badge={badge} menu={menu} onPress={onPress} />
+  );
+  const ogMenu: RadialMenuItemSpec = {
+    id: "og-experiences",
+    label: og ? "Unified Cosmos Chat" : "OG experiences",
+    icon: icon("History"),
+    ring: "inner",
+    children: [
+      { id: "og-switch", label: og ? "Back to Unified Cosmos Chat" : "Switch to the OG experience", icon: icon("RotateCcw"), onSelect: () => { setSheet(null); setExperience(og ? "unified" : "og"); } },
+      ...ORIGINAL_SCREENS.map((o) => ({ id: `og-${o.id}`, label: o.label, icon: icon("AppWindow"), onSelect: () => { setSheet(null); openOriginal(genesis, o); } })),
+    ],
+  };
   const ringMenu: RadialMenuDefinition = {
     ...dialMenu,
     items: [
@@ -285,6 +301,7 @@ export default function SpatialNav({
         ring: "inner",
         children: (["v1", "v2", "v3"] as const).map((a) => ({ id: `map-${a}`, label: MAP_TITLES[a], icon: icon(a === "v1" ? "BookOpen" : a === "v2" ? "Brain" : "Workflow"), onSelect: () => { setSheet(null); showNeuralMap(genesis, a); } })),
       },
+      ogMenu,
       utility(libraryMenu, "LayoutGrid"),
       { ...utility(windowsMenu, "AppWindow"), label: openWindows ? `Windows (${openWindows})` : "Windows" },
       utility(searchMenu, "Search"),
@@ -363,7 +380,19 @@ export default function SpatialNav({
           aria-hidden={ringOpen || undefined}
           style={{ visibility: ringOpen ? "hidden" : "visible", opacity: ringOpen ? 0 : 1 }}
         >
-          <span className="lsn-orb-slot" aria-hidden />
+          {og ? (
+            <>
+              {/* OG experience (WP21.4): the original utility row beside the dial, as it was. */}
+              {ogItem("library", "Library", "LayoutGrid", sheet?.kind === "library", libraryMenu, () => setSheet(sheet?.kind === "library" ? null : { kind: "library" }))}
+              {ogItem("windows", "Windows", "AppWindow", sheet?.kind === "windows", windowsMenu, () => setSheet(sheet?.kind === "windows" ? null : { kind: "windows" }), openWindows || undefined)}
+              <span className="lsn-orb-slot" aria-hidden />
+              {ogItem("search", "Search", "Search", false, searchMenu, () => { setSheet(null); openCommandPalette(); })}
+              {ogItem("worlds", "Scene", "Layers", sheet?.kind === "worlds" || state.activeScene === "genesisv2", worldsMenu, () => setSheet(sheet?.kind === "worlds" ? null : { kind: "worlds" }))}
+              {ogItem("settings", "Settings", "Settings", state.activePanel === "settings", settingsMenu, () => { setSheet(null); openPanel("settings"); })}
+            </>
+          ) : (
+            <span className="lsn-orb-slot" aria-hidden />
+          )}
         </div>
 
         <div className="lsn-orb-slot lsn-orb-holder">

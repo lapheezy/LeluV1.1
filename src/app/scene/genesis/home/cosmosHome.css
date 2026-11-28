@@ -297,3 +297,21 @@ button.lch-glass { text-align: left; padding: 0; }
     radial-gradient(80% 60% at 90% 100%, var(--hc-tint-b, transparent), transparent 72%);
 }
 .lch :is(.lch-brand-name, strong) { font-family: var(--hc-heading, inherit); }
+
+/* OG experience (WP21.4): the original apps row's own styles, as they were before 8b4aba26 removed the
+   row from the unified frontend. Scoped to the OG row only. */
+[data-og-apps-row].lch-apps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; padding: 6px; }
+[data-og-apps-row] .lch-app {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  min-height: 66px; padding: 6px 2px; border-radius: 16px;
+  border: 1px solid rgba(255, 210, 255, 0.12); background: rgba(255, 255, 255, 0.04);
+  font-size: 10.5px; letter-spacing: -0.01em; color: var(--ink-2); transition: transform 160ms ease, background 160ms ease;
+}
+[data-og-apps-row] .lch-app span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+[data-og-apps-row] .lch-app:active { transform: scale(0.96); }
+[data-og-apps-row] .lch-app[data-primary="true"] {
+  color: var(--ink);
+  background: linear-gradient(160deg, rgba(240, 171, 252, 0.55), rgba(147, 51, 234, 0.55));
+  border-color: rgba(255, 220, 255, 0.5);
+  box-shadow: 0 0 18px rgba(232, 121, 249, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}

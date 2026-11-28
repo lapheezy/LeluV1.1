@@ -25,7 +25,7 @@
 import { arrangeWorkspace, setStage, type StewardHost } from "./layout/stewardActions";
 import { transformConversation } from "./chat/stage/transformActions";
 import { TRANSFORM_TARGETS, type TransformTarget } from "../../../core/interface/WorkspaceSteward";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
 import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
@@ -178,6 +178,8 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import CoreChat from "./home/CoreChat";
+import { experience as currentExperience, subscribeExperience, setExperience as setExperienceMode } from "../../../core/experience/ExperienceMode";
+import HomeStoreForExperience from "./home/homeStore";
 import PerformanceModeBridge from "./PerformanceModeBridge";
 import CosmosTheme from "../worlds/CosmosTheme";
 import "./performance.css";
@@ -793,6 +795,7 @@ export default function GenesisInterface() {
   // at all — it is not hidden under the conversation.
   const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
   const universeOpen = useUniverseOpen();
+  const ogExperience = useSyncExternalStore(subscribeExperience, currentExperience, currentExperience) === "og";
   const narrowScreen = typeof window !== "undefined" && window.innerWidth <= 720;
   /*
    * THE DIAL IS NEVER UNMOUNTED.
@@ -913,10 +916,11 @@ export default function GenesisInterface() {
         }}
       >
           <PerformanceModeBridge />
+          <ExperienceLanding />
           {/* The Cosmos's theme (the world engine's active world), behind the landing; none = primary Cosmos. */}
           {!sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CosmosTheme /> : null}
           {/* The first screen: the primary Cosmos with one chat box rising from her core. */}
-          {homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CoreChat /> : null}
+          {!ogExperience && homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CoreChat /> : null}
           {showHome ? (
             <CosmosHome
               onOpenLibrary={(group) => setHomeSheet({ kind: "library", group })}
@@ -1097,4 +1101,18 @@ export default function GenesisInterface() {
 
     </div>
   );
+}
+
+/** WP21.4: each experience's landing. Unified opens into the Cosmos; OG opens on the original dashboard Home. */
+function ExperienceLanding() {
+  const mode = useSyncExternalStore(subscribeExperience, currentExperience, currentExperience);
+  useEffect(() => {
+    HomeStoreForExperience.setImmersive(mode !== "og");
+  }, [mode]);
+  // In OG, the way back is always one tap away.
+  return mode === "og" ? (
+    <button type="button" className="og-back" data-og-back onClick={() => setExperienceMode("unified")} aria-label="Back to Unified Cosmos Chat">
+      ← Unified Cosmos Chat
+    </button>
+  ) : null;
 }
