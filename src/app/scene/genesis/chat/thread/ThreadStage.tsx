@@ -18,6 +18,7 @@
  * ==========================================================
  */
 
+import ThreadWorld from "../../../worlds/ThreadWorld";
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   adopt,
@@ -314,7 +315,7 @@ function statusOf(messages: ThreadMessage[], processing: boolean, objects: Threa
   ];
 }
 
-function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive, showTabs, onTabs, fx, fxMode, fxMs, onFx }: { conversationId: string; variantId: string; chips: ReturnType<typeof statusOf>; immersive: boolean; onImmersive: () => void; showTabs: boolean; onTabs: () => void; fx: string; fxMode: string; fxMs: number | null; onFx: () => void }) {
+function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive, showTabs, onTabs, fx, fxMode, fxMs, onFx, worldOpen, onWorld }: { conversationId: string; variantId: string; chips: ReturnType<typeof statusOf>; immersive: boolean; onImmersive: () => void; showTabs: boolean; onTabs: () => void; fx: string; fxMode: string; fxMs: number | null; onFx: () => void; worldOpen: boolean; onWorld: () => void }) {
   return (
     <header className="tx-head" data-thread-header>
       <div className="tx-mark">
@@ -351,6 +352,9 @@ function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive
         </select>
         <button type="button" data-reset onClick={() => resetLayout(conversationId, variantId)} title="Return every object to its automatic place">
           ⟲
+        </button>
+        <button type="button" onClick={onWorld} data-world-toggle data-on={worldOpen ? "true" : "false"} title="World: build the environment behind this thread">
+          🌐
         </button>
         <button type="button" onClick={onFx} data-fx-toggle title={`Effects: ${fx}${fx === "auto" && fxMs !== null ? ` (measured ${fxMs} ms/frame → ${fxMode})` : ""}. Click to change.`}>
           {fx === "auto" ? "✦A" : fx === "full" ? "✦" : "✧"}
@@ -436,6 +440,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
   };
   // Visual quality: measured, not assumed. Two seconds after opening, the stage
   // times its own frames; above 40 ms per frame it switches to light effects.
+  const [worldOpen, setWorldOpen] = useState(false);
   const [fx, setFx] = useState<"full" | "light" | "auto">(() => ((typeof localStorage !== "undefined" && (localStorage.getItem("lelu.thread.fx") as "full" | "light" | null)) || "auto"));
   const [measuredFx, setMeasuredFx] = useState<{ medianMs: number; mode: "full" | "light" } | null>(null);
   useEffect(() => {
@@ -466,7 +471,12 @@ export default function ThreadStage({ conversationId, messages, processing, tran
     }
   };
   const chips = statusOf(messages, processing, threadContents(conversationId, messages));
-  const header = <ThreadHeader conversationId={conversationId} variantId={variantFor(conversationId)} chips={chips} immersive={immersive} onImmersive={toggleImmersive} showTabs={showTabs} onTabs={() => setShowTabs((v) => !v)} fx={fx} fxMode={fxMode} fxMs={measuredFx?.medianMs ?? null} onFx={cycleFx} />;
+  const header = <ThreadHeader conversationId={conversationId} variantId={variantFor(conversationId)} chips={chips} immersive={immersive} onImmersive={toggleImmersive} showTabs={showTabs} onTabs={() => setShowTabs((v) => !v)} fx={fx} fxMode={fxMode} fxMs={measuredFx?.medianMs ?? null} onFx={cycleFx} worldOpen={worldOpen} onWorld={() => setWorldOpen((v) => !v)} />;
+  const withWorld = (node: ReactNode) => (
+    <ThreadWorld editorOpen={worldOpen} onCloseEditor={() => setWorldOpen(false)} paused={false}>
+      {node}
+    </ThreadWorld>
+  );
   const chatH = compact ? Math.min(300, size.h * 0.42) : 260;
   const lay = useMemo(() => layoutThread(spec.base, size.w, size.h, objects.map((o) => o.id), focus, chatH), [spec.base, size.w, size.h, objects.map((o) => o.id).join(","), focus, chatH]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -478,7 +488,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
     ].sort((a, b) => a.at - b.at);
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
     const lastLelu = [...messages].reverse().find((m) => m.role === "assistant");
-    return (
+    return withWorld(
       <div ref={ref} className="ts" data-fx={fxMode} data-fx-ms={measuredFx?.medianMs ?? ""} data-thread-stage={conversationId} data-variant={variantId} data-base="raindrop" data-compact={compact ? "true" : "false"} style={{ ["--hue" as string]: spec.style.hue, ["--accent" as string]: spec.style.accent }}>
         {header}
         <div className="ts-avatar ts-avatar-orb" data-lelu-preview-host data-avatar-spot style={{ left: lay.avatar!.x, top: lay.avatar!.y + 40, width: lay.avatar!.w, height: lay.avatar!.h }} />
@@ -491,12 +501,12 @@ export default function ThreadStage({ conversationId, messages, processing, tran
           ) : null}
         </div>
         <RaindropFeed conversationId={conversationId} entries={entries} compact={compact} />
-      </div>
+      </div>,
     );
   }
 
   const tabs = lay.tabs.map((id) => objects.find((o) => o.id === id)!).filter(Boolean);
-  return (
+  return withWorld(
     <div
       ref={ref}
       className="ts"
@@ -553,7 +563,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
           </nav>
         ) : null}
       </div>
-    </div>
+    </div>,
   );
 }
 

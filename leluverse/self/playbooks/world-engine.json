@@ -1,0 +1,27 @@
+{
+ "id": "world-engine",
+ "title": "Render and verify my worlds: every family, Time & Place eras, and worlds behind a thread",
+ "for": "LÉLU",
+ "why": "My worlds are data (src/core/worlds): families compose into layered worlds that the 3D and 2D adapters draw. After adding a family, a place or an era, or changing an adapter, render every family and run the acceptance in the real Thread. It needs Playwright's Chromium and the dev server on 5173 (or LELU_BASE). It spends nothing.",
+ "spendsCredits": 0,
+ "params": {},
+ "learnedFrom": "journal/2026-11-28-world-engine.md",
+ "steps": [
+  {
+   "id": "render",
+   "title": "Render every family and Tampa's eras full-screen",
+   "kind": "tsx",
+   "script": "scripts/worlds/render-lab.mjs",
+   "args": ["celestial,volcano,hurricane,underwater,valley,urban-neon,doodle,liquid-prism,spring,summer,autumn,winter,aurora,street-comic,kemet,quantum,holo-hud,sacred-geometry,digital-rain,tampa:c1920,tampa:1958,tampa:1999,tampa:present,tampa:2060"],
+   "why": "Writes docs/missions/wp21/shots/lab-*.png and place-*.png so the look of each family can be checked by eye."
+  },
+  {
+   "id": "verify",
+   "title": "Worlds in the real Thread: editor, layer controls, modes, persistence, combinations, eras, variants, tiers, phones",
+   "kind": "tsx",
+   "script": "scripts/worlds/verify-worlds.mjs",
+   "args": [],
+   "why": "Writes docs/missions/wp21/verify-worlds.json and docs/missions/wp21/accept/*.png."
+  }
+ ]
+}

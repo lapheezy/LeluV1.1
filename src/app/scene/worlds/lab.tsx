@@ -2,9 +2,11 @@
 import { createRoot } from "react-dom/client";
 import { composeWorld } from "../../../core/worlds/ThemeFamilies";
 import WorldStage from "./WorldStage";
+import { placeWorld } from "../../../core/worlds/Places";
 
 const q = new URLSearchParams(location.search);
-const world = composeWorld((q.get("f") ?? "celestial").split(/[+ ,]/).filter(Boolean));
+const pl = q.get("place")?.split(":");
+const world = (pl && placeWorld(pl[0], pl[1])) || composeWorld((q.get("f") ?? "celestial").split(/[+ ,]/).filter(Boolean));
 if (q.get("q")) world.quality = q.get("q") as typeof world.quality;
 if (q.get("mode")) world.mode = q.get("mode") as typeof world.mode;
 if (q.get("auto") === "0") world.camera.auto = false;

@@ -8,7 +8,7 @@ const errs = [];
 p.on("pageerror", (e) => errs.push(e.message));
 p.on("console", (m) => m.type() === "error" && errs.push(m.text()));
 for (const f of fams) {
-  await p.goto(`http://127.0.0.1:5173/world-lab.html?f=${f}&q=high&auto=0`, { waitUntil: "load" });
+  await p.goto(`http://127.0.0.1:5173/world-lab.html?${f.includes(":") ? "place=" : "f="}${f}&q=high&auto=0`, { waitUntil: "load" });
   await p.waitForSelector("[data-world] canvas, [data-world] .ws-flat", { timeout: 60000 });
   await p.waitForTimeout(5000);
   await p.screenshot({ path: `${out}-${f.replace(/\+/g, "_")}.png` });

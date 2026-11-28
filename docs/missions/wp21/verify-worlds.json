@@ -1,0 +1,275 @@
+{
+ "at": "2026-11-28T01:55:13.979Z",
+ "results": [
+  {
+   "id": "WP06",
+   "name": "a family chosen in the editor builds a world behind the thread (3D canvas + 2D overlay), Neural Maps still live in front",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"host\":\"true\",\"families\":\"celestial\",\"two\":\"zodiac-wheel constellations\",\"canvas\":1,\"maps\":2}"
+  },
+  {
+   "id": "WP09",
+   "name": "turning a 2D layer off and a 3D layer off each changes the rendered scene (pixel difference)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"zodiacWheelOff\":0.0302,\"planetOff\":0.0173}"
+  },
+  {
+   "id": "WP02",
+   "name": "2D and 3D coexist and can be shown separately (canvas/SVG counts per mode)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"2d\":{\"canvas\":0,\"svg\":2},\"3d\":{\"canvas\":1,\"svg\":0},\"combined\":{\"canvas\":1,\"svg\":2}}"
+  },
+  {
+   "id": "WP05",
+   "name": "edits, rename and a duplicate survive a reload, and the duplicate is active",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"savedBefore\":{\"n\":2,\"active\":\"world-celestial-copy\",\"name\":\"My celestial study (copy)\"},\"savedAfter\":{\"n\":2,\"active\":\"world-celestial-copy\",\"name\":\"My celestial study (copy)\",\"density\":1.6,\"motion\":0.4}}"
+  },
+  {
+   "id": "WP05",
+   "name": "export/import round-trips a world exactly; a foreign file is refused",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"rt\":{\"ok\":true,\"sameLayers\":true,\"issues\":[],\"newId\":true},\"bad\":[\"not a LÉLU world export\"]}"
+  },
+  {
+   "id": "WP09",
+   "name": "five cross-theme combinations render in the thread",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"underwater+celestial\":\"underwater celestial\",\"volcano+holo-hud\":\"volcano holo-hud\",\"autumn+doodle\":\"autumn doodle\",\"urban-neon+quantum\":\"urban-neon quantum\",\"kemet+sacred-geometry\":\"kemet sacred-geometry\"}"
+  },
+  {
+   "id": "WP04",
+   "name": "an era renders with its confidence label and its cited sources",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"card\":\"Tampa, Florida · 1999 street at duskapproximate: check the cited source · massing illustrative\",\"sources\":3}"
+  },
+  {
+   "id": "WP04",
+   "name": "two eras compare side by side with a split slider",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"compare\":\"present|2060\",\"canvases\":2}"
+  },
+  {
+   "id": "WP06",
+   "name": "every thread variant renders inside the world",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"raindrop\":\"true\",\"ribbon\":\"true\",\"live\":\"true\",\"workspace\":\"true\"}"
+  },
+  {
+   "id": "WP08",
+   "name": "quality tiers apply and automatic quality chooses a tier from measured frames",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"low\":\"low 5fps\",\"medium\":\"medium 4fps\",\"high\":\"high 4fps\",\"auto\":\"medium 4fps\"}"
+  },
+  {
+   "id": "WP06",
+   "name": "turning the world off returns the thread to its own backdrop",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  },
+  {
+   "id": "WP08",
+   "name": "reduced motion freezes the world (no animation loop)",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  },
+  {
+   "id": "WP08",
+   "name": "320×740: the thread inside a world stays inside the screen (raindrop, workspace)",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"tier\":\"medium\",\"world\":\"true\"},\"workspace\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"}}"
+  },
+  {
+   "id": "WP08",
+   "name": "375×812: the thread inside a world stays inside the screen (raindrop, workspace)",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"tier\":\"medium\",\"world\":\"true\"},\"workspace\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"}}"
+  },
+  {
+   "id": "WP08",
+   "name": "390×844: the thread inside a world stays inside the screen (raindrop, workspace)",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"tier\":\"medium\",\"world\":\"true\"},\"workspace\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"}}"
+  },
+  {
+   "id": "WP08",
+   "name": "430×932: the thread inside a world stays inside the screen (raindrop, workspace)",
+   "status": "VERIFIED",
+   "evidence": "emulated-mobile",
+   "detail": "{\"raindrop\":{\"overflowX\":0,\"tier\":\"medium\",\"world\":\"true\"},\"workspace\":{\"overflowX\":0,\"tier\":\"low\",\"world\":\"true\"}}"
+  },
+  {
+   "id": "WP10",
+   "name": "no page errors from the world engine",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": ""
+  },
+  {
+   "id": "WP08",
+   "name": "physical iPhone / real GPU",
+   "status": "NOT RUN",
+   "evidence": "physical-device",
+   "detail": "No physical device or hardware GPU reachable from this container; frames are SwiftShader (software) and phones are Chromium emulation."
+  }
+ ],
+ "measures": {
+  "framesNoWorld": {
+   "fps": 3,
+   "medianMs": 366.8,
+   "p95Ms": 466.6
+  },
+  "combos": {
+   "underwater+celestial": {
+    "families": "underwater celestial",
+    "frames": {
+     "fps": 3,
+     "medianMs": 550,
+     "p95Ms": 566.7
+    }
+   },
+   "volcano+holo-hud": {
+    "families": "volcano holo-hud",
+    "frames": {
+     "fps": 3,
+     "medianMs": 333.3,
+     "p95Ms": 549.9
+    }
+   },
+   "autumn+doodle": {
+    "families": "autumn doodle",
+    "frames": {
+     "fps": 5,
+     "medianMs": 266.6,
+     "p95Ms": 450
+    }
+   },
+   "urban-neon+quantum": {
+    "families": "urban-neon quantum",
+    "frames": {
+     "fps": 5,
+     "medianMs": 216.6,
+     "p95Ms": 383.4
+    }
+   },
+   "kemet+sacred-geometry": {
+    "families": "kemet sacred-geometry",
+    "frames": {
+     "fps": 4,
+     "medianMs": 366.7,
+     "p95Ms": 466.6
+    }
+   }
+  },
+  "variants": {
+   "raindrop": {
+    "world": "true",
+    "frames": {
+     "fps": 5,
+     "medianMs": 266.6,
+     "p95Ms": 516.6
+    }
+   },
+   "ribbon": {
+    "world": "true",
+    "frames": {
+     "fps": 5,
+     "medianMs": 250.1,
+     "p95Ms": 283.3
+    }
+   },
+   "live": {
+    "world": "true",
+    "frames": {
+     "fps": 5,
+     "medianMs": 283.3,
+     "p95Ms": 366.7
+    }
+   },
+   "workspace": {
+    "world": "true",
+    "frames": {
+     "fps": 5,
+     "medianMs": 283.3,
+     "p95Ms": 399.9
+    }
+   }
+  },
+  "tiers": {
+   "low": {
+    "tier": "low",
+    "frames": {
+     "fps": 5,
+     "medianMs": 283.2,
+     "p95Ms": 383.3
+    }
+   },
+   "medium": {
+    "tier": "medium",
+    "frames": {
+     "fps": 4,
+     "medianMs": 283.3,
+     "p95Ms": 300
+    }
+   },
+   "high": {
+    "tier": "high",
+    "frames": {
+     "fps": 4,
+     "medianMs": 283.3,
+     "p95Ms": 300
+    }
+   },
+   "auto": {
+    "tier": "medium",
+    "frames": {
+     "fps": 4,
+     "medianMs": 266.7,
+     "p95Ms": 400
+    }
+   }
+  },
+  "framesWithWorldAuto": {
+   "fps": 4,
+   "medianMs": 266.7,
+   "p95Ms": 400
+  }
+ },
+ "otherPageErrors": [
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+ ]
+}

@@ -43,3 +43,25 @@
 .we-hint { opacity: .7; font-size: 11px; line-height: 1.4; }
 .we-place { display: grid; gap: 6px; }
 .we-place ol { margin: 0; padding-left: 16px; display: grid; gap: 2px; font-size: 11px; opacity: .85; }
+
+/* ---------------- The world behind a thread ---------------- */
+.tw-host { position: relative; height: 100%; isolation: isolate; }
+.tw-host > .ts { height: 100%; z-index: 1; }
+.tw-world { position: absolute; inset: 0; z-index: 0; }
+.tw-right { position: absolute; inset: 0; }
+.tw-split { position: absolute; z-index: 3; left: 20%; right: 20%; bottom: 90px; accent-color: #f5c46b; }
+.tw-split-line { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: linear-gradient(#f5c46b, #fff, #f5c46b); box-shadow: 0 0 14px #f5c46b; z-index: 2; pointer-events: none; }
+/* With a world on, the thread drops its own backdrop and its panels take the world's frame. */
+.tw-host[data-world-on="true"] > .ts { background: transparent; pointer-events: none; }
+.tw-host[data-world-on="true"] > .ts > * { pointer-events: auto; }
+.tw-host[data-world-on="true"] > .ts .ts-canvas { pointer-events: none; }
+.tw-host[data-world-on="true"] > .ts .ts-canvas > * { pointer-events: auto; }
+.tw-host[data-world-on="true"] > .ts::before, .tw-host[data-world-on="true"] > .ts::after { display: none; }
+.tw-host[data-world-on="true"] .lq {
+  background:
+    radial-gradient(120% 70% at 18% 0%, color-mix(in srgb, var(--w-edge) 22%, transparent), transparent 55%),
+    linear-gradient(160deg, color-mix(in srgb, var(--w-tint) 70%, transparent), color-mix(in srgb, var(--w-tint) 86%, #000 0%));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--w-edge) 60%, transparent), 0 0 34px color-mix(in srgb, var(--w-glow) 45%, transparent), 0 22px 44px #0008, inset 0 1px 0 #ffffff44;
+}
+.tw-host[data-world-ink="true"] .lq { color: #1b1712; box-shadow: 0 0 0 2.5px var(--w-edge), 5px 6px 0 var(--w-edge); backdrop-filter: none; }
+.tw-host[data-world-ink="true"] .lq * { color: inherit; }

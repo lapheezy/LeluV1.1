@@ -236,6 +236,7 @@ function LavaField({ layer, time }: { layer: WorldLayer; time: { value: number }
 function City({ layer, budget }: { layer: WorldLayer; budget: RenderBudget }) {
   const blocks = Math.round(num(layer, "blocks", 12));
   const toon = num(layer, "toon", 0) > 0;
+  const fill = num(layer, "fill", 1), front = num(layer, "front", 30), ground = str(layer, "ground", "street");
   const { mesh, count } = useMemo(() => {
     const r = rng(9);
     const mats: THREE.Matrix4[] = [];
@@ -244,7 +245,8 @@ function City({ layer, budget }: { layer: WorldLayer; budget: RenderBudget }) {
     for (let gx = -blocks; gx <= blocks; gx++)
       for (let gz = -blocks * 2; gz <= 2; gz++) {
         if (gx === 0 || gz % 4 === 0) continue; // avenues
-        if (r() > 0.82 * budget.scale + 0.2) continue;
+        if (gz * 6.2 - 8 > front) continue; // the shoreline
+        if (r() > fill * (0.82 * budget.scale + 0.2)) continue;
         const dist = Math.hypot(gx, gz + blocks) / blocks;
         const h = (2 + r() ** 2.2 * 26 * (1.2 - dist * 0.5)) * num(layer, "height", 1);
         const w = 2.2 + r() * 2.2, d = 2.2 + r() * 2.2;
@@ -287,11 +289,11 @@ function City({ layer, budget }: { layer: WorldLayer; budget: RenderBudget }) {
     mats.forEach((m, i) => mesh.setMatrixAt(i, m));
     mesh.frustumCulled = false;
     return { mesh, count: mats.length };
-  }, [layer, blocks, toon, budget.scale]);
+  }, [layer, blocks, toon, budget.scale, fill, front]);
   return (
     <group>
       <primitive object={mesh} userData={{ count }} />
-      <mesh rotation-x={-Math.PI / 2} position-y={-2.01}>
+      <mesh rotation-x={-Math.PI / 2} position={[0, ground === "shore" ? -1.6 : -2.01, ground === "shore" ? front - 300 + 3 : 0]}>
         <planeGeometry args={[600, 600]} />
         <meshStandardMaterial color={toon ? "#3b2a5a" : "#07060c"} roughness={toon ? 1 : 0.12} metalness={toon ? 0 : 0.7} />
       </mesh>
