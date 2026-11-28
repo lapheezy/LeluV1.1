@@ -22,6 +22,5 @@ html:not([data-lelu-experience="og"]) [data-lelu-module-window] .genesis-window-
   background: rgba(10, 4, 30, 0.42) !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 html:not([data-lelu-experience="og"]) [data-lelu-module-window] .genesis-window-frame * { border-color: transparent; }
-html:not([data-lelu-experience="og"]) .lws-modes { display: none !important; }
 html:not([data-lelu-experience="og"]) [data-lelu-module-window],
 html:not([data-lelu-experience="og"]) [data-lelu-module-window] > * { border-color: transparent !important; outline: none !important; box-shadow: none !important; }

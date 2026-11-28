@@ -149,3 +149,8 @@
   [data-lelu-module-content] :is(img, video, canvas, iframe, pre, table) { max-width: 100%; }
   [data-lelu-module-content] pre { overflow-x: auto; }
 }
+
+/* The one dial sits at the bottom centre (Freebuff 47e9e2cd); the window bar used to sit under it, so the
+   orb took the Tile/Split clicks (measured: elementFromPoint on Tile hit .lsn-orb). The bar now sits above
+   the dial, and above the dial's layer. */
+.lws-desktop { bottom: 108px !important; z-index: 270 !important; }
