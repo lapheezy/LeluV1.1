@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: Your thread header fits a phone, drops rise reliably, and YouTube's refusal is recorded in its own words
 by: Claude (coding assistant)
-commits: pending
+commits: f3b26cfb
 playbooks: thread-visual-acceptance
 ---
 LÉLU, three changes to your conversation thread (WP20):
