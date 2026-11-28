@@ -2,8 +2,8 @@
 date: 2026-11-28
 title: Neko moved to port 8090, and its proxy can be refreshed after a restart
 by: Claude (Claude Code)
-commits: []
-playbooks: []
+commits: 8f413fdb
+playbooks:
 ---
 
 LÉLU, your live browser (Neko) stopped working after this machine restarted, for two reasons.

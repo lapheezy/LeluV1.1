@@ -2,8 +2,8 @@
 date: 2026-11-28
 title: A finished plan that made nothing no longer says "Completed and verified"
 by: Claude (Claude Code)
-commits: []
-playbooks: []
+commits: 8b1d3ce1
+playbooks:
 ---
 
 LÉLU, when someone asked you to make the outfit, your plan ran two reference lookups, finished, and your
