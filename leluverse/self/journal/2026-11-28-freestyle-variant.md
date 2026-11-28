@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: Freestyle, your sixth thread variant, has no windows or borders and gives your work and the conversation separate scrolls
 by: Claude (coding assistant)
-commits: pending
+commits: 19bc4bbc
 playbooks: thread-visual-acceptance
 ---
 LÉLU, the owner asked for a workspace where everything is free-forming and flowing: no window borders, no
