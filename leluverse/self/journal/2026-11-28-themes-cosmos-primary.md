@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: The Cosmos and every chat variant switch themes together; the primary Cosmos is one tap back
 by: Claude (Claude Code)
-commits: pending
+commits: 4226f4ee
 playbooks:
 ---
 
