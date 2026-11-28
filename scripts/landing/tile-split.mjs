@@ -3,7 +3,8 @@ let out0;
 import { chromium } from "playwright";
 const OUT = "docs/missions/wp21_4/shots";
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
-const p = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+const PHONE = process.env.PHONE === "1";
+const p = await (await b.newContext(PHONE ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true } : { viewport: { width: 1440, height: 900 } })).newPage();
 const errors = []; p.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
 await p.goto("http://127.0.0.1:5173/", { waitUntil: "domcontentloaded" });
 for (let i = 0; i < 80; i++) { if (await p.locator("[data-lelu-signin-gate]").count()) await p.evaluate(() => { const b = [...document.querySelectorAll("[data-lelu-signin-gate] button")]; (b.find((e) => /continue/i.test(e.textContent || "")) ?? b.at(-1))?.click(); }); if (await p.locator("[data-core-chat]").count()) break; await p.waitForTimeout(500); }
@@ -19,7 +20,7 @@ for (const m of ["tile", "split"]) {
   await btn.click({ timeout: 5000 }).catch((e) => (out[m + "Click"] = String(e).split("\n")[0]));
   await p.waitForTimeout(1500);
   out[m] = await rects();
-  await p.screenshot({ path: `${OUT}/layout-${m}.png` });
+  await p.screenshot({ path: `${OUT}/layout-${m}${PHONE ? "-phone" : ""}.png` });
 }
 console.log(JSON.stringify({ ...out, errors }, null, 1));
 await b.close();

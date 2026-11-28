@@ -8,12 +8,13 @@
  * Motion animates the active tab and the layout switch.
  */
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, useEffect } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useGenesisActions, useGenesisState } from "../GenesisCore";
 import WorkspaceStewardStore from "../../../../core/interface/WorkspaceStewardStore";
 import type { StewardLayout, StewardMode } from "../../../../core/interface/WorkspaceSteward";
 import { arrangeWorkspace, type StewardHost } from "./stewardActions";
+import { setPhoneRatio } from "../../../../core/interface/WorkspaceSteward";
 import { setUniverseOpen } from "../chat/universe/universeOpen";
 import "./workspaceBar.css";
 import RadialMenu, { type RadialItem } from "../../../ui/radial/RadialMenu";
@@ -146,6 +147,7 @@ export default function WorkspaceBar({
   if (compact) {
     return (
       <div className="lws lws-compact" data-lelu-workspace-bar="compact">
+        {mode === "split" || mode === "tile" ? <PhoneDivider onRatio={() => arrangeWorkspace(host, mode, [], "user")} /> : null}
         <button type="button" className="lws-icon" aria-label="Back to the Universe — windows keep running" onClick={() => { hideAll(); setUniverseOpen(true); }}>‹</button>
         {tabs}
         {/* M23: tap keeps the list; hold → slide → release picks a layout
@@ -177,5 +179,43 @@ export default function WorkspaceBar({
       <button type="button" className="lws-icon" aria-label="Why this layout" aria-expanded={why} onClick={() => setWhy((v) => !v)}>ⓘ</button>
       {explain}
     </motion.div>
+  );
+}
+
+/**
+ * Phone: drag the line between stacked windows to resize them (owner, 2026-11-28). The handle is 44px
+ * tall for a finger, sits on the boundary the steward laid out, and re-arranges live as it moves.
+ */
+function PhoneDivider({ onRatio }: { onRatio: () => void }) {
+  const [y, setY] = useState<number | null>(null);
+  useEffect(() => {
+    const find = () => {
+      const wins = [...document.querySelectorAll<HTMLElement>("[data-lelu-module-window]")].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+      const tops = wins.map((r) => r.top), bottoms = wins.map((r) => r.bottom);
+      const edge = bottoms.filter((b) => tops.some((t) => Math.abs(t - b) < 24 && t > 40)).sort((a, b) => a - b)[0];
+      setY(edge ?? null);
+    };
+    find();
+    const t = window.setInterval(find, 400);
+    return () => window.clearInterval(t);
+  }, []);
+  if (y === null) return null;
+  return (
+    <div
+      className="lws-divider"
+      data-phone-divider
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Drag to resize the windows"
+      style={{ top: y - 20 }}
+      onPointerDown={(e) => (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)}
+      onPointerMove={(e) => {
+        if (!(e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) return;
+        setPhoneRatio(e.clientY / window.innerHeight);
+        onRatio();
+      }}
+    >
+      <span />
+    </div>
   );
 }

@@ -254,6 +254,38 @@ export function planWorkspace(input: StewardInput): StewardPlan {
       return { compact: true, layout: "split", placements, tabs, reasons, before };
     }
     const top = input.insets?.top ?? 0;
+    /*
+     * Portrait phone, several windows (owner, 2026-11-28): Split stacks two with a draggable divider,
+     * Tile is a pyramid (3) or a 2×2 grid (4), Stack sits them side by side. Windows shrink to fit; the
+     * divider ratio (phoneRatio) is changed with a finger and kept.
+     */
+    if ((mode === "split" || mode === "tile" || mode === "stack") && ordered.length >= 2) {
+      // Leave the bottom 96px to the dial and window bar (the host clamps windows above them: measured overlap).
+      const H = viewport.height - top - 96, W = viewport.width, g = 4;
+      const r = phoneRatio();
+      const set = mode === "split" ? lead.slice(0, 2) : mode === "stack" ? lead.slice(0, 3) : lead.slice(0, 4);
+      const rects: Rect[] = [];
+      if (mode === "split") {
+        const h1 = Math.round((H - g) * r);
+        rects.push({ x: 0, y: top, width: W, height: h1 }, { x: 0, y: top + h1 + g, width: W, height: H - h1 - g });
+      } else if (mode === "stack") {
+        const w = (W - g * (set.length - 1)) / set.length;
+        set.forEach((_, i) => rects.push({ x: i * (w + g), y: top, width: w, height: H }));
+      } else if (set.length === 2) {
+        const h1 = Math.round((H - g) * r);
+        rects.push({ x: 0, y: top, width: W, height: h1 }, { x: 0, y: top + h1 + g, width: W, height: H - h1 - g });
+      } else if (set.length === 3) {
+        const h1 = Math.round((H - g) * r), w = (W - g) / 2;
+        rects.push({ x: 0, y: top, width: W, height: h1 }, { x: 0, y: top + h1 + g, width: w, height: H - h1 - g }, { x: w + g, y: top + h1 + g, width: w, height: H - h1 - g });
+      } else {
+        const h1 = Math.round((H - g) * r), w = (W - g) / 2;
+        rects.push({ x: 0, y: top, width: w, height: h1 }, { x: w + g, y: top, width: w, height: h1 }, { x: 0, y: top + h1 + g, width: w, height: H - h1 - g }, { x: w + g, y: top + h1 + g, width: w, height: H - h1 - g });
+      }
+      set.forEach((w, i) => put(w.id, rects[i], false));
+      const tabs = ordered.filter((w) => !placements[w.id]).map((w) => w.id);
+      reasons.push(`phone: ${set.map((w) => w.label).join(", ")} ${mode === "split" ? "stacked" : mode === "stack" ? "side by side" : set.length === 3 ? "as a pyramid" : "tiled"}${tabs.length ? `; ${tabs.length} more as tabs` : ""}`);
+      return { compact: true, layout: mode === "split" ? "split" : "tile", placements, tabs, reasons, before };
+    }
     put(focus.id, { x: 0, y: top, width: viewport.width, height: viewport.height - top }, true);
     const tabs = ordered.filter((w) => w.id !== focus.id).map((w) => w.id);
     reasons.push(
@@ -437,4 +469,25 @@ export function parseWorkspaceCommand(raw: string): WorkspaceCommand | null {
   if (opens.length && /\b(open|show)\b/.test(text) && /\b(and|with|plus)\b/.test(text) && mentionsChat)
     return { mode: "split", open: opens, summary: `Opened ${opens.join(" and ")} beside the chat` };
   return null;
+}
+
+/** The phone divider's position (0.2–0.8 of the height), changed with a finger and kept. */
+const PHONE_RATIO_KEY = "lelu.workspace.phoneRatio.v1";
+let ratio = 0.5;
+try {
+  const v = typeof localStorage !== "undefined" ? Number(localStorage.getItem(PHONE_RATIO_KEY)) : NaN;
+  if (v >= 0.2 && v <= 0.8) ratio = v;
+} catch {
+  /* default */
+}
+export function phoneRatio(): number {
+  return ratio;
+}
+export function setPhoneRatio(next: number): void {
+  ratio = Math.min(0.8, Math.max(0.2, next));
+  try {
+    localStorage?.setItem(PHONE_RATIO_KEY, String(ratio));
+  } catch {
+    /* memory only */
+  }
 }

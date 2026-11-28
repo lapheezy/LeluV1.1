@@ -154,3 +154,7 @@
    orb took the Tile/Split clicks (measured: elementFromPoint on Tile hit .lsn-orb). The bar now sits above
    the dial, and above the dial's layer. */
 .lws-desktop { bottom: 108px !important; z-index: 270 !important; }
+
+/* Phone divider between stacked windows: a 44px finger target with a visible grip. */
+.lws-divider { position: fixed; left: 0; right: 0; height: 40px; z-index: 2147482000; touch-action: none; display: grid; place-items: center; cursor: row-resize; }
+.lws-divider span { width: 56px; height: 5px; border-radius: 3px; background: rgba(240, 171, 252, .9); box-shadow: 0 0 10px rgba(217, 70, 239, .8); }
