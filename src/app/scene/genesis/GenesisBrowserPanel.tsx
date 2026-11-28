@@ -266,6 +266,29 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
   const genesis = useGenesis();
   const activeTab = tabs.find((t) => t.id === activeId) ?? tabs[0];
   const current = activeTab?.url ?? "";
+  // Neko live: join with the client URL the server prepares for this machine, and open
+  // whatever address is current inside Neko's own browser (it is a separate, real
+  // Chromium: Google, ChatGPT and other sites that refuse embedding render there).
+  const [nekoClient, setNekoClient] = useState<string | null>(null);
+  const [nekoNav, setNekoNav] = useState<{ url: string; ok: boolean; detail: string } | null>(null);
+  useEffect(() => {
+    if (mode !== "neko" || nekoClient) return;
+    void fetch("/api/neko/client")
+      .then((r) => r.json() as Promise<{ url?: string }>)
+      .then((j) => setNekoClient(j.url ?? null))
+      .catch(() => setNekoClient(null));
+  }, [mode, nekoClient]);
+  useEffect(() => {
+    if (mode !== "neko" || !current || !/^https?:/i.test(current)) return;
+    let live = true;
+    void fetch("/api/neko/navigate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: current }) })
+      .then((r) => r.json() as Promise<{ ok: boolean; detail: string }>)
+      .then((j) => live && setNekoNav({ url: current, ok: j.ok, detail: j.detail }))
+      .catch((e) => live && setNekoNav({ url: current, ok: false, detail: String(e) }));
+    return () => {
+      live = false;
+    };
+  }, [mode, current]);
   useEffect(() => {
     try {
       KvStore.getInstance().set(TABS_KEY, { tabs: tabs.map(({ reader: _r, slow: _s, embeddable: _e, hintDismissed: _h, dormant: _d, ...t }) => t), activeId });
@@ -723,7 +746,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       {/* The page. NEKO mode is the LIVE Neko virtual browser session (m1k1o/neko). */}
       <div className="lbr-page" data-mode={mode}>
         {mode === "neko" && nekoUrl ? (
-          <iframe src={nekoUrl} title="Neko virtual browser (m1k1o/neko)" allow="clipboard-read; clipboard-write; fullscreen; autoplay; camera; microphone" />
+          <iframe src={nekoClient ?? nekoUrl} data-neko-live={nekoNav?.ok ? nekoNav.url : ""} data-neko-nav={nekoNav ? (nekoNav.ok ? "ok" : "failed") : ""} title="Neko virtual browser (m1k1o/neko)" allow="clipboard-read; clipboard-write; fullscreen; autoplay; camera; microphone" />
         ) : active?.url && active.dormant ? (
           <div className="lbr-idle" data-lelu-browser-idle data-dormant>
             <h2>{active.title || host}</h2>

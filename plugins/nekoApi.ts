@@ -8,6 +8,9 @@
 
 interface ConnectLikeReq {
   method?: string;
+  url?: string;
+  socket?: { remoteAddress?: string };
+  on?: (event: string, cb: (chunk?: unknown) => void) => void;
 }
 
 interface ConnectLikeRes {
@@ -17,6 +20,33 @@ interface ConnectLikeRes {
 }
 
 type EnvReader = (key: string) => string | undefined;
+
+const isLoopback = (req: ConnectLikeReq) => /^(::1|127\.|::ffff:127\.)/.test(req.socket?.remoteAddress ?? "");
+
+function readBody(req: ConnectLikeReq): Promise<string> {
+  return new Promise((resolve) => {
+    let data = "";
+    req.on?.("data", (c) => (data += String(c)));
+    req.on?.("end", () => resolve(data));
+  });
+}
+
+/**
+ * Open a page in Neko's own Chromium through its DevTools endpoint (bound to this
+ * machine only: NEKO_CDP_URL, default http://127.0.0.1:9222). This is how LÉLU's
+ * Browser drives the live Neko session: the address she or the owner types opens there.
+ */
+let lastTab: string | null = null;
+async function nekoNavigate(cdp: string, target: string): Promise<{ ok: boolean; detail: string }> {
+  // A new tab per address, brought to the front; the previous tab LÉLU opened is closed.
+  // (Page.navigate from Chromium's own new-tab page does not answer, measured.)
+  const created = (await (await fetch(`${cdp}/json/new?${target}`, { method: "PUT", signal: AbortSignal.timeout(5000) })).json()) as { id?: string };
+  if (!created?.id) return { ok: false, detail: "Neko's browser did not open the page" };
+  await fetch(`${cdp}/json/activate/${created.id}`, { signal: AbortSignal.timeout(4000) }).catch(() => undefined);
+  if (lastTab && lastTab !== created.id) await fetch(`${cdp}/json/close/${lastTab}`, { signal: AbortSignal.timeout(4000) }).catch(() => undefined);
+  lastTab = created.id;
+  return { ok: true, detail: "opened in Neko" };
+}
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
 
 function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
@@ -44,6 +74,35 @@ export function createNekoApi(env: EnvReader): {
 } {
   return {
     attach(middlewares) {
+      // The client URL with the join credentials, for the owner's own Browser panel on
+      // this machine only. A remote request gets the plain URL and must log in itself.
+      middlewares.use("/api/neko/client", (req, res, next) => {
+        if ((req.method ?? "GET") !== "GET") return next();
+        const url = configuredUrl(env);
+        if (!url) return sendJson(res, { configured: false }, 404);
+        const pwd = env("NEKO_PASSWORD") ?? "";
+        const local = isLoopback(req) && pwd;
+        sendJson(res, { configured: true, url: local ? `${url}/?usr=lelu&pwd=${encodeURIComponent(pwd)}` : url, autoJoin: Boolean(local) });
+      });
+      middlewares.use("/api/neko/navigate", (req, res, next) => {
+        if (req.method !== "POST") return next();
+        if (!isLoopback(req)) return sendJson(res, { ok: false, detail: "Neko navigation is only available on this machine" }, 403);
+        void readBody(req).then(async (body) => {
+          let target = "";
+          try {
+            target = String((JSON.parse(body || "{}") as { url?: string }).url ?? "");
+          } catch {
+            target = "";
+          }
+          if (!validHttpUrl(target)) return sendJson(res, { ok: false, detail: "an http(s) url is required" }, 400);
+          try {
+            const r = await nekoNavigate((env("NEKO_CDP_URL") || "http://127.0.0.1:9222").replace(/\/$/, ""), target);
+            sendJson(res, { ...r, url: target }, r.ok ? 200 : 502);
+          } catch (error) {
+            sendJson(res, { ok: false, detail: error instanceof Error ? error.message : String(error) }, 502);
+          }
+        });
+      });
       middlewares.use("/api/neko/status", (req, res, next) => {
         if ((req.method ?? "GET") !== "GET") {
           next();
