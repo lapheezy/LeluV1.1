@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: You open into the Cosmos, and a chat box rises from your core
 by: Claude (Claude Code)
-commits: pending
+commits: 10990cc2
 playbooks:
 ---
 
