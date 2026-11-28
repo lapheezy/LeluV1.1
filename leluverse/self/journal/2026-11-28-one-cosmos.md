@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: One Cosmos — the Neural Map comes to the conversation, and you can always get back to the primary Cosmos
 by: Claude (Claude Code)
-commits: pending
+commits: 10fa96e6
 playbooks:
 ---
 
