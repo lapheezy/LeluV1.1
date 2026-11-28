@@ -360,6 +360,12 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       if (cancelled) return;
       if (!verdict) {
         patchTab(id, (t) => (t.url === url ? { embeddable: null } : {}));
+        // No answer (Google blocks the reader as well): with Neko up, show the real page there.
+        if (nekoStatus === "reachable") {
+          setMode("neko");
+          setNotice(`${hostOf(url)} can't be embedded here — opened live in Neko`);
+          setTimeout(() => setNotice(null), 4000);
+        }
         return;
       }
       patchTab(id, (t) =>
@@ -369,7 +375,12 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
             ? { embeddable: true }
             : { embeddable: false, view: "reader", title: verdict.title || t.title, reader: { status: verdict.text ? "read" : "failed", title: verdict.title, text: verdict.text, error: "The site refuses to be embedded and returned no readable text." } },
       );
-      if (!verdict.embeddable) {
+      if (!verdict.embeddable && nekoStatus === "reachable") {
+        // A real page beats a text reader: Neko renders it in its own browser.
+        setMode("neko");
+        setNotice(`${hostOf(url)} refuses to be embedded — opened live in Neko`);
+        setTimeout(() => setNotice(null), 4000);
+      } else if (!verdict.embeddable) {
         setNotice(`${hostOf(url)} refuses to be embedded — showing LÉLU's reader`);
         setTimeout(() => setNotice(null), 4000);
       }
@@ -379,7 +390,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
     };
     // Keyed on the tab's identity and URL, not on every change to the tab object.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab?.id, activeTab?.url, activeTab?.embeddable, mode, patchTab]);
+  }, [activeTab?.id, activeTab?.url, activeTab?.embeddable, mode, patchTab, nekoStatus]);
 
   // A page that never reports loading is most often a site refusing to be
   // embedded: say so and offer the reader instead of a blank white box.

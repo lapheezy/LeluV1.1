@@ -14,13 +14,13 @@ for (const [name, url] of [["google", "https://www.google.com/search?q=oversized
   await p.evaluate((url) => window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } })), url);
   await p.waitForTimeout(1500);
   // Switch to Neko live (once; the chip appears when Neko is reachable).
-  if (!(await p.locator('.lbr-page[data-mode="neko"]').count())) {
+  if (!process.env.AUTO && !(await p.locator('.lbr-page[data-mode="neko"]').count())) {
     await p.waitForFunction(() => [...document.querySelectorAll("button.lbr-chip")].some((e) => /Neko live/.test(e.textContent)), null, { timeout: 20000 });
     await p.evaluate(() => [...document.querySelectorAll("button.lbr-chip")].find((e) => /Neko live/.test(e.textContent)).dispatchEvent(new MouseEvent("click", { bubbles: true })));
   }
   await p.waitForTimeout(14000);
   results[name] = await p.evaluate(() => { const f = document.querySelector('.lbr-page[data-mode="neko"] iframe'); return { mode: document.querySelector(".lbr-page")?.dataset.mode, nav: f?.dataset.nekoNav, live: f?.dataset.nekoLive, client: (f?.getAttribute("src") ?? "").replace(/pwd=[^&]*/, "pwd=***") }; });
-  await p.screenshot({ path: `${OUT}/neko-in-browser-${name}.png` });
+  await p.screenshot({ path: `${OUT}/neko-in-browser-${process.env.AUTO ? "auto-" : ""}${name}.png` });
 }
 console.log(JSON.stringify(results, null, 1));
 await b.close();
