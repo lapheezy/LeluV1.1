@@ -94,7 +94,7 @@ test("tools: search, for, unresolved report the registry; without a library they
   assert.ok(f.ok && /planned, not built yet/.test(f.content) && /U-04/.test(f.content));
   const u = await run("references.unresolved", {});
   assert.ok(u.ok && /blocked/.test(u.content) && /logo-only/.test(u.content));
-  const logo = await run("references.apply", { ref: "II-13", as: "plate" });
+  const logo = await run("references.apply", { ref: "II-13", as: "workspace" });
   assert.equal(logo.ok, false);
   setReferenceSource(async () => null);
   const none = await run("references.search", { text: "lava" });
@@ -123,4 +123,32 @@ test("local library (only where it exists): every downloaded or uploaded file on
   assert.equal(real.totals.atlasDownloaded + real.unresolved.filter((x) => ["blocked", "rate-limited", "no-preview", "pdf", "network"].includes(x.reason)).length, 167, "downloads + failures = 167");
   for (const e of real.entries) assert.ok(existsSync(`reference/${e.file}`), e.file);
   assert.equal(real.relations.filter((r) => r.state === "unknown").length, 0);
+});
+
+import { imageWorkspace } from "../src/core/workspaces/imageWorkspace";
+import { layersOf } from "../src/core/worlds/WorldSchema";
+
+test("image workspaces: a reference, a photo or her visual becomes a full-screen 2D world (no 3D), framed in the image's palette", () => {
+  const pal = { sky: ["#75796d", "#7b7664", "#171617"] as [string, string, string], accent: "#ebe3bc", glow: "#ffffff" };
+  const ref = imageWorkspace({ origin: "reference", title: "U-05 twin suns", ref: "owner:U-05" }, pal, 1);
+  assert.equal(ref.mode, "2d");
+  assert.equal(layersOf(ref, "objects3d").length + layersOf(ref, "atmosphere").length + layersOf(ref, "foundation").length, 0);
+  const img = layersOf(ref, "graphics2d")[0];
+  assert.equal(img.kind, "reference-plate");
+  assert.equal(img.params.fit, "fullscreen");
+  assert.equal(img.params.ref, "owner:U-05");
+  assert.equal(layersOf(ref, "spatialUI")[0].params.tint, "#75796d");
+  assert.equal(ref.palette.sky[0], "#75796d");
+  assert.match(ref.name, /^Reference · /);
+
+  const photo = imageWorkspace({ origin: "photo", title: "Balcony at dusk", src: "img:abc123" });
+  assert.equal(layersOf(photo, "graphics2d")[0].params.src, "img:abc123");
+  assert.match(photo.name, /^Photo · /);
+  const hers = imageWorkspace({ origin: "generated", title: "Neon garden", src: "https://example.org/v.png" });
+  assert.match(hers.name, /^Her visual · /);
+
+  // Pixels are never stored in the world: a data URL is refused as a source (it goes to the device's image store first).
+  const raw = imageWorkspace({ origin: "generated", title: "x", src: "data:image/png;base64,AAAA" });
+  assert.equal(layersOf(raw, "graphics2d")[0].params.src, undefined);
+  assert.throws(() => imageWorkspace({ origin: "photo", title: "nothing" }), /needs a reference id or an image source/);
 });

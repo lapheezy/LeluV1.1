@@ -1,5 +1,5 @@
 {
- "at": "2026-11-28T03:46:28.021Z",
+ "at": "2026-11-28T04:08:32.610Z",
  "results": [
   {
    "id": "R1",
@@ -23,18 +23,18 @@
    "detail": "[\"owner:U-07\",\"owner:U-08\"]"
   },
   {
-   "id": "R4",
-   "name": "a reference plate decodes the owner's original image (full resolution, cropped by its record) and changes the rendered scene",
-   "status": "VERIFIED",
-   "evidence": "browser-rendered",
-   "detail": "{\"natural\":[1170,2532],\"src\":\"/reference/user/U-04.png\",\"shown\":true,\"pixelsChanged\":0.2305}"
-  },
-  {
    "id": "R5",
    "name": "taking the palette from a reference (U-05, twin suns) recolours the world",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"before\":[\"#070304\",\"#2a0805\",\"#6b1a07\"],\"after\":[\"#75796d\",\"#7b7664\",\"#171617\"],\"accent\":\"#ebe3bc\",\"pixelsChanged\":0.2594}"
+   "detail": "{\"before\":[\"#070304\",\"#2a0805\",\"#6b1a07\"],\"after\":[\"#75796d\",\"#7b7664\",\"#171617\"],\"accent\":\"#ebe3bc\",\"pixelsChanged\":0.2865}"
+  },
+  {
+   "id": "R4",
+   "name": "a reference becomes a full-screen 2D workspace: no 3D canvas, the whole original image visible and its blurred fill covering the stage edge to edge",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"mode\":\"2d\",\"canvas\":0,\"covers\":true,\"wholeVisible\":true,\"natural\":[1170,2532],\"pixelsChanged\":0.6553}"
   },
   {
    "id": "R6",
@@ -45,24 +45,38 @@
   },
   {
    "id": "R7",
-   "name": "LÉLU's reference tools search, report planned targets, and place a plate in the active world",
+   "name": "LÉLU's reference tools search, report planned targets, and make a reference the full-screen workspace",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"search\":true,\"forTarget\":true,\"apply\":true,\"applyText\":\"Added U-01 (Blockbuster storefront at night in the rain, neon and palms, a car parked out front) to \\\"Volcanic core\\\" as a reference plate.\",\"appliedLoaded\":1}"
+   "detail": "{\"search\":true,\"forTarget\":true,\"apply\":true,\"applyText\":\"Made \\\"Reference · U-01 Blockbuster storefront at night in the rain, neon and palms, a \\\" a full-screen 2D workspace and switched to it (Blockbuster storefront at night in the rain, neon and palms, a car parked out front).\",\"appliedLoaded\":1}"
+  },
+  {
+   "id": "R11",
+   "name": "a visual she made (an image in the conversation) becomes a full-screen workspace, stored on this device by key, not as pixels in the world",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"hersLabel\":\"Hers\",\"name\":\"Her visual · Her visual\",\"mode\":\"2d\",\"src\":\"img:mwzw452z\",\"origin\":\"generated\"}"
+  },
+  {
+   "id": "R12",
+   "name": "a photo (camera or upload) becomes a full-screen workspace framed in its own colours",
+   "status": "VERIFIED",
+   "evidence": "browser-rendered",
+   "detail": "{\"name\":\"Photo · balcony-test-photo\",\"mode\":\"2d\",\"src\":\"img:\",\"origin\":\"photo\",\"sky\":[\"#2c698c\",\"#23638c\",\"#145332\"]}"
   },
   {
    "id": "R8",
-   "name": "reference plates are saved with the world (by reference id, not by copying the image)",
+   "name": "image workspaces are saved by reference id or device key (never pixels) and survive a reload",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "[\"owner:U-04\",\"atlas:II-01\",\"owner:U-01\"]"
+   "detail": "[{\"name\":\"Reference · U-04 Lightsaber duel above a lava sea under an eclipsed sun\",\"ref\":\"owner:U-04\",\"src\":\"\"},{\"name\":\"Reference · U-01 Blockbuster storefront at night in the rain, neon and palms, a \",\"ref\":\"owner:U-01\",\"src\":\"\"},{\"name\":\"Her visual · Her visual\",\"ref\":null,\"src\":\"img:\"},{\"name\":\"Photo · balcony-test-photo\",\"ref\":null,\"src\":\"img:\"}]"
   },
   {
    "id": "R9",
    "name": "the production build contains no reference image and no registry",
    "status": "VERIFIED",
    "evidence": "build-output",
-   "detail": "{\"distFiles\":2319,\"leaked\":[]}"
+   "detail": "{\"distFiles\":2323,\"leaked\":[]}"
   },
   {
    "id": "R10",

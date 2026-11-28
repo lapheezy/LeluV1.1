@@ -9,6 +9,6 @@
  "steps": [
   { "id": "registry", "title": "Rebuild reference/registry.json from the indexes and the committed labels", "kind": "tsx", "script": "scripts/references/build-registry.ts", "args": [], "why": "Reports usable, unresolved and planned counts and any missing file." },
   { "id": "label", "title": "Label anything new before using it", "kind": "note", "why": "Look at each new image and add what it shows, its categories and what it informs to src/core/references/referenceLabels.ts. A logo or a wrong image informs nothing. A target that does not exist yet is planned:<id>, never a stand-in." },
-  { "id": "verify", "title": "Discovery, search, plate, palette, missing, tools, persistence, build exclusion", "kind": "tsx", "script": "scripts/references/verify-references.mjs", "args": [], "why": "Writes docs/missions/references/verify-references.json; screenshots go to reference/_acceptance/ because they show the owner's images." }
+  { "id": "verify", "title": "Discovery, search, image workspaces (reference, her visual, photo), palette, missing, tools, persistence, build exclusion", "kind": "tsx", "script": "scripts/references/verify-references.mjs", "args": [], "why": "Writes docs/missions/references/verify-references.json; screenshots go to reference/_acceptance/ because they show the owner's images." }
  ]
 }

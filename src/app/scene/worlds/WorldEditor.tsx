@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReferenceEntry } from "../../../core/references/ReferenceRegistry";
 import { findReferences, loadReferences, paletteFromReference } from "./referenceLibrary";
+import { makeWorkspace } from "./workspaceImages";
 import { allFamilies } from "../../../core/worlds/ThemeFamilies";
 import { PLACES, placeWorld } from "../../../core/worlds/Places";
 import { SLOTS, type LayerSlot, type Quality, type RenderMode, type WorldConfig, type WorldLayer } from "../../../core/worlds/WorldSchema";
@@ -62,6 +63,61 @@ function LayerRow({ world, l }: { world: WorldConfig; l: WorldLayer }) {
   );
 }
 
+/** Any image becomes a full-screen 2D workspace: a photo taken or uploaded, or an image in this conversation (hers or yours). */
+function ImageWorkspaces({ images }: { images: Array<{ id: string; title: string; src: string; by: string }> }) {
+  const [note, setNote] = useState("");
+  const file = useRef<HTMLInputElement>(null);
+  const run = async (fn: () => Promise<{ name: string }>) => {
+    try {
+      const w = await fn();
+      setNote(`Workspace "${w.name}" is now active`);
+    } catch (err) {
+      setNote(String((err as Error).message));
+    }
+  };
+  return (
+    <section data-image-workspaces>
+      <b>Make a workspace from an image</b>
+      <div className="we-tools">
+        <button type="button" onClick={() => file.current?.click()} data-photo-workspace>
+          📷 Take or upload a photo
+        </button>
+      </div>
+      <input
+        ref={file}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        data-photo-input
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void run(() => makeWorkspace({ origin: "photo", title: f.name.replace(/\.[a-z0-9]+$/i, ""), blob: f, provenance: "photo" }));
+          e.target.value = "";
+        }}
+      />
+      {images.length ? (
+        <div className="we-refs">
+          {images.slice(-9).map((im) => (
+            <div key={im.id} className="we-ref" data-thread-image={im.id}>
+              <img src={im.src} alt={im.title} loading="lazy" />
+              <span>{im.by === "lelu" ? "Hers" : "Yours"}</span>
+              <div>
+                <button type="button" data-thread-image-workspace={im.id} onClick={() => void run(() => makeWorkspace({ origin: im.by === "lelu" ? "generated" : "thread-image", title: im.title, url: im.src, provenance: im.id }))}>
+                  Workspace
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="we-hint">Images in this conversation (yours, or visuals she makes) appear here.</p>
+      )}
+      {note ? <p className="we-hint" role="status" data-image-workspace-note>{note}</p> : null}
+    </section>
+  );
+}
+
 function References({ world }: { world: WorldConfig | null }) {
   const [q, setQ] = useState("");
   const [refs, setRefs] = useState<ReferenceEntry[] | null>(null);
@@ -92,12 +148,23 @@ function References({ world }: { world: WorldConfig | null }) {
           <div key={e.id} className="we-ref" data-ref-result={e.id} title={`${e.code}: ${e.shows}${e.franchise ? ` (${e.franchise})` : ""}\n${e.source}`}>
             <img src={e.url} alt={e.shows} loading="lazy" />
             <span>{e.code}</span>
-            {world ? (
-              <div>
-                <button type="button" data-ref-plate-add={e.id} onClick={() => applyEdit(world.id, { op: "add", layer: { id: `ref-${e.code}`, slot: "graphics2d", kind: "reference-plate", label: `Reference ${e.code}`, params: { ref: e.id, x: 40, y: 46, w: 24 } } })}>
-                  Plate
-                </button>
+            <div>
                 <button
+                  type="button"
+                  data-ref-workspace={e.id}
+                  title="Make this reference a full-screen 2D workspace"
+                  onClick={async () => {
+                    try {
+                      const w = await makeWorkspace({ origin: "reference", title: `${e.code} ${e.shows}`, ref: e.id, provenance: e.code });
+                      setNote(`Workspace "${w.name}" is now active`);
+                    } catch (err) {
+                      setNote(String((err as Error).message));
+                    }
+                  }}
+                >
+                  Workspace
+                </button>
+                {world ? <button
                   type="button"
                   data-ref-palette={e.id}
                   onClick={async () => {
@@ -111,9 +178,8 @@ function References({ world }: { world: WorldConfig | null }) {
                   }}
                 >
                   Palette
-                </button>
-              </div>
-            ) : null}
+                </button> : null}
+            </div>
           </div>
         ))}
       </div>
@@ -127,7 +193,7 @@ function References({ world }: { world: WorldConfig | null }) {
   );
 }
 
-export default function WorldEditor({ onClose, compare, setCompare }: { onClose: () => void; compare: Compare | null; setCompare: (c: Compare | null) => void }) {
+export default function WorldEditor({ onClose, compare, setCompare, images = [] }: { onClose: () => void; compare: Compare | null; setCompare: (c: Compare | null) => void; images?: Array<{ id: string; title: string; src: string; by: string }> }) {
   const world = useActiveWorld();
   const saved = useSyncExternalStore(subscribeWorlds, savedWorlds, savedWorlds);
   const [placeId, setPlaceId] = useState("tampa");
@@ -189,6 +255,7 @@ export default function WorldEditor({ onClose, compare, setCompare }: { onClose:
           ) : null}
         </section>
 
+        <ImageWorkspaces images={images} />
         <References world={world} />
 
         <section className="we-place">

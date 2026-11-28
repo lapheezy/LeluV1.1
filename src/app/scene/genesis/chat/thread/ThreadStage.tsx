@@ -473,7 +473,7 @@ export default function ThreadStage({ conversationId, messages, processing, tran
   const chips = statusOf(messages, processing, threadContents(conversationId, messages));
   const header = <ThreadHeader conversationId={conversationId} variantId={variantFor(conversationId)} chips={chips} immersive={immersive} onImmersive={toggleImmersive} showTabs={showTabs} onTabs={() => setShowTabs((v) => !v)} fx={fx} fxMode={fxMode} fxMs={measuredFx?.medianMs ?? null} onFx={cycleFx} worldOpen={worldOpen} onWorld={() => setWorldOpen((v) => !v)} />;
   const withWorld = (node: ReactNode) => (
-    <ThreadWorld editorOpen={worldOpen} onCloseEditor={() => setWorldOpen(false)} paused={false}>
+    <ThreadWorld editorOpen={worldOpen} onCloseEditor={() => setWorldOpen(false)} paused={false} images={threadContents(conversationId, messages).filter((o) => o.kind === "image" && o.ref?.src).map((o) => ({ id: o.id, title: o.title, src: o.ref!.src!, by: o.by }))}>
       {node}
     </ThreadWorld>
   );

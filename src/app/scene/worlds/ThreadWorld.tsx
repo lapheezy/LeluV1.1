@@ -25,7 +25,7 @@ export function worldVars(world: WorldConfig | null): React.CSSProperties {
   };
 }
 
-export default function ThreadWorld({ editorOpen, onCloseEditor, paused, children }: { editorOpen: boolean; onCloseEditor: () => void; paused: boolean; children: ReactNode }) {
+export default function ThreadWorld({ editorOpen, onCloseEditor, paused, images = [], children }: { editorOpen: boolean; onCloseEditor: () => void; paused: boolean; images?: Array<{ id: string; title: string; src: string; by: string }>; children: ReactNode }) {
   const world = useActiveWorld();
   const [compare, setCompare] = useState<Compare | null>(null);
   const pair = useMemo(() => (compare ? [placeWorld(compare.placeId, compare.a), placeWorld(compare.placeId, compare.b)] : null), [compare]);
@@ -54,7 +54,7 @@ export default function ThreadWorld({ editorOpen, onCloseEditor, paused, childre
       {children}
       {editorOpen ? (
         <Suspense fallback={null}>
-          <WorldEditor onClose={onCloseEditor} compare={compare} setCompare={setCompare} />
+          <WorldEditor onClose={onCloseEditor} compare={compare} setCompare={setCompare} images={images} />
         </Suspense>
       ) : null}
     </div>

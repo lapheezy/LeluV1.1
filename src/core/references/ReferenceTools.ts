@@ -45,7 +45,8 @@ export const REFERENCE_TOOLS: ToolDefinition[] = [
   { id: "references.search", name: "Search references", description: "Search the owner's local visual references by text, category (franchise, character, environment, vehicle, architecture, animation, clothing, visual-style…), franchise, or what they inform.", category: "References", permissions: ["READ"], riskLevel: 0, available: true, executionRoute: "ReferenceTools.references.search" },
   { id: "references.for", name: "References for a visual object", description: "Which references inform a family, layer, place or planned world (e.g. family:volcano, planned:retro-video-store, character-style:cel-shaded-american-anime), and whether that target exists yet.", category: "References", permissions: ["READ"], riskLevel: 0, available: true, executionRoute: "ReferenceTools.references.for" },
   { id: "references.unresolved", name: "Unresolved references", description: "Atlas entries with no usable image (blocked, no preview, PDF, logo only, mismatched) and planned targets still waiting to be built.", category: "References", permissions: ["READ"], riskLevel: 0, available: true, executionRoute: "ReferenceTools.references.unresolved" },
-  { id: "references.apply", name: "Use a reference in the world", description: "Put a reference into the active world as a plate, or take the world's palette from it.", category: "References", permissions: ["WRITE"], riskLevel: 1, available: true, executionRoute: "ReferenceTools.references.apply" },
+  { id: "references.apply", name: "Use a reference", description: "Make a reference a full-screen 2D workspace (the image is the environment the thread floats over), or take the active world's palette from it.", category: "References", permissions: ["WRITE"], riskLevel: 1, available: true, executionRoute: "ReferenceTools.references.apply" },
+  { id: "workspace.from_image", name: "Make a workspace from an image", description: "Turn any image into a full-screen 2D workspace variant: one of the owner's references, a photo, or a visual you made or that is in the conversation (by URL or data URL). The image stays on this device.", category: "References", permissions: ["WRITE"], riskLevel: 1, available: true, executionRoute: "ReferenceTools.workspace.from_image" },
 ];
 
 export const REFERENCE_EXECUTORS: Array<{ id: string; parameters: Record<string, unknown>; run: (args: Record<string, unknown>) => Promise<ToolExecutionResult> }> = [
@@ -87,25 +88,51 @@ export const REFERENCE_EXECUTORS: Array<{ id: string; parameters: Record<string,
   },
   {
     id: "references.apply",
-    parameters: OBJECT({ ref: { type: "string" }, as: { type: "string", enum: ["plate", "palette"] } }, ["ref", "as"]),
+    parameters: OBJECT({ ref: { type: "string" }, as: { type: "string", enum: ["workspace", "palette"] } }, ["ref", "as"]),
     run: async (args) => {
       const reg = await source();
       if (!reg) return NONE;
       const e = referenceById(reg, str(args, "ref"));
       if (!e) return { ok: false, content: `No reference ${str(args, "ref")} in the library.` };
       if (e.status !== "usable") return { ok: false, content: `${e.code} is ${e.status} (${e.shows}); it is not used as a visual reference.` };
+      if (typeof document === "undefined") return { ok: false, content: "Building from an image needs the browser (it reads the image's colours); not available here." };
+      if (str(args, "as") === "workspace") {
+        const { makeWorkspace } = await import("../../app/scene/worlds/workspaceImages");
+        const w = await makeWorkspace({ origin: "reference", title: `${e.code} ${e.shows}`, ref: e.id, provenance: e.code });
+        return { ok: true, content: `Made "${w.name}" a full-screen 2D workspace and switched to it (${e.shows}).`, data: { world: w.id } };
+      }
       const S = await import("../worlds/WorldStore");
       const w = S.activeWorld();
-      if (!w) return { ok: false, content: "No active world: create or pick one first (world editor, 🌐)." };
-      if (str(args, "as") === "plate") {
-        const r = S.applyEdit(w.id, { op: "add", layer: { id: `ref-${e.code}`, slot: "graphics2d", kind: "reference-plate", label: `Reference ${e.code}`, params: { ref: e.id, x: 40, y: 46, w: 24 } } });
-        return { ok: !!r.world, content: `Added ${e.code} (${e.shows}) to "${w.name}" as a reference plate.`, data: { world: w.id } };
-      }
+      if (!w) return { ok: false, content: "No active world to recolour: make or pick one first (🌐)." };
       if (typeof document === "undefined") return { ok: false, content: "Taking a palette needs the image decoded in the browser; not available here." };
       const { paletteFromReference } = await import("../../app/scene/worlds/referenceLibrary");
       const p = await paletteFromReference(e);
       S.applyEdit(w.id, { op: "world", changes: { palette: p } });
       return { ok: true, content: `"${w.name}" now takes its palette from ${e.code}: sky ${p.sky.join(" → ")}, accent ${p.accent}, glow ${p.glow}.`, data: p };
+    },
+  },
+  {
+    id: "workspace.from_image",
+    parameters: OBJECT({ reference: { type: "string", description: "A reference id or code, e.g. owner:U-01 or III-02." }, url: { type: "string", description: "An image URL or data URL (a visual you made, a photo in the conversation)." }, title: { type: "string" }, origin: { type: "string", enum: ["generated", "photo", "thread-image"] } }, []),
+    run: async (args) => {
+      if (typeof document === "undefined") return { ok: false, content: "Building a workspace from an image needs the browser; not available here." };
+      const { makeWorkspace } = await import("../../app/scene/worlds/workspaceImages");
+      const reference = str(args, "reference"), url = str(args, "url");
+      if (!reference && !url) return { ok: false, content: "Give a reference or an image url." };
+      try {
+        if (reference) {
+          const reg = await source();
+          const e = reg && referenceById(reg, reference);
+          if (!e) return NONE;
+          const w = await makeWorkspace({ origin: "reference", title: str(args, "title") || `${e.code} ${e.shows}`, ref: e.id, provenance: e.code });
+          return { ok: true, content: `Made "${w.name}" the full-screen 2D workspace.`, data: { world: w.id } };
+        }
+        const origin = (["generated", "photo", "thread-image"].includes(str(args, "origin")) ? str(args, "origin") : "generated") as "generated" | "photo" | "thread-image";
+        const w = await makeWorkspace({ origin, title: str(args, "title") || "Untitled image", url, provenance: url.startsWith("data:") ? "data" : url.slice(0, 80) });
+        return { ok: true, content: `Made "${w.name}" the full-screen 2D workspace; the image is kept on this device.`, data: { world: w.id } };
+      } catch (err) {
+        return { ok: false, content: String((err as Error).message) };
+      }
     },
   },
 ];

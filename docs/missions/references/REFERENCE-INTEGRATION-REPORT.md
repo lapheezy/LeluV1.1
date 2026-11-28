@@ -139,13 +139,42 @@ There are **112 relations**:
 
 Logos, placeholders and the mismatched image inform nothing.
 
-## 5. Who can use it
+## 5. Images as full-screen 2D workspaces
 
-**World builder (the 🌐 editor, References section):**
-- shows the references behind the active world's families;
-- searches the whole library;
-- **Plate** draws a reference's original image (only its crop) in the world;
-- **Palette** takes the sky, accent and glow from the image's own pixels.
+Owner direction: references are **full-screen 2D workspaces, not panels on the 3D variants**. Her photos
+and her own visuals become workspaces the same way.
+
+**Any image can become a workspace:**
+- one of the owner's references;
+- a photo taken or uploaded (📷 in the editor; on a phone it can open the camera);
+- an image in the conversation: hers (labelled "Hers") or the owner's.
+
+**What a workspace is.** A saved world in `2d` mode with no 3D canvas, built by
+`src/core/workspaces/imageWorkspace.ts`:
+- The image fills the stage: the **whole** image is shown, with a blurred copy of the same image filling
+  the rest of the screen, so nothing is cropped away.
+- Every thread variant (Freestyle included) floats over it.
+- Panel frames take the image's own palette.
+
+**Where the image lives.**
+- The world stores only *where* the image is: a reference id, a device key (`img:…`, IndexedDB on this
+  device), or a URL.
+- It never stores pixels; a `data:` URL is refused as a source and goes to the device store first.
+
+**How it's created:**
+- in the editor: **Workspace** on a reference, 📷 for a photo, **Workspace** on a conversation image;
+- by LÉLU: `references.apply {as: "workspace"}` or `workspace.from_image {reference | url, title, origin}`.
+
+**Fix made along the way.** Images inside a conversation were always recorded as the owner's. Her own
+visuals are now recorded as hers (`by: lelu`, "Her visual").
+
+## 6. Who can use it
+
+**World builder (the 🌐 editor):**
+- **References:** shows the references behind the active world's families and searches the whole
+  library. **Workspace** makes a reference the full-screen 2D workspace. **Palette** takes the active
+  world's sky, accent and glow from the image's own pixels.
+- **Make a workspace from an image:** 📷 photo, plus every image in the conversation.
 
 **LÉLU's tools**, registered in ToolRegistry and dispatched through ToolDispatcher:
 
@@ -154,33 +183,43 @@ Logos, placeholders and the mismatched image inform nothing.
 | `references.search` | Search by text, category, franchise or target |
 | `references.for` | References behind a family, layer, place or planned target, and whether that target is built |
 | `references.unresolved` | What is missing and why |
-| `references.apply` | Plate or palette on the active world |
+| `references.apply` | Make a reference the full-screen workspace, or take the active world's palette from it |
+| `workspace.from_image` | Make any image (a reference, her visual, a photo, by URL or data URL) a full-screen workspace |
 
 These tools are the access point for the **character builder** and **visual generation**:
 - Characters: `category: character / clothing`, `informs: character-style:…`.
 - **Not done:** no character-builder screen and no generation pipeline calls these tools yet.
 
-**Scene renderer:** the `reference-plate` 2D layer kind. It is saved by reference id, never by copying
-the image.
+**Scene renderer:** the `reference-plate` 2D layer kind, full screen by default. It is saved by reference
+id or device key, never by copying the image.
 
-## 6. Acceptance results (three separate suites)
+## 7. Acceptance results (three separate suites)
 
-### Reference integration: `scripts/references/verify-references.mjs`: **10/10 verified, 0 failed**
+### Reference integration and image workspaces: `scripts/references/verify-references.mjs`: **12/12 verified, 0 failed**
 
 | ID | Check | Evidence |
 |---|---|---|
 | R1 | The dev server serves the registry (86 entries, 109 unresolved) and the original image (U-04: image/png, 3.2 MB) | browser-rendered |
 | R2 | The editor discovers the references behind the volcano world: I-35, I-37, I-39, U-04 | browser-rendered |
 | R3 | Searching "boondocks" returns exactly U-07 and U-08 | browser-rendered |
-| R4 | A plate decodes U-04 at its full 1170×2532, cropped as recorded; 23% of pixels changed | browser-rendered |
-| R5 | A palette from U-05 (twin suns) recolours the world: sky `#070304/#2a0805/#6b1a07` → `#75796d/#7b7664/#171617`; 26% of pixels changed | browser-rendered |
-| R6 | II-01 (blocked) renders as "not available on this machine", with no stand-in image | browser-rendered |
-| R7 | LÉLU's tools search, report a planned target, and place U-01 in the active world | browser-rendered |
-| R8 | Plates persist across a reload, by reference id | browser-rendered |
-| R9 | The production build (2,319 files) holds no reference image and no registry | build-output |
+| R4 | U-04 becomes a full-screen 2D workspace: `2d` mode, no canvas, the whole 1170×2532 image visible, the blurred fill covering the stage; 66% of pixels changed | browser-rendered |
+| R5 | A palette from U-05 recolours the volcano world: sky `#070304/#2a0805/#6b1a07` → `#75796d/#7b7664/#171617` | browser-rendered |
+| R6 | II-01 (blocked) shows "not available on this machine", with no stand-in | browser-rendered |
+| R7 | LÉLU's tools search, report a planned target, and make U-01 the workspace | browser-rendered |
+| R8 | Workspaces persist across a reload, by reference id or device key, never pixels | browser-rendered |
+| R9 | The production build (2,323 files) holds no reference image and no registry | build-output |
 | R10 | No page errors from the integration | browser-rendered |
+| R11 | A visual she made (a conversation image) becomes a workspace labelled "Her visual", stored on the device as `img:…` | browser-rendered |
+| R12 | An uploaded photo (a synthetic test image) becomes a workspace framed in its own colours | browser-rendered |
 
-Unit tests in `tests/references.test.ts`: **10/10.** They cover:
+**Not physically tested:** taking a photo with a real phone camera. The camera hint only works on a
+device, and this run used a file upload.
+
+**Flakiness, stated plainly:** 2 of the last 4 runs failed before any check ran, because the Thread view
+didn't appear within 30 seconds. Both identical re-runs passed. The script now saves a screenshot and the
+page state when this happens.
+
+Unit tests in `tests/references.test.ts`: **11/11**, including the image-workspace builder. They cover:
 
 - discovery and retrieval;
 - categories and search;
@@ -203,7 +242,7 @@ Last run on this branch (after the full-height fix): **17/19 verified, 0 failed*
   unavailable".
 - **Not run:** physical device.
 
-## 7. Still outstanding
+## 8. Still outstanding
 
 1. **89 atlas links have no image**, plus 19 logo-only or placeholder previews and 1 mismatch. They are
    recorded, not substituted. The owner can supply these the way U-01 to U-08 were supplied.
@@ -217,7 +256,8 @@ Last run on this branch (after the full-height fix): **17/19 verified, 0 failed*
    built in this phase.
 3. **The character builder and generation pipeline** have access through the tools, but no screen or
    pipeline calls them yet.
-4. **Palette scope:** a palette from a reference recolours the sky, lighting and panel frames. Layer
+4. **Real camera** capture on a phone is untested; uploads are tested.
+5. **Palette scope:** a palette from a reference recolours the sky, lighting and panel frames. Layer
    colours keep their own settings (for example, lava stays orange).
-5. **Visual fidelity against the references has not been assessed.** The checks prove the images are
+6. **Visual fidelity against the references has not been assessed.** The checks prove the images are
    found, loaded, drawn and change the render, not that any world looks like them.

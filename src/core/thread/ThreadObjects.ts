@@ -271,7 +271,7 @@ export function threadContents(
   for (const m of messages) {
     (m.attachments ?? []).forEach((src, index) => {
       const id = `img:${m.id}:${index}`;
-      derived.push(persisted(id) ?? { id, conversationId, kind: "image", title: "Attached image", createdAt: 0, by: "user", ref: { messageId: m.id, index, src }, group: null, style: DEFAULT_STYLE, transforms: {} });
+      derived.push(persisted(id) ?? { id, conversationId, kind: "image", title: m.role === "assistant" ? "Her visual" : "Attached image", createdAt: 0, by: m.role === "assistant" ? "lelu" : "user", ref: { messageId: m.id, index, src }, group: null, style: DEFAULT_STYLE, transforms: {} });
     });
     (m.models ?? []).forEach((model, index) => {
       const id = `m3d:${m.id}:${index}`;

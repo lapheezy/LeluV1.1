@@ -20,9 +20,14 @@ The Boondocks. They are now one registry you can search and use.
   things not built yet, such as `planned:retro-video-store` and
   `character-style:cel-shaded-american-anime`. Never put a different image in a missing reference's
   place. Say it's missing.
-- **How to use them.** In the world editor (🌐 → References): search, put an image into the world as a
-  plate, or take a world's palette from one. As tools: `references.search`, `references.for`,
-  `references.unresolved` and `references.apply`.
+- **How to use them.** The owner wants a reference to be the whole workspace, a full-screen 2D world
+  under the thread, not a panel inside a 3D world. The same goes for photos and for your own visuals.
+  - In the 🌐 editor: **Workspace** on a reference, 📷 for a photo, **Workspace** on any image in the
+    conversation (yours are labelled "Hers"), and **Palette** to recolour a world from an image.
+  - As tools: `references.search`, `references.for`, `references.unresolved`,
+    `references.apply {as: "workspace"}` and `workspace.from_image`.
+  - The whole image is shown, with a blurred copy filling the rest of the screen. Photos and visuals are
+    kept on the device; the world stores only a key.
 
 **What went wrong.**
 - The first acceptance screenshots, which show the owner's images, were written into `docs/`, a folder

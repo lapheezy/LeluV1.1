@@ -440,43 +440,68 @@ function GlyphRain({ l, paused }: { l: WorldLayer; paused: boolean }) {
 }
 
 /**
- * A reference plate: one of the owner's own reference images, drawn as-is
- * (its recorded crop only) inside the world. Local only: when the image is not
+ * A reference image drawn as-is (its recorded crop only). Full screen by
+ * default: the reference IS the 2D workspace the thread floats over. Local only: when the image is not
  * on this machine (a production build, another computer) it says so instead
  * of substituting anything.
  */
 function ReferencePlate({ l }: { l: WorldLayer }) {
-  const id = str(l, "ref", "");
+  const ref = str(l, "ref", ""), srcParam = str(l, "src", ""), title = str(l, "title", "image");
+  const id = ref || srcParam;
   const [entry, setEntry] = useState<ReferenceEntry | null | undefined>(undefined);
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     let live = true;
-    getReference(id).then((e) => live && setEntry(e ?? null));
+    if (ref) getReference(ref).then((e) => live && setEntry(e ?? null));
+    else if (srcParam)
+      // A photo or visual: a local image key (this device only) or a URL.
+      import("./workspaceImages")
+        .then(({ imageUrl }) => imageUrl(srcParam))
+        .then((url) => live && setEntry(url ? ({ id: srcParam, code: title, shows: title, url, status: "usable", origin: "owner", source: srcParam, file: "", content: "photo", categories: [], informs: [] } as ReferenceEntry) : null))
+        .catch(() => live && setEntry(null));
+    else setEntry(null);
     return () => {
       live = false;
     };
-  }, [id]);
+  }, [ref, srcParam, title]);
+  const fullscreen = str(l, "fit", "fullscreen") === "fullscreen";
   const x = num(l, "x", 50), y = num(l, "y", 46), w = num(l, "w", 34);
   if (entry === undefined) return null;
   if (entry === null || failed)
     return (
-      <div className="w2-plate w2-plate-missing" style={{ left: `${x}%`, top: `${y}%`, width: `${w}%` }} data-ref-plate={id} data-ref-state="missing">
-        Reference {id} is not available on this machine.
+      <div className={`w2-plate w2-plate-missing${fullscreen ? " w2-plate-missing-full" : ""}`} style={fullscreen ? undefined : { left: `${x}%`, top: `${y}%`, width: `${w}%` }} data-ref-plate={id} data-ref-state="missing" data-ref-fit={fullscreen ? "fullscreen" : "plate"}>
+        {ref ? `Reference ${ref}` : `Image "${title}"`} is not available on this machine.
       </div>
     );
   const [cx, cy, cx2, cy2] = entry.crop ?? (nat ? [0, 0, nat.w, nat.h] : [0, 0, 1, 1]);
   const cw = cx2 - cx, ch = cy2 - cy;
+  const img = (
+    <img
+      src={entry.url}
+      alt={entry.shows}
+      draggable={false}
+      onLoad={(e) => setNat({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+      onError={() => setFailed(true)}
+      style={nat ? { width: `${(nat.w / cw) * 100}%`, left: `${(-cx / cw) * 100}%`, top: `${(-cy / ch) * 100}%` } : { opacity: 0 }}
+    />
+  );
+  if (fullscreen)
+    // The reference IS the workspace: its art (the recorded crop) covers the whole stage.
+    return (
+      <div className="w2-full" data-ref-plate={entry.id} data-ref-state={nat ? "loaded" : "loading"} data-ref-fit="fullscreen" title={`${entry.code}: ${entry.shows}`}>
+        {/* Behind: the same art blurred to fill the screen edge to edge. In front: the whole art, nothing cropped away. */}
+        <div className="w2-full-art w2-full-fill" style={{ aspectRatio: `${cw} / ${ch}`, ["--ar" as string]: String(cw / ch) }} aria-hidden>
+          {nat ? <img src={entry.url} alt="" draggable={false} style={{ width: `${(nat.w / cw) * 100}%`, left: `${(-cx / cw) * 100}%`, top: `${(-cy / ch) * 100}%` }} /> : null}
+        </div>
+        <div className="w2-full-art w2-full-whole" style={{ aspectRatio: `${cw} / ${ch}`, ["--ar" as string]: String(cw / ch) }}>
+          {img}
+        </div>
+      </div>
+    );
   return (
-    <figure className="w2-plate" style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, aspectRatio: `${cw} / ${ch}` }} data-ref-plate={entry.id} data-ref-state={nat ? "loaded" : "loading"} title={`${entry.code}: ${entry.shows}`}>
-      <img
-        src={entry.url}
-        alt={entry.shows}
-        draggable={false}
-        onLoad={(e) => setNat({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
-        onError={() => setFailed(true)}
-        style={nat ? { width: `${(nat.w / cw) * 100}%`, left: `${(-cx / cw) * 100}%`, top: `${(-cy / ch) * 100}%` } : { opacity: 0 }}
-      />
+    <figure className="w2-plate" style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, aspectRatio: `${cw} / ${ch}` }} data-ref-plate={entry.id} data-ref-state={nat ? "loaded" : "loading"} data-ref-fit="plate" title={`${entry.code}: ${entry.shows}`}>
+      {img}
       <figcaption>
         {entry.code} · {entry.shows}
       </figcaption>

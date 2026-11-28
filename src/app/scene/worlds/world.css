@@ -77,3 +77,13 @@
 .we-ref img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
 .we-ref div { display: flex; gap: 3px; }
 .we-ref button { flex: 1; padding: 2px 4px !important; font-size: 10px !important; }
+
+/* A reference as the whole 2D workspace: its art covers the stage, centred. */
+.w2-full { position: absolute; inset: 0; overflow: hidden; container-type: size; pointer-events: none; }
+.w2-full-art { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); overflow: hidden;
+  width: max(100cqw, calc(100cqh * var(--ar))); }
+.w2-full-art img { position: absolute; max-width: none; height: auto; user-select: none; }
+.w2-plate-missing-full { position: absolute; inset: auto 50% 50% auto; transform: translate(50%, 50%); }
+/* Whole art in front (contain), the same art blurred behind (cover): full screen without losing any of the image. */
+.w2-full-fill { width: max(100cqw, calc(100cqh * var(--ar))); filter: blur(38px) saturate(1.3) brightness(.62); transform: translate(-50%, -50%) scale(1.12); }
+.w2-full-whole { width: min(100cqw, calc(100cqh * var(--ar))); box-shadow: 0 0 80px rgb(0 0 0 / .55); }

@@ -110,7 +110,8 @@ export function normaliseLayer(input: Omit<Partial<WorldLayer>, "kind" | "slot">
   for (const [k, v] of Object.entries(input.params ?? {})) {
     if (typeof v === "number") params[k] = clamp(v, -1e4, 1e4);
     else if (typeof v === "boolean") params[k] = v;
-    else if (typeof v === "string" && v.length <= 80) params[k] = v;
+    // An image source (URL or local image key) may be long; every other string stays short.
+    else if (typeof v === "string" && v.length <= (k === "src" ? 2048 : k === "title" ? 160 : 80) && !(k === "src" && /^(data|javascript):/i.test(v))) params[k] = v;
   }
   const t = { ...DEFAULT_TRANSFORM, ...(input.transform ?? {}) };
   return {
