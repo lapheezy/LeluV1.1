@@ -19,15 +19,21 @@ await p.waitForSelector(`button[aria-label="Open ${title}"]`, { state: "attached
 await p.evaluate((t) => document.querySelector(`button[aria-label="Open ${t}"]`).dispatchEvent(new MouseEvent("click", { bubbles: true })), title);
 await p.waitForTimeout(1500);
 const box = p.locator('[data-lelu-universe-window] textarea, [data-lelu-universe-window] input[placeholder^="Message"]').last();
-await box.fill(msg);
-await box.press("Enter");
 const t0 = Date.now();
-let last = "";
-for (let i = 0; i < 90; i++) {
-  await p.waitForTimeout(2000);
-  const s = await p.evaluate(() => { const m = [...document.querySelectorAll('[data-lelu-universe-window] .lcu-msg[data-role="assistant"]')]; return { n: m.length, text: m.at(-1)?.innerText.slice(0, 600) ?? "", cards: document.querySelectorAll('[data-lelu-universe-window] [data-artifact-id], [data-lelu-universe-window] [data-studio-card], [data-lelu-universe-window] .lcu-artifact').length, working: !!document.querySelector('[data-lelu-universe-window] [data-turn-state="working"], [data-lelu-universe-window] .lcu-typing') }; });
-  if (s.text && s.text === last && !s.working && Date.now() - t0 > 15000) break;
-  last = s.text;
+// Several messages in one conversation: "first || Continue || Continue".
+for (const [k, m] of msg.split(" || ").entries()) {
+  await box.fill(m);
+  await box.press("Enter");
+  let last = "";
+  for (let i = 0; i < (Number(process.env.TURN_POLLS) || 90); i++) {
+    await p.waitForTimeout(2000);
+    const s = await p.evaluate(() => { const m = [...document.querySelectorAll('[data-lelu-universe-window] .lcu-msg[data-role="assistant"]')]; return { n: m.length, text: m.at(-1)?.innerText.slice(0, 600) ?? "", working: !!document.querySelector('[data-lelu-universe-window] [data-turn-state="working"], [data-lelu-universe-window] .lcu-typing') }; });
+    if (s.n > k && s.text && s.text === last && !s.working) break;
+    last = s.text;
+  }
+  const txt = await p.evaluate(() => [...document.querySelectorAll('[data-lelu-universe-window] .lcu-msg[data-role="assistant"]')].at(-1)?.innerText.slice(0, 700) ?? "");
+  console.log(`--- reply ${k + 1}: ${txt.replace(/\n+/g, " ⏎ ")}`);
+  await p.screenshot({ path: `${OUT}/turn-${name}-${k + 1}.png` });
 }
 await p.waitForTimeout(2000);
 await p.screenshot({ path: `${OUT}/turn-${name}.png` });

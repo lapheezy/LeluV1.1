@@ -235,7 +235,7 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(weather|news|latest|search|research|find out|look up|source|sources|arxiv|wikipedia)\b/i, ["research_web", "browser_read", "browser_capture", "repo_research", "kb_search"]],
   [/\b(remember|recall|memory|memories|discuss|discussed|yesterday|earlier|conversation|chats?)\b/i, ["memory_recall", "memory_store", "chats_read", "chats_list"]],
   [/\b(file|files|folder|directory|write|save|sandbox|script|code)\b/i, ["sandbox_read", "sandbox_write", "sandbox_execute", "project_search", "project_manage"]],
-  [/\b(website|web ?app|app|game|build|scaffold|studio|deploy|publish)\b/i, ["studio_engine", "studio_create", "studio_build", "studio_preview", "creator_build", "studio_deploy"]],
+  [/\b(website|web ?app|app|game|build|scaffold|studio|deploy|publish)\b/i, ["studio_engine", "studio_project_create", "studio_create", "studio_build", "studio_preview", "creator_build", "studio_deploy"]],
   [/\b(workflow|automation|pipeline|steps?)\b/i, ["workflow_list", "workflow_run", "workflow_author", "workflow_status"]],
   [/\b(project|repository|repo|codebase|function|module|import)\b/i, ["project_search", "project_preview", "repo_inspect", "repo_status", "project_manage"]],
   [/\b(avatar|body|gesture|wave|dance|companion|hologram|holographic|walk|move|face me|come here|closer)\b/i, ["avatar_gesture", "avatar_companion", "avatar_move"]],

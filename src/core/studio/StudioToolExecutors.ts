@@ -103,7 +103,7 @@ export const studioToolExecutors: ToolExecutor[] = [
     },
   },
   {
-    id: "studio.list",
+    id: "studio.project.list",
     parameters: { type: "object", properties: {} },
     run: async (): Promise<ToolExecutionResult> => {
       const library = StudioLibrary.getInstance();
@@ -113,7 +113,7 @@ export const studioToolExecutors: ToolExecutor[] = [
           return {
             ok: true,
             content:
-              "No studio project exists on disk yet. Use studio.create to scaffold a website, application or game " +
+              "No studio project exists on disk yet. Use studio.project.create to scaffold a website, application or game " +
               "(the runtime copies a real template onto disk).",
           };
         }
@@ -142,7 +142,7 @@ export const studioToolExecutors: ToolExecutor[] = [
         return {
           ok: true,
           content:
-            "No studio project exists yet. Use studio.create to scaffold a website, application or game " +
+            "No studio project exists yet. Use studio.project.create to scaffold a website, application or game " +
             "(the runtime copies a real template onto disk).",
         };
       }
@@ -160,7 +160,7 @@ export const studioToolExecutors: ToolExecutor[] = [
     },
   },
   {
-    id: "studio.create",
+    id: "studio.project.create",
     parameters: {
       type: "object",
       properties: {
@@ -233,7 +233,7 @@ export const studioToolExecutors: ToolExecutor[] = [
     },
   },
   {
-    id: "studio.read",
+    id: "studio.project.read",
     parameters: {
       type: "object",
       properties: {

@@ -1343,7 +1343,7 @@ export default class ToolRegistry {
         verificationMethod: "the runtime's own capability probe",
       },
       {
-        id: "studio.list",
+        id: "studio.project.list",
         name: "List Studio Projects",
         description: "List every studio project with its kind, engine, versions and last build result.",
         category: "Studio",
@@ -1353,7 +1353,7 @@ export default class ToolRegistry {
         executionRoute: "StudioLibrary.list",
       },
       {
-        id: "studio.create",
+        id: "studio.project.create",
         name: "Create Studio Project",
         description:
           "Scaffold a new website, application or 3D/2D game in an isolated studio directory on the " +
@@ -1376,7 +1376,7 @@ export default class ToolRegistry {
         executionRoute: "StudioRuntime.tree",
       },
       {
-        id: "studio.read",
+        id: "studio.project.read",
         name: "Read Studio File",
         description: "Read a real file from a studio project.",
         category: "Studio",

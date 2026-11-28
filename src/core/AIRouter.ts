@@ -119,14 +119,14 @@ export default class AIRouter {
    *
    * The project detector claims "create … application" before the model
    * sees it, and its reference guard then asked the user what "the
-   * built and tested application" meant. When studio_create is really
+   * built and tested application" meant. When studio_project_create is really
    * offered, the studio owns the turn: it can scaffold, build, test and
    * preview the software, and the model chooses those tools.
    */
   private modelCanBuildInStudio(context: RouterContext): boolean {
     let studioAvailable = false;
     try {
-      studioAvailable = toolSchemasForModel().some((schema) => schema.name === "studio_create");
+      studioAvailable = toolSchemasForModel().some((schema) => schema.name === "studio_project_create");
     } catch {
       return false;
     }
