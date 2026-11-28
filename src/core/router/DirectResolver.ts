@@ -250,6 +250,7 @@ export default class DirectResolver {
     const interfaces = plan.steps.every((step) => step.tool.startsWith("interface."));
     const isDiagnostics = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "diagnostics.run");
     const isNeuralMap = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "neural.show");
+    const isWeight = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "performance.mode");
     const preface = interfaces
       ? okCount === ran.length
         ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`
@@ -266,6 +267,10 @@ export default class DirectResolver {
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
+        : isWeight
+          ? okCount === ran.length
+            ? `Done: my rendering weight, set directly (no model involved).`
+            : `Not changed: this device cannot do what was asked; the reason is below (no model involved).`
         : isNeuralMap
           ? `Here is my Neural Map, beside the chat (from my own map, no model involved).`
         : isDiagnostics

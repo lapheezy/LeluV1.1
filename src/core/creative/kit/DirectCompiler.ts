@@ -254,6 +254,8 @@ export function compileDirect(prompt: string, options: { referentId?: string | n
   // borderless output", "check chat, Neural Map and browser integration", "find the broken interactions" run
   // her real diagnostics directly, so a run exists before anything is said about it.
   if (has(/\b(diagnos(?:e|tic|tics)|self-?test|validate|run (?:the )?(?:\w+ )?tests?|test (?:all|every)|find (?:the )?broken|health ?check|check\b.{0,60}\b(?:integration|interactions?|persistence|borderless))\b/i, t) && has(/\b(diagnos|freestyle|borderless|chat|neural map|browser|integration|cosmos|persistence|interactions?|tests?|outputs?)\b/i, t)) return nl("diagnostics", t);
+  // Lightweight / full weight (owner): "switch to lightweight mode", "go full weight", "let LÉLU decide".
+  if (has(/\b(light ?weight|lite|low[- ]power|battery saver|full[- ]?weight|full (?:power|quality|graphics)|performance mode|auto(?:matic)? (?:mode|quality|performance))\b/i, t) && has(/\b(mode|switch|go|use|set|turn|make|run|be|put|graphics|quality|performance|weight)\b/i, t)) return nl("weight", t);
   // Neural Map (v3 §5): "show me the neural map", "show your memory on the map" put her map beside the chat.
   if (has(/\b(show|open|bring|put)\b.{0,40}\b(neural ?map|(?:your|her) map|the map)\b/i, t)) return nl("neuralmap", t);
   // Sewing (before construction: "cargo trousers" is not a mechanical build): a garment or outfit "for sewing" / a tech pack runs the couture tech pack (patterns, cutting, fabric, materials, sewing order).
@@ -713,6 +715,10 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       return { explicit, summary: `editable Excalidraw sketch of “${subject}”`, steps: [
         { tool: "studio.create", label: "sketch", args: { kind: "drawing", title: `Sketch — ${titleCase(subject)}`, scene: { elements: sketchElements(subject) } } },
       ] };
+    }
+    case "weight": {
+      const mode = /\b(full[- ]?weight|full (?:power|quality|graphics))\b/i.test(rest) ? "full" : /\b(light ?weight|lite|low[- ]power|battery saver)\b/i.test(rest) ? "light" : /\bauto/i.test(rest) ? "auto" : undefined;
+      return { explicit, summary: `rendering weight: ${mode ?? "report"}`, steps: [{ tool: "performance.mode", label: "weight", args: { ...(mode ? { mode } : {}), reason: "asked in the chat" } }] };
     }
     case "neuralmap": {
       const aspect = /\bv1\b|knowledge/i.test(rest) ? "v1" : /\bv3\b|agents?|society|executives?/i.test(rest) ? "v3" : /\bv2\b/i.test(rest) ? "v2" : undefined;

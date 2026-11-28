@@ -178,6 +178,9 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import CoreChat from "./home/CoreChat";
+import PerformanceModeBridge from "./PerformanceModeBridge";
+import "./performance.css";
+import "./home/coreControls";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
 import CosmosObjectsDock from "./cosmos/CosmosObjectsDock";
 const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
@@ -908,6 +911,7 @@ export default function GenesisInterface() {
           animation: "lelu-environment-enter 0.38s ease",
         }}
       >
+          <PerformanceModeBridge />
           {/* The first screen: the primary Cosmos with one chat box rising from her core. */}
           {homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CoreChat /> : null}
           {showHome ? (

@@ -452,8 +452,12 @@ function probeWebGL(): { renderer: string; webgl: boolean } {
  * user's own request — and all three are re-read here rather than remembered
  * from mount.
  */
-function readCapabilityView(): { narrow: boolean; mobile: boolean; saveData: boolean } {
+function readCapabilityView(): { narrow: boolean; mobile: boolean; saveData: boolean; lowEndCpu: boolean } {
+  const nav = navigator as unknown as { hardwareConcurrency?: number; deviceMemory?: number };
   return {
+    // CPU and memory are evidence too (owner: fit the device, GPU or CPU): few threads or little memory
+    // caps the world at "balanced"; measured frame rate decides the rest.
+    lowEndCpu: (nav.hardwareConcurrency ?? 8) <= 2 || (nav.deviceMemory ?? 8) <= 2,
     narrow: window.innerWidth <= 720,
     mobile,
     saveData: Boolean(

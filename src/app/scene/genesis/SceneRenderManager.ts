@@ -125,6 +125,8 @@ export interface CapabilityInput {
   mobile?: boolean;
   /** navigator.connection.saveData: the user asked for less data. */
   saveData?: boolean;
+  /** Few CPU threads (≤ 2) or little memory (≤ 2 GB): a hint for "balanced", never "light" on its own. */
+  lowEndCpu?: boolean;
 }
 
 /**
@@ -144,7 +146,7 @@ export function profileFor(input: CapabilityInput): RenderProfile {
   if (input.webgl === false) return "light";
   if (input.renderer && SOFTWARE_GL_RENDERER.test(input.renderer)) return "light";
   if (input.saveData) return "light";
-  if (input.narrow || input.mobile) return "balanced";
+  if (input.narrow || input.mobile || input.lowEndCpu) return "balanced";
   return "full";
 }
 
@@ -163,6 +165,7 @@ export function capabilitySignature(input: CapabilityInput): string {
     input.narrow ? "narrow" : "wide",
     input.mobile ? "mobile" : "stationary",
     input.saveData ? "save-data" : "full-data",
+    input.lowEndCpu ? "low-cpu" : "cpu",
   ].join("|");
 }
 

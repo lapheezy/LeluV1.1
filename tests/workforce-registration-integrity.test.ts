@@ -37,6 +37,7 @@ import { registerStewardTools } from "../src/core/selfdev/NeuralMapSteward";
 import { registerReferenceTools } from "../src/core/references/ReferenceTools";
 import { registerDiagnosticsTools } from "../src/core/diagnostics/DiagnosticsTools";
 import { registerNeuralTools } from "../src/core/neural/NeuralTools";
+import { registerPerformanceTools } from "../src/core/performance/PerformanceTools";
 
 // registerSelfTools starts a 10-minute refresh timer; stop it so the run can exit.
 after(() => SelfChangeAwareness.getInstance().stop());
@@ -65,6 +66,7 @@ const REGISTRARS: Array<[string, () => void]> = [
   ["references", registerReferenceTools],
   ["diagnostics", registerDiagnosticsTools],
   ["neural", registerNeuralTools],
+  ["performance", registerPerformanceTools],
 ];
 
 test("re-registrations never lower a tool's risk level or swap one registrar's tool for another's", () => {
