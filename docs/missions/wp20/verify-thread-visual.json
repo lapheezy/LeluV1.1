@@ -1,5 +1,5 @@
 {
- "at": "2026-11-28T02:24:22.546Z",
+ "at": "2026-11-28T05:42:54.343Z",
  "results": [
   {
    "id": "WP09",
@@ -27,7 +27,7 @@
    "name": "all five variants render (objects positioned in four, drops in Raindrop)",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"workspace\":{\"objects\":5,\"frames\":{\"frames\":14,\"fps\":7,\"medianMs\":150,\"p95Ms\":283.3,\"worstMs\":283.3},\"webglCanvases\":1},\"ribbon\":{\"objects\":5,\"frames\":{\"frames\":18,\"fps\":9,\"medianMs\":116.6,\"p95Ms\":216.6,\"worstMs\":216.6},\"webglCanvases\":1},\"live\":{\"objects\":5,\"frames\":{\"frames\":15,\"fps\":8,\"medianMs\":166.6,\"p95Ms\":233.3,\"worstMs\":233.3},\"webglCanvases\":1},\"split\":{\"objects\":1,\"frames\":{\"frames\":23,\"fps\":12,\"medianMs\":100,\"p95Ms\":116.6,\"worstMs\":133.4},\"webglCanvases\":0},\"raindrop\":{\"objects\":0,\"frames\":{\"frames\":22,\"fps\":11,\"medianMs\":100,\"p95Ms\":133.4,\"worstMs\":166.7},\"webglCanvases\":0}}"
+   "detail": "{\"workspace\":{\"objects\":5,\"frames\":{\"frames\":14,\"fps\":7,\"medianMs\":150.1,\"p95Ms\":299.9,\"worstMs\":299.9},\"webglCanvases\":1},\"ribbon\":{\"objects\":5,\"frames\":{\"frames\":11,\"fps\":6,\"medianMs\":233.2,\"p95Ms\":566.7,\"worstMs\":566.7},\"webglCanvases\":1},\"live\":{\"objects\":5,\"frames\":{\"frames\":14,\"fps\":7,\"medianMs\":133.4,\"p95Ms\":233.3,\"worstMs\":233.3},\"webglCanvases\":1},\"split\":{\"objects\":1,\"frames\":{\"frames\":19,\"fps\":10,\"medianMs\":133.3,\"p95Ms\":200,\"worstMs\":200},\"webglCanvases\":0},\"raindrop\":{\"objects\":0,\"frames\":{\"frames\":20,\"fps\":10,\"medianMs\":100.1,\"p95Ms\":200,\"worstMs\":200},\"webglCanvases\":0}}"
   },
   {
    "id": "WP04",
@@ -83,7 +83,7 @@
    "name": "after a reload the thread reopens with every object, transform, group and map state",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"restoredObjects\":5,\"m4\":{\"x\":674,\"y\":468,\"w\":427,\"h\":260,\"rot\":35,\"within\":true}}"
+   "detail": "{\"restoredObjects\":5,\"m4\":{\"x\":725,\"y\":468,\"w\":427,\"h\":260,\"rot\":35,\"within\":true}}"
   },
   {
    "id": "WP06",
@@ -136,37 +136,37 @@
   }
  ],
  "measures": {
-  "threadLoadMs": 2419,
-  "scrubResponseMs": 413,
+  "threadLoadMs": 4887,
+  "scrubResponseMs": 494,
   "variants": {
    "workspace": {
     "objects": 5,
     "frames": {
      "frames": 14,
      "fps": 7,
-     "medianMs": 150,
-     "p95Ms": 283.3,
-     "worstMs": 283.3
+     "medianMs": 150.1,
+     "p95Ms": 299.9,
+     "worstMs": 299.9
     },
     "webglCanvases": 1
    },
    "ribbon": {
     "objects": 5,
     "frames": {
-     "frames": 18,
-     "fps": 9,
-     "medianMs": 116.6,
-     "p95Ms": 216.6,
-     "worstMs": 216.6
+     "frames": 11,
+     "fps": 6,
+     "medianMs": 233.2,
+     "p95Ms": 566.7,
+     "worstMs": 566.7
     },
     "webglCanvases": 1
    },
    "live": {
     "objects": 5,
     "frames": {
-     "frames": 15,
-     "fps": 8,
-     "medianMs": 166.6,
+     "frames": 14,
+     "fps": 7,
+     "medianMs": 133.4,
      "p95Ms": 233.3,
      "worstMs": 233.3
     },
@@ -175,37 +175,37 @@
    "split": {
     "objects": 1,
     "frames": {
-     "frames": 23,
-     "fps": 12,
-     "medianMs": 100,
-     "p95Ms": 116.6,
-     "worstMs": 133.4
+     "frames": 19,
+     "fps": 10,
+     "medianMs": 133.3,
+     "p95Ms": 200,
+     "worstMs": 200
     },
     "webglCanvases": 0
    },
    "raindrop": {
     "objects": 0,
     "frames": {
-     "frames": 22,
-     "fps": 11,
-     "medianMs": 100,
-     "p95Ms": 133.4,
-     "worstMs": 166.7
+     "frames": 20,
+     "fps": 10,
+     "medianMs": 100.1,
+     "p95Ms": 200,
+     "worstMs": 200
     },
     "webglCanvases": 0
    }
   },
-  "dragApplyMs": 3130,
+  "dragApplyMs": 3354,
   "framesWithVideoAndMaps": {
-   "frames": 24,
-   "fps": 8,
-   "medianMs": 133.4,
-   "p95Ms": 216.7,
-   "worstMs": 233.3
+   "frames": 20,
+   "fps": 7,
+   "medianMs": 166.7,
+   "p95Ms": 266.6,
+   "worstMs": 266.6
   },
-  "reloadRestoreMs": 7552,
+  "reloadRestoreMs": 10530,
   "memory": {
-   "usedMB": 275,
+   "usedMB": 296,
    "limitMB": 4192
   },
   "webgl": {
@@ -304,18 +304,18 @@
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 429 ()",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
   "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
  ]
 }

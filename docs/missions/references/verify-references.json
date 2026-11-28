@@ -1,19 +1,19 @@
 {
- "at": "2026-11-28T04:08:32.610Z",
+ "at": "2026-11-28T05:44:07.032Z",
  "results": [
   {
    "id": "R1",
    "name": "the dev server serves the local registry and the original images",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"status\":200,\"entries\":86,\"unresolved\":109,\"totals\":{\"atlasLinks\":167,\"atlasDownloaded\":78,\"atlasUsable\":59,\"ownerUploads\":8,\"entries\":86,\"unresolved\":109},\"imgType\":\"image/png\",\"imgBytes\":3234151}"
+   "detail": "{\"status\":200,\"entries\":87,\"unresolved\":109,\"totals\":{\"atlasLinks\":167,\"atlasDownloaded\":78,\"atlasUsable\":59,\"ownerUploads\":9,\"entries\":87,\"unresolved\":109},\"imgType\":\"image/png\",\"imgBytes\":3234151}"
   },
   {
    "id": "R2",
    "name": "the world editor discovers the references that inform the active world's family (volcano)",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"usable\":\"67\",\"unresolved\":\"109\",\"results\":[\"atlas:I-35\",\"atlas:I-37\",\"atlas:I-39\",\"owner:U-04\"]}"
+   "detail": "{\"usable\":\"68\",\"unresolved\":\"109\",\"results\":[\"atlas:I-35\",\"atlas:I-37\",\"atlas:I-39\",\"owner:U-04\"]}"
   },
   {
    "id": "R3",
@@ -27,14 +27,14 @@
    "name": "taking the palette from a reference (U-05, twin suns) recolours the world",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"before\":[\"#070304\",\"#2a0805\",\"#6b1a07\"],\"after\":[\"#75796d\",\"#7b7664\",\"#171617\"],\"accent\":\"#ebe3bc\",\"pixelsChanged\":0.2865}"
+   "detail": "{\"before\":[\"#070304\",\"#2a0805\",\"#6b1a07\"],\"after\":[\"#75796d\",\"#7b7664\",\"#171617\"],\"accent\":\"#ebe3bc\",\"pixelsChanged\":0.2827}"
   },
   {
    "id": "R4",
    "name": "a reference becomes a full-screen 2D workspace: no 3D canvas, the whole original image visible and its blurred fill covering the stage edge to edge",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"mode\":\"2d\",\"canvas\":0,\"covers\":true,\"wholeVisible\":true,\"natural\":[1170,2532],\"pixelsChanged\":0.6553}"
+   "detail": "{\"mode\":\"2d\",\"canvas\":0,\"covers\":true,\"wholeVisible\":true,\"natural\":[1170,2532],\"pixelsChanged\":0.6466}"
   },
   {
    "id": "R6",
@@ -55,7 +55,7 @@
    "name": "a visual she made (an image in the conversation) becomes a full-screen workspace, stored on this device by key, not as pixels in the world",
    "status": "VERIFIED",
    "evidence": "browser-rendered",
-   "detail": "{\"hersLabel\":\"Hers\",\"name\":\"Her visual · Her visual\",\"mode\":\"2d\",\"src\":\"img:mwzw452z\",\"origin\":\"generated\"}"
+   "detail": "{\"hersLabel\":\"Hers\",\"name\":\"Her visual · Her visual\",\"mode\":\"2d\",\"src\":\"img:mwzzj1x2\",\"origin\":\"generated\"}"
   },
   {
    "id": "R12",
