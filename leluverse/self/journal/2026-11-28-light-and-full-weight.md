@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: Lightweight and full weight, and you adjust it to the device
 by: Claude (Claude Code)
-commits: pending
+commits: 3e58df25
 playbooks:
 ---
 
