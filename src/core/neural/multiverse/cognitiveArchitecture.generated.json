@@ -93,10 +93,10 @@
    "id": "agents",
    "path": "src/core/agents",
    "function": "development",
-   "files": 6,
-   "lines": 1839,
-   "commits": 0,
-   "lastChanged": null,
+   "files": 7,
+   "lines": 2145,
+   "commits": 1,
+   "lastChanged": "2026-11-27",
    "daily": [
     0,
     0,
@@ -111,7 +111,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -319,8 +319,8 @@
    "path": "src/core/cognition",
    "function": "cognition",
    "files": 46,
-   "lines": 17830,
-   "commits": 11,
+   "lines": 17854,
+   "commits": 13,
    "lastChanged": "2026-11-27",
    "daily": [
     0,
@@ -336,7 +336,7 @@
     2,
     0,
     0,
-    1
+    3
    ]
   },
   {
@@ -394,8 +394,8 @@
    "path": "src/core/*.ts",
    "function": "provider-routing",
    "files": 17,
-   "lines": 7771,
-   "commits": 21,
+   "lines": 7854,
+   "commits": 23,
    "lastChanged": "2026-11-27",
    "daily": [
     0,
@@ -411,7 +411,7 @@
     2,
     0,
     1,
-    1
+    3
    ]
   },
   {
@@ -619,9 +619,9 @@
    "path": "src/core/executive",
    "function": "planning",
    "files": 3,
-   "lines": 1387,
-   "commits": 1,
-   "lastChanged": "2026-11-24",
+   "lines": 1395,
+   "commits": 2,
+   "lastChanged": "2026-11-27",
    "daily": [
     0,
     0,
@@ -636,7 +636,7 @@
     1,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -744,9 +744,9 @@
    "path": "src/core/interface",
    "function": "embodiment",
    "files": 16,
-   "lines": 5902,
-   "commits": 1,
-   "lastChanged": "2026-11-26",
+   "lines": 5905,
+   "commits": 2,
+   "lastChanged": "2026-11-27",
    "daily": [
     0,
     0,
@@ -761,7 +761,7 @@
     0,
     0,
     1,
-    0
+    1
    ]
   },
   {
@@ -893,9 +893,9 @@
    "id": "neural",
    "path": "src/core/neural",
    "function": "memory",
-   "files": 9,
-   "lines": 2060,
-   "commits": 1,
+   "files": 11,
+   "lines": 2563,
+   "commits": 4,
    "lastChanged": "2026-11-27",
    "daily": [
     0,
@@ -911,7 +911,7 @@
     0,
     0,
     0,
-    1
+    4
    ]
   },
   {
@@ -943,10 +943,10 @@
    "id": "observability",
    "path": "src/core/observability",
    "function": "evaluation",
-   "files": 5,
-   "lines": 1905,
-   "commits": 1,
-   "lastChanged": "2026-11-16",
+   "files": 10,
+   "lines": 3496,
+   "commits": 2,
+   "lastChanged": "2026-11-27",
    "daily": [
     0,
     0,
@@ -961,7 +961,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -1119,9 +1119,9 @@
    "path": "src/core/proactive",
    "function": "reflection",
    "files": 6,
-   "lines": 2466,
-   "commits": 0,
-   "lastChanged": null,
+   "lines": 2471,
+   "commits": 1,
+   "lastChanged": "2026-11-27",
    "daily": [
     0,
     0,
@@ -1136,7 +1136,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -1268,10 +1268,10 @@
    "id": "selfdev",
    "path": "src/core/selfdev",
    "function": "development",
-   "files": 19,
-   "lines": 6236,
-   "commits": 5,
-   "lastChanged": "2026-11-26",
+   "files": 20,
+   "lines": 6682,
+   "commits": 6,
+   "lastChanged": "2026-11-27",
    "daily": [
     0,
     0,
@@ -1286,7 +1286,7 @@
     0,
     0,
     1,
-    0
+    1
    ]
   },
   {
@@ -1487,6 +1487,31 @@
     0,
     0,
     0
+   ]
+  },
+  {
+   "id": "thread",
+   "path": "src/core/thread",
+   "function": "unclassified",
+   "files": 2,
+   "lines": 620,
+   "commits": 5,
+   "lastChanged": "2026-11-27",
+   "daily": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5
    ]
   },
   {
@@ -1813,6 +1838,11 @@
   },
   {
    "from": "agents",
+   "to": "observability",
+   "imports": 4
+  },
+  {
+   "from": "agents",
    "to": "proactive",
    "imports": 1
   },
@@ -1984,7 +2014,7 @@
   {
    "from": "cognition",
    "to": "observability",
-   "imports": 4
+   "imports": 5
   },
   {
    "from": "cognition",
@@ -2029,7 +2059,7 @@
   {
    "from": "cognition",
    "to": "selfdev",
-   "imports": 16
+   "imports": 17
   },
   {
    "from": "cognition",
@@ -2124,7 +2154,7 @@
   {
    "from": "core-root",
    "to": "agent",
-   "imports": 2
+   "imports": 3
   },
   {
    "from": "core-root",
@@ -2244,7 +2274,7 @@
   {
    "from": "core-root",
    "to": "observability",
-   "imports": 1
+   "imports": 5
   },
   {
    "from": "core-root",
@@ -2299,7 +2329,7 @@
   {
    "from": "core-root",
    "to": "selfdev",
-   "imports": 1
+   "imports": 2
   },
   {
    "from": "core-root",
@@ -2619,7 +2649,7 @@
   {
    "from": "executive",
    "to": "selfdev",
-   "imports": 2
+   "imports": 3
   },
   {
    "from": "executive",
@@ -2779,7 +2809,7 @@
   {
    "from": "neural",
    "to": "agents",
-   "imports": 2
+   "imports": 5
   },
   {
    "from": "neural",
@@ -2793,6 +2823,11 @@
   },
   {
    "from": "neural",
+   "to": "executive",
+   "imports": 1
+  },
+  {
+   "from": "neural",
    "to": "interface",
    "imports": 4
   },
@@ -2800,6 +2835,11 @@
    "from": "neural",
    "to": "multichat",
    "imports": 2
+  },
+  {
+   "from": "neural",
+   "to": "observability",
+   "imports": 1
   },
   {
    "from": "neural",
@@ -2848,8 +2888,23 @@
   },
   {
    "from": "observability",
+   "to": "agents",
+   "imports": 3
+  },
+  {
+   "from": "observability",
    "to": "router",
    "imports": 1
+  },
+  {
+   "from": "observability",
+   "to": "storage",
+   "imports": 2
+  },
+  {
+   "from": "observability",
+   "to": "tools",
+   "imports": 2
   },
   {
    "from": "operational-intelligence",
@@ -3328,13 +3383,18 @@
   },
   {
    "from": "selfdev",
+   "to": "acquisition",
+   "imports": 2
+  },
+  {
+   "from": "selfdev",
    "to": "agent",
    "imports": 1
   },
   {
    "from": "selfdev",
    "to": "agents",
-   "imports": 3
+   "imports": 5
   },
   {
    "from": "selfdev",
@@ -3345,6 +3405,11 @@
    "from": "selfdev",
    "to": "cognition",
    "imports": 19
+  },
+  {
+   "from": "selfdev",
+   "to": "conversation",
+   "imports": 1
   },
   {
    "from": "selfdev",
@@ -3363,13 +3428,28 @@
   },
   {
    "from": "selfdev",
+   "to": "executive",
+   "imports": 2
+  },
+  {
+   "from": "selfdev",
    "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "neural",
    "imports": 1
   },
   {
    "from": "selfdev",
    "to": "notifications",
    "imports": 1
+  },
+  {
+   "from": "selfdev",
+   "to": "observability",
+   "imports": 2
   },
   {
    "from": "selfdev",
@@ -3394,7 +3474,12 @@
   {
    "from": "selfdev",
    "to": "storage",
-   "imports": 9
+   "imports": 10
+  },
+  {
+   "from": "selfdev",
+   "to": "tools",
+   "imports": 2
   },
   {
    "from": "sentinel",
@@ -3505,6 +3590,11 @@
    "from": "tasks",
    "to": "storage",
    "imports": 2
+  },
+  {
+   "from": "thread",
+   "to": "asre",
+   "imports": 1
   },
   {
    "from": "tools",
