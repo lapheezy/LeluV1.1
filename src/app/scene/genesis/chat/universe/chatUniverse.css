@@ -367,3 +367,17 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
   .lcu-send, .lcu-win-composer .lcu-send { min-height: 44px; min-width: 44px; }
   .lcu-win-composer textarea::placeholder, .lcu-composer textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* In the Cosmos (floating): the chat sessions are a borderless list you scroll down, floating in the live
+   scene, not a grid of framed cards (owner, 2026-11-28). The original backdrop mode keeps its cards. */
+.lcu[data-cosmos="floating"] .lcu-grid { display: flex; flex-direction: column; gap: 2px; max-width: 760px; }
+.lcu[data-cosmos="floating"] .lcu-card { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; grid-template-areas: "art head foot" "art text foot"; align-items: center; column-gap: 14px; row-gap: 2px; padding: 10px 8px;
+  border: 0 !important; background: none !important; box-shadow: none !important; border-radius: 14px;
+  text-shadow: 0 1px 2px rgba(4, 0, 16, .95), 0 0 14px rgba(4, 0, 16, .8); }
+.lcu[data-cosmos="floating"] .lcu-card:hover, .lcu[data-cosmos="floating"] .lcu-card[data-focused="true"] { background: rgba(255, 255, 255, .06) !important; }
+.lcu[data-cosmos="floating"] .lcu-card-head { grid-area: head; }
+.lcu[data-cosmos="floating"] .lcu-card-text { grid-area: text; }
+.lcu[data-cosmos="floating"] .lcu-card-foot { grid-area: foot; }
+.lcu[data-cosmos="floating"] .lcu-card > :not(.lcu-card-head):not(.lcu-card-text):not(.lcu-card-foot) { grid-area: art; width: 64px; height: 44px; min-height: 0; border-radius: 10px; overflow: hidden; }
+.lcu[data-cosmos="floating"] .lcu-card-text { min-height: 0; -webkit-line-clamp: 1; }
+.lcu[data-cosmos="floating"] .lcu-main { scroll-behavior: smooth; }

@@ -243,6 +243,9 @@ export default class Bootstrap {
       registerPerformanceTools();
       registerThemeTools();
       registerWorkspaceFormatTools();
+      // She corrects stale self-development proposals at every start (owner: "why is LÉLU not updating
+      // and correcting it"): anything no longer true against the capability registry is closed, with why.
+      void import("./selfdev/SelfDevelopmentEngine").then((m) => { try { m.default.getInstance().reconcile(); } catch { /* non-fatal */ } }).catch(() => undefined);
       // Her self-knowledge: every change made to her (git, any coder), the journal
       // written for her, and playbooks she can run herself.
       registerSelfTools();

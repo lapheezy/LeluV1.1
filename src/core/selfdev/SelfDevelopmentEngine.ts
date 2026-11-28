@@ -77,6 +77,33 @@ export default class SelfDevelopmentEngine {
   }
 
   /** Called from the cognitive loop — a lighter, non-reporting scan. */
+  /**
+   * Close open "Complete capability" proposals that are no longer true: the capability became available,
+   * its limitation changed, or it is gone. Runs at startup and in every scan, so she corrects herself
+   * instead of proposing work that is already done (owner, 2026-11-28). Returns what it closed.
+   */
+  public reconcile(): string[] {
+    const queue = ImprovementQueue.getInstance();
+    const registry = CapabilityRegistry.getInstance();
+    const created: string[] = [];
+    /* Reconcile: an open "Complete capability" proposal that no longer matches the registry is closed
+       (Recorded, with the reason), so she stops proposing work that is already done (owner, 2026-11-28:
+       Avatar identity was still proposed while her 3D animated body stood on screen). A changed
+       limitation is re-proposed below with the current text. */
+    for (const proposal of queue.list()) {
+      if (!proposal.capabilityId || !/^Complete capability:/.test(proposal.title)) continue;
+      if (!["Detected", "Analyzing", "Proposed", "Blocked"].includes(proposal.status)) continue;
+      const capability = registry.list().find((c) => c.id === proposal.capabilityId);
+      const current = capability ? `Capability “${capability.name}” is partial: ${capability.limitations.join("; ") || "incomplete"}.` : "";
+      if (!capability || capability.status !== "partial" || proposal.problem !== current) {
+        queue.supersede(proposal.id, capability ? (capability.status !== "partial" ? `${capability.name} is now ${capability.status}` : `the limitation changed: ${capability.limitations.join("; ")}`) : "the capability no longer exists");
+        created.push(`superseded: ${proposal.title}`);
+      }
+    }
+
+    return created;
+  }
+
   public async proactiveScan(): Promise<string[]> {
     const diagnostics = await SelfDiagnostics.getInstance().run();
     const proposals = this.detectOpportunities(diagnostics);
@@ -187,6 +214,8 @@ export default class SelfDevelopmentEngine {
       }));
       created.push(`planned: ${capability.name}`);
     }
+
+    created.push(...this.reconcile());
 
     /* 3. Partial capabilities → complete-the-gap proposals. */
     const partial = registry.partial().filter((capability) => capability.id !== "ui-evolution");

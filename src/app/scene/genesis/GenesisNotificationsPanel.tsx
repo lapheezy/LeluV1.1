@@ -39,6 +39,7 @@ const STATUS_COLORS: Record<ImprovementStatus, string> = {
   Blocked: "#fbbf24",
   Rejected: "rgba(248, 113, 113, 0.6)",
   "Rolled Back": "rgba(248, 113, 113, 0.4)",
+  Superseded: "#94a3b8",
 };
 
 interface Props {

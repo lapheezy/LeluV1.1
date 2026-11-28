@@ -186,20 +186,25 @@ function seedCapabilities(): Capability[] {
       id: "video",
       name: "Video projects",
       description: "Video project architecture: storyboards, scenes, shots, assets, timeline foundation.",
+      // Corrected 2026-11-28: she renders real video files (creative.film → WebM through WebCodecs /
+      // MediaRecorder). "No actual video generation yet" was stale. Editing existing footage is still missing.
       status: "partial",
       requiredTools: ["video pipeline"],
       requiredProviders: ["video generation providers"],
       tests: ["video project CRUD", "video scene/shot/asset"],
-      limitations: ["no actual video generation yet", "no editing layer yet"],
+      limitations: ["no editing layer for existing footage yet (cut, trim, splice)"],
     }),
     cap({
       id: "avatar",
       name: "Avatar identity",
       description: "Persistent avatar identity (appearance, identity, presence) with a reference image.",
-      status: "partial",
+      // Corrected 2026-11-28 against the code: she has an embodied, animated 3D body (LeluBody /
+      // LeluCharacter3D, THREE.AnimationMixer in core/avatar/LeluMotion, 31 animation versions in
+      // leluverse/assets/characters/lelu_character/animations). The old "2D config only" was stale.
+      status: "available",
       dependencies: ["cognition"],
       tests: ["avatar CRUD", "avatar identity context"],
-      limitations: ["2D config only — no animation or embodied avatar yet"],
+      limitations: [],
     }),
     cap({
       id: "engineering",

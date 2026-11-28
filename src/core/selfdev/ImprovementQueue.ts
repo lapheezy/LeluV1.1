@@ -43,6 +43,8 @@ export type ImprovementStatus =
   | "Failed"
   | "Blocked"
   | "Rejected"
+  /** No longer true: the capability changed after it was proposed (the reason is kept in `superseded`). */
+  | "Superseded"
   | "Rolled Back";
 
 /**
@@ -75,6 +77,7 @@ export const IMPROVEMENT_STATUS_LABELS: Record<ImprovementStatus, string> = {
   Failed: "Failed",
   Blocked: "Blocked",
   Rejected: "Rejected",
+  Superseded: "No longer needed",
   "Rolled Back": "Rolled back",
 };
 
@@ -151,6 +154,7 @@ export const IMPROVEMENT_STATUSES: ImprovementStatus[] = [
   "Failed",
   "Blocked",
   "Rejected",
+  "Superseded",
   "Rolled Back",
 ];
 
@@ -175,6 +179,8 @@ export interface ImprovementProposal {
   testPlan: string;
   created: number;
   updated: number;
+  /** Why it was closed as no longer true, and when (status Superseded). */
+  superseded?: { reason: string; at: number };
   /** Version-history id of the candidate snapshot, once developed. */
   candidateSnapshotId?: string;
   /** Rollback point (sandbox snapshot id) if this was rolled back. */
@@ -411,6 +417,11 @@ export default class ImprovementQueue {
       this.proposals = [...byId.values()];
       this.persist();
     }
+  }
+
+  /** Close a proposal that is no longer true (the capability it targeted changed), keeping the reason. */
+  public supersede(id: string, reason: string): void {
+    this.update(id, { status: "Superseded", superseded: { reason, at: Date.now() } });
   }
 
   public update(id: string, patch: Partial<ImprovementProposal>): void {
