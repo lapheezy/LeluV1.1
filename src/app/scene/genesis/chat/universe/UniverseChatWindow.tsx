@@ -403,6 +403,8 @@ export default function UniverseChatWindow({
         <StageSwitcher stage={stage} onChange={setStage} counts={{ media: model.media.length, sections: model.sections.length }} />
         <span className="lcu-win-head-actions">
           {conversation.processing ? <span className="lcu-live">Active</span> : null}
+          {/* The one dial's reserved slot: navigation (and the way back to the primary Cosmos) stays one tap away inside a conversation, never over the composer. */}
+          <span className="lelu-module-nav-slot" data-lelu-nav-slot style={{ width: 44, height: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} />
           {/* The shared circular control (Freebuff's interaction system), opening this window's own controls. */}
           <CircularControl
             label="Chat controls"

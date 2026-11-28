@@ -400,6 +400,9 @@ function ThreadHeader({ conversationId, variantId, chips, immersive, onImmersive
         <button type="button" onClick={onImmersive} title={immersive ? "Back to the window" : "Fill the screen"} data-immersive-toggle>
           {immersive ? "⤡" : "⤢"}
         </button>
+        {/* The one dial's reserved slot: in the Thread view this header is on top, so the dial (and the way
+            back to the primary Cosmos) lives here, one tap away, never over the composer. */}
+        <span className="lelu-module-nav-slot" data-lelu-nav-slot style={{ width: 44, height: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} />
       </div>
     </header>
   );

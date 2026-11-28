@@ -27,3 +27,12 @@ for (const [w, h] of [[1440, 900], [390, 844]] as const) {
     for (let i = 1; i < dest.length; i++) assert.ok(dest[i].angleDeg > dest[i - 1].angleDeg);
   });
 }
+
+test("a dial in the bottom-right corner fans up-left, on screen, without overlaps", () => {
+  const w = 1440, h = 900;
+  const a = { left: w - 70, top: h - 70, width: 56, height: 56 };
+  const p = placeArcs(a, { width: w, height: h }, { optionSize: 52, inner: [false, false, false, false, false] });
+  const abs = p.positions.map((q) => ({ x: p.centerX + q.x, y: p.centerY + q.y }));
+  for (const q of abs) assert.ok(q.x <= w - 26 && q.x >= 26 && q.y >= 26 && q.y <= p.centerY + 1, JSON.stringify(q));
+  for (let i = 0; i < abs.length; i++) for (let j = i + 1; j < abs.length; j++) assert.ok(Math.hypot(abs[i].x - abs[j].x, abs[i].y - abs[j].y) >= 52);
+});

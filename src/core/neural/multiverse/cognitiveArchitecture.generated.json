@@ -71,9 +71,9 @@
    "path": "src/core/agentic",
    "function": "tools",
    "files": 9,
-   "lines": 2256,
-   "commits": 0,
-   "lastChanged": null,
+   "lines": 2273,
+   "commits": 1,
+   "lastChanged": "2026-11-28",
    "daily": [
     0,
     0,
@@ -89,7 +89,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -409,8 +409,8 @@
    "path": "src/core/*.ts",
    "function": "provider-routing",
    "files": 17,
-   "lines": 7856,
-   "commits": 24,
+   "lines": 7875,
+   "commits": 27,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -427,7 +427,7 @@
     0,
     1,
     3,
-    1
+    4
    ]
   },
   {
@@ -460,10 +460,10 @@
    "id": "couture",
    "path": "src/core/couture",
    "function": "embodiment",
-   "files": 17,
-   "lines": 7930,
-   "commits": 7,
-   "lastChanged": "2026-11-16",
+   "files": 19,
+   "lines": 8601,
+   "commits": 8,
+   "lastChanged": "2026-11-28",
    "daily": [
     0,
     3,
@@ -479,7 +479,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -487,9 +487,9 @@
    "path": "src/core/creative",
    "function": "embodiment",
    "files": 32,
-   "lines": 10642,
-   "commits": 9,
-   "lastChanged": "2026-11-24",
+   "lines": 10711,
+   "commits": 12,
+   "lastChanged": "2026-11-28",
    "daily": [
     0,
     4,
@@ -505,7 +505,7 @@
     0,
     0,
     0,
-    0
+    3
    ]
   },
   {
@@ -558,6 +558,32 @@
     0,
     0,
     0
+   ]
+  },
+  {
+   "id": "diagnostics",
+   "path": "src/core/diagnostics",
+   "function": "unclassified",
+   "files": 3,
+   "lines": 705,
+   "commits": 2,
+   "lastChanged": "2026-11-28",
+   "daily": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2
    ]
   },
   {
@@ -769,6 +795,32 @@
    ]
   },
   {
+   "id": "interaction",
+   "path": "src/core/interaction",
+   "function": "unclassified",
+   "files": 9,
+   "lines": 1305,
+   "commits": 4,
+   "lastChanged": "2026-11-28",
+   "daily": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    1,
+    1
+   ]
+  },
+  {
    "id": "interface",
    "path": "src/core/interface",
    "function": "embodiment",
@@ -928,9 +980,9 @@
    "id": "neural",
    "path": "src/core/neural",
    "function": "memory",
-   "files": 11,
-   "lines": 2563,
-   "commits": 6,
+   "files": 13,
+   "lines": 2716,
+   "commits": 7,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -947,7 +999,7 @@
     0,
     0,
     4,
-    2
+    3
    ]
   },
   {
@@ -1033,9 +1085,9 @@
    "path": "src/core/orchestrator",
    "function": "planning",
    "files": 4,
-   "lines": 2079,
-   "commits": 2,
-   "lastChanged": "2026-11-24",
+   "lines": 2086,
+   "commits": 4,
+   "lastChanged": "2026-11-28",
    "daily": [
     0,
     0,
@@ -1051,7 +1103,7 @@
     0,
     0,
     0,
-    0
+    2
    ]
   },
   {
@@ -1060,8 +1112,8 @@
    "function": "perception",
    "files": 3,
    "lines": 862,
-   "commits": 2,
-   "lastChanged": "2026-11-19",
+   "commits": 3,
+   "lastChanged": "2026-11-24",
    "daily": [
     0,
     0,
@@ -1073,7 +1125,7 @@
     0,
     0,
     0,
-    0,
+    1,
     0,
     0,
     0,
@@ -1189,9 +1241,9 @@
    "path": "src/core/projects",
    "function": "runtime",
    "files": 9,
-   "lines": 3105,
-   "commits": 3,
-   "lastChanged": "2026-11-20",
+   "lines": 3128,
+   "commits": 4,
+   "lastChanged": "2026-11-28",
    "daily": [
     0,
     0,
@@ -1207,7 +1259,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -1241,8 +1293,8 @@
    "path": "src/core/references",
    "function": "unclassified",
    "files": 4,
-   "lines": 501,
-   "commits": 2,
+   "lines": 511,
+   "commits": 4,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -1259,7 +1311,7 @@
     0,
     0,
     0,
-    2
+    4
    ]
   },
   {
@@ -1267,9 +1319,9 @@
    "path": "src/core/router",
    "function": "provider-routing",
    "files": 36,
-   "lines": 10591,
-   "commits": 12,
-   "lastChanged": "2026-11-26",
+   "lines": 10600,
+   "commits": 13,
+   "lastChanged": "2026-11-28",
    "daily": [
     0,
     3,
@@ -1285,7 +1337,7 @@
     0,
     1,
     0,
-    0
+    1
    ]
   },
   {
@@ -1502,8 +1554,8 @@
    "function": "embodiment",
    "files": 30,
    "lines": 6816,
-   "commits": 1,
-   "lastChanged": "2026-11-14",
+   "commits": 2,
+   "lastChanged": "2026-11-28",
    "daily": [
     1,
     0,
@@ -1519,7 +1571,7 @@
     0,
     0,
     0,
-    0
+    1
    ]
   },
   {
@@ -1579,8 +1631,8 @@
    "path": "src/core/thread",
    "function": "unclassified",
    "files": 2,
-   "lines": 659,
-   "commits": 7,
+   "lines": 664,
+   "commits": 8,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -1597,7 +1649,7 @@
     0,
     0,
     5,
-    2
+    3
    ]
   },
   {
@@ -1605,8 +1657,8 @@
    "path": "src/core/tools",
    "function": "tools",
    "files": 8,
-   "lines": 5702,
-   "commits": 7,
+   "lines": 5709,
+   "commits": 10,
    "lastChanged": "2026-11-28",
    "daily": [
     0,
@@ -1623,7 +1675,7 @@
     0,
     0,
     0,
-    1
+    4
    ]
   },
   {
@@ -1708,9 +1760,9 @@
    "id": "voice",
    "path": "src/core/voice",
    "function": "perception",
-   "files": 20,
-   "lines": 8862,
-   "commits": 12,
+   "files": 21,
+   "lines": 9029,
+   "commits": 13,
    "lastChanged": "2026-11-27",
    "daily": [
     0,
@@ -1723,7 +1775,7 @@
     0,
     1,
     0,
-    1,
+    2,
     0,
     4,
     2,
@@ -2369,6 +2421,11 @@
   },
   {
    "from": "core-root",
+   "to": "diagnostics",
+   "imports": 1
+  },
+  {
+   "from": "core-root",
    "to": "earth",
    "imports": 1
   },
@@ -2415,7 +2472,7 @@
   {
    "from": "core-root",
    "to": "neural",
-   "imports": 2
+   "imports": 4
   },
   {
    "from": "core-root",
@@ -2585,6 +2642,11 @@
   {
    "from": "couture",
    "to": "creative",
+   "imports": 2
+  },
+  {
+   "from": "couture",
+   "to": "studio",
    "imports": 1
   },
   {
@@ -2701,6 +2763,26 @@
    "from": "curiosity",
    "to": "tools",
    "imports": 4
+  },
+  {
+   "from": "diagnostics",
+   "to": "engineering",
+   "imports": 1
+  },
+  {
+   "from": "diagnostics",
+   "to": "multichat",
+   "imports": 1
+  },
+  {
+   "from": "diagnostics",
+   "to": "thread",
+   "imports": 2
+  },
+  {
+   "from": "diagnostics",
+   "to": "tools",
+   "imports": 2
   },
   {
    "from": "earth",
@@ -2985,7 +3067,7 @@
   {
    "from": "neural",
    "to": "multichat",
-   "imports": 2
+   "imports": 3
   },
   {
    "from": "neural",
@@ -3009,8 +3091,13 @@
   },
   {
    "from": "neural",
+   "to": "thread",
+   "imports": 1
+  },
+  {
+   "from": "neural",
    "to": "tools",
-   "imports": 5
+   "imports": 7
   },
   {
    "from": "notifications",
@@ -3080,6 +3167,11 @@
   {
    "from": "orchestrator",
    "to": "core-root",
+   "imports": 1
+  },
+  {
+   "from": "orchestrator",
+   "to": "creative",
    "imports": 1
   },
   {
@@ -3824,6 +3916,11 @@
   },
   {
    "from": "tools",
+   "to": "diagnostics",
+   "imports": 1
+  },
+  {
+   "from": "tools",
    "to": "engineering",
    "imports": 29
   },
@@ -3846,6 +3943,11 @@
    "from": "tools",
    "to": "multichat",
    "imports": 3
+  },
+  {
+   "from": "tools",
+   "to": "neural",
+   "imports": 1
   },
   {
    "from": "tools",
@@ -3925,7 +4027,7 @@
   {
    "from": "voice",
    "to": "core-root",
-   "imports": 4
+   "imports": 5
   },
   {
    "from": "voice",

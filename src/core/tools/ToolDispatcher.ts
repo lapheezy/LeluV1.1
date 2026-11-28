@@ -40,6 +40,7 @@ import { studioToolExecutors } from "../studio/StudioToolExecutors";
 import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { REFERENCE_EXECUTORS } from "../references/ReferenceTools";
 import { DIAGNOSTICS_EXECUTORS } from "../diagnostics/DiagnosticsTools";
+import { NEURAL_EXECUTORS } from "../neural/NeuralTools";
 import { SELF_EXECUTORS } from "../cognition/SelfTools";
 import { ASRE_EXECUTORS } from "../asre/AsreTools";
 import { FOUNDRY_EXECUTORS } from "../asre/foundry/FoundryTools";
@@ -2657,7 +2658,7 @@ const EXECUTORS: ToolExecutor[] = [
 ];
 
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...SELF_EXECUTORS, ...ASRE_EXECUTORS, ...FOUNDRY_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS, ...REFERENCE_EXECUTORS, ...DIAGNOSTICS_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...SELF_EXECUTORS, ...ASRE_EXECUTORS, ...FOUNDRY_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS, ...REFERENCE_EXECUTORS, ...DIAGNOSTICS_EXECUTORS, ...NEURAL_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 // Mission 8's executors are additive: an id Claude already owns keeps its

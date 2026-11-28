@@ -57,3 +57,20 @@ test("chat phrases compile to a direct diagnostics run", async () => {
   }
   assert.equal(compileDirect("Make me a mood board")?.steps[0]?.tool === "diagnostics.run", false);
 });
+
+test("the Neural Map resolves only real nodes, and surfaces only for messages about her", async () => {
+  const { resolveMentions, shouldSurface } = await import("../src/core/neural/mentions");
+  const about = "How does your Provider routing feed Memory and Planning?";
+  const m = resolveMentions(about, ["v2"]);
+  const labels = m.map((x) => x.label);
+  assert.ok(labels.includes("Provider routing") && labels.includes("Memory") && labels.includes("Planning"), labels.join(", "));
+  assert.ok(m.every((x) => x.match === "exact label" && x.source && x.evidence));
+  assert.equal(shouldSurface(about, m), true);
+  // An everyday word alone does not bring the map up.
+  const casual = "I lost my memory of where I parked";
+  assert.equal(shouldSurface(casual, resolveMentions(casual, ["v2"])), false);
+  // A made-up subsystem resolves to nothing.
+  assert.equal(resolveMentions("your quantum flux capacitor", ["v2"]).length, 0);
+  const { compileDirect } = await import("../src/core/creative/kit/DirectCompiler");
+  assert.equal(compileDirect("Show me the neural map of your memory")?.steps[0]?.tool, "neural.show");
+});

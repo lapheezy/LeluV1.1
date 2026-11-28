@@ -212,6 +212,11 @@ export default class AIRouter {
    */
   public async route(context: RouterContext): Promise<AIResponse> {
     beginRoutingTrace(context, context.request.prompt ?? "");
+    // v3 §5: when the message is about mapped parts of her, her Neural Map appears beside the
+    // conversation with them highlighted (exact matches on canonical nodes only; never takes focus).
+    void import("./neural/NeuralTools")
+      .then((m) => m.surfaceNeuralContext((context.request as { conversationId?: string | null }).conversationId, context.request.prompt ?? ""))
+      .catch(() => undefined);
     const response = await this.routeThroughStages(context);
     finishRoutingTrace(context, response);
     return response;
@@ -275,7 +280,7 @@ export default class AIRouter {
      * pack. Both run here, so the work exists before anything says it does.
      */
     const madeDirectly = Boolean(
-      directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || step.tool === "diagnostics.run"),
+      directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || step.tool === "diagnostics.run" || step.tool === "neural.show"),
     );
     if (directPlan && (directPlan.explicit || construction || creativeOperation || madeDirectly || !(await this.direct.providersAvailable(context)))) {
       const reason = directPlan.explicit ? "command" : construction ? "construction" : creativeOperation || madeDirectly ? "creative" : "no-provider";

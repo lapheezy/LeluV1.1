@@ -38,6 +38,7 @@ import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
 import { registerReferenceTools } from "./references/ReferenceTools";
 import { registerDiagnosticsTools } from "./diagnostics/DiagnosticsTools";
+import { registerNeuralTools } from "./neural/NeuralTools";
 import { registerSelfTools } from "./cognition/SelfTools";
 import { registerAsreTools } from "./asre/AsreTools";
 import { registerFoundryTools } from "./asre/foundry/FoundryTools";
@@ -235,6 +236,7 @@ export default class Bootstrap {
       registerForgeTools();
       registerReferenceTools();
       registerDiagnosticsTools();
+      registerNeuralTools();
       // Her self-knowledge: every change made to her (git, any coder), the journal
       // written for her, and playbooks she can run herself.
       registerSelfTools();

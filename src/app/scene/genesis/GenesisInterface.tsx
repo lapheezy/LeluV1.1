@@ -805,7 +805,10 @@ export default function GenesisInterface() {
    * of the screen, not over the composer, the microphone, the send control or
    * the keyboard. Same component, same registry, one navigation.
    */
-  const navSlotMode = typeof window !== "undefined" && window.innerWidth < 720 && (surface.chatOwnsScreen || surface.workspaceOwnsScreen);
+  // The Chat Universe and its chat windows cover the bar (z 480 over 260) on EVERY screen size, so while
+  // they are open the dial lives in their header slot there too (measured: on a 1440 px desktop the dial
+  // could not be reached inside a conversation, so there was no way back to the primary Cosmos).
+  const navSlotMode = universeOpen || typeof window !== "undefined" && window.innerWidth < 720 && (surface.chatOwnsScreen || surface.workspaceOwnsScreen);
   const dialOnly =
     homeStore.immersive ||
     surface.workspaceOwnsScreen ||

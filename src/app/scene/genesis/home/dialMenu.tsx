@@ -79,6 +79,9 @@ export function openDestination(genesis: GenesisContext, panel: GenesisPanel, cl
  */
 export function enterCosmos(genesis: GenesisContext, immersive: boolean, clearSheet?: () => void): void {
   clearSheet?.();
+  // Back to the PRIMARY Cosmos (unification v3 §6): the Chat Universe hub closes too (its conversations
+  // and windows are kept; Windows → Restore layout brings them back). Measured: it used to stay on top.
+  setUniverseOpen(false);
   goHome(genesis);
   HomeStore.setImmersive(immersive);
 }
@@ -93,6 +96,7 @@ function travelTo(genesis: GenesisContext, destination: Destination, clearSheet?
   switch (destination.target.kind) {
     case "home":
       clearSheet?.();
+      setUniverseOpen(false);
       goHome(genesis);
       HomeStore.setImmersive(false);
       break;

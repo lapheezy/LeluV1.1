@@ -247,9 +247,12 @@ const MODE_KEY = "lelu.universe.cosmosMode.v1";
 
 export function loadCosmosMode(): CosmosMode {
   try {
-    return KvStore.getInstance().get<CosmosMode>(MODE_KEY) === "floating" ? "floating" : "workspace";
+    // Cosmos stays primary (unification v3 §2-3): with no saved choice, the Chat Universe floats over the
+    // live Cosmos instead of painting its own backdrop over it. A saved choice is kept as it is.
+    const saved = KvStore.getInstance().get<CosmosMode>(MODE_KEY);
+    return saved === "workspace" ? "workspace" : "floating";
   } catch {
-    return "workspace";
+    return "floating";
   }
 }
 

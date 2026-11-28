@@ -249,6 +249,7 @@ export default class DirectResolver {
     // refused "/open a toaster" used to begin "Opened a toaster. Done…".)
     const interfaces = plan.steps.every((step) => step.tool.startsWith("interface."));
     const isDiagnostics = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "diagnostics.run");
+    const isNeuralMap = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "neural.show");
     const preface = interfaces
       ? okCount === ran.length
         ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`
@@ -265,6 +266,8 @@ export default class DirectResolver {
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
+        : isNeuralMap
+          ? `Here is my Neural Map, beside the chat (from my own map, no model involved).`
         : isDiagnostics
           ? `I ran my diagnostics on this conversation, directly with my own checks (no model involved). The Diagnostics panel beside the chat has every check, its evidence and a rerun.`
         : reason === "creative"

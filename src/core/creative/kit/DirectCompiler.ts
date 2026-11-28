@@ -254,6 +254,8 @@ export function compileDirect(prompt: string, options: { referentId?: string | n
   // borderless output", "check chat, Neural Map and browser integration", "find the broken interactions" run
   // her real diagnostics directly, so a run exists before anything is said about it.
   if (has(/\b(diagnos(?:e|tic|tics)|self-?test|validate|run (?:the )?(?:\w+ )?tests?|test (?:all|every)|find (?:the )?broken|health ?check|check\b.{0,60}\b(?:integration|interactions?|persistence|borderless))\b/i, t) && has(/\b(diagnos|freestyle|borderless|chat|neural map|browser|integration|cosmos|persistence|interactions?|tests?|outputs?)\b/i, t)) return nl("diagnostics", t);
+  // Neural Map (v3 §5): "show me the neural map", "show your memory on the map" put her map beside the chat.
+  if (has(/\b(show|open|bring|put)\b.{0,40}\b(neural ?map|(?:your|her) map|the map)\b/i, t)) return nl("neuralmap", t);
   // Sewing (before construction: "cargo trousers" is not a mechanical build): a garment or outfit "for sewing" / a tech pack runs the couture tech pack (patterns, cutting, fabric, materials, sewing order).
   if (has(/\b(sew|sewing|tech ?pack|ready to sew|pattern pieces?|cutting layout|yardage)\b/i, t) && has(/\b(outfit|garments?|trousers|pants|cargo|jacket|bomber|bralette|bra|top)\b/i, t)) return nl("techpack", t);
   // Exporting what she built in her world (Job 3/4: world.export, world.gltf).
@@ -711,6 +713,10 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       return { explicit, summary: `editable Excalidraw sketch of “${subject}”`, steps: [
         { tool: "studio.create", label: "sketch", args: { kind: "drawing", title: `Sketch — ${titleCase(subject)}`, scene: { elements: sketchElements(subject) } } },
       ] };
+    }
+    case "neuralmap": {
+      const aspect = /\bv1\b|knowledge/i.test(rest) ? "v1" : /\bv3\b|agents?|society|executives?/i.test(rest) ? "v3" : /\bv2\b/i.test(rest) ? "v2" : undefined;
+      return { explicit, summary: "Neural Map beside the chat", steps: [{ tool: "neural.show", label: "neural map", args: { about: rest, ...(aspect ? { aspect } : {}) } }] };
     }
     case "diagnostics": {
       const suite = /\b(freestyle|borderless)\b/i.test(rest) ? "freestyle-chat" : /\b(full|everything|all|cosmos diagnostic|broken)\b/i.test(rest) ? "full" : /\b(integrat|neural map|browser)\b/i.test(rest) ? "integration" : /\b(unit|project tests?|test files)\b/i.test(rest) ? "unit" : "full";

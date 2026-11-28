@@ -49,6 +49,19 @@ await box.click();
 await box.fill(MESSAGE);
 await p.locator("button.lcu-send").first().click();
 const t0 = Date.now();
+if (process.env.WAIT) {
+  // A turn that is not a diagnostic run: wait for the given element, capture, report, stop.
+  await p.waitForFunction((sel) => !!document.querySelector(sel), process.env.WAIT, { timeout: 60000 });
+  await p.waitForTimeout(3000);
+  const info = await p.evaluate((sel) => { const el = document.querySelector(sel); const o = el.closest("[data-thread-object]") ?? el; o.scrollIntoView({ block: "center", behavior: "instant" }); return { title: o.querySelector(".to-title")?.textContent, highlighted: [...document.querySelectorAll("[data-highlighted='true'], .tm-node[data-hl='true']")].length }; }, process.env.WAIT);
+  const T = await p.evaluate(() => import("/src/core/thread/ThreadObjects.ts").then((T) => T.objectsFor(null).length));
+  const maps = await p.evaluate(async () => { const T = await import("/src/core/thread/ThreadObjects.ts"); const MC = (await import("/src/core/multichat/MultiChatStore.ts")).default.getInstance(); return T.objectsFor(MC.getActiveId()).filter((o) => o.kind === "neural-map").map((o) => ({ title: o.title, highlight: o.map.highlight })); });
+  console.log(JSON.stringify({ seconds: Math.round((Date.now() - t0) / 1000), ...info, maps }, null, 1));
+  await p.waitForTimeout(800);
+  await p.screenshot({ path: `${OUT}/${process.env.SHOT ?? "chat-turn"}${PHONE ? "-phone" : ""}.png` });
+  await b.close();
+  process.exit(0);
+}
 await p.waitForFunction(() => !!document.querySelector("[data-diagnostics-run]"), null, { timeout: 60000 });
 await p.waitForTimeout(1500);
 await p.screenshot({ path: `${OUT}/chat-diag-01-streaming${PHONE ? "-phone" : ""}.png` });

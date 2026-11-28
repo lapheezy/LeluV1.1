@@ -171,13 +171,21 @@ export function placeArcs(
   const gap = options.gap ?? 10;
   const center = centerOf(anchor);
   const half = size / 2 + padding;
-  const centerX = clamp(center.x, half + size, viewport.width - half - size);
+  // A dial in a bottom CORNER fans a quarter-arc into the screen (up-left from the right corner, up-right
+  // from the left one); centred, it fans over the top. Measured: from the bottom-right corner a centred
+  // arc crowded its options against the edge, one label over another.
+  const corner = center.x > viewport.width - (size * 2 + half) ? "right" : center.x < size * 2 + half ? "left" : null;
+  const centerX = corner ? center.x : clamp(center.x, half + size, viewport.width - half - size);
   const centerY = center.y;
   // Hard limits: an option's centre never closer than half an option (+padding) to an edge, and room
   // for the caption (≈ 18 px) under each option and the title above the outer arc.
-  const roomX = Math.min(centerX, viewport.width - centerX) - half;
+  const roomX = corner === "right" ? centerX - half : corner === "left" ? viewport.width - centerX - half : Math.min(centerX, viewport.width - centerX) - half;
   const roomY = centerY - half - 46;
-  const start = 192, sweep = 156;
+  // Start a little above the horizon so the lowest option's caption stays on screen.
+  // Start a little above the horizon (the lowest caption stays on screen) and end straight up (nothing
+  // crosses to the edge side of the dial).
+  const start = corner === "right" ? 194 : corner === "left" ? 270 : 192;
+  const sweep = corner ? 76 : 156;
   const firstRadius = Math.max(anchor.width, anchor.height) / 2 + size / 2 + 16;
   const step = size + gap + 14;
   const oval = (r: number) => ({ rx: Math.min(r, roomX), ry: Math.min(r, roomY) });

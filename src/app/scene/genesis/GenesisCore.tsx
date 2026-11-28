@@ -2065,7 +2065,14 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             setState(current=>({
               ...current,
               activePanel:"none",
-              modules:{},
+              // Conversation windows are MINIMIZED, not destroyed (unification v3 §3: dismissing hides a
+              // surface, it never severs it). Measured: returning to the primary Cosmos emptied the Chat
+              // Universe's open windows, so they could not come back. Every other panel closes as before.
+              modules:Object.fromEntries(
+                Object.entries(current.modules)
+                  .filter(([id, m]) => id.startsWith("chat:") && m.presentation !== "closed")
+                  .map(([id, m]) => [id, { ...m, presentation:"minimized" as ModulePresentation, updatedAt: m.updatedAt }]),
+              ),
               activeScene: current.activeScene === "genesisv2" ? "genesis" : current.activeScene,
             }));
             return;
