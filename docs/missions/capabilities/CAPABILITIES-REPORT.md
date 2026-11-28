@@ -24,12 +24,21 @@ screenshot or file that shows it.
 | Sewing: the LÉLU outfit (reference U-09) to a tech pack | **Was impossible, built and fixed** (see below). Now one chat turn produces the tech pack card | chat turn: `shots/turn-outfit-*.png` |
 | Game | **Was impossible, fixed.** She made "Copper Roses Collector", and it plays | chat turns: `shots/turn-game-*.png`; played: `shots/game-played-score-50.png`; code: `game/` |
 | Browser: Wikipedia | **Works** live in her browser | `shots/browser-wikipedia.png` |
-| Browser: Google | **Not viewable.** Google refuses embedding (`X-Frame-Options: SAMEORIGIN`); the panel shows a blank page | `shots/browser-google.png` |
-| Browser: ChatGPT | **Not usable.** Embedding refused (`frame-ancestors 'self'`); she falls back to Reader view of the logged-out page | `shots/browser-chatgpt.png` |
+| Browser: Google | **Works through Neko.** Google refuses embedding, so her Browser switches to Neko live (a real Chromium streamed over WebRTC) by itself and shows live results | `shots/neko-in-browser-auto-google.png` |
+| Browser: ChatGPT | **Works through Neko** (logged-out start page, live). Embedded directly it is refused | `shots/neko-in-browser-auto-chatgpt.png` |
 | YouTube | **Blocked here.** This server's network address gets YouTube's robot check, and the embedded player says "Video unavailable". Not tested on a normal connection | `shots/browser-youtube.png`; Thread acceptance WP09 |
 | Page screenshots (`browser.capture`) | **Not configured.** Needs `LELU_ENGINEER_TOKEN` on the server | dispatched |
 
 ## What was broken, and what changed
+
+0. **Plans that only looked things up reported "Completed and verified".** Now a make/create request whose
+   completed steps are all lookups says "Not done: nothing was made".
+0. **Neko setup, on this machine:**
+   - Neko moved from port 8080 to 8090, because 8080 is where her local-model check looks for llama.cpp.
+   - After a machine restart the proxy port changes, and Neko's Chromium showed "No internet".
+     `deploy/neko/local/run.sh --refresh-proxy` fixes it in place.
+   - A free provider limit was hit: OpenRouter's free daily quota ran out (HTTP 429) during a test turn,
+     so that turn got no reply.
 
 1. **Games could not be made.**
    - *Cause:* `studio.create`, `studio.list` and `studio.read` were each defined twice, once by the

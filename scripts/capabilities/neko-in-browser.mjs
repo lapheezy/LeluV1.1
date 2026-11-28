@@ -19,7 +19,7 @@ for (const [name, url] of [["google", "https://www.google.com/search?q=oversized
     await p.evaluate(() => [...document.querySelectorAll("button.lbr-chip")].find((e) => /Neko live/.test(e.textContent)).dispatchEvent(new MouseEvent("click", { bubbles: true })));
   }
   await p.waitForTimeout(14000);
-  results[name] = await p.evaluate(() => { const f = document.querySelector('.lbr-page[data-mode="neko"] iframe'); return { mode: document.querySelector(".lbr-page")?.dataset.mode, nav: f?.dataset.nekoNav, live: f?.dataset.nekoLive, client: (f?.getAttribute("src") ?? "").replace(/pwd=[^&]*/, "pwd=***") }; });
+  results[name] = await p.evaluate(() => { const f = document.querySelector('.lbr-page[data-mode="neko"] iframe'); return { mode: document.querySelector(".lbr-page")?.dataset.mode, nav: f?.dataset.nekoNav, live: f?.dataset.nekoLive, client: (f?.getAttribute("src") ?? "").replace(/pwd=[^&]*/, "pwd=***"), footer: [...document.querySelectorAll(".lbr-page ~ *, .lbr-foot, footer")].map((e) => e.textContent).find((t) => /Neko web client/.test(t ?? "")) ?? "" }; });
   await p.screenshot({ path: `${OUT}/neko-in-browser-${process.env.AUTO ? "auto-" : ""}${name}.png` });
 }
 console.log(JSON.stringify(results, null, 1));
