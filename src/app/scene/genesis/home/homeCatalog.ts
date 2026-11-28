@@ -56,8 +56,15 @@ export const APPS: HomeApp[] = [
   { id: "settings", label: "Settings", hint: "Preferences", icon: "Settings", group: "system" },
 ];
 
-/** The primary row, in the reference's order. "workspaces" is the home's own windows view. */
-export const PRIMARY: Array<GenesisPanel | "workspaces"> = ["chat", "browser", "visualstudio", "workspaces", "agents", "projects"];
+/*
+ * There is no PRIMARY row.
+ *
+ * It used to be the dashboard's horizontal destination bar — Chat, Browser,
+ * Studio, Workspaces, Agents, Files — and it was a second navigation beside
+ * the circular dial, with “Files” pointing at the Workspace panel. The
+ * destinations now live once, in interaction/destinations.ts, and the dial is
+ * the only thing that offers them.
+ */
 
 export const GROUPS: Array<{ id: AppGroup; label: string; icon: string }> = [
   { id: "creativity", label: "Creativity", icon: "Flower2" },

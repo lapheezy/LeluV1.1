@@ -213,11 +213,14 @@ export function WindowsSheet({ onClose }: { onClose: () => void }) {
 export function WorldsSheet({
   onClose,
   onOpenLibrary,
+  onSystem,
   selfExploration,
   onToggleSelfExploration,
 }: {
   onClose: () => void;
-  onOpenLibrary: () => void;
+  onOpenLibrary?: () => void;
+  /** Freebuff's dial (47e9e2cd): the System world, her systems visualised. */
+  onSystem?: () => void;
   selfExploration: boolean;
   onToggleSelfExploration: () => void;
 }) {
@@ -228,6 +231,7 @@ export function WorldsSheet({
     { id: "cosmos", label: "Cosmos", hint: "Her living universe — home", icon: "Orbit", on: scene !== "genesisv2" && genesis.state.activePanel === "none", go: () => { goHome(genesis); HomeStore.setImmersive(false); } },
     { id: "genesisv2", label: "LÉLU's Room", hint: "Her own room in the Cosmos (Genesis V2)", icon: "Layers", on: scene === "genesisv2", go: () => genesis.openPanel("genesisv2" as GenesisPanel) },
     { id: "earth", label: "Earth", hint: "Live planet data", icon: "Globe2", on: genesis.state.activePanel === "earth", go: () => { if (scene === "genesisv2") genesis.openPanel("none"); genesis.openPanel("earth" as GenesisPanel); } },
+    ...(onSystem ? [{ id: "system", label: "System", hint: "Her systems, visualised", icon: "Activity", on: false, go: onSystem }] : []),
   ];
   return (
     <Sheet title="Worlds" onClose={onClose} testId="lelu-worlds">
@@ -245,9 +249,11 @@ export function WorldsSheet({
         ))}
       </ul>
       <div className="lsh-actions">
-        <button type="button" data-worlds-more onClick={onOpenLibrary}>
-          <HomeIcon name="LayoutGrid" size={16} /> More interfaces — Legacy UIs and compositions — in the Infinite Library
-        </button>
+        {onOpenLibrary ? (
+          <button type="button" data-worlds-more onClick={onOpenLibrary}>
+            <HomeIcon name="LayoutGrid" size={16} /> More interfaces — Legacy UIs and compositions — in the Infinite Library
+          </button>
+        ) : null}
         <button
           type="button"
           role="switch"

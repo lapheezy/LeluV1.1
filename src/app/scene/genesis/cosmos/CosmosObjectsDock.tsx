@@ -29,32 +29,8 @@ import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore
 import type { CosmosObjectState } from "../../../../core/cosmos/objects/CosmosObjectTypes";
 import { cosmosCameraBus, cosmosViewBus, type CosmosCameraMode } from "../../../../core/cosmos/objects/CosmosObjectCamera";
 import { isUniverseOpen, setUniverseOpen } from "../chat/universe/universeOpen";
-
-const chip = (label: string, onClick: () => void, opts?: { title?: string; primary?: boolean; disabled?: boolean; testId?: string }) => (
-  <button
-    key={label}
-    type="button"
-    data-testid={opts?.testId}
-    title={opts?.title ?? label}
-    disabled={opts?.disabled}
-    onClick={onClick}
-    style={{
-      pointerEvents: "auto",
-      border: `1px solid ${opts?.primary ? "rgba(185,140,255,0.75)" : "rgba(185,140,255,0.4)"}`,
-      background: opts?.primary ? "rgba(96,58,168,0.92)" : "rgba(12,8,24,0.88)",
-      color: opts?.disabled ? "rgba(244,240,255,0.4)" : "#f4f0ff",
-      font: "600 11px/1.5 system-ui, sans-serif",
-      borderRadius: 999,
-      padding: "6px 11px",
-      minHeight: 30,
-      whiteSpace: "nowrap",
-      cursor: opts?.disabled ? "default" : "pointer",
-      backdropFilter: "blur(6px)",
-    }}
-  >
-    {label}
-  </button>
-);
+import { CircularControl, type RadialMenuDefinition, type RadialMenuItemSpec } from "../../../../core/interaction";
+import { HomeIcon } from "../home/CosmosHome";
 
 export default function CosmosObjectsDock() {
   const genesis = useGenesis();
@@ -112,6 +88,41 @@ export default function CosmosObjectsDock() {
   const selectedName = state.selected ? store.get(state.selected)?.name ?? "" : "";
   const camera = (mode: CosmosCameraMode, object?: string) => cosmosCameraBus.request({ mode, object, because: "dock" });
 
+  /*
+   * Seven rectangular camera chips became one circular control and its
+   * radial menu. Every action is still here, with the same disabled
+   * rules; the Cosmos simply gives the scene back its screen instead of
+   * laying a toolbar across it.
+   */
+  const items: RadialMenuItemSpec[] = home.immersive
+    ? [
+        { id: "back", label: "Back", icon: <HomeIcon name="ChevronLeft" size={20} />, testId: "cosmos-dock-back", onSelect: leave },
+        { id: "frame", label: `${visible.length} object${visible.length === 1 ? "" : "s"}`, icon: <HomeIcon name="Orbit" size={20} />, testId: "cosmos-dock-count", onSelect: () => camera("all") },
+        {
+          id: "focus",
+          label: "Focus",
+          icon: <HomeIcon name="Focus" size={20} />,
+          hint: selectedName,
+          disabled: !state.selected,
+          testId: "cosmos-dock-focus",
+          onSelect: () => camera("selected"),
+        },
+        { id: "home", label: "Home view", icon: <HomeIcon name="Home" size={20} />, onSelect: () => camera("home") },
+        { id: "previous", label: "Previous", icon: <HomeIcon name="RotateCcw" size={20} />, onSelect: () => camera("previous") },
+        { id: "undo", label: "Undo", icon: <HomeIcon name="Undo2" size={20} />, disabled: !state.canUndo, onSelect: () => store.undo() },
+        { id: "redo", label: "Redo", icon: <HomeIcon name="Redo2" size={20} />, disabled: !state.canRedo, onSelect: () => store.redo() },
+      ]
+    : [
+        { id: "enter", label: `Cosmos · ${state.objects.length}`, icon: <HomeIcon name="Orbit" size={20} />, testId: "cosmos-dock-enter", onSelect: () => enter(true) },
+        { id: "enter-framed", label: "Frame the objects", icon: <HomeIcon name="Focus" size={20} />, onSelect: () => enter(true) },
+      ];
+
+  const menu: RadialMenuDefinition = {
+    id: "cosmos-dock",
+    label: home.immersive ? `${visible.length} object${visible.length === 1 ? "" : "s"}` : "Cosmos",
+    items,
+  };
+
   return (
     <div
       data-testid="lelu-cosmos-dock"
@@ -120,33 +131,20 @@ export default function CosmosObjectsDock() {
         position: "fixed",
         zIndex: 58,
         left: 10,
-        right: 10,
         top: home.immersive ? 8 : "auto",
         bottom: home.immersive ? "auto" : 126,
-        display: "flex",
-        gap: 6,
-        alignItems: "center",
-        flexWrap: "wrap",
         pointerEvents: "none",
       }}
     >
-      {home.immersive ? (
-        <>
-          {chip("‹ Back", leave, { title: "Back to the workspace", testId: "cosmos-dock-back" })}
-          {chip(`${visible.length} object${visible.length === 1 ? "" : "s"}`, () => camera("all"), { primary: true, title: "Frame all the objects", testId: "cosmos-dock-count" })}
-          {chip("Focus", () => camera("selected"), { title: selectedName ? `Frame “${selectedName}”` : "Select an object first", disabled: !state.selected, testId: "cosmos-dock-focus" })}
-          {chip("Home", () => camera("home"), { title: "Back to the default Cosmos view" })}
-          {chip("Prev", () => camera("previous"), { title: "Return to the previous camera position" })}
-          {chip("Undo", () => store.undo(), { title: "Take back the last change", disabled: !state.canUndo })}
-          {chip("Redo", () => store.redo(), { title: "Put the change back", disabled: !state.canRedo })}
-        </>
-      ) : (
-        chip(
-          `✦ Cosmos · ${state.objects.length}`,
-          () => enter(true),
-          { primary: true, title: "Look at your objects in the Cosmos (the conversation is kept)", testId: "cosmos-dock-enter" },
-        )
-      )}
+      <CircularControl
+        label={home.immersive ? "Cosmos controls — hold for camera actions" : `Look at the Cosmos (${state.objects.length} objects)`}
+        icon={<HomeIcon name={home.immersive ? "Compass" : "Orbit"} size={21} />}
+        size={44}
+        tone="accent"
+        menu={menu}
+        onPress={home.immersive ? undefined : () => enter(true)}
+        testId="cosmos-dock"
+      />
     </div>
   );
 }

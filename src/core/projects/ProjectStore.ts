@@ -125,11 +125,34 @@ export default class ProjectStore {
   private readonly kv = KvStore.getInstance();
   private readonly events = AgentEventBus.getInstance();
   private readonly listeners = new Set<ProjectListener>();
+  /**
+   * The project a navigation asked for.
+   *
+   * A workspace has one selected project; navigation (“open this project”)
+   * and the panel are separate surfaces, so the request lives here rather
+   * than in a prop the panel cannot receive. The panel adopts it when it
+   * mounts or updates; nothing else changes selection. It is view state, not
+   * project data, so it is deliberately not persisted.
+   */
+  private focusedId: string | null = null;
 
   private constructor() {
     if (this.list().length === 0) {
       this.seedDefaults();
     }
+  }
+
+  /** Point the workspace at one project (navigation does this before opening). */
+  public focus(id: string): void {
+    if (!this.get(id)) return;
+    this.focusedId = id;
+    this.notify();
+  }
+
+  /** The project navigation asked for, if it still exists. */
+  public focusedProject(): LeluProject | null {
+    if (!this.focusedId) return null;
+    return this.get(this.focusedId) ?? null;
   }
 
   public static getInstance(): ProjectStore {

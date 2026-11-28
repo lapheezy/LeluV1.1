@@ -19,6 +19,8 @@ import AgentRunner from "../../../core/agents/AgentRunner";
 import { AGENT_TOOL_LABELS, type AgentTool, type LeluAgent, type AgentMemoryAccess } from "../../../core/agents/AgentTypes";
 import ProjectStore from "../../../core/projects/ProjectStore";
 import AIService from "../../../core/AIService";
+import { Archive, ArchiveRestore, Copy, MoreHorizontal, Pause, Pencil, Play, Plus, Trash2 } from "lucide-react";
+import { CircularControl, type RadialMenuDefinition } from "../../../core/interaction";
 
 const fieldStyle: CSSProperties = {
   width: "100%",
@@ -83,6 +85,85 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
   }, [store]);
 
   const selected = agents.find((agent) => agent.id === selectedId) ?? null;
+  const templates = store.templates();
+
+  /*
+   * Agent operations are a ring, not a row of chips: templates to create
+   * from, and the selected agent's own actions. Both use the project's one
+   * CircularControl, so Agent Universe holds and releases like every other
+   * environment instead of growing another toolbar.
+   */
+  const templateMenu: RadialMenuDefinition = {
+    id: "agent-templates",
+    label: "New agent",
+    items: templates.map((template) => ({
+      id: template.id,
+      label: template.name,
+      icon: <Plus size={18} aria-hidden />,
+      onSelect: () => {
+        const agent = store.createFromTemplate(template.id);
+        setSelectedId(agent.id);
+        startEdit(agent);
+      },
+      testId: `agent-template-${template.id}`,
+    })),
+  };
+
+  const actionMenu: RadialMenuDefinition | null = selected
+    ? {
+        id: `agent-actions-${selected.id}`,
+        label: selected.name,
+        items: [
+          {
+            id: "edit",
+            label: "Edit agent",
+            icon: <Pencil size={18} aria-hidden />,
+            onSelect: () => startEdit(selected),
+          },
+          {
+            id: "duplicate",
+            label: "Duplicate",
+            icon: <Copy size={18} aria-hidden />,
+            onSelect: () => {
+              const copy = store.duplicate(selected.id);
+              if (copy) {
+                setSelectedId(copy.id);
+                startEdit(copy);
+              }
+            },
+          },
+          {
+            id: selected.enabled ? "pause" : "enable",
+            label: selected.enabled ? "Pause" : "Enable",
+            icon: selected.enabled ? <Pause size={18} aria-hidden /> : <Play size={18} aria-hidden />,
+            onSelect: () => store.setEnabled(selected.id, !selected.enabled),
+          },
+          selected.status !== "archived"
+            ? {
+                id: "archive",
+                label: "Archive",
+                icon: <Archive size={18} aria-hidden />,
+                onSelect: () => store.archive(selected.id),
+              }
+            : {
+                id: "restore",
+                label: "Restore",
+                icon: <ArchiveRestore size={18} aria-hidden />,
+                onSelect: () => store.setStatus(selected.id, "active"),
+              },
+          {
+            id: "delete",
+            label: "Delete",
+            icon: <Trash2 size={18} aria-hidden />,
+            tone: "danger" as const,
+            onSelect: () => {
+              store.remove(selected.id);
+              setSelectedId(null);
+            },
+          },
+        ],
+      }
+    : null;
 
   function startEdit(agent: LeluAgent) {
     setDraft(structuredClone(agent));
@@ -170,24 +251,21 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
             paddingRight: 4,
           }}
         >
-          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>
-            Templates
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {store.templates().map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                onClick={() => {
-                  const agent = store.createFromTemplate(template.id);
-                  setSelectedId(agent.id);
-                  startEdit(agent);
-                }}
-                style={{ ...chipButton, fontSize: 10.5, padding: "5px 10px" }}
-              >
-                ＋ {template.name}
-              </button>
-            ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <CircularControl
+              label="New agent — hold for templates"
+              icon={<Plus size={18} aria-hidden />}
+              menu={templateMenu}
+              size={44}
+              tone="accent"
+              testId="agent-template-control"
+            />
+            <div style={{ fontSize: 11.5, opacity: 0.72, lineHeight: 1.35 }}>
+              New agent
+              <div style={{ fontSize: 10.5, opacity: 0.7 }}>
+                {templates.length} template{templates.length === 1 ? "" : "s"}
+              </div>
+            </div>
           </div>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginTop: 6 }}>
             Your agents
@@ -406,51 +484,15 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
                   <div style={{ fontSize: 12, opacity: 0.65, marginTop: 2 }}>{selected.role}</div>
                   {selected.description ? <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>{selected.description}</div> : null}
                 </div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  <button type="button" onClick={() => startEdit(selected)} style={chipButton}>
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const copy = store.duplicate(selected.id);
-                      if (copy) {
-                        setSelectedId(copy.id);
-                        startEdit(copy);
-                      }
-                    }}
-                    style={chipButton}
-                  >
-                    Duplicate
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => store.setEnabled(selected.id, !selected.enabled)}
-                    style={chipButton}
-                  >
-                    {selected.enabled ? "Pause" : "Enable"}
-                  </button>
-                  {selected.status !== "archived" ? (
-                    <button type="button" onClick={() => store.archive(selected.id)} style={chipButton}>
-                      Archive
-                    </button>
-                  ) : null}
-                  {selected.status === "archived" ? (
-                    <button type="button" onClick={() => store.setStatus(selected.id, "active")} style={chipButton}>
-                      Restore
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      store.remove(selected.id);
-                      setSelectedId(null);
-                    }}
-                    style={{ ...chipButton, borderColor: "rgba(248,113,113,0.5)", color: "#fca5a5" }}
-                  >
-                    Delete
-                  </button>
-                </div>
+                {actionMenu ? (
+                  <CircularControl
+                    label={`${selected.name} actions`}
+                    icon={<MoreHorizontal size={18} aria-hidden />}
+                    menu={actionMenu}
+                    size={44}
+                    testId="agent-action-control"
+                  />
+                ) : null}
               </div>
 
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>

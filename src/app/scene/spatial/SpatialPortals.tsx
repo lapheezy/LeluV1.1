@@ -161,6 +161,7 @@ function Portal({
   position,
   selected,
   showLabel,
+  namedAtRest,
   onPressStart,
   onPressCancel,
   onActivateClick,
@@ -171,6 +172,8 @@ function Portal({
   position: Vector3;
   selected: boolean;
   showLabel: boolean;
+  /** The mouth nearest the centre of the view — the one that names itself. */
+  namedAtRest?: boolean;
   onPressStart: (spec: PortalSpec, event: ThreeEvent<PointerEvent>) => void;
   onPressCancel: (spec: PortalSpec, event: ThreeEvent<PointerEvent>) => void;
   onActivateClick: (spec: PortalSpec) => void;
@@ -301,12 +304,20 @@ function Portal({
           />
         </mesh>
       </group>
-      {showLabel ? (
+      {showLabel && (hovered || selected || travellingHere || namedAtRest) ? (
         /*
          * The portal's readable identity, in the world next to the thing it
-         * names. It is the SAME selection path as the mesh (one handler, one
-         * travel call), which is what makes the field keyboard-reachable
-         * without a second widget: Tab to a chip, Enter to travel.
+         * names — shown for the portal you are aiming at, not for all eleven
+         * at once.
+         *
+         * Every mouth used to wear its name permanently, distance-scaled. On a
+         * phone that produced a wall of enormous chips (Conversation, Browser,
+         * Genesis Studios, Projects, Files, Agent universes…) laid over the
+         * world: a second destination list competing with the navigation, wide
+         * enough to fall off both edges of a 390 px screen. The world is the
+         * world; the names come to you as you aim. Every destination is still
+         * named in the dial and in the navigator's portal panel, which is the
+         * keyboard-reachable list.
          */
         <Html position={[0, spec.radius + 0.3, 0]} center distanceFactor={16} zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
           <button
@@ -769,6 +780,49 @@ export default function SpatialPortals() {
   const [selected, setSelected] = useState<string | null>(null);
   const gl = useThree((three) => three.gl);
   const camera = useThree((three) => three.camera);
+  /*
+   * THE PORTAL YOU ARE LOOKING AT NAMES ITSELF.
+   *
+   * Naming all eleven at once built a wall of distance-scaled chips across a
+   * phone screen; naming none left the world anonymous until you happened to
+   * hover — which a finger never does. The field now keeps ONE label at rest:
+   * the mouth nearest the centre of the view. Answering-cost is bounded
+   * (twice a second, and only when the answer changes), so it cannot cost the
+   * frame that navigation needs when the GPU is behind.
+   */
+  const [aimed, setAimed] = useState<string | null>(null);
+  const aimClock = useRef(0);
+  const aims = useCallback(() => {
+    if (!wide || homeShowing || portals.length === 0) return null;
+    const forward = new Vector3();
+    camera.getWorldDirection(forward);
+    const target = camera.position.clone().addScaledVector(forward, 12);
+    let best: { id: string; distance: number } | null = null;
+    for (const portal of portals) {
+      const world = portal.position.clone().applyQuaternion(basis.quaternion).add(basis.centre);
+      const distance = world.distanceToSquared(target);
+      if (!best || distance < best.distance) best = { id: portal.id, distance };
+    }
+    return best?.id ?? null;
+  }, [wide, homeShowing, portals, camera, basis]);
+  /*
+   * One label, even with no frames.
+   *
+   * The field names the mouth it is facing at rest. Sampled once when the
+   * ring is laid out as well as twice a second afterwards, because a stalled
+   * renderer must not leave the world anonymous: navigation and naming cannot
+   * depend on the GPU keeping up.
+   */
+  useEffect(() => {
+    setAimed(aims());
+  }, [aims]);
+  useFrame((_, delta) => {
+    aimClock.current += delta;
+    if (aimClock.current < 0.5) return;
+    aimClock.current = 0;
+    const next = aims();
+    if (next !== aimed) setAimed(next);
+  });
 
   /*
    * ONE press record for the whole field and ONE selection path.
@@ -1002,6 +1056,8 @@ export default function SpatialPortals() {
           position={portal.position}
           selected={selected === portal.id}
           showLabel={wide && !homeShowing}
+          /* The aimed mouth wears its name at rest; hover and selection add to it. */
+          namedAtRest={aimed === portal.id}
           onPressStart={beginPress}
           onPressCancel={cancelPress}
           onActivateClick={handleActivateClick}

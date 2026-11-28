@@ -30,7 +30,7 @@ import { useSurface } from "../genesis/surface/useSurface";
 import { useWorkspace } from "../genesis/useWorkspace";
 import { chatFillsScreen } from "../genesis/chat/chatLayout";
 import { layer } from "../../../core/ui/Layers";
-import VoiceEngine from "../../../core/voice/VoiceEngine";
+import VoiceMicButton from "../../../core/voice/VoiceMicButton";
 import { DOCK_GLYPHS, orderedGroups } from "./capabilityGroups";
 import SavedWorlds from "./SavedWorlds";
 import RadialMenu, { type RadialItem } from "../../ui/radial/RadialMenu";
@@ -176,7 +176,6 @@ export default function SpatialNavigator() {
   const progress = spatial.transition ? Math.round(spatial.transition.progress * 100) : 100;
   const active = destinationFor(spatial.current);
   const hovered = spatial.interaction.hovered ? destinationFor(spatial.interaction.hovered) : null;
-  const voice = genesis.voice;
   const chatOpen = genesis.activePanel === "chat";
 
   /* Never over the chat composer. The composer sits inside the chat
@@ -530,15 +529,11 @@ export default function SpatialNavigator() {
           ? control("Reverse the transition", "↺", () => runtime.reverse(), { testId: "reverse" })
           : null}
 
-        {/* Voice without chat: the mic talks to LÉLU directly. No panel opens. */}
-        {control(
-          voice === "idle" ? "Talk to LÉLU" : `LÉLU voice: ${voice}`,
-          voice === "idle" ? "🎙" : "◉",
-          () => {
-            void VoiceEngine.getInstance().toggle();
-          },
-          { testId: "voice", active: voice !== "idle", title: "Speak with LÉLU — no chat window needed" },
-        )}
+        {/* Voice without chat: the SAME microphone control and VoiceEngine every
+            chat surface uses. No second implementation, no decorative icon. */}
+        <span data-spatial-control="voice" style={{ display: "inline-flex", pointerEvents: "auto" }}>
+          <VoiceMicButton context="spatial" showStatus={false} size={40} />
+        </span>
 
         {/*
           The Studio destination opens Visual Studio; the canonical Creation

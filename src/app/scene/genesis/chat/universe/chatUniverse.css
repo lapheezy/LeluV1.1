@@ -137,6 +137,8 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
 }
 .lcu-orb[data-state="thinking"], .lcu-orb[data-state="working"] { animation-duration: 3s; box-shadow: 0 0 26px rgba(74, 222, 128, 0.6); }
 @keyframes lcu-spin { to { transform: rotate(360deg); } }
+.lcu-rail-nav { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0 10px; border-top: 1px solid rgba(255, 255, 255, 0.07); border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.lcu-rail-label { font: 600 9px/1.2 system-ui, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232, 214, 255, 0.44); }
 .lcu-rail nav { display: flex; flex-direction: column; gap: 2px; }
 .lcu-rail nav button, .lcu-rail-ws button { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 14px; border: 1px solid transparent; background: transparent; font-size: 15px; text-align: left; color: var(--lcu-dim); }
 .lcu-rail nav button:hover { background: rgba(255, 255, 255, 0.05); color: var(--lcu-ink); }
@@ -278,6 +280,16 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
   .lcu-seg, .lcu-tl-label { display: none; }
   .lcu-timeline { grid-template-columns: 1fr; }
   .lcu-ranges { justify-content: flex-start; }
+  /* Phone composer: the destination chip and the native textarea scrollbar
+     were squeezing the message field to a sliver and drawing over the mic.
+     The destination is already in the header; give the text and the voice
+     control the width instead. */
+  .lcu-target { display: none; }
+  .lcu-composer { gap: 5px; }
+  .lcu-input { gap: 2px; padding: 4px 4px 4px 10px; }
+  .lcu-input textarea { scrollbar-width: none; }
+  .lcu-input textarea::-webkit-scrollbar { display: none; }
+  .lcu-input .lelu-voice-mic { flex: 0 0 auto; }
 }
 @media (min-width: 700px) { .lcu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lcu-title h1 { font-size: 30px; } }
 

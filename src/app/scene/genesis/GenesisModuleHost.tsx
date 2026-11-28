@@ -63,6 +63,14 @@ export type ModuleRenderer = (props: { onClose: () => void }) => ReactNode;
 export type ModuleRenderers = Record<string, ModuleRenderer | undefined>;
 
 const CHROME_HEIGHT = 40;
+/**
+ * A phone sheet's title bar is 8 px taller than a desktop window's.
+ *
+ * It carries the dial: the 44 px touch target the whole interface uses does
+ * not fit in 40 px, and a control squeezed to 36 px would be a smaller target
+ * on the one surface where a finger is the only input.
+ */
+const PHONE_CHROME_HEIGHT = 48;
 // Large enough for a finger: the resize grip must be reachable on iPhone.
 const RESIZE_HANDLE = 28;
 const MIN_WIDTH = 280;
@@ -644,7 +652,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
       style={{
-        height: CHROME_HEIGHT,
+        height: compactScreen ? PHONE_CHROME_HEIGHT : CHROME_HEIGHT,
         display: "flex",
         alignItems: "center",
         gap: 8,
@@ -668,6 +676,23 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
         title={`status: ${mod.status}`}
         style={{ width: 6, height: 6, borderRadius: 999, background: STATUS_DOT[mod.status] ?? "#64748b", boxShadow: `0 0 6px ${STATUS_DOT[mod.status] ?? "#64748b"}` }}
       />
+      {/*
+        THE CONVERSATION'S RESERVED NAVIGATION SLOT.
+
+        On a phone a conversation is the whole screen: its composer, its
+        microphone, its send control and the keyboard own the bottom edge. So
+        the one dial is mounted HERE — 40 px the title bar keeps free — instead
+        of floating over those controls, and instead of disappearing while a
+        conversation is open (WP15 §3). SpatialNav portals into this element
+        (home/SpatialNav `slotMode`).
+      */}
+      {compactScreen ? (
+        <span
+          className="lelu-module-nav-slot"
+          data-lelu-nav-slot
+          style={{ width: 44, height: PHONE_CHROME_HEIGHT, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+        />
+      ) : null}
       {compactScreen ? (
         // On a phone a module is the whole screen; the chat waits underneath
         // and this brings it back in one tap. The module keeps running
@@ -685,6 +710,10 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
           <span aria-hidden>◎</span> Chat
         </button>
       ) : null}
+      {/* Pin, minimize and expand are desk affordances: a phone sheet is the
+          screen, and the space they took is the navigation's now. */}
+      {compactScreen ? null : (
+      <>
       <button
         type="button"
         title={pinned ? "Unpin — auto-arrange may tile it again" : "Pin — keep this window where it is"}
@@ -703,6 +732,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
       </button>
       <button type="button" title="Minimize — keeps running" aria-label={`Minimize ${label}`} onClick={() => minimizeModule(id)} style={controlButton}>—</button>
       <button type="button" title={isExpanded ? "Restore window" : "Expand"} aria-label={isExpanded ? "Restore" : "Expand"} onClick={() => (isExpanded ? setModulePresentation(id, "inline") : expandModule(id))} style={controlButton}>{isExpanded ? "⊡" : "⤢"}</button>
+      </>
+      )}
       <button type="button" title="Close" aria-label={`Close ${label}`} onClick={() => closeModule(id)} style={controlButton}>✕</button>
     </div>
   );

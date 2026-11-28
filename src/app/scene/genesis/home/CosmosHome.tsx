@@ -20,7 +20,9 @@
 
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
-import { PRIMARY, APPS, type AppGroup } from "./homeCatalog";
+import { APPS, type AppGroup } from "./homeCatalog";
+// The Neural Map context for the Home: its main destinations (the old horizontal row is gone from the catalog).
+const HOME_CONTEXT_APPS = ["chat", "browser", "visualstudio", "agents", "projects"] as const;
 import { NeuralEmbedSlot, NeuralToggle } from "../neural/NeuralEmbedSlot";
 import HomeStore from "./homeStore";
 import { useCloud, useHomeStore, useNotifications } from "./useHomeLive";
@@ -87,7 +89,7 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
       host="home"
       hostLabel="Home"
       focus="app:home"
-      context={[{ id: "app:home", label: "Home" }, ...PRIMARY.filter((p) => p !== "workspaces").map((p) => ({ id: `app:${p}`, label: APPS.find((a) => a.id === p)?.label ?? p })), { id: "interface:cosmos", label: "Cosmos" }, { id: "interface:lelu-room", label: "LÉLU's Room" }]}
+      context={[{ id: "app:home", label: "Home" }, ...HOME_CONTEXT_APPS.map((p) => ({ id: `app:${p}`, label: APPS.find((a) => a.id === p)?.label ?? p })), { id: "interface:cosmos", label: "Cosmos" }, { id: "interface:lelu-room", label: "LÉLU's Room" }]}
       hostActions={[{ id: "open-app", label: "Open app", when: (e) => e.type === "app" && APPS.some((a) => a.id === e.sourceId), run: (e) => open(e.sourceId as GenesisPanel) }]}
       unindexed="the Home's arrangement (presentations, module positions) — presentation state, kept out of the map on purpose"
       onClose={() => setNeural(false)}

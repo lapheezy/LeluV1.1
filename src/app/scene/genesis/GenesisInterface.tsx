@@ -185,8 +185,8 @@ import SpatialRevealBridge from "./spatial/SpatialRevealBridge";
 const UniverseChatWindow = lazy(() => import("./chat/universe/UniverseChatWindow"));
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
-import ExplorationController from "./ExplorationController";
 import { useVoice } from "../../../core/voice/useVoice";
+import ExplorationController from "./ExplorationController";
 import GenesisPresenceEngine from "./GenesisPresenceEngine";
 import WorldRegistry, { type DestinationKind } from "./WorldRegistry";
 import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
@@ -331,8 +331,8 @@ export default function GenesisInterface() {
     raiseModule,
     applyModuleLayout,
   } = useGenesis();
-  const voice = useVoice();
   const surface = useSurface();
+  const voice = useVoice();
 
   /*
    * A screen that changes size re-fits the arrangement.
@@ -675,13 +675,15 @@ export default function GenesisInterface() {
     presenceRef.current.setSelfExploration(state.selfExplorationEnabled);
   }, [state.selfExplorationEnabled]);
 
-  /* Earth Core hold → voice activation. Opens chat and starts listening. */
+  /*
+   * The dial's voice action. It opens the conversation and toggles the ONE
+   * VoiceEngine — it never navigates to a different scene, because voice is
+   * an overlay on the chat, not a place.
+   */
   function handleCoreHoldVoice() {
-    // Ensure chat panel is open
     if (state.activePanel !== "chat") {
       openPanel("chat");
     }
-    // Toggle voice engine — same pipeline as chat mic button
     voice.engine.toggle();
   }
 
@@ -765,25 +767,49 @@ export default function GenesisInterface() {
   // phone's vertical menu list; every panel is still one tap away in the
   // app library, and ⌘K.
   const homeStore = useHomeStore();
+  /*
+   * One navigation at a time.
+   *
+   * The workspace has the circular Spatial Bar; the immersive Cosmos has
+   * the in-scene spatial navigator (scene travel, portals, camera). Before
+   * this, both toolbars were on screen together, which is exactly the
+   * redundant navigation the interface reconstruction removes. The body
+   * flag lets the in-scene navigator (mounted in another lazy layer) follow
+   * the same owner without importing this component.
+   */
+  useEffect(() => {
+    document.body.dataset.leluImmersive = homeStore.immersive ? "true" : "false";
+    return () => {
+      delete document.body.dataset.leluImmersive;
+    };
+  }, [homeStore.immersive]);
   const [homeSheet, setHomeSheet] = useState<HomeSheet>(null);
   // On a phone, when chat (or a window) owns the screen, Home is not rendered
   // at all — it is not hidden under the conversation.
   const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
   const universeOpen = useUniverseOpen();
   const narrowScreen = typeof window !== "undefined" && window.innerWidth <= 720;
-  const navHidden =
-    state.minimized ||
-    surface.chatOwnsScreen ||
+  /*
+   * THE DIAL IS NEVER UNMOUNTED.
+   *
+   * Navigation used to be withdrawn — first a second floating radial, then
+   * the whole spatial bar — whenever another surface took the screen:
+   * inside the immersive Cosmos, behind a phone window, behind the Universe
+   * drawer. That is exactly how a person ends up trapped in a world with no
+   * way home. The dial now collapses instead: the utility row steps aside
+   * and the one circular launcher stays at the bottom right, clear of the
+   * safe area, in every one of those states.
+   *
+   * A conversation that owns the phone screen keeps the dial too — but in
+   * the reserved slot its own header holds (`data-lelu-nav-slot`), at the top
+   * of the screen, not over the composer, the microphone, the send control or
+   * the keyboard. Same component, same registry, one navigation.
+   */
+  const navSlotMode = typeof window !== "undefined" && window.innerWidth < 720 && (surface.chatOwnsScreen || surface.workspaceOwnsScreen);
+  const dialOnly =
+    homeStore.immersive ||
     surface.workspaceOwnsScreen ||
-    // A conversation is open above the Cosmos (the floating Universe mode),
-    // which is nearly the whole screen on a phone: the rail sat ACROSS the
-    // composer and the send button. On a narrow screen it steps aside and
-    // comes back the moment the conversation closes. Desktop keeps it —
-    // there the windows float clear of it.
     (universeOpen && narrowScreen) ||
-    // On a phone an application window is the screen. The bottom nav was
-    // painting over its last controls and composer; the window's own close
-    // and the ⌘K palette remain the way out.
     (state.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720);
 
   /*
@@ -1009,13 +1035,16 @@ export default function GenesisInterface() {
       {/* The door into the Cosmos, and the camera controls once inside. */}
       <CosmosObjectsDock />
       
-      {/* Unmounted (not hidden) while a conversation or window owns the phone screen. */}
-      {navHidden && (surface.chatOwnsScreen || surface.workspaceOwnsScreen) ? null : (
+      {/* THE NAVIGATION: one dial at the bottom centre, collapsed to itself
+          wherever another surface owns the room. Never a second menu, never
+          a horizontal row of destinations. */}
+      {state.minimized ? null : (
         <SpatialNav
           sheet={homeSheet}
           setSheet={setHomeSheet}
+          dialOnly={dialOnly}
+          slotMode={navSlotMode}
           onHoldVoice={handleCoreHoldVoice}
-          hidden={navHidden}
           selfExploration={state.selfExplorationEnabled}
           onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
         />

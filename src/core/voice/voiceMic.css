@@ -1,0 +1,80 @@
+/* LÉLU — microphone control and its honest state line. */
+
+.lelu-voice-mic {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.lelu-voice-mic[data-active="true"] .lelu-voice-mic-control {
+  border-color: rgba(74, 222, 128, 0.62);
+  color: #ecfdf5;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 4px rgba(74, 222, 128, 0.12),
+    0 0 22px rgba(74, 222, 128, 0.42);
+}
+
+.lelu-voice-live {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  color: #bbf7d0;
+}
+.lelu-voice-live::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  border: 1px solid rgba(74, 222, 128, 0.55);
+  animation: lelu-mic-pulse 1.6s ease-out infinite;
+}
+
+@keyframes lelu-mic-pulse {
+  0% { transform: scale(0.72); opacity: 0.85; }
+  80% { transform: scale(1.18); opacity: 0; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+
+.lelu-voice-spinner {
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.24);
+  border-top-color: #f0abfc;
+  animation: lelu-mic-spin 0.8s linear infinite;
+}
+@keyframes lelu-mic-spin { to { transform: rotate(360deg); } }
+
+.lelu-voice-status {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  z-index: 4;
+  max-width: min(230px, 70vw);
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(10, 6, 24, 0.92);
+  color: rgba(236, 226, 255, 0.88);
+  font: 500 10.5px/1.35 system-ui, sans-serif;
+  text-align: right;
+  box-shadow: 0 8px 20px rgba(4, 0, 16, 0.4);
+  pointer-events: none;
+}
+.lelu-voice-status[data-tone="error"] {
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecdd3;
+  text-align: left;
+}
+.lelu-voice-status[data-tone="listening"] {
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #d1fae5;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lelu-voice-live::after,
+  .lelu-voice-spinner { animation: none !important; }
+}

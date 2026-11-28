@@ -1,0 +1,411 @@
+/*
+ * ==========================================================
+ * LÉLU — SHARED INTERACTION SURFACE
+ *
+ * Circular controls, radial rings and contextual menus. Colours are
+ * inherited from the environment's own surface variables, so Cosmos,
+ * CORE, the Chat Universe and the studios keep their identity while
+ * sharing one shape language.
+ * ==========================================================
+ */
+
+:root {
+  --lelu-touch-target: 48px;
+  --lelu-control-size: 48px;
+  --lelu-option-size: 56px;
+  --lelu-duration-fast: 160ms;
+  --lelu-duration-base: 240ms;
+  --lelu-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ------------------------------ control ------------------------------ */
+
+.lelu-circular-control {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 226, 250, 0.24);
+  background:
+    radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 62%),
+    rgba(26, 14, 52, 0.66);
+  color: rgba(249, 240, 255, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 22px rgba(10, 2, 26, 0.34);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    transform var(--lelu-duration-fast) var(--lelu-ease-standard),
+    border-color var(--lelu-duration-fast) ease,
+    background-color var(--lelu-duration-fast) ease,
+    box-shadow var(--lelu-duration-fast) ease;
+}
+
+.lelu-circular-control-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+}
+.lelu-circular-control-icon svg { width: 20px; height: 20px; }
+
+.lelu-circular-control[data-active="true"] {
+  color: #fff;
+  border-color: rgba(240, 171, 252, 0.62);
+  background:
+    radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 62%),
+    linear-gradient(160deg, rgba(217, 70, 239, 0.46), rgba(109, 40, 217, 0.56));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 18px rgba(232, 121, 249, 0.42),
+    0 8px 22px rgba(10, 2, 26, 0.4);
+}
+
+.lelu-circular-control[data-tone="accent"] {
+  border-color: rgba(103, 232, 249, 0.44);
+  color: rgba(224, 251, 255, 0.95);
+}
+.lelu-circular-control[data-tone="danger"] {
+  border-color: rgba(248, 113, 113, 0.44);
+  color: rgba(255, 226, 226, 0.95);
+}
+
+.lelu-circular-control:active:not(:disabled) { transform: scale(0.94); }
+.lelu-circular-control[aria-expanded="true"] {
+  transform: scale(1.04);
+  border-color: rgba(240, 171, 252, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 4px rgba(192, 132, 252, 0.12),
+    0 0 24px rgba(217, 70, 239, 0.45);
+}
+.lelu-circular-control:focus-visible {
+  outline: 2px solid #f0abfc;
+  outline-offset: 3px;
+}
+.lelu-circular-control:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.lelu-circular-control-badge {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #f0abfc;
+  color: #1a0430;
+  font: 700 10px/1 system-ui, sans-serif;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.lelu-circular-control-caption {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font: 500 9.5px/1.1 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  color: rgba(237, 223, 255, 0.62);
+  pointer-events: none;
+}
+
+/* ------------------------------ radial ------------------------------ */
+
+.lelu-radial-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 520;
+  pointer-events: none;
+  animation: lelu-radial-fade var(--lelu-duration-fast) ease both;
+}
+
+@keyframes lelu-radial-fade { from { opacity: 0; } }
+
+.lelu-radial-caption {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  max-width: min(260px, 82vw);
+  padding: 7px 12px 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 226, 250, 0.22);
+  background: rgba(18, 8, 38, 0.78);
+  color: #fbf3ff;
+  box-shadow: 0 12px 32px rgba(8, 0, 24, 0.42);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  text-align: center;
+  pointer-events: auto;
+}
+.lelu-radial-caption strong {
+  font: 600 12.5px/1.25 system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.lelu-radial-caption span {
+  font: 500 9px/1.2 system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 214, 255, 0.5);
+}
+.lelu-radial-back {
+  border: 0;
+  background: none;
+  color: #f0abfc;
+  font: 600 10.5px/1.2 system-ui, sans-serif;
+  cursor: pointer;
+  /* A real touch target: going back is a primary navigation move, and it was
+     a 24 px strip on a phone. */
+  padding: 10px 8px;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/*
+ * The hub marks the ring's centre and takes no input: it sits under the
+ * finger at the moment of release, so anything pressable here would fire on
+ * the very tap that let go of the control.
+ */
+.lelu-radial-hub {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+.lelu-radial-hub-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(249, 240, 255, 0.5);
+  box-shadow: 0 0 14px rgba(240, 171, 252, 0.55);
+}
+.lelu-radial-dismiss {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 226, 250, 0.2);
+  background: rgba(24, 10, 48, 0.82);
+  color: rgba(249, 240, 255, 0.86);
+  font: 300 22px/1 system-ui, sans-serif;
+  display: grid;
+  place-items: center;
+  padding: 0 0 2px;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.lelu-radial-dismiss:active { transform: scale(0.94); }
+.lelu-radial-dismiss:focus-visible { outline: 2px solid #f0abfc; outline-offset: 3px; }
+
+.lelu-radial-ring {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  border: 1px dashed rgba(240, 171, 252, 0.18);
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.09), rgba(192, 132, 252, 0) 68%);
+  pointer-events: none;
+  animation: lelu-ring-in var(--lelu-duration-base) var(--lelu-ease-standard) both;
+}
+@keyframes lelu-ring-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.86); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.lelu-radial-items {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.lelu-radial-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 226, 250, 0.26);
+  background:
+    radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 65%),
+    rgba(28, 14, 54, 0.82);
+  color: #fbf3ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 8px 20px rgba(8, 0, 24, 0.4);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  display: grid;
+  place-items: center;
+  gap: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  animation: lelu-option-in var(--lelu-duration-base) var(--lelu-ease-standard) both;
+  animation-delay: calc(var(--lelu-item-index, 0) * 26ms);
+  transition: transform var(--lelu-duration-fast) var(--lelu-ease-standard), border-color 140ms ease, box-shadow 140ms ease;
+}
+@keyframes lelu-option-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.lelu-radial-item[data-active="true"] {
+  border-color: rgba(240, 171, 252, 0.72);
+  background:
+    radial-gradient(120% 140% at 30% 0%, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 65%),
+    linear-gradient(160deg, rgba(217, 70, 239, 0.48), rgba(109, 40, 217, 0.6));
+  box-shadow: 0 0 18px rgba(232, 121, 249, 0.46);
+}
+.lelu-radial-item[data-tone="accent"] { border-color: rgba(103, 232, 249, 0.5); }
+.lelu-radial-item[data-tone="danger"] { border-color: rgba(248, 113, 113, 0.5); color: #ffe4e6; }
+.lelu-radial-item[data-nested="true"]::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #f0abfc;
+  box-shadow: 0 0 6px rgba(240, 171, 252, 0.9);
+}
+.lelu-radial-item:hover:not(:disabled),
+.lelu-radial-item:focus-visible {
+  transform: translate(-50%, -50%) scale(1.08);
+  outline: 2px solid rgba(240, 171, 252, 0.7);
+  outline-offset: 2px;
+}
+.lelu-radial-item:active:not(:disabled) { transform: translate(-50%, -50%) scale(0.96); }
+.lelu-radial-item:disabled { opacity: 0.4; cursor: default; }
+
+.lelu-radial-item-icon { display: grid; place-items: center; }
+.lelu-radial-item-icon svg { width: 22px; height: 22px; }
+.lelu-radial-item-label {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 9.5px/1.15 system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  color: rgba(247, 236, 255, 0.82);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+
+/* ---------------------------- context menu ---------------------------- */
+
+.lelu-context-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 521;
+  pointer-events: none;
+}
+.lelu-context-menu {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 226, 250, 0.22);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 45%),
+    rgba(20, 10, 42, 0.9);
+  box-shadow: 0 20px 50px rgba(6, 0, 20, 0.5);
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+  pointer-events: auto;
+  animation: lelu-context-in var(--lelu-duration-fast) var(--lelu-ease-standard) both;
+}
+@keyframes lelu-context-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.lelu-context-title {
+  padding: 2px 8px 6px;
+  font: 600 9.5px/1.2 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(232, 214, 255, 0.5);
+}
+.lelu-context-item {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #f8efff;
+  font: 500 12.5px/1.25 system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.lelu-context-item:hover:not(:disabled),
+.lelu-context-item:focus-visible {
+  background: rgba(240, 171, 252, 0.14);
+  outline: none;
+}
+.lelu-context-item[data-active="true"] { background: rgba(240, 171, 252, 0.18); }
+.lelu-context-item[data-danger="true"] { color: #fecdd3; }
+.lelu-context-item:disabled { opacity: 0.4; cursor: default; }
+.lelu-context-icon { display: grid; place-items: center; width: 18px; height: 18px; }
+.lelu-context-icon svg { width: 17px; height: 17px; }
+
+@media (max-width: 420px) {
+  .lelu-radial-item { width: 52px; height: 52px; }
+  .lelu-radial-item-label { max-width: 68px; font-size: 8.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lelu-circular-control,
+  .lelu-radial-layer,
+  .lelu-radial-ring,
+  .lelu-radial-item,
+  .lelu-context-menu {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* A bottom dial's arcs: show only the upper half of each guide ring (the options fan upward). */
+.lelu-radial-ring[data-arc="true"] { clip-path: inset(0 0 50% 0); }

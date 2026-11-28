@@ -14,7 +14,7 @@
  * ==========================================================
  */
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import {
   Activity, AppWindow, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Check, ChevronDown, ChevronRight, ChevronUp,
   Circle, CircleAlert, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudOff, CloudRain, CloudSnow, CloudSun, Code2,
@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { useLeluActivity, ACTIVITY_ACCENT, type LeluActivity } from "../avatar/leluActivity";
-import { APPS, GROUPS, PRIMARY, appFor, type AppGroup } from "./homeCatalog";
+import { APPS, GROUPS, appFor, type AppGroup } from "./homeCatalog";
 import { useExecutive, useHomeStore, useNotifications, useProjects, useWeather } from "./useHomeLive";
 import { describeWeather } from "./homeWeather";
 import { launch, restoreLayout } from "./homeActions";
@@ -219,27 +219,14 @@ function NowModule({ preview }: HomeModuleProps) {
   );
 }
 
-function AppsModule({ preview, onOpenWindows }: HomeModuleProps) {
-  const genesis = useGenesis();
-  const open = useOpen(preview);
-  const primary = useMemo(() => PRIMARY.map((id) => (id === "workspaces" ? { id, label: "Workspaces", icon: "Layers" } : { id, label: appFor(id)!.label, icon: appFor(id)!.icon })), []);
-  return (
-    <nav className="lch-glass lch-apps" aria-label="Apps">
-      {primary.map((app) => (
-        <button
-          key={app.id}
-          type="button"
-          className="lch-app"
-          data-primary={app.id === "chat" ? "true" : "false"}
-          data-open={app.id !== "workspaces" && genesis.state.activePanel === app.id ? "true" : "false"}
-          onClick={(e) => (preview ? undefined : app.id === "workspaces" ? onOpenWindows?.() : open(app.id as GenesisPanel, e.currentTarget))}
-        >
-          <HomeIcon name={app.icon} size={24} />
-          <span>{app.label}</span>
-        </button>
-      ))}
-    </nav>
-  );
+/*
+ * The "apps" module was a horizontal row of destinations (Chat · Browser · Studio · Workspaces · Agents ·
+ * Projects). Freebuff's one-dial navigation (47e9e2cd) removed that row from the dashboard: every
+ * destination comes from interaction/destinations.ts and is offered once, by the dial. A composition
+ * that still lists this module draws nothing here instead of a second navigation.
+ */
+function AppsModule(_props: HomeModuleProps) {
+  return null;
 }
 
 function WorkspacesModule({ preview }: HomeModuleProps) {

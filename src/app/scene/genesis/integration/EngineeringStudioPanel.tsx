@@ -17,9 +17,9 @@
  * ==========================================================
  */
 
-import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
-import { NeuralEmbedSlot, NeuralToggle } from "../neural/NeuralEmbedSlot";
+import { CircularControl, type RadialMenuDefinition } from "../../../../core/interaction";
 import {
   formatDuration,
   relativeTime,
@@ -40,7 +40,6 @@ import {
   Section,
   SourceNote,
   codeText,
-  ghostButton,
   studioFrame,
   studioScroll,
 } from "./StudioShell";
@@ -65,8 +64,33 @@ export default function EngineeringStudioPanel({ onClose }: { onClose: () => voi
   const tasks = payload?.tasks ?? [];
   const locks = payload?.locks ?? [];
   const engines = payload?.engines ?? [];
-  // M17.2-WP02: the Neural Map card inside the Engineering Studio.
-  const [neural, setNeural] = useState(false);
+
+  // One circular control owns the studio's actions: each source is refreshed
+  // independently, so a slow runtime check never hides fresh task data.
+  const engineeringMenu: RadialMenuDefinition = {
+    id: "engineering-actions",
+    label: "Engineering actions",
+    items: [
+      {
+        id: "refresh-engineering",
+        label: "Refresh engineering",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: engineering.refresh,
+      },
+      {
+        id: "refresh-runtime",
+        label: "Refresh runtime",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: runtime.refresh,
+      },
+      {
+        id: "refresh-integration",
+        label: "Refresh integration",
+        icon: <RefreshCw size={18} aria-hidden />,
+        onSelect: integration.refresh,
+      },
+    ],
+  };
 
   return (
     <GenesisWindowFrame
@@ -77,30 +101,16 @@ export default function EngineeringStudioPanel({ onClose }: { onClose: () => voi
       maxHeight={studioFrame.maxHeight}
       elevation="focus"
       extraActions={
-        <>
-          <NeuralToggle host="eng-studio" open={neural} onToggle={() => setNeural(!neural)} />
-          <button type="button" style={ghostButton} onClick={engineering.refresh} aria-label="Refresh engineering state">
-            Refresh
-          </button>
-        </>
+        <CircularControl
+          label="Engineering actions"
+          icon={<RefreshCw size={18} aria-hidden />}
+          menu={engineeringMenu}
+          size={44}
+          testId="engineering-actions"
+        />
       }
     >
       <div style={studioScroll}>
-        <NeuralEmbedSlot
-          open={neural}
-          host="eng-studio"
-          hostLabel="Engineering Studio"
-          focus="app:eng-studio"
-          context={[
-            { id: "app:eng-studio", label: "Engineering Studio" },
-            { id: "capability:engineering.remote", label: "engineering.remote" },
-            { id: "app:engineering", label: "Code workspace" },
-            { id: "capability:project.manage", label: "project.manage" },
-          ]}
-          unindexed="engineering tasks, workspace locks and engines — they come from the server's /api/integration/engineering payload, which no client authority holds, so they are shown here but not indexed"
-          onClose={() => setNeural(false)}
-          style={{ width: "100%", maxWidth: 560, maxHeight: 420, marginBottom: 10 }}
-        />
         {engineering.state === "loading" ? <LoadingState what="engineering state" /> : null}
         {engineering.state === "error" ? (
           <ErrorState what="Engineering state" error={engineering.error ?? "unknown error"} onRetry={engineering.refresh} />

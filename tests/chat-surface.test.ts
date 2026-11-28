@@ -138,17 +138,33 @@ test("the interface leaves out Cosmos chrome while chat owns the screen", () => 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(ui, /surface\.chatOwnsScreen \|\| showHome \? null : <VisualInterface \/>/);
   assert.match(ui, /\{surface\.chatOwnsScreen \|\| showHome \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
+  /*
+   * A conversation that owns the phone screen keeps the dial — in the
+   * reserved slot its header holds — instead of losing navigation or painting
+   * it over the composer (WP15 §3).
+   */
   assert.match(
     ui,
-    /const navHidden =[\s\S]{0,500}?surface\.chatOwnsScreen[\s\S]{0,200}?surface\.workspaceOwnsScreen/,
-    "the navigation is not told that the chat owns the screen",
+    /const navSlotMode = [^;]*surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\);/,
+    "a phone surface that owns the screen must not take the dial with it",
+  );
+  assert.match(ui, /slotMode=\{navSlotMode\}/, "the dial is not mounted into the conversation's reserved slot");
+  assert.match(
+    readFileSync("src/app/scene/genesis/GenesisChat.tsx", "utf8"),
+    /\{isFullMobile \? <span className="lelu-cc-nav-slot" data-lelu-nav-slot \/> : null\}/,
+    "the phone conversation does not reserve the navigation slot in its header",
+  );
+  assert.match(
+    ui,
+    /const dialOnly =[\s\S]{0,400}?surface\.workspaceOwnsScreen/,
+    "a window that owns the phone screen must collapse the navigation to its dial",
   );
   assert.match(
     ui,
     /state\.activePanel !== "none"[\s\S]{0,160}?window\.innerWidth < 720/,
-    "an open application window must also hide the phone navigation",
+    "an open application window must also collapse the phone navigation",
   );
-  assert.match(ui, /hidden=\{navHidden\}/, "the spatial navigation ignores navHidden");
+  assert.match(ui, /dialOnly=\{dialOnly\}/, "the spatial navigation ignores the dial-only state");
 });
 
 /* ------------------------------ the chat ------------------------------ */
@@ -352,7 +368,11 @@ test("the surface reads the Universe's open state from one shared store", () => 
 test("Home and the spatial nav leave the tree (not hidden) while a conversation owns the phone", () => {
   const ui = readFileSync("src/app/scene/genesis/GenesisInterface.tsx", "utf8");
   assert.match(ui, /const showHome = [^;]*!surface\.chatOwnsScreen && !surface\.workspaceOwnsScreen;/);
-  assert.match(ui, /navHidden && \(surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\) \? null : \(\s*<SpatialNav/);
+  assert.match(
+    ui,
+    /\{state\.minimized \? null : \(\s*<SpatialNav/,
+    "the navigation is mounted in every screen state except a minimised interface",
+  );
 });
 
 test("on a phone a conversation window is the full visual viewport; one composer; apps above the chat panel", () => {

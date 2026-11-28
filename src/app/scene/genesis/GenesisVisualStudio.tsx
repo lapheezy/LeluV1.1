@@ -23,6 +23,7 @@ import { useGenesis } from "./GenesisCore";
 import GenesisSketchPanel from "./GenesisSketchPanel";
 import GenesisRenderPanel from "./GenesisRenderPanel";
 import GenesisAvatarPanel from "./GenesisAvatarPanel";
+import { CircularControl, type RadialMenuDefinition } from "../../../core/interaction";
 
 // three.js and the spatial workspaces load only when the mode is opened.
 const GenesisSpatialStudio = lazy(() => import("./spatial/GenesisSpatialStudio"));
@@ -45,22 +46,6 @@ export function openStudioMode(mode: StudioMode): void {
   requestedMode = mode;
 }
 
-const tabChip = (active: boolean): React.CSSProperties => ({
-  padding: "6px 15px",
-  borderRadius: 999,
-  border: active
-    ? "1px solid rgba(167, 139, 250, 0.5)"
-    : "1px solid rgba(255,255,255,0.08)",
-  background: active ? "rgba(167, 139, 250, 0.15)" : "transparent",
-  color: active ? "#d4c8ff" : "rgba(203, 228, 255, 0.55)",
-  fontSize: 12,
-  fontFamily: "inherit",
-  cursor: "pointer",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-});
-
 const MODES: Array<{ key: StudioMode; glyph: string; label: string; hint: string }> = [
   { key: "render", glyph: "◍", label: "Render", hint: "Finished visuals and 3D" },
   { key: "sketch", glyph: "✎", label: "Sketch", hint: "Draw, layer and export" },
@@ -77,6 +62,25 @@ export default function GenesisVisualStudio({ onClose, initialMode = "render" }:
   });
 
   const active = MODES.find((item) => item.key === mode) ?? MODES[0];
+
+  /*
+   * UI Universe has one circular control: hold it and Render, Sketch and
+   * Avatar are a ring. The three mode chips are gone, so the studio has no
+   * second row of tabs above the work.
+   */
+  const modeMenu: RadialMenuDefinition = {
+    id: "ui-universe-mode",
+    label: "UI Universe mode",
+    items: MODES.map((item) => ({
+      id: item.key,
+      label: item.label,
+      hint: item.hint,
+      active: mode === item.key,
+      icon: <span aria-hidden style={{ fontSize: 17 }}>{item.glyph}</span>,
+      onSelect: () => setMode(item.key),
+      testId: `studio-mode-${item.key}`,
+    })),
+  };
 
   // A canvas editor needs the phone's usable height. As an inline sheet the
   // Studio was only ~190px tall, so Sketch showed tabs and a clipped strip
@@ -104,26 +108,21 @@ export default function GenesisVisualStudio({ onClose, initialMode = "render" }:
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 10,
             flexWrap: "wrap",
-            padding: "0 0 12px",
+            padding: "0 0 18px",
             flexShrink: 0,
           }}
         >
-          {MODES.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              data-studio-mode={item.key}
-              data-on={mode === item.key ? "true" : "false"}
-              aria-pressed={mode === item.key}
-              onClick={() => setMode(item.key)}
-              style={tabChip(mode === item.key)}
-            >
-              <span aria-hidden>{item.glyph}</span>
-              {item.label}
-            </button>
-          ))}
+          <CircularControl
+            label={`UI Universe mode — ${active.label}`}
+            icon={<span aria-hidden style={{ fontSize: 17 }}>{active.glyph}</span>}
+            menu={modeMenu}
+            size={44}
+            tone="accent"
+            caption={active.label}
+            testId="studio-mode-control"
+          />
           <span style={{ marginLeft: "auto", fontSize: 11, color: "rgba(203,228,255,0.42)" }}>
             {active.hint}
           </span>

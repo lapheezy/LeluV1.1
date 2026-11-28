@@ -49,7 +49,6 @@ import {
   Maximize2,
   Menu,
   MessageCircle,
-  Mic,
   ScreenShare as ScreenShareIcon,
   ScreenShareOff,
   Minimize2,
@@ -68,6 +67,7 @@ import Orchestrator from "../../../core/orchestrator/Orchestrator";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import GenesisExecutionTimeline from "./GenesisExecutionTimeline";
 import { useVoice } from "../../../core/voice/useVoice";
+import VoiceMicButton from "../../../core/voice/VoiceMicButton";
 import {
   defaultMediaPrompt,
   mediaDisplayLabel,
@@ -91,8 +91,6 @@ import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../
 import { recordTurnActivity } from "./chat/activityRecorder";
 import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouting";
 import ChatTranscript from "./chat/ChatTranscript";
-import SpatialSurfaces from "./chat/SpatialSurface";
-import { setSpatialConversationResolver } from "../../../core/asre/SpatialSummon";
 import { modelFormatOf, type ModelAttachment } from "./chat/Model3DView";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
 import { chatFillsScreen } from "./chat/chatLayout";
@@ -911,10 +909,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         // conversation so concurrent chats don't mix voice/UI streams.
         if (event.conversationId && event.conversationId !== turnConversationId) return;
         try {
-          // OWNERSHIP: the turn that opened the stream is the only one whose
-          // deltas may be spoken. `exchangeId` names it, so a superseded
-          // turn's late deltas cannot speak over the newer question.
-          voiceEngineRef.current.feedStreamingSpeech(event.text, exchangeId);
+          voiceEngineRef.current.feedStreamingSpeech(event.text);
         } catch {
           // contained
         }
@@ -932,7 +927,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         );
       });
       try {
-        voiceEngineRef.current.beginStreamingSpeech(exchangeId);
+        voiceEngineRef.current.beginStreamingSpeech();
       } catch {
         // contained
       }
@@ -1027,7 +1022,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       }
 
       try {
-        voiceEngineRef.current.finishStreamingSpeech(assistantText, exchangeId);
+        voiceEngineRef.current.finishStreamingSpeech(assistantText);
       } catch {
         // contained
       }
@@ -1487,12 +1482,6 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
 
   // Search results and pages read now show in the turn's activity card
   // (chat/ChatActivity), attached to the reply they belong to.
-  // Mission 5.7: spatial tools summon their surface into THIS conversation.
-  useEffect(() => {
-    setSpatialConversationResolver(() => state.activeConversationId || "active");
-    return () => setSpatialConversationResolver(null);
-  }, [state.activeConversationId]);
-
   const liveExtras = useMemo(() => {
     const images = exchange?.images ?? [];
     if (images.length === 0) return null;
@@ -1515,9 +1504,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     : state.thinking || isSending
       ? "thinking"
       : voiceView.state.active
-        ? voiceView.state.captureSuspended
-          ? "microphone paused"
-          : "listening to you"
+        ? "listening to you"
         : "here with you";
   const orbState = state.speaking ? "speaking" : state.thinking || isSending ? "thinking" : "idle";
   const canSend = Boolean(input.trim()) || pendingMedia.length > 0 || pendingFiles.length > 0;
@@ -1756,6 +1743,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             <span className="lelu-cc-status" aria-live="polite">{statusText}</span>
           </div>
           <div className="lelu-cc-controls" role="toolbar" aria-label="Chat controls">
+            {/*
+              The reserved navigation slot. On a phone the conversation owns
+              the bottom edge, so the one dial is mounted HERE, in space the
+              header already keeps, instead of over the composer.
+            */}
+            {isFullMobile ? <span className="lelu-cc-nav-slot" data-lelu-nav-slot /> : null}
             {isMobileViewport ? (
               <button
                 type="button"
@@ -1879,8 +1872,6 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             speaking={voiceEcho}
             onRetry={retry}
           />
-          {/* Spatial work LÉLU did here: in the thread, expandable, kept with the chat. */}
-          <SpatialSurfaces conversationId={state.activeConversationId} />
           {awayFromLatest ? (
             <button type="button" className="lelu-cc-jump" onClick={() => scrollToLatest(true)} aria-label="Jump to the latest message">
               <ArrowDown size={15} aria-hidden />
@@ -2164,23 +2155,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
               {screenSharing ? <ScreenShareOff size={19} aria-hidden /> : <ScreenShareIcon size={19} aria-hidden />}
             </button>
             ) : null}
-            <button
-              type="button"
-              onClick={() => void voiceView.engine.toggle()}
-              // Turning voice ON waits for the typed reply; turning it OFF is
-              // always allowed — a microphone the user cannot close is a bug.
-              disabled={isSending && !voiceView.state.active}
-              data-lelu-voice-toggle
-              data-lelu-voice-phase={voiceView.state.phase}
-              data-lelu-voice-capture={voiceView.state.active ? (voiceView.state.captureSuspended ? "suspended" : "live") : "off"}
-              title={voiceView.state.active ? "Stop listening" : "Voice input"}
-              aria-label={voiceView.state.active ? "Stop listening" : "Voice input"}
-              aria-pressed={voiceView.state.active}
-              data-active={voiceView.state.active ? "true" : "false"}
-              className="lelu-cc-icon"
-            >
-              <Mic size={19} aria-hidden />
-            </button>
+            <VoiceMicButton context="core-chat" showStatus={false} />
             <button
               type="button"
               onClick={() => void send()}

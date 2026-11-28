@@ -32,7 +32,9 @@ import StudioArtifactCards from "../../studio/StudioArtifactCards";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
-import VoiceToggle from "./VoiceToggle";
+import VoiceMicButton from "../../../../../core/voice/VoiceMicButton";
+import { CircularControl } from "../../../../../core/interaction";
+import { SlidersHorizontal } from "lucide-react";
 import VoiceInterim from "./VoiceInterim";
 import Model3DView from "../Model3DView";
 import SpatialSurfaces from "../SpatialSurface";
@@ -275,7 +277,7 @@ export default function UniverseChatWindow({
       {/* The same microphone as the Universe composer (M22.10): an open window
           replaces that composer, so without this a live voice session had no
           visible state and no stop control. */}
-      <VoiceToggle conversationId={conversation.id} />
+      <VoiceMicButton context={`chat:${conversation.id}`} showStatus />
       <button type="submit" className="lcu-send" disabled={!draft.trim() && attached.length === 0} aria-label={`Send to ${conversation.title}`}>
         Send
       </button>
@@ -401,16 +403,17 @@ export default function UniverseChatWindow({
         <StageSwitcher stage={stage} onChange={setStage} counts={{ media: model.media.length, sections: model.sections.length }} />
         <span className="lcu-win-head-actions">
           {conversation.processing ? <span className="lcu-live">Active</span> : null}
-          <button
-            type="button"
-            className="lcu-win-controls-toggle"
-            aria-label="Chat controls"
-            aria-haspopup="menu"
-            aria-expanded={controlsOpen}
-            onClick={() => setControlsOpen((open) => !open)}
-          >
-            ⚙
-          </button>
+          {/* The shared circular control (Freebuff's interaction system), opening this window's own controls. */}
+          <CircularControl
+            label="Chat controls"
+            icon={<SlidersHorizontal size={17} aria-hidden />}
+            size={38}
+            active={controlsOpen}
+            ariaHasPopup
+            ariaExpanded={controlsOpen}
+            onPress={() => setControlsOpen((open) => !open)}
+            testId="chat-window-controls"
+          />
         </span>
       </div>
       {autoNote && autoNote.stage === stage ? (

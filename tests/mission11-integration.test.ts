@@ -46,8 +46,13 @@ test("the Universe composer passes documents to GenesisChat's real send path", (
 
 test("each chat window owns one expandable control tab", () => {
   const win = code("src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx");
-  assert.match(win, /aria-label="Chat controls"/);
-  assert.match(win, /aria-haspopup="menu"/);
+  // The control tab is now the shared CircularControl + ContextMenu; its DOM
+  // aria-label is the label prop, and the menu semantics live in the one
+  // interaction component rather than in a second bespoke button.
+  assert.match(win, /label="Chat controls"/);
+  assert.match(win, /ContextMenu/);
+  assert.match(win, /ariaHasPopup/);
+  assert.match(code("src/core/interaction/CircularControl.tsx"), /aria-haspopup/);
   assert.match(win, /Pin conversation|Unpin conversation/);
   assert.match(win, /Minimize/);
   assert.match(win, /Maximize|Restore window/);

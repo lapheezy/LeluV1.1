@@ -219,6 +219,22 @@
 }
 
 /* One organised control group — every control owns its own hit area. */
+/*
+ * The navigation slot the conversation keeps for the one dial.
+ *
+ * 44 px of reserved space at the start of the control group: the dial is
+ * mounted into it on a phone (see home/SpatialNav slotMode), so it never
+ * covers the composer, the microphone, the send control or the keyboard.
+ */
+.lelu-cc-nav-slot {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .lelu-cc-controls {
   display: flex;
   align-items: center;

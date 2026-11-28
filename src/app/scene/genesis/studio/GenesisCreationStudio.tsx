@@ -5,8 +5,9 @@
  */
 
 import { useRef, useState } from "react";
-import { FilePlus2, FileSpreadsheet, FileText, Network, PenTool, Presentation, Sparkles, Upload, Workflow } from "lucide-react";
+import { FileSpreadsheet, FileText, Network, PenTool, Plus, Presentation, Sparkles, Upload, Workflow } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
+import { CircularControl, type RadialMenuDefinition } from "../../../../core/interaction";
 import { artifactGist, firstChartSvg } from "../../../../core/studio/StudioPreview";
 import type { StudioArtifact } from "../../../../core/studio/StudioStore";
 import { agentHierarchyGraph } from "../../../../core/studio/GraphSources";
@@ -14,7 +15,6 @@ import AgentStore from "../../../../core/agents/AgentStore";
 import { KIND_LABEL, openArtifacts, useStudioStore } from "./useStudio";
 import PlaceInWorldButton from "../spatial/PlaceInWorldButton";
 import "./studio.css";
-import { NeuralEmbedSlot, NeuralToggle } from "../neural/NeuralEmbedSlot";
 
 export const KIND_ICON = { document: FileText, deck: Presentation, workbook: FileSpreadsheet, graph: Network, drawing: PenTool, visual: Sparkles } as const;
 
@@ -31,13 +31,6 @@ export default function GenesisCreationStudio({ onClose }: { onClose: () => void
   const list = store.list();
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
-  // M17.2-WP02: the Neural Map card inside the Studio, on the artifact picked.
-  const [neural, setNeural] = useState<string | null>(null);
-  const [neuralOpen, setNeuralOpen] = useState(false);
-  const inspect = (id: string) => {
-    setNeural(id);
-    setNeuralOpen(true);
-  };
 
   const importFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -60,37 +53,64 @@ export default function GenesisCreationStudio({ onClose }: { onClose: () => void
     if (r.ok) openArtifacts([r.artifact.id]);
   };
 
+  /*
+   * Every way to start work is one ring held from the studio's own circular
+   * control — not a toolbar of six chips that wrapped onto three lines on a
+   * phone. Import stays in the same ring because it is the same intent:
+   * another artifact in this library.
+   */
+  const createMenu: RadialMenuDefinition = {
+    id: "creation-create",
+    label: "Create",
+    items: [
+      { id: "document", label: "Document", icon: <FileText size={18} aria-hidden />, onSelect: () => create("document"), testId: "studio-new-document" },
+      { id: "deck", label: "Presentation", icon: <Presentation size={18} aria-hidden />, onSelect: () => create("deck"), testId: "studio-new-deck" },
+      { id: "workbook", label: "Spreadsheet", icon: <FileSpreadsheet size={18} aria-hidden />, onSelect: () => create("workbook"), testId: "studio-new-workbook" },
+      { id: "graph", label: "Graph", icon: <Network size={18} aria-hidden />, onSelect: () => create("graph"), testId: "studio-new-graph" },
+      { id: "drawing", label: "Drawing", icon: <PenTool size={18} aria-hidden />, onSelect: () => create("drawing"), testId: "studio-new-drawing" },
+      {
+        id: "hierarchy",
+        label: "Agent hierarchy",
+        icon: <Workflow size={18} aria-hidden />,
+        hint: "LÉLU's real agent hierarchy",
+        onSelect: createHierarchy,
+        testId: "studio-new-hierarchy",
+      },
+      {
+        id: "import",
+        label: "Import file",
+        icon: <Upload size={18} aria-hidden />,
+        hint: "Original bytes are kept unchanged",
+        onSelect: () => fileRef.current?.click(),
+        testId: "studio-new-import",
+      },
+    ],
+  };
+
   return (
     <GenesisWindowFrame eyebrow="LÉLU" title={`Creation Studio · ${list.length}`} onClose={onClose} closeLabel="Close">
       <div className="lst-library" data-lelu-studio-library>
         <div className="lst-toolbar">
-          <button type="button" className="lst-btn" onClick={() => create("document")}><FilePlus2 size={14} aria-hidden /> Document</button>
-          <button type="button" className="lst-btn" onClick={() => create("deck")}><Presentation size={14} aria-hidden /> Presentation</button>
-          <button type="button" className="lst-btn" onClick={() => create("workbook")}><FileSpreadsheet size={14} aria-hidden /> Spreadsheet</button>
-          <button type="button" className="lst-btn" onClick={() => create("graph")} data-lelu-studio-new="graph"><Network size={14} aria-hidden /> Graph</button>
-          <button type="button" className="lst-btn" onClick={() => create("drawing")} data-lelu-studio-new="drawing"><PenTool size={14} aria-hidden /> Drawing</button>
-          <button type="button" className="lst-btn ghost" onClick={createHierarchy} data-lelu-studio-new="hierarchy" title="A graph of LÉLU's real agent hierarchy"><Workflow size={14} aria-hidden /> Agent hierarchy</button>
+          <CircularControl
+            label="Create — hold for document types"
+            icon={<Plus size={20} aria-hidden />}
+            menu={createMenu}
+            size={48}
+            tone="accent"
+            testId="studio-create-control"
+          />
+          <span className="lst-note" style={{ margin: 0 }}>
+            Document, deck, sheet, graph, drawing — or bring in a file
+          </span>
           <span className="lst-spacer" />
-          <NeuralToggle host="creation" open={neuralOpen} onToggle={() => setNeuralOpen(!neuralOpen)} />
-          <button type="button" className="lst-btn ghost" onClick={() => fileRef.current?.click()}><Upload size={14} aria-hidden /> Import file</button>
           <input ref={fileRef} type="file" hidden multiple accept=".docx,.pptx,.xlsx,.pdf,.csv,.md,.markdown,.html,.htm,.txt,.rtf" onChange={(e) => { void importFiles(e.target.files); e.target.value = ""; }} />
         </div>
         {message ? <p className="lst-note" role="status">{message}</p> : null}
-        <NeuralEmbedSlot
-          open={neuralOpen}
-          host="creation"
-          hostLabel="Creation Studio"
-          focus={(neural ?? list[0]?.id) ? `record:artifact:${neural ?? list[0]!.id}` : null}
-          context={list.slice(0, 8).map((a) => ({ id: `record:artifact:${a.id}`, label: a.title }))}
-          unindexed="an artifact's inner content (slides, cells, blocks) — the artifact is indexed with its revisions, exports, the chat it came from and the Cosmos objects made from it"
-          onClose={() => setNeuralOpen(false)}
-          style={{ width: "100%", maxWidth: 560, maxHeight: 420, margin: "0 0 10px" }}
-        />
         {list.length === 0 ? (
           <p className="lst-empty">Nothing yet. Ask LÉLU in chat — “make this into a PowerPoint”, “put the data in a spreadsheet” — or import a file.</p>
         ) : (
           <div className="lst-grid">
-            {list.map((a) => <LibraryCard key={a.id} artifact={a} onNeural={() => inspect(a.id)} />)}
+            {list.map((a) => <LibraryCard key={a.id} artifact={a} />)}
           </div>
         )}
       </div>
@@ -98,7 +118,7 @@ export default function GenesisCreationStudio({ onClose }: { onClose: () => void
   );
 }
 
-function LibraryCard({ artifact, onNeural }: { artifact: StudioArtifact; onNeural: () => void }) {
+function LibraryCard({ artifact }: { artifact: StudioArtifact }) {
   const store = useStudioStore();
   const latest = store.latest(artifact);
   const Icon = KIND_ICON[artifact.kind];
@@ -123,9 +143,6 @@ function LibraryCard({ artifact, onNeural }: { artifact: StudioArtifact; onNeura
         label="Place in world"
         className="lst-btn ghost"
       />
-      <button type="button" className="lst-btn ghost" data-neural-of={`record:artifact:${artifact.id}`} onClick={onNeural} title="Its place in LÉLU's Neural Map">
-        ◈ Neural
-      </button>
     </div>
   );
 }
