@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: Freebuff's one dial merged in, and everything now comes out of it as a radial
 by: Claude (Claude Code)
-commits: pending
+commits: 75ce056a
 playbooks:
 ---
 
