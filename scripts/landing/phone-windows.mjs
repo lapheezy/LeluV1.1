@@ -12,7 +12,7 @@ const rects = () => p.evaluate(() => [...document.querySelectorAll("[data-lelu-m
 const pick = async (m) => {
   if (!(await p.locator('[data-lelu-workspace-bar="compact"] [data-lelu-layout]').count())) await p.evaluate(() => document.querySelector('[data-lelu-workspace-bar="compact"] [aria-label="Layout"]')?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
   await p.waitForTimeout(500);
-  const ok = await p.evaluate((m) => { const b = document.querySelector(`[data-lelu-workspace-bar="compact"] [data-lelu-layout="${m}"]`); b?.dispatchEvent(new MouseEvent("click", { bubbles: true })); return !!b; }, m);
+  const ok = await p.evaluate(async (m) => { const { arrangeWorkspace } = await import("/src/app/scene/genesis/layout/stewardActions.ts"); const b = document.querySelector(`[data-lelu-layout="${m}"]`); if (b) { b.dispatchEvent(new MouseEvent("click", { bubbles: true })); return "button"; } return "none"; }, m);
   await p.waitForTimeout(1500);
   return ok;
 };

@@ -147,7 +147,7 @@ export default function WorkspaceBar({
   if (compact) {
     return (
       <div className="lws lws-compact" data-lelu-workspace-bar="compact">
-        {mode === "split" || mode === "tile" ? <PhoneDivider onRatio={() => arrangeWorkspace(host, mode, [], "user")} /> : null}
+        <PhoneDivider onRatio={() => arrangeWorkspace(host, mode === "tile" ? "tile" : "split", [], "user")} />
         <button type="button" className="lws-icon" aria-label="Back to the Universe — windows keep running" onClick={() => { hideAll(); setUniverseOpen(true); }}>‹</button>
         {tabs}
         {/* M23: tap keeps the list; hold → slide → release picks a layout
