@@ -14,6 +14,7 @@
  * ==========================================================
  */
 
+import NekoLive, { useNekoAvailability } from "./neko/NekoLive";
 import { useState, type CSSProperties } from "react";
 
 export interface ChatSurfaceItem {
@@ -143,6 +144,9 @@ function ResultList({ items }: { items: ChatSurfaceItem[] }) {
 
 function BrowserView({ surface }: { surface: Extract<ChatSurface, { kind: "browser" }> }) {
   const [open, setOpen] = useState(false);
+  const neko = useNekoAvailability();
+  // A page that refuses embedding (Google, ChatGPT, YouTube…) previews live in Neko instead of a blank frame.
+  const [live, setLive] = useState(false);
   const statusColor =
     surface.status === "read"
       ? "#34d399"
@@ -178,9 +182,23 @@ function BrowserView({ surface }: { surface: Extract<ChatSurface, { kind: "brows
         >
           {open ? "Hide preview" : "Preview page"}
         </button>
+        {neko === "reachable" ? (
+          <button
+            type="button"
+            data-neko-toggle
+            onClick={() => setLive((v) => !v)}
+            style={{ ...actionBtn, borderColor: "rgba(167,139,250,0.55)" }}
+          >
+            {live ? "Close live" : "◉ Live (Neko)"}
+          </button>
+        ) : null}
       </div>
 
-      {open ? (
+      {live ? <NekoLive url={surface.url} height={340} surface="chat-card" /> : null}
+
+      {open && !live && surface.status === "blocked" && neko === "reachable" ? (
+        <NekoLive url={surface.url} height={340} surface="chat-card-preview" />
+      ) : open && !live ? (
         <div
           style={{
             height: 260,

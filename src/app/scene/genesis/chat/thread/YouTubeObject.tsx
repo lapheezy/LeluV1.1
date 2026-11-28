@@ -12,6 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { update, type ThreadObject } from "../../../../../core/thread/ThreadObjects";
+import NekoLive, { useNekoAvailability } from "../../neko/NekoLive";
 
 const STATES: Record<number, string> = { [-1]: "unstarted", 0: "ended", 1: "playing", 2: "paused", 3: "buffering", 5: "cued" };
 
@@ -21,6 +22,9 @@ export default function YouTubeObject({ object }: { object: ThreadObject }) {
   const [state, setState] = useState<{ playerState: string; time: number; duration: number }>({ playerState: "loading", time: 0, duration: 0 });
   const resumeAt = useRef(Math.floor(object.lastTime ?? 0));
   const saved = useRef(0);
+  // Where the embedded player refuses (this server gets "Video unavailable"), the same video can play in Neko.
+  const neko = useNekoAvailability();
+  const [inNeko, setInNeko] = useState(false);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
@@ -63,8 +67,8 @@ export default function YouTubeObject({ object }: { object: ThreadObject }) {
   const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.id)}?enablejsapi=1&playsinline=1&rel=0${resumeAt.current ? `&start=${resumeAt.current}` : ""}&origin=${encodeURIComponent(origin)}`;
   const t = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
   return (
-    <div className="ty" data-youtube={video.id} data-player-state={state.playerState} data-player-time={state.time.toFixed(1)}>
-      <iframe ref={frame} src={src} title={video.title} onLoad={listen} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+    <div className="ty" data-youtube={video.id} data-player-state={inNeko ? "neko" : state.playerState} data-player-time={state.time.toFixed(1)}>
+      {inNeko ? <NekoLive url={`https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}${resumeAt.current ? `&t=${resumeAt.current}s` : ""}`} height="100%" surface="thread-youtube" /> : <iframe ref={frame} src={src} title={video.title} onLoad={listen} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />}
       <div className="ty-meta">
         <span className={`ty-state ty-${state.playerState}`}>{state.playerState === "playing" ? "● Playing" : state.playerState}</span>
         <span>
@@ -73,6 +77,11 @@ export default function YouTubeObject({ object }: { object: ThreadObject }) {
         </span>
         {resumeAt.current && state.playerState !== "playing" ? <span className="ty-resume">resumes at {t(resumeAt.current)} when you press play</span> : null}
         {video.channel ? <span className="ty-ch">{video.channel}</span> : null}
+        {neko === "reachable" ? (
+          <button type="button" className="ty-neko" data-neko-toggle onClick={() => setInNeko((v) => !v)}>
+            {inNeko ? "Back to embed" : "◉ Watch in Neko"}
+          </button>
+        ) : null}
       </div>
     </div>
   );

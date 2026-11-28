@@ -42,6 +42,7 @@ import type { ChatActivity } from "../../../../../core/multichat/TurnActivity";
 import RaindropFeed, { type FeedEntry } from "./RaindropFeed";
 import ThreadMap, { FreeformMaps } from "./ThreadMap";
 import YouTubeObject from "./YouTubeObject";
+import NekoLive, { useNekoAvailability } from "../../neko/NekoLive";
 import "./thread.css";
 
 const Model3DView = lazy(() => import("../Model3DView"));
@@ -68,6 +69,32 @@ function useSize<T extends Element>(): [React.RefObject<T | null>, { w: number; 
   return [ref, size];
 }
 
+/** A web page in the thread. Live in Neko right here, in every thread format, not only in the Browser window. */
+function WebObject({ o, compact }: { o: ThreadObject; compact: boolean }) {
+  const neko = useNekoAvailability();
+  const [live, setLive] = useState(false);
+  return (
+    <div className="to-web">
+      <b>{o.web?.title}</b>
+      <a href={o.web?.url} target="_blank" rel="noreferrer">
+        {o.web?.url}
+      </a>
+      {o.web?.snippet && !live ? <p>{o.web.snippet}</p> : null}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {neko === "reachable" ? (
+          <button type="button" data-neko-toggle onClick={() => setLive((v) => !v)}>
+            {live ? "Close live" : "◉ Live here (Neko)"}
+          </button>
+        ) : null}
+        <button type="button" onClick={() => openInBrowser(o.web!.url)}>
+          Open in her browser
+        </button>
+      </div>
+      {live ? <NekoLive url={o.web!.url} height={compact ? 240 : 420} surface="thread-web" /> : null}
+    </div>
+  );
+}
+
 export function ObjectBody({ o, compact }: { o: ThreadObject; compact: boolean }): ReactNode {
   switch (o.kind) {
     case "neural-map":
@@ -83,18 +110,7 @@ export function ObjectBody({ o, compact }: { o: ThreadObject; compact: boolean }
         </Suspense>
       ) : null;
     case "web":
-      return (
-        <div className="to-web">
-          <b>{o.web?.title}</b>
-          <a href={o.web?.url} target="_blank" rel="noreferrer">
-            {o.web?.url}
-          </a>
-          {o.web?.snippet ? <p>{o.web.snippet}</p> : null}
-          <button type="button" onClick={() => openInBrowser(o.web!.url)}>
-            Open in her browser
-          </button>
-        </div>
-      );
+      return <WebObject o={o} compact={compact} />;
     case "research":
       return (
         <div className="to-research">
