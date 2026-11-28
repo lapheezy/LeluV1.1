@@ -25,6 +25,7 @@
  */
 
 import { themeIn, PRIMARY as PRIMARY_THEME } from "../../worlds/cosmosTheme";
+import { formatIn } from "../../workspace/briefing";
 import { compileCreativeObjectPlan } from "../../couture/intents";
 import { getCreativeSelection } from "../../couture/selection";
 import CreativeObjects from "../../couture/objects";
@@ -255,6 +256,11 @@ export function compileDirect(prompt: string, options: { referentId?: string | n
   // borderless output", "check chat, Neural Map and browser integration", "find the broken interactions" run
   // her real diagnostics directly, so a run exists before anything is said about it.
   if (has(/\b(diagnos(?:e|tic|tics)|self-?test|validate|run (?:the )?(?:\w+ )?tests?|test (?:all|every)|find (?:the )?broken|health ?check|check\b.{0,60}\b(?:integration|interactions?|persistence|borderless))\b/i, t) && has(/\b(diagnos|freestyle|borderless|chat|neural map|browser|integration|cosmos|persistence|interactions?|tests?|outputs?)\b/i, t)) return nl("diagnostics", t);
+  // Her workspace's format (owner): "arrange my workspace as a card table", "show my workspace in the retro terminal format".
+  {
+    const fmt = formatIn(t);
+    if (fmt && /\b(workspace|updates|tasks|previous work|organi[sz]e|arrange|lay ?out|format)\b/i.test(t) && /\b(arrange|organi[sz]e|show|lay|put|use|switch|make|format|as)\b/i.test(t)) return nl("wsformat", t);
+  }
   // Theme of the Cosmos and the chats (owner): "switch the cosmos to the volcano theme", "back to the primary
   // cosmos". Not "create a volcano world" (the world engine's own request).
   {
@@ -722,6 +728,9 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       return { explicit, summary: `editable Excalidraw sketch of “${subject}”`, steps: [
         { tool: "studio.create", label: "sketch", args: { kind: "drawing", title: `Sketch — ${titleCase(subject)}`, scene: { elements: sketchElements(subject) } } },
       ] };
+    }
+    case "wsformat": {
+      return { explicit, summary: "workspace format", steps: [{ tool: "workspace.format", label: "workspace format", args: { format: formatIn(rest) ?? rest } }] };
     }
     case "theme": {
       const theme = themeIn(rest) ?? PRIMARY_THEME;

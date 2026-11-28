@@ -280,7 +280,7 @@ export default class AIRouter {
      * pack. Both run here, so the work exists before anything says it does.
      */
     const madeDirectly = Boolean(
-      directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || step.tool === "diagnostics.run" || step.tool === "neural.show" || step.tool === "performance.mode" || step.tool === "theme.set"),
+      directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => (step.tool === "couture.design" && step.args.action === "tech-pack") || (step.tool === "studio.create" && step.args.kind === "drawing") || step.tool === "diagnostics.run" || step.tool === "neural.show" || step.tool === "performance.mode" || step.tool === "theme.set" || step.tool === "workspace.format"),
     );
     if (directPlan && (directPlan.explicit || construction || creativeOperation || madeDirectly || !(await this.direct.providersAvailable(context)))) {
       const reason = directPlan.explicit ? "command" : construction ? "construction" : creativeOperation || madeDirectly ? "creative" : "no-provider";

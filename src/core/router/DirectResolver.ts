@@ -250,7 +250,7 @@ export default class DirectResolver {
     const interfaces = plan.steps.every((step) => step.tool.startsWith("interface."));
     const isDiagnostics = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "diagnostics.run");
     const isNeuralMap = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "neural.show");
-    const isWeight = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "performance.mode" || step.tool === "theme.set");
+    const isWeight = plan.steps.length > 0 && plan.steps.every((step) => step.tool === "performance.mode" || step.tool === "theme.set" || step.tool === "workspace.format");
     const preface = interfaces
       ? okCount === ran.length
         ? `${plan.summary} — done on this device. 0 model calls, nothing sent anywhere.`

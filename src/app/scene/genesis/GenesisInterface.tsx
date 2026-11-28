@@ -178,6 +178,7 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import CoreChat from "./home/CoreChat";
+import CosmosWorkspace from "./home/CosmosWorkspace";
 import { experience as currentExperience, subscribeExperience, setExperience as setExperienceMode } from "../../../core/experience/ExperienceMode";
 import HomeStoreForExperience from "./home/homeStore";
 import PerformanceModeBridge from "./PerformanceModeBridge";
@@ -920,7 +921,12 @@ export default function GenesisInterface() {
           {/* The Cosmos's theme (the world engine's active world), behind the landing; none = primary Cosmos. */}
           {!sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CosmosTheme /> : null}
           {/* The first screen: the primary Cosmos with one chat box rising from her core. */}
-          {!ogExperience && homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? <CoreChat /> : null}
+          {!ogExperience && homeStore.immersive && state.activePanel === "none" && !universeOpen && !sceneIsV2 && !systemEnvironmentActive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen ? (
+            <>
+              <CoreChat />
+              <CosmosWorkspace />
+            </>
+          ) : null}
           {showHome ? (
             <CosmosHome
               onOpenLibrary={(group) => setHomeSheet({ kind: "library", group })}

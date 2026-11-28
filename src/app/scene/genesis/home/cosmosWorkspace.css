@@ -1,0 +1,72 @@
+/* Her workspace below the Cosmos (CosmosWorkspace.tsx). Borderless: text and soft depth, no frames. */
+.cw { position: fixed; inset: 0; z-index: 505; overflow-y: auto; overscroll-behavior: contain; pointer-events: auto;
+  color: #f5f3ff; font: 14px Inter, system-ui, sans-serif;
+  /* IN the Cosmos, not a separate screen (owner): no backdrop, no blur. The live scene, her core and the chat
+     box stay; the information floats in the Cosmos, readable by its own glow. */
+  background: none;
+  text-shadow: 0 1px 2px rgba(4, 0, 16, .95), 0 0 14px rgba(4, 0, 16, .8);
+  animation: cw-in .45s cubic-bezier(.2, .9, .25, 1) both; }
+@keyframes cw-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cw { animation: none; } }
+.cw-head { position: sticky; top: 0; z-index: 2; padding: 14px clamp(14px, 4vw, 48px) 10px; background: none; }
+.cw-up { font: inherit; font-size: 12px; color: #e9d5ff; background: rgba(255,255,255,.07); border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.cw-title { margin: 10px 0 8px; } .cw-title strong { display: block; font-size: 22px; letter-spacing: .02em; } .cw-title small { opacity: .7; }
+.cw-formats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.cw-formats button { flex: 0 0 auto; font: inherit; font-size: 12px; color: #fff; background: rgba(255,255,255,.06); border: 0; border-radius: 999px; padding: 6px 11px; cursor: pointer; white-space: nowrap; }
+.cw-formats button[data-on="true"] { background: linear-gradient(160deg, #f0abfc, #a855f7); }
+.cw-why { margin: 6px 0 0; font-size: 12px; color: #d8b4fe; }
+.cw-pill { position: fixed; left: 50%; bottom: calc(118px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 512; pointer-events: auto;
+  font: 600 12px Inter, system-ui, sans-serif; color: #f5f3ff; background: rgba(20, 8, 44, .55); border: 0; border-radius: 999px; padding: 7px 14px; cursor: pointer; letter-spacing: .04em;
+  animation: cw-bob 2.4s ease-in-out infinite; }
+@keyframes cw-bob { 50% { transform: translate(-50%, 4px); } }
+@media (max-width: 520px) { .cw-pill { bottom: calc(250px + env(safe-area-inset-bottom)); } }
+body:has(.lelu-radial-items) .cw-pill { opacity: 0; pointer-events: none; }
+
+/* Items: borderless. */
+.cw-item { display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 8px 6px; border-radius: 12px; cursor: pointer; }
+.cw-item:hover, .cw-item:focus-visible { background: rgba(255,255,255,.06); outline: none; }
+.cw-item-title { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.cw-item-detail { font-size: 12.5px; opacity: .72; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cw-item-meta { display: flex; gap: 8px; font-size: 11px; opacity: .6; } .cw-item-meta em { font-style: normal; color: #f0abfc; opacity: 1; }
+.cw-section h3 { margin: 0 0 4px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #d8b4fe; }
+.cw-empty { margin: 4px 6px; opacity: .5; font-size: 12.5px; }
+.cw-body { padding: 8px clamp(14px, 4vw, 48px) 120px; }
+
+/* ---- the formats ---- */
+.cw[data-format="column"] .cw-body, .cw[data-format="focus"] .cw-body { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+.cw[data-format="focus"] .cw-section:not([data-section="future"]):not([data-section="updates"]) { opacity: .45; }
+.cw[data-format="grid"] .cw-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
+.cw[data-format="bento"] .cw-body, .cw[data-format="layered"] .cw-body, .cw[data-format="twozone"] .cw-body { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.cw[data-format="bento"] .cw-section:first-child, .cw[data-format="twozone"] .cw-section:first-child { grid-column: span 2; grid-row: span 2; }
+.cw[data-format="layered"] .cw-section:nth-child(even) { transform: translateY(18px) scale(.97); opacity: .8; }
+.cw[data-format="masonry"] .cw-body { column-width: 280px; column-gap: 26px; } .cw[data-format="masonry"] .cw-section { break-inside: avoid; margin-bottom: 22px; }
+.cw[data-format="split"] .cw-body { display: grid; grid-template-columns: 2fr 1fr; gap: 26px; } .cw[data-format="split"] .cw-section:first-child { grid-row: span 3; }
+.cw[data-format="stage"] .cw-body { display: grid; grid-template-columns: 3fr 1fr; gap: 26px; } .cw[data-format="stage"] .cw-section:first-child { grid-row: span 3; font-size: 15.5px; }
+.cw[data-format="lanes"] .cw-body { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 18px; overflow-x: auto; }
+.cw[data-format="strip"] .cw-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.cw[data-format="strip"] .cw-section:first-child { grid-column: 1 / -1; } .cw[data-format="strip"] .cw-section:first-child .cw-items { display: flex; gap: 10px; overflow-x: auto; } .cw[data-format="strip"] .cw-section:first-child .cw-item { flex: 0 0 240px; }
+.cw[data-format="rows"] .cw-body { display: flex; flex-direction: column; gap: 22px; } .cw[data-format="rows"] .cw-items { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; } .cw[data-format="rows"] .cw-item { flex: 0 0 260px; scroll-snap-align: start; }
+.cw[data-format="deck"] .cw-body { display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; min-height: 70vh; } .cw[data-format="deck"] .cw-section { flex: 0 0 min(420px, 86vw); scroll-snap-align: center; }
+.cw[data-format="spatial"] .cw-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; perspective: 900px; }
+.cw[data-format="spatial"] .cw-section { transform: rotateX(8deg) translateZ(calc(var(--z, 0) * 1px)); } .cw[data-format="spatial"] .cw-section:nth-child(odd) { --z: 30; } .cw[data-format="spatial"] .cw-section:nth-child(even) { --z: -60; opacity: .82; }
+.cw-canvas { position: relative; margin: 0 clamp(14px, 4vw, 48px) 120px; }
+.cw-abs { position: absolute; width: min(240px, 42vw); touch-action: none; }
+.cw[data-format="freeform"] .cw-abs { cursor: grab; }
+.cw-links { position: absolute; inset: 0; width: 100%; height: 100%; } .cw-links line { stroke: rgba(240, 171, 252, .35); stroke-width: .15; }
+.cw-term { margin: 0 clamp(14px, 4vw, 48px) 120px; font: 13px/1.6 ui-monospace, "SFMono-Regular", Menlo, monospace; color: #86efac; white-space: pre-wrap; }
+.cw-term-line { display: inline; font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.cw-term-line:hover { color: #fff; background: rgba(134, 239, 172, .15); }
+@media (max-width: 720px) {
+  .cw[data-format="bento"] .cw-body, .cw[data-format="layered"] .cw-body, .cw[data-format="twozone"] .cw-body, .cw[data-format="split"] .cw-body, .cw[data-format="stage"] .cw-body, .cw[data-format="strip"] .cw-body, .cw[data-format="spatial"] .cw-body { grid-template-columns: 1fr; }
+  .cw[data-format="bento"] .cw-section:first-child, .cw[data-format="twozone"] .cw-section:first-child { grid-column: auto; grid-row: auto; }
+}
+@media (pointer: coarse) { .cw-formats button, .cw-up { min-height: 44px; } .cw-item { min-height: 44px; } }
+/* The chat box stays in the Cosmos with the workspace; the information flows around it: the space under the
+   core and the box is left open, the items fill the Cosmos to either side and below. */
+body:has([data-cosmos-workspace]) .cw-pill { display: none !important; }
+.cw-body, .cw-canvas, .cw-term { margin-top: 0; }
+.cw-items .cw-item { background: rgba(10, 4, 30, .28); }
+.cw-formats button { background: rgba(20, 8, 44, .45); }
+/* First view: the Cosmos, her core and the chat box; her information begins below the box and scrolls up
+   through the Cosmos. */
+@media (min-width: 521px) { .cw-body, .cw-canvas, .cw-term { margin-top: calc(50vh - 40px) !important; } }
