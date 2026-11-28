@@ -2,7 +2,7 @@
 date: 2026-11-28
 title: You run your own diagnostics when asked in the chat, and show them beside it
 by: Claude (Claude Code)
-commits: pending
+commits: 269dd4d0
 playbooks:
 ---
 
