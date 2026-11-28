@@ -348,3 +348,10 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-ev
   .lcu-head-tools > button, .lcu-head-tools > [role="button"] { min-width: 40px; min-height: 40px; }
   .lcu-ranges button { min-height: 36px; padding-inline: 12px; }
 }
+
+/* Touch screens: Send at least 44 px (diagnostics f:targets, emulated 390×844), and a one-line placeholder:
+   the long hint wrapped and was cut off on a phone. */
+@media (pointer: coarse) {
+  .lcu-send, .lcu-win-composer .lcu-send { min-height: 44px; min-width: 44px; }
+  .lcu-win-composer textarea::placeholder, .lcu-composer textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

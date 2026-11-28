@@ -220,7 +220,23 @@ function LiquidShell({ o, rect, variantId, compact, shape, hue, ribbon = false, 
         </div>
       ) : null}
       <header className="to-head">
-        <span className="to-grip" onPointerDown={begin("move")} title="Drag to move" aria-label="Move">
+        <span
+          className="to-grip"
+          onPointerDown={begin("move")}
+          title="Drag to move (or focus and use the arrow keys; Shift for bigger steps)"
+          aria-label="Move"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            // Keyboard move (diagnostics b:keyboard found the handle pointer-only).
+            const step = e.shiftKey ? 40 : 10;
+            const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+            if (!d) return;
+            e.preventDefault();
+            adopt(o);
+            setTransform(o.id, variantId, { dx: (t?.dx ?? 0) + d[0], dy: (t?.dy ?? 0) + d[1], manual: true });
+          }}
+        >
           ⠿
         </span>
         <span className="to-kind">{KIND_LABEL[o.kind]}</span>

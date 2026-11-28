@@ -449,3 +449,19 @@ html:has(.lst-root[data-stage="thread"][data-immersive="true"]) :is(.lcu, .lsn, 
 .ts[data-base="freestyle"] .to[data-kind="neural-map"] .to-body, .ts[data-base="freestyle"] .to[data-kind="youtube"] .to-body { overflow: hidden; }
 /* With a world on, the space still scrolls (it takes the wheel; the world keeps drifting by itself). */
 .tw-host[data-world-on="true"] > .ts[data-base="freestyle"] { pointer-events: auto; }
+
+/* Touch screens: every thread control is at least 44 px to hit (diagnostics f:targets measured 0/31). The
+   visible mark stays small; the hit area grows. */
+@media (pointer: coarse) {
+  .to-grip, .to-actions button, .ts [data-variant-tab], .ts .to-body button, .ts [data-dock] { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .to-resize, .to-rotate { width: 44px; height: 44px; }
+  .to-resize { right: -20px; bottom: -20px; }
+  .to-rotate { top: -44px; margin-left: -22px; }
+  .ts[data-base="freestyle"] .to-grip { opacity: 1; }
+  /* No hover on touch: the map's V1/V2/V3 bar was invisible on a phone. Show it, at finger size. */
+  .ts[data-base="freestyle"] .tm-bar, .tm-bar { opacity: 1 !important; }
+  .tm-bar button, .tm-bar select { min-height: 44px; min-width: 44px; flex-shrink: 0; }
+  /* The floating header is taller with 44 px buttons: start the content below it, so it never covers a link. */
+  .ts[data-base="freestyle"] .to:not([data-kind="youtube"]) .to-body { padding-top: 50px; }
+}
+.to-grip:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 2px; opacity: 1 !important; }
